@@ -2,11 +2,10 @@ extends Resource
 class_name CardData
 
 ## Identité
-@export var card_name: String = "Nouvelle carte"
-@export_multiline var description: String = ""
+@export var card_name: String
+@export var description: String
 @export var texture: Texture2D
 @export var cost: int = 1
-
 ## Race / Faction
 @export_enum("Undead", "Human", "Elf", "Dwarf", "Demon") var race: String = "Undead"
 
@@ -18,11 +17,7 @@ class_name CardData
 @export var health: int = 0
 
 ## Mots-clés
-@export var has_taunt: bool = false
-@export var has_charge: bool = false
-@export var has_protection: bool = false
-@export var has_lifesteal: bool = false
-@export var has_fury: bool = false
+@export var keywords: Array[int] = []
 
 ## Effets — plusieurs triggers possibles par carte
 @export var trigger_types: Array[String] = []

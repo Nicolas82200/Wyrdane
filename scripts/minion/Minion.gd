@@ -10,10 +10,7 @@ var max_health: int
 
 var attacks_remaining: int = 0
 
-var has_protection: bool = false
-var has_lifesteal: bool = false
-var has_fury: bool = false
-
+var keywords: Array[int] = []
 
 func _init(
 	data: CardData,
@@ -24,32 +21,82 @@ func _init(
 	attack = data.attack
 	health = data.health
 	max_health = data.health
-	has_lifesteal = data.has_lifesteal
-	has_protection = data.has_protection
-	has_fury = data.has_fury
-	if data.has_charge:
+	keywords = data.keywords.duplicate()
+	if has_keyword(
+		Keyword.Type.CHARGE
+	):
 		attacks_remaining = 1
+	else:
+		attacks_remaining = 0
 
 func can_attack() -> bool:
 	return attacks_remaining > 0
 
-func refresh_attacks():
-	if has_fury:
+func refresh_attacks() -> void:
+	if has_keyword(
+		Keyword.Type.FURY
+	):
 		attacks_remaining = 2
 	else:
 		attacks_remaining = 1
 
-func consume_attack():
-	attacks_remaining = max(attacks_remaining - 1, 0)
+func consume_attack() -> void:
+	attacks_remaining = max(
+		attacks_remaining - 1,
+		0
+	)
 
-func take_damage(amount: int):
-	if has_protection:
-		has_protection = false
+func take_damage(
+	amount: int
+) -> void:
+	if has_keyword(
+		Keyword.Type.PROTECTION
+	):
+		remove_keyword(
+			Keyword.Type.PROTECTION
+		)
 		return
-	health = max(health - amount, 0)
+	health = max(
+		health - amount,
+		0
+	)
 
-func heal(amount: int):
-	health = min(health + amount, max_health)
+func heal(
+	amount: int
+) -> void:
+	health = min(
+		health + amount,
+		max_health
+	)
 
 func is_dead() -> bool:
 	return health <= 0
+
+# ─────────────────────────────
+# Keywords
+# ─────────────────────────────
+
+func has_keyword(
+	keyword: int
+) -> bool:
+	return keyword in keywords
+
+func add_keyword(
+	keyword: int
+) -> void:
+
+	if keyword not in keywords:
+		keywords.append(keyword)
+
+func remove_keyword(
+	keyword: int
+) -> void:
+	keywords.erase(keyword)
+
+func get_keywords_text() -> String:
+	var names: Array[String] = []
+	for keyword in keywords:
+		names.append(
+			Keyword.get_name(keyword)
+		)
+	return ", ".join(names)

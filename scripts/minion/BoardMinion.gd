@@ -19,13 +19,15 @@ var _highlight_style: StyleBoxFlat
 var _race_style: StyleBoxFlat
 
 
+
 const BORDER_RACE_COLORS := {
-	"Undead": Color("342e1ae1"),
-	"Human": Color("5a4a35e1"),
-	"Elf": Color("2f5d50e1"),
-	"Dwarf": Color("5a3a22e1"),
-	"Demon": Color("5a1f1fe1")
+	Race.Type.UNDEAD: Color("342e1ae1"),
+	Race.Type.HUMAN: Color("5a4a35e1"),
+	Race.Type.ELF: Color("2f5d50e1"),
+	Race.Type.DWARF: Color("5a3a22e1"),
+	Race.Type.DEMON: Color("5a1f1fe1")
 }
+
 
 
 func _ready():
@@ -52,19 +54,24 @@ func _ready():
 func set_minion(new_minion: Minion):
 	minion = new_minion
 	update_display()
-	attack_label.text = str(minion.attack)
-	health_label.text = str(minion.health)
 
 func update_display():
 	if minion == null:
 		return
-	modulate = Color.WHITE if minion.can_attack() else Color(0.5, 0.5, 0.5)
-	name_label.text = minion.card_data.card_name
-	attack_label.text = "ATK : " + str(minion.attack)
-	health_label.text = "HP : " + str(max(minion.health, 0))
+	attack_label.text =  str(minion.attack)
+	health_label.text = str(max(minion.health, 0))
+	if minion.can_attack():
+		modulate = Color.WHITE
+	else:
+		modulate = Color(0.7, 0.7, 0.7)
+		name_label.text = minion.card_data.card_name
+		
+	
 	if minion.card_data.texture:
 		art.texture = minion.card_data.texture
-	protection_icon.visible = minion.has_protection
+	protection_icon.visible = minion.has_keyword(
+	Keyword.Type.PROTECTION
+)
 	var race = minion.card_data.race
 	_race_style.border_color = BORDER_RACE_COLORS.get(race, Color.WHITE)
 

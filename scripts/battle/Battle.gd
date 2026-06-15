@@ -1,6 +1,6 @@
 extends Control
 
-const EffectManager = preload("res://scripts/EffectManager/EffectManager.gd")
+const EffectManagerData = preload("res://scripts/EffectManager/EffectManager.gd")
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 
 @onready var hand = $Hand
@@ -75,9 +75,13 @@ func update_mana_ui() -> void:
 # ─── Héros ────────────────────────────────────────────────────────────────────
 
 func get_owner_hero(minion: Minion) -> Hero:
+	if minion == null:
+		return player_hero
 	return player_hero if minion.owner_is_player else enemy_hero
 
 func get_enemy_hero(minion: Minion) -> Hero:
+	if minion == null:
+		return enemy_hero
 	return enemy_hero if minion.owner_is_player else player_hero
 
 func damage_hero(hero: Hero, damage: int) -> void:
@@ -108,7 +112,12 @@ func summon_minion(card_data: CardData, is_player: bool = true) -> void:
 	refresh_board()
 
 func has_enemy_taunt() -> bool:
-	return enemy_minions.any(func(m): return m.card_data.has_taunt)
+	for minion in enemy_minions:
+		if minion.has_keyword(
+			Keyword.Type.TAUNT
+		):
+			return true
+	return false
 
 func destroy_minion(target: Minion) -> void:
 	target.health = 0
@@ -140,7 +149,7 @@ func resolve_card_target(target: Minion) -> void:
 	mana -= pending_card.cost
 	update_mana_ui()
 	for effect in pending_card.effects:
-		EffectManager.execute_targeted_effect(self, effect, target)
+		EffectManagerData.execute_targeted_effect(self, effect, target)
 	hand_cards.erase(pending_card)
 	hand.set_hand(hand_cards)
 	pending_card = null
@@ -154,7 +163,8 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	trigger_effects(attacker, "OnAttack")
 	defender.take_damage(attacker.attack)
 	trigger_effects(defender, "OnDamaged")
-	if attacker.has_lifesteal:
+	if attacker.has_keyword(
+	Keyword.Type.LIFESTEAL):
 		get_owner_hero(attacker).heal(attacker.attack)
 	attacker.take_damage(defender.attack)
 	attacker.attacks_remaining -= 1
@@ -187,7 +197,7 @@ func trigger_effects(minion: Minion, trigger_name: String) -> void:
 	if not trigger_name in minion.card_data.trigger_types:
 		return
 	for effect in minion.card_data.effects:
-		EffectManager.execute_effect(self, minion, effect)
+		EffectManagerData.execute_effect(self, minion, effect)
 
 
 # ─── Sélection / Clicks ───────────────────────────────────────────────────────
@@ -209,7 +219,8 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 		return
 	if selected_attacker == null:
 		return
-	if has_enemy_taunt() and not target.card_data.has_taunt:
+	if has_enemy_taunt() and not target.has_keyword(
+	Keyword.Type.TAUNT):
 		return
 	resolve_combat(selected_attacker, target)
 	clear_selection()
@@ -218,8 +229,11 @@ func _on_enemy_hero_clicked() -> void:
 	if game_over or selected_attacker == null or has_enemy_taunt():
 		return
 	damage_hero(enemy_hero, selected_attacker.attack)
-	if selected_attacker.has_lifesteal:
-		get_owner_hero(selected_attacker).heal(selected_attacker.attack)
+	if selected_attacker.has_keyword(
+	Keyword.Type.LIFESTEAL):
+		get_owner_hero(selected_attacker).heal(
+		selected_attacker.attack
+	)
 	selected_attacker.attacks_remaining -= 1
 	clear_selection()
 	check_game_end()
