@@ -18,6 +18,5 @@ description = "À sa mort, le minion allié adjacent gagne +1/+1."
 texture = ExtResource("2_texture")
 attack = 1
 health = 1
-trigger_type = "Deathrattle"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

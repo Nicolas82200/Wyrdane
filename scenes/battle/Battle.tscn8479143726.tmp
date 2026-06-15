@@ -89,14 +89,6 @@ vertical_alignment = 1
 
 [node name="Hand" parent="." unique_id=1979632691 instance=ExtResource("2_jnwmo")]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-offset_left = -960.0
-offset_top = -1080.0
-offset_right = 960.0
-grow_vertical = 0
 
 [node name="Board" type="Control" parent="." unique_id=465586971]
 custom_minimum_size = Vector2(0, 300)

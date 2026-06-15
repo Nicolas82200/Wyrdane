@@ -4,9 +4,12 @@
 [ext_resource type="Texture2D" uid="uid://bsu02s3vqg63h" path="res://assets/card_art/patient-zero.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_3330o"]
 script = ExtResource("1_cardeffect")
-effect_id = "TransformEnemy"
+target = "AllMinions"
+value = 1
+value_2 = 1
+count = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
@@ -17,7 +20,7 @@ texture = ExtResource("2_texture")
 cost = 4
 attack = 3
 health = 3
-trigger_type = "Battlecry"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[String](["ONTURNEND"])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_3330o")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

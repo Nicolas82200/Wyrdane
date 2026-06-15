@@ -18,7 +18,6 @@ texture = ExtResource("2_texture")
 cost = 5
 attack = 4
 health = 6
-trigger_type = "Deathrattle"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

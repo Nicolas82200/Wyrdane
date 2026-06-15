@@ -7,6 +7,7 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "DrawCard"
+target = "OwnerHero"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -17,7 +18,6 @@ description = "Chaque fois qu'un zombie allié meurt, pioche 1 carte."
 texture = ExtResource("2_texture")
 cost = 3
 card_type = "Enchantment"
-trigger_type = "OnMinionsDeath"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

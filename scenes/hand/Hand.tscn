@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cy0myl1nfwyu"]
 
 [ext_resource type="Script" uid="uid://sn8bh4ib1uyk" path="res://scripts/hand/Hand.gd" id="1_7c7ba"]
+[ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="2_0nsk7"]
 
 [node name="Hand" type="Control" unique_id=1979632691]
 clip_contents = true
@@ -21,3 +22,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="CardPreview" parent="." unique_id=2019163809 instance=ExtResource("2_0nsk7")]
+layout_mode = 0

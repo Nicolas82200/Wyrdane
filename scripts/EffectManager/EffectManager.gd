@@ -8,11 +8,11 @@ static func execute_effect(
 	selected_target: Minion = null
 ) -> void:
 	match effect.effect_id:
-		"Damage":     _damage(battle, source_minion, effect, selected_target)
-		"Heal":       _heal(battle, source_minion, effect, selected_target)
-		"Buff":       _buff(battle, source_minion, effect, selected_target)
-		"Destroy":    _destroy(battle, source_minion, effect, selected_target)
-		"DrawCard":   _draw_cards(battle, source_minion, effect.value)
+		"Damage":       _damage(battle, source_minion, effect, selected_target)
+		"Heal":         _heal(battle, source_minion, effect, selected_target)
+		"Buff":         _buff(battle, source_minion, effect, selected_target)
+		"Destroy":      _destroy(battle, source_minion, effect, selected_target)
+		"DrawCard":     _draw_cards(battle, source_minion, effect.value)
 		"SummonMinion": _summon_minion(battle, source_minion, effect)
 		"StealHealth":  _steal_health(battle, source_minion, effect, selected_target)
 		_:
@@ -23,12 +23,7 @@ static func execute_effect(
 	battle.update_hero_ui()
 
 
-static func execute_targeted_effect(
-	battle,
-	effect: CardEffect,
-	target: Minion
-) -> void:
-	## Crée un minion source fictif neutre pour les effets de cartes non-serviteurs
+static func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
 	execute_effect(battle, null, effect, target)
 
 
@@ -38,10 +33,8 @@ static func _heal(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	match effect.target:
-		"OwnerHero":
-			battle.get_owner_hero(source_minion).heal(effect.value)
-		"EnemyHero":
-			battle.get_enemy_hero(source_minion).heal(effect.value)
+		"OwnerHero": battle.get_owner_hero(source_minion).heal(effect.value)
+		"EnemyHero": battle.get_enemy_hero(source_minion).heal(effect.value)
 		_:
 			for target in _resolve_targets(battle, source_minion, effect, selected_target):
 				target.heal(effect.value)
@@ -68,7 +61,6 @@ static func _summon_minion(battle, source_minion: Minion, effect: CardEffect) ->
 	for i in range(effect.count):
 		battle.summon_minion(effect.summon_card, source_minion.owner_is_player)
 
-
 static func _steal_health(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
@@ -82,10 +74,8 @@ static func _damage(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	match effect.target:
-		"EnemyHero":
-			battle.get_enemy_hero(source_minion).take_damage(effect.value)
-		"OwnerHero":
-			battle.get_owner_hero(source_minion).take_damage(effect.value)
+		"EnemyHero": battle.get_enemy_hero(source_minion).take_damage(effect.value)
+		"OwnerHero": battle.get_owner_hero(source_minion).take_damage(effect.value)
 		_:
 			for target in _resolve_targets(battle, source_minion, effect, selected_target):
 				target.take_damage(effect.value)
@@ -101,20 +91,14 @@ static func _destroy(
 # ─── Ciblage ──────────────────────────────────────────────────────────────────
 
 static func _resolve_targets(
-	battle,
-	source_minion: Minion,
-	effect: CardEffect,
-	selected_target: Minion = null
+	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> Array:
 	var targets := _get_targets(battle, source_minion, effect, selected_target)
 	return _filter_targets(targets, effect)
 
 
 static func _get_targets(
-	battle,
-	source_minion: Minion,
-	effect: CardEffect,
-	selected_target: Minion = null
+	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> Array:
 	match effect.target:
 		"Self":
@@ -145,5 +129,5 @@ static func _filter_targets(targets: Array, effect: CardEffect) -> Array:
 	if effect.race_filter.is_empty():
 		return targets
 	return targets.filter(
-		func(t): return t is Minion and t.card_data.race == effect.race_filter
+		func(t): return t is Minion and t.card_data.race == Race.from_string(effect.race_filter)
 	)

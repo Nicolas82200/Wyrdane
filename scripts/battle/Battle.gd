@@ -3,21 +3,27 @@ extends Control
 const EffectManagerData = preload("res://scripts/EffectManager/EffectManager.gd")
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 
-@onready var hand = $Hand
-@onready var mana_label = $ManaLabel
-@onready var end_turn_button = $EndTurnButton
-@onready var enemy_container = $Board/EnemyMinionsContainer
+@onready var hand             = $Hand
+@onready var mana_label       = $ManaLabel
+@onready var end_turn_button  = $EndTurnButton
+@onready var enemy_container  = $Board/EnemyMinionsContainer
 @onready var player_container = $Board/PlayerMinionsContainer
-
+@onready var player_graveyard_btn = $PlayerGraveyardButton
+@onready var enemy_graveyard_btn  = $EnemyGraveyardButton
+@onready var graveyard_view: GraveyardView = $GraveyardView
+const CARD_BACK = preload("res://assets/card_back/card-back.png")
 var player_minions: Array[Minion] = []
-var enemy_minions: Array[Minion] = []
+var enemy_minions: Array[Minion]  = []
 
-var selected_attacker: Minion = null
+var player_graveyard := Graveyard.new()
+var enemy_graveyard  := Graveyard.new()
+
+var selected_attacker: Minion      = null
 var selected_board_minion: BoardMinion = null
-var pending_card: CardData = null
+var pending_card: CardData         = null
 var waiting_for_target := false
 
-var deck: Array[CardData] = []
+var deck: Array[CardData]       = []
 var hand_cards: Array[CardData] = []
 
 var mana := 3
@@ -29,16 +35,23 @@ var game_over := false
 
 func _ready() -> void:
 	load_deck()
-	var enemy_card = load("res://resources/cards/undead/decaying-crawler.tres")
+	var enemy_card = load("res://resources/cards/undead/putrefied-leviathan.tres")
 	enemy_minions.append(Minion.new(enemy_card, false))
-
 	player_hero = Hero.new(30)
-	enemy_hero = Hero.new(30)
-
+	enemy_hero  = Hero.new(30)
 	hand.card_played.connect(_on_card_played)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	$EnemyHeroPanel.hero_clicked.connect(_on_enemy_hero_clicked)
-
+	player_graveyard.graveyard_changed.connect(func():
+		player_graveyard_btn.text = "%d" % player_graveyard.size()
+		player_graveyard_btn.icon = CARD_BACK if player_graveyard.size() > 0 else null
+)
+	enemy_graveyard.graveyard_changed.connect(func():
+		enemy_graveyard_btn.text = "%d" % enemy_graveyard.size()
+		enemy_graveyard_btn.icon = CARD_BACK if enemy_graveyard.size() > 0 else null
+)
+	player_graveyard_btn.pressed.connect(func(): graveyard_view.open(player_graveyard))
+	enemy_graveyard_btn.pressed.connect(func():  graveyard_view.open(enemy_graveyard))
 	update_mana_ui()
 	update_hero_ui()
 	refresh_board()
@@ -46,11 +59,10 @@ func _ready() -> void:
 
 
 func load_deck() -> void:
-	var card = load("res://resources/cards/undead/zombie-banshe.tres")
+	var card = load("res://resources/cards/undead/bloated-giant.tres")
 	deck = []
 	for i in range(10):
 		deck.append(card)
-
 
 func start_game() -> void:
 	deck.shuffle()
@@ -58,19 +70,21 @@ func start_game() -> void:
 		draw_card()
 	hand.set_hand(hand_cards)
 
-
 func draw_card() -> void:
 	if deck.is_empty():
 		# TODO: fatigue damage au héros
 		return
 	hand_cards.append(deck.pop_back())
 
+func discard_card(card_data: CardData) -> void:
+	hand_cards.erase(card_data)
+	player_graveyard.add_discard(card_data)
+
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
 func update_mana_ui() -> void:
 	mana_label.text = "%d/%d" % [mana, max_mana]
-
 
 # ─── Héros ────────────────────────────────────────────────────────────────────
 
@@ -91,15 +105,18 @@ func damage_hero(hero: Hero, damage: int) -> void:
 
 func update_hero_ui() -> void:
 	$PlayerHeroPanel/HealthLabel.text = str(maxi(player_hero.health, 0))
-	$EnemyHeroPanel/HealthLabel.text = str(maxi(enemy_hero.health, 0))
-
+	$EnemyHeroPanel/HealthLabel.text  = str(maxi(enemy_hero.health, 0))
 
 # ─── Serviteurs ───────────────────────────────────────────────────────────────
 
 func get_owner_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return player_minions
 	return player_minions if minion.owner_is_player else enemy_minions
 
 func get_enemy_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return enemy_minions
 	return enemy_minions if minion.owner_is_player else player_minions
 
 func summon_minion(card_data: CardData, is_player: bool = true) -> void:
@@ -108,21 +125,18 @@ func summon_minion(card_data: CardData, is_player: bool = true) -> void:
 		player_minions.append(minion)
 	else:
 		enemy_minions.append(minion)
-	trigger_effects(minion, "Battlecry")
+	trigger_effects(minion, "BATTLECRY")
 	refresh_board()
 
 func has_enemy_taunt() -> bool:
 	for minion in enemy_minions:
-		if minion.has_keyword(
-			Keyword.Type.TAUNT
-		):
+		if minion.has_keyword(Keyword.Type.TAUNT):
 			return true
 	return false
 
 func destroy_minion(target: Minion) -> void:
 	target.health = 0
 	remove_dead_minions()
-
 
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
@@ -142,6 +156,11 @@ func play_card(card_data: CardData) -> void:
 	hand.set_hand(hand_cards)
 	if card_data.card_type == "Minion":
 		summon_minion(card_data)
+	else:
+		player_graveyard.add_spell(card_data)
+		for effect in card_data.effects:
+			EffectManagerData.execute_effect(self, null, effect)
+			refresh_board()
 
 func resolve_card_target(target: Minion) -> void:
 	if pending_card == null:
@@ -151,11 +170,11 @@ func resolve_card_target(target: Minion) -> void:
 	for effect in pending_card.effects:
 		EffectManagerData.execute_targeted_effect(self, effect, target)
 	hand_cards.erase(pending_card)
+	player_graveyard.add_spell(pending_card)
 	hand.set_hand(hand_cards)
 	pending_card = null
 	waiting_for_target = false
 	refresh_board()
-
 
 # ─── Combat ───────────────────────────────────────────────────────────────────
 
@@ -163,8 +182,7 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	trigger_effects(attacker, "OnAttack")
 	defender.take_damage(attacker.attack)
 	trigger_effects(defender, "OnDamaged")
-	if attacker.has_keyword(
-	Keyword.Type.LIFESTEAL):
+	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
 		get_owner_hero(attacker).heal(attacker.attack)
 	attacker.take_damage(defender.attack)
 	attacker.attacks_remaining -= 1
@@ -174,31 +192,26 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	check_game_end()
 
 func remove_dead_minions() -> void:
-	# Collecter les morts
 	var dead_player := player_minions.filter(func(m): return m.is_dead())
-	var dead_enemy := enemy_minions.filter(func(m): return m.is_dead())
-
-	# Retirer avant les deathrattles pour éviter des doubles triggers
-	player_minions = player_minions.filter(func(m): return not m.is_dead())
-	enemy_minions = enemy_minions.filter(func(m): return not m.is_dead())
-
-	# Résoudre tous les deathrattles, puis un seul refresh
+	var dead_enemy  := enemy_minions.filter(func(m): return m.is_dead())
 	for minion in dead_player:
-		trigger_effects(minion, "Deathrattle")
+		player_graveyard.add_minion(minion.card_data)
+		print("Cimetière joueur : ", player_graveyard.size())
+		trigger_effects(minion, "DEATHRATTLE")
 	for minion in dead_enemy:
-		trigger_effects(minion, "Deathrattle")
-
+		enemy_graveyard.add_minion(minion.card_data)
+		trigger_effects(minion, "DEATHRATTLE")
+	player_minions = player_minions.filter(func(m): return not m.is_dead())
+	enemy_minions  = enemy_minions.filter(func(m): return not m.is_dead())
 	refresh_board()
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
 	if minion == null:
 		return
-	## Support multi-triggers : on vérifie le tableau trigger_types
 	if not trigger_name in minion.card_data.trigger_types:
 		return
 	for effect in minion.card_data.effects:
 		EffectManagerData.execute_effect(self, minion, effect)
-
 
 # ─── Sélection / Clicks ───────────────────────────────────────────────────────
 
@@ -207,7 +220,7 @@ func _on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> voi
 		return
 	if selected_board_minion:
 		selected_board_minion.set_selected(false)
-	selected_attacker = minion
+	selected_attacker     = minion
 	selected_board_minion = board_minion
 	selected_board_minion.set_selected(true)
 
@@ -219,8 +232,7 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 		return
 	if selected_attacker == null:
 		return
-	if has_enemy_taunt() and not target.has_keyword(
-	Keyword.Type.TAUNT):
+	if has_enemy_taunt() and not target.has_keyword(Keyword.Type.TAUNT):
 		return
 	resolve_combat(selected_attacker, target)
 	clear_selection()
@@ -229,11 +241,8 @@ func _on_enemy_hero_clicked() -> void:
 	if game_over or selected_attacker == null or has_enemy_taunt():
 		return
 	damage_hero(enemy_hero, selected_attacker.attack)
-	if selected_attacker.has_keyword(
-	Keyword.Type.LIFESTEAL):
-		get_owner_hero(selected_attacker).heal(
-		selected_attacker.attack
-	)
+	if selected_attacker.has_keyword(Keyword.Type.LIFESTEAL):
+		get_owner_hero(selected_attacker).heal(selected_attacker.attack)
 	selected_attacker.attacks_remaining -= 1
 	clear_selection()
 	check_game_end()
@@ -243,8 +252,7 @@ func clear_selection() -> void:
 	if selected_board_minion:
 		selected_board_minion.set_selected(false)
 	selected_board_minion = null
-	selected_attacker = null
-
+	selected_attacker     = null
 
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
@@ -255,7 +263,7 @@ func _on_end_turn_pressed() -> void:
 
 func end_turn() -> void:
 	for minion in player_minions:
-		trigger_effects(minion, "OnTurnEnd")
+		trigger_effects(minion, "ONTURNEND")
 	start_new_turn()
 
 func start_new_turn() -> void:
@@ -263,12 +271,11 @@ func start_new_turn() -> void:
 	mana = max_mana
 	for minion in player_minions:
 		minion.refresh_attacks()
-		trigger_effects(minion, "OnTurnStart")
+		trigger_effects(minion, "ONTURNSTART")
 	draw_card()
 	hand.set_hand(hand_cards)
 	update_mana_ui()
 	refresh_board()
-
 
 # ─── Board ────────────────────────────────────────────────────────────────────
 
@@ -290,13 +297,11 @@ func _rebuild_minion_visuals(container: Node, minions: Array[Minion], is_player:
 		else:
 			visual.minion_clicked.connect(_on_enemy_minion_clicked)
 
-
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
 func check_game_end() -> void:
 	if enemy_hero.is_dead() or player_hero.is_dead():
 		game_over = true
-
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 

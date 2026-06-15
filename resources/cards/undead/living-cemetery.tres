@@ -16,7 +16,6 @@ description = "Tes zombies morts reviennent dans ta main au lieu du cimetière (
 texture = ExtResource("2_texture")
 cost = 5
 card_type = "Enchantment"
-trigger_type = "OnMinionsDeath"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

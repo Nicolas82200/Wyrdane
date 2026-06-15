@@ -1,13 +1,16 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://4ff06aa6c024"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Resource" uid="uid://bxb0k8vr07727" path="res://resources/cards/undead/minor-horde-summon.tres" id="2_lpp7m"]
 [ext_resource type="Texture2D" uid="uid://c8kdq6dfpv5b1" path="res://assets/card_art/minor-horde.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonCopies"
+effect_id = "SummonMinion"
+target = "Self"
 count = 2
+summon_card = ExtResource("2_lpp7m")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
@@ -18,6 +21,6 @@ texture = ExtResource("2_texture")
 cost = 3
 attack = 1
 health = 1
-trigger_type = "Battlecry"
+trigger_types = Array[String](["BATTLECRY"])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
