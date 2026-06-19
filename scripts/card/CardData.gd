@@ -19,3 +19,4 @@ class_name CardData
 @export var requires_target: bool = false
 
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity: String = "Common"
+@export_enum("Front", "Back", "Hybrid") var board_position: String = "Front"

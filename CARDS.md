@@ -2,9 +2,31 @@
 
 Liste complète des cartes de la race **Mort-Vivant**.
 
-**Légende**
-`⬡` Coût mana · `⚔` ATK · `♥` HP
-`⚔️` Rangée Avant recommandée · `🛡️` Rangée Arrière recommandée · `↕️` Flexible
+---
+
+## Légende
+
+**Stats**
+- `⬡` = Coût en mana  
+- `⚔` = Attaque  
+- `♥` = Points de vie
+
+**Positionnement (Lane Types)**
+- `⚔️` = Rangée Avant recommandée  
+- `🛡️` = Rangée Arrière recommandée  
+- `↕️` = Hybride (flexible, jouable dans n'importe quelle rangée)
+
+**Mots-clés**
+- `REMPART` — Doit être attaqué en priorité  
+- `ASSAUT` — Peut attaquer le tour de son invocation  
+- `FRÉNÉSIE` — Peut attaquer deux fois par tour  
+- `RAVAGE` — Dégâts excédentaires au héros adverse  
+- `AILES NOIRES` — Ignore la rangée Avant ennemie  
+- `MOISSON` — Les dégâts infligés soignent le héros allié  
+- `VENIN MORTEL` — Toute blessure détruit la cible  
+- `ÉGIDE` — Ignore la première source de dégâts reçue
+
+---
 
 ## Serviteurs
 

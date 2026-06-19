@@ -55,120 +55,37 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="EnemyFrontHighlight" type="ColorRect" parent="Board" unique_id=2126227615]
-visible = false
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
+[node name="EnemyMinionsContainer" type="HBoxContainer" parent="Board" unique_id=2126227612]
+custom_minimum_size = Vector2(1300, 175)
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -280.0
-offset_right = 750.0
-offset_bottom = -130.0
-mouse_filter = 2
-color = Color(0, 1, 0, 0.2)
-
-[node name="EnemyBackHighlight" type="ColorRect" parent="Board" unique_id=2126227616]
-visible = false
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -100.0
-offset_right = 750.0
-offset_bottom = 50.0
-mouse_filter = 2
-color = Color(0, 1, 0, 0.2)
-
-[node name="PlayerFrontHighlight" type="ColorRect" parent="Board" unique_id=447161654]
-visible = false
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = 50.0
-offset_right = 750.0
-offset_bottom = 200.0
-mouse_filter = 2
-color = Color(0, 1, 0, 0.2)
-
-[node name="PlayerBackHighlight" type="ColorRect" parent="Board" unique_id=447161655]
-visible = false
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = 220.0
-offset_right = 750.0
-offset_bottom = 370.0
-mouse_filter = 2
-color = Color(0, 1, 0, 0.2)
-
-[node name="EnemyFrontLine" type="HBoxContainer" parent="Board" unique_id=2126227613]
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -280.0
-offset_right = 750.0
-offset_bottom = -130.0
+offset_left = -650.0
+offset_top = 1711.0
+offset_right = 650.0
+offset_bottom = -10.0
 grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 alignment = 1
 
-[node name="EnemyBackLine" type="HBoxContainer" parent="Board" unique_id=2126227614]
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
+[node name="PlayerMinionsContainer" type="HBoxContainer" parent="Board" unique_id=447161651]
+custom_minimum_size = Vector2(1300, 175)
+layout_mode = 1
+anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = -100.0
-offset_right = 750.0
-offset_bottom = 50.0
+offset_left = -650.0
+offset_top = 680.0
+offset_right = 650.0
+offset_bottom = -500.0
 grow_horizontal = 2
-alignment = 1
-
-[node name="PlayerFrontLine" type="HBoxContainer" parent="Board" unique_id=447161652]
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = 50.0
-offset_right = 750.0
-offset_bottom = 200.0
-grow_horizontal = 2
-alignment = 1
-
-[node name="PlayerBackLine" type="HBoxContainer" parent="Board" unique_id=447161653]
-custom_minimum_size = Vector2(1500, 150)
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -750.0
-offset_top = 220.0
-offset_right = 750.0
-offset_bottom = 370.0
-grow_horizontal = 2
+grow_vertical = 2
 alignment = 1
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]

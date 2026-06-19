@@ -4,16 +4,26 @@ const EffectManagerData  = preload("res://scripts/EffectManager/EffectManager.gd
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 const CARD_BACK          = preload("res://assets/card_back/card-back.png")
 const MAX_STACK_VISUAL   := 8
+const ROW_FRONT          := "Front"
+const ROW_BACK           := "Back"
+const MAX_MINIONS_PER_ROW := 10
+const BOARD_MINION_SIZE := Vector2(100, 150)
+const DROP_HIGHLIGHT_COLOR := Color(1.0, 0.45, 0.05, 0.28)
+const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 
-@onready var hand                  = $Hand
-@onready var mana_label            = $ManaLabel
-@onready var end_turn_button       = $EndTurnButton
-@onready var enemy_container       = $Board/EnemyMinionsContainer
-@onready var player_container      = $Board/PlayerMinionsContainer
-@onready var player_graveyard_btn  = $PlayerGraveyardButton
-@onready var enemy_graveyard_btn   = $EnemyGraveyardButton
-@onready var player_graveyard_preview = $PlayerGraveyardButton/CardPreview
-@onready var enemy_graveyard_preview  = $EnemyGraveyardButton/CardPreview
+@onready var hand: Hand                  = $Hand
+@onready var mana_label: Label           = $ManaLabel
+@onready var end_turn_button: Button     = $EndTurnButton
+@onready var enemy_container: Control    = get_node_or_null("Board/EnemyMinionsContainer") as Control
+@onready var player_container: Control   = get_node_or_null("Board/PlayerMinionsContainer") as Control
+@onready var player_front_container: Control = get_node_or_null("Board/PlayerFrontLine") as Control
+@onready var player_back_container: Control  = get_node_or_null("Board/PlayerBackLine") as Control
+@onready var enemy_front_container: Control  = get_node_or_null("Board/EnemyFrontLine") as Control
+@onready var enemy_back_container: Control   = get_node_or_null("Board/EnemyBackLine") as Control
+@onready var player_graveyard_btn: Button = $PlayerGraveyardButton
+@onready var enemy_graveyard_btn: Button  = $EnemyGraveyardButton
+@onready var player_graveyard_preview: Card = $PlayerGraveyardButton/CardPreview
+@onready var enemy_graveyard_preview: Card  = $EnemyGraveyardButton/CardPreview
 @onready var graveyard_view: GraveyardView = $GraveyardView
 @onready var deck_button           = $DeckButton
 @onready var deck_count_label      = $DeckButton/CountLabel
@@ -21,13 +31,15 @@ const MAX_STACK_VISUAL   := 8
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 
-var player_graveyard := Graveyard.new()
-var enemy_graveyard  := Graveyard.new()
+var player_graveyard: Graveyard = Graveyard.new()
+var enemy_graveyard: Graveyard  = Graveyard.new()
 
 var selected_attacker: Minion         = null
 var selected_board_minion: BoardMinion = null
 var pending_card: CardData            = null
-var waiting_for_target := false
+var pending_row: String = ROW_FRONT
+var pending_insert_index: int = -1
+var waiting_for_target: bool = false
 
 var deck: Array[CardData]       = []
 var hand_cards: Array[CardData] = []
@@ -36,13 +48,13 @@ var mana      := 3
 var max_mana  := 3
 var player_hero: Hero
 var enemy_hero: Hero
-var game_over := false
+var game_over: bool = false
 
 
 func _ready() -> void:
 	load_deck()
-	var enemy_card = load("res://resources/cards/undead/minor-zombie.tres")
-	enemy_minions.append(Minion.new(enemy_card, false))
+	var enemy_card: CardData = load("res://resources/cards/undead/minor-zombie.tres") as CardData
+	enemy_minions.append(Minion.new(enemy_card, false, ROW_FRONT))
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
 	hand.card_played.connect(_on_card_played)
@@ -77,6 +89,8 @@ func _ready() -> void:
 		player_graveyard_preview.set_non_interactive()
 	if enemy_graveyard_preview.has_method("set_non_interactive"):
 		enemy_graveyard_preview.set_non_interactive()
+	hand.drag_started.connect(_on_hand_drag_started)
+	hand.drag_ended.connect(_on_hand_drag_ended)
 	update_mana_ui()
 	update_hero_ui()
 	update_deck_ui()
@@ -84,7 +98,7 @@ func _ready() -> void:
 	start_game()
 
 func load_deck() -> void:
-	var card = load("res://resources/cards/undead/minor-horde.tres")
+	var card: CardData = load("res://resources/cards/undead/minor-horde.tres") as CardData
 	deck = []
 	for i in range(20):
 		deck.append(card)
@@ -183,20 +197,83 @@ func get_enemy_minions(minion: Minion) -> Array[Minion]:
 		return enemy_minions
 	return enemy_minions if minion.owner_is_player else player_minions
 
-func summon_minion(card_data: CardData, is_player: bool = true) -> void:
-	var minion = Minion.new(card_data, is_player)
+func get_row_minions(is_player: bool, row: String) -> Array[Minion]:
+	var source: Array[Minion] = player_minions if is_player else enemy_minions
+	return source.filter(func(m): return m.board_row == row)
+
+func get_front_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, ROW_FRONT)
+
+func get_back_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, ROW_BACK)
+
+func can_summon_to_row(is_player: bool, row: String) -> bool:
+	return get_row_minions(is_player, row).size() < MAX_MINIONS_PER_ROW
+
+func summon_minion(card_data: CardData, is_player: bool = true, row: String = ROW_FRONT, insert_index: int = -1) -> bool:
+	row = _normalized_row(row)
+	if not can_summon_to_row(is_player, row):
+		push_warning("Rangée %s pleine : impossible de poser %s." % [row, card_data.card_name])
+		return false
+	var minion: Minion = Minion.new(card_data, is_player, row)
 	if is_player:
-		player_minions.append(minion)
+		_insert_minion_in_row(player_minions, minion, row, insert_index)
 	else:
-		enemy_minions.append(minion)
+		_insert_minion_in_row(enemy_minions, minion, row, insert_index)
 	trigger_effects(minion, "BATTLECRY")
 	refresh_board()
+	return true
+
+func _normalized_row(row: String) -> String:
+	return ROW_BACK if row == ROW_BACK else ROW_FRONT
+
+func _insert_minion_in_row(minions: Array[Minion], minion: Minion, row: String, insert_index: int) -> void:
+	var row_count: int = get_row_count_in(minions, row)
+	insert_index = clamp(insert_index, 0, row_count) if insert_index >= 0 else row_count
+	var seen_in_row: int = 0
+	for i in range(minions.size()):
+		if minions[i].board_row != row:
+			continue
+		if seen_in_row == insert_index:
+			minions.insert(i, minion)
+			return
+		seen_in_row += 1
+	minions.append(minion)
+
+func get_row_count_in(minions: Array[Minion], row: String) -> int:
+	var count: int = 0
+	for minion in minions:
+		if minion.board_row == row:
+			count += 1
+	return count
+
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [ROW_FRONT, ROW_BACK]
+	match card_data.board_position:
+		ROW_FRONT:
+			return [ROW_FRONT]
+		ROW_BACK:
+			return [ROW_BACK]
+		_:
+			return [ROW_FRONT, ROW_BACK]
+
+func can_play_card_on_row(card_data: CardData, row: String) -> bool:
+	return row in get_allowed_rows_for_card(card_data)
 
 func has_enemy_taunt() -> bool:
-	for minion in enemy_minions:
+	for minion in get_attackable_enemy_minions(selected_attacker):
 		if minion.has_keyword(Keyword.Type.TAUNT):
 			return true
 	return false
+
+func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
+		return enemy_minions
+	var front: Array[Minion] = get_front_minions(false)
+	if not front.is_empty():
+		return front
+	return enemy_minions
 
 func destroy_minion(target: Minion) -> void:
 	target.health = 0
@@ -204,22 +281,32 @@ func destroy_minion(target: Minion) -> void:
 
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
-func _on_card_played(card_data: CardData) -> void:
+func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	if game_over or card_data.cost > mana:
+		return
+	row = _normalized_row(row)
+	if card_data.card_type == "Minion" and not can_play_card_on_row(card_data, row):
+		return
+	if card_data.card_type == "Minion" and not can_summon_to_row(true, row):
+		push_warning("Rangée %s pleine : impossible de jouer %s." % [row, card_data.card_name])
 		return
 	if card_data.requires_target:
 		pending_card = card_data
+		pending_row = row
+		pending_insert_index = insert_index
 		waiting_for_target = true
 		return
-	play_card(card_data)
+	# Animate card slide before playing
+	await _play_card_slide_animation(card_data, row)
+	play_card(card_data, row, insert_index)
 
-func play_card(card_data: CardData) -> void:
+func play_card(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	mana -= card_data.cost
 	update_mana_ui()
 	hand_cards.erase(card_data)
 	hand.set_hand(hand_cards)
 	if card_data.card_type == "Minion":
-		summon_minion(card_data)
+		summon_minion(card_data, true, row, insert_index)
 	else:
 		player_graveyard.add_spell(card_data)
 		for effect in card_data.effects:
@@ -234,9 +321,14 @@ func resolve_card_target(target: Minion) -> void:
 	for effect in pending_card.effects:
 		EffectManagerData.execute_targeted_effect(self, effect, target)
 	hand_cards.erase(pending_card)
-	player_graveyard.add_spell(pending_card)
+	if pending_card.card_type == "Minion":
+		summon_minion(pending_card, true, pending_row, pending_insert_index)
+	else:
+		player_graveyard.add_spell(pending_card)
 	hand.set_hand(hand_cards)
 	pending_card       = null
+	pending_row        = ROW_FRONT
+	pending_insert_index = -1
 	waiting_for_target = false
 	refresh_board()
 
@@ -306,9 +398,13 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 	if game_over:
 		return
 	if waiting_for_target:
+		if target not in get_attackable_enemy_minions(null):
+			return
 		resolve_card_target(target)
 		return
 	if selected_attacker == null:
+		return
+	if target not in get_attackable_enemy_minions(selected_attacker):
 		return
 	if has_enemy_taunt() and not target.has_keyword(Keyword.Type.TAUNT):
 		return
@@ -317,6 +413,8 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 
 func _on_enemy_hero_clicked() -> void:
 	if game_over or selected_attacker == null or has_enemy_taunt():
+		return
+	if not selected_attacker.has_keyword(Keyword.Type.BLACK_WINGS) and not get_front_minions(false).is_empty():
 		return
 	damage_hero(enemy_hero, selected_attacker.attack)
 	if selected_attacker.has_keyword(Keyword.Type.LIFESTEAL):
@@ -358,33 +456,51 @@ func start_new_turn() -> void:
 
 var _known_minions: Array[Minion] = []
 
-var _refreshing := false
+var _refreshing: bool = false
+var _refresh_again: bool = false
+var _drop_highlights: Dictionary = {}
+var _drop_placeholder: Control = null
+var _drop_placeholder_row: String = ""
+var _drop_placeholder_index: int = -1
+var _drag_board_preview: BoardMinion = null
+var _drag_preview_card_data: CardData = null
+var _drag_preview_row: String = ""
+var _last_placeholder_index: int = -1
+var _last_placeholder_row: String = ""
 
 func refresh_board() -> void:
 	if _refreshing:
+		_refresh_again = true
 		return
 	_refreshing = true
 
-	var previous := _known_minions.duplicate()
+	var previous: Array[Minion] = _known_minions.duplicate()
 	_known_minions = player_minions + enemy_minions
 
-	await _rebuild_minion_visuals(player_container, player_minions, true, previous)
-	await _rebuild_minion_visuals(enemy_container, enemy_minions, false, previous)
+	if _has_split_row_containers(true):
+		await _rebuild_minion_visuals(player_front_container, get_front_minions(true), true, previous)
+		await _rebuild_minion_visuals(player_back_container, get_back_minions(true), true, previous)
+	else:
+		await _rebuild_minion_visuals(player_container, player_minions, true, previous)
+
+	if _has_split_row_containers(false):
+		await _rebuild_minion_visuals(enemy_front_container, get_front_minions(false), false, previous)
+		await _rebuild_minion_visuals(enemy_back_container, get_back_minions(false), false, previous)
+	else:
+		await _rebuild_minion_visuals(enemy_container, enemy_minions, false, previous)
 
 	if selected_attacker and selected_attacker not in player_minions:
 		clear_selection()
 
 	_refreshing = false
+	if _refresh_again:
+		_refresh_again = false
+		refresh_board()
 
-	_rebuild_minion_visuals(
-		enemy_container,
-		enemy_minions,
-		false,
-		previous
-	)
-
-	if selected_attacker and selected_attacker not in player_minions:
-		clear_selection()
+func _has_split_row_containers(is_player: bool) -> bool:
+	if is_player:
+		return player_front_container != null and player_back_container != null
+	return enemy_front_container != null and enemy_back_container != null
 
 func _rebuild_minion_visuals(
 	container: Node,
@@ -392,8 +508,10 @@ func _rebuild_minion_visuals(
 	is_player: bool,
 	previously_existing: Array[Minion]
 ) -> void:
+	if container == null:
+		return
 	# Anime la mort des serviteurs supprimés
-	var dying_visuals: Array = []
+	var dying_visuals: Array[BoardMinion] = []
 	for child in container.get_children():
 		if child is BoardMinion and child.minion not in minions:
 			dying_visuals.append(child)
@@ -406,7 +524,7 @@ func _rebuild_minion_visuals(
 	for child in container.get_children():
 		if child not in dying_visuals:
 			child.queue_free()
-	for v in dying_visuals:
+	for v: BoardMinion in dying_visuals:
 		if is_instance_valid(v):
 			v.queue_free()
 
@@ -468,3 +586,269 @@ func _find_zone_at(mouse: Vector2, group: String) -> Control:
 		if zone is Control and zone.get_global_rect().has_point(mouse):
 			return zone
 	return null
+
+func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
+	var allowed_rows: Array[String] = get_allowed_rows_for_card(card_data)
+	if player_front_container is Control and player_front_container.get_global_rect().has_point(mouse):
+		return ROW_FRONT if ROW_FRONT in allowed_rows else ""
+	if player_back_container is Control and player_back_container.get_global_rect().has_point(mouse):
+		return ROW_BACK if ROW_BACK in allowed_rows else ""
+	return ""
+
+func get_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	return _get_stable_player_drop_index_at(mouse, row)
+
+func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	var container: Control = _get_player_row_container(row)
+	if container == null:
+		return -1
+	var index: int = 0
+	for child in container.get_children():
+		if child is BoardMinion:
+			var rect: Rect2 = child.get_global_rect()
+			if mouse.x < rect.position.x + rect.size.x * 0.5:
+				return index
+			index += 1
+	return index
+
+func update_player_drop_highlight(card_data: CardData, mouse: Vector2, show: bool) -> bool:
+	_ensure_drop_highlights()
+	var allowed_rows: Array[String] = get_allowed_rows_for_card(card_data)
+	for row in [ROW_FRONT, ROW_BACK]:
+		var panel: Panel = _drop_highlights.get(row) as Panel
+		var row_container: Control = _get_player_row_container(row)
+		if panel == null or row_container == null:
+			continue
+		var can_show: bool = show and row in allowed_rows and can_summon_to_row(true, row)
+		panel.visible = can_show
+		if can_show:
+			_fit_drop_highlight_to(row_container, panel)
+	var drop_row: String = get_player_drop_row_at(mouse, card_data)
+	if show and not drop_row.is_empty() and can_summon_to_row(true, drop_row):
+		var insert_index: int = _get_stable_player_drop_index_at(mouse, drop_row)
+		_update_drop_placeholder(drop_row, insert_index)
+		_update_drag_board_preview(card_data, drop_row, mouse)
+		return true
+	_clear_drop_placeholder()
+	_clear_drag_board_preview()
+	return false
+
+func clear_player_drop_highlight() -> void:
+	for panel in _drop_highlights.values():
+		var control: Control = panel as Control
+		if control != null:
+			control.visible = false
+	_clear_drop_placeholder()
+	_clear_drag_board_preview()
+
+func _ensure_drop_highlights() -> void:
+	if not _drop_highlights.is_empty():
+		return
+	var board: Control = get_node_or_null("Board") as Control
+	if board == null:
+		return
+	for row in [ROW_FRONT, ROW_BACK]:
+		var panel: Panel = Panel.new()
+		panel.name = "Player%sDropHighlight" % row
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.visible = false
+		var style: StyleBoxFlat = StyleBoxFlat.new()
+		style.bg_color = DROP_HIGHLIGHT_COLOR
+		style.border_color = DROP_HIGHLIGHT_BORDER_COLOR
+		style.border_width_left = 3
+		style.border_width_right = 3
+		style.border_width_top = 3
+		style.border_width_bottom = 3
+		style.corner_radius_top_left = 8
+		style.corner_radius_top_right = 8
+		style.corner_radius_bottom_left = 8
+		style.corner_radius_bottom_right = 8
+		panel.add_theme_stylebox_override("panel", style)
+		board.add_child(panel)
+		_drop_highlights[row] = panel
+
+func _fit_drop_highlight_to(row_container: Control, panel: Control) -> void:
+	var board: Control = get_node_or_null("Board") as Control
+	if board == null:
+		return
+	var rect: Rect2 = row_container.get_global_rect()
+	var board_origin: Vector2 = board.global_position
+	panel.position = rect.position - board_origin
+	panel.size = rect.size
+	board.move_child(panel, 0)
+
+func _get_player_row_container(row: String) -> Control:
+	if row == ROW_BACK:
+		return player_back_container
+	return player_front_container
+
+func _update_drop_placeholder(row: String, insert_index: int) -> void:
+	var container: Control = _get_player_row_container(row)
+	if container == null:
+		return
+	if _drop_placeholder == null:
+		_drop_placeholder = _create_drop_placeholder()
+	if _drop_placeholder.get_parent() != container:
+		if _drop_placeholder.get_parent() != null:
+			_drop_placeholder.get_parent().remove_child(_drop_placeholder)
+		container.add_child(_drop_placeholder)
+	_drop_placeholder.visible = true
+	_drop_placeholder.custom_minimum_size = BOARD_MINION_SIZE
+	_drop_placeholder_row = row
+	_drop_placeholder_index = insert_index
+	# Only rearrange if the index actually changed to prevent constant layout recalculation
+	if _last_placeholder_index != insert_index or _last_placeholder_row != row:
+		var child_index: int = _get_row_child_index_for_insert(container, insert_index)
+		container.move_child(_drop_placeholder, child_index)
+		_last_placeholder_index = insert_index
+		_last_placeholder_row = row
+
+func _create_drop_placeholder() -> Panel:
+	var placeholder: Panel = Panel.new()
+	placeholder.name = "DropPlaceholder"
+	placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	placeholder.custom_minimum_size = BOARD_MINION_SIZE
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 0.45, 0.05, 0.16)
+	style.border_color = DROP_HIGHLIGHT_BORDER_COLOR
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	placeholder.add_theme_stylebox_override("panel", style)
+	return placeholder
+
+func _get_row_child_index_for_insert(container: Control, insert_index: int) -> int:
+	var seen_minions: int = 0
+	var fallback_index: int = container.get_child_count()
+	for i in range(container.get_child_count()):
+		var child: Node = container.get_child(i)
+		if child == _drop_placeholder:
+			continue
+		if child is BoardMinion:
+			if seen_minions == insert_index:
+				return i
+			seen_minions += 1
+		fallback_index = i + 1
+	return fallback_index
+
+func _get_stable_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	if _drop_placeholder != null and _drop_placeholder.visible and _drop_placeholder_row == row:
+		var placeholder_rect: Rect2 = _drop_placeholder.get_global_rect().grow(35.0)
+		if placeholder_rect.has_point(mouse):
+			return _drop_placeholder_index
+	return _get_raw_player_drop_index_at(mouse, row)
+
+func _clear_drop_placeholder() -> void:
+	if _drop_placeholder == null:
+		return
+	_drop_placeholder.visible = false
+	_drop_placeholder_row = ""
+	_drop_placeholder_index = -1
+	_last_placeholder_index = -1
+	_last_placeholder_row = ""
+	if _drop_placeholder.get_parent() != null:
+		_drop_placeholder.get_parent().remove_child(_drop_placeholder)
+
+func _update_drag_board_preview(card_data: CardData, row: String, mouse: Vector2) -> void:
+	var board: Control = get_node_or_null("Board") as Control
+	if board == null:
+		return
+	if _drag_board_preview == null or _drag_preview_card_data != card_data:
+		_clear_drag_board_preview()
+		_drag_board_preview = BOARD_MINION_SCENE.instantiate() as BoardMinion
+		if _drag_board_preview == null:
+			return
+		_drag_board_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_drag_board_preview.z_index = 500
+		_drag_board_preview.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
+		_drag_board_preview.custom_minimum_size = BOARD_MINION_SIZE
+		_drag_board_preview.size = BOARD_MINION_SIZE
+		board.add_child(_drag_board_preview)
+		_drag_preview_card_data = card_data
+		_drag_preview_row = ""
+	_drag_board_preview.visible = true
+	if _drag_preview_row != row:
+		_drag_board_preview.set_minion(Minion.new(card_data, true, row))
+		_drag_preview_row = row
+	_drag_board_preview.scale = Vector2.ONE
+	_drag_board_preview.modulate = Color(1.0, 1.0, 1.0, 0.92)
+	_drag_board_preview.position = board.get_local_mouse_position() - BOARD_MINION_SIZE * 0.5
+
+func _clear_drag_board_preview() -> void:
+	if _drag_board_preview != null:
+		_drag_board_preview.queue_free()
+	_drag_board_preview = null
+	_drag_preview_card_data = null
+	_drag_preview_row = ""
+
+func _on_hand_drag_started() -> void:
+	# Compacter la main pour laisser la place au placeholder
+	hand.set_compact(true)
+
+func _on_hand_drag_ended() -> void:
+	# Restaurer la main à son espacement normal
+	hand.set_compact(false)
+
+func _play_card_slide_animation(card_data: CardData, row: String) -> void:
+	# Find the card visual anywhere in the scene (may have been reparented during drag)
+	var card: Card = null
+	
+	# First try in hand
+	for c in hand.container.get_children():
+		if c is Card and c.data == card_data:
+			card = c
+			break
+	
+	# If not found, search in Battle children
+	if card == null:
+		for c in get_children():
+			if c is Card and c.data == card_data:
+				card = c
+				break
+	
+	if card == null:
+		push_warning("Card not found in hand or battle for animation")
+		return
+	
+	# Find target position on board
+	var target_container: Control = _get_player_row_container(row)
+	if target_container == null:
+		return
+	
+	# Get position at center of row container
+	var target_pos: Vector2 = target_container.global_position + target_container.size * 0.5
+	
+	# Store original parent and position for restoration
+	var original_parent = card.get_parent()
+	var original_position = card.position
+	var original_modulate = card.modulate
+	
+	# Ensure card is in Battle temporarily for smooth animation
+	if original_parent != self:
+		card.reparent(self)
+	
+	# Create animation
+	var tween := create_tween()
+	tween.set_parallel(true)
+	
+	# Slide to target
+	tween.tween_property(card, "global_position", target_pos, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	# Fade out during slide
+	tween.tween_property(card, "modulate:a", 0.1, 0.35)
+	
+	# Scale down to minion size
+	tween.tween_property(card, "scale", Vector2(0.5, 0.5), 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	
+	await tween.finished
+	
+	# Return to hand after animation completes
+	if original_parent and original_parent.name == "CardsContainer":
+		card.reparent(original_parent)
+		card.modulate = original_modulate
+		card.position = original_position

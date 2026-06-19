@@ -6,16 +6,11 @@
 
 [resource]
 script = ExtResource("2_1hx0y")
-texture = ExtResource("3_msc8k")
 card_name = "Horde Mineure"
 description = "Invocation : invoque 2 Rampants 1/1."
+texture = ExtResource("3_msc8k")
 cost = 3
-race = 4
-card_type = "Minion"
 attack = 1
 health = 1
-keywords = Array[int]([])
 trigger_types = Array[String](["BATTLECRY"])
-requires_target = false
-rarity = "Common"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -7,7 +7,7 @@ static func execute_effect(
 	effect: CardEffect,
 	selected_target: Minion = null
 ) -> void:
-	match _normalized_effect_id(effect.effect_id):
+	match effect.effect_id:
 		"Damage":       _damage(battle, source_minion, effect, selected_target)
 		"Heal":         _heal(battle, source_minion, effect, selected_target)
 		"Buff":         _buff(battle, source_minion, effect, selected_target)
@@ -15,32 +15,12 @@ static func execute_effect(
 		"DrawCard":     _draw_cards(battle, source_minion, effect.value)
 		"SummonMinion": _summon_minion(battle, source_minion, effect)
 		"StealHealth":  _steal_health(battle, source_minion, effect, selected_target)
-		"Silence":      pass
-		"Transform":    _destroy(battle, source_minion, effect, selected_target)
-		"ReturnToHand": pass
-		"InfectEnemy":  pass
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 
 	battle.remove_dead_minions()
 	battle.refresh_board()
 	battle.update_hero_ui()
-
-
-static func _normalized_effect_id(effect_id: String) -> String:
-	match effect_id:
-		"DamageEnemy", "DamageEnemyHero", "DamageAll", "DamageAllEnemies":
-			return "Damage"
-		"BuffAlly", "BuffAllAllies":
-			return "Buff"
-		"DestroyMinion":
-			return "Destroy"
-		"TransformEnemy":
-			return "Transform"
-		"HealHero":
-			return "Heal"
-		_:
-			return effect_id
 
 
 static func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
@@ -78,21 +58,13 @@ static func _buff(
 static func _summon_minion(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if effect.summon_card == null:
 		return
+	var is_player = source_minion.owner_is_player if source_minion else true
 	for i in range(effect.count):
-		battle.summon_minion(effect.summon_card, source_minion == null or source_minion.owner_is_player)
+		battle.summon_minion(effect.summon_card, is_player)
 
 static func _steal_health(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
-	if effect.target == "EnemyHero":
-		var hero = battle.get_enemy_hero(source_minion)
-		var actual = min(effect.value, hero.health)
-		hero.take_damage(actual)
-		if source_minion:
-			source_minion.heal(actual)
-		else:
-			battle.get_owner_hero(source_minion).heal(actual)
-		return
 	for target in _resolve_targets(battle, source_minion, effect, selected_target):
 		var actual = min(effect.value, target.health)
 		target.take_damage(actual)
@@ -142,8 +114,10 @@ static func _get_targets(
 			return battle.get_owner_minions(source_minion)
 		"AllMinions":
 			var all: Array = []
-			all.append_array(battle.player_minions)
-			all.append_array(battle.enemy_minions)
+			all.append_array(battle.get_front_minions(true))
+			all.append_array(battle.get_back_minions(true))
+			all.append_array(battle.get_front_minions(false))
+			all.append_array(battle.get_back_minions(false))
 			return all
 		"RandomEnemy":
 			var enemies = battle.get_enemy_minions(source_minion)

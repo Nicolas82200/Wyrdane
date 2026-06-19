@@ -8,10 +8,12 @@ var health: int
 var max_health: int
 var attacks_remaining: int = 0
 var keywords: Array[int] = []
+var board_row: String = "Front"
 
-func _init(data: CardData, is_player: bool = true):
+func _init(data: CardData, is_player: bool = true, row: String = "Front"):
 	owner_is_player = is_player
 	card_data = data
+	board_row = row
 	attack = data.attack
 	health = data.health
 	max_health = data.health
