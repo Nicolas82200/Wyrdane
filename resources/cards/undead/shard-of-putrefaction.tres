@@ -7,26 +7,23 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "DestroyMinion"
+target = "EnemyMinion"
 value = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Éclat de Putréfaction"
-description = "Détruit une arme ou un équipement ennemi."
 texture = ExtResource("2_texture")
+card_name = "Éclat de Putréfaction"
+description = "Détruit un enchantement ou équipement ennemi. Si enchantement : invoque un Rampant 1/1."
 cost = 2
-race = "Undead"
+race = 4
 card_type = "Instant"
 attack = 0
 health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
+keywords = Array[int]([])
+trigger_types = Array[String]([])
+requires_target = false
+rarity = "Rare"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
-rarity = "Common"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -6,21 +6,17 @@
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Possédé Hurlant"
-description = "Aucun effet particulier. Une créature rapide et imprévisible, mais fragile."
 texture = ExtResource("2_texture")
+card_name = "Possédé Hurlant"
+description = "ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière)."
 cost = 3
-race = "Undead"
+race = 4
 card_type = "Minion"
 attack = 5
 health = 1
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
-effects = Array[ExtResource("1_cardeffect")]([])
-effect_target = "Enemy"
+keywords = Array[int]([1, 5])
+trigger_types = Array[String](["DEATHRATTLE"])
+requires_target = false
 rarity = "Rare"
+effects = Array[ExtResource("1_cardeffect")]([])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

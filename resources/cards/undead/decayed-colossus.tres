@@ -6,11 +6,16 @@
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Colosse Décomposé"
-description = "Aucun effet particulier. Un colosse massif fait de cadavres fusionnés."
 texture = ExtResource("2_texture")
+card_name = "Colosse Décomposé"
+description = "REMPART. Blessure : les dégâts excédentaires ne se propagent pas."
 cost = 6
+race = 4
+card_type = "Minion"
 attack = 7
 health = 7
+keywords = Array[int]([0])
+trigger_types = Array[String](["OnDamaged"])
+requires_target = false
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

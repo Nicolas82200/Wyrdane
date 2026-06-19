@@ -7,14 +7,23 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "BuffAlly"
+target = "AllyMinion"
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Souffle du Charnier"
-description = "Un zombie allié gagne +0/+2 instantanément."
 texture = ExtResource("2_texture")
+card_name = "Souffle du Charnier"
+description = "Un Mort-Vivant allié ciblé gagne +0/+2."
+cost = 1
+race = 4
 card_type = "Instant"
+attack = 0
+health = 0
+keywords = Array[int]([])
+trigger_types = Array[String]([])
+requires_target = true
+rarity = "Common"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
