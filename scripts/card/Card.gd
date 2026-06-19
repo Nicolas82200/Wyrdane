@@ -3,7 +3,7 @@ class_name Card
 
 signal card_clicked(card)
 
-var data: CardData
+const DRAG_THRESHOLD := 350.0
 
 const BORDER_TEXTURES := {
 	Race.Type.UNDEAD: preload("res://assets/borders/undead-border-card.png"),
@@ -44,9 +44,19 @@ const BORDER_RACE_COLORS := {
 @onready var rarity_panel: Control    = $RarityPanel
 @onready var border_color: Panel      = $BorderFrameColor
 
-var _rarity_style     := StyleBoxFlat.new()
-var _race_bg_style    := StyleBoxFlat.new()
+var data: CardData
+var drag_enabled := true
+
+var dragging := false
+var original_position: Vector2
+var original_scale: Vector2
+var drag_offset: Vector2
+var drag_start_global: Vector2
+
+var _rarity_style      := StyleBoxFlat.new()
+var _race_bg_style     := StyleBoxFlat.new()
 var _race_border_style := StyleBoxFlat.new()
+
 
 func _ready() -> void:
 	_init_rarity_style()
@@ -62,14 +72,12 @@ func set_data(new_data: CardData) -> void:
 func update_display() -> void:
 	name_label.text   = data.card_name
 	cost_label.text   = str(data.cost)
-	attack_label.text = str(data.attack)  # ← vérifie que cette ligne existe
-	health_label.text = str(data.health)  # ← et celle-là
+	attack_label.text = str(data.attack)
+	health_label.text = str(data.health)
 	var is_minion = data.card_type == "Minion"
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
-	attack_label.visible = is_minion
-	health_label.visible = is_minion
-	desc_label.text   = data.description
+	desc_label.text = data.description
 	if data.card_type == "Minion":
 		race_label.text = Race.get_race_name(data.race)
 	else:
@@ -80,16 +88,15 @@ func update_display() -> void:
 		border.texture = BORDER_TEXTURES[data.race]
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
-	print(data.card_name, " race = ", data.race)
 	_apply_race_style()
 	_apply_rarity_style()
 
 func _get_card_type_label(card_type: String) -> String:
 	match card_type:
-		"Instant":      return "Sort"
-		"Ritual":       return "Rituel"
-		"Enchantment":  return "Enchantement"
-		_:              return card_type
+		"Instant":     return "Sort"
+		"Ritual":      return "Rituel"
+		"Enchantment": return "Enchantement"
+		_:             return card_type
 
 func _init_rarity_style() -> void:
 	_rarity_style.border_width_left          = 2
@@ -122,8 +129,108 @@ func _apply_race_style() -> void:
 	text_background.queue_redraw()
 	border_color.queue_redraw()
 
+# ─── Drag & Drop ──────────────────────────────────────────────────────────────
+
 func _gui_input(event: InputEvent) -> void:
+	if not drag_enabled:
+		return
 	if event is InputEventMouseButton \
-		and event.pressed \
-		and event.button_index == MOUSE_BUTTON_LEFT:
+		and event.button_index == MOUSE_BUTTON_LEFT \
+		and event.pressed:
+		original_position  = position
+		original_scale     = scale
+		drag_start_global  = global_position
+		drag_offset        = get_global_mouse_position() - global_position
+		dragging           = true
+		z_index            = 100
+		scale              = original_scale * 1.05
+		_set_children_mouse_filter(Control.MOUSE_FILTER_IGNORE)
+		get_viewport().set_input_as_handled()
+
+func _process(_delta: float) -> void:
+	if dragging:
+		global_position = get_global_mouse_position() - drag_offset
+
+func _input(event: InputEvent) -> void:
+	if not dragging:
+		return
+	if event is InputEventMouseButton \
+		and event.button_index == MOUSE_BUTTON_LEFT \
+		and not event.pressed:
+		_on_drag_released()
+		get_viewport().set_input_as_handled()
+
+func _on_drag_released() -> void:
+	dragging = false
+	scale    = original_scale
+	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
+
+	var mouse_pos    := get_viewport().get_mouse_position()
+	var drag_distance := mouse_pos.distance_to(drag_start_global + drag_offset)
+
+	var battle = get_tree().current_scene
+
+	# Missclic : souris pas assez éloignée du point de départ
+	if drag_distance < DRAG_THRESHOLD:
+		position = original_position
+		var hand_node = get_parent().get_parent()
+		if hand_node.has_method("_update_hand_layout"):
+			hand_node._update_hand_layout()
+		return
+
+	if battle == null:
+		position = original_position
+		return
+
+	var board = battle.get_node_or_null("Board")
+	if board is Control and board.get_global_rect().has_point(mouse_pos):
 		card_clicked.emit(data)
+	else:
+		position = original_position
+
+	var hand_node = get_parent().get_parent()
+	if hand_node.has_method("_update_hand_layout"):
+		hand_node._update_hand_layout()
+
+# ─── Utilitaires ──────────────────────────────────────────────────────────────
+
+func _set_children_mouse_filter(filter: int) -> void:
+	for child in get_children():
+		if child is Control:
+			child.mouse_filter = filter
+
+func is_dragging() -> bool:
+	return dragging
+
+func set_non_interactive() -> void:
+	drag_enabled = false
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+const CARD_BACK_TEX = preload("res://assets/card_back/card-back.png")
+
+func show_back(show_card_back: bool) -> void:
+	if show_card_back:
+		art.texture      = CARD_BACK_TEX
+		name_label.hide()
+		cost_label.hide()
+		attack_label.hide()
+		health_label.hide()
+		desc_label.hide()
+		race_label.hide()
+		border.hide()
+		rarity_panel.hide()
+		border_color.hide()
+		text_background.hide()
+	else:
+		if data:
+			update_display()
+		name_label.show()
+		cost_label.show()
+		attack_label.show()
+		health_label.show()
+		desc_label.show()
+		race_label.show()
+		border.show()
+		rarity_panel.show()
+		border_color.show()
+		text_background.show()

@@ -34,6 +34,7 @@ func open(graveyard: Graveyard) -> void:
 
 func _add_card_front(card_data: CardData) -> void:
 	var card: Card = CARD_SCENE.instantiate()
+	card.drag_enabled = false  
 	card.scale = Vector2(0.5, 0.5)
 	container.add_child(card)
 	card.set_data(card_data)

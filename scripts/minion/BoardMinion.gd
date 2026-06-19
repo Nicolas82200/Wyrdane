@@ -7,7 +7,6 @@ var is_selected := false
 signal minion_clicked(minion, board_minion)
 
 @onready var art             = $Art
-@onready var name_label      = $NameLabel
 @onready var attack_label    = $AttackLabel
 @onready var health_label    = $HealthLabel
 @onready var border_highlight: Panel = $BorderHighlight
@@ -46,16 +45,19 @@ func _ready():
 	if border_color:
 		border_color.add_theme_stylebox_override("panel", _race_style)
 
-func set_minion(new_minion: Minion):
+func set_minion(new_minion: Minion) -> void:
 	minion = new_minion
 	update_display()
+	# Animation d'apparition
+	scale = Vector2.ZERO
+	var tween := create_tween()
+	tween.tween_property(self, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func update_display():
 	if minion == null:
 		return
 	attack_label.text = str(minion.attack)
 	health_label.text = str(max(minion.health, 0))
-	name_label.text   = minion.card_data.card_name
 
 	if minion.can_attack():
 		modulate = Color.WHITE

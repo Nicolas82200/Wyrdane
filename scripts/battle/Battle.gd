@@ -1,33 +1,39 @@
 extends Control
 
-const EffectManagerData = preload("res://scripts/EffectManager/EffectManager.gd")
+const EffectManagerData  = preload("res://scripts/EffectManager/EffectManager.gd")
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
+const CARD_BACK          = preload("res://assets/card_back/card-back.png")
+const MAX_STACK_VISUAL   := 8
 
-@onready var hand             = $Hand
-@onready var mana_label       = $ManaLabel
-@onready var end_turn_button  = $EndTurnButton
-@onready var enemy_container  = $Board/EnemyMinionsContainer
-@onready var player_container = $Board/PlayerMinionsContainer
-@onready var player_graveyard_btn = $PlayerGraveyardButton
-@onready var enemy_graveyard_btn  = $EnemyGraveyardButton
+@onready var hand                  = $Hand
+@onready var mana_label            = $ManaLabel
+@onready var end_turn_button       = $EndTurnButton
+@onready var enemy_container       = $Board/EnemyMinionsContainer
+@onready var player_container      = $Board/PlayerMinionsContainer
+@onready var player_graveyard_btn  = $PlayerGraveyardButton
+@onready var enemy_graveyard_btn   = $EnemyGraveyardButton
+@onready var player_graveyard_preview = $PlayerGraveyardButton/CardPreview
+@onready var enemy_graveyard_preview  = $EnemyGraveyardButton/CardPreview
 @onready var graveyard_view: GraveyardView = $GraveyardView
-const CARD_BACK = preload("res://assets/card_back/card-back.png")
+@onready var deck_button           = $DeckButton
+@onready var deck_count_label      = $DeckButton/CountLabel
+
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 
 var player_graveyard := Graveyard.new()
 var enemy_graveyard  := Graveyard.new()
 
-var selected_attacker: Minion      = null
+var selected_attacker: Minion         = null
 var selected_board_minion: BoardMinion = null
-var pending_card: CardData         = null
+var pending_card: CardData            = null
 var waiting_for_target := false
 
 var deck: Array[CardData]       = []
 var hand_cards: Array[CardData] = []
 
-var mana := 3
-var max_mana := 3
+var mana      := 3
+var max_mana  := 3
 var player_hero: Hero
 var enemy_hero: Hero
 var game_over := false
@@ -35,56 +41,114 @@ var game_over := false
 
 func _ready() -> void:
 	load_deck()
-	var enemy_card = load("res://resources/cards/undead/putrefied-leviathan.tres")
+	var enemy_card = load("res://resources/cards/undead/minor-zombie.tres")
 	enemy_minions.append(Minion.new(enemy_card, false))
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
 	hand.card_played.connect(_on_card_played)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	$EnemyHeroPanel.hero_clicked.connect(_on_enemy_hero_clicked)
-	player_graveyard.graveyard_changed.connect(func():
-		player_graveyard_btn.text = "%d" % player_graveyard.size()
-		player_graveyard_btn.icon = CARD_BACK if player_graveyard.size() > 0 else null
-)
-	enemy_graveyard.graveyard_changed.connect(func():
-		enemy_graveyard_btn.text = "%d" % enemy_graveyard.size()
-		enemy_graveyard_btn.icon = CARD_BACK if enemy_graveyard.size() > 0 else null
-)
+	player_graveyard_preview.visible = false
+	enemy_graveyard_preview.visible  = false
+	player_graveyard_btn.visible     = false
+	enemy_graveyard_btn.visible      = false
+	player_graveyard.graveyard_changed.connect(
+		func(): _update_graveyard_btn(
+			player_graveyard,
+			player_graveyard_preview,
+			$PlayerGraveyardButton/CountLabel
+		)
+	)
+	enemy_graveyard.graveyard_changed.connect(
+		func(): _update_graveyard_btn(
+			enemy_graveyard,
+			enemy_graveyard_preview,
+			$EnemyGraveyardButton/CountLabel
+		)
+	)
+	var card_native_size := Vector2(200, 300)
+	var btn_size         := Vector2(120, 180)
+	var card_scale       := btn_size / card_native_size
+	player_graveyard_preview.scale = card_scale
+	enemy_graveyard_preview.scale  = card_scale
 	player_graveyard_btn.pressed.connect(func(): graveyard_view.open(player_graveyard))
 	enemy_graveyard_btn.pressed.connect(func():  graveyard_view.open(enemy_graveyard))
+	if player_graveyard_preview.has_method("set_non_interactive"):
+		player_graveyard_preview.set_non_interactive()
+	if enemy_graveyard_preview.has_method("set_non_interactive"):
+		enemy_graveyard_preview.set_non_interactive()
 	update_mana_ui()
 	update_hero_ui()
+	update_deck_ui()
 	refresh_board()
 	start_game()
 
-
 func load_deck() -> void:
-	var card = load("res://resources/cards/undead/bloated-giant.tres")
+	var card = load("res://resources/cards/undead/minor-horde.tres")
 	deck = []
-	for i in range(10):
+	for i in range(20):
 		deck.append(card)
 
 func start_game() -> void:
 	deck.shuffle()
 	for i in range(5):
-		draw_card()
-	hand.set_hand(hand_cards)
+		hand_cards.append(deck.pop_back())
+	hand.set_hand(hand_cards, false)
+	update_deck_ui()
 
 func draw_card() -> void:
 	if deck.is_empty():
-		# TODO: fatigue damage au héros
 		return
 	hand_cards.append(deck.pop_back())
+	var deck_pos :Vector2= deck_button.global_position + deck_button.size / 2.0
+	hand.set_hand(hand_cards, true, deck_pos)
+	update_deck_ui()
 
 func discard_card(card_data: CardData) -> void:
 	hand_cards.erase(card_data)
 	player_graveyard.add_discard(card_data)
 
-
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
 func update_mana_ui() -> void:
 	mana_label.text = "%d/%d" % [mana, max_mana]
+
+# ─── Deck ─────────────────────────────────────────────────────────────────────
+
+func update_deck_ui() -> void:
+	deck_button.visible = not deck.is_empty()
+	deck_count_label.text = str(deck.size())
+
+	for child in deck_button.get_children():
+		if child.name != "CountLabel":
+			child.queue_free()
+
+	if deck.is_empty():
+		return
+
+	var visible_count :float= clamp(
+		int(float(deck.size()) / 10.0 * MAX_STACK_VISUAL) + 1,
+		1,
+		MAX_STACK_VISUAL
+	)
+
+	for i in range(visible_count, 0, -1):
+		var card_back := TextureRect.new()
+		card_back.texture             = CARD_BACK
+		card_back.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		card_back.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
+		card_back.layout_mode         = 1
+		card_back.anchors_preset      = 15
+		card_back.anchor_right        = 1.0
+		card_back.anchor_bottom       = 1.0
+		card_back.offset_top          = -i * 1.5
+		card_back.offset_left         = -i * 1.5
+		card_back.offset_right        = -i * 1.5
+		card_back.offset_bottom       = -i * 1.5
+		card_back.mouse_filter        = Control.MOUSE_FILTER_IGNORE
+		deck_button.add_child(card_back)
+
+	deck_button.move_child(deck_count_label, deck_button.get_child_count() - 1)
 
 # ─── Héros ────────────────────────────────────────────────────────────────────
 
@@ -172,7 +236,7 @@ func resolve_card_target(target: Minion) -> void:
 	hand_cards.erase(pending_card)
 	player_graveyard.add_spell(pending_card)
 	hand.set_hand(hand_cards)
-	pending_card = null
+	pending_card       = null
 	waiting_for_target = false
 	refresh_board()
 
@@ -196,7 +260,6 @@ func remove_dead_minions() -> void:
 	var dead_enemy  := enemy_minions.filter(func(m): return m.is_dead())
 	for minion in dead_player:
 		player_graveyard.add_minion(minion.card_data)
-		print("Cimetière joueur : ", player_graveyard.size())
 		trigger_effects(minion, "DEATHRATTLE")
 	for minion in dead_enemy:
 		enemy_graveyard.add_minion(minion.card_data)
@@ -212,6 +275,17 @@ func trigger_effects(minion: Minion, trigger_name: String) -> void:
 		return
 	for effect in minion.card_data.effects:
 		EffectManagerData.execute_effect(self, minion, effect)
+
+func _update_graveyard_btn(graveyard: Graveyard, preview: Card, label: Label) -> void:
+	var last: CardData = graveyard.last_card_data()
+	if last == null:
+		preview.visible = false
+		label.text = "0"
+		return
+	preview.visible = true
+	preview.get_parent().visible = true
+	preview.set_data(last)
+	label.text = str(graveyard.size())
 
 # ─── Sélection / Clicks ───────────────────────────────────────────────────────
 
@@ -268,26 +342,72 @@ func end_turn() -> void:
 
 func start_new_turn() -> void:
 	max_mana = mini(max_mana + 1, 10)
-	mana = max_mana
+	mana     = max_mana
 	for minion in player_minions:
 		minion.refresh_attacks()
 		trigger_effects(minion, "ONTURNSTART")
 	draw_card()
-	hand.set_hand(hand_cards)
 	update_mana_ui()
 	refresh_board()
 
 # ─── Board ────────────────────────────────────────────────────────────────────
 
+var _known_minions: Array[Minion] = []
+
+var _refreshing := false
+
 func refresh_board() -> void:
-	_rebuild_minion_visuals(player_container, player_minions, true)
-	_rebuild_minion_visuals(enemy_container, enemy_minions, false)
+	if _refreshing:
+		return
+	_refreshing = true
+
+	var previous := _known_minions.duplicate()
+	_known_minions = player_minions + enemy_minions
+
+	await _rebuild_minion_visuals(player_container, player_minions, true, previous)
+	await _rebuild_minion_visuals(enemy_container, enemy_minions, false, previous)
+
 	if selected_attacker and selected_attacker not in player_minions:
 		clear_selection()
 
-func _rebuild_minion_visuals(container: Node, minions: Array[Minion], is_player: bool) -> void:
+	_refreshing = false
+
+	_rebuild_minion_visuals(
+		enemy_container,
+		enemy_minions,
+		false,
+		previous
+	)
+
+	if selected_attacker and selected_attacker not in player_minions:
+		clear_selection()
+
+func _rebuild_minion_visuals(
+	container: Node,
+	minions: Array[Minion],
+	is_player: bool,
+	previously_existing: Array[Minion]
+) -> void:
+	# Anime la mort des serviteurs supprimés
+	var dying_visuals: Array = []
 	for child in container.get_children():
-		child.queue_free()
+		if child is BoardMinion and child.minion not in minions:
+			dying_visuals.append(child)
+			_play_death_animation(child)
+
+	# Attend la fin de l'animation de mort avant de continuer
+	if not dying_visuals.is_empty():
+		await get_tree().create_timer(0.4).timeout
+
+	for child in container.get_children():
+		if child not in dying_visuals:
+			child.queue_free()
+	for v in dying_visuals:
+		if is_instance_valid(v):
+			v.queue_free()
+
+	await get_tree().process_frame
+
 	for minion in minions:
 		var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
 		container.add_child(visual)
@@ -296,6 +416,36 @@ func _rebuild_minion_visuals(container: Node, minions: Array[Minion], is_player:
 			visual.minion_clicked.connect(_on_player_minion_clicked)
 		else:
 			visual.minion_clicked.connect(_on_enemy_minion_clicked)
+		if minion not in previously_existing:
+			_play_summon_animation(visual)
+
+func _play_death_animation(visual: BoardMinion) -> void:
+	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(visual, "scale",      Vector2.ZERO, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_property(visual, "modulate:a", 0.0,          0.25)
+
+func _play_summon_animation(visual: BoardMinion) -> void:
+	visual.scale = Vector2(0.2, 0.2)
+	visual.modulate.a = 0.0
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+
+	tween.tween_property(
+		visual,
+		"scale",
+		Vector2.ONE,
+		0.35
+	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	tween.tween_property(
+		visual,
+		"modulate:a",
+		1.0,
+		0.25
+	)
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
@@ -308,3 +458,9 @@ func check_game_end() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().quit()
+
+func _find_zone_at(mouse: Vector2, group: String) -> Control:
+	for zone in get_tree().get_nodes_in_group(group):
+		if zone is Control and zone.get_global_rect().has_point(mouse):
+			return zone
+	return null

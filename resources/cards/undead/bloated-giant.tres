@@ -6,7 +6,7 @@
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
-effect_id = "DamageAllEnemies"
+target = "AllEnemies"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 

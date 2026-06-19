@@ -6,7 +6,6 @@ enum Origin { MINION_DEATH, SPELL_PLAYED, CARD_DISCARDED }
 signal graveyard_changed
 
 var entries: Array[Dictionary] = []
-# Chaque entry: { card_data: CardData, origin: Origin }
 
 func add_minion(card_data: CardData) -> void:
 	_add(card_data, Origin.MINION_DEATH)
@@ -26,3 +25,8 @@ func size() -> int:
 
 func is_face_down(entry: Dictionary) -> bool:
 	return entry["origin"] == Origin.CARD_DISCARDED
+
+func last_card_data() -> CardData:
+	if entries.is_empty():
+		return null
+	return entries.back()["card_data"]
