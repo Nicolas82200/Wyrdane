@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bxb0k8vr07727"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_d826r"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_1hx0y"]
+[ext_resource type="Texture2D" uid="uid://c8kdq6dfpv5b1" path="res://assets/card_art/minor-horde.jpg" id="3_msc8k"]
+
+[resource]
+script = ExtResource("2_1hx0y")
+card_name = "Horde Mineure"
+texture = ExtResource("3_msc8k")
+cost = 3
+attack = 1
+health = 1
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

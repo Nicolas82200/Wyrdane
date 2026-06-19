@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dai181bt0c3xh"
-path="res://.godot/imported/battleground-01.png-980cbf1c3f44351a921c36f4a84cf40c.ctex"
+uid="uid://cmltm2k25pwin"
+path="res://.godot/imported/background-05.jpg-9152ed9ea71a2a07adb2c434b0f596f4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/battleground-01.png"
-dest_files=["res://.godot/imported/battleground-01.png-980cbf1c3f44351a921c36f4a84cf40c.ctex"]
+source_file="res://assets/background/background-05.jpg"
+dest_files=["res://.godot/imported/background-05.jpg-9152ed9ea71a2a07adb2c434b0f596f4.ctex"]
 
 [params]
 

@@ -1,40 +1,193 @@
 extends Control
-
 signal card_played(card_data)
 
 @onready var container = $CardsContainer
+@onready var preview   = $CardPreview
 
-const CARD_SCENE = preload("res://scenes/card/Card.tscn")
-const SPACING := 140.0
-const BASE_Y   := 850.0
+const CARD_SCENE   = preload("res://scenes/card/Card.tscn")
+const NORMAL_SCALE := Vector2(0.75, 0.75)
+const SPACING      := 100.0
 const ARC_STRENGTH := 20.0
-const MAX_ROTATION := 5.0
 
-func set_hand(cards: Array[CardData]) -> void:
-	for c in container.get_children():
-		c.queue_free()
+var _base_positions: Dictionary = {}
+
+func _ready() -> void:
+	preview.hide()
+
+func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: Vector2 = Vector2.ZERO) -> void:
+	if not animate_last:
+		# Cas normal : recrée tout sans animation
+		for c in container.get_children():
+			c.queue_free()
+		_base_positions.clear()
+
+		await get_tree().process_frame
+
+		for card_data in cards:
+			var card: Card = CARD_SCENE.instantiate()
+			container.add_child(card)
+			card.set_data(card_data)
+			card.scale = NORMAL_SCALE
+			card.card_clicked.connect(_on_card_clicked)
+			card.mouse_entered.connect(_on_card_hover.bind(card))
+			card.mouse_exited.connect(_on_card_unhover)
+			for child in card.get_children():
+				if child is Control:
+					child.mouse_filter = Control.MOUSE_FILTER_PASS
+
+		await get_tree().process_frame
+
+		for card in container.get_children():
+			card.pivot_offset = Vector2(card.size.x / 2.0, card.size.y)
+			card.visible = true
+
+		_update_hand_layout(false)
+		return
+
+	# Cas pioche : ajoute seulement la nouvelle carte, garde les autres intactes
+	var new_card_data :CardData= cards.back()
+	var new_card: Card = CARD_SCENE.instantiate()
+	new_card.visible = false
+	container.add_child(new_card)
+	new_card.set_data(new_card_data)
+	new_card.scale = NORMAL_SCALE
+	new_card.card_clicked.connect(_on_card_clicked)
+	new_card.mouse_entered.connect(_on_card_hover.bind(new_card))
+	new_card.mouse_exited.connect(_on_card_unhover)
+	for child in new_card.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_PASS
+
 	await get_tree().process_frame
-	for card_data in cards:
-		var card: Card = CARD_SCENE.instantiate()
-		container.add_child(card)
-		card.set_data(card_data)
-		card.card_clicked.connect(_on_card_clicked)
-	_update_hand_layout()
+	new_card.pivot_offset = Vector2(new_card.size.x / 2.0, new_card.size.y)
+
+	# Recalcule les positions et anime les cartes existantes
+	_update_hand_layout(false)
+
+	# Anime les cartes existantes vers leur nouvelle position en douceur
+	var children := container.get_children()
+	for i in range(children.size() - 1):  # toutes sauf la dernière
+		var card = children[i]
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(card, "scale",    card.scale,            0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+	# Animation fantôme pour la carte piochée
+	var final_pos   = new_card.global_position
+	var final_scale = new_card.scale
+
+	var ghost: Card = CARD_SCENE.instantiate()
+	get_tree().current_scene.add_child(ghost)
+	ghost.set_data(new_card_data)
+	ghost.drag_enabled = false
+	ghost.show_back(true)
+	ghost.scale    = final_scale
+	ghost.modulate = Color.WHITE
+	ghost.z_index  = 200
+	ghost.visible  = false
+
+	await get_tree().process_frame
+
+	ghost.global_position = deck_origin - Vector2(
+		ghost.size.x * final_scale.x / 2.0,
+		ghost.size.y * final_scale.y / 2.0
+	)
+	ghost.visible = true
+
+	var mid_pos := Vector2(
+		(deck_origin.x + final_pos.x) / 2.0,
+		(deck_origin.y + final_pos.y) / 2.0 - 100
+	)
+
+	var tween := create_tween()
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos,       0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "scale:x",         0.0,           0.1).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(func(): ghost.show_back(false))
+	tween.tween_property(ghost, "scale:x",         final_scale.x, 0.1).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position", final_pos,     0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func():
+		new_card.visible = true
+		ghost.queue_free()
+	)
+		
 
 func _on_card_clicked(card_data: CardData) -> void:
 	card_played.emit(card_data)
 
-func _update_hand_layout() -> void:
+func _on_card_hover(card: Card) -> void:
+	if card.dragging:
+		return
+	preview.set_data(card.data)
+	preview.scale = Vector2(1.1, 1.1)
+	preview.z_index = 100
+	var pos := card.global_position
+	preview.global_position = Vector2(
+		pos.x - preview.size.x * 0.25,
+		pos.y - preview.size.y * 1
+	)
+	preview.show()
+
+func _on_card_unhover() -> void:
+	preview.hide()
+
+func _update_hand_layout(animated: bool = false) -> void:
 	var cards := container.get_children()
 	var count := cards.size()
 	if count == 0:
 		return
-	var center_x := get_viewport_rect().size.x * 0.5
-	var start_x := center_x - (float(count - 1) * SPACING) / 2.0
+
+	var viewport           := get_viewport_rect().size
+	var max_width          := viewport.x * 0.3
+	var reduction_per_card := 0.04
+	# Relatif à Hand, pas au viewport entier
+	var hand_bottom        := size.y - 30.0
+	var scale_factor       := 1.0 - (count - 1) * reduction_per_card
+	scale_factor = clamp(scale_factor, 0.55, 1.2)
+	var hand_scale := Vector2(scale_factor, scale_factor)
+
+	var spacing := SPACING
+	if count > 1:
+		spacing = min(SPACING, max_width / float(count - 1))
+	spacing = max(spacing, SPACING * 0.3)
+
+	var left_margin := 80.0
+	var start_x     := left_margin
+
 	for i in range(count):
+		var card   = cards[i]
 		var offset := float(i) - float(count - 1) / 2.0
-		cards[i].position = Vector2(
-			start_x + i * SPACING,
-			BASE_Y + abs(offset) * ARC_STRENGTH
+		var norm: float = offset / max(float(count - 1) / 2.0, 1.0)
+		var pos := Vector2(
+			start_x + i * spacing,
+			hand_bottom - card.size.y + (norm * norm) * ARC_STRENGTH
 		)
-		cards[i].rotation_degrees = offset * MAX_ROTATION
+		_base_positions[card] = pos
+		card.z_index  = i
+		card.scale    = hand_scale
+		card.position = pos
+
+		if animated:
+			var tween := create_tween()
+			tween.set_parallel(true)
+			tween.tween_property(card, "position", pos,        0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "scale",    hand_scale, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		else:
+			var tween := create_tween()
+			tween.set_parallel(true)
+
+			tween.tween_property(
+	card,
+	"position",
+	pos,
+	0.25
+)
+
+			tween.tween_property(
+	card,
+	"scale",
+	hand_scale,
+	0.25
+)
+			card.position = pos

@@ -2,7 +2,7 @@ extends Resource
 class_name CardEffect
 
 @export_enum(
-	"Damage", "Heal", "Buff", "SummonMinion",
+	"Damage", "Heal", "Buff", "SummonMinion","SummonSelf",
 	"DrawCard", "Destroy", "Silence", "Transform", "StealHealth"
 ) var effect_id: String = "Damage"
 

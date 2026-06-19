@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://1ace07d42bb8"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://d6f73b6d211d" path="res://assets/card_art/last-breath.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://dfudn56xgdeox" path="res://assets/card_art/last-breath.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
@@ -16,17 +16,7 @@ card_name = "Dernier Soupir"
 description = "Pioche 1 carte pour chaque zombie allié mort ce tour."
 texture = ExtResource("2_texture")
 cost = 3
-race = "Undead"
 card_type = "Instant"
-attack = 0
-health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

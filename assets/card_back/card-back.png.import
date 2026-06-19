@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmjjmk5yrois1"
-path="res://.godot/imported/battleground-02.jpg-f8c95bfe392baa7d2e06331928123204.ctex"
+uid="uid://dleh56wl8qrar"
+path="res://.godot/imported/card-back.png-9883c4011a1b39056d635a758527f8c0.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/background/battleground-02.jpg"
-dest_files=["res://.godot/imported/battleground-02.jpg-f8c95bfe392baa7d2e06331928123204.ctex"]
+source_file="res://assets/card_back/card-back.png"
+dest_files=["res://.godot/imported/card-back.png-9883c4011a1b39056d635a758527f8c0.ctex"]
 
 [params]
 
