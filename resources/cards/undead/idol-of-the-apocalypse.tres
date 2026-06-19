@@ -7,26 +7,23 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "DamageAllEnemies"
+target = "AllEnemies"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Idole de l'Apocalypse"
-description = "Les attaques de tes zombies infligent 1 dégât supplémentaire aux créatures adjacentes."
 texture = ExtResource("2_texture")
+card_name = "Idole de l'Apocalypse"
+description = "Assaut : inflige 1 dégât splash aux serviteurs adjacents à la cible."
 cost = 6
-race = "Undead"
+race = 4
 card_type = "Enchantment"
 attack = 0
 health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
+keywords = Array[int]([])
+trigger_types = Array[String](["OnAttack"])
+requires_target = true
+rarity = "Legendary"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
-rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

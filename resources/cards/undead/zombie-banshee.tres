@@ -7,16 +7,22 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "Silence"
+target = "EnemyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Banshee Zombie"
-description = "Cri de guerre : réduit au silence un minion ennemi."
 texture = ExtResource("2_texture")
+card_name = "Banshee Zombie"
+description = "Invocation : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
 cost = 4
+race = 4
+card_type = "Minion"
 attack = 2
 health = 5
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+keywords = Array[int]([])
+trigger_types = Array[String](["BATTLECRY"])
+requires_target = true
 rarity = "Rare"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -7,32 +7,30 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "DestroyMinion"
+target = "EnemyMinion"
 value = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_eff1"]
 script = ExtResource("1_cardeffect")
 effect_id = "TransformEnemy"
+target = "EnemyMinion"
 value = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "La Faucheuse"
-description = "Cri de guerre : détruit un minion ennemi aléatoire et le transforme en zombie sous ton contrôle."
 texture = ExtResource("2_texture")
+card_name = "La Faucheuse"
+description = "Invocation : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets."
 cost = 7
-race = "Undead"
+race = 4
 card_type = "Minion"
 attack = 7
 health = 6
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "Battlecry"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0"), SubResource("Resource_eff1")])
-effect_target = "Enemy"
+keywords = Array[int]([])
+trigger_types = Array[String](["BATTLECRY"])
+requires_target = true
 rarity = "Legendary"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0"), SubResource("Resource_eff1")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

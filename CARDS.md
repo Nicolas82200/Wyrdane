@@ -53,10 +53,10 @@ Liste complète des cartes de la race **Mort-Vivant**.
 
 ### Légendaires
 
-| Le Médecin de la Peste | 🛡️ | 6 | 4 | Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant. |
+| Le Médecin de la Peste | 🛡️ | 6 | 0 | 4 | Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant. |
 | Roi Liche Zombie | ⚔️ | 7 | 6 | 8 | Invocation : ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 HP en rangée Avant. |
 | Apocalypse Zombie | ⚔️ | 8 | 9 | 9 | Invocation : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle. |
-| Léviathan Putréfié | ⚔️ | 7 | 8 | REMPART. Invocation : serviteurs Mort-Vivants alliés +2/+2. |
+| Léviathan Putréfié | ⚔️ | 7 | 8 | 10 | REMPART. Invocation : serviteurs Mort-Vivants alliés +2/+2. |
 | La Faucheuse | ⚔️ | 7 | 7 | 6 | Invocation : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets. |
 
 ## Éphémères

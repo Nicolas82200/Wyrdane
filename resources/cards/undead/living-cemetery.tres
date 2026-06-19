@@ -11,11 +11,17 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Cimetière Vivant"
-description = "Tes zombies morts reviennent dans ta main au lieu du cimetière (une fois par carte)."
 texture = ExtResource("2_texture")
+card_name = "Cimetière Vivant"
+description = "Deuil : ce Mort-Vivant revient en jeu à la fin du tour avec 1 HP. (Une seule fois par serviteur.)"
 cost = 5
+race = 4
 card_type = "Enchantment"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+attack = 0
+health = 0
+keywords = Array[int]([])
+trigger_types = Array[String](["MOURNING"])
+requires_target = false
 rarity = "Epic"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -8,6 +8,7 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "DamageAllEnemies"
+target = "AllEnemies"
 value = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -24,17 +25,13 @@ card_name = "Cataclysme Zombie"
 description = "Détruit toutes les créatures non-zombies en jeu, puis invoque un zombie 1/1 pour chaque créature détruite."
 texture = ExtResource("2_texture")
 cost = 8
-race = "Undead"
+race = 4
 card_type = "Ritual"
 attack = 0
 health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
+keywords = Array[int]([])
+trigger_types = Array[String]([])
+requires_target = false
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0"), SubResource("Resource_eff1")])
-effect_target = "Enemy"
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

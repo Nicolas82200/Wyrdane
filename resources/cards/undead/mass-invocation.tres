@@ -12,11 +12,17 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Invocation de Masse"
-description = "Invoque immédiatement 3 zombies aléatoires différents sur le plateau."
 texture = ExtResource("2_texture")
-cost = 8
+card_name = "Invocation de Masse"
+description = "Invoque 4 Mort-Vivants aléatoires de coût ≤4. Coûte 6 si tu as 3 serviteurs ou moins en jeu."
+cost = 7
+race = 4
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+attack = 0
+health = 0
+keywords = Array[int]([])
+trigger_types = Array[String]([])
+requires_target = false
 rarity = "Legendary"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

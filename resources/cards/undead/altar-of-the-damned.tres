@@ -12,11 +12,17 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Autel des Damnés"
-description = "Chaque fois qu'un zombie allié meurt, pioche 1 carte."
 texture = ExtResource("2_texture")
+card_name = "Autel des Damnés"
+description = "Deuil : pioche 1 carte."
 cost = 3
+race = 4
 card_type = "Enchantment"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+attack = 0
+health = 0
+keywords = Array[int]([])
+trigger_types = Array[String](["MOURNING"])
+requires_target = false
 rarity = "Rare"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

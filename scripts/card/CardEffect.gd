@@ -3,7 +3,10 @@ class_name CardEffect
 
 @export_enum(
 	"Damage", "Heal", "Buff", "SummonMinion","SummonSelf",
-	"DrawCard", "Destroy", "Silence", "Transform", "StealHealth"
+	"DrawCard", "Destroy", "Silence", "Transform", "StealHealth",
+	"DamageEnemy", "DamageEnemyHero", "DamageAll", "DamageAllEnemies",
+	"BuffAlly", "BuffAllAllies", "DestroyMinion", "TransformEnemy",
+	"HealHero", "ReturnToHand", "InfectEnemy"
 ) var effect_id: String = "Damage"
 
 @export_enum(

@@ -12,11 +12,17 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Grand Rituel Nécrotique"
-description = "Ramène tous les zombies morts ce match dans ta main (maximum 5)."
 texture = ExtResource("2_texture")
-cost = 9
+card_name = "Grand Rituel Nécrotique"
+description = "Ramène en main tous les Mort-Vivants alliés morts ce match (max 5)."
+cost = 8
+race = 4
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+attack = 0
+health = 0
+keywords = Array[int]([])
+trigger_types = Array[String]([])
+requires_target = false
 rarity = "Legendary"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

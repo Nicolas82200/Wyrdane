@@ -6,21 +6,17 @@
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Assassin Décharné"
-description = "Protection : ne peut pas être ciblé par les sorts ou capacités adverses jusqu'à sa première attaque."
 texture = ExtResource("2_texture")
+card_name = "Assassin Décharné"
+description = "AILES NOIRES. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut."
 cost = 3
-race = "Undead"
+race = 4
 card_type = "Minion"
 attack = 4
-health = 1
-has_taunt = false
-has_charge = false
-has_protection = true
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
-effects = Array[ExtResource("1_cardeffect")]([])
-effect_target = "Enemy"
+health = 2
+keywords = Array[int]([1, 7])
+trigger_types = Array[String]([])
+requires_target = true
 rarity = "Epic"
+effects = Array[ExtResource("1_cardeffect")]([])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

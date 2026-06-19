@@ -7,27 +7,24 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "BuffAlly"
+target = "AllyMinion"
 value = -1
 value_2 = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Sanctuaire Nécrotique"
-description = "Tous tes sorts coûtent 1 mana de moins tant que cet enchantement est en jeu."
 texture = ExtResource("2_texture")
+card_name = "Sanctuaire Nécrotique"
+description = "Sortilège : ce sort coûte 1 de moins (min 1)."
 cost = 4
-race = "Undead"
+race = 4
 card_type = "Enchantment"
 attack = 0
 health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
+keywords = Array[int]([])
+trigger_types = Array[String](["SPELLCAST"])
+requires_target = false
+rarity = "Epic"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
-rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

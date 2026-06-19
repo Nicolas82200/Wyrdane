@@ -7,27 +7,24 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "BuffAlly"
+target = "AllyMinion"
 value = 1
 value_2 = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-card_name = "Infecté Récent"
-description = "Mort-rage : gagne +1 en attaque."
 texture = ExtResource("2_texture")
+card_name = "Infecté Récent"
+description = "Mort-rage : +1/+1 par ennemi infecté en jeu."
 cost = 2
-race = "Undead"
+race = 4
 card_type = "Minion"
 attack = 2
 health = 2
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = true
-trigger_type = "Deathrattle"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
+keywords = Array[int]([])
+trigger_types = Array[String](["DEATHRATTLE"])
+requires_target = false
 rarity = "Common"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

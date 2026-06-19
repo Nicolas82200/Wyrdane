@@ -245,10 +245,14 @@ func resolve_card_target(target: Minion) -> void:
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	trigger_effects(attacker, "OnAttack")
 	defender.take_damage(attacker.attack)
+	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and defender.health > 0:
+		defender.health = 0
 	trigger_effects(defender, "OnDamaged")
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
 		get_owner_hero(attacker).heal(attacker.attack)
 	attacker.take_damage(defender.attack)
+	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and attacker.health > 0:
+		attacker.health = 0
 	attacker.attacks_remaining -= 1
 	remove_dead_minions()
 	update_hero_ui()
