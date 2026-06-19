@@ -1,293 +1,144 @@
-# Fantasy Card Game (Godot 4)
+# FateBound
 
-Un jeu de cartes stratégique inspiré de Hearthstone, World of Warcraft TCG et Warcraft, développé avec Godot 4.
+**Dark Fantasy TCG compétitif — 1v1**
 
-L'objectif du projet est de construire un moteur de jeu de cartes flexible, orienté données et facilement extensible afin de supporter des centaines de cartes, des synergies complexes, des campagnes PvE et une IA avancée.
-
----
-
-## Fonctionnalités actuelles
-
-### Cartes
-
-Les cartes sont définies via des ressources `CardData`.
-
-Chaque carte possède :
-
-* Nom
-* Description
-* Illustration
-* Coût en mana
-* Race
-* Type
-* Statistiques
-* Mots-clés
-* Trigger
-* Liste d'effets
-
-### Types de cartes
-
-* Minion
-* Spell
-* Weapon (prévu)
-
-### Races
-
-* Human
-* Elf
-* Dwarf
-* Undead
-* Demon
-
-### Mots-clés
-
-* Taunt
-* Charge
-* Protection
-* Lifesteal
-* Fury
+FateBound est un jeu de cartes à collectionner stratégique dans un univers dark fantasy. Deux joueurs s'affrontent et cherchent à réduire le héros adverse à 0 HP.
 
 ---
 
-## Système d'effets
+## Plateau de jeu
 
-Le projet utilise une architecture centralisée basée sur un `EffectManager`.
+Chaque joueur dispose de deux rangées :
 
-Tous les effets du jeu transitent par :
+- **Rangée Avant** — serviteurs en première ligne. Protège la rangée Arrière et le héros. Doit être vide pour que le héros adverse soit attaquable directement.
+- **Rangée Arrière** — serviteurs de soutien, générateurs, buffers. Protégés tant que la rangée Avant est occupée.
 
-```gdscript
-EffectManager.execute_effect(
-    battle,
-    source_minion,
-    effect,
-    selected_target
-)
-```
+Chaque rangée peut accueillir **10 serviteurs maximum**. Un joueur ne peut avoir plus de **20 serviteurs** en jeu simultanément.
 
-### Effets disponibles
+---
 
-* Damage
-* Heal
-* Buff
-* Destroy
-* DrawCard
-* SummonMinion
-* StealHealth
+## Système de mana
 
-### Système de ciblage
+Au début de chaque tour, le joueur choisit **l'une des deux options** :
 
-Les effets sont séparés de leurs cibles :
+- **+1 Mana Max** — augmente la réserve maximale de mana de façon permanente.
+- **Piocher 1 carte** — renforce immédiatement la main.
 
-Exemples :
+Il n'y a **aucun plafond de mana**. La gestion de cette progression est une décision stratégique centrale.
 
-```text
-Damage + EnemyHero
-Damage + AllEnemies
-Heal + AllAllies
-Buff + RandomAlly
-```
+---
 
-Cibles actuellement supportées :
+## Types de cartes
 
-```text
-Self
-EnemyHero
-OwnerHero
+| Type | Description |
+|---|---|
+| **Serviteur** | Unité placée sur le plateau, Avant ou Arrière. |
+| **Éphémère** | Sort à effet immédiat, jeté et défaussé. |
+| **Rituel** | Sort permanent actif pendant X tours. |
+| **Enchantement** | Effet passif permanent jusqu'à destruction. |
 
-EnemyMinion
-AllyMinion
-AnyMinion
+---
 
-AllEnemies
-AllAllies
-AllMinions
+## Races
 
-RandomEnemy
-RandomAlly
-```
+| Race | Thèmes |
+|---|---|
+| **Mort-Vivant** | Réanimation · Cimetière · Infection · Invocation · Sacrifice |
+| **Humain** | Formation · Commandants · Bonus alliés · Synergies positionnement |
+| **Elfe** | Croissance · Buffs progressifs · Valeur long terme |
+| **Nain** | Armure · Résistance · Défense · Fortifications |
+| **Démon** | Sacrifice · Perte HP · Agressivité · Puissance explosive |
 
-### Filtres
+---
 
-Les effets peuvent être filtrés par race :
+## Mots-clés
 
-```text
-Damage all Demons
-Heal all Undead
-Buff all Elves
-```
+| Mot-clé | Effet |
+|---|---|
+| **REMPART** | Doit être attaqué en priorité. |
+| **ASSAUT** | Peut attaquer le tour de son invocation. |
+| **FRÉNÉSIE** | Peut attaquer deux fois par tour. |
+| **RAVAGE** | Les dégâts excédentaires sont infligés au héros adverse. |
+| **AILES NOIRES** | Ignore la rangée Avant ennemie (attaque directement la Arrière ou le héros). |
+| **MOISSON** | Les dégâts infligés soignent le héros allié. |
+| **VENIN MORTEL** | Toute blessure infligée détruit la cible. |
+| **ÉGIDE** | Ignore la première source de dégâts reçue. |
 
 ---
 
 ## Triggers
 
-Les cartes peuvent réagir à différents événements :
+Les effets de cartes se déclenchent sur les événements suivants :
 
-```text
-Battlecry
-Deathrattle
-OnAllyDeath
-OnTurnStart
-OnTurnEnd
-OnAttack
-OnDamaged
-Aura
-```
-
----
-
-## Architecture
-
-### CardData
-
-Définition des cartes.
-
-```text
-CardData
- ├─ Nom
- ├─ Description
- ├─ Stats
- ├─ Keywords
- ├─ Trigger
- └─ Effects[]
-```
-
-### CardEffect
-
-Définition d'un effet indépendant de la carte.
-
-```text
-CardEffect
- ├─ Effect Type
- ├─ Target Type
- ├─ Value
- ├─ Filters
- └─ Summon / Transform Data
-```
-
-### EffectManager
-
-Responsable de l'exécution de tous les effets du jeu.
-
-```text
-Card Played
-    ↓
-EffectManager
-    ↓
-Target Resolution
-    ↓
-Effect Application
-```
-
-### Battle
-
-Contient l'état complet de la partie :
-
-```text
-Heroes
-Boards
-Hands
-Decks
-Mana
-Turn State
-```
-
-### Minion
-
-Représentation runtime d'un serviteur sur le plateau.
-
-```text
-Attack
-Health
-Max Health
-Keywords
-Owner
-Card Data
-```
+| Trigger | Condition |
+|---|---|
+| **Invocation** | Cette unité arrive sur le plateau. |
+| **Dernier Souffle** | Cette unité meurt. |
+| **Assaut** | Cette unité attaque. |
+| **Blessure** | Cette unité subit des dégâts. |
+| **Éveil** | Début du tour du joueur. |
+| **Déclin** | Fin du tour du joueur. |
+| **Ralliement** | Une unité alliée arrive sur le plateau. |
+| **Deuil** | Une unité alliée meurt. |
+| **Sortilège** | Un sort allié est lancé. |
+| **Sacrifice** | Une unité alliée est sacrifiée. |
+| **Exécution** | Une unité ennemie meurt. |
+| **Carnage** | N'importe quelle unité meurt. |
 
 ---
 
-## Interface
+## Mécaniques spéciales Mort-Vivant
 
-### Plateau
+**Infection** — Un serviteur infecté perd 1 HP au début du tour adverse. Persiste jusqu'à la mort. Amplifiée par certains enchantements (ex. Brouillard Pestilentiel).
 
-Interface fantasy sombre inspirée de :
+**Mort-rage** — Se déclenche quand le serviteur tombe sous la moitié de ses HP max pour la première fois. Une seule fois par serviteur.
 
-* Hearthstone
-* Warcraft
-* Diablo
-* WoW TCG
+**Cimetière** — Pile de tous les serviteurs alliés morts, visible par les deux joueurs. De nombreuses cartes Mort-Vivant interagissent avec le cimetière (résurrection, pioche, invocation). L'ordre est préservé.
 
-### Fonctionnalités actuelles
-
-* Plateau de jeu
-* Main en éventail
-* Invocation de serviteurs
-* Battlecry
-* Deathrattle
-* Gestion du mana
-* Ciblage de base
-
-### Fonctionnalités prévues
-
-* Animations d'attaque
-* Animations de pioche
-* Effets visuels
-* Drag & Drop
-* Zoom des cartes
-* Hover avancé
-* Sons
-* Particules
+**Sacrifice** — Détruire volontairement un serviteur allié pour déclencher un effet. Le serviteur va au cimetière normalement et peut être réanimé.
 
 ---
 
-## Roadmap
+## Fichiers du projet
 
-### Court terme
-
-* Conversion des strings en enums
-* Système complet de mots-clés
-* Effets ciblés avancés
-* Amélioration de l'UI
-
-### Moyen terme
-
-* Système d'événements global
-* Auras dynamiques
-* Cartes légendaires
-* Synergies de race
-
-### Long terme
-
-* IA
-* Campagne PvE
-* Génération de rencontres
-* Collection de cartes
-* Progression du joueur
-* Éditeur de cartes
-
----
+- `README.md` — Ce fichier. Règles, mécaniques, structure du jeu.
+- `CARDS.md` — Liste complète de toutes les cartes avec stats, triggers et effets.
 
 ## Technologies
 
-* Godot 4
-* GDScript
+Godot 4
+GDScript
 
----
+## Structure du projet
 
-## Philosophie du projet
+scenes/
+├── battle/
+├── card/
+├── hand/
+├── hero/
+├── minion/
 
-Le projet privilégie :
+scripts/
+├── battle/
+├── card/
+├── data/
+├── effects/
 
-* Architecture orientée données
-* Extensibilité
-* Réutilisation du code
-* Séparation des responsabilités
-* Facilité d'ajout de nouvelles cartes
+## Lancer le projet
 
-L'objectif est d'éviter le code spécifique aux cartes et de permettre la création de nouvelles mécaniques principalement via les ressources de données.
+Ouvrir le projet dans Godot 4.
+Charger la scène principale.
+Exécuter le projet.
 
----
+## Roadmap
 
-## État du projet
+[ ]IA adverse
+[ ]Mode campagne
+[ ]Collection de cartes
+[ ]Construction de deck
+[ ]Effets avancés
+[ ]Multijoueur
 
-En développement actif.
+## Auteur
+
+Nicolas Séménadisse
