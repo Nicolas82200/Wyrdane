@@ -53,7 +53,7 @@ var game_over: bool = false
 
 func _ready() -> void:
 	load_deck()
-	var enemy_card: CardData = load("res://resources/cards/undead/minor-zombie.tres") as CardData
+	var enemy_card: CardData = load("res://resources/cards/undead/infected-berserker.tres") as CardData
 	enemy_minions.append(Minion.new(enemy_card, false, ROW_FRONT))
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
@@ -352,6 +352,9 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	check_game_end()
 
 func remove_dead_minions() -> void:
+	if _processing_deaths:
+		return
+	_processing_deaths = true
 	var dead_player := player_minions.filter(func(m): return m.is_dead())
 	var dead_enemy  := enemy_minions.filter(func(m): return m.is_dead())
 	for minion in dead_player:
@@ -362,12 +365,18 @@ func remove_dead_minions() -> void:
 		trigger_effects(minion, "DEATHRATTLE")
 	player_minions = player_minions.filter(func(m): return not m.is_dead())
 	enemy_minions  = enemy_minions.filter(func(m): return not m.is_dead())
+	_processing_deaths = false
 	refresh_board()
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
 	if minion == null:
 		return
-	if not trigger_name in minion.card_data.trigger_types:
+	var trigger_found := false
+	for trigger in minion.card_data.trigger_types:
+		if trigger.type == trigger_name:
+			trigger_found = true
+			break
+	if not trigger_found:
 		return
 	for effect in minion.card_data.effects:
 		EffectManagerData.execute_effect(self, minion, effect)
@@ -458,6 +467,7 @@ var _known_minions: Array[Minion] = []
 
 var _refreshing: bool = false
 var _refresh_again: bool = false
+var _processing_deaths: bool = false
 var _drop_highlights: Dictionary = {}
 var _drop_placeholder: Control = null
 var _drop_placeholder_row: String = ""
@@ -611,7 +621,7 @@ func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
 			index += 1
 	return index
 
-func update_player_drop_highlight(card_data: CardData, mouse: Vector2, show: bool) -> bool:
+func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
 	_ensure_drop_highlights()
 	var allowed_rows: Array[String] = get_allowed_rows_for_card(card_data)
 	for row in [ROW_FRONT, ROW_BACK]:
@@ -619,12 +629,12 @@ func update_player_drop_highlight(card_data: CardData, mouse: Vector2, show: boo
 		var row_container: Control = _get_player_row_container(row)
 		if panel == null or row_container == null:
 			continue
-		var can_show: bool = show and row in allowed_rows and can_summon_to_row(true, row)
+		var can_show: bool = display_show and row in allowed_rows and can_summon_to_row(true, row)
 		panel.visible = can_show
 		if can_show:
 			_fit_drop_highlight_to(row_container, panel)
 	var drop_row: String = get_player_drop_row_at(mouse, card_data)
-	if show and not drop_row.is_empty() and can_summon_to_row(true, drop_row):
+	if display_show and not drop_row.is_empty() and can_summon_to_row(true, drop_row):
 		var insert_index: int = _get_stable_player_drop_index_at(mouse, drop_row)
 		_update_drop_placeholder(drop_row, insert_index)
 		_update_drag_board_preview(card_data, drop_row, mouse)
@@ -754,7 +764,7 @@ func _clear_drop_placeholder() -> void:
 	if _drop_placeholder.get_parent() != null:
 		_drop_placeholder.get_parent().remove_child(_drop_placeholder)
 
-func _update_drag_board_preview(card_data: CardData, row: String, mouse: Vector2) -> void:
+func _update_drag_board_preview(card_data: CardData, row: String, _mouse: Vector2) -> void:
 	var board: Control = get_node_or_null("Board") as Control
 	if board == null:
 		return

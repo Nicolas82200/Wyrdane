@@ -1,8 +1,10 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://efb8a778ccba"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://f10791b68cbf" path="res://assets/card_art/grip-of-the-graveyard.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_g8tft"]
+[ext_resource type="Texture2D" uid="uid://cn3ts3m5dxh52" path="res://assets/card_art/grip-of-the-graveyard.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_mvf0d"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
@@ -12,17 +14,12 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Poigne du Cimetière"
 description = "Renvoie un serviteur ennemi de 3 HP ou moins dans la main de son propriétaire."
+texture = ExtResource("2_texture")
 cost = 2
-race = 4
 card_type = "Instant"
-attack = 0
-health = 0
-keywords = Array[int]([])
-trigger_types = Array[String]([])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 requires_target = true
 rarity = "Rare"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

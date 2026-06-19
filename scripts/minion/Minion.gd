@@ -17,7 +17,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front"):
 	attack = data.attack
 	health = data.health
 	max_health = data.health
-	keywords = data.keywords.duplicate()
+	keywords = data.get_keyword_values()
 	if has_keyword(Keyword.Type.CHARGE):
 		attacks_remaining = 1
 	else:

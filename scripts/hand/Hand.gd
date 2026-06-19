@@ -78,10 +78,10 @@ func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: V
 	var children := container.get_children()
 	for i in range(children.size() - 1):  # toutes sauf la dernière
 		var card = children[i]
-		var tween := create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tween.tween_property(card, "scale",    card.scale,            0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		var tween_existing := create_tween()
+		tween_existing.set_parallel(true)
+		tween_existing.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween_existing.tween_property(card, "scale",    card.scale,            0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 	# Animation fantôme pour la carte piochée
 	var final_pos   = new_card.global_position
@@ -159,8 +159,7 @@ func set_compact(compact: bool) -> void:
 	var hand_bottom        := size.y - 30.0
 	var scale_factor       := 1.0 - (count - 1) * reduction_per_card
 	scale_factor = clamp(scale_factor, 0.55, 1.2)
-	var hand_scale := Vector2(scale_factor, scale_factor)
-	
+
 	var target_spacing := COMPACT_SPACING if compact else SPACING
 	if count > 1:
 		target_spacing = min(target_spacing, max_width / float(count - 1)) if not compact else COMPACT_SPACING
@@ -210,7 +209,6 @@ func _update_hand_layout(animated: bool = false) -> void:
 	if count > 0:
 		var sample_card := cards[0]
 		var card_width: float = sample_card.size.x * hand_scale.x
-		var total_width: float = card_width + spacing * max(0, count - 1)
 		start_x = left_margin
 
 	for i in range(count):

@@ -1,29 +1,32 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e56a86872373"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_jyfqk"]
 [ext_resource type="Texture2D" uid="uid://bufwwwcqadj67" path="res://assets/card_art/plague-reaper.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_6xl7n"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyMinion"
+effect_id = "Destroy"
 target = "EnemyMinion"
 value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_s58r0"]
+script = ExtResource("5_6xl7n")
+type = "BATTLECRY"
+
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Faucheur de la Plaie"
 description = "Invocation : détruit un serviteur ennemi ayant 3 HP ou moins."
+texture = ExtResource("2_texture")
 cost = 5
-race = 4
-card_type = "Minion"
 attack = 5
 health = 5
-keywords = Array[int]([])
-trigger_types = Array[String](["BATTLECRY"])
+trigger_types = Array[ExtResource("5_6xl7n")]([SubResource("Resource_s58r0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 requires_target = true
 rarity = "Epic"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

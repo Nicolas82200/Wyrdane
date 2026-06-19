@@ -3,7 +3,9 @@
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Texture2D" uid="uid://b6ncj0qpa60dh" path="res://assets/card_art/mass-grave.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_sa34u"]
 [ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_yksmo"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
@@ -11,19 +13,18 @@ effect_id = "SummonMinion"
 summon_card = ExtResource("4_summon_decayingcrawler")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_4jjaw"]
+script = ExtResource("6_yksmo")
+type = "OnAwaken"
+
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Fosse Commune"
 description = "Éveil : si 3 Mort-Vivants ou plus en jeu, invoque un Rampant 1/1."
+texture = ExtResource("2_texture")
 cost = 4
-race = 4
 card_type = "Enchantment"
-attack = 0
-health = 0
-keywords = Array[int]([])
-trigger_types = Array[String](["ONTURNSTART"])
-requires_target = false
-rarity = "Rare"
+trigger_types = Array[ExtResource("6_yksmo")]([SubResource("Resource_4jjaw")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

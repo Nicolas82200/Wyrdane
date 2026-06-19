@@ -2,10 +2,8 @@ extends Resource
 class_name CardEffect
 
 @export_enum(
-	"Damage", "Heal", "Buff", "SummonMinion","SummonSelf",
+	"Damage", "Heal", "Buff", "SummonMinion", "SummonSelf",
 	"DrawCard", "Destroy", "Silence", "Transform", "StealHealth",
-	"DamageEnemy", "DamageEnemyHero", "DamageAll", "DamageAllEnemies",
-	"BuffAlly", "BuffAllAllies", "DestroyMinion", "TransformEnemy",
 	"HealHero", "ReturnToHand", "InfectEnemy"
 ) var effect_id: String = "Damage"
 
@@ -13,7 +11,7 @@ class_name CardEffect
 	"Self", "EnemyHero", "OwnerHero",
 	"EnemyMinion", "AllyMinion", "AllEnemies",
 	"AllAllies", "AllMinions", "RandomEnemy", "RandomAlly", "AnyMinion"
-) var target: String = "EnemyHero"
+) var target: String = "Self"
 
 @export var value: int = 0
 @export var value_2: int = 0
@@ -21,3 +19,9 @@ class_name CardEffect
 @export var summon_card: CardData
 @export var transform_card: CardData
 @export var race_filter: String = ""
+
+func get_effect_type() -> int:
+	return EffectType.from_name(effect_id)
+
+func get_target_type() -> int:
+	return TargetType.from_name(target)
