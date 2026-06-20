@@ -243,11 +243,11 @@ mouse_filter = 2
 expand_mode = 1
 
 [node name="RarityPanel" type="PanelContainer" parent="." unique_id=1153858896]
-custom_minimum_size = Vector2(20, 30)
+custom_minimum_size = Vector2(20, 35)
 layout_mode = 0
 offset_left = 220.0
-offset_top = 157.5
+offset_top = 155.0
 offset_right = 240.0
-offset_bottom = 187.5
+offset_bottom = 190.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_1oahe")

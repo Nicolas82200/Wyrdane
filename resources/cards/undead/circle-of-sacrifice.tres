@@ -1,30 +1,31 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://66eb0ead07ad"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/circle-of-sacrifice.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_my71t"]
+[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/undead/circle-of-sacrifice.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_duuku"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
-effect_id = "BuffAllAllies"
+effect_id = "Buff"
 target = "AllAllies"
 value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_01lwr"]
+script = ExtResource("5_duuku")
+type = "SACRIFICE"
+
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Cercle de Sacrifice"
 description = "Sacrifice (exactement 2 serviteurs) : tes serviteurs restants gagnent +ATK/+HP égal aux stats combinées des sacrifiés ce tour."
+texture = ExtResource("2_texture")
 cost = 6
-race = 4
 card_type = "Ritual"
-attack = 0
-health = 0
-keywords = Array[int]([])
-trigger_types = Array[String]([])
-requires_target = false
-rarity = "Legendary"
+trigger_types = Array[ExtResource("5_duuku")]([SubResource("Resource_01lwr")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

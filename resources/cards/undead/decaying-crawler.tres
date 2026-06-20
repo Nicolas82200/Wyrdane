@@ -1,28 +1,26 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://0303eddfc41b"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://coltgcriu3r0e" path="res://assets/card_art/decaying-crawler.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_d5rqe"]
+[ext_resource type="Texture2D" uid="uid://coltgcriu3r0e" path="res://assets/card_art/undead/decaying-crawler.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_5pf5s"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
-effect_id = "Transform"
-target = "EnemyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_xlmgx"]
+script = ExtResource("5_5pf5s")
 
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Rampant en Décomposition"
+board_position = "Front"
 description = "Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle)."
-cost = 1
-race = 4
-card_type = "Minion"
+texture = ExtResource("2_texture")
 attack = 1
 health = 1
-keywords = Array[int]([])
-trigger_types = Array[String](["DEATHRATTLE"])
-requires_target = false
-rarity = "Common"
+trigger_types = Array[ExtResource("5_5pf5s")]([SubResource("Resource_xlmgx")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

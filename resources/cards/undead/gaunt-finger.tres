@@ -1,8 +1,10 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://4e64307db585"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://7c7d0272a4fe" path="res://assets/card_art/gaunt-finger.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_shl8m"]
+[ext_resource type="Texture2D" uid="uid://cuoam2nvkmm10" path="res://assets/card_art/undead/gaunt-finger.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_aes6n"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
@@ -10,19 +12,17 @@ effect_id = "DrawCard"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_uplmd"]
+script = ExtResource("5_aes6n")
+type = "SPELLCAST"
+
 [resource]
 script = ExtResource("3_carddata")
-texture = ExtResource("2_texture")
 card_name = "Doigt Décharné"
 description = "Sortilège : pioche 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce tour."
-cost = 1
-race = 4
+texture = ExtResource("2_texture")
 card_type = "Instant"
-attack = 0
-health = 0
-keywords = Array[int]([])
-trigger_types = Array[String](["SPELLCAST"])
-requires_target = false
-rarity = "Rare"
+trigger_types = Array[ExtResource("5_aes6n")]([SubResource("Resource_uplmd")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

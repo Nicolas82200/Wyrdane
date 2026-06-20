@@ -50,10 +50,15 @@ var player_hero: Hero
 var enemy_hero: Hero
 var game_over: bool = false
 
+var selected_attackers: Array[Minion] = []
+var selected_board_minions: Array[BoardMinion] = []
+var is_multi_selecting: bool = false
 
 func _ready() -> void:
 	load_deck()
-	var enemy_card: CardData = load("res://resources/cards/undead/minor-zombie.tres") as CardData
+	hand.can_play_check = can_afford_card
+	hand.create_drag_preview = _create_card_drag_preview
+	var enemy_card: CardData = load("res://resources/cards/undead/infected-berserker.tres") as CardData
 	enemy_minions.append(Minion.new(enemy_card, false, ROW_FRONT))
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
@@ -296,15 +301,16 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 		pending_insert_index = insert_index
 		waiting_for_target = true
 		return
-	# Animate card slide before playing
-	await _play_card_slide_animation(card_data, row)
 	play_card(card_data, row, insert_index)
 
 func play_card(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	mana -= card_data.cost
 	update_mana_ui()
-	hand_cards.erase(card_data)
-	hand.set_hand(hand_cards)
+	var idx := hand_cards.find(card_data)
+	if idx != -1:
+		hand_cards.remove_at(idx)
+	await get_tree().process_frame
+	hand._update_hand_layout(true)
 	if card_data.card_type == "Minion":
 		summon_minion(card_data, true, row, insert_index)
 	else:
@@ -352,6 +358,9 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	check_game_end()
 
 func remove_dead_minions() -> void:
+	if _processing_deaths:
+		return
+	_processing_deaths = true
 	var dead_player := player_minions.filter(func(m): return m.is_dead())
 	var dead_enemy  := enemy_minions.filter(func(m): return m.is_dead())
 	for minion in dead_player:
@@ -362,12 +371,18 @@ func remove_dead_minions() -> void:
 		trigger_effects(minion, "DEATHRATTLE")
 	player_minions = player_minions.filter(func(m): return not m.is_dead())
 	enemy_minions  = enemy_minions.filter(func(m): return not m.is_dead())
+	_processing_deaths = false
 	refresh_board()
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
 	if minion == null:
 		return
-	if not trigger_name in minion.card_data.trigger_types:
+	var trigger_found := false
+	for trigger in minion.card_data.trigger_types:
+		if trigger.type == trigger_name:
+			trigger_found = true
+			break
+	if not trigger_found:
 		return
 	for effect in minion.card_data.effects:
 		EffectManagerData.execute_effect(self, minion, effect)
@@ -388,11 +403,34 @@ func _update_graveyard_btn(graveyard: Graveyard, preview: Card, label: Label) ->
 func _on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
 	if game_over or not minion.can_attack():
 		return
-	if selected_board_minion:
-		selected_board_minion.set_selected(false)
-	selected_attacker     = minion
-	selected_board_minion = board_minion
-	selected_board_minion.set_selected(true)
+	
+	var ctrl_held := Input.is_key_pressed(KEY_CTRL)
+	
+	if ctrl_held:
+		# Multi-sélection
+		is_multi_selecting = true
+		if minion in selected_attackers:
+			# Déselectionne si déjà sélectionné
+			var idx := selected_attackers.find(minion)
+			selected_attackers.remove_at(idx)
+			selected_board_minions.remove_at(idx)
+			board_minion.set_selected(false)
+		else:
+			selected_attackers.append(minion)
+			selected_board_minions.append(board_minion)
+			board_minion.set_selected(true)
+		
+		if selected_attackers.is_empty():
+			is_multi_selecting = false
+	else:
+		# Sélection simple — vide la multi-sélection
+		clear_multi_selection()
+		is_multi_selecting = false
+		if selected_board_minion:
+			selected_board_minion.set_selected(false)
+		selected_attacker     = minion
+		selected_board_minion = board_minion
+		board_minion.set_selected(true,true)
 
 func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
 	if game_over:
@@ -402,6 +440,15 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 			return
 		resolve_card_target(target)
 		return
+	
+	# Multi-attaque séquentielle
+	if is_multi_selecting and not selected_attackers.is_empty():
+		if target not in get_attackable_enemy_minions(selected_attackers[0]):
+			return
+		await _resolve_multi_attack(target)
+		return
+	
+	# Attaque simple
 	if selected_attacker == null:
 		return
 	if target not in get_attackable_enemy_minions(selected_attacker):
@@ -412,7 +459,14 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 	clear_selection()
 
 func _on_enemy_hero_clicked() -> void:
-	if game_over or selected_attacker == null or has_enemy_taunt():
+	if game_over or has_enemy_taunt():
+		return
+	
+	if is_multi_selecting and not selected_attackers.is_empty():
+		await _resolve_multi_attack_hero()
+		return
+	
+	if selected_attacker == null:
 		return
 	if not selected_attacker.has_keyword(Keyword.Type.BLACK_WINGS) and not get_front_minions(false).is_empty():
 		return
@@ -429,6 +483,48 @@ func clear_selection() -> void:
 		selected_board_minion.set_selected(false)
 	selected_board_minion = null
 	selected_attacker     = null
+	clear_multi_selection()
+
+func clear_multi_selection() -> void:
+	for bm in selected_board_minions:
+		if is_instance_valid(bm):
+			bm.set_selected(false)
+	selected_attackers.clear()
+	selected_board_minions.clear()
+	is_multi_selecting = false
+
+func _resolve_multi_attack(target: Minion) -> void:
+	var attackers := selected_attackers.duplicate()
+	clear_multi_selection()
+	for attacker in attackers:
+		if attacker == null or attacker.is_dead():
+			continue
+		if target.is_dead():
+			break  # Cible morte, on arrête
+		if not attacker.can_attack():
+			continue
+		if has_enemy_taunt() and not target.has_keyword(Keyword.Type.TAUNT):
+			continue
+		resolve_combat(attacker, target)
+		await get_tree().create_timer(0.4).timeout
+
+func _resolve_multi_attack_hero() -> void:
+	var attackers := selected_attackers.duplicate()
+	clear_multi_selection()
+	for attacker in attackers:
+		if attacker == null or attacker.is_dead():
+			continue
+		if not attacker.can_attack():
+			continue
+		if not attacker.has_keyword(Keyword.Type.BLACK_WINGS) and not get_front_minions(false).is_empty():
+			continue
+		damage_hero(enemy_hero, attacker.attack)
+		if attacker.has_keyword(Keyword.Type.LIFESTEAL):
+			get_owner_hero(attacker).heal(attacker.attack)
+		attacker.attacks_remaining -= 1
+		await get_tree().create_timer(0.4).timeout
+	check_game_end()
+	refresh_board()
 
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
@@ -458,6 +554,7 @@ var _known_minions: Array[Minion] = []
 
 var _refreshing: bool = false
 var _refresh_again: bool = false
+var _processing_deaths: bool = false
 var _drop_highlights: Dictionary = {}
 var _drop_placeholder: Control = null
 var _drop_placeholder_row: String = ""
@@ -580,6 +677,13 @@ func check_game_end() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().quit()
+	# Clic gauche sans Ctrl = vide la multi-sélection
+	if event is InputEventMouseButton \
+			and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.pressed \
+			and not Input.is_key_pressed(KEY_CTRL):
+		if is_multi_selecting:
+			clear_multi_selection()
 
 func _find_zone_at(mouse: Vector2, group: String) -> Control:
 	for zone in get_tree().get_nodes_in_group(group):
@@ -611,7 +715,7 @@ func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
 			index += 1
 	return index
 
-func update_player_drop_highlight(card_data: CardData, mouse: Vector2, show: bool) -> bool:
+func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
 	_ensure_drop_highlights()
 	var allowed_rows: Array[String] = get_allowed_rows_for_card(card_data)
 	for row in [ROW_FRONT, ROW_BACK]:
@@ -619,15 +723,14 @@ func update_player_drop_highlight(card_data: CardData, mouse: Vector2, show: boo
 		var row_container: Control = _get_player_row_container(row)
 		if panel == null or row_container == null:
 			continue
-		var can_show: bool = show and row in allowed_rows and can_summon_to_row(true, row)
+		var can_show: bool = display_show and row in allowed_rows and can_summon_to_row(true, row)
 		panel.visible = can_show
 		if can_show:
 			_fit_drop_highlight_to(row_container, panel)
 	var drop_row: String = get_player_drop_row_at(mouse, card_data)
-	if show and not drop_row.is_empty() and can_summon_to_row(true, drop_row):
+	if display_show and not drop_row.is_empty() and can_summon_to_row(true, drop_row):
 		var insert_index: int = _get_stable_player_drop_index_at(mouse, drop_row)
 		_update_drop_placeholder(drop_row, insert_index)
-		_update_drag_board_preview(card_data, drop_row, mouse)
 		return true
 	_clear_drop_placeholder()
 	_clear_drag_board_preview()
@@ -639,7 +742,6 @@ func clear_player_drop_highlight() -> void:
 		if control != null:
 			control.visible = false
 	_clear_drop_placeholder()
-	_clear_drag_board_preview()
 
 func _ensure_drop_highlights() -> void:
 	if not _drop_highlights.is_empty():
@@ -754,7 +856,7 @@ func _clear_drop_placeholder() -> void:
 	if _drop_placeholder.get_parent() != null:
 		_drop_placeholder.get_parent().remove_child(_drop_placeholder)
 
-func _update_drag_board_preview(card_data: CardData, row: String, mouse: Vector2) -> void:
+func _update_drag_board_preview(card_data: CardData, row: String, _mouse: Vector2) -> void:
 	var board: Control = get_node_or_null("Board") as Control
 	if board == null:
 		return
@@ -787,11 +889,11 @@ func _clear_drag_board_preview() -> void:
 	_drag_preview_row = ""
 
 func _on_hand_drag_started() -> void:
-	# Compacter la main pour laisser la place au placeholder
+	_is_dragging_card = true
 	hand.set_compact(true)
 
 func _on_hand_drag_ended() -> void:
-	# Restaurer la main à son espacement normal
+	_is_dragging_card = false
 	hand.set_compact(false)
 
 func _play_card_slide_animation(card_data: CardData, row: String) -> void:
@@ -852,3 +954,19 @@ func _play_card_slide_animation(card_data: CardData, row: String) -> void:
 		card.reparent(original_parent)
 		card.modulate = original_modulate
 		card.position = original_position
+func can_afford_card(card_data: CardData) -> bool:
+	return card_data != null and mana >= card_data.cost
+
+func _create_card_drag_preview(card_data: CardData) -> Control:
+	var preview: BoardMinion = BOARD_MINION_SCENE.instantiate() as BoardMinion
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.z_index = 200
+	preview.modulate = Color(1, 1, 1, 0.85)
+	add_child(preview)
+	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
+	return preview
+
+var _is_dragging_card: bool = false
+
+func is_dragging_card() -> bool:
+	return _is_dragging_card
