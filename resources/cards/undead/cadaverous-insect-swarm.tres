@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://fd825faaa02"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dnaqm01u51mun" path="res://assets/card_art/cadaverous-insect-swarm.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://dnaqm01u51mun" path="res://assets/card_art/undead/cadaverous-insect-swarm.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_w6m6g"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_y5i7r"]
@@ -19,6 +19,7 @@ type = "BATTLECRY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Nuée d'Insectes Cadavériques"
+board_position = "Hybrid"
 description = "Invocation : inflige 1 dégât à tous les serviteurs ennemis en jeu."
 texture = ExtResource("2_texture")
 cost = 3

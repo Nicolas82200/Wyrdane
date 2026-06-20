@@ -16,6 +16,8 @@ const ARC_STRENGTH := 20.0
 
 var _base_positions: Dictionary = {}
 var _is_compact: bool = false
+var can_play_check: Callable = Callable()
+var create_drag_preview: Callable = Callable()
 
 func _ready() -> void:
 	preview.hide()
@@ -34,14 +36,7 @@ func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: V
 			container.add_child(card)
 			card.set_data(card_data)
 			card.scale = NORMAL_SCALE
-			card.card_clicked.connect(_on_card_clicked)
-			card.drag_started.connect(func(): drag_started.emit())
-			card.drag_ended.connect(func(): drag_ended.emit())
-			card.mouse_entered.connect(_on_card_hover.bind(card))
-			card.mouse_exited.connect(_on_card_unhover)
-			for child in card.get_children():
-				if child is Control:
-					child.mouse_filter = Control.MOUSE_FILTER_PASS
+			_connect_card(card)
 
 		await get_tree().process_frame
 
@@ -59,14 +54,7 @@ func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: V
 	container.add_child(new_card)
 	new_card.set_data(new_card_data)
 	new_card.scale = NORMAL_SCALE
-	new_card.card_clicked.connect(_on_card_clicked)
-	new_card.drag_started.connect(func(): drag_started.emit())
-	new_card.drag_ended.connect(func(): drag_ended.emit())
-	new_card.mouse_entered.connect(_on_card_hover.bind(new_card))
-	new_card.mouse_exited.connect(_on_card_unhover)
-	for child in new_card.get_children():
-		if child is Control:
-			child.mouse_filter = Control.MOUSE_FILTER_PASS
+	_connect_card(new_card)
 
 	await get_tree().process_frame
 	new_card.pivot_offset = Vector2(new_card.size.x / 2.0, new_card.size.y)
@@ -127,17 +115,24 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 	card_played.emit(card_data, row, insert_index)
 
 func _on_card_hover(card: Card) -> void:
+	var battle = get_tree().current_scene
+	if battle and battle.has_method("is_dragging_card") and battle.call("is_dragging_card"):
+		return
+	for c in container.get_children():
+		if c is Card and c.dragging:
+			return
 	if card.dragging:
 		return
 	preview.set_data(card.data)
-	preview.scale = Vector2(1.1, 1.1)
+	preview.scale   = Vector2(1.1, 1.1)
 	preview.z_index = 100
 	var pos := card.global_position
 	preview.global_position = Vector2(
 		pos.x - preview.size.x * 0.25,
-		pos.y - preview.size.y * 1
+		pos.y - preview.size.y * 1.0
 	)
 	preview.show()
+	card.drag_started.connect(func(): preview.hide())
 
 func _on_card_unhover() -> void:
 	preview.hide()
@@ -247,3 +242,17 @@ func _update_hand_layout(animated: bool = false) -> void:
 	0.25
 )
 			card.position = pos
+			
+func _connect_card(card: Card) -> void:
+	card.card_clicked.connect(_on_card_clicked)
+	card.drag_started.connect(func(): drag_started.emit())
+	card.drag_ended.connect(func(): drag_ended.emit())
+	card.mouse_entered.connect(_on_card_hover.bind(card))
+	card.mouse_exited.connect(_on_card_unhover)
+	for child in card.get_children():
+		if child is Control:
+			child.mouse_filter = Control.MOUSE_FILTER_PASS
+	if can_play_check.is_valid():
+		card.can_drag_check = can_play_check
+	if create_drag_preview.is_valid():
+		card.create_drag_preview = create_drag_preview

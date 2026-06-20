@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://8f0aa43df3db"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://bbpm84cx0byhb" path="res://assets/card_art/zombie-cataclysm.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://bbpm84cx0byhb" path="res://assets/card_art/undead/zombie-cataclysm.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_wx4f1"]
 [ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]

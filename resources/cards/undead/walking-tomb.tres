@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e63758775abd"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://df3xai4x7gx33" path="res://assets/card_art/walking-tomb.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://df3xai4x7gx33" path="res://assets/card_art/undead/walking-tomb.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_rjc44"]
 [ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
@@ -23,6 +23,7 @@ script = ExtResource("6_nbo7n")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Tombeau Ambulant"
+board_position = "Front"
 description = "REMPART. Dernier Souffle : invoque 3 Rampants 1/1."
 texture = ExtResource("2_texture")
 cost = 5

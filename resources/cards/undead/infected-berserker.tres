@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_p2ipg"]
-[ext_resource type="Texture2D" uid="uid://dagp5kvea76bj" path="res://assets/card_art/infected-berserker.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://dagp5kvea76bj" path="res://assets/card_art/undead/infected-berserker.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_k58s0"]
 
@@ -22,6 +22,7 @@ script = ExtResource("5_k58s0")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Berserker Infecté"
+board_position = "Front"
 description = "FRÉNÉSIE. Mort-rage : +3/+0, revient en jeu avec 1 HP."
 texture = ExtResource("2_texture")
 cost = 4

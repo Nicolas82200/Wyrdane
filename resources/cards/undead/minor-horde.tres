@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Resource" uid="uid://bxb0k8vr07727" path="res://resources/cards/undead/minor-horde-summon.tres" id="2_lpp7m"]
-[ext_resource type="Texture2D" uid="uid://c8kdq6dfpv5b1" path="res://assets/card_art/minor-horde.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://c8kdq6dfpv5b1" path="res://assets/card_art/undead/minor-horde.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_a5dnk"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_5tlqo"]
@@ -21,6 +21,7 @@ type = "BATTLECRY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Horde Mineure"
+board_position = "Front"
 description = "Invocation : invoque 2 Rampants 1/1."
 texture = ExtResource("2_texture")
 cost = 3

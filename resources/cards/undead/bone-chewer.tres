@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://c600583d154a"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://ce6e0upkl175w" path="res://assets/card_art/bone-chewer.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://ce6e0upkl175w" path="res://assets/card_art/undead/bone-chewer.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_ufibm"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_wg5ot"]
@@ -17,6 +17,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Mâcheur d'Os"
+board_position = "Front"
 description = "Assaut : inflige 1 dégât splash aux serviteurs adjacents à la cible."
 texture = ExtResource("2_texture")
 cost = 3

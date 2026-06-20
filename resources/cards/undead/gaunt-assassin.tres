@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_5jg7e"]
-[ext_resource type="Texture2D" uid="uid://be3xnmj1qahah" path="res://assets/card_art/gaunt-assassin.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://be3xnmj1qahah" path="res://assets/card_art/undead/gaunt-assassin.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_54b2k"]
 
@@ -21,6 +21,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Assassin Décharné"
+board_position = "Front"
 description = "AILES NOIRES. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut."
 texture = ExtResource("2_texture")
 cost = 3

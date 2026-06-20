@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://080f6bfa6513"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://btax556mo70nt" path="res://assets/card_art/horde-architect.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://btax556mo70nt" path="res://assets/card_art/undead/horde-architect.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_ponrr"]
 [ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
@@ -19,6 +19,7 @@ type = "RALLY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Architecte de la Horde"
+board_position = "Back"
 description = "Ralliement : invoque un Rampant 1/1 en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 3

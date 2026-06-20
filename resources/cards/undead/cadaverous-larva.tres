@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_mjn14"]
-[ext_resource type="Texture2D" uid="uid://mjw74diol1xu" path="res://assets/card_art/cadaverous-larva.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://mjw74diol1xu" path="res://assets/card_art/undead/cadaverous-larva.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_f8xn0"]
 
@@ -20,6 +20,7 @@ script = ExtResource("5_f8xn0")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Larve Cadavérique"
+board_position = "Hybrid"
 description = "Dernier Souffle : le serviteur allié adjacent gagne +1/+1."
 texture = ExtResource("2_texture")
 attack = 1

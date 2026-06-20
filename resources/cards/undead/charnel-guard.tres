@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://58fac05883a4"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://btt73pwevj2t1" path="res://assets/card_art/charnel-guard.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://btt73pwevj2t1" path="res://assets/card_art/undead/charnel-guard.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_x638m"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_ercru"]
@@ -15,6 +15,7 @@ script = ExtResource("5_ercru")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Garde du Charnier"
+board_position = "Front"
 description = "REMPART. Dernier Souffle : pioche 1 carte."
 texture = ExtResource("2_texture")
 cost = 2

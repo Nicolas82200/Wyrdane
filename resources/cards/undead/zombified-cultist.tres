@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://f286a53375f4"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dym83qrgjsljp" path="res://assets/card_art/zombified-cultist.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://dym83qrgjsljp" path="res://assets/card_art/undead/zombified-cultist.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_cbw18"]
 [ext_resource type="Resource" uid="uid://4fba8d4b6883" path="res://resources/cards/undead/wandering-corpse.tres" id="4_summon_wanderingcorpse"]
@@ -19,6 +19,7 @@ script = ExtResource("6_fhyln")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cultiste Zombifié"
+board_position = "Hybrid"
 description = "Dernier Souffle : invoque un Cadavre Errant en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 2

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_5wh7r"]
-[ext_resource type="Texture2D" uid="uid://dfudn56xgdeox" path="res://assets/card_art/last-breath.jpg" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://dfudn56xgdeox" path="res://assets/card_art/undead/last-breath.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_xpur5"]
 
