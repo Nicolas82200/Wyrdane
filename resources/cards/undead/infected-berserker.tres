@@ -22,7 +22,6 @@ script = ExtResource("5_k58s0")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Berserker Infecté"
-board_position = "Front"
 description = "FRÉNÉSIE. Mort-rage : +3/+0, revient en jeu avec 1 HP."
 texture = ExtResource("2_texture")
 cost = 4

@@ -104,9 +104,9 @@ func _on_mouse_entered() -> void:
 	if not is_instance_valid(_hover_preview):
 		return
 	_hover_preview.global_position = global_position + Vector2(
-		-_hover_preview.size.x * 0.9 * 0.5 + size.x * 0.5,
-		-_hover_preview.size.y * 0.9 - 10
-	)
+	size.x + 15,
+	(size.y - _hover_preview.size.y * 0.9) / 2.0
+)
 
 func _on_mouse_exited() -> void:
 	if _hover_preview:

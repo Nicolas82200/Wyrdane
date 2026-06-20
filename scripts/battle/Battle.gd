@@ -52,7 +52,22 @@ var game_over: bool = false
 
 var selected_attackers: Array[Minion] = []
 var selected_board_minions: Array[BoardMinion] = []
+var minion_to_visual: Dictionary = {} # Minion -> BoardMinion
 var is_multi_selecting: bool = false
+var _is_dragging_card: bool = false
+
+var _known_minions: Array[Minion] = []
+var _refreshing: bool = false
+var _refresh_again: bool = false
+var _processing_deaths: bool = false
+var _drop_highlights: Dictionary = {}
+var _drop_placeholder: Control = null
+var _drop_placeholder_row: String = ""
+var _drop_placeholder_index: int = -1
+var _last_placeholder_index: int = -1
+var _last_placeholder_row: String = ""
+
+# ─── Setup ────────────────────────────────────────────────────────────────────
 
 func _ready() -> void:
 	load_deck()
@@ -65,42 +80,32 @@ func _ready() -> void:
 	hand.card_played.connect(_on_card_played)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	$EnemyHeroPanel.hero_clicked.connect(_on_enemy_hero_clicked)
-	player_graveyard_preview.visible = false
-	enemy_graveyard_preview.visible  = false
-	player_graveyard_btn.visible     = false
-	enemy_graveyard_btn.visible      = false
-	player_graveyard.graveyard_changed.connect(
-		func(): _update_graveyard_btn(
-			player_graveyard,
-			player_graveyard_preview,
-			$PlayerGraveyardButton/CountLabel
-		)
-	)
-	enemy_graveyard.graveyard_changed.connect(
-		func(): _update_graveyard_btn(
-			enemy_graveyard,
-			enemy_graveyard_preview,
-			$EnemyGraveyardButton/CountLabel
-		)
-	)
-	var card_native_size := Vector2(200, 300)
-	var btn_size         := Vector2(120, 180)
-	var card_scale       := btn_size / card_native_size
-	player_graveyard_preview.scale = card_scale
-	enemy_graveyard_preview.scale  = card_scale
-	player_graveyard_btn.pressed.connect(func(): graveyard_view.open(player_graveyard))
-	enemy_graveyard_btn.pressed.connect(func():  graveyard_view.open(enemy_graveyard))
-	if player_graveyard_preview.has_method("set_non_interactive"):
-		player_graveyard_preview.set_non_interactive()
-	if enemy_graveyard_preview.has_method("set_non_interactive"):
-		enemy_graveyard_preview.set_non_interactive()
+
+	var preview_scale: Vector2 = Vector2(120, 180) / Vector2(200, 300)
+	_setup_graveyard_ui(player_graveyard, player_graveyard_btn, player_graveyard_preview, $PlayerGraveyardButton/CountLabel, preview_scale)
+	_setup_graveyard_ui(enemy_graveyard, enemy_graveyard_btn, enemy_graveyard_preview, $EnemyGraveyardButton/CountLabel, preview_scale)
+
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	update_mana_ui()
 	update_hero_ui()
 	update_deck_ui()
 	refresh_board()
+	refresh_board()
+	for m in player_minions:
+		_spawn_minion_visual(m, true)
+	for m in enemy_minions:
+		_spawn_minion_visual(m, false)
 	start_game()
+
+func _setup_graveyard_ui(graveyard: Graveyard, button: Button, preview: Card, count_label: Label, preview_scale: Vector2) -> void:
+	preview.visible = false
+	button.visible  = false
+	preview.scale   = preview_scale
+	graveyard.graveyard_changed.connect(func(): _update_graveyard_btn(graveyard, preview, count_label))
+	button.pressed.connect(func(): graveyard_view.open(graveyard))
+	if preview.has_method("set_non_interactive"):
+		preview.set_non_interactive()
 
 func load_deck() -> void:
 	var card: CardData = load("res://resources/cards/undead/minor-horde.tres") as CardData
@@ -131,6 +136,10 @@ func discard_card(card_data: CardData) -> void:
 
 func update_mana_ui() -> void:
 	mana_label.text = "%d/%d" % [mana, max_mana]
+
+func _pay_mana(cost: int) -> void:
+	mana -= cost
+	update_mana_ui()
 
 # ─── Deck ─────────────────────────────────────────────────────────────────────
 
@@ -220,14 +229,42 @@ func summon_minion(card_data: CardData, is_player: bool = true, row: String = RO
 	if not can_summon_to_row(is_player, row):
 		push_warning("Rangée %s pleine : impossible de poser %s." % [row, card_data.card_name])
 		return false
+
 	var minion: Minion = Minion.new(card_data, is_player, row)
+
 	if is_player:
 		_insert_minion_in_row(player_minions, minion, row, insert_index)
 	else:
 		_insert_minion_in_row(enemy_minions, minion, row, insert_index)
+	_spawn_minion_visual(minion, is_player)
 	trigger_effects(minion, "BATTLECRY")
 	refresh_board()
 	return true
+
+func _spawn_minion_visual(minion: Minion, is_player: bool) -> void:
+	var container: Control
+
+	if _has_split_row_containers(is_player):
+		container = player_front_container if minion.board_row == ROW_FRONT else player_back_container
+	else:
+		container = player_container if is_player else enemy_container
+
+	if container == null:
+		return
+
+	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+	container.add_child(visual)
+
+	visual.set_minion(minion)
+
+	minion_to_visual[minion] = visual
+
+	if is_player:
+		visual.minion_clicked.connect(_on_player_minion_clicked)
+	else:
+		visual.minion_clicked.connect(_on_enemy_minion_clicked)
+
+	_play_summon_animation(visual)
 
 func _normalized_row(row: String) -> String:
 	return ROW_BACK if row == ROW_BACK else ROW_FRONT
@@ -266,8 +303,8 @@ func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 func can_play_card_on_row(card_data: CardData, row: String) -> bool:
 	return row in get_allowed_rows_for_card(card_data)
 
-func has_enemy_taunt() -> bool:
-	for minion in get_attackable_enemy_minions(selected_attacker):
+func has_enemy_taunt(attacker: Minion) -> bool:
+	for minion in get_attackable_enemy_minions(attacker):
 		if minion.has_keyword(Keyword.Type.TAUNT):
 			return true
 	return false
@@ -304,8 +341,7 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 	play_card(card_data, row, insert_index)
 
 func play_card(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	mana -= card_data.cost
-	update_mana_ui()
+	_pay_mana(card_data.cost)
 	var idx := hand_cards.find(card_data)
 	if idx != -1:
 		hand_cards.remove_at(idx)
@@ -322,8 +358,7 @@ func play_card(card_data: CardData, row: String = ROW_FRONT, insert_index: int =
 func resolve_card_target(target: Minion) -> void:
 	if pending_card == null:
 		return
-	mana -= pending_card.cost
-	update_mana_ui()
+	_pay_mana(pending_card.cost)
 	for effect in pending_card.effects:
 		EffectManagerData.execute_targeted_effect(self, effect, target)
 	hand_cards.erase(pending_card)
@@ -341,21 +376,34 @@ func resolve_card_target(target: Minion) -> void:
 # ─── Combat ───────────────────────────────────────────────────────────────────
 
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
+	var attacker_visual := _find_board_minion_visual(attacker)
+	var defender_visual := _find_board_minion_visual(defender)
+	if attacker_visual and defender_visual:
+		await _animate_attack_lunge(
+		attacker_visual,
+		defender_visual
+)
 	trigger_effects(attacker, "OnAttack")
-	defender.take_damage(attacker.attack)
+	var attacker_damage := attacker.attack
+	var defender_damage := defender.attack
+	defender.take_damage(attacker_damage)
+	attacker.take_damage(defender_damage)
 	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and defender.health > 0:
 		defender.health = 0
-	trigger_effects(defender, "OnDamaged")
-	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
-		get_owner_hero(attacker).heal(attacker.attack)
-	attacker.take_damage(defender.attack)
 	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and attacker.health > 0:
 		attacker.health = 0
+	trigger_effects(defender, "OnDamaged")
+	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
+		get_owner_hero(attacker).heal(attacker_damage)
 	attacker.attacks_remaining -= 1
-	remove_dead_minions()
-	update_hero_ui()
+	# Mise à jour des PV visibles
 	refresh_board()
+	await get_tree().create_timer(0.25).timeout
+	# Les morts disparaissent ensemble
+	await remove_dead_minions()
+	update_hero_ui()
 	check_game_end()
+
 
 func remove_dead_minions() -> void:
 	if _processing_deaths:
@@ -363,14 +411,36 @@ func remove_dead_minions() -> void:
 	_processing_deaths = true
 	var dead_player := player_minions.filter(func(m): return m.is_dead())
 	var dead_enemy  := enemy_minions.filter(func(m): return m.is_dead())
-	for minion in dead_player:
-		player_graveyard.add_minion(minion.card_data)
-		trigger_effects(minion, "DEATHRATTLE")
-	for minion in dead_enemy:
-		enemy_graveyard.add_minion(minion.card_data)
-		trigger_effects(minion, "DEATHRATTLE")
+	var dead_all: Array[Minion] = []
+	dead_all.append_array(dead_player)
+	dead_all.append_array(dead_enemy)
+	# récup visuals
+	var visuals: Array[BoardMinion] = []
+	for m in dead_all:
+		var v: BoardMinion = minion_to_visual.get(m)
+		if v:
+			visuals.append(v)
+	# animation mort
+	for v in visuals:
+		_play_death_animation(v)
+	if visuals.size() > 0:
+		await get_tree().create_timer(0.35).timeout
+	# cleanup visuel + mapping
+	for m in dead_all:
+		var v: BoardMinion = minion_to_visual.get(m)
+		if v:
+			v.queue_free()
+			minion_to_visual.erase(m)
+	# deathrattles + graveyard
+	for m in dead_player:
+		player_graveyard.add_minion(m.card_data)
+		trigger_effects(m, "DEATHRATTLE")
+	for m in dead_enemy:
+		enemy_graveyard.add_minion(m.card_data)
+		trigger_effects(m, "DEATHRATTLE")
+	# cleanup logique
 	player_minions = player_minions.filter(func(m): return not m.is_dead())
-	enemy_minions  = enemy_minions.filter(func(m): return not m.is_dead())
+	enemy_minions = enemy_minions.filter(func(m): return not m.is_dead())
 	_processing_deaths = false
 	refresh_board()
 
@@ -398,15 +468,48 @@ func _update_graveyard_btn(graveyard: Graveyard, preview: Card, label: Label) ->
 	preview.set_data(last)
 	label.text = str(graveyard.size())
 
+# ─── Règles d'attaque ─────────────────────────────────────────────────────────
+# Centralise les conditions "peut attaquer" pour éviter de les dupliquer entre
+# le mode simple et le mode multi-sélection.
+
+func _can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
+	if target not in get_attackable_enemy_minions(attacker):
+		return false
+	if has_enemy_taunt(attacker) and not target.has_keyword(Keyword.Type.TAUNT):
+		return false
+	return true
+
+func _can_attack_hero(attacker: Minion) -> bool:
+	if has_enemy_taunt(attacker):
+		return false
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
+
+func _perform_hero_attack(attacker: Minion) -> void:
+	var attacker_visual := _find_board_minion_visual(attacker)
+	if attacker_visual != null:
+		var hero_panel: Control = $EnemyHeroPanel
+		await _animate_attack_lunge(attacker_visual, hero_panel)
+	damage_hero(enemy_hero, attacker.attack)
+	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
+		get_owner_hero(attacker).heal(attacker.attack)
+	attacker.attacks_remaining -= 1
+
 # ─── Sélection / Clicks ───────────────────────────────────────────────────────
 
 func _on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
 	if game_over or not minion.can_attack():
 		return
-	
+
 	var ctrl_held := Input.is_key_pressed(KEY_CTRL)
-	
+
 	if ctrl_held:
+		# Si une sélection simple existait déjà, on la fait basculer dans la multi-sélection
+		if not is_multi_selecting and selected_attacker != null and selected_board_minion != null:
+			selected_attackers.append(selected_attacker)
+			selected_board_minions.append(selected_board_minion)
+			selected_attacker     = null
+			selected_board_minion = null
+
 		# Multi-sélection
 		is_multi_selecting = true
 		if minion in selected_attackers:
@@ -419,7 +522,7 @@ func _on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> voi
 			selected_attackers.append(minion)
 			selected_board_minions.append(board_minion)
 			board_minion.set_selected(true)
-		
+
 		if selected_attackers.is_empty():
 			is_multi_selecting = false
 	else:
@@ -430,7 +533,7 @@ func _on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> voi
 			selected_board_minion.set_selected(false)
 		selected_attacker     = minion
 		selected_board_minion = board_minion
-		board_minion.set_selected(true,true)
+		board_minion.set_selected(true, true)
 
 func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
 	if game_over:
@@ -440,40 +543,31 @@ func _on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> voi
 			return
 		resolve_card_target(target)
 		return
-	
+
 	# Multi-attaque séquentielle
 	if is_multi_selecting and not selected_attackers.is_empty():
-		if target not in get_attackable_enemy_minions(selected_attackers[0]):
+		if not _can_attack_minion_target(selected_attackers[0], target):
 			return
 		await _resolve_multi_attack(target)
 		return
-	
+
 	# Attaque simple
-	if selected_attacker == null:
+	if selected_attacker == null or not _can_attack_minion_target(selected_attacker, target):
 		return
-	if target not in get_attackable_enemy_minions(selected_attacker):
-		return
-	if has_enemy_taunt() and not target.has_keyword(Keyword.Type.TAUNT):
-		return
-	resolve_combat(selected_attacker, target)
+	await resolve_combat(selected_attacker, target)
 	clear_selection()
 
 func _on_enemy_hero_clicked() -> void:
-	if game_over or has_enemy_taunt():
+	if game_over:
 		return
-	
+
 	if is_multi_selecting and not selected_attackers.is_empty():
 		await _resolve_multi_attack_hero()
 		return
-	
-	if selected_attacker == null:
+
+	if selected_attacker == null or not _can_attack_hero(selected_attacker):
 		return
-	if not selected_attacker.has_keyword(Keyword.Type.BLACK_WINGS) and not get_front_minions(false).is_empty():
-		return
-	damage_hero(enemy_hero, selected_attacker.attack)
-	if selected_attacker.has_keyword(Keyword.Type.LIFESTEAL):
-		get_owner_hero(selected_attacker).heal(selected_attacker.attack)
-	selected_attacker.attacks_remaining -= 1
+	await _perform_hero_attack(selected_attacker)
 	clear_selection()
 	check_game_end()
 	refresh_board()
@@ -493,35 +587,33 @@ func clear_multi_selection() -> void:
 	selected_board_minions.clear()
 	is_multi_selecting = false
 
+func _sort_attackers_left_to_right(attackers: Array[Minion]) -> Array[Minion]:
+	var sorted: Array[Minion] = attackers.duplicate()
+	sorted.sort_custom(func(a, b): return player_minions.find(a) < player_minions.find(b))
+	return sorted
+
 func _resolve_multi_attack(target: Minion) -> void:
-	var attackers := selected_attackers.duplicate()
+	var attackers := _sort_attackers_left_to_right(selected_attackers)
 	clear_multi_selection()
 	for attacker in attackers:
-		if attacker == null or attacker.is_dead():
-			continue
 		if target.is_dead():
 			break  # Cible morte, on arrête
-		if not attacker.can_attack():
+		if attacker == null or attacker.is_dead() or not attacker.can_attack():
 			continue
-		if has_enemy_taunt() and not target.has_keyword(Keyword.Type.TAUNT):
+		if not _can_attack_minion_target(attacker, target):
 			continue
-		resolve_combat(attacker, target)
+		await resolve_combat(attacker, target)
 		await get_tree().create_timer(0.4).timeout
 
 func _resolve_multi_attack_hero() -> void:
-	var attackers := selected_attackers.duplicate()
+	var attackers := _sort_attackers_left_to_right(selected_attackers)
 	clear_multi_selection()
 	for attacker in attackers:
-		if attacker == null or attacker.is_dead():
+		if attacker == null or attacker.is_dead() or not attacker.can_attack():
 			continue
-		if not attacker.can_attack():
+		if not _can_attack_hero(attacker):
 			continue
-		if not attacker.has_keyword(Keyword.Type.BLACK_WINGS) and not get_front_minions(false).is_empty():
-			continue
-		damage_hero(enemy_hero, attacker.attack)
-		if attacker.has_keyword(Keyword.Type.LIFESTEAL):
-			get_owner_hero(attacker).heal(attacker.attack)
-		attacker.attacks_remaining -= 1
+		await _perform_hero_attack(attacker)
 		await get_tree().create_timer(0.4).timeout
 	check_game_end()
 	refresh_board()
@@ -550,49 +642,108 @@ func start_new_turn() -> void:
 
 # ─── Board ────────────────────────────────────────────────────────────────────
 
-var _known_minions: Array[Minion] = []
-
-var _refreshing: bool = false
-var _refresh_again: bool = false
-var _processing_deaths: bool = false
-var _drop_highlights: Dictionary = {}
-var _drop_placeholder: Control = null
-var _drop_placeholder_row: String = ""
-var _drop_placeholder_index: int = -1
-var _drag_board_preview: BoardMinion = null
-var _drag_preview_card_data: CardData = null
-var _drag_preview_row: String = ""
-var _last_placeholder_index: int = -1
-var _last_placeholder_row: String = ""
-
 func refresh_board() -> void:
 	if _refreshing:
 		_refresh_again = true
 		return
 	_refreshing = true
-
-	var previous: Array[Minion] = _known_minions.duplicate()
-	_known_minions = player_minions + enemy_minions
-
-	if _has_split_row_containers(true):
-		await _rebuild_minion_visuals(player_front_container, get_front_minions(true), true, previous)
-		await _rebuild_minion_visuals(player_back_container, get_back_minions(true), true, previous)
-	else:
-		await _rebuild_minion_visuals(player_container, player_minions, true, previous)
-
-	if _has_split_row_containers(false):
-		await _rebuild_minion_visuals(enemy_front_container, get_front_minions(false), false, previous)
-		await _rebuild_minion_visuals(enemy_back_container, get_back_minions(false), false, previous)
-	else:
-		await _rebuild_minion_visuals(enemy_container, enemy_minions, false, previous)
-
+	# Update uniquement les visuals existants
+	for minion in player_minions + enemy_minions:
+		var visual: BoardMinion = minion_to_visual.get(minion)
+		if visual and is_instance_valid(visual):
+			visual.update_display()
+	# cleanup si sélection invalide
 	if selected_attacker and selected_attacker not in player_minions:
 		clear_selection()
-
 	_refreshing = false
 	if _refresh_again:
 		_refresh_again = false
 		refresh_board()
+
+func _get_all_minion_containers() -> Array[Control]:
+	var containers: Array[Control] = []
+	for c in [player_front_container, player_back_container, player_container, enemy_front_container, enemy_back_container, enemy_container]:
+		if c != null:
+			containers.append(c)
+	return containers
+
+func _find_board_minion_visual(target_minion: Minion) -> BoardMinion:
+	if target_minion == null:
+		return null
+	for container in _get_all_minion_containers():
+		for child in container.get_children():
+			if child is BoardMinion and child.minion == target_minion:
+				return child
+	return null
+
+func _animate_attack_lunge(
+	attacker_visual: BoardMinion,
+	target: Control
+) -> void:
+	if attacker_visual == null \
+			or target == null \
+			or not is_instance_valid(attacker_visual) \
+			or not is_instance_valid(target):
+		return
+	var start_position := attacker_visual.position
+	var attacker_center := attacker_visual.global_position + attacker_visual.size * 0.5
+	var target_center := target.global_position + target.size * 0.5
+	var direction := target_center - attacker_center
+	if direction.length() < 1.0:
+		return
+	# Va presque jusqu'au centre de la cible
+	var impact_offset := direction * 0.95
+	attacker_visual.z_index = 50
+	var attack_tween := create_tween()
+	# Préparation
+	attack_tween.tween_property(
+		attacker_visual,
+		"position",
+		start_position + Vector2(0, -15),
+		0.08
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Charge
+	attack_tween.tween_property(
+		attacker_visual,
+		"position",
+		start_position + impact_offset,
+		0.10
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	# Impact + secousse de la cible
+	attack_tween.tween_callback(func():
+		if not is_instance_valid(target):
+			return
+		var hit_pos := target.position
+		var shake := create_tween()
+		shake.tween_property(
+			target,
+			"position",
+			hit_pos + Vector2(10, 0),
+			0.03
+		)
+		shake.tween_property(
+			target,
+			"position",
+			hit_pos - Vector2(10, 0),
+			0.03
+		)
+		shake.tween_property(
+			target,
+			"position",
+			hit_pos,
+			0.03
+		)
+	)
+	# Retour
+	attack_tween.tween_property(
+		attacker_visual,
+		"position",
+		start_position,
+		0.18
+	).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	await attack_tween.finished
+	if is_instance_valid(attacker_visual):
+		attacker_visual.z_index = 0
 
 func _has_split_row_containers(is_player: bool) -> bool:
 	if is_player:
@@ -607,36 +758,28 @@ func _rebuild_minion_visuals(
 ) -> void:
 	if container == null:
 		return
-	# Anime la mort des serviteurs supprimés
-	var dying_visuals: Array[BoardMinion] = []
-	for child in container.get_children():
-		if child is BoardMinion and child.minion not in minions:
-			dying_visuals.append(child)
-			_play_death_animation(child)
-
-	# Attend la fin de l'animation de mort avant de continuer
-	if not dying_visuals.is_empty():
-		await get_tree().create_timer(0.4).timeout
-
-	for child in container.get_children():
-		if child not in dying_visuals:
-			child.queue_free()
-	for v: BoardMinion in dying_visuals:
-		if is_instance_valid(v):
-			v.queue_free()
-
-	await get_tree().process_frame
-
 	for minion in minions:
+		# déjà existant → on ne recrée pas
+		if minion_to_visual.has(minion):
+			var existing: BoardMinion = minion_to_visual[minion]
+			if is_instance_valid(existing):
+				existing.update_display()
+				_move_visual_if_needed(minion, existing, container)
+			continue
+		# nouveau minion → spawn
 		var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
 		container.add_child(visual)
 		visual.set_minion(minion)
+		minion_to_visual[minion] = visual
 		if is_player:
 			visual.minion_clicked.connect(_on_player_minion_clicked)
 		else:
 			visual.minion_clicked.connect(_on_enemy_minion_clicked)
-		if minion not in previously_existing:
-			_play_summon_animation(visual)
+		_play_summon_animation(visual)
+
+func _move_visual_if_needed(minion: Minion, visual: BoardMinion, container: Control) -> void:
+	if visual.get_parent() != container:
+		visual.reparent(container)
 
 func _play_death_animation(visual: BoardMinion) -> void:
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -677,19 +820,15 @@ func check_game_end() -> void:
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		get_tree().quit()
-	# Clic gauche sans Ctrl = vide la multi-sélection
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Clic gauche sans Ctrl sur une zone non gérée par la GUI = vide la multi-sélection
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.pressed \
 			and not Input.is_key_pressed(KEY_CTRL):
 		if is_multi_selecting:
 			clear_multi_selection()
-
-func _find_zone_at(mouse: Vector2, group: String) -> Control:
-	for zone in get_tree().get_nodes_in_group(group):
-		if zone is Control and zone.get_global_rect().has_point(mouse):
-			return zone
-	return null
 
 func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
 	var allowed_rows: Array[String] = get_allowed_rows_for_card(card_data)
@@ -733,7 +872,6 @@ func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_s
 		_update_drop_placeholder(drop_row, insert_index)
 		return true
 	_clear_drop_placeholder()
-	_clear_drag_board_preview()
 	return false
 
 func clear_player_drop_highlight() -> void:
@@ -856,38 +994,6 @@ func _clear_drop_placeholder() -> void:
 	if _drop_placeholder.get_parent() != null:
 		_drop_placeholder.get_parent().remove_child(_drop_placeholder)
 
-func _update_drag_board_preview(card_data: CardData, row: String, _mouse: Vector2) -> void:
-	var board: Control = get_node_or_null("Board") as Control
-	if board == null:
-		return
-	if _drag_board_preview == null or _drag_preview_card_data != card_data:
-		_clear_drag_board_preview()
-		_drag_board_preview = BOARD_MINION_SCENE.instantiate() as BoardMinion
-		if _drag_board_preview == null:
-			return
-		_drag_board_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_drag_board_preview.z_index = 500
-		_drag_board_preview.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
-		_drag_board_preview.custom_minimum_size = BOARD_MINION_SIZE
-		_drag_board_preview.size = BOARD_MINION_SIZE
-		board.add_child(_drag_board_preview)
-		_drag_preview_card_data = card_data
-		_drag_preview_row = ""
-	_drag_board_preview.visible = true
-	if _drag_preview_row != row:
-		_drag_board_preview.set_minion(Minion.new(card_data, true, row))
-		_drag_preview_row = row
-	_drag_board_preview.scale = Vector2.ONE
-	_drag_board_preview.modulate = Color(1.0, 1.0, 1.0, 0.92)
-	_drag_board_preview.position = board.get_local_mouse_position() - BOARD_MINION_SIZE * 0.5
-
-func _clear_drag_board_preview() -> void:
-	if _drag_board_preview != null:
-		_drag_board_preview.queue_free()
-	_drag_board_preview = null
-	_drag_preview_card_data = null
-	_drag_preview_row = ""
-
 func _on_hand_drag_started() -> void:
 	_is_dragging_card = true
 	hand.set_compact(true)
@@ -896,64 +1002,6 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
-func _play_card_slide_animation(card_data: CardData, row: String) -> void:
-	# Find the card visual anywhere in the scene (may have been reparented during drag)
-	var card: Card = null
-	
-	# First try in hand
-	for c in hand.container.get_children():
-		if c is Card and c.data == card_data:
-			card = c
-			break
-	
-	# If not found, search in Battle children
-	if card == null:
-		for c in get_children():
-			if c is Card and c.data == card_data:
-				card = c
-				break
-	
-	if card == null:
-		push_warning("Card not found in hand or battle for animation")
-		return
-	
-	# Find target position on board
-	var target_container: Control = _get_player_row_container(row)
-	if target_container == null:
-		return
-	
-	# Get position at center of row container
-	var target_pos: Vector2 = target_container.global_position + target_container.size * 0.5
-	
-	# Store original parent and position for restoration
-	var original_parent = card.get_parent()
-	var original_position = card.position
-	var original_modulate = card.modulate
-	
-	# Ensure card is in Battle temporarily for smooth animation
-	if original_parent != self:
-		card.reparent(self)
-	
-	# Create animation
-	var tween := create_tween()
-	tween.set_parallel(true)
-	
-	# Slide to target
-	tween.tween_property(card, "global_position", target_pos, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	
-	# Fade out during slide
-	tween.tween_property(card, "modulate:a", 0.1, 0.35)
-	
-	# Scale down to minion size
-	tween.tween_property(card, "scale", Vector2(0.5, 0.5), 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	
-	await tween.finished
-	
-	# Return to hand after animation completes
-	if original_parent and original_parent.name == "CardsContainer":
-		card.reparent(original_parent)
-		card.modulate = original_modulate
-		card.position = original_position
 func can_afford_card(card_data: CardData) -> bool:
 	return card_data != null and mana >= card_data.cost
 
@@ -966,7 +1014,13 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
 	return preview
 
-var _is_dragging_card: bool = false
-
 func is_dragging_card() -> bool:
 	return _is_dragging_card
+
+func _get_visuals_for_dead_minions(dead_minions: Array[Minion]) -> Array[BoardMinion]:
+	var visuals: Array[BoardMinion] = []
+	for minion in dead_minions:
+		var visual := _find_board_minion_visual(minion)
+		if visual != null:
+			visuals.append(visual)
+	return visuals

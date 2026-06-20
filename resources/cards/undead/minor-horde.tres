@@ -21,7 +21,6 @@ type = "BATTLECRY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Horde Mineure"
-board_position = "Front"
 description = "Invocation : invoque 2 Rampants 1/1."
 texture = ExtResource("2_texture")
 cost = 3
@@ -29,4 +28,5 @@ attack = 1
 health = 1
 trigger_types = Array[ExtResource("6_5tlqo")]([SubResource("Resource_5jxub")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

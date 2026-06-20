@@ -13,7 +13,6 @@ type = "BATTLECRY"
 [resource]
 script = ExtResource("2_1hx0y")
 card_name = "Horde Mineure"
-board_position = "Front"
 description = "Invocation : invoque 2 Rampants 1/1."
 texture = ExtResource("3_msc8k")
 cost = 3
