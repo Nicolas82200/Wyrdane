@@ -16,6 +16,10 @@ config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 run/autoload_on_startup=false
 
+[autoload]
+
+AudioManager="*uid://crtkgkw4huv2w"
+
 [display]
 
 window/size/viewport_width=1920

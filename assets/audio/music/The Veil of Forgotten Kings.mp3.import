@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d3sl86i550hmp"
+path="res://.godot/imported/The Veil of Forgotten Kings.mp3-d3229c96435c3756c28fe6c90aa0a328.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/The Veil of Forgotten Kings.mp3"
+dest_files=["res://.godot/imported/The Veil of Forgotten Kings.mp3-d3229c96435c3756c28fe6c90aa0a328.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

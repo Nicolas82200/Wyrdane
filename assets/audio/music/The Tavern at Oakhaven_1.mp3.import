@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://gr4u6cy3mquv"
+path="res://.godot/imported/The Tavern at Oakhaven_1.mp3-0ac7850311dfa240e369de5efa172537.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/The Tavern at Oakhaven_1.mp3"
+dest_files=["res://.godot/imported/The Tavern at Oakhaven_1.mp3-0ac7850311dfa240e369de5efa172537.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

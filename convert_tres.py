@@ -31,7 +31,7 @@ KEYWORD_NAMES = {
 
 # Mapping triggers
 TRIGGER_MAP = {
-    "INVOCATION": "BATTLECRY",
+    "INVOCATION": "ONPLAY",
     "DERNIER SOUFFLE": "DEATHRATTLE",
     "ASSAUT": "OnAttack",
     "BLESSURE": "OnDamaged",
