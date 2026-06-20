@@ -19,7 +19,7 @@ script = ExtResource("2_dwxl2")
 
 [sub_resource type="Resource" id="Resource_pf71i"]
 script = ExtResource("5_4d0xk")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_carddata")

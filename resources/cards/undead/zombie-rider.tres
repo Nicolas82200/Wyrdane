@@ -12,7 +12,7 @@ name_fr = "Assaut"
 
 [sub_resource type="Resource" id="Resource_h5fxk"]
 script = ExtResource("5_q43fj")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_5dxp5"]
 script = ExtResource("5_q43fj")

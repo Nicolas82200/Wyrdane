@@ -23,7 +23,7 @@ func _run() -> void:
 	}
 
 	var trigger_map = {
-		"INVOCATION": "BATTLECRY",
+		"INVOCATION": "ONPLAY",
 		"DERNIER SOUFFLE": "DEATHRATTLE",
 		"ASSAUT": "OnAttack",
 		"BLESSURE": "OnDamaged",

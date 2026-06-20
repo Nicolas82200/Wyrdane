@@ -2,7 +2,7 @@ extends Resource
 class_name TriggerTypeChoice
 
 @export_enum(
-	"BATTLECRY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
+	"ONPLAY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
 	"RALLY", "OnGrief", "SPELLCAST", "SACRIFICE", "OnExecution", "CARNAGE",
 	"OnAttack", "ONTURNSTART", "ONTURNEND", "MOURNING"
 ) var type: String = "DEATHRATTLE"

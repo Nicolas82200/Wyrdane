@@ -142,7 +142,7 @@ EffectManagerData.execute_targeted_effect()
 
 Triggers disponibles :
 
-* BATTLECRY
+* ONPLAY
 * DEATHRATTLE
 * ONTURNSTART / ONTURNEND
 * OnAttack / OnDamaged

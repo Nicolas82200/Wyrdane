@@ -56,16 +56,17 @@ func _ready() -> void:
 func set_minion(new_minion) -> void:
 	minion = new_minion
 	update_display()
-	scale = Vector2.ZERO
-	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func update_display() -> void:
 	if minion == null:
 		return
 	attack_label.text = str(minion.attack)
 	health_label.text = str(max(minion.health, 0))
-	modulate = Color.WHITE if minion.can_attack() else Color(0.7, 0.7, 0.7)
+	var c := Color.WHITE if minion.can_attack() else Color(0.7, 0.7, 0.7)
+	modulate.r = c.r
+	modulate.g = c.g
+	modulate.b = c.b
+	# modulate.a non touché — géré par les animations
 	if minion.card_data.texture:
 		art.texture = minion.card_data.texture
 	protection_icon.visible = minion.has_keyword(Keyword.Type.PROTECTION)

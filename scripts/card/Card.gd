@@ -195,8 +195,8 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.rotation_degrees = drag_rotation
 
 	var battle: Node = get_tree().current_scene
-	if battle and battle.has_method("update_player_drop_highlight"):
-		battle.call("update_player_drop_highlight", data, get_viewport().get_mouse_position(), true)
+	if battle and battle.get("drop_system"):
+		battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
 
 func _input(event: InputEvent) -> void:
 	if not dragging:
@@ -223,8 +223,8 @@ func _on_drag_released() -> void:
 	var battle: Node   = get_tree().current_scene
 
 	if drag_distance < DRAG_THRESHOLD:
-		if battle and battle.has_method("clear_player_drop_highlight"):
-			battle.call("clear_player_drop_highlight")
+		if battle and battle.get("drop_system"):
+			battle.drop_system.clear_player_drop_highlight()
 		_restore_in_hand()
 		drag_ended.emit()
 		return
@@ -238,18 +238,18 @@ func _on_drag_released() -> void:
 	if board != null and board.get_global_rect().has_point(mouse_pos):
 		var row := "Front"
 		var insert_index := -1
-		if battle.has_method("get_player_drop_row_at"):
-			row = str(battle.call("get_player_drop_row_at", mouse_pos, data))
+		if battle.get("drop_system"):
+			row = battle.drop_system.get_player_drop_row_at(mouse_pos, data)
 		if row.is_empty():
-			if battle.has_method("clear_player_drop_highlight"):
-				battle.call("clear_player_drop_highlight")
+			if battle.get("drop_system"):
+				battle.drop_system.clear_player_drop_highlight()
 			_restore_in_hand()
 			drag_ended.emit()
 			return
-		if battle.has_method("get_player_drop_index_at"):
-			insert_index = int(battle.call("get_player_drop_index_at", mouse_pos, row))
-		if battle.has_method("clear_player_drop_highlight"):
-			battle.call("clear_player_drop_highlight")
+		if battle.get("drop_system"):
+			insert_index = battle.drop_system.get_player_drop_index_at(mouse_pos, row)
+		if battle.get("drop_system"):
+			battle.drop_system.clear_player_drop_highlight()
 		queue_free()
 		card_clicked.emit(data, row, insert_index)
 		drag_ended.emit()
