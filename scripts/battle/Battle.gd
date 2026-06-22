@@ -27,6 +27,8 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 @onready var graveyard_view: GraveyardView = $GraveyardView
 @onready var deck_button           = $DeckButton
 @onready var deck_count_label      = $DeckButton/CountLabel
+@onready var settings_menu = get_node_or_null("AudioSettingsMenu") as AudioSettingsMenu
+@onready var settings_button: Button = $SettingsButton
 
 var combat_system := CombatSystem.new()
 var board_system := BoardSystem.new()
@@ -102,6 +104,10 @@ func _ready() -> void:
 	turn_system.init(self)
 	selection_system.init(self)
 	drop_system.init(self)
+	if settings_menu:
+		settings_button.pressed.connect(settings_menu.open)
+	else:
+		push_error("AudioSettingsMenu introuvable !")
 
 func _setup_graveyard_ui(graveyard: Graveyard, button: Button, preview: Card, count_label: Label, preview_scale: Vector2) -> void:
 	preview.visible = false
@@ -113,7 +119,7 @@ func _setup_graveyard_ui(graveyard: Graveyard, button: Button, preview: Card, co
 		preview.set_non_interactive()
 
 func load_deck() -> void:
-	var card: CardData = load("res://resources/cards/undead/minor-horde.tres") as CardData
+	var card: CardData = load("res://resources/cards/undead/bloated-giant.tres") as CardData
 	deck = []
 	for i in range(20):
 		deck.append(card)

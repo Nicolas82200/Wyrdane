@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="7_kos6x"]
 [ext_resource type="PackedScene" uid="uid://b5x1ff0bko5km" path="res://scenes/graveyard/GraveyardView.tscn" id="7_nyp61"]
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
+[ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="10_q5nyf"]
+[ext_resource type="Script" uid="uid://6jb5rv8xc8tq" path="res://scripts/settings/AudioSettingsMenu.gd" id="11_mgs6c"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 corner_radius_top_left = 100
@@ -374,3 +376,13 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("9_2ckr4")
 expand_mode = 1
+
+[node name="SettingsButton" type="Button" parent="." unique_id=1329099647]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "⚙️"
+
+[node name="AudioSettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
+layout_mode = 0
+script = ExtResource("11_mgs6c")

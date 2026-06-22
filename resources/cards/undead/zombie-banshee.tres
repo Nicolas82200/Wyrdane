@@ -19,7 +19,6 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Banshee Zombie"
-board_position = "Back"
 description = "Invocation : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
 texture = ExtResource("2_texture")
 cost = 4
@@ -29,4 +28,5 @@ trigger_types = Array[ExtResource("5_vwbpv")]([SubResource("Resource_ahi37")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 requires_target = true
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -23,10 +23,10 @@ script = ExtResource("6_nbo7n")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Tombeau Ambulant"
-board_position = "Front"
 description = "REMPART. Dernier Souffle : invoque 3 Rampants 1/1."
 texture = ExtResource("2_texture")
 cost = 5
+unit_style = 2
 attack = 3
 health = 8
 keywords = Array[ExtResource("3_rjc44")]([SubResource("Resource_2t2br")])

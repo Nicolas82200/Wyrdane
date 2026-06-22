@@ -19,13 +19,14 @@ script = ExtResource("6_fhyln")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cultiste Zombifié"
-board_position = "Hybrid"
 description = "Dernier Souffle : invoque un Cadavre Errant en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 2
+unit_style = 1
 attack = 1
 health = 2
 trigger_types = Array[ExtResource("6_fhyln")]([SubResource("Resource_hbw5t")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -19,10 +19,10 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Apocalypse Zombie"
-board_position = "Front"
 description = "Invocation : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
 texture = ExtResource("2_texture")
 cost = 8
+unit_style = 1
 attack = 9
 health = 9
 trigger_types = Array[ExtResource("5_eqpby")]([SubResource("Resource_pig8v")])

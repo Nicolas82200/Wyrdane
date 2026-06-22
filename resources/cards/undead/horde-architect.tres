@@ -19,13 +19,14 @@ type = "RALLY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Architecte de la Horde"
-board_position = "Back"
 description = "Ralliement : invoque un Rampant 1/1 en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 3
+unit_style = 1
 attack = 2
 health = 3
 trigger_types = Array[ExtResource("6_ncikx")]([SubResource("Resource_qrm6s")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Epic"
+board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

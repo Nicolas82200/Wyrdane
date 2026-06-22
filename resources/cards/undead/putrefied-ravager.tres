@@ -24,10 +24,10 @@ script = ExtResource("5_aeug2")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Ravageur Putréfié"
-board_position = "Front"
 description = "RAVAGE. Mort-rage : serviteurs Mort-Vivants alliés +2/+2."
 texture = ExtResource("2_texture")
 cost = 5
+unit_style = 2
 attack = 6
 health = 4
 keywords = Array[ExtResource("2_qd8q1")]([SubResource("Resource_ometq")])

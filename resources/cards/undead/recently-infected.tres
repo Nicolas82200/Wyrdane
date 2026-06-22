@@ -19,7 +19,6 @@ script = ExtResource("5_3cwhe")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Infecté Récent"
-board_position = "Front"
 description = "Mort-rage : +1/+1 par ennemi infecté en jeu."
 texture = ExtResource("2_texture")
 cost = 2

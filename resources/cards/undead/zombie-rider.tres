@@ -21,10 +21,10 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cavalier Zombie"
-board_position = "Front"
 description = "ASSAUT. Invocation : attaque immédiatement le serviteur ennemi le plus faible en HP."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 4
 attack = 4
 health = 3
 keywords = Array[ExtResource("2_28fv4")]([SubResource("Resource_k7nwb")])

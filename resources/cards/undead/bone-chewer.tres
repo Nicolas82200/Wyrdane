@@ -17,10 +17,10 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Mâcheur d'Os"
-board_position = "Front"
 description = "Assaut : inflige 1 dégât splash aux serviteurs adjacents à la cible."
 texture = ExtResource("2_texture")
 cost = 3
+unit_style = 2
 attack = 4
 health = 2
 keywords = Array[ExtResource("2_ufibm")]([SubResource("Resource_t8uds")])

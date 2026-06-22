@@ -20,7 +20,6 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Hurleur Nécrotique"
-board_position = "Hybrid"
 description = "Invocation : serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à fin de tour."
 texture = ExtResource("2_texture")
 cost = 3
@@ -29,4 +28,5 @@ health = 2
 trigger_types = Array[ExtResource("5_788mu")]([SubResource("Resource_moocq")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

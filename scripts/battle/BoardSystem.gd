@@ -14,7 +14,8 @@ func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_
 	var minion := Minion.new(card_data, is_player, row)
 	_insert(minion, is_player, row, insert_index)
 	_spawn(minion, is_player)
-	await battle.get_tree().create_timer(0.4).timeout
+	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)
+	await battle.get_tree().create_timer(0.3).timeout
 	battle.trigger_effects(minion, "ONPLAY")
 	battle.refresh_board()
 

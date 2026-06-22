@@ -20,10 +20,10 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Faucheur de la Plaie"
-board_position = "Front"
 description = "Invocation : détruit un serviteur ennemi ayant 3 HP ou moins."
 texture = ExtResource("2_texture")
 cost = 5
+unit_style = 1
 attack = 5
 health = 5
 trigger_types = Array[ExtResource("5_6xl7n")]([SubResource("Resource_s58r0")])

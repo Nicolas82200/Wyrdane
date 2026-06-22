@@ -14,7 +14,7 @@ func resolve_combat(attacker, defender) -> void:
 
 	if attacker_visual and defender_visual:
 		await battle._animate_attack_lunge(attacker_visual, defender_visual)
-
+	
 	_execute_damage(attacker, defender)
 
 	await battle.get_tree().create_timer(0.2).timeout
@@ -31,7 +31,7 @@ func _execute_damage(attacker, defender) -> void:
 
 	defender.take_damage(a_dmg)
 	attacker.take_damage(d_dmg)
-
+	AudioManager.play(AudioManager.HIT)
 	if attacker.has_keyword(Keyword.Type.DEADLY_POISON):
 		defender.health = 0
 
@@ -54,7 +54,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 	if visual:
 		var hero_panel = battle.get_node("EnemyHeroPanel")
 		await battle._animate_attack_lunge(visual, hero_panel)
-
+	AudioManager.play(AudioManager.HIT)
 	battle.damage_hero(battle.enemy_hero, attacker.attack)
 
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL):

@@ -15,7 +15,6 @@ script = ExtResource("5_ercru")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Garde du Charnier"
-board_position = "Front"
 description = "REMPART. Dernier Souffle : pioche 1 carte."
 texture = ExtResource("2_texture")
 cost = 2

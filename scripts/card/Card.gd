@@ -37,6 +37,7 @@ const BORDER_RACE_COLORS := {
 	Race.Type.DEMON:  Color("5a1f1fe1"),
 }
 
+
 @onready var art: TextureRect         = $Art
 @onready var name_label: Label        = $NameLabel
 @onready var cost_label: Label        = $CostLabel
@@ -86,6 +87,14 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 	desc_label.text = data.description
+	# Card.gd
+	if data.card_type == "Minion":
+		race_label.text = "%s · %s" % [
+		Race.get_race_name(data.race),
+		UnitStyle.get_style_name(data.unit_style)
+	]
+	else:
+		race_label.text = _get_card_type_label(data.card_type)
 	if data.card_type == "Minion":
 		race_label.text = Race.get_race_name(data.race)
 	else:
@@ -96,6 +105,7 @@ func update_display() -> void:
 		border.texture = BORDER_TEXTURES[data.race]
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
+	
 	_apply_race_style()
 	_apply_rarity_style()
 

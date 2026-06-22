@@ -21,13 +21,14 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Patient Zéro"
-board_position = "Hybrid"
 description = "Invocation : inflige Infection à tous les serviteurs ennemis en jeu."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 1
 attack = 3
 health = 3
 trigger_types = Array[ExtResource("5_6jvwq")]([SubResource("Resource_1rmj0")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_3330o")])
 rarity = "Epic"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

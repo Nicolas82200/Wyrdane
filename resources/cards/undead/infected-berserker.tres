@@ -25,6 +25,7 @@ card_name = "Berserker Infecté"
 description = "FRÉNÉSIE. Mort-rage : +3/+0, revient en jeu avec 1 HP."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 1
 attack = 5
 health = 4
 keywords = Array[ExtResource("2_p2ipg")]([SubResource("Resource_yd4yk")])

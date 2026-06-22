@@ -24,10 +24,10 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Léviathan Putréfié"
-board_position = "Front"
 description = "REMPART. Invocation : serviteurs Mort-Vivants alliés +2/+2."
 texture = ExtResource("2_texture")
 cost = 7
+unit_style = 2
 attack = 8
 health = 10
 keywords = Array[ExtResource("2_dwxl2")]([SubResource("Resource_7tv55")])

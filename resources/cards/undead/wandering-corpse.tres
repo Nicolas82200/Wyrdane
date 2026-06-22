@@ -12,7 +12,6 @@ script = ExtResource("2_6ye7u")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cadavre Errant"
-board_position = "Hybrid"
 description = "REMPART."
 texture = ExtResource("2_texture")
 cost = 2

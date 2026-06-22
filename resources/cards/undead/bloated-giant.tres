@@ -18,10 +18,10 @@ script = ExtResource("5_vlovd")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Géant Boursouflé"
-board_position = "Front"
 description = "Dernier Souffle : inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 5
+unit_style = 2
 attack = 4
 health = 6
 trigger_types = Array[ExtResource("5_vlovd")]([SubResource("Resource_04yvx")])

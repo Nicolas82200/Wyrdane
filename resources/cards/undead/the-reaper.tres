@@ -25,10 +25,10 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "La Faucheuse"
-board_position = "Front"
 description = "Invocation : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets."
 texture = ExtResource("2_texture")
 cost = 7
+unit_style = 1
 attack = 7
 health = 6
 trigger_types = Array[ExtResource("5_0m28y")]([SubResource("Resource_w43op")])

@@ -20,14 +20,15 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Émissaire de la Peste"
-board_position = "Hybrid"
 description = "Invocation : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 1
 attack = 3
 health = 4
 trigger_types = Array[ExtResource("5_c283f")]([SubResource("Resource_6m70b")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 requires_target = true
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

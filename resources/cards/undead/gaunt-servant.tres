@@ -13,11 +13,11 @@ type = "RALLY"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Servant Décharné"
-board_position = "Back"
 description = "Ralliement : tes serviteurs en rangée Avant ont +0/+1 HP."
 texture = ExtResource("2_texture")
 cost = 3
 attack = 2
 health = 4
 trigger_types = Array[ExtResource("5_2emgd")]([SubResource("Resource_k56hf")])
+board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

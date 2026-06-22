@@ -12,6 +12,7 @@ card_name = "Banshee"
 description = "À l'entrée: silence un ennemi"
 texture = ExtResource("2_qrx8x")
 cost = 4
+unit_style = 3
 attack = 2
 health = 5
 rarity = "Rare"

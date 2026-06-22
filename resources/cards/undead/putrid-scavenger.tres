@@ -12,7 +12,6 @@ script = ExtResource("5_j6y40")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Charognard Putride"
-board_position = "Front"
 description = "Dernier Souffle : inflige Infection à un serviteur ennemi adjacent."
 texture = ExtResource("2_texture")
 cost = 2
