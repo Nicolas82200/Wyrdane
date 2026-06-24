@@ -29,6 +29,7 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 @onready var deck_count_label      = $DeckButton/CountLabel
 @onready var settings_menu = get_node_or_null("AudioSettingsMenu") as AudioSettingsMenu
 @onready var settings_button: Button = $SettingsButton
+@onready var turn_choice_panel = $TurnChoicePanel
 
 var combat_system := CombatSystem.new()
 var board_system := BoardSystem.new()
@@ -104,6 +105,8 @@ func _ready() -> void:
 	turn_system.init(self)
 	selection_system.init(self)
 	drop_system.init(self)
+	turn_choice_panel.draw_selected.connect(_on_draw_selected)
+	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	if settings_menu:
 		settings_button.pressed.connect(settings_menu.open)
 	else:
@@ -119,10 +122,15 @@ func _setup_graveyard_ui(graveyard: Graveyard, button: Button, preview: Card, co
 		preview.set_non_interactive()
 
 func load_deck() -> void:
-	var card: CardData = load("res://resources/cards/undead/bloated-giant.tres") as CardData
-	deck = []
-	for i in range(20):
-		deck.append(card)
+	var active := DeckManager.get_active_deck()
+	if active:
+		deck = active.get_cards()
+	else:
+		# Fallback si aucun deck créé
+		var card := load("res://resources/cards/undead/gaunt-servant.tres") as CardData
+		deck = []
+		for i in range(20):
+			deck.append(card)
 
 func start_game() -> void:
 	deck.shuffle()
@@ -130,6 +138,12 @@ func start_game() -> void:
 		hand_cards.append(deck.pop_back())
 	hand.set_hand(hand_cards, false)
 	update_deck_ui()
+
+func _on_draw_selected() -> void:
+	turn_system.choose_draw()
+
+func _on_mana_selected() -> void:
+	turn_system.choose_mana()
 
 func discard_card(card_data: CardData) -> void:
 	hand_cards.erase(card_data)
@@ -503,7 +517,7 @@ func _animate_attack_lunge(
 		attacker_visual,
 		"position",
 		start_position + impact_offset,
-		0.10
+		0.05
 	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	# Impact + secousse de la cible
 	attack_tween.tween_callback(func():

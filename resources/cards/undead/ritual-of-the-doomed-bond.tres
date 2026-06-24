@@ -4,14 +4,12 @@
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_fcywm"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_746w4"]
+[ext_resource type="Texture2D" uid="uid://1ci028ox53wb" path="res://assets/card_art/undead/ritual-of-the-dommed-bond.jpg" id="4_a68y3"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 target = "EnemyHero"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
-[sub_resource type="Resource" id="Resource_a68y3"]
-metadata/__load_path__ = "res://assets/card_art/ritual-of-the-doomed-bond.jpg"
 
 [sub_resource type="Resource" id="Resource_fnroe"]
 script = ExtResource("4_746w4")
@@ -21,7 +19,7 @@ type = "MOURNING"
 script = ExtResource("3_carddata")
 card_name = "Rituel du Lien Funeste"
 description = "3 tours : Deuil : inflige 2 dégâts au héros ennemi."
-texture = SubResource("Resource_a68y3")
+texture = ExtResource("4_a68y3")
 cost = 4
 card_type = "Ritual"
 trigger_types = Array[ExtResource("4_746w4")]([SubResource("Resource_fnroe")])

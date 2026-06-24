@@ -219,54 +219,37 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_drag_released() -> void:
-	dragging         = false
-	drag_rotation    = 0.0
-	visible          = true
+	dragging      = false
+	drag_rotation = 0.0
+	visible       = true
 	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
 
 	if _drag_board_minion:
 		_drag_board_minion.queue_free()
 		_drag_board_minion = null
 
-	var mouse_pos     := get_viewport().get_mouse_position()
-	var drag_distance := mouse_pos.distance_to(drag_start_mouse)
-	var battle: Node   = get_tree().current_scene
+	var mouse_pos := get_viewport().get_mouse_position()
+	var battle: Node = get_tree().current_scene
 
-	if drag_distance < DRAG_THRESHOLD:
-		if battle and battle.get("drop_system"):
-			battle.drop_system.clear_player_drop_highlight()
-		_restore_in_hand()
-		drag_ended.emit()
-		return
+	# Vérifie d'abord si on est sur une zone de drop valide
+	var drop_row := ""
+	if battle and battle.get("drop_system"):
+		drop_row = battle.drop_system.get_player_drop_row_at(mouse_pos, data)
 
-	if battle == null:
-		_restore_in_hand()
-		drag_ended.emit()
-		return
-
-	var board: Control = battle.get_node_or_null("Board") as Control
-	if board != null and board.get_global_rect().has_point(mouse_pos):
-		var row := "Front"
+	# Si on est sur une zone valide, on joue la carte peu importe la distance
+	if not drop_row.is_empty():
 		var insert_index := -1
-		if battle.get("drop_system"):
-			row = battle.drop_system.get_player_drop_row_at(mouse_pos, data)
-		if row.is_empty():
-			if battle.get("drop_system"):
-				battle.drop_system.clear_player_drop_highlight()
-			_restore_in_hand()
-			drag_ended.emit()
-			return
-		if battle.get("drop_system"):
-			insert_index = battle.drop_system.get_player_drop_index_at(mouse_pos, row)
-		if battle.get("drop_system"):
+		if battle and battle.get("drop_system"):
+			insert_index = battle.drop_system.get_player_drop_index_at(mouse_pos, drop_row)
 			battle.drop_system.clear_player_drop_highlight()
 		queue_free()
-		card_clicked.emit(data, row, insert_index)
+		card_clicked.emit(data, drop_row, insert_index)
 		drag_ended.emit()
 		return
 
-	if battle and battle.has_method("clear_player_drop_highlight"):
-		battle.call("clear_player_drop_highlight")
+	# Sinon, applique le seuil de distance pour décider d'annuler
+	if battle and battle.get("drop_system"):
+		battle.drop_system.clear_player_drop_highlight()
 	_restore_in_hand()
 	drag_ended.emit()
 

@@ -109,7 +109,7 @@ func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
 
 func _get_stable_player_drop_index_at(mouse: Vector2, row: String) -> int:
 	if _drop_placeholder != null and _drop_placeholder.visible and _drop_placeholder_row == row:
-		var placeholder_rect: Rect2 = _drop_placeholder.get_global_rect().grow(35.0)
+		var placeholder_rect: Rect2 = _drop_placeholder.get_global_rect().grow(20.0)
 		if placeholder_rect.has_point(mouse):
 			return _drop_placeholder_index
 	return _get_raw_player_drop_index_at(mouse, row)

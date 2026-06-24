@@ -26,9 +26,12 @@ const BUTTON := "button"
 const HOVER := "hover"
 
 # Musique
-const BATTLE_MUSIC :AudioStreamMP3= preload(
-	"res://assets/audio/music/The Tavern at Oakhaven.mp3"
-)
+const BATTLE_MUSIC := [preload(
+	"res://assets/audio/music/tavern-at-oakhaven-01.mp3",
+),
+preload(
+	"res://assets/audio/music/tavern-at-oakhaven-02.mp3")
+]
 
 
 func _ready() -> void:
@@ -165,10 +168,13 @@ func play_with_pitch(
 
 func play_battle_music() -> void:
 	music_player.bus = "Music"
-	if music_player.stream == BATTLE_MUSIC and music_player.playing:
+
+	var music: AudioStream = BATTLE_MUSIC.pick_random()
+
+	if music_player.stream == music and music_player.playing:
 		return
 
-	music_player.stream = BATTLE_MUSIC
+	music_player.stream = music
 	music_player.play()
 
 func play_for_style(sound_name: String, style: int, pitch_variation := true) -> void:

@@ -1,6 +1,8 @@
 extends Control
 class_name AudioSettingsMenu
 
+signal back_requested  # ← ajouté pour SettingsMenu
+
 const SAVE_PATH := "user://audio_settings.cfg"
 
 @onready var master_slider: HSlider = $VBoxContainer/MasterRow/MasterSlider
@@ -12,7 +14,7 @@ const SAVE_PATH := "user://audio_settings.cfg"
 @onready var close_button:  Button  = $VBoxContainer/CloseButton
 
 func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS  # actif même si le jeu est pausé
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_settings()
 	master_slider.value_changed.connect(_on_master_changed)
 	music_slider.value_changed.connect(_on_music_changed)
@@ -36,6 +38,7 @@ func _on_sfx_changed(value: float) -> void:
 	_save_settings()
 
 func _on_close() -> void:
+	back_requested.emit()  # ← remplace hide() direct
 	hide()
 
 func open() -> void:
@@ -59,9 +62,6 @@ func _load_settings() -> void:
 		master_slider.value = 0.5
 		music_slider.value  = 0.5
 		sfx_slider.value    = 0.5
-
-	# Forcer la mise à jour des labels
 	master_label.text = "%d%%" % int(master_slider.value * 100)
-	music_label.text  = "%d%%" % int(music_slider.value * 100)
-	sfx_label.text    = "%d%%" % int(sfx_slider.value * 100)
-	# Les labels se mettent à jour via value_changed déclenché par l'assignation
+	music_label.text  = "%d%%" % int(music_slider.value  * 100)
+	sfx_label.text    = "%d%%" % int(sfx_slider.value    * 100)

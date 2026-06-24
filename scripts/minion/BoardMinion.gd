@@ -95,19 +95,31 @@ func _on_mouse_entered() -> void:
 		return
 	if _hover_preview != null:
 		return
+
+	# Guard: catch a bad preload early
+	if CARD_SCENE == null or not CARD_SCENE.can_instantiate():
+		push_error("BoardMinion: CARD_SCENE is invalid — check res://scenes/card/Card.tscn")
+		return
+
 	_hover_preview = CARD_SCENE.instantiate()
+	if _hover_preview == null:
+		push_error("BoardMinion: instantiate() returned null")
+		return
+
 	_hover_preview.drag_enabled = false
 	_hover_preview.z_index = 1000
 	get_tree().current_scene.add_child(_hover_preview)
 	_hover_preview.set_data(minion.card_data)
 	_hover_preview.scale = Vector2(0.9, 0.9)
+
 	await get_tree().process_frame
 	if not is_instance_valid(_hover_preview):
 		return
+
 	_hover_preview.global_position = global_position + Vector2(
-	size.x + 15,
-	(size.y - _hover_preview.size.y * 0.9) / 2.0
-)
+		size.x + 15,
+		(size.y - _hover_preview.size.y * 0.9) / 2.0
+	)
 
 func _on_mouse_exited() -> void:
 	if _hover_preview:

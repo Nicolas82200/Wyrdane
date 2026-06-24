@@ -14,10 +14,8 @@ func resolve_combat(attacker, defender) -> void:
 
 	if attacker_visual and defender_visual:
 		await battle._animate_attack_lunge(attacker_visual, defender_visual)
-	
 	_execute_damage(attacker, defender)
-
-	await battle.get_tree().create_timer(0.2).timeout
+	await battle.get_tree().create_timer(0.05).timeout
 	await battle.remove_dead_minions()
 	battle.update_hero_ui()
 	battle.check_game_end()

@@ -50,7 +50,6 @@ static func get_style_name(style: Type) -> String:
 		Type.SUCCUBUS:      return "Succube"
 		_:                  return "Inconnu"
 
-# Retourne les styles valides pour une race donnée
 static func get_styles_for_race(race: Race.Type) -> Array[Type]:
 	match race:
 		Race.Type.UNDEAD: return [Type.ZOMBIE,Type.MAJOR_ZOMBIE, Type.ABOMINATION, Type.SPECTRAL, Type.DEATH_KNIGHT]

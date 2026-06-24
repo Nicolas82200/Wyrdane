@@ -1,0 +1,184 @@
+[gd_scene format=3 uid="uid://b5qjptm65gu8e"]
+
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="1_font"]
+[ext_resource type="Script" uid="uid://skr15uvidias" path="res://scripts/settings/GraphismSettingsMenu.gd" id="2_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.05, 0.04, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.835, 0.639, 0.4)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="GraphismSettingsMenu" type="Control" unique_id=2111194317]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=600000001]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=600000002]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -280.0
+offset_right = 300.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="PanelContainer" unique_id=600000003]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Margin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=600000004]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="Title" type="Label" parent="PanelContainer/VBox/Margin" unique_id=600000005]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 32
+text = "Graphismes"
+horizontal_alignment = 1
+
+[node name="Sep" type="HSeparator" parent="PanelContainer/VBox" unique_id=600000006]
+layout_mode = 2
+
+[node name="RowsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=600000007]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="RowsVBox" type="VBoxContainer" parent="PanelContainer/VBox/RowsMargin" unique_id=600000008]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ResolutionRow" type="HBoxContainer" parent="PanelContainer/VBox/RowsMargin/RowsVBox" unique_id=600000009]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResolutionLabel" type="Label" parent="PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow" unique_id=600000010]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Résolution"
+
+[node name="ResolutionOption" type="OptionButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow" unique_id=600000011]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+
+[node name="FullscreenRow" type="HBoxContainer" parent="PanelContainer/VBox/RowsMargin/RowsVBox" unique_id=600000012]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="FullscreenLabel" type="Label" parent="PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow" unique_id=600000013]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Plein écran"
+
+[node name="FullscreenCheck" type="CheckButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow" unique_id=600000014]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VSyncRow" type="HBoxContainer" parent="PanelContainer/VBox/RowsMargin/RowsVBox" unique_id=600000015]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="VSyncLabel" type="Label" parent="PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow" unique_id=600000016]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "V-Sync"
+
+[node name="VSyncCheck" type="CheckButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow" unique_id=600000017]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="QualityRow" type="HBoxContainer" parent="PanelContainer/VBox/RowsMargin/RowsVBox" unique_id=600000018]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="QualityLabel" type="Label" parent="PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow" unique_id=600000019]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Qualité effets"
+
+[node name="QualityOption" type="OptionButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow" unique_id=600000020]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+
+[node name="SepBottom" type="HSeparator" parent="PanelContainer/VBox" unique_id=600000021]
+layout_mode = 2
+
+[node name="BtnsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=600000022]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="BtnsRow" type="HBoxContainer" parent="PanelContainer/VBox/BtnsMargin" unique_id=600000023]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ApplyButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=600000024]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Appliquer"
+
+[node name="BackButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=600000025]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "← Retour"

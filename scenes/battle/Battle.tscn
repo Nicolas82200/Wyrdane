@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="10_q5nyf"]
 [ext_resource type="Script" uid="uid://6jb5rv8xc8tq" path="res://scripts/settings/AudioSettingsMenu.gd" id="11_mgs6c"]
+[ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 corner_radius_top_left = 100
@@ -386,3 +387,6 @@ text = "⚙️"
 [node name="AudioSettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 0
 script = ExtResource("11_mgs6c")
+
+[node name="TurnChoicePanel" parent="." unique_id=1856936643 instance=ExtResource("12_pk84k")]
+layout_mode = 1

@@ -19,6 +19,7 @@ run/autoload_on_startup=false
 [autoload]
 
 AudioManager="*uid://crtkgkw4huv2w"
+DeckManager="*uid://3685wo5revnf"
 
 [display]
 

@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://q1at6b2ud2ot"]
+
+[ext_resource type="Script" uid="uid://bmnejyabilr4s" path="res://scripts/deck/DeckBuilder.gd" id="1_deck"]
+
+[node name="DeckBuilder" type="Control" unique_id=413371395]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_deck")
+
+[node name="Background" type="ColorRect" parent="." unique_id=100000001]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.07, 0.06, 1)
+
+[node name="HBox" type="HBoxContainer" parent="." unique_id=100000002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="LeftPanel" type="VBoxContainer" parent="HBox" unique_id=100000003]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="SearchEdit" type="LineEdit" parent="HBox/LeftPanel" unique_id=100000004]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1450, 31)
+layout_mode = 2
+size_flags_horizontal = 4
+placeholder_text = "Rechercher une carte..."
+alignment = 1
+
+[node name="ScrollCards" type="ScrollContainer" parent="HBox/LeftPanel" unique_id=100000005]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CardGrid" type="GridContainer" parent="HBox/LeftPanel/ScrollCards" unique_id=100000006]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 4
+columns = 7
+
+[node name="RightPanel" type="VBoxContainer" parent="HBox" unique_id=100000007]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="HBox/RightPanel" unique_id=100000008]
+layout_mode = 2
+
+[node name="DeckNameEdit" type="LineEdit" parent="HBox/RightPanel/HeaderRow" unique_id=100000009]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+placeholder_text = "Nom du deck..."
+
+[node name="CardCountLabel" type="Label" parent="HBox/RightPanel/HeaderRow" unique_id=100000010]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "0 / 60  (min 40)"
+horizontal_alignment = 1
+
+[node name="ScrollDeck" type="ScrollContainer" parent="HBox/RightPanel" unique_id=100000011]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DeckList" type="VBoxContainer" parent="HBox/RightPanel/ScrollDeck" unique_id=100000012]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 4
+
+[node name="ButtonRow" type="HBoxContainer" parent="HBox/RightPanel" unique_id=100000013]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BackButton" type="Button" parent="HBox/RightPanel/ButtonRow" unique_id=100000014]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Retour"
+
+[node name="SaveButton" type="Button" parent="HBox/RightPanel/ButtonRow" unique_id=100000015]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sauvegarder"

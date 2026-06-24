@@ -6,6 +6,13 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_2emgd"]
 
+[sub_resource type="Resource" id="Resource_v8b2b"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllyMinion"
+value_2 = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [sub_resource type="Resource" id="Resource_k56hf"]
 script = ExtResource("5_2emgd")
 type = "RALLY"
@@ -19,5 +26,6 @@ cost = 3
 attack = 2
 health = 4
 trigger_types = Array[ExtResource("5_2emgd")]([SubResource("Resource_k56hf")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v8b2b")])
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

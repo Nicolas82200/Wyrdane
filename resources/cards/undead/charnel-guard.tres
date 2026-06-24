@@ -6,6 +6,12 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_ercru"]
 
+[sub_resource type="Resource" id="Resource_x638m"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+target = "OwnerHero"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [sub_resource type="Resource" id="Resource_ecp44"]
 script = ExtResource("2_x638m")
 
@@ -22,5 +28,6 @@ attack = 1
 health = 4
 keywords = Array[ExtResource("2_x638m")]([SubResource("Resource_ecp44")])
 trigger_types = Array[ExtResource("5_ercru")]([SubResource("Resource_2lwo8")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_x638m")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
