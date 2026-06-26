@@ -1,0 +1,66 @@
+[gd_scene format=3 uid="uid://c53ofvbh8ht3r"]
+
+[ext_resource type="Script" uid="uid://cb6pyg3reh2yy" path="res://scripts/deck/DeckList.gd" id="1_hgole"]
+
+[node name="DeckList" type="Control" unique_id=1385171376]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hgole")
+
+[node name="Background" type="ColorRect" parent="." unique_id=200000001]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.78431374)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=200000002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer" unique_id=200000003]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="CenterContainer/VBox" unique_id=200000004]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "Mes Decks"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/VBox" unique_id=200000005]
+custom_minimum_size = Vector2(600, 400)
+layout_mode = 2
+
+[node name="DecksContainer" type="VBoxContainer" parent="CenterContainer/VBox/ScrollContainer" unique_id=200000006]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/VBox" unique_id=200000007]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BackButton" type="Button" parent="CenterContainer/VBox/ButtonRow" unique_id=200000008]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Retour"
+
+[node name="CreateButton" type="Button" parent="CenterContainer/VBox/ButtonRow" unique_id=200000009]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+ Nouveau Deck"

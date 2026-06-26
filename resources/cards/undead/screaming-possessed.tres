@@ -24,7 +24,6 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Possédé Hurlant"
-board_position = "Front"
 description = "ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière)."
 texture = ExtResource("2_texture")
 cost = 3

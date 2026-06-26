@@ -16,7 +16,6 @@ script = ExtResource("5_5pf5s")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rampant en Décomposition"
-board_position = "Front"
 description = "Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle)."
 texture = ExtResource("2_texture")
 attack = 1

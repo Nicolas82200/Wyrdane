@@ -1,0 +1,158 @@
+[gd_scene format=3 uid="uid://bmtx1brsftser"]
+
+[ext_resource type="Script" uid="uid://c5v5upfwslyv6" path="res://scripts/mainMenu/MainMenu.gd" id="1_1bhmf"]
+[ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="1_settings"]
+[ext_resource type="VideoStream" uid="uid://dkp17xehfxjdo" path="res://assets/main-menu/main-menu.ogv" id="2_xwq4k"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_xwq4k"]
+[ext_resource type="PackedScene" uid="uid://c53ofvbh8ht3r" path="res://scenes/deck/DeckList.tscn" id="4_decklist"]
+
+[node name="MainMenu" type="Control" unique_id=1995000585]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_1bhmf")
+
+[node name="Background" type="VideoStreamPlayer" parent="." unique_id=911109928]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_xwq4k")
+autoplay = true
+expand = true
+loop = true
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=1914385730]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1202251533]
+layout_mode = 0
+offset_top = 80.0
+offset_right = 1152.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 80
+text = "FateBound"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1955392611]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.044
+anchor_top = 0.25
+anchor_right = 0.1
+anchor_bottom = 0.9
+offset_right = 500.0
+grow_vertical = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=641949860]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 32
+text = "Jouer"
+
+[node name="DecksButton" type="Button" parent="VBoxContainer" unique_id=300000001]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 32
+text = "Mes Decks"
+
+[node name="FutureButton" type="Button" parent="VBoxContainer" unique_id=1362418039]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 32
+text = "A venir..."
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=68074911]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 32
+text = "Parametres"
+
+[node name="CreditsButton" type="Button" parent="VBoxContainer" unique_id=444085026]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 32
+text = "Credits"
+
+[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=1815401124]
+custom_minimum_size = Vector2(300, 52)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 10
+size_flags_stretch_ratio = 0.0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 24
+text = "Quitter"
+
+[node name="CreditsPanel" type="Panel" parent="." unique_id=1039590750]
+visible = false
+layout_mode = 0
+offset_left = 300.0
+offset_top = 200.0
+offset_right = 852.0
+offset_bottom = 580.0
+
+[node name="CreditsLabel" type="Label" parent="CreditsPanel" unique_id=1897122271]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 532.0
+offset_bottom = 360.0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 18
+text = "Credits
+
+Developpe par Nico
+Musique : The Tavern at Oakhaven
+
+Merci d'avoir joue !"
+
+[node name="CloseCreditsButton" type="Button" parent="CreditsPanel" unique_id=1141914076]
+layout_mode = 0
+offset_left = 196.0
+offset_top = 320.0
+offset_right = 336.0
+offset_bottom = 360.0
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 16
+text = "Fermer"
+
+[node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
+visible = false
+layout_mode = 1
+
+[node name="SettingsMenu" parent="." unique_id=2017956977 instance=ExtResource("1_settings")]
+layout_mode = 1

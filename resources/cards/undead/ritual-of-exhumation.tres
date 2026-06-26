@@ -4,20 +4,18 @@
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_4c6wk"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_ccbb5"]
+[ext_resource type="Texture2D" uid="uid://c1u4n4ik7hxba" path="res://assets/card_art/undead/ritual-of-the-exhumation.jpg" id="4_qhtw3"]
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_qhtw3"]
-metadata/__load_path__ = "res://assets/card_art/ritual-of-exhumation.jpg"
-
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel d'Exhumation"
 description = "Ramène en main un serviteur Mort-Vivant ciblé depuis ton cimetière."
-texture = SubResource("Resource_qhtw3")
+texture = ExtResource("4_qhtw3")
 cost = 4
 card_type = "Ritual"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])

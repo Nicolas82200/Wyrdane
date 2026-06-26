@@ -1,7 +1,7 @@
 extends RefCounted
 class_name EffectManager
 
-static func execute_effect(
+func execute_effect(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
@@ -23,13 +23,13 @@ static func execute_effect(
 	battle.update_hero_ui()
 
 
-static func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
+func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
 	execute_effect(battle, null, effect, target)
 
 
 # ─── Effets ───────────────────────────────────────────────────────────────────
 
-static func _heal(
+func _heal(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	match effect.target:
@@ -40,13 +40,13 @@ static func _heal(
 				target.heal(effect.value)
 
 
-static func _draw_cards(battle, _source: Minion, count: int) -> void:
+func _draw_cards(battle, _source: Minion, count: int) -> void:
 	for i in range(count):
 		battle.draw_card()
 	battle.hand.set_hand(battle.hand_cards)
 
 
-static func _buff(
+func _buff(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	for target in _resolve_targets(battle, source_minion, effect, selected_target):
@@ -55,14 +55,23 @@ static func _buff(
 		target.max_health += effect.value_2
 
 
-static func _summon_minion(battle, source_minion: Minion, effect: CardEffect) -> void:
+func _summon_minion(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if effect.summon_card == null:
 		return
 	var is_player = source_minion.owner_is_player if source_minion else true
+	var preferred_row: String = source_minion.board_row if source_minion else "Front"
 	for i in range(effect.count):
-		battle.summon_minion(effect.summon_card, is_player)
+		var row := preferred_row
+		if not battle.can_summon_to_row(is_player, row):
+			# Essaie l'autre rangée
+			row = "Back" if row == "Front" else "Front"
+		if not battle.can_summon_to_row(is_player, row):
+			push_warning("Board plein, impossible d'invoquer")
+			break
+		await battle.summon_minion(effect.summon_card, is_player, row)
+		await battle.get_tree().create_timer(0.3).timeout
 
-static func _steal_health(
+func _steal_health(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	for target in _resolve_targets(battle, source_minion, effect, selected_target):
@@ -71,7 +80,7 @@ static func _steal_health(
 		source_minion.heal(actual)
 
 
-static func _damage(
+func _damage(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	match effect.target:
@@ -82,7 +91,7 @@ static func _damage(
 				target.take_damage(effect.value)
 
 
-static func _destroy(
+func _destroy(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> void:
 	for target in _resolve_targets(battle, source_minion, effect, selected_target):
@@ -91,14 +100,14 @@ static func _destroy(
 
 # ─── Ciblage ──────────────────────────────────────────────────────────────────
 
-static func _resolve_targets(
+func _resolve_targets(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> Array:
 	var targets := _get_targets(battle, source_minion, effect, selected_target)
 	return _filter_targets(targets, effect)
 
 
-static func _get_targets(
+func _get_targets(
 	battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null
 ) -> Array:
 	match effect.target:
@@ -128,7 +137,7 @@ static func _get_targets(
 	return []
 
 
-static func _filter_targets(targets: Array, effect: CardEffect) -> Array:
+func _filter_targets(targets: Array, effect: CardEffect) -> Array:
 	if effect.race_filter.is_empty():
 		return targets
 	return targets.filter(

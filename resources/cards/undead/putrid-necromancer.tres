@@ -15,18 +15,19 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_do53j"]
 script = ExtResource("6_1n05c")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Nécromancien Putride"
-board_position = "Back"
 description = "Invocation : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 1
 attack = 2
 health = 4
 trigger_types = Array[ExtResource("6_1n05c")]([SubResource("Resource_do53j")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Epic"
+board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

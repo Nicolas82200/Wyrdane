@@ -21,10 +21,10 @@ type = "OnAttack"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Assassin Décharné"
-board_position = "Front"
 description = "AILES NOIRES. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut."
 texture = ExtResource("2_texture")
 cost = 3
+unit_style = 1
 attack = 4
 health = 2
 keywords = Array[ExtResource("2_5jg7e")]([SubResource("Resource_ongvp"), SubResource("Resource_rhbcr")])

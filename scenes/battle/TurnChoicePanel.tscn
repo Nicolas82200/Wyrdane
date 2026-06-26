@@ -1,0 +1,119 @@
+[gd_scene format=3 uid="uid://4xcbdy48uylq"]
+
+[ext_resource type="Script" uid="uid://bm8waatx386un" path="res://scripts/battle/TurnChoicePanel.gd" id="1_n1oof"]
+
+[node name="TurnChoicePanel" type="Control" unique_id=1856936643]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_n1oof")
+
+[node name="Background" type="ColorRect" parent="." unique_id=2068474173]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="CenterContainer" type="CenterContainer" parent="." unique_id=484299498]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer" unique_id=1533653602]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="CenterContainer/VBox" unique_id=1503648489]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Choisissez votre bonus"
+horizontal_alignment = 1
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/VBox" unique_id=268450191]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 32
+
+[node name="DrawButton" type="Button" parent="CenterContainer/VBox/HBox" unique_id=599851861]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 260)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/DrawButton" unique_id=822296506]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=133621577]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "[Carte]"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=1488981890]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Piocher"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=1330168548]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Ajouter une carte a votre main"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ManaButton" type="Button" parent="CenterContainer/VBox/HBox" unique_id=1645004796]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 260)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/ManaButton" unique_id=836337496]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Icon" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=835266103]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "[Mana]"
+horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=212587748]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Mana Max"
+horizontal_alignment = 1
+
+[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=215727476]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Augmenter votre
+mana maximum"
+horizontal_alignment = 1
+autowrap_mode = 3

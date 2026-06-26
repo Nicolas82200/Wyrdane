@@ -6,8 +6,9 @@ class_name CardData
 @export var texture: Texture2D
 @export var cost: int = 1
 
-@export var race: Race.Type = Race.Type.UNDEAD
 
+@export var race: Race.Type = Race.Type.UNDEAD
+@export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  # ← ici
 @export_enum("Minion", "Instant", "Ritual", "Enchantment") var card_type: String = "Minion"
 
 @export var attack: int = 0

@@ -37,6 +37,7 @@ const BORDER_RACE_COLORS := {
 	Race.Type.DEMON:  Color("5a1f1fe1"),
 }
 
+
 @onready var art: TextureRect         = $Art
 @onready var name_label: Label        = $NameLabel
 @onready var cost_label: Label        = $CostLabel
@@ -86,6 +87,14 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 	desc_label.text = data.description
+	# Card.gd
+	if data.card_type == "Minion":
+		race_label.text = "%s · %s" % [
+		Race.get_race_name(data.race),
+		UnitStyle.get_style_name(data.unit_style)
+	]
+	else:
+		race_label.text = _get_card_type_label(data.card_type)
 	if data.card_type == "Minion":
 		race_label.text = Race.get_race_name(data.race)
 	else:
@@ -96,6 +105,7 @@ func update_display() -> void:
 		border.texture = BORDER_TEXTURES[data.race]
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
+	
 	_apply_race_style()
 	_apply_rarity_style()
 
@@ -195,8 +205,8 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.rotation_degrees = drag_rotation
 
 	var battle: Node = get_tree().current_scene
-	if battle and battle.has_method("update_player_drop_highlight"):
-		battle.call("update_player_drop_highlight", data, get_viewport().get_mouse_position(), true)
+	if battle and battle.get("drop_system"):
+		battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
 
 func _input(event: InputEvent) -> void:
 	if not dragging:
@@ -209,54 +219,37 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_drag_released() -> void:
-	dragging         = false
-	drag_rotation    = 0.0
-	visible          = true
+	dragging      = false
+	drag_rotation = 0.0
+	visible       = true
 	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
 
 	if _drag_board_minion:
 		_drag_board_minion.queue_free()
 		_drag_board_minion = null
 
-	var mouse_pos     := get_viewport().get_mouse_position()
-	var drag_distance := mouse_pos.distance_to(drag_start_mouse)
-	var battle: Node   = get_tree().current_scene
+	var mouse_pos := get_viewport().get_mouse_position()
+	var battle: Node = get_tree().current_scene
 
-	if drag_distance < DRAG_THRESHOLD:
-		if battle and battle.has_method("clear_player_drop_highlight"):
-			battle.call("clear_player_drop_highlight")
-		_restore_in_hand()
-		drag_ended.emit()
-		return
+	# Vérifie d'abord si on est sur une zone de drop valide
+	var drop_row := ""
+	if battle and battle.get("drop_system"):
+		drop_row = battle.drop_system.get_player_drop_row_at(mouse_pos, data)
 
-	if battle == null:
-		_restore_in_hand()
-		drag_ended.emit()
-		return
-
-	var board: Control = battle.get_node_or_null("Board") as Control
-	if board != null and board.get_global_rect().has_point(mouse_pos):
-		var row := "Front"
+	# Si on est sur une zone valide, on joue la carte peu importe la distance
+	if not drop_row.is_empty():
 		var insert_index := -1
-		if battle.has_method("get_player_drop_row_at"):
-			row = str(battle.call("get_player_drop_row_at", mouse_pos, data))
-		if row.is_empty():
-			if battle.has_method("clear_player_drop_highlight"):
-				battle.call("clear_player_drop_highlight")
-			_restore_in_hand()
-			drag_ended.emit()
-			return
-		if battle.has_method("get_player_drop_index_at"):
-			insert_index = int(battle.call("get_player_drop_index_at", mouse_pos, row))
-		if battle.has_method("clear_player_drop_highlight"):
-			battle.call("clear_player_drop_highlight")
+		if battle and battle.get("drop_system"):
+			insert_index = battle.drop_system.get_player_drop_index_at(mouse_pos, drop_row)
+			battle.drop_system.clear_player_drop_highlight()
 		queue_free()
-		card_clicked.emit(data, row, insert_index)
+		card_clicked.emit(data, drop_row, insert_index)
 		drag_ended.emit()
 		return
 
-	if battle and battle.has_method("clear_player_drop_highlight"):
-		battle.call("clear_player_drop_highlight")
+	# Sinon, applique le seuil de distance pour décider d'annuler
+	if battle and battle.get("drop_system"):
+		battle.drop_system.clear_player_drop_highlight()
 	_restore_in_hand()
 	drag_ended.emit()
 

@@ -1,7 +1,7 @@
 class_name TriggerType
 
 enum Type {
-	BATTLECRY = 0,
+	ONPLAY = 0,
 	DEATHRATTLE = 1,
 	CHARGE = 2,
 	ON_DAMAGED = 3,
@@ -21,7 +21,7 @@ enum Type {
 
 static func get_name(trigger_type: int) -> String:
 	match trigger_type:
-		Type.BATTLECRY:     return "BATTLECRY"
+		Type.ONPLAY:     return "ONPLAY"
 		Type.DEATHRATTLE:   return "DEATHRATTLE"
 		Type.CHARGE:        return "CHARGE"
 		Type.ON_DAMAGED:    return "OnDamaged"
@@ -41,7 +41,7 @@ static func get_name(trigger_type: int) -> String:
 
 static func from_name(trigger_name: String) -> int:
 	match trigger_name:
-		"BATTLECRY":     return Type.BATTLECRY
+		"ONPLAY":     return Type.ONPLAY
 		"DEATHRATTLE":   return Type.DEATHRATTLE
 		"CHARGE":        return Type.CHARGE
 		"OnDamaged":     return Type.ON_DAMAGED
@@ -57,4 +57,4 @@ static func from_name(trigger_name: String) -> int:
 		"ONTURNSTART":   return Type.ON_TURN_START
 		"ONTURNEND":     return Type.ON_TURN_END
 		"MOURNING":      return Type.ON_MOURNING
-		_:               return Type.BATTLECRY
+		_:               return Type.ONPLAY

@@ -4,15 +4,15 @@
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="2_0nsk7"]
 
 [node name="Hand" type="Control" unique_id=1979632691]
-clip_contents = true
 layout_mode = 3
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -270.0
+offset_top = -120.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 script = ExtResource("1_7c7ba")
 
 [node name="CardsContainer" type="Control" parent="." unique_id=1178907034]

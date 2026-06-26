@@ -14,18 +14,19 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_1xtsu"]
 script = ExtResource("5_y5i7r")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Nuée d'Insectes Cadavériques"
-board_position = "Hybrid"
 description = "Invocation : inflige 1 dégât à tous les serviteurs ennemis en jeu."
 texture = ExtResource("2_texture")
 cost = 3
+unit_style = 17
 attack = 1
 health = 2
 trigger_types = Array[ExtResource("5_y5i7r")]([SubResource("Resource_1xtsu")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Epic"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

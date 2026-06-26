@@ -19,19 +19,20 @@ name_fr = "Moisson"
 
 [sub_resource type="Resource" id="Resource_cyogv"]
 script = ExtResource("5_lna51")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Esprit Vorace"
-board_position = "Hybrid"
 description = "MOISSON. Invocation : vole 2 HP au héros ennemi."
 texture = ExtResource("2_texture")
 cost = 4
+unit_style = 3
 attack = 4
 health = 4
 keywords = Array[ExtResource("2_xnu4r")]([SubResource("Resource_8hicf")])
 trigger_types = Array[ExtResource("5_lna51")]([SubResource("Resource_cyogv")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Epic"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -13,7 +13,6 @@ type = "OnExecution"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rongeur de Chair"
-board_position = "Front"
 description = "Exécution : peut attaquer à nouveau une fois par tour."
 texture = ExtResource("2_texture")
 cost = 4

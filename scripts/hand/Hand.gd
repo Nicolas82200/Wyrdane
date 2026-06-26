@@ -100,11 +100,11 @@ func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: V
 
 	var tween := create_tween()
 	tween.set_parallel(false)
-	tween.tween_property(ghost, "global_position", mid_pos,       0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "global_position", mid_pos,       0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(ghost, "scale:x",         0.0,           0.1).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_callback(func(): ghost.show_back(false))
 	tween.tween_property(ghost, "scale:x",         final_scale.x, 0.1).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_property(ghost, "global_position", final_pos,     0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "global_position", final_pos,     0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(func():
 		new_card.visible = true
 		ghost.queue_free()
@@ -202,8 +202,6 @@ func _update_hand_layout(animated: bool = false) -> void:
 	var left_margin := 80.0
 	var start_x := left_margin
 	if count > 0:
-		var sample_card := cards[0]
-		var card_width: float = sample_card.size.x * hand_scale.x
 		start_x = left_margin
 
 	for i in range(count):

@@ -19,12 +19,13 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Médecin de la Peste"
-board_position = "Back"
 description = "Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant."
 texture = ExtResource("4_b5gxb")
 cost = 6
+unit_style = 1
 health = 4
 trigger_types = Array[ExtResource("4_yy5lu")]([SubResource("Resource_r1s0p")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 rarity = "Legendary"
+board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

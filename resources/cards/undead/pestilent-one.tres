@@ -15,12 +15,11 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_eshnx"]
 script = ExtResource("5_2t3my")
-type = "BATTLECRY"
+type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Pestilent"
-board_position = "Hybrid"
 description = "Invocation : inflige Infection à un serviteur ennemi ciblé."
 texture = ExtResource("2_texture")
 cost = 2
@@ -30,4 +29,5 @@ trigger_types = Array[ExtResource("5_2t3my")]([SubResource("Resource_eshnx")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
 requires_target = true
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

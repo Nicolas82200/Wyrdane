@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
-target = "AllyMinion"
+target = "RandomAlly"
 value = 1
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -20,11 +20,12 @@ script = ExtResource("5_f8xn0")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Larve Cadavérique"
-board_position = "Hybrid"
 description = "Dernier Souffle : le serviteur allié adjacent gagne +1/+1."
 texture = ExtResource("2_texture")
+unit_style = 18
 attack = 1
 health = 1
 trigger_types = Array[ExtResource("5_f8xn0")]([SubResource("Resource_vkfg8")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

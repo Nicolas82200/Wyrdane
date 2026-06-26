@@ -16,10 +16,10 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Colosse Décomposé"
-board_position = "Front"
 description = "REMPART. Blessure : les dégâts excédentaires ne se propagent pas."
 texture = ExtResource("2_texture")
 cost = 6
+unit_style = 2
 attack = 7
 health = 7
 keywords = Array[ExtResource("2_oudmb")]([SubResource("Resource_c4da5")])
