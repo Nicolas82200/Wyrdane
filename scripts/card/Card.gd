@@ -157,7 +157,8 @@ func _gui_input(event: InputEvent) -> void:
 			and event.pressed):
 		return
 
-	if can_drag_check.is_valid() and not can_drag_check.call(data):
+	var can_drag: bool = not can_drag_check.is_valid() or can_drag_check.call(data)
+	if not can_drag:
 		get_viewport().set_input_as_handled()
 		return
 
@@ -217,12 +218,13 @@ func _input(event: InputEvent) -> void:
 		_on_drag_released()
 		get_viewport().set_input_as_handled()
 
-
+var _drag_released := false
 func _on_drag_released() -> void:
+	if _drag_released:
+		return
+	_drag_released = true
 	dragging      = false
 	drag_rotation = 0.0
-	visible       = true
-	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
 
 	if _drag_board_minion:
 		_drag_board_minion.queue_free()
@@ -231,23 +233,20 @@ func _on_drag_released() -> void:
 	var mouse_pos := get_viewport().get_mouse_position()
 	var battle: Node = get_tree().current_scene
 
-	# Vérifie d'abord si on est sur une zone de drop valide
 	var drop_row := ""
 	if battle and battle.get("drop_system"):
 		drop_row = battle.drop_system.get_player_drop_row_at(mouse_pos, data)
 
-	# Si on est sur une zone valide, on joue la carte peu importe la distance
 	if not drop_row.is_empty():
 		var insert_index := -1
 		if battle and battle.get("drop_system"):
 			insert_index = battle.drop_system.get_player_drop_index_at(mouse_pos, drop_row)
 			battle.drop_system.clear_player_drop_highlight()
-		queue_free()
 		card_clicked.emit(data, drop_row, insert_index)
 		drag_ended.emit()
+		queue_free()  # ← déplacé ici, après les émissions
 		return
 
-	# Sinon, applique le seuil de distance pour décider d'annuler
 	if battle and battle.get("drop_system"):
 		battle.drop_system.clear_player_drop_highlight()
 	_restore_in_hand()

@@ -13,13 +13,12 @@ func _run() -> void:
 	var keyword_names = {
 		0: "Rempart",
 		1: "Assaut",
-		2: "Protection",
+		2: "Égide",
 		3: "Moisson",
 		4: "Frénésie",
 		5: "Venin mortel",
 		6: "Ravage",
 		7: "Ailes noires",
-		8: "Égide",
 	}
 
 	var trigger_map = {
@@ -41,13 +40,12 @@ func _run() -> void:
 	var keyword_idx_map = {
 		"REMPART": 0,
 		"ASSAUT": 1,
-		"PROTECTION": 2,
+		"ÉGIDE": 2,
 		"MOISSON": 3,
 		"FRÉNÉSIE": 4,
 		"VENIN MORTEL": 5,
 		"RAVAGE": 6,
 		"AILES NOIRES": 7,
-		"ÉGIDE": 8,
 	}
 
 	dir.list_dir_begin()

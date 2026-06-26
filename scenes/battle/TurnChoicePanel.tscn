@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://4xcbdy48uylq"]
 
-[ext_resource type="Script" uid="uid://bm8waatx386un" path="res://scripts/battle/TurnChoicePanel.gd" id="1_n1oof"]
+[ext_resource type="Script" uid="uid://bm8waatx386un" path="res://scripts/systems/TurnChoicePanel.gd" id="1_n1oof"]
 
 [node name="TurnChoicePanel" type="Control" unique_id=1856936643]
 visible = false

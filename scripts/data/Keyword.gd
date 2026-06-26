@@ -4,13 +4,12 @@ class_name Keyword
 enum Type {
 	TAUNT,
 	CHARGE,
-	PROTECTION,
+	AEGIS,
 	LIFESTEAL,
 	FURY,
 	DEADLY_POISON,
 	RAVAGE,
 	BLACK_WINGS,
-	AEGIS,
 }
 enum TriggerType {
 	INVOCATION,
@@ -30,11 +29,10 @@ static func get_name(keyword: int) -> String:
 	match keyword:
 		Type.TAUNT:          return "Rempart"
 		Type.CHARGE:         return "Assaut"
-		Type.PROTECTION:     return "Protection"
+		Type.AEGIS:          return "Égide"
 		Type.LIFESTEAL:      return "Moisson"
 		Type.FURY:           return "Frénésie"
 		Type.DEADLY_POISON:  return "Venin mortel"
 		Type.RAVAGE:         return "Ravage"
 		Type.BLACK_WINGS:    return "Ailes noires"
-		Type.AEGIS:          return "Égide"
 		_:                   return "Inconnu"

@@ -9,6 +9,7 @@
 
 [sub_resource type="Resource" id="Resource_eff0"]
 script = ExtResource("1_cardeffect")
+effect_id = "Destroy"
 target = "AllEnemies"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 

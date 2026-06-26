@@ -10,7 +10,16 @@ var attacks_remaining: int = 0
 var keywords: Array[int] = []
 var board_row: String = "Front"
 
-func _init(data: CardData, is_player: bool = true, row: String = "Front"):
+# ─── États ────────────────────────────────────────────────────────────────────
+var silenced: bool = false
+var frozen_turns: int = 0
+var corrupted: bool = false
+var infected: bool = false
+var awakened: bool = false
+var declined: bool = false
+var buffs: Array = []
+
+func _init(data: CardData, is_player: bool = true, row: String = "Front") -> void:
 	owner_is_player = is_player
 	card_data = data
 	board_row = row
@@ -18,26 +27,29 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front"):
 	health = data.health
 	max_health = data.health
 	keywords = data.get_keyword_values()
-	if has_keyword(Keyword.Type.CHARGE):
-		attacks_remaining = 1
-	else:
-		attacks_remaining = 0
+	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
+
+# ─── Combat ───────────────────────────────────────────────────────────────────
 
 func can_attack() -> bool:
-	return attacks_remaining > 0
+	return attacks_remaining > 0 and frozen_turns == 0
+
+func is_frozen() -> bool:
+	return frozen_turns > 0
 
 func refresh_attacks() -> void:
-	if has_keyword(Keyword.Type.FURY):
-		attacks_remaining = 2
-	else:
-		attacks_remaining = 1
+	if frozen_turns > 0:
+		frozen_turns -= 1
+		attacks_remaining = 0
+		return
+	attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
 
 func consume_attack() -> void:
 	attacks_remaining = max(attacks_remaining - 1, 0)
 
 func take_damage(amount: int) -> void:
-	if has_keyword(Keyword.Type.PROTECTION):
-		remove_keyword(Keyword.Type.PROTECTION)
+	if has_keyword(Keyword.Type.AEGIS):
+		remove_keyword(Keyword.Type.AEGIS)
 		return
 	health = max(health - amount, 0)
 
