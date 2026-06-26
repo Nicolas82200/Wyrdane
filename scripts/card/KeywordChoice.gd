@@ -11,13 +11,12 @@ var keyword_type: int:
 		match name_fr:
 			"Rempart": return Keyword.Type.TAUNT
 			"Assaut": return Keyword.Type.CHARGE
-			"Protection": return Keyword.Type.PROTECTION
+			"Égide": return Keyword.Type.AEGIS
 			"Moisson": return Keyword.Type.LIFESTEAL
 			"Frénésie": return Keyword.Type.FURY
 			"Venin mortel": return Keyword.Type.DEADLY_POISON
 			"Ravage": return Keyword.Type.RAVAGE
 			"Ailes noires": return Keyword.Type.BLACK_WINGS
-			"Égide": return Keyword.Type.AEGIS
 			_: return Keyword.Type.TAUNT
 
 func _to_string() -> String:

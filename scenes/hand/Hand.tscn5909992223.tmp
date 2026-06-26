@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://cy0myl1nfwyu"]
+
+[ext_resource type="Script" uid="uid://sn8bh4ib1uyk" path="res://scripts/hand/Hand.gd" id="1_7c7ba"]
+[ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="2_0nsk7"]
+
+[node name="Hand" type="Control" unique_id=1979632691]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("1_7c7ba")
+
+[node name="CardsContainer" type="Control" parent="." unique_id=1178907034]
+layout_mode = 1
+anchors_preset = 0
+
+[node name="CardPreview" parent="." unique_id=2019163809 instance=ExtResource("2_0nsk7")]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0

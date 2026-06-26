@@ -4,13 +4,16 @@ class_name CardEffect
 @export_enum(
 	"Damage", "Heal", "Buff", "SummonMinion", "SummonSelf",
 	"DrawCard", "Destroy", "Silence", "Transform", "StealHealth",
-	"HealHero", "ReturnToHand", "InfectEnemy"
+	"HealHero", "ReturnToHand", "InfectEnemy", "DamageAll",
+	"BuffRow", "SummonRandom", "Freeze", "Debuff", "Resurrect", "StealMinion"
 ) var effect_id: String = "Damage"
 
 @export_enum(
 	"Self", "EnemyHero", "OwnerHero",
 	"EnemyMinion", "AllyMinion", "AllEnemies",
-	"AllAllies", "AllMinions", "RandomEnemy", "RandomAlly", "AnyMinion"
+	"AllAllies", "AllMinions", "RandomEnemy", "RandomAlly",
+	"AnyMinion", "AllEnemiesFront", "AllEnemiesBack",
+	"AllAlliesFront", "AllAlliesBack"
 ) var target: String = "Self"
 
 @export var value: int = 0
@@ -19,6 +22,7 @@ class_name CardEffect
 @export var summon_card: CardData
 @export var transform_card: CardData
 @export var race_filter: String = ""
+@export var row_filter: String = ""  # "Front", "Back", ou "" pour les deux
 
 func get_effect_type() -> int:
 	return EffectType.from_name(effect_id)

@@ -15,6 +15,10 @@ const MAX_COPIES := 4
 
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
+var _keyword_tooltips: Array[Control] = []
+var _tooltip_layer: CanvasLayer = null
+var _hovering: bool = false
+var _hovered_wrapper: Control = null
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
@@ -29,6 +33,18 @@ func _ready() -> void:
 	_refresh_card_grid()
 	_refresh_deck_list()
 
+func _process(_delta: float) -> void:
+	if _hovered_wrapper == null or not is_instance_valid(_hovered_wrapper):
+		return
+	if _keyword_tooltips.is_empty():
+		return
+	var base_x: float = _hovered_wrapper.global_position.x + _hovered_wrapper.size.x + 15
+	var base_y: float = _hovered_wrapper.global_position.y
+	for tooltip in _keyword_tooltips:
+		if not is_instance_valid(tooltip):
+			continue
+		tooltip.global_position = Vector2(base_x, base_y)
+		base_y += tooltip.size.y + 6
 # ─── Chargement cartes ────────────────────────────────────────────────────────
 
 func _load_all_cards() -> void:
@@ -85,14 +101,26 @@ func _refresh_card_grid(filter: String = "") -> void:
 				_on_add_card(card_data)
 		)
 		wrapper.mouse_entered.connect(func():
+			_hovered_wrapper = wrapper
+			_hovering = true
 			var tween := create_tween()
-			tween.tween_property(card_visual, "scale", Vector2(0.80, 0.80), 0.12) \
+			tween.tween_property(card_visual, "scale", Vector2(0.80, 0.80), 0.12)\
 				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			await get_tree().process_frame
+			await get_tree().process_frame
+			if not _hovering:
+				return
+			var tooltip_x: float = wrapper.global_position.x + wrapper.size.x + 15
+			var tooltip_y: float = wrapper.global_position.y
+			await self._show_keyword_tooltips(card_data, tooltip_x, tooltip_y)
 		)
 		wrapper.mouse_exited.connect(func():
+			_hovered_wrapper = null
+			_hovering = false
 			var tween := create_tween()
-			tween.tween_property(card_visual, "scale", Vector2(0.75, 0.75), 0.12) \
+			tween.tween_property(card_visual, "scale", Vector2(0.75, 0.75), 0.12)\
 				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			self._hide_keyword_tooltips()
 		)
 
 # ─── Liste deck à droite ──────────────────────────────────────────────────────
@@ -283,3 +311,115 @@ func _style_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_color",       Color("e8d5a3"))
 	btn.add_theme_color_override("font_hover_color", Color("fff5d6"))
 	btn.add_theme_font_size_override("font_size", 16)
+
+# ─── Tooltips ─────────────────────────────────────────────────────────────────
+
+const KEYWORD_DESCRIPTIONS := {
+	Keyword.Type.TAUNT:      { "title": "Rempart",       "desc": "Les ennemis doivent attaquer cette créature en priorité." },
+	Keyword.Type.AEGIS:      { "title": "Égide",         "desc": "Absorbe la prochaine source de dégâts. Le bouclier disparaît ensuite." },
+	Keyword.Type.CHARGE:     { "title": "Assaut",        "desc": "Peut attaquer dès le tour où elle est invoquée." },
+	Keyword.Type.LIFESTEAL:  { "title": "Moisson",       "desc": "Les dégâts infligés soignent votre héros d'autant." },
+	Keyword.Type.FURY:       { "title": "Frénésie",      "desc": "Peut attaquer deux fois par tour." },
+}
+
+const TRIGGER_DESCRIPTIONS := {
+	"ONPLAY":      { "title": "Invocation",     "desc": "Déclenché quand cette créature est jouée depuis la main." },
+	"DEATHRATTLE": { "title": "Dernier souffle", "desc": "Déclenché quand cette créature meurt." },
+	"ASSAUT":      { "title": "Assaut",          "desc": "Déclenché quand cette créature attaque." },
+	"BLESSURE":    { "title": "Blessure",        "desc": "Déclenché quand cette créature reçoit des dégâts." },
+	"EVEIL":       { "title": "Éveil",           "desc": "Déclenché au début de votre tour." },
+	"DECLIN":      { "title": "Déclin",          "desc": "Déclenché à la fin de votre tour." },
+	"RALLIEMENT":  { "title": "Ralliement",      "desc": "Déclenché quand un allié est invoqué." },
+	"DEUIL":       { "title": "Deuil",           "desc": "Déclenché quand un allié meurt." },
+	"SORTILEGE":   { "title": "Sortilège",       "desc": "Déclenché quand un sort est lancé." },
+	"SACRIFICE":   { "title": "Sacrifice",       "desc": "Déclenché quand un allié est sacrifié." },
+	"EXECUTION":   { "title": "Exécution",       "desc": "Déclenché quand cette créature détruit un ennemi." },
+	"CARNAGE":     { "title": "Carnage",         "desc": "Déclenché quand cette créature survit à un combat." },
+}
+
+func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
+	_hide_keyword_tooltips()
+	if card_data == null:
+		return
+	_tooltip_layer = CanvasLayer.new()
+	_tooltip_layer.layer = 20
+	add_child(_tooltip_layer)
+	var panels: Array[Control] = []
+	for keyword in card_data.get_keyword_values():
+		if not KEYWORD_DESCRIPTIONS.has(keyword):
+			continue
+		var info: Dictionary = KEYWORD_DESCRIPTIONS[keyword]
+		var panel := _make_tooltip_panel(info["title"], info["desc"])
+		panel.position = Vector2(-9999, -9999)
+		_tooltip_layer.add_child(panel)
+		panels.append(panel)
+	for trigger in card_data.trigger_types:
+		if not TRIGGER_DESCRIPTIONS.has(trigger.type):
+			continue
+		var info: Dictionary = TRIGGER_DESCRIPTIONS[trigger.type]
+		var panel := _make_tooltip_panel(info["title"], info["desc"])
+		panel.position = Vector2(-9999, -9999)
+		_tooltip_layer.add_child(panel)
+		panels.append(panel)
+	await get_tree().process_frame
+	if not _hovering:
+		_hide_keyword_tooltips()
+		return
+	for panel in panels:
+		if not is_instance_valid(panel):
+			continue
+		panel.global_position = Vector2(base_x, base_y)
+		base_y += panel.size.y + 6
+		_keyword_tooltips.append(panel)
+
+func _hide_keyword_tooltips() -> void:
+	for tooltip in _keyword_tooltips:
+		if is_instance_valid(tooltip):
+			tooltip.queue_free()
+	_keyword_tooltips.clear()
+	if _tooltip_layer and is_instance_valid(_tooltip_layer):
+		_tooltip_layer.queue_free()
+		_tooltip_layer = null
+
+func _make_tooltip_panel(title: String, desc: String) -> PanelContainer:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color            = Color(0.13, 0.10, 0.06, 0.96)
+	bg.border_width_left   = 2
+	bg.border_width_right  = 2
+	bg.border_width_top    = 2
+	bg.border_width_bottom = 2
+	bg.border_color        = Color(0.55, 0.38, 0.10, 1.0)
+	bg.corner_radius_top_left     = 6
+	bg.corner_radius_top_right    = 6
+	bg.corner_radius_bottom_left  = 6
+	bg.corner_radius_bottom_right = 6
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+	panel.custom_minimum_size = Vector2(220, 0)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 4)
+	panel.add_child(vbox)
+	var title_bg := StyleBoxFlat.new()
+	title_bg.bg_color            = Color(0.22, 0.16, 0.07, 1.0)
+	title_bg.border_width_bottom = 1
+	title_bg.border_color        = Color(0.55, 0.38, 0.10, 0.8)
+	var title_label := Label.new()
+	title_label.text = title
+	title_label.add_theme_color_override("font_color", Color(0.95, 0.80, 0.35, 1.0))
+	title_label.add_theme_font_size_override("font_size", 15)
+	title_label.add_theme_stylebox_override("normal", title_bg)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(title_label)
+	var desc_label := Label.new()
+	desc_label.text = desc
+	desc_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.70, 1.0))
+	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	desc_label.add_theme_constant_override("margin_left", 6)
+	desc_label.add_theme_constant_override("margin_right", 6)
+	desc_label.add_theme_constant_override("margin_bottom", 6)
+	vbox.add_child(desc_label)
+	return panel
