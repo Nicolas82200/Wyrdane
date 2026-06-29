@@ -1,28 +1,29 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://f6c5dbcad44"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://pu0pfbhlv4j"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_q4n8a"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Texture2D" uid="uid://ja55mmpkdr3r" path="res://assets/card_art/undead/resurection-ritual.jpg" id="4_6xadw"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_kdrnp"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ja55mmpkdr3r" path="res://assets/card_art/undead/resurection-ritual.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_609d2"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
+effect_id = "ResurrectLast"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_u06xf"]
-script = ExtResource("4_kdrnp")
+[sub_resource type="Resource" id="Resource_mxb68"]
+script = ExtResource("5_trig")
 type = "OnAwaken"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Rituel de Résurrection"
 description = "2 tours : Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant."
-texture = ExtResource("4_6xadw")
+flavour_text = "Le cercle ne ferme jamais complètement. C'est voulu."
+texture = ExtResource("3_texture")
 cost = 5
 card_type = "Ritual"
-trigger_types = Array[ExtResource("4_kdrnp")]([SubResource("Resource_u06xf")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_mxb68")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_609d2")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://66eb0ead07ad"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b1uaxxqtut0mo"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_my71t"]
-[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/undead/circle-of-sacrifice.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_duuku"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/undead/circle-of-sacrifice.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_thkse"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
@@ -14,18 +14,19 @@ value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_01lwr"]
-script = ExtResource("5_duuku")
-type = "SACRIFICE"
+[sub_resource type="Resource" id="Resource_nsof3"]
+script = ExtResource("5_trig")
+type = "OnSacrifice"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cercle de Sacrifice"
 description = "Sacrifice (exactement 2 serviteurs) : tes serviteurs restants gagnent +ATK/+HP égal aux stats combinées des sacrifiés ce tour."
-texture = ExtResource("2_texture")
+flavour_text = "Deux morts pour que les autres survivent — un peu plus longtemps."
+texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"
-trigger_types = Array[ExtResource("5_duuku")]([SubResource("Resource_01lwr")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_nsof3")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_thkse")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

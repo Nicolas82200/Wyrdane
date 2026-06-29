@@ -118,7 +118,7 @@ func _ready() -> void:
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
 	turn_choice_panel.mana_selected.connect(_on_mana_selected)
-	targeting_system.targeting_cancelled.connect(func(): pass)
+	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	if settings_menu:
 		settings_button.pressed.connect(settings_menu.open)
 	else:
@@ -171,7 +171,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # ─── Trigger centralisé ───────────────────────────────────────────────────────
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
-	death_system.trigger_effects(minion, trigger_name)
+	effect_manager.trigger_effects(self,minion, trigger_name)
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
@@ -263,6 +263,7 @@ func destroy_minion(target: Minion) -> void:
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
+	print("_on_card_played appelé — ", card_data.card_name)  # ← combien de fois s'affiche-t-il ?
 	print("_on_card_played — row: %s, index: %d" % [row, insert_index])
 	if game_over or card_data.cost > mana:
 		return
@@ -277,8 +278,7 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 		pending_row          = row
 		pending_insert_index = insert_index
 		waiting_for_target   = true
-		# ← Popup gauche pendant le ciblage
-		card_popup_system.show_targeting_popup(card_data)
+		await card_popup_system.show_targeting_popup(card_data)
 		targeting_system.begin_targeting(card_data, row, insert_index)
 		return
 	card_system.play_card(card_data, row, insert_index)
@@ -286,8 +286,13 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
 	await board_system.summon_minion(card_data, is_player, row, insert_index)
 
-func resolve_card_target(target: Minion) -> void:
-	pass
+func _on_targeting_cancelled() -> void:
+	waiting_for_target   = false
+	pending_card         = null
+	pending_row          = ROW_FRONT
+	pending_insert_index = -1
+	# La carte est encore dans hand_cards, on rafraîchit juste l'affichage
+	hand.set_hand(hand_cards)
 
 # ─── Tours ────────────────────────────────────────────────────────────────────
 

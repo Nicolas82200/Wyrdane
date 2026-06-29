@@ -1,22 +1,28 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://52a237fdec20"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://niv5k8euk2vf"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_7r7ci"]
-[ext_resource type="Texture2D" uid="uid://b1nblg7vufyu4" path="res://assets/card_art/undead/putrid-scavenger.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_j6y40"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://b1nblg7vufyu4" path="res://assets/card_art/undead/putrid-scavenger.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_ur3pt"]
-script = ExtResource("5_j6y40")
+[sub_resource type="Resource" id="Resource_8ca60"]
+script = ExtResource("1_cardeffect")
+effect_id = "InfectAdjacent"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_2eh1g"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Charognard Putride"
 description = "Dernier Souffle : inflige Infection à un serviteur ennemi adjacent."
-texture = ExtResource("2_texture")
+flavour_text = "Même en tombant, il répand ce qui l'a tué."
+texture = ExtResource("3_texture")
 cost = 2
 attack = 3
 health = 1
-trigger_types = Array[ExtResource("5_j6y40")]([SubResource("Resource_ur3pt")])
-requires_target = true
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_2eh1g")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_8ca60")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

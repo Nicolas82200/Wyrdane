@@ -1,35 +1,32 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://46173704dcf4"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://diw6jhg8rll4x"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_47dot"]
-[ext_resource type="Texture2D" uid="uid://ggcot8cle2p7" path="res://assets/card_art/undead/screaming-possessed.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_pg814"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ggcot8cle2p7" path="res://assets/card_art/undead/screaming-possessed.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_6knca"]
-script = ExtResource("2_47dot")
+[sub_resource type="Resource" id="Resource_lv5ii"]
+script = ExtResource("2_kw")
 name_fr = "Assaut"
 
-[sub_resource type="Resource" id="Resource_ng564"]
-script = ExtResource("2_47dot")
+[sub_resource type="Resource" id="Resource_uxx7u"]
+script = ExtResource("2_kw")
 name_fr = "Venin mortel"
 
-[sub_resource type="Resource" id="Resource_j58xr"]
-script = ExtResource("5_pg814")
-
-[sub_resource type="Resource" id="Resource_wp7ea"]
-script = ExtResource("5_pg814")
-type = "OnAttack"
+[sub_resource type="Resource" id="Resource_zva7e"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Possédé Hurlant"
 description = "ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière)."
-texture = ExtResource("2_texture")
+flavour_text = "Même les morts refusent de le reprendre."
+texture = ExtResource("3_texture")
 cost = 3
 attack = 5
 health = 1
-keywords = Array[ExtResource("2_47dot")]([SubResource("Resource_6knca"), SubResource("Resource_ng564")])
-trigger_types = Array[ExtResource("5_pg814")]([SubResource("Resource_j58xr"), SubResource("Resource_wp7ea")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_lv5ii"), SubResource("Resource_uxx7u")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_zva7e")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

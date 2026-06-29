@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://wbid07f9vhm6k"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://8qv4ppo2l0nph" path="res://assets/card_art/human/swift-scout.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_22xpr"]
+script = ExtResource("2_kw")
+name_fr = "Assaut"
+
+[sub_resource type="Resource" id="Resource_f974l"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_rno5d"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Éclaireur Rapide"
+description = "ASSAUT. Invocation : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus."
+flavour_text = "Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte."
+texture = ExtResource("3_texture")
+cost = 1
+race = 1
+unit_style = 6
+attack = 1
+health = 1
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_22xpr")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_f974l")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_rno5d")])
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

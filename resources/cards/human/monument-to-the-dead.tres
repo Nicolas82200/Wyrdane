@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://r6ehowk4xpw27"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://65pex8mhgqwvd" path="res://assets/card_art/undead/monument-of-death.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_g0crz"]
+script = ExtResource("5_trig")
+type = "OnGrief"
+
+[sub_resource type="Resource" id="Resource_cvwv5"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonRandom"
+count = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Monument aux Morts"
+description = "Deuil : invoque 2 Mort-Vivants aléatoires de coût ≤3."
+flavour_text = "On l'a érigé pour honorer les disparus. Il préfère les renvoyer."
+texture = ExtResource("3_texture")
+cost = 5
+race = 4
+unit_style = 0
+card_type = "Enchantment"
+attack = 0
+health = 0
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_g0crz")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cvwv5")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

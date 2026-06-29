@@ -1,28 +1,29 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ef130fc26cb3"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://c28da7git2gh8"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://du4wxk7jrbhbc" path="res://assets/card_art/undead/ritual-of-the-bottomless-pit.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_wugi4"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_4wqxm"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://du4wxk7jrbhbc" path="res://assets/card_art/undead/ritual-of-the-bottomless-pit.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_h5lmn"]
 script = ExtResource("1_cardeffect")
 effect_id = "DrawCard"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_8kasf"]
-script = ExtResource("5_4wqxm")
-type = "SACRIFICE"
+[sub_resource type="Resource" id="Resource_tgns8"]
+script = ExtResource("5_trig")
+type = "OnSacrifice"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Rituel de la Fosse Sans Fond"
 description = "Sacrifice (tous tes serviteurs) : pioche 1 carte par sacrifié."
-texture = ExtResource("2_texture")
+flavour_text = "Il a tout donné. Il savait exactement ce que ça valait."
+texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"
-trigger_types = Array[ExtResource("5_4wqxm")]([SubResource("Resource_8kasf")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_tgns8")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_h5lmn")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

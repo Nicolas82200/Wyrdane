@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cih2yl50m8sxb"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://df617f3rgdiv3" path="res://assets/card_art/human/line-lancer.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_hk9dm"]
+script = ExtResource("5_trig")
+type = "OnAura"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Lancier en Ligne"
+description = "FORMATION : inflige 1 dégât supplémentaire si un allié est adjacent."
+flavour_text = "La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux."
+texture = ExtResource("3_texture")
+cost = 2
+race = 1
+unit_style = 5
+attack = 3
+health = 1
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_hk9dm")])
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

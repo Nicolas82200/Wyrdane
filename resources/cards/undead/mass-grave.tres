@@ -1,30 +1,31 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://6c53e61c0018"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://crpoom6fxihrh"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://b6ncj0qpa60dh" path="res://assets/card_art/undead/mass-grave.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_sa34u"]
-[ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_yksmo"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://b6ncj0qpa60dh" path="res://assets/card_art/undead/mass-grave.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://o5k0ofvau3ij" path="res://resources/cards/undead/decaying-crawler.tres" id="6_summon"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_f2zu9"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
-summon_card = ExtResource("4_summon_decayingcrawler")
+summon_card = ExtResource("6_summon")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_4jjaw"]
-script = ExtResource("6_yksmo")
-type = "OnAwaken"
+[sub_resource type="Resource" id="Resource_czcnn"]
+script = ExtResource("5_trig")
+type = "OnSummon"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Fosse Commune"
-description = "Éveil : si 3 Mort-Vivants ou plus en jeu, invoque un Rampant 1/1."
-texture = ExtResource("2_texture")
+description = "Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1."
+flavour_text = "Plus elle se remplit, plus elle déborde."
+texture = ExtResource("3_texture")
 cost = 4
 card_type = "Enchantment"
-trigger_types = Array[ExtResource("6_yksmo")]([SubResource("Resource_4jjaw")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_czcnn")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_f2zu9")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

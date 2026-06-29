@@ -1,32 +1,33 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://fd825faaa02"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://d3ynqt65ibvr"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dnaqm01u51mun" path="res://assets/card_art/undead/cadaverous-insect-swarm.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_w6m6g"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_y5i7r"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dnaqm01u51mun" path="res://assets/card_art/undead/cadaverous-insect-swarm.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_llaat"]
 script = ExtResource("1_cardeffect")
 target = "AllEnemies"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_1xtsu"]
-script = ExtResource("5_y5i7r")
+[sub_resource type="Resource" id="Resource_gw72q"]
+script = ExtResource("5_trig")
 type = "ONPLAY"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Nuée d'Insectes Cadavériques"
 description = "Invocation : inflige 1 dégât à tous les serviteurs ennemis en jeu."
-texture = ExtResource("2_texture")
+flavour_text = "Là où elle passe, rien ne guérit vraiment."
+texture = ExtResource("3_texture")
 cost = 3
 unit_style = 17
 attack = 1
 health = 2
-trigger_types = Array[ExtResource("5_y5i7r")]([SubResource("Resource_1xtsu")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_gw72q")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_llaat")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

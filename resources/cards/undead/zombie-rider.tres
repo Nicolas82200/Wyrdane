@@ -1,33 +1,35 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://baafaafaa30e2"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://h4ednxupymqys"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_28fv4"]
-[ext_resource type="Texture2D" uid="uid://bpyaioaeyxpj3" path="res://assets/card_art/undead/zombie-rider.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_q43fj"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://f7q44j9np25am" path="res://assets/card_art/undead/zombie-rider.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_k7nwb"]
-script = ExtResource("2_28fv4")
+[sub_resource type="Resource" id="Resource_67z0e"]
+script = ExtResource("2_kw")
 name_fr = "Assaut"
 
-[sub_resource type="Resource" id="Resource_h5fxk"]
-script = ExtResource("5_q43fj")
+[sub_resource type="Resource" id="Resource_buch7"]
+script = ExtResource("5_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_5dxp5"]
-script = ExtResource("5_q43fj")
+[sub_resource type="Resource" id="Resource_1bg9r"]
+script = ExtResource("5_trig")
 type = "OnAttack"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cavalier Zombie"
 description = "ASSAUT. Invocation : attaque immédiatement le serviteur ennemi le plus faible en HP."
-texture = ExtResource("2_texture")
+flavour_text = "Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte."
+texture = ExtResource("3_texture")
 cost = 4
+race = 4
 unit_style = 4
 attack = 4
 health = 3
-keywords = Array[ExtResource("2_28fv4")]([SubResource("Resource_k7nwb")])
-trigger_types = Array[ExtResource("5_q43fj")]([SubResource("Resource_h5fxk"), SubResource("Resource_5dxp5")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_67z0e")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_buch7"), SubResource("Resource_1bg9r")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

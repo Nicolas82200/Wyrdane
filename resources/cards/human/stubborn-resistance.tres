@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://oewkgl308mwbr"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://jhftpkywyl98y" path="res://assets/card_art/human/stubborn-resistance.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_0erb5"]
+script = ExtResource("5_trig")
+type = "OnCarnage"
+
+[sub_resource type="Resource" id="Resource_ss9j5"]
+script = ExtResource("1_cardeffect")
+effect_id = "HealHero"
+target = "OwnerHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Résistance Acharnée"
+description = "3 tours : Carnage allié : quand un Humain allié meurt, le héros allié gagne 1 HP."
+flavour_text = "Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux."
+texture = ExtResource("3_texture")
+cost = 4
+race = 1
+unit_style = 0
+card_type = "Ritual"
+attack = 0
+health = 0
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_0erb5")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ss9j5")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

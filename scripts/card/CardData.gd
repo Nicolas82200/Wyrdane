@@ -3,6 +3,7 @@ class_name CardData
 
 @export var card_name: String
 @export var description: String
+@export_multiline var flavour_text: String
 @export var texture: Texture2D
 @export var cost: int = 1
 

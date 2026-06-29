@@ -70,6 +70,7 @@ func show_card_popup(card_data: CardData) -> void:
 # ── Popup persistante (pendant le ciblage) ────────────────────────────────────
 
 func show_targeting_popup(card_data: CardData) -> void:
+	print("show_targeting_popup appelé — ", card_data.card_name)
 	hide_targeting_popup()
 	if card_data == null:
 		return
@@ -81,24 +82,18 @@ func show_targeting_popup(card_data: CardData) -> void:
 
 	await card.get_tree().process_frame
 
-	# Position : gauche, centré verticalement
-	var viewport_size :Vector2= battle.get_viewport().get_visible_rect().size
-	card.position = Vector2(
-		24.0,
-		(viewport_size.y - card.size.y) / 2.0
-	)
+	var viewport_size: Vector2 = battle.get_viewport().get_visible_rect().size
+	card.position = Vector2(24.0, (viewport_size.y - card.size.y) / 2.0)
 	card.pivot_offset = card.size / 2.0
-
-	# Animate in depuis la gauche
 	card.position.x = -card.size.x
 	card.modulate.a = 0.0
+	_persistent_card = card
+
 	var t = card.create_tween().set_parallel(true)
 	t.tween_property(card, "position:x", 24.0, 0.25)\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(card, "modulate:a", 1.0, 0.2)
 	await t.finished
-
-	_persistent_card = card
 
 func hide_targeting_popup() -> void:
 	if _persistent_card == null or not is_instance_valid(_persistent_card):

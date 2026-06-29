@@ -1,3 +1,4 @@
+# BoardSystem.gd
 extends Node
 class_name BoardSystem
 
@@ -10,18 +11,22 @@ func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_
 	if not battle.can_summon_to_row(is_player, row):
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return
+
 	var minion := Minion.new(card_data, is_player, row)
 	_insert(minion, is_player, row, insert_index)
 	_spawn(minion, is_player)
 	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)
 	await battle.get_tree().create_timer(0.2).timeout
-	# OnPlay = effect d'invocation
-	battle.trigger_effects(minion, "ONPLAY")
-	# OnSummon déclenché sur tous les alliés déjà en jeu
+
+	# ONPLAY = effet d'invocation du minion invoqué
+	await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
+
+	# OnSummon déclenché sur tous les alliés déjà en jeu (pas le minion lui-même)
 	var allies: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 	for ally in allies:
 		if ally != minion:
-			battle.trigger_effects(ally, "OnSummon")
+			await battle.effect_manager.trigger_effects(battle, ally, "OnSummon")
+
 	battle.board_visual_system.refresh_board()
 
 func _insert(minion: Minion, is_player: bool, row: String, insert_index: int) -> void:

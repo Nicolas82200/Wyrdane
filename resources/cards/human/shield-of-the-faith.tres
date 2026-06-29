@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ll3q58wasezt8"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://e78r5h7ezjqqv" path="res://assets/card_art/human/shield-of-the-faith.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_3b7ht"]
+script = ExtResource("5_trig")
+type = "OnSpell"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Bouclier de la Foi"
+description = "Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0)."
+flavour_text = "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner."
+texture = ExtResource("3_texture")
+cost = 4
+race = 1
+unit_style = 0
+card_type = "Enchantment"
+attack = 0
+health = 0
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_3b7ht")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

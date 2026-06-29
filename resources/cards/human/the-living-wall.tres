@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://o83y49byedrtq"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://v2taao8aopbcz" path="res://assets/card_art/human/the-living-wall.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_cdn7p"]
+script = ExtResource("2_kw")
+name_fr = "Rempart"
+
+[sub_resource type="Resource" id="Resource_1rubs"]
+script = ExtResource("2_kw")
+name_fr = "Égide"
+
+[sub_resource type="Resource" id="Resource_xqt8n"]
+script = ExtResource("5_trig")
+type = "OnDamaged"
+
+[sub_resource type="Resource" id="Resource_yair7"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Le Rempart Vivant"
+description = "REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Bouclier Brisé 0/3 REMPART adjacent."
+flavour_text = "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore."
+texture = ExtResource("3_texture")
+cost = 6
+race = 1
+unit_style = 5
+attack = 4
+health = 10
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_cdn7p"), SubResource("Resource_1rubs")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_xqt8n")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yair7")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

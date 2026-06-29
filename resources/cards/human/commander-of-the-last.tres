@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bmvmj6ei7m5vj"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://blr14ba0n0lsl" path="res://assets/card_art/human/last-commander.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_w09el"]
+script = ExtResource("1_cardeffect")
+effect_id = "Resurrect"
+count = 5
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_xa6ip"]
+script = ExtResource("5_trig")
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Commandant des Derniers"
+description = "COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant."
+flavour_text = "Sa mort n'est pas une fin. C'est un dernier ordre."
+texture = ExtResource("3_texture")
+cost = 7
+race = 1
+unit_style = 5
+attack = 5
+health = 6
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_xa6ip")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_w09el")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

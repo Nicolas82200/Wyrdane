@@ -1,3 +1,4 @@
+# TurnSystem.gd
 extends Node
 class_name TurnSystem
 
@@ -7,23 +8,35 @@ func init(_battle) -> void:
 	battle = _battle
 
 func end_turn() -> void:
+	# Fin du tour joueur
 	for minion in battle.player_minions:
-		battle.trigger_effects(minion, "OnTurnEnd")
-	if battle.has_method("enchantment_system"):
+		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
+	if battle.get("enchantment_system") != null:
 		battle.enchantment_system.trigger_on_turn_end(true)
+
+	# Tour ennemi (simplifié — Déclin sur les ennemis)
+	for minion in battle.enemy_minions:
+		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
+
 	await _apply_infection_damage()
-	_begin_player_turn()
+	await _begin_player_turn()
 
 func _begin_player_turn() -> void:
 	for minion in battle.player_minions:
 		minion.refresh_attacks()
+
+	# Éveil joueur
 	for minion in battle.player_minions:
-		battle.trigger_effects(minion, "OnTurnStart")
-		battle.trigger_effects(minion, "OnAwaken")
+		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnStart")
+		await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken")
+
+	# Déclin sur les ennemis
 	for minion in battle.enemy_minions:
-		battle.trigger_effects(minion, "OnDecline")
+		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
+
 	if battle.get("enchantment_system") != null:
 		battle.enchantment_system.trigger_on_turn_start(true)
+
 	battle.turn_choice_panel.show_choice()
 
 func _apply_infection_damage() -> void:

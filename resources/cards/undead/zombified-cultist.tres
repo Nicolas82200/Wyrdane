@@ -1,32 +1,35 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://f286a53375f4"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://2cwfthiecekrh"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dym83qrgjsljp" path="res://assets/card_art/undead/zombified-cultist.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_cbw18"]
-[ext_resource type="Resource" uid="uid://4fba8d4b6883" path="res://resources/cards/undead/wandering-corpse.tres" id="4_summon_wanderingcorpse"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_fhyln"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ymao9p9g025m4" path="res://assets/card_art/undead/zombified-cultist.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://rr1r2xet1kq6w" path="res://resources/cards/undead/wandering-corpse.tres" id="6_summon"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_5plfh"]
+script = ExtResource("5_trig")
+type = "DEATHRATTLE"
+
+[sub_resource type="Resource" id="Resource_bzc9u"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
-summon_card = ExtResource("4_summon_wanderingcorpse")
+summon_card = ExtResource("6_summon")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_hbw5t"]
-script = ExtResource("6_fhyln")
-
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cultiste Zombifié"
 description = "Dernier Souffle : invoque un Cadavre Errant en rangée Avant."
-texture = ExtResource("2_texture")
+flavour_text = "Il a prié pour la mort éternelle. Il a été exaucé — à moitié."
+texture = ExtResource("3_texture")
 cost = 2
+race = 4
 unit_style = 1
 attack = 1
 health = 2
-trigger_types = Array[ExtResource("6_fhyln")]([SubResource("Resource_hbw5t")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_5plfh")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_bzc9u")])
 rarity = "Rare"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

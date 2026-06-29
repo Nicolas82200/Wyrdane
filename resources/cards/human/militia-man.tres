@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://drahnclwi5w5p"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://cwpu3mbbrp18c" path="res://assets/card_art/human/town-militiaman.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_cq5e5"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_b292k"]
+script = ExtResource("5_trig")
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Milicien du Bourg"
+description = "Dernier Souffle : invoque un Éclaireur 1/1."
+flavour_text = "Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé."
+texture = ExtResource("3_texture")
+race = 1
+unit_style = 5
+attack = 2
+health = 1
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_b292k")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cq5e5")])
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

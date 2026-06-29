@@ -1,28 +1,30 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://f24f28c1008a"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bd60av70fh6bm"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_lkejf"]
-[ext_resource type="Texture2D" uid="uid://cq0l6gnsyll1p" path="res://assets/card_art/undead/living-cemetery.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_bxt04"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://cq0l6gnsyll1p" path="res://assets/card_art/undead/living-cemetery.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_foh6w"]
 script = ExtResource("1_cardeffect")
 effect_id = "ReturnToHand"
+target = "AllyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_7inkn"]
-script = ExtResource("5_bxt04")
-type = "MOURNING"
+[sub_resource type="Resource" id="Resource_o0rnn"]
+script = ExtResource("5_trig")
+type = "OnGrief"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cimetière Vivant"
 description = "Deuil : ce Mort-Vivant revient en jeu à la fin du tour avec 1 HP. (Une seule fois par serviteur.)"
-texture = ExtResource("2_texture")
+flavour_text = "Le sol ici ne garde rien. Il régurgite."
+texture = ExtResource("3_texture")
 cost = 5
 card_type = "Enchantment"
-trigger_types = Array[ExtResource("5_bxt04")]([SubResource("Resource_7inkn")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_o0rnn")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_foh6w")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,23 +1,29 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://2a0f5060454c"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://zh55za2a4f6au"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_cu430"]
-[ext_resource type="Texture2D" uid="uid://ct18y57mmfhjd" path="res://assets/card_art/undead/wave-of-putrefaction.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_66xms"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://rahwgko0jw7bh" path="res://assets/card_art/undead/wave-of-putrefaction.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_e8rfy"]
 script = ExtResource("1_cardeffect")
-target = "AllEnemies"
+effect_id = "Damage"
+target = "AllEnemiesFront"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Vague de Putréfaction"
 description = "1 dégât à tous les serviteurs ennemis en rangée Avant."
-texture = ExtResource("2_texture")
+flavour_text = "La peste ne choisit pas. Elle couvre."
+texture = ExtResource("3_texture")
 cost = 3
+race = 4
+unit_style = 0
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+attack = 0
+health = 0
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_e8rfy")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,28 +1,29 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://6a2f85a5a186"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://s38h5hixlsku"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_oudmb"]
-[ext_resource type="Texture2D" uid="uid://r4buja5gqqte" path="res://assets/card_art/undead/decayed-colossus.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_xstn2"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://r4buja5gqqte" path="res://assets/card_art/undead/decayed-colossus.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_c4da5"]
-script = ExtResource("2_oudmb")
+[sub_resource type="Resource" id="Resource_l9ner"]
+script = ExtResource("2_kw")
 
-[sub_resource type="Resource" id="Resource_sr3sx"]
-script = ExtResource("5_xstn2")
+[sub_resource type="Resource" id="Resource_pgrzq"]
+script = ExtResource("5_trig")
 type = "OnDamaged"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Colosse Décomposé"
 description = "REMPART. Blessure : les dégâts excédentaires ne se propagent pas."
-texture = ExtResource("2_texture")
+flavour_text = "Les lames disparaissent dans sa masse. Il continue d'avancer."
+texture = ExtResource("3_texture")
 cost = 6
 unit_style = 2
 attack = 7
 health = 7
-keywords = Array[ExtResource("2_oudmb")]([SubResource("Resource_c4da5")])
-trigger_types = Array[ExtResource("5_xstn2")]([SubResource("Resource_sr3sx")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_l9ner")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_pgrzq")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

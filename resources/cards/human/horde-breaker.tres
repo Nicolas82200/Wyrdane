@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://pmcyuersn2tl"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ckl4atqd77jfc" path="res://assets/card_art/human/horde-breaker.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_wmf65"]
+script = ExtResource("1_cardeffect")
+target = "EnemyMinion"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_98490"]
+script = ExtResource("5_trig")
+type = "OnAttack"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Briseur de Horde"
+description = "Assaut : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires."
+flavour_text = "Il a perdu son village à la première vague. Il n'a pas perdu la rage."
+texture = ExtResource("3_texture")
+cost = 4
+race = 1
+unit_style = 5
+attack = 4
+health = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_98490")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_wmf65")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

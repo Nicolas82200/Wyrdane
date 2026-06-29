@@ -1,33 +1,33 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e56a86872373"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://csxes3m837i0h"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_jyfqk"]
-[ext_resource type="Texture2D" uid="uid://bufwwwcqadj67" path="res://assets/card_art/undead/plague-reaper.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_6xl7n"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://bufwwwcqadj67" path="res://assets/card_art/undead/plague-reaper.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_uoy2e"]
 script = ExtResource("1_cardeffect")
-effect_id = "Destroy"
-target = "EnemyMinion"
-value = 2
+effect_id = "DestroyLowHP"
+target = "AllEnemies"
+value = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_s58r0"]
-script = ExtResource("5_6xl7n")
+[sub_resource type="Resource" id="Resource_4ms5x"]
+script = ExtResource("5_trig")
 type = "ONPLAY"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Faucheur de la Plaie"
 description = "Invocation : détruit un serviteur ennemi ayant 3 HP ou moins."
-texture = ExtResource("2_texture")
+flavour_text = "Il ne choisit pas les plus forts. Il choisit les presque morts — pour finir le travail."
+texture = ExtResource("3_texture")
 cost = 5
 unit_style = 1
 attack = 5
 health = 5
-trigger_types = Array[ExtResource("5_6xl7n")]([SubResource("Resource_s58r0")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-requires_target = true
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_4ms5x")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_uoy2e")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

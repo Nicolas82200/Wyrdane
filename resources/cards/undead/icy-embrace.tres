@@ -1,23 +1,26 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://c30ce4363f3e"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dpgbk2dxa4r3f"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_4bm6t"]
-[ext_resource type="Texture2D" uid="uid://d1ot86g78p1yt" path="res://assets/card_art/undead/icy-embrace.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_mropa"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://d1ot86g78p1yt" path="res://assets/card_art/undead/icy-embrace.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_l4wf0"]
 script = ExtResource("1_cardeffect")
+effect_id = "Freeze"
 target = "EnemyMinion"
+value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Étreinte Glaciale"
 description = "Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.)"
-texture = ExtResource("2_texture")
+flavour_text = "Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur."
+texture = ExtResource("3_texture")
 cost = 2
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_l4wf0")])
 requires_target = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

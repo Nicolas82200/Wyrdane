@@ -1,29 +1,30 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e5a1763d410a"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://4v1lw2s7fl06"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_0wns0"]
-[ext_resource type="Texture2D" uid="uid://cpepbk5hghmn7" path="res://assets/card_art/undead/pestilential-fog.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_8kmen"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://cpepbk5hghmn7" path="res://assets/card_art/undead/pestilential-fog.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_umzhr"]
 script = ExtResource("1_cardeffect")
-target = "EnemyHero"
+target = "AllEnemies"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_hk2yy"]
-script = ExtResource("5_8kmen")
-type = "OnAwaken"
+[sub_resource type="Resource" id="Resource_3n6at"]
+script = ExtResource("5_trig")
+type = "OnDecline"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Brouillard Pestilentiel"
-description = "Éveil adverse : les serviteurs ennemis infectés perdent 1 HP supplémentaire."
-texture = ExtResource("2_texture")
+description = "Présence : à chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 HP supplémentaire."
+flavour_text = "On ne le voit pas. On ne le sent même plus, après un moment."
+texture = ExtResource("3_texture")
 cost = 3
 card_type = "Enchantment"
-trigger_types = Array[ExtResource("5_8kmen")]([SubResource("Resource_hk2yy")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_3n6at")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_umzhr")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

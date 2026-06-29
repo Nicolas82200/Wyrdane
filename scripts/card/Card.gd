@@ -44,6 +44,7 @@ const BORDER_RACE_COLORS := {
 @onready var attack_label: Label      = $AttackLabel
 @onready var health_label: Label      = $HealthLabel
 @onready var desc_label: Label        = $DescLabel
+@onready var flavour_label: Label     = $FlavourLabel
 @onready var race_label: Label        = $RaceLabel
 @onready var border: TextureRect      = $BorderFrame
 @onready var text_background: Control = $TextBackground
@@ -66,7 +67,6 @@ var _rarity_style      := StyleBoxFlat.new()
 var _race_bg_style     := StyleBoxFlat.new()
 var _race_border_style := StyleBoxFlat.new()
 
-
 func _ready() -> void:
 	_init_rarity_style()
 	_init_race_border_style()
@@ -87,6 +87,8 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 	desc_label.text = data.description
+	flavour_label.text = data.flavour_text
+	flavour_label.visible = not data.flavour_text.is_empty()
 	# Card.gd
 	if data.card_type == "Minion":
 		race_label.text = "%s · %s" % [
@@ -163,16 +165,18 @@ func _gui_input(event: InputEvent) -> void:
 		return
 
 	var battle: Node = get_tree().current_scene
-	if battle and battle.has_method("get_allowed_rows_for_card"):
-		var allowed_rows = battle.call("get_allowed_rows_for_card", data)
-		var can_place := false
-		for r in allowed_rows:
-			if battle.call("can_summon_to_row", true, r):
-				can_place = true
-				break
-		if not can_place:
-			get_viewport().set_input_as_handled()
-			return
+
+	if data.card_type == "Minion":
+		if battle and battle.has_method("get_allowed_rows_for_card"):
+			var allowed_rows = battle.call("get_allowed_rows_for_card", data)
+			var can_place := false
+			for r in allowed_rows:
+				if battle.call("can_summon_to_row", true, r):
+					can_place = true
+					break
+			if not can_place:
+				get_viewport().set_input_as_handled()
+				return
 
 	original_position = position
 	original_scale    = scale
@@ -181,7 +185,8 @@ func _gui_input(event: InputEvent) -> void:
 	drag_rotation     = 0.0
 	dragging          = true
 	z_index           = 100
-	visible           = false  # cache la carte main, seul le preview board est visible
+	visible           = false
+	_drag_released    = false
 
 	if create_drag_preview.is_valid():
 		_drag_board_minion = create_drag_preview.call(data)

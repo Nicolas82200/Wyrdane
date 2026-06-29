@@ -1,24 +1,25 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://2f071555afdb"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://lnrrrw8c0rb5"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_p1lgy"]
-[ext_resource type="Texture2D" uid="uid://ceykdm17gquep" path="res://assets/card_art/undead/necrotic-breath.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_1ol34"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ceykdm17gquep" path="res://assets/card_art/undead/necrotic-breath.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_3bb2x"]
 script = ExtResource("1_cardeffect")
 target = "EnemyMinion"
 value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Souffle Nécrotique"
 description = "2 dégâts à un serviteur ennemi ciblé."
-texture = ExtResource("2_texture")
+flavour_text = "Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien."
+texture = ExtResource("3_texture")
 cost = 2
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_3bb2x")])
 requires_target = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
