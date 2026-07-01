@@ -15,7 +15,7 @@ func init(_battle) -> void:
 # ─── Sélection joueur ─────────────────────────────────────────────────────────
 
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
-	if battle.game_over or not minion.can_attack():
+	if battle.game_over or battle.enemy_turn_active or not minion.can_attack():
 		return
 
 	var ctrl_held := Input.is_key_pressed(KEY_CTRL)
@@ -52,7 +52,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 # ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
 func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
-	if battle.game_over:
+	if battle.game_over or battle.enemy_turn_active:
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -67,7 +67,7 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 	clear_selection()
 
 func on_enemy_hero_clicked() -> void:
-	if battle.game_over:
+	if battle.game_over or battle.enemy_turn_active:
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():

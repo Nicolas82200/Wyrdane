@@ -21,6 +21,9 @@ func end_turn() -> void:
 	battle.trigger_system.tick_enchantment_durations(false)
 
 	await _apply_infection_damage()
+	await battle.ai_system.take_turn()
+	if battle.game_over:
+		return
 	await _begin_player_turn()
 
 func _begin_player_turn() -> void:
