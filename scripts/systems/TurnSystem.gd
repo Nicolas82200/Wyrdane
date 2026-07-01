@@ -1,4 +1,3 @@
-# TurnSystem.gd
 extends Node
 class_name TurnSystem
 
@@ -8,41 +7,43 @@ func init(_battle) -> void:
 	battle = _battle
 
 func end_turn() -> void:
-	# Fin du tour joueur
-	for minion in battle.player_minions:
+	# Fin de tour — serviteurs joueur
+	for minion in battle.player_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
-	if battle.get("enchantment_system") != null:
-		battle.enchantment_system.trigger_on_turn_end(true)
+	# Fin de tour — enchantements joueur
+	await battle.trigger_system.fire("OnTurnEnd", null, true)
+	battle.trigger_system.tick_enchantment_durations(true)
 
-	# Tour ennemi (simplifié — Déclin sur les ennemis)
-	for minion in battle.enemy_minions:
+	# Fin de tour — serviteurs ennemis
+	for minion in battle.enemy_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
+	await battle.trigger_system.fire("OnTurnEnd", null, false)
+	battle.trigger_system.tick_enchantment_durations(false)
 
 	await _apply_infection_damage()
 	await _begin_player_turn()
 
 func _begin_player_turn() -> void:
-	for minion in battle.player_minions:
+	battle.aura_system.recompute_all()
+	for minion in battle.player_minions.duplicate():
 		minion.refresh_attacks()
-
-	# Éveil joueur
-	for minion in battle.player_minions:
+	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnStart")
+	await battle.trigger_system.fire("OnTurnStart", null, true)
+	await battle.trigger_system.fire("OnTurnStart", null, false)
+	for minion in battle.player_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken")
-
-	# Déclin sur les ennemis
-	for minion in battle.enemy_minions:
+	await battle.trigger_system.fire("OnAwaken", null, true)
+	for minion in battle.enemy_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
-
-	if battle.get("enchantment_system") != null:
-		battle.enchantment_system.trigger_on_turn_start(true)
-
 	battle.turn_choice_panel.show_choice()
 
 func _apply_infection_damage() -> void:
-	for minion in battle.player_minions + battle.enemy_minions:
+	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
 		if minion.infected:
-			minion.take_damage(1)
+			var dealt: int = minion.take_damage(1)
+			if dealt > 0 and not minion.is_dead():
+				await battle.effect_manager.trigger_effects(battle, minion, "OnDamaged")
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 

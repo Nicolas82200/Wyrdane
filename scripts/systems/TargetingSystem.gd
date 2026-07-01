@@ -28,7 +28,6 @@ func is_targeting() -> bool:
 	return _active
 
 func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
-	print("begin_targeting — row: %s, index: %d" % [row, insert_index])
 	_pending_card         = card_data
 	_pending_row          = row
 	_pending_insert_index = insert_index
@@ -94,7 +93,6 @@ func _snap_arrow_to(to: Vector2) -> void:
 		)
 
 func _finish(target) -> void:
-	print("_finish — row: %s, index: %d" % [_pending_row, _pending_insert_index])
 	_active = false
 	_clear_highlights()
 	_arrow.hide_arrow()

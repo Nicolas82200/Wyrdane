@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Pestilent"
-description = "Invocation : inflige Infection à un serviteur ennemi ciblé."
+description = "Arrivée : inflige Infection à un serviteur ennemi ciblé."
 flavour_text = "Son souffle est une condamnation à retardement."
 texture = ExtResource("3_texture")
 cost = 2

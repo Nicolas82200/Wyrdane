@@ -1,19 +1,19 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bszkgs5c4pivq"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bs0kgs5c4pivq"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://pl9zvm5ppxl8v" path="res://assets/card_art/undead/plague-emissary.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://bqr176760a1ut" path="res://assets/card_art/undead/plague-emissary.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
-
-[sub_resource type="Resource" id="Resource_jxdfo"]
-script = ExtResource("5_trig")
-type = "OnAwaken"
 
 [sub_resource type="Resource" id="Resource_lejj3"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_jxdfo"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
 
 [resource]
 script = ExtResource("4_carddata")
@@ -22,9 +22,7 @@ description = "Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rang�
 flavour_text = "Il soignait les vivants autrefois. Il a simplement changé de patientèle."
 texture = ExtResource("3_texture")
 cost = 6
-race = 4
 unit_style = 1
-attack = 0
 health = 4
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_jxdfo")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lejj3")])

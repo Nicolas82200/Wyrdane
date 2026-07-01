@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://hfye2wt6hhucw"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dkkjhuwwwayk5"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://rb4q2f722hcqq" path="res://assets/card_art/human/war-blessing.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://c6pp3x12s673n" path="res://assets/card_art/human/war-blessing.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
@@ -22,10 +22,7 @@ flavour_text = "Ce n'est pas de la magie. C'est la conviction que quelqu'un a mi
 texture = ExtResource("3_texture")
 cost = 2
 race = 1
-unit_style = 0
 card_type = "Instant"
-attack = 0
-health = 0
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_uhmc9")])
 requires_target = true
 rarity = "Epic"

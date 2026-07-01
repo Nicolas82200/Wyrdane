@@ -18,7 +18,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Pacte Sanglant"
-description = "Sacrifice (jusqu'à 4 serviteurs à 2 HP ou moins) : invoque un Mort-Vivant X/X (X = sacrifiés × 2)."
+description = "Sacrifice 4 : invoque un Mort-Vivant X/X (X = sacrifiés × 2)."
 flavour_text = "Quatre cadavres pour en faire un seul. Le calcul semble simple. Il ne l'est pas."
 texture = ExtResource("3_texture")
 cost = 4

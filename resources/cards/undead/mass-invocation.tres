@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Invocation de Masse"
+card_name = "Arrivée de Masse"
 description = "Invoque 4 Mort-Vivants aléatoires de coût ≤4. Coûte 6 si tu as 3 serviteurs ou moins en jeu."
 flavour_text = "Il n'a pas ouvert une porte. Il a retiré le mur."
 texture = ExtResource("3_texture")

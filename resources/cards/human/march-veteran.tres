@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b41j5mw0fo1mi"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b5r5bfulr85gy"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_wm4nn"]
 [ext_resource type="Texture2D" uid="uid://1fnv625e20bc" path="res://assets/card_art/human/march-veteran.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]

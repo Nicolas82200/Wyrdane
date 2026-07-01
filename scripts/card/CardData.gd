@@ -9,13 +9,14 @@ class_name CardData
 
 
 @export var race: Race.Type = Race.Type.UNDEAD
-@export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  # ← ici
+@export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  
 @export_enum("Minion", "Instant", "Ritual", "Enchantment") var card_type: String = "Minion"
 
 @export var attack: int = 0
 @export var health: int = 0
 
 @export var keywords: Array[KeywordChoice] = []
+@export var human_keywords: Array[KeywordChoiceHuman] = []
 @export var trigger_types: Array[TriggerTypeChoice] = []
 @export var effects: Array[CardEffect] = []
 @export var requires_target: bool = false
@@ -26,6 +27,12 @@ class_name CardData
 func get_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in keywords:
+		values.append(kw.keyword_type)
+	return values
+
+func get_human_keyword_values() -> Array[int]:
+	var values: Array[int] = []
+	for kw in human_keywords:
 		values.append(kw.keyword_type)
 	return values
 

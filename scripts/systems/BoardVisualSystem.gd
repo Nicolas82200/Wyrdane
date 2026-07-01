@@ -76,10 +76,8 @@ func get_all_containers() -> Array[Control]:
 	for c in [
 		battle.player_front_container,
 		battle.player_back_container,
-		battle.player_container,
 		battle.enemy_front_container,
 		battle.enemy_back_container,
-		battle.enemy_container
 	]:
 		if c != null:
 			containers.append(c)

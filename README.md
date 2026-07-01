@@ -1,8 +1,3 @@
-Voici une version révisée de votre `README.md`, intégrant les informations que j'ai pu observer sur la structure de votre projet et les technologies utilisées, tout en conservant l'esprit et la profondeur de votre documentation existante.
-
-```markdown
-# FateBound
-
 FateBound est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
 ---

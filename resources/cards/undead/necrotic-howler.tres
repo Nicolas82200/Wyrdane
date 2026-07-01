@@ -20,7 +20,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Hurleur Nécrotique"
-description = "Invocation : serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à fin de tour."
+description = "Arrivée : serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à fin de tour."
 flavour_text = "Son cri ne terrorise plus. Il réveille."
 texture = ExtResource("3_texture")
 cost = 3

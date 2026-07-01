@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://d8j6f4x7trxw9"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://d5bt21yak26i"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://6mgmnhgl1ya9t" path="res://assets/card_art/undead/wandering-corpse.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://cf2qgnx4y0chp" path="res://assets/card_art/undead/wandering-corpse.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
 [sub_resource type="Resource" id="Resource_7ym23"]
 script = ExtResource("2_kw")
-name_fr = "Rempart"
 
 [resource]
 script = ExtResource("4_carddata")
@@ -17,8 +16,6 @@ description = "REMPART."
 flavour_text = "Personne ne se souvient de son nom. Lui non plus."
 texture = ExtResource("3_texture")
 cost = 2
-race = 4
-unit_style = 0
 attack = 1
 health = 3
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_7ym23")])

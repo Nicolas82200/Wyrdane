@@ -70,7 +70,6 @@ func show_card_popup(card_data: CardData) -> void:
 # ── Popup persistante (pendant le ciblage) ────────────────────────────────────
 
 func show_targeting_popup(card_data: CardData) -> void:
-	print("show_targeting_popup appelé — ", card_data.card_name)
 	hide_targeting_popup()
 	if card_data == null:
 		return

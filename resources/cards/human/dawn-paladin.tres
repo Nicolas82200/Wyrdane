@@ -26,7 +26,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Paladin de l'Aube"
-description = "ÉGIDE. MOISSON. Invocation : invoque un Éclaireur 1/1 en rangée Avant."
+description = "ÉGIDE. MOISSON. Arrivée : invoque un Éclaireur 1/1 en rangée Avant."
 flavour_text = "Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois."
 texture = ExtResource("3_texture")
 cost = 5

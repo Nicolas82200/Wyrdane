@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dx3hvikvl4om2"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_4o5vb"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_1it84"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_jqnlt"]
+[ext_resource type="Texture2D" uid="uid://plvormcfiyyv" path="res://assets/card_art/human/faith-soldier.jpg" id="4_7q55o"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_tnu5d"]
+
+[sub_resource type="Resource" id="Resource_5rmlr"]
+script = ExtResource("1_4o5vb")
+effect_id = "SummonMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_5t8y5"]
+script = ExtResource("2_1it84")
+name_fr = "Égide"
+
+[sub_resource type="Resource" id="Resource_ddvkz"]
+script = ExtResource("5_tnu5d")
+
+[resource]
+script = ExtResource("3_jqnlt")
+card_name = "Soldat de la Foi"
+description = "ÉGIDE. Dernier Souffle : invoque un Milicien 2/1 en rangée Avant."
+flavour_text = "Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois."
+texture = ExtResource("4_7q55o")
+cost = 3
+race = 1
+unit_style = 5
+attack = 2
+health = 3
+keywords = Array[ExtResource("2_1it84")]([SubResource("Resource_5t8y5")])
+trigger_types = Array[ExtResource("5_tnu5d")]([SubResource("Resource_ddvkz")])
+effects = Array[ExtResource("1_4o5vb")]([SubResource("Resource_5rmlr")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

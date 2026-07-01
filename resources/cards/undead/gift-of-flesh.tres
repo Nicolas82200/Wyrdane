@@ -19,7 +19,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Don de Chair"
-description = "Sacrifice (un serviteur allié) : inflige 3 dégâts au héros ennemi."
+description = "Sacrifice 1 : inflige 3 dégâts au héros ennemi."
 flavour_text = "Il a donné son corps. Il n'avait plus besoin de consentir."
 texture = ExtResource("3_texture")
 cost = 2

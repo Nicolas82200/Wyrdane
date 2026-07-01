@@ -20,7 +20,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Idole de l'Apocalypse"
-description = "Résonance : le Mort-Vivant attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible."
+description = "Résonance : chaque Mort-Vivant attaquant inflige 1 dégât aux serviteurs adjacents à la cible."
 flavour_text = "On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines."
 texture = ExtResource("3_texture")
 cost = 6

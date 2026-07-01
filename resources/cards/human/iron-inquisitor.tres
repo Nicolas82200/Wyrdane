@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Inquisiteur de Fer"
-description = "Invocation : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
+description = "Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
 flavour_text = "Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle."
 texture = ExtResource("3_texture")
 cost = 3

@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Card Game"
-run/main_scene="uid://bmtx1brsftser"
+run/main_scene="uid://byp8qcya3aete"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 run/autoload_on_startup=false
@@ -20,6 +20,8 @@ run/autoload_on_startup=false
 
 AudioManager="*uid://crtkgkw4huv2w"
 DeckManager="*uid://3685wo5revnf"
+TooltipData="*uid://bxsh8pr326i0h"
+CardLibrary="*uid://d3txnel4suoji"
 
 [display]
 

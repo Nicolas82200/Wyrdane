@@ -1,14 +1,10 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://hqwvknos6q65l"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dvi0ylrkmkcet"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://ph7lp1yuzddiv" path="res://assets/card_art/undead/the-reaper.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://psdls4ydr3sj" path="res://assets/card_art/undead/the-reaper.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
-
-[sub_resource type="Resource" id="Resource_rsd86"]
-script = ExtResource("5_trig")
-type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_q6usb"]
 script = ExtResource("1_cardeffect")
@@ -22,14 +18,17 @@ effect_id = "StealMinion"
 target = "EnemyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_rsd86"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "La Faucheuse"
-description = "Invocation : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets."
+description = "Arrivée : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets."
 flavour_text = "Elle ne prend pas les âmes. Elle redistribue les corps."
 texture = ExtResource("3_texture")
 cost = 7
-race = 4
 unit_style = 1
 attack = 7
 health = 6

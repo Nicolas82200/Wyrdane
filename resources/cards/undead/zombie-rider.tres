@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://h4ednxupymqys"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ekmht07t70ha"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://f7q44j9np25am" path="res://assets/card_art/undead/zombie-rider.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://bpyaioaeyxpj3" path="res://assets/card_art/undead/zombie-rider.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
@@ -21,11 +21,10 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cavalier Zombie"
-description = "ASSAUT. Invocation : attaque immédiatement le serviteur ennemi le plus faible en HP."
+description = "ASSAUT. Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP."
 flavour_text = "Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte."
 texture = ExtResource("3_texture")
 cost = 4
-race = 4
 unit_style = 4
 attack = 4
 health = 3

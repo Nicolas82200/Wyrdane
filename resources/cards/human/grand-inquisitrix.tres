@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://beywdtvgis4wd"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_h0jmg"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_s06y6"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_yv1py"]
+[ext_resource type="Texture2D" uid="uid://d1tbpcbk8ch6t" path="res://assets/card_art/human/grand-inquisitrix.jpg" id="4_k4mkx"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_swfui"]
+
+[sub_resource type="Resource" id="Resource_37zap"]
+script = ExtResource("1_h0jmg")
+effect_id = "Destroy"
+target = "EnemyMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_66y93"]
+script = ExtResource("2_s06y6")
+name_fr = "Égide"
+
+[sub_resource type="Resource" id="Resource_zc833"]
+script = ExtResource("5_swfui")
+type = "OnAwaken"
+
+[resource]
+script = ExtResource("3_yv1py")
+card_name = "La Grande Inquisitrice"
+description = "DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif au choix."
+flavour_text = "Elle ne combat pas la magie ennemie. Elle la refuse."
+texture = ExtResource("4_k4mkx")
+cost = 6
+race = 1
+unit_style = 7
+attack = 3
+health = 6
+keywords = Array[ExtResource("2_s06y6")]([SubResource("Resource_66y93")])
+trigger_types = Array[ExtResource("5_swfui")]([SubResource("Resource_zc833")])
+effects = Array[ExtResource("1_h0jmg")]([SubResource("Resource_37zap")])
+requires_target = true
+rarity = "Legendary"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -294,32 +294,21 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="CardPreview" parent="PlayerGraveyardButton" unique_id=2019163809 instance=ExtResource("7_kos6x")]
-custom_minimum_size = Vector2(120, 180)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -20.0
-offset_top = -25.0
-offset_right = -20.0
-offset_bottom = -25.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0
+scale = Vector2(0.48, 0.48)
 mouse_filter = 2
 
 [node name="EnemyGraveyardButton" type="Button" parent="." unique_id=622605851]
 custom_minimum_size = Vector2(120, 180)
-layout_mode = 1
-anchors_preset = -1
-offset_left = 550.0
-offset_top = 50.0
-offset_right = 550.0
+layout_mode = 0
+offset_left = 430.0
+offset_right = 430.0
 offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
-custom_minimum_size = Vector2(100, 150)
+custom_minimum_size = Vector2(120, 180)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -328,15 +317,10 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="CardPreview" parent="EnemyGraveyardButton" unique_id=392166078 instance=ExtResource("7_kos6x")]
-custom_minimum_size = Vector2(100, 150)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_right = 0.0
-offset_bottom = 0.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0
+scale = Vector2(0.48, 0.48)
 mouse_filter = 2
 
 [node name="GraveyardView" parent="." unique_id=1579032817 instance=ExtResource("7_nyp61")]

@@ -13,7 +13,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Soldat Réanimé"
-description = "Invocation : si réanimé depuis le cimetière, entre avec +1/+1."
+description = "Arrivée : si réanimé depuis le cimetière, entre avec +1/+1."
 flavour_text = "La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience."
 texture = ExtResource("3_texture")
 cost = 3

@@ -24,7 +24,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Esprit Vorace"
-description = "MOISSON. Invocation : vole 2 HP au héros ennemi."
+description = "MOISSON. Arrivée : vole 2 HP au héros ennemi."
 flavour_text = "Il ne prend pas ta vie. Il la déplace — dans les mauvaises mains."
 texture = ExtResource("3_texture")
 cost = 4

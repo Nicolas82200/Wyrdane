@@ -2,8 +2,8 @@ extends Resource
 class_name KeywordChoice
 
 @export_enum(
-	"Rempart", "Assaut", "Protection", "Moisson", "Frénésie",
-	"Venin mortel", "Ravage", "Ailes noires", "Égide"
+	"Rempart", "Assaut", "Moisson", "Frénésie",
+	"Venin mortel", "Ravage", "Infiltration", "Égide"
 ) var name_fr: String = "Rempart"
 
 var keyword_type: int:
@@ -16,7 +16,7 @@ var keyword_type: int:
 			"Frénésie": return Keyword.Type.FURY
 			"Venin mortel": return Keyword.Type.DEADLY_POISON
 			"Ravage": return Keyword.Type.RAVAGE
-			"Ailes noires": return Keyword.Type.BLACK_WINGS
+			"Infiltration": return Keyword.Type.BLACK_WINGS
 			_: return Keyword.Type.TAUNT
 
 func _to_string() -> String:

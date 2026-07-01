@@ -1,14 +1,10 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://h0jbb40dm4fw8"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://pj405uipofp"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://vyiui2yxxbskg" path="res://assets/card_art/undead/zombie-apocalypse.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://cy07o2tfgwtbh" path="res://assets/card_art/undead/zombie-apocalypse.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
-
-[sub_resource type="Resource" id="Resource_a4ulg"]
-script = ExtResource("5_trig")
-type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_w491d"]
 script = ExtResource("1_cardeffect")
@@ -16,14 +12,17 @@ effect_id = "Transform"
 target = "AllEnemies"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_a4ulg"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Apocalypse Zombie"
-description = "Invocation : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
+description = "Arrivée : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
 flavour_text = "Ce n'était pas une invasion. C'était une conversion."
 texture = ExtResource("3_texture")
 cost = 8
-race = 4
 unit_style = 1
 attack = 9
 health = 9

@@ -21,7 +21,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Horde Mineure"
-description = "Invocation : invoque 2 Rampants 1/1 en rangée Avant."
+description = "Arrivée : invoque 2 Rampants 1/1 en rangée Avant."
 flavour_text = "Un seul ne fait pas peur. Mais il n'est jamais seul."
 texture = ExtResource("3_texture")
 cost = 3

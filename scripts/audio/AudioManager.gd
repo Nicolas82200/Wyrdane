@@ -36,9 +36,30 @@ preload(
 
 func _ready() -> void:
 	music_player = AudioStreamPlayer.new()
+	# [FIX] Bus assigné à la création, avant tout play
+	music_player.bus = "Music"
 	add_child(music_player)
 	_apply_saved_settings()
 	load_sounds()
+
+func play_battle_music() -> void:
+	# [FIX] Bus déjà assigné dans _ready(), pas besoin de le réassigner ici
+	var music: AudioStream = BATTLE_MUSIC.pick_random()
+	if music_player.stream == music and music_player.playing:
+		return
+	music_player.stream = music
+	music_player.play()
+
+func _spawn_player(sound: AudioStream, pitch_variation: bool, min_pitch := 0.92, max_pitch := 1.08) -> void:
+	var player := AudioStreamPlayer.new()
+	# [FIX] Bus assigné avant play()
+	player.bus = "SFX"
+	add_child(player)
+	player.stream = sound
+	if pitch_variation:
+		player.pitch_scale = randf_range(min_pitch, max_pitch)
+	player.finished.connect(player.queue_free)
+	player.play()
 
 func _apply_saved_settings() -> void:
 	var cfg := ConfigFile.new()
@@ -166,16 +187,6 @@ func play_with_pitch(
 	player.finished.connect(player.queue_free)
 	player.play()
 
-func play_battle_music() -> void:
-	music_player.bus = "Music"
-
-	var music: AudioStream = BATTLE_MUSIC.pick_random()
-
-	if music_player.stream == music and music_player.playing:
-		return
-
-	music_player.stream = music
-	music_player.play()
 
 func play_for_style(sound_name: String, style: int, pitch_variation := true) -> void:
 	if not sounds.has(sound_name):
@@ -192,14 +203,5 @@ func play_for_style(sound_name: String, style: int, pitch_variation := true) -> 
 	var sound: AudioStream = variants.pick_random() if variants is Array else variants
 	_spawn_player(sound, pitch_variation)
 
-func _spawn_player(sound: AudioStream, pitch_variation: bool, min_pitch := 0.92, max_pitch := 1.08) -> void:
-	var player := AudioStreamPlayer.new()
-	add_child(player)
-	player.stream = sound
-	if pitch_variation:
-		player.pitch_scale = randf_range(min_pitch, max_pitch)
-	player.finished.connect(player.queue_free)
-	player.play()
-	player.bus = "SFX"
 func stop_music() -> void:
 	music_player.stop()

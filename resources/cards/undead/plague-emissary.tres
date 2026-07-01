@@ -20,7 +20,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Émissaire de la Peste"
-description = "Invocation : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse."
+description = "Arrivée : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse."
 flavour_text = "Il ne vient pas combattre. Il vient annoncer."
 texture = ExtResource("3_texture")
 cost = 4

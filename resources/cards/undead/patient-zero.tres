@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Le Patient Zéro"
-description = "Invocation : inflige Infection à tous les serviteurs ennemis en jeu."
+description = "Arrivée : inflige Infection à tous les serviteurs ennemis en jeu."
 flavour_text = "On n'a jamais su d'où il venait. On a fini par ne plus chercher."
 texture = ExtResource("3_texture")
 cost = 4

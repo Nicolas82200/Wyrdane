@@ -21,8 +21,8 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cercle de Sacrifice"
-description = "Sacrifice (exactement 2 serviteurs) : tes serviteurs restants gagnent +ATK/+HP égal aux stats combinées des sacrifiés ce tour."
-flavour_text = "Deux morts pour que les autres survivent — un peu plus longtemps."
+description = "Sacrifice 2 : tes serviteurs restants gagnent +ATK/+HP égal aux stats combinées des sacrifiés ce tour."
+flavour_text = "Deux morts pour que les autres survivent... un peu plus longtemps."
 texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"

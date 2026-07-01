@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Brise-Mort"
-description = "Invocation : détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé."
+description = "Arrivée : détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

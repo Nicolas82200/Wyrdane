@@ -23,7 +23,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Éclaireur Rapide"
-description = "ASSAUT. Invocation : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus."
+description = "ASSAUT. Arrivée : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus."
 flavour_text = "Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte."
 texture = ExtResource("3_texture")
 cost = 1
