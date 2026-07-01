@@ -57,15 +57,16 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	battle.board_visual_system.refresh_board()
 
 func perform_hero_attack(attacker: Minion) -> void:
+	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	if visual:
-		var hero_panel: Control = battle.get_node("EnemyHeroPanel")
+		var hero_panel: Control = battle.get_node(panel_name)
 		await battle.animation_system.play_attack_lunge(visual, hero_panel)
 	AudioManager.play(AudioManager.HIT)
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
 	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
-	battle.hero_system.damage(battle.enemy_hero, attacker.attack)
+	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
 		battle.hero_system.get_owner_hero(attacker).heal(attacker.attack)
 	attacker.consume_attack()
