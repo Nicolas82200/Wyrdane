@@ -10,8 +10,9 @@ const CARDS_PER_FRAME := 5
 
 # Taille des cartes dans la grille de collection
 const GRID_CARD_SCALE       := 0.9
-const GRID_CARD_HOVER_SCALE := 0.95
+const GRID_CARD_HOVER_SCALE := 1.05
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
+const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
 @onready var card_grid:        GridContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
@@ -132,11 +133,12 @@ func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
 	_hovering = true
+	wrapper.z_index = 2  # passe au-dessus des cartes voisines pendant le zoom
 	var tween := create_tween()
 	tween.tween_property(card_visual, "scale",
 		Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var tooltip_x: float = wrapper.global_position.x + wrapper.size.x + 15
+	var tooltip_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE + 12
 	var tooltip_y: float = wrapper.global_position.y
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -147,6 +149,9 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 func _on_card_wrapper_exited(card_visual: Card) -> void:
 	_hovered_wrapper = null
 	_hovering = false
+	var wrapper := card_visual.get_parent() as Control
+	if wrapper:
+		wrapper.z_index = 0
 	var tween := create_tween()
 	tween.tween_property(card_visual, "scale",
 		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
@@ -328,11 +333,11 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 		_keyword_tooltips.append(panel)
 
 	if race_panel != null and is_instance_valid(race_panel) and is_instance_valid(wrapper):
-		# Au survol la carte grossit : son bord visuel dépasse le wrapper
-		var hover_ratio := GRID_CARD_HOVER_SCALE / GRID_CARD_SCALE
+		# Calé sous le bord visuel de la carte agrandie (pivot en haut-gauche)
+		var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
 		race_panel.global_position = Vector2(
-			wrapper.global_position.x + wrapper.size.x * hover_ratio / 2.0 - race_panel.size.x / 2.0,
-			wrapper.global_position.y + wrapper.size.y * hover_ratio + 6
+			wrapper.global_position.x + card_size.x / 2.0 - race_panel.size.x / 2.0,
+			wrapper.global_position.y + card_size.y + 4
 		)
 		_keyword_tooltips.append(race_panel)
 
