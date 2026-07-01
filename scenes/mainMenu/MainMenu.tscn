@@ -5,6 +5,8 @@
 [ext_resource type="VideoStream" uid="uid://dkp17xehfxjdo" path="res://assets/main-menu/main-menu.ogv" id="2_xwq4k"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_xwq4k"]
 [ext_resource type="PackedScene" uid="uid://c53ofvbh8ht3r" path="res://scenes/deck/DeckList.tscn" id="4_decklist"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
+[ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
 
 [node name="MainMenu" type="Control" unique_id=1995000585]
 layout_mode = 3
@@ -13,6 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("5_theme")
 script = ExtResource("1_1bhmf")
 
 [node name="Background" type="VideoStreamPlayer" parent="." unique_id=911109928]
@@ -37,10 +40,12 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.45)
 
 [node name="TitleLabel" type="Label" parent="." unique_id=1202251533]
-layout_mode = 0
-offset_top = 80.0
-offset_right = 1152.0
-offset_bottom = 160.0
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_top = 70.0
+offset_right = -80.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
@@ -53,83 +58,110 @@ text = "FateBound"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1955392611]
+[node name="SubtitleLabel" type="Label" parent="." unique_id=1202251534]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.044
-anchor_top = 0.25
-anchor_right = 0.1
-anchor_bottom = 0.9
-offset_right = 500.0
+anchor_right = 1.0
+offset_top = 150.0
+offset_right = -84.0
+offset_bottom = 180.0
+grow_horizontal = 2
 grow_vertical = 2
-size_flags_horizontal = 4
-theme_override_constants/separation = 16
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 22
+text = "Un jeu de cartes stratégique"
+horizontal_alignment = 2
 
-[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=641949860]
-custom_minimum_size = Vector2(300, 52)
+[node name="NavPanel" type="PanelContainer" parent="." unique_id=1955392600]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 64.0
+offset_top = -262.0
+offset_right = 392.0
+offset_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 32
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NavPanel/NavMargin" unique_id=1955392611]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="PlayButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=641949860]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
 text = "Jouer"
 
-[node name="DecksButton" type="Button" parent="VBoxContainer" unique_id=300000001]
-custom_minimum_size = Vector2(300, 52)
+[node name="DecksButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000001]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 32
 text = "Mes Decks"
 
-[node name="FutureButton" type="Button" parent="VBoxContainer" unique_id=1362418039]
-custom_minimum_size = Vector2(300, 52)
+[node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 32
+
+[node name="FutureButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1362418039]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
 text = "A venir..."
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=68074911]
-custom_minimum_size = Vector2(300, 52)
+[node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=68074911]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 32
 text = "Parametres"
 
-[node name="CreditsButton" type="Button" parent="VBoxContainer" unique_id=444085026]
-custom_minimum_size = Vector2(300, 52)
+[node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=444085026]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 32
 text = "Credits"
 
-[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=1815401124]
-custom_minimum_size = Vector2(300, 52)
+[node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000011]
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 10
-size_flags_stretch_ratio = 0.0
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 24
+
+[node name="QuitButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1815401124]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
 text = "Quitter"
 
 [node name="CreditsPanel" type="Panel" parent="." unique_id=1039590750]
 visible = false
-layout_mode = 0
-offset_left = 300.0
-offset_top = 200.0
-offset_right = 852.0
-offset_bottom = 580.0
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -200.0
+offset_right = 280.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="CreditsLabel" type="Label" parent="CreditsPanel" unique_id=1897122271]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 532.0
-offset_bottom = 360.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = -32.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 18
@@ -139,16 +171,45 @@ Developpe par Nico
 Musique : The Tavern at Oakhaven
 
 Merci d'avoir joue !"
+horizontal_alignment = 1
 
 [node name="CloseCreditsButton" type="Button" parent="CreditsPanel" unique_id=1141914076]
-layout_mode = 0
-offset_left = 196.0
-offset_top = 320.0
-offset_right = 336.0
-offset_bottom = 360.0
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -68.0
+offset_right = 80.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 0
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 16
 text = "Fermer"
+
+[node name="VersionLabel" type="Label" parent="." unique_id=1202251540]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -40.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 14
+text = "v0.1 — prototype"
+horizontal_alignment = 2
+vertical_alignment = 2
 
 [node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
 visible = false

@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bregsvq0w5cap"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bddka58hcypmj"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
 [ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_l5ns7"]
-[ext_resource type="Texture2D" path="res://assets/card_art/undead/plague-herald.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://byxmqsttb384h" path="res://assets/card_art/undead/plague-herald.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 

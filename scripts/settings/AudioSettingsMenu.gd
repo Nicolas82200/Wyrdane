@@ -5,13 +5,13 @@ signal back_requested  # ← ajouté pour SettingsMenu
 
 const SAVE_PATH := "user://audio_settings.cfg"
 
-@onready var master_slider: HSlider = $VBoxContainer/MasterRow/MasterSlider
-@onready var music_slider:  HSlider = $VBoxContainer/MusicRow/MusicSlider
-@onready var sfx_slider:    HSlider = $VBoxContainer/SFXRow/SFXSlider
-@onready var master_label:  Label   = $VBoxContainer/MasterRow/MasterValueLabel
-@onready var music_label:   Label   = $VBoxContainer/MusicRow/MusicValueLabel
-@onready var sfx_label:     Label   = $VBoxContainer/SFXRow/SFXValueLabel
-@onready var close_button:  Button  = $VBoxContainer/CloseButton
+@onready var master_slider: HSlider = %MasterSlider
+@onready var music_slider:  HSlider = %MusicSlider
+@onready var sfx_slider:    HSlider = %SFXSlider
+@onready var master_label:  Label   = %MasterValueLabel
+@onready var music_label:   Label   = %MusicValueLabel
+@onready var sfx_label:     Label   = %SFXValueLabel
+@onready var close_button:  Button  = %CloseButton
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
