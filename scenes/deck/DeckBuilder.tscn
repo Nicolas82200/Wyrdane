@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://q1at6b2ud2ot"]
 
 [ext_resource type="Script" uid="uid://bmnejyabilr4s" path="res://scripts/deck/DeckBuilder.gd" id="1_deck"]
+[ext_resource type="Theme" path="res://resources/themes/ui_theme.tres" id="2_theme"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_font"]
 
 [node name="DeckBuilder" type="Control" unique_id=413371395]
 layout_mode = 3
@@ -9,6 +11,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_deck")
 
 [node name="Background" type="ColorRect" parent="." unique_id=100000001]
@@ -20,7 +23,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.08, 0.07, 0.06, 1)
 
-[node name="HBox" type="HBoxContainer" parent="." unique_id=100000002]
+[node name="MainVBox" type="VBoxContainer" parent="." unique_id=100000020]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,79 +32,135 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="LeftPanel" type="VBoxContainer" parent="HBox" unique_id=100000003]
+[node name="HeaderBar" type="PanelContainer" parent="MainVBox" unique_id=100000021]
+layout_mode = 2
+
+[node name="HeaderMargin" type="MarginContainer" parent="MainVBox/HeaderBar" unique_id=100000022]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainVBox/HeaderBar/HeaderMargin" unique_id=100000030]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="MainVBox/HeaderBar/HeaderMargin/HeaderHBox" unique_id=100000014]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "← Retour"
+
+[node name="HeaderLabel" type="Label" parent="MainVBox/HeaderBar/HeaderMargin/HeaderHBox" unique_id=100000023]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 26
+text = "Constructeur de Deck"
+horizontal_alignment = 1
+
+[node name="HeaderSpacer" type="Control" parent="MainVBox/HeaderBar/HeaderMargin/HeaderHBox" unique_id=100000031]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="MainVBox" unique_id=100000002]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="LeftPanel" type="MarginContainer" parent="MainVBox/HBox" unique_id=100000003]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 14
+
+[node name="LeftVBox" type="VBoxContainer" parent="MainVBox/HBox/LeftPanel" unique_id=100000024]
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SearchEdit" type="LineEdit" parent="HBox/LeftPanel" unique_id=100000004]
+[node name="SearchEdit" type="LineEdit" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000004]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(1450, 31)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-size_flags_horizontal = 4
-placeholder_text = "Rechercher une carte..."
-alignment = 1
+size_flags_horizontal = 3
+placeholder_text = "🔍  Rechercher une carte..."
 
-[node name="FilterBar" type="HBoxContainer" parent="HBox/LeftPanel" unique_id=100000016]
+[node name="FilterBar" type="HBoxContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000016]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ScrollCards" type="ScrollContainer" parent="HBox/LeftPanel" unique_id=100000005]
+[node name="ScrollCards" type="ScrollContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000005]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="CardGrid" type="GridContainer" parent="HBox/LeftPanel/ScrollCards" unique_id=100000006]
+[node name="CardGrid" type="GridContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox/ScrollCards" unique_id=100000006]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 4
-theme_override_constants/v_separation = 4
-columns = 7
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 20
+columns = 6
 
-[node name="RightPanel" type="VBoxContainer" parent="HBox" unique_id=100000007]
+[node name="VSep" type="VSeparator" parent="MainVBox/HBox" unique_id=100000025]
+layout_mode = 2
+
+[node name="RightPanel" type="PanelContainer" parent="MainVBox/HBox" unique_id=100000007]
 custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+
+[node name="RightMargin" type="MarginContainer" parent="MainVBox/HBox/RightPanel" unique_id=100000026]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="RightVBox" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin" unique_id=100000027]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000008]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HeaderRow" type="HBoxContainer" parent="HBox/RightPanel" unique_id=100000008]
-layout_mode = 2
-
-[node name="DeckNameEdit" type="LineEdit" parent="HBox/RightPanel/HeaderRow" unique_id=100000009]
+[node name="DeckNameEdit" type="LineEdit" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/HeaderRow" unique_id=100000009]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 18
 placeholder_text = "Nom du deck..."
 
-[node name="CardCountLabel" type="Label" parent="HBox/RightPanel/HeaderRow" unique_id=100000010]
+[node name="CardCountLabel" type="Label" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/HeaderRow" unique_id=100000010]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 text = "0 / 60  (min 40)"
 horizontal_alignment = 1
 
-[node name="ScrollDeck" type="ScrollContainer" parent="HBox/RightPanel" unique_id=100000011]
+[node name="HSep" type="HSeparator" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000028]
+layout_mode = 2
+
+[node name="ScrollDeck" type="ScrollContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000011]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="DeckList" type="VBoxContainer" parent="HBox/RightPanel/ScrollDeck" unique_id=100000012]
+[node name="DeckList" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/ScrollDeck" unique_id=100000012]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 4
 
-[node name="ButtonRow" type="HBoxContainer" parent="HBox/RightPanel" unique_id=100000013]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BackButton" type="Button" parent="HBox/RightPanel/ButtonRow" unique_id=100000014]
+[node name="SaveButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000015]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Retour"
-
-[node name="SaveButton" type="Button" parent="HBox/RightPanel/ButtonRow" unique_id=100000015]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Sauvegarder"
+theme_override_font_sizes/font_size = 17
+text = "Sauvegarder le deck"
