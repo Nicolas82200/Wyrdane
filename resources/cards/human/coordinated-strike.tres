@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ca40ppigwv3rh"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dkodxncopjrsa" path="res://assets/card_art/human/coordinated-strike.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Frappe Coordonnée"
+description = "Deux serviteurs Humains alliés ciblés attaquent immédiatement le même serviteur ennemi ciblé."
+flavour_text = "Deux hommes, un seul endroit. L'ennemi n'a pas le temps de choisir lequel regarder."
+texture = ExtResource("3_texture")
+cost = 2
+race = 1
+card_type = "Instant"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

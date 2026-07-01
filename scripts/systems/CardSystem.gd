@@ -1,16 +1,31 @@
 extends Node
 class_name CardSystem
 
-var battle
+var battle: Node
 
-func init(_battle) -> void:
+func init(_battle: Node) -> void:
 	battle = _battle
+
+func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	if card_data.card_type == "Minion" and not battle.can_play_card_on_row(card_data, row):
+		return
+	if card_data.card_type == "Minion" and not battle.can_summon_to_row(true, row):
+		push_warning("Rangée %s pleine." % row)
+		return
+	if card_data.requires_target:
+		battle.pending_card         = card_data
+		battle.pending_row          = row
+		battle.pending_insert_index = insert_index
+		battle.waiting_for_target   = true
+		await battle.card_popup_system.show_targeting_popup(card_data)
+		battle.targeting_system.begin_targeting(card_data, row, insert_index)
+		return
+	await play_card(card_data, row, insert_index)
 
 func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await battle.card_popup_system.show_targeting_popup(card_data)
 	await battle.get_tree().create_timer(0.4).timeout
 	battle.card_popup_system.hide_targeting_popup()
-	
 	battle._pay_mana(card_data.cost)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -24,54 +39,53 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	battle.hand._update_hand_layout(true)
 
 	if card_data.card_type == "Minion":
-		print("summon_minion — row: %s, index: %d" % [row, insert_index])
-		await battle.board_system.summon_minion(card_data, true, row, insert_index)
-		var source: Minion = null
-		if not battle.player_minions.is_empty():
-			# Trouve le minion qu'on vient d'invoquer par sa card_data
-			for m in battle.player_minions:
-				if m.card_data == card_data:
-					source = m
-					break
+		var summoned: Minion = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 		for effect in card_data.effects:
 			if target is Minion:
-				await battle.effect_manager.execute_effect(battle, source, effect, target)
+				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
 			else:
-				await battle.effect_manager.execute_effect(battle, source, effect)
+				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
 		battle.player_graveyard.add_spell(card_data)
-		_trigger_on_spell()
+		# Sortilège — enchantements adverses réagissent
+		await battle.trigger_system.fire("OnSpell", null, false)
+		for ally in battle.player_minions.duplicate():
+			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		for effect in card_data.effects:
 			if target is Minion:
 				await battle.effect_manager.execute_effect(battle, null, effect, target)
 			else:
 				await battle.effect_manager.execute_effect(battle, null, effect)
+		# Enregistre l'enchantement si c'est un enchantement
+		if card_data.card_type == "Enchantment":
+			var duration: int = card_data.get("duration") if card_data.get("duration") != null else -1
+			battle.trigger_system.register_enchantment(card_data, true, duration)
+			battle.aura_system.recompute_all()
+			battle.enchantment_system.add_enchantment(card_data, true)
 		battle.board_visual_system.refresh_board()
 
-	battle.waiting_for_target   = false
-	battle.pending_card         = null
-	battle.pending_row          = "Front"
-	battle.pending_insert_index = -1
-
-func _remove_from_hand(card_data: CardData) -> void:
-	var idx: int = battle.hand_cards.find(card_data)
-	if idx != -1:
-		battle.hand_cards.remove_at(idx)
+	battle.reset_targeting_state()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion(card_data, true, row, insert_index)
 	else:
-		# Popup une seule fois pour le sort
-		var source_minion: Minion = null  # sort = pas de source minion
-		battle.board_visual_system.refresh_board()  # pas de popup ici non plus
 		battle.player_graveyard.add_spell(card_data)
-		_trigger_on_spell()
+		# Sortilège — enchantements adverses réagissent
+		await battle.trigger_system.fire("OnSpell", null, false)
+		for ally in battle.player_minions.duplicate():
+			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		for effect in card_data.effects:
 			await battle.effect_manager.execute_effect(battle, null, effect)
+		# Enregistre l'enchantement si c'est un enchantement
+		if card_data.card_type == "Enchantment":
+			var duration: int = card_data.get("duration") if card_data.get("duration") != null else -1
+			battle.trigger_system.register_enchantment(card_data, true, duration)
+			battle.aura_system.recompute_all()
+			battle.enchantment_system.add_enchantment(card_data, true)
 		battle.board_visual_system.refresh_board()
 
-func _trigger_on_spell() -> void:
-	# OnSpell déclenché sur tous les alliés en jeu
-	for minion in battle.player_minions:
-		battle.trigger_effects(minion, "OnSpell")
+func _remove_from_hand(card_data: CardData) -> void:
+	var idx: int = battle.hand_cards.find(card_data)
+	if idx != -1:
+		battle.hand_cards.remove_at(idx)

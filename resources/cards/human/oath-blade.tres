@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dxxiwgyu4mxc7"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://d38eosiidryou" path="res://assets/card_art/human/sworn-blade.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_h2wq1"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+value = 1
+value_2 = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_attag"]
+script = ExtResource("2_kw")
+name_fr = "Égide"
+
+[sub_resource type="Resource" id="Resource_h3hut"]
+script = ExtResource("5_trig")
+type = "OnExecution"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Lame-Jurée"
+description = "DISCIPLINE. Exécution : gagne +1/+1 de façon permanente."
+flavour_text = "Elle a juré sur sa lame. La lame, elle, a juré de le mériter."
+texture = ExtResource("3_texture")
+cost = 3
+race = 1
+unit_style = 5
+attack = 4
+health = 2
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_attag")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_h3hut")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_h2wq1")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

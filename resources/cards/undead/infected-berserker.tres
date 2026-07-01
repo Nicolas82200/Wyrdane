@@ -1,35 +1,36 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://5fba5fadd108"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dooy48q7eoq2e"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_p2ipg"]
-[ext_resource type="Texture2D" uid="uid://dagp5kvea76bj" path="res://assets/card_art/undead/infected-berserker.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_k58s0"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dagp5kvea76bj" path="res://assets/card_art/undead/infected-berserker.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_mgqmz"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonSelf"
-value = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_yd4yk"]
-script = ExtResource("2_p2ipg")
+[sub_resource type="Resource" id="Resource_dzimf"]
+script = ExtResource("2_kw")
 name_fr = "Frénésie"
 
-[sub_resource type="Resource" id="Resource_op0e8"]
-script = ExtResource("5_k58s0")
+[sub_resource type="Resource" id="Resource_kdfm1"]
+script = ExtResource("5_trig")
+type = "OnDeathRage"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Berserker Infecté"
 description = "FRÉNÉSIE. Mort-rage : +3/+0, revient en jeu avec 1 HP."
-texture = ExtResource("2_texture")
+flavour_text = "La fièvre l'a tué. Ce qui reste est plus rapide."
+texture = ExtResource("3_texture")
 cost = 4
 unit_style = 1
 attack = 5
 health = 4
-keywords = Array[ExtResource("2_p2ipg")]([SubResource("Resource_yd4yk")])
-trigger_types = Array[ExtResource("5_k58s0")]([SubResource("Resource_op0e8")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_dzimf")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_kdfm1")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_mgqmz")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

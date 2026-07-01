@@ -1,34 +1,31 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e37aac6682fd"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://iyswhn2oevfo"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://cax4i23wrtwsh" path="res://assets/card_art/undead/idol-of-the-apocalypse.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_x0784"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_te6an"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://cax4i23wrtwsh" path="res://assets/card_art/undead/idol-of-the-apocalypse.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_md9i6"]
 script = ExtResource("1_cardeffect")
+effect_id = "SplashDamage"
+target = "EnemyMinion"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_mdr16"]
-script = ExtResource("2_x0784")
-name_fr = "Assaut"
-
-[sub_resource type="Resource" id="Resource_5msmm"]
-script = ExtResource("5_te6an")
+[sub_resource type="Resource" id="Resource_w3f5f"]
+script = ExtResource("5_trig")
 type = "OnAttack"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Idole de l'Apocalypse"
-description = "Assaut : inflige 1 dégât splash aux serviteurs adjacents à la cible."
-texture = ExtResource("2_texture")
+description = "Résonance : chaque Mort-Vivant attaquant inflige 1 dégât aux serviteurs adjacents à la cible."
+flavour_text = "On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines."
+texture = ExtResource("3_texture")
 cost = 6
 card_type = "Enchantment"
-keywords = Array[ExtResource("2_x0784")]([SubResource("Resource_mdr16")])
-trigger_types = Array[ExtResource("5_te6an")]([SubResource("Resource_5msmm")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-requires_target = true
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_w3f5f")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_md9i6")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

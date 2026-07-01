@@ -1,30 +1,31 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://7f5da441ca0e"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cijk4mjckwka"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_llhoi"]
-[ext_resource type="Texture2D" uid="uid://dhaj3gay5mvqo" path="res://assets/card_art/undead/cadaverous-simbiosis.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_pu76n"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dhaj3gay5mvqo" path="res://assets/card_art/undead/cadaverous-simbiosis.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_0wemu"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
-target = "AllAllies"
+target = "AllAlliesBack"
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_p6nyr"]
-script = ExtResource("5_pu76n")
-type = "RALLY"
+[sub_resource type="Resource" id="Resource_18l83"]
+script = ExtResource("5_trig")
+type = "OnAura"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Symbiose Cadavérique"
-description = "Ralliement : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant."
-texture = ExtResource("2_texture")
+description = "Présence : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant."
+flavour_text = "Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste."
+texture = ExtResource("3_texture")
 cost = 5
 card_type = "Enchantment"
-trigger_types = Array[ExtResource("5_pu76n")]([SubResource("Resource_p6nyr")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_18l83")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0wemu")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

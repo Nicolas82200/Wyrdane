@@ -1,6 +1,5 @@
 extends RefCounted
 class_name Keyword
-
 enum Type {
 	TAUNT,
 	CHARGE,
@@ -11,20 +10,7 @@ enum Type {
 	RAVAGE,
 	BLACK_WINGS,
 }
-enum TriggerType {
-	INVOCATION,
-	DERNIER_SOUFFLE,
-	ASSAUT,
-	BLESSURE,
-	EVEIL,
-	DECLIN,
-	RALLIEMENT,
-	DEUIL,
-	SORTILEGE,
-	SACRIFICE,
-	EXECUTION,
-	CARNAGE
-}
+
 static func get_name(keyword: int) -> String:
 	match keyword:
 		Type.TAUNT:          return "Rempart"

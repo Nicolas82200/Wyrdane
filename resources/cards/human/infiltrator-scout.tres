@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bx13utgc4yic5"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_tt7bv"]
+[ext_resource type="Texture2D" uid="uid://bdh6tgqirxb2l" path="res://assets/card_art/human/infiltrator-scout.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_5ih8l"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Éclaireur Infiltré"
+description = "Arrivée : révèle tous les serviteurs ennemis en rangée Arrière. Ils ne peuvent pas être ciblés par effets ce tour."
+flavour_text = "Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant."
+texture = ExtResource("3_texture")
+cost = 3
+race = 1
+unit_style = 6
+attack = 3
+health = 2
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_5ih8l")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,25 +1,21 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://0303eddfc41b"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://o5k0ofvau3ij"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_d5rqe"]
-[ext_resource type="Texture2D" uid="uid://coltgcriu3r0e" path="res://assets/card_art/undead/decaying-crawler.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_5pf5s"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://coltgcriu3r0e" path="res://assets/card_art/undead/decaying-crawler.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
-script = ExtResource("1_cardeffect")
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
-[sub_resource type="Resource" id="Resource_xlmgx"]
-script = ExtResource("5_5pf5s")
+[sub_resource type="Resource" id="Resource_2g4zh"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Rampant en Décomposition"
 description = "Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle)."
-texture = ExtResource("2_texture")
+flavour_text = "Il ne sait plus pourquoi il avance. Il avance, c'est tout."
+texture = ExtResource("3_texture")
 attack = 1
 health = 1
-trigger_types = Array[ExtResource("5_5pf5s")]([SubResource("Resource_xlmgx")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_2g4zh")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

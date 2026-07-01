@@ -1,31 +1,31 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://8d20ffb2d48f"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cctfasje306ki"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_mjn14"]
-[ext_resource type="Texture2D" uid="uid://mjw74diol1xu" path="res://assets/card_art/undead/cadaverous-larva.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_f8xn0"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://mjw74diol1xu" path="res://assets/card_art/undead/cadaverous-larva.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_6p23x"]
 script = ExtResource("1_cardeffect")
-effect_id = "Buff"
-target = "RandomAlly"
+effect_id = "BuffAdjacent"
 value = 1
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_vkfg8"]
-script = ExtResource("5_f8xn0")
+[sub_resource type="Resource" id="Resource_nij82"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Larve Cadavérique"
 description = "Dernier Souffle : le serviteur allié adjacent gagne +1/+1."
-texture = ExtResource("2_texture")
+flavour_text = "Elle n'est pas née de la vie. Elle est née de ce qui reste."
+texture = ExtResource("3_texture")
 unit_style = 18
 attack = 1
 health = 1
-trigger_types = Array[ExtResource("5_f8xn0")]([SubResource("Resource_vkfg8")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_nij82")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_6p23x")])
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://qbyq4o1kiw3y"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dv57xgjflo6g4" path="res://assets/card_art/human/royal-strategist.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_lzr8k"]
+script = ExtResource("5_trig")
+type = "OnAttack"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Stratège Royal"
+description = "Ralliement : place le serviteur allié invoqué dans la rangée de ton choix, même si elle est pleine (échange avec un autre)."
+flavour_text = "Il ne voit pas un champ de bataille. Il voit un problème à résoudre."
+texture = ExtResource("3_texture")
+cost = 4
+race = 1
+unit_style = 5
+attack = 2
+health = 4
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_lzr8k")])
+rarity = "Epic"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dfay0qbkwlxbk"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://6rqsqg2m2qbo" path="res://assets/card_art/human/iron-inquisitor.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_jcevt"]
+script = ExtResource("1_cardeffect")
+effect_id = "Silence"
+target = "EnemyMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_wd7dn"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Inquisiteur de Fer"
+description = "Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
+flavour_text = "Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle."
+texture = ExtResource("3_texture")
+cost = 3
+race = 1
+unit_style = 7
+attack = 3
+health = 2
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_wd7dn")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_jcevt")])
+requires_target = true
+rarity = "Rare"
+board_position = "Hybrid"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

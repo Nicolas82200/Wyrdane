@@ -1,8 +1,12 @@
+# DeckManager.gd
 extends Node
 
 const SAVE_PATH := "user://decks.cfg"
-const MAX_CARDS_PER_DECK := 30
-const MAX_COPIES_PER_CARD := 2
+
+# [NOTE] Vérifier laquelle est la bonne limite — DeckBuilder avait MAX_CARDS = 60
+# Ces constantes doivent être cohérentes entre DeckManager et DeckBuilder
+const MAX_CARDS_PER_DECK   := 60
+const MAX_COPIES_PER_CARD  := 4
 
 var decks: Array[DeckData] = []
 var active_deck_index: int = 0
@@ -20,7 +24,8 @@ func get_active_deck() -> DeckData:
 
 func set_active_deck(index: int) -> void:
 	active_deck_index = clamp(index, 0, decks.size() - 1)
-	_save_meta()
+	# [FIX] _save_meta supprimé — save_decks() suffit, pas besoin de recharger le fichier
+	save_decks()
 
 # ─── CRUD ─────────────────────────────────────────────────────────────────────
 
@@ -56,14 +61,8 @@ func save_decks() -> void:
 	config.set_value("meta", "deck_count", decks.size())
 	for i in range(decks.size()):
 		var dict := decks[i].to_dict()
-		config.set_value("deck_%d" % i, "name", dict["name"])
+		config.set_value("deck_%d" % i, "name",       dict["name"])
 		config.set_value("deck_%d" % i, "card_paths", dict["card_paths"])
-	config.save(SAVE_PATH)
-
-func _save_meta() -> void:
-	var config := ConfigFile.new()
-	config.load(SAVE_PATH)
-	config.set_value("meta", "active_deck_index", active_deck_index)
 	config.save(SAVE_PATH)
 
 func load_decks() -> void:
@@ -75,7 +74,7 @@ func load_decks() -> void:
 	decks.clear()
 	for i in range(deck_count):
 		var dict := {
-			"name":       config.get_value("deck_%d" % i, "name", "Deck"),
+			"name":       config.get_value("deck_%d" % i, "name",       "Deck"),
 			"card_paths": config.get_value("deck_%d" % i, "card_paths", [])
 		}
 		decks.append(DeckData.from_dict(dict))

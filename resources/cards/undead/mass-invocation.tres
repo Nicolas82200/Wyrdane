@@ -1,24 +1,25 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://05d757d5b128"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cclpq31rx0ttt"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_p7i5s"]
-[ext_resource type="Texture2D" uid="uid://c4xt8a6xuj8xu" path="res://assets/card_art/undead/mass-invocation.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_ylq2s"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://c4xt8a6xuj8xu" path="res://assets/card_art/undead/mass-invocation.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_g2ak0"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
-count = 3
+effect_id = "SummonRandom"
+count = 4
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
-card_name = "Invocation de Masse"
+script = ExtResource("4_carddata")
+card_name = "Arrivée de Masse"
 description = "Invoque 4 Mort-Vivants aléatoires de coût ≤4. Coûte 6 si tu as 3 serviteurs ou moins en jeu."
-texture = ExtResource("2_texture")
+flavour_text = "Il n'a pas ouvert une porte. Il a retiré le mur."
+texture = ExtResource("3_texture")
 cost = 7
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_g2ak0")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

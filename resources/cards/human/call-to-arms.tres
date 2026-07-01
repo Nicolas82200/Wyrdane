@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://c0pv8jt12rge1"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://bu38myhgmgfpk" path="res://assets/card_art/human/call-to-arms.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_2nzsz"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonMinion"
+count = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Appel aux Armes"
+description = "Invoque 2 Miliciens 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens à la place."
+flavour_text = "Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent."
+texture = ExtResource("3_texture")
+cost = 4
+race = 1
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_2nzsz")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,26 +1,27 @@
+extends RefCounted
 class_name TriggerType
 enum Type {
-	ONPLAY       = 0,
-	DEATHRATTLE  = 1,
-	CHARGE       = 2,
-	ON_DAMAGED   = 3,
-	ON_AWAKEN    = 4,   # Éveil : début de ton tour
-	ON_DECLINE   = 5,   # Déclin : début du tour ennemi
-	ON_RALLY     = 6,   # Ralliement : quand ce serviteur attaque
-	ON_GRIEF     = 7,   # Deuil : quand un allié meurt
-	ON_SPELL     = 8,   # Sortilège : quand tu joues un sort
-	ON_SACRIFICE = 9,
-	ON_EXECUTION = 10,  # Exécution : après avoir tué un ennemi
-	ON_CARNAGE   = 11,  # Carnage : après avoir tué avec dégâts excédentaires
-	ON_ATTACK    = 12,
+	ONPLAY        = 0,
+	DEATHRATTLE   = 1,
+	CHARGE        = 2,
+	ON_DAMAGED    = 3,
+	ON_AWAKEN     = 4,   # Éveil
+	ON_DECLINE    = 5,   # Déclin
+	ON_RALLY      = 6,   # Ralliement
+	ON_GRIEF      = 7,   # Deuil
+	ON_SPELL      = 8,   # Sortilège
+	ON_SACRIFICE  = 9,
+	ON_EXECUTION  = 10,
+	ON_CARNAGE    = 11,
+	ON_ATTACK     = 12,
 	ON_TURN_START = 13,
-	ON_TURN_END  = 14,
-	ON_MOURNING  = 15,
-	ON_DEATH_RAGE = 16, # Mort-rage : quand un allié Mort-Vivant meurt
-	ON_AURA      = 17,  # Aura : effet passif permanent (enchantements)
-	ON_SUMMON    = 18,  # quand un allié est invoqué
+	ON_TURN_END   = 14,
+	ON_MOURNING   = 15,
+	ON_DEATH_RAGE = 16, # Mort-rage
+	ON_AURA       = 17, # Présence
+	ON_SUMMON     = 18, # Appel
+	ON_RESONANCE  = 19, # Résonance (Mort-Vivant ou Humain attaque)
 }
-
 static func get_name(trigger_type: int) -> String:
 	match trigger_type:
 		Type.ONPLAY:        return "ONPLAY"
@@ -42,8 +43,8 @@ static func get_name(trigger_type: int) -> String:
 		Type.ON_DEATH_RAGE: return "OnDeathRage"
 		Type.ON_AURA:       return "OnAura"
 		Type.ON_SUMMON:     return "OnSummon"
+		Type.ON_RESONANCE:  return "OnResonance"
 		_:                  return "Unknown"
-
 static func from_name(trigger_name: String) -> int:
 	match trigger_name:
 		"ONPLAY":       return Type.ONPLAY
@@ -65,4 +66,5 @@ static func from_name(trigger_name: String) -> int:
 		"OnDeathRage":  return Type.ON_DEATH_RAGE
 		"OnAura":       return Type.ON_AURA
 		"OnSummon":     return Type.ON_SUMMON
+		"OnResonance":  return Type.ON_RESONANCE
 		_:              return Type.ONPLAY

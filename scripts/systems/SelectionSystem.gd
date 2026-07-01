@@ -55,12 +55,6 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 	if battle.game_over:
 		return
 
-	if battle.waiting_for_target:
-		if target not in battle.get_attackable_enemy_minions(null):
-			return
-		battle.resolve_card_target(target)
-		return
-
 	if is_multi_selecting and not selected_attackers.is_empty():
 		if not battle._can_attack_minion_target(selected_attackers[0], target):
 			return

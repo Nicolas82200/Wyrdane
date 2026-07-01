@@ -1,36 +1,37 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e63758775abd"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://58o0h3sdccia"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://df3xai4x7gx33" path="res://assets/card_art/undead/walking-tomb.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_rjc44"]
-[ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_nbo7n"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://df3xai4x7gx33" path="res://assets/card_art/undead/walking-tomb.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://o5k0ofvau3ij" path="res://resources/cards/undead/decaying-crawler.tres" id="6_summon"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_a1csu"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
 count = 3
-summon_card = ExtResource("4_summon_decayingcrawler")
+summon_card = ExtResource("6_summon")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_2t2br"]
-script = ExtResource("3_rjc44")
+[sub_resource type="Resource" id="Resource_41gyr"]
+script = ExtResource("2_kw")
 
-[sub_resource type="Resource" id="Resource_pdqix"]
-script = ExtResource("6_nbo7n")
+[sub_resource type="Resource" id="Resource_d3cb0"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Tombeau Ambulant"
-description = "REMPART. Dernier Souffle : invoque 3 Rampants 1/1."
-texture = ExtResource("2_texture")
+description = "REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant."
+flavour_text = "Il n'était pas un monstre. Il était une fosse commune."
+texture = ExtResource("3_texture")
 cost = 5
 unit_style = 2
 attack = 3
 health = 8
-keywords = Array[ExtResource("3_rjc44")]([SubResource("Resource_2t2br")])
-trigger_types = Array[ExtResource("6_nbo7n")]([SubResource("Resource_pdqix")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_41gyr")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_d3cb0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a1csu")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

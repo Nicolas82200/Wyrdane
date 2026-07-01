@@ -1,38 +1,39 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://55a21dacc056"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://kdeqilcmgqc2"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dpuvb7xolwwax" path="res://assets/card_art/undead/voracious-spirit.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_xnu4r"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_lna51"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dpuvb7xolwwax" path="res://assets/card_art/undead/voracious-spirit.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_iggk3"]
 script = ExtResource("1_cardeffect")
 effect_id = "StealHealth"
 target = "EnemyHero"
 value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_8hicf"]
-script = ExtResource("2_xnu4r")
+[sub_resource type="Resource" id="Resource_ktl25"]
+script = ExtResource("2_kw")
 name_fr = "Moisson"
 
-[sub_resource type="Resource" id="Resource_cyogv"]
-script = ExtResource("5_lna51")
+[sub_resource type="Resource" id="Resource_butgc"]
+script = ExtResource("5_trig")
 type = "ONPLAY"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Esprit Vorace"
-description = "MOISSON. Invocation : vole 2 HP au héros ennemi."
-texture = ExtResource("2_texture")
+description = "MOISSON. Arrivée : vole 2 HP au héros ennemi."
+flavour_text = "Il ne prend pas ta vie. Il la déplace — dans les mauvaises mains."
+texture = ExtResource("3_texture")
 cost = 4
 unit_style = 3
 attack = 4
 health = 4
-keywords = Array[ExtResource("2_xnu4r")]([SubResource("Resource_8hicf")])
-trigger_types = Array[ExtResource("5_lna51")]([SubResource("Resource_cyogv")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_ktl25")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_butgc")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_iggk3")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

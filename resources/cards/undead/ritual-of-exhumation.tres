@@ -1,24 +1,24 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://0dc77e572d15"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://q1bbbkqjajfj"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_4c6wk"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_ccbb5"]
-[ext_resource type="Texture2D" uid="uid://c1u4n4ik7hxba" path="res://assets/card_art/undead/ritual-of-the-exhumation.jpg" id="4_qhtw3"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://c1u4n4ik7hxba" path="res://assets/card_art/undead/ritual-of-the-exhumation.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_eh88a"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
+effect_id = "ReturnFromGrave"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Rituel d'Exhumation"
 description = "Ramène en main un serviteur Mort-Vivant ciblé depuis ton cimetière."
-texture = ExtResource("4_qhtw3")
+flavour_text = "On ne l'enterre pas. On l'entrepose."
+texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-requires_target = true
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eh88a")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

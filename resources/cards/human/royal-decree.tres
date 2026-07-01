@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://5v4j22pc2370"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dlkg7cpsf1oy7" path="res://assets/card_art/human/royal-decree.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_ufyry"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+value = 1
+value_2 = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_aehw5"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Décret Royal"
+description = "Éveil : tous tes serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.)"
+flavour_text = "Le décret n'a pas de date d'expiration. La guerre non plus."
+texture = ExtResource("3_texture")
+cost = 6
+race = 1
+card_type = "Enchantment"
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_aehw5")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ufyry")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

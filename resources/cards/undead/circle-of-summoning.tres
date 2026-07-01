@@ -1,28 +1,29 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://38e5813b1881"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cl82rwwc3puof"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://m3in0r1wdlq8" path="res://assets/card_art/undead/circle-of-summoning.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_x80rm"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_n6xi2"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://m3in0r1wdlq8" path="res://assets/card_art/undead/circle-of-summoning.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_lq0u9"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
+effect_id = "SummonRandom"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_j0csg"]
-script = ExtResource("5_n6xi2")
+[sub_resource type="Resource" id="Resource_mcgxf"]
+script = ExtResource("5_trig")
 type = "OnAwaken"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cercle de Convocation"
 description = "3 tours : Éveil : invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement."
-texture = ExtResource("2_texture")
+flavour_text = "Le cercle appelle. Les morts n'ont pas appris à décliner."
+texture = ExtResource("3_texture")
 cost = 5
 card_type = "Ritual"
-trigger_types = Array[ExtResource("5_n6xi2")]([SubResource("Resource_j0csg")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_mcgxf")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lq0u9")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

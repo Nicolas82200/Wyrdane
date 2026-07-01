@@ -1,31 +1,32 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://111b8fcba12c"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://pj405uipofp"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://cy07o2tfgwtbh" path="res://assets/card_art/undead/zombie-apocalypse.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_y0w1l"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_eqpby"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://cy07o2tfgwtbh" path="res://assets/card_art/undead/zombie-apocalypse.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_w491d"]
 script = ExtResource("1_cardeffect")
 effect_id = "Transform"
-target = "EnemyMinion"
+target = "AllEnemies"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_pig8v"]
-script = ExtResource("5_eqpby")
+[sub_resource type="Resource" id="Resource_a4ulg"]
+script = ExtResource("5_trig")
 type = "ONPLAY"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Apocalypse Zombie"
-description = "Invocation : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
-texture = ExtResource("2_texture")
+description = "Arrivée : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
+flavour_text = "Ce n'était pas une invasion. C'était une conversion."
+texture = ExtResource("3_texture")
 cost = 8
 unit_style = 1
 attack = 9
 health = 9
-trigger_types = Array[ExtResource("5_eqpby")]([SubResource("Resource_pig8v")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_a4ulg")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_w491d")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

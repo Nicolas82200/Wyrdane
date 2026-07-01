@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bhf47ugkfr1jm"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_hj10y"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_d1t0g"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_13sdd"]
+[ext_resource type="Texture2D" uid="uid://dyfhv6ldcos41" path="res://assets/card_art/human/empire-aegis.jpg" id="4_twgc8"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_3a4t0"]
+
+[sub_resource type="Resource" id="Resource_y9nik"]
+script = ExtResource("5_3a4t0")
+type = "OnAura"
+
+[resource]
+script = ExtResource("3_13sdd")
+card_name = "Aegis de l'Empire"
+description = "Présence : tes serviteurs Humains en rangée Avant sont immunisés à l'Infection. Les marqueurs Infection déjà présents sont retirés à la fin de chaque tour."
+flavour_text = "L'Empire ne cède pas à la pourriture. Ce n'est pas de l'orgueil. C'est de l'obstination."
+texture = ExtResource("4_twgc8")
+cost = 5
+race = 1
+card_type = "Enchantment"
+trigger_types = Array[ExtResource("5_3a4t0")]([SubResource("Resource_y9nik")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,33 +1,34 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://080f6bfa6513"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://djwtupklv4uhn"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://btax556mo70nt" path="res://assets/card_art/undead/horde-architect.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
-[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_ponrr"]
-[ext_resource type="Resource" uid="uid://0303eddfc41b" path="res://resources/cards/undead/decaying-crawler.tres" id="4_summon_decayingcrawler"]
-[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_ncikx"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://btax556mo70nt" path="res://assets/card_art/undead/horde-architect.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://o5k0ofvau3ij" path="res://resources/cards/undead/decaying-crawler.tres" id="6_summon"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_tx2wk"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
-summon_card = ExtResource("4_summon_decayingcrawler")
+summon_card = ExtResource("6_summon")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_qrm6s"]
-script = ExtResource("6_ncikx")
-type = "ONPLAY"
+[sub_resource type="Resource" id="Resource_6lsbp"]
+script = ExtResource("5_trig")
+type = "RALLY"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Architecte de la Horde"
 description = "Ralliement : invoque un Rampant 1/1 en rangée Avant."
-texture = ExtResource("2_texture")
+flavour_text = "Il ne construit pas d'armée. Il la sécrète."
+texture = ExtResource("3_texture")
 cost = 3
 unit_style = 1
 attack = 2
 health = 3
-trigger_types = Array[ExtResource("6_ncikx")]([SubResource("Resource_qrm6s")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_6lsbp")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_tx2wk")])
 rarity = "Epic"
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cysna38ddw721"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://jd1uw1kk6pu4" path="res://assets/card_art/human/rempart-sentinel.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_f1dvh"]
+script = ExtResource("2_kw")
+
+[sub_resource type="Resource" id="Resource_x2g1q"]
+script = ExtResource("2_kw")
+name_fr = "Égide"
+metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Sentinelle des Remparts"
+description = "REMPART. ÉGIDE."
+flavour_text = "On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné."
+texture = ExtResource("3_texture")
+cost = 2
+race = 1
+unit_style = 5
+attack = 1
+health = 5
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_f1dvh"), SubResource("Resource_x2g1q")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

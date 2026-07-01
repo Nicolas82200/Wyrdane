@@ -1,3 +1,4 @@
+# Graveyard.gd
 extends RefCounted
 class_name Graveyard
 
@@ -30,3 +31,12 @@ func last_card_data() -> CardData:
 	if entries.is_empty():
 		return null
 	return entries.back()["card_data"]
+
+# [FIX] Méthode manquante — appelée par EffectManager (_resurrect, _resurrect_last, _return_from_grave)
+# Retourne uniquement les cartes mortes au combat, pas les sorts ni les défausses
+func get_minions() -> Array[CardData]:
+	var result: Array[CardData] = []
+	for entry in entries:
+		if entry["origin"] == Origin.MINION_DEATH:
+			result.append(entry["card_data"])
+	return result

@@ -1,7 +1,20 @@
 [gd_scene format=3 uid="uid://bh2v8er86udpn"]
 
 [ext_resource type="Script" uid="uid://pkd71kg4dn1s" path="res://scripts/card/Card.gd" id="1_7d3tr"]
-[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="2_83o6g"]
+[ext_resource type="FontFile" uid="uid://c2dxyg6e7mc6w" path="res://assets/fonts/CinzelDecorative-Black.otf" id="2_u4wdl"]
+[ext_resource type="Texture2D" uid="uid://cstppl282uxc6" path="res://assets/borders/undead-border-card.png" id="3_s5r67"]
+[ext_resource type="FontFile" uid="uid://c6ta1tbu0oeb6" path="res://assets/fonts/Cinzel-Black.otf" id="3_wcykg"]
+[ext_resource type="Texture2D" uid="uid://mx6ft052vmq6" path="res://assets/icons/gem.png" id="4_gem"]
+[ext_resource type="FontFile" uid="uid://cthx272rbm3cd" path="res://assets/fonts/CrimsonText-SemiBold.ttf" id="4_wcykg"]
+[ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y3kt5"]
 bg_color = Color(0.20392157, 0.18039216, 0.101960786, 0.39215687)
@@ -39,7 +52,7 @@ corner_radius_bottom_left = 20
 corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wcykg"]
-bg_color = Color(0.2964713, 0.19084999, 0.05471182, 0.5882353)
+bg_color = Color(0.43809244, 0.29054487, 0.0996341, 0.5882353)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -79,40 +92,6 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 corner_detail = 20
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u4wdl"]
-bg_color = Color(0.17254902, 0.13333334, 0.09411765, 0.5882353)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.39215687)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-corner_detail = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8dt14"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 15
-border_width_top = 15
-border_width_right = 15
-border_width_bottom = 15
-border_color = Color(0.29803923, 0.19215687, 1, 1)
-border_blend = true
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1oahe"]
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_blend = true
-corner_radius_top_left = 15
-corner_radius_top_right = 15
-corner_radius_bottom_right = 15
-corner_radius_bottom_left = 15
-corner_detail = 20
-
 [node name="Card" type="Control" unique_id=2019163809]
 custom_minimum_size = Vector2(250, 375)
 layout_mode = 3
@@ -123,6 +102,21 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_7d3tr")
 metadata/_custom_type_script = "uid://pkd71kg4dn1s"
+
+[node name="BorderFrameBlack" type="Panel" parent="." unique_id=111111111]
+custom_minimum_size = Vector2(266, 390)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -9.0
+offset_right = 8.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
 
 [node name="Art" type="TextureRect" parent="." unique_id=1275732162]
 light_mask = 3
@@ -136,7 +130,7 @@ expand_mode = 1
 [node name="TextBackground" type="Panel" parent="." unique_id=31693137]
 layout_mode = 0
 offset_left = 5.0
-offset_top = 150.0
+offset_top = 155.0
 offset_right = 245.0
 offset_bottom = 375.0
 mouse_filter = 2
@@ -144,13 +138,13 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_y3kt5")
 
 [node name="NameLabel" type="Label" parent="." unique_id=743278379]
 layout_mode = 0
-offset_left = 15.0
-offset_top = 155.0
-offset_right = 215.0
+offset_left = 20.0
+offset_top = 160.0
+offset_right = 195.0
 offset_bottom = 190.0
 theme_override_colors/font_color = Color(0.9490196, 0.8901961, 0.7764706, 1)
-theme_override_fonts/font = ExtResource("2_83o6g")
-theme_override_font_sizes/font_size = 16
+theme_override_fonts/font = ExtResource("2_u4wdl")
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxFlat_3dwn4")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -163,36 +157,38 @@ offset_top = 20.0
 offset_right = 230.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("2_83o6g")
+theme_override_fonts/font = ExtResource("3_wcykg")
 theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = SubResource("StyleBoxFlat_s5r67")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DescLabel" type="Label" parent="." unique_id=1393881891]
+[node name="DescLabel" type="RichTextLabel" parent="." unique_id=1393881891]
 layout_mode = 0
 offset_left = 15.0
-offset_top = 205.0
-offset_right = 240.0
-offset_bottom = 305.0
-theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("2_83o6g")
-theme_override_font_sizes/font_size = 14
+offset_top = 200.0
+offset_right = 235.0
+offset_bottom = 325.0
+theme_override_colors/default_color = Color(1, 1, 1, 0.85490197)
+theme_override_fonts/normal_font = ExtResource("4_wcykg")
+theme_override_font_sizes/normal_font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
+bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
+fit_content = true
+scroll_active = false
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 2
 
 [node name="AttackLabel" type="Label" parent="." unique_id=1445587069]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 0
-offset_left = 40.0
-offset_top = 332.5
-offset_right = 80.0
-offset_bottom = 366.5
+offset_left = 35.0
+offset_top = 330.0
+offset_right = 75.0
+offset_bottom = 364.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("2_83o6g")
+theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_83o6g")
 horizontal_alignment = 1
@@ -201,53 +197,40 @@ vertical_alignment = 1
 [node name="HealthLabel" type="Label" parent="." unique_id=277833503]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 0
-offset_left = 165.0
-offset_top = 332.5
-offset_right = 205.0
-offset_bottom = 366.5
+offset_left = 175.0
+offset_top = 330.0
+offset_right = 215.0
+offset_bottom = 364.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("2_83o6g")
+theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBoxFlat_4cxr5")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RaceLabel" type="Label" parent="." unique_id=1071736886]
-custom_minimum_size = Vector2(175, 20)
-layout_mode = 0
-offset_left = 37.5
-offset_top = 310.0
-offset_right = 212.5
-offset_bottom = 330.0
-theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("2_83o6g")
-theme_override_font_sizes/font_size = 10
-theme_override_styles/normal = SubResource("StyleBoxFlat_u4wdl")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="BorderFrameColor" type="Panel" parent="." unique_id=372544289]
-custom_minimum_size = Vector2(250, 375)
-layout_mode = 0
-offset_right = 195.0
-offset_bottom = 290.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_8dt14")
-
 [node name="BorderFrame" type="TextureRect" parent="." unique_id=1453073623]
-custom_minimum_size = Vector2(250, 375)
-layout_mode = 0
+custom_minimum_size = Vector2(260, 390)
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -7.5
+offset_right = 5.0
+offset_bottom = 7.5
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
+texture = ExtResource("3_s5r67")
 expand_mode = 1
 
-[node name="RarityPanel" type="PanelContainer" parent="." unique_id=1153858896]
-custom_minimum_size = Vector2(20, 35)
+[node name="RarityGem" type="TextureRect" parent="." unique_id=1153858896]
+custom_minimum_size = Vector2(25, 30)
 layout_mode = 0
-offset_left = 220.0
-offset_top = 155.0
-offset_right = 240.0
+offset_left = 202.5
+offset_top = 160.0
+offset_right = 227.5
 offset_bottom = 190.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_1oahe")
+texture = ExtResource("4_gem")
+expand_mode = 1

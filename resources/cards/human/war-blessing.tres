@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dkkjhuwwwayk5"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://c6pp3x12s673n" path="res://assets/card_art/human/war-blessing.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_uhmc9"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllyMinion"
+value = 2
+value_2 = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Bénédiction de Guerre"
+description = "Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour."
+flavour_text = "Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains."
+texture = ExtResource("3_texture")
+cost = 2
+race = 1
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_uhmc9")])
+requires_target = true
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

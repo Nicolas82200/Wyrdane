@@ -24,25 +24,25 @@ const BOARD_MINION_SIZE  := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 
-@onready var hand                            = $Hand
-@onready var mana_label: Label               = $ManaLabel
-@onready var end_turn_button: Button         = $EndTurnButton
-@onready var enemy_container: Control        = get_node_or_null("Board/EnemyMinionsContainer") as Control
-@onready var player_container: Control       = get_node_or_null("Board/PlayerMinionsContainer") as Control
-@onready var player_front_container: Control = get_node_or_null("Board/PlayerFrontLine") as Control
-@onready var player_back_container: Control  = get_node_or_null("Board/PlayerBackLine") as Control
-@onready var enemy_front_container: Control  = get_node_or_null("Board/EnemyFrontLine") as Control
-@onready var enemy_back_container: Control   = get_node_or_null("Board/EnemyBackLine") as Control
-@onready var player_graveyard_btn: Button    = $PlayerGraveyardButton
-@onready var enemy_graveyard_btn: Button     = $EnemyGraveyardButton
-@onready var player_graveyard_preview: Card  = $PlayerGraveyardButton/CardPreview
-@onready var enemy_graveyard_preview: Card   = $EnemyGraveyardButton/CardPreview
-@onready var graveyard_view: GraveyardView   = $GraveyardView
-@onready var deck_button                     = $DeckButton
-@onready var deck_count_label                = $DeckButton/CountLabel
-@onready var settings_menu                   = get_node_or_null("AudioSettingsMenu") as AudioSettingsMenu
-@onready var settings_button: Button         = $SettingsButton
-@onready var turn_choice_panel               = $TurnChoicePanel
+# [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
+# Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
+@onready var hand: Hand                                = $Hand
+@onready var mana_label: Label                         = $ManaLabel
+@onready var end_turn_button: Button                   = $EndTurnButton
+@onready var player_front_container: Control           = $Board/PlayerFrontLine
+@onready var player_back_container: Control            = $Board/PlayerBackLine
+@onready var enemy_front_container: Control            = $Board/EnemyFrontLine
+@onready var enemy_back_container: Control             = $Board/EnemyBackLine
+@onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
+@onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
+@onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
+@onready var enemy_graveyard_preview: Card             = $EnemyGraveyardButton/CardPreview
+@onready var graveyard_view: GraveyardView             = $GraveyardView
+@onready var deck_button                               = $DeckButton
+@onready var deck_count_label                          = $DeckButton/CountLabel
+@onready var settings_menu: AudioSettingsMenu          = $AudioSettingsMenu
+@onready var settings_button: Button                   = $SettingsButton
+@onready var turn_choice_panel                         = $TurnChoicePanel
 
 var combat_system       := _CombatSystemScript.new()
 var board_system        := _BoardSystemScript.new()
@@ -59,9 +59,10 @@ var hero_system         := _HeroSystemScript.new()
 var targeting_system    := _TargetingSystemScript.new()
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
+var trigger_system: TriggerSystem
+var aura_system := AuraSystem.new()
 
 var effect_manager := EffectManager.new()
-
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
@@ -84,16 +85,25 @@ var _is_dragging_card: bool      = false
 
 func _ready() -> void:
 	AudioManager.play_battle_music()
+	_init_data()
+	_init_systems()
+	_connect_signals()
+	_start_game()
+
+# [FIX] _ready() découpé en 4 fonctions claires
+func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
 	var enemy_card: CardData = load("res://resources/cards/undead/putrefied-leviathan.tres") as CardData
 	enemy_minions.append(Minion.new(enemy_card, false, ROW_FRONT))
+
+func _init_systems() -> void:
 	hand.can_play_check      = can_afford_card
 	hand.create_drag_preview = _create_card_drag_preview
-	hand.card_played.connect(_on_card_played)
-
+	trigger_system = TriggerSystem.new()
+	trigger_system.init(self)
 	deck_system.init(self)
-	graveyard_system.init(self)  
+	graveyard_system.init(self)
 	animation_system.init(self)
 	hero_system.init(self)
 	combat_system.init(self)
@@ -108,9 +118,13 @@ func _ready() -> void:
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
+	aura_system.init(self)
 	add_child(enchantment_system)
+	add_child(trigger_system)
 	add_child(targeting_system)
 
+func _connect_signals() -> void:
+	hand.card_played.connect(_on_card_played)
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
@@ -118,25 +132,23 @@ func _ready() -> void:
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
 	turn_choice_panel.mana_selected.connect(_on_mana_selected)
-	targeting_system.targeting_cancelled.connect(func(): pass)
-	if settings_menu:
-		settings_button.pressed.connect(settings_menu.open)
-	else:
-		push_error("AudioSettingsMenu introuvable !")
+	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
+	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
+	settings_button.pressed.connect(settings_menu.open)
 
+func _start_game() -> void:
 	update_mana_ui()
 	hero_system.update_ui()
 	deck_system.load_deck()
 	deck_system.update_deck_ui()
-
 	board_visual_system.refresh_board()
 	for minion in player_minions:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
-	deck_system.start_game()
+	await deck_system.start_game()
 
-# ─── Process (flèche de ciblage) ──────────────────────────────────────────────
+# ─── Process ──────────────────────────────────────────────────────────────────
 
 func _process(_delta: float) -> void:
 	if targeting_system.is_targeting():
@@ -171,7 +183,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # ─── Trigger centralisé ───────────────────────────────────────────────────────
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
-	death_system.trigger_effects(minion, trigger_name)
+	effect_manager.trigger_effects(self, minion, trigger_name)
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
@@ -210,25 +222,8 @@ func can_summon_to_row(is_player: bool, row: String) -> bool:
 func _normalized_row(row: String) -> String:
 	return ROW_BACK if row == ROW_BACK else ROW_FRONT
 
-func _insert_minion_in_row(minions: Array[Minion], minion: Minion, row: String, insert_index: int) -> void:
-	var row_count: int = get_row_count_in(minions, row)
-	insert_index = clamp(insert_index, 0, row_count) if insert_index >= 0 else row_count
-	var seen_in_row: int = 0
-	for i in range(minions.size()):
-		if minions[i].board_row != row:
-			continue
-		if seen_in_row == insert_index:
-			minions.insert(i, minion)
-			return
-		seen_in_row += 1
-	minions.append(minion)
-
-func get_row_count_in(minions: Array[Minion], row: String) -> int:
-	var count: int = 0
-	for minion in minions:
-		if minion.board_row == row:
-			count += 1
-	return count
+# [FIX] _insert_minion_in_row et get_row_count_in supprimés d'ici
+# La logique d'insertion vit désormais dans BoardSystem._insert()
 
 func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 	if card_data == null or card_data.card_type != "Minion":
@@ -256,39 +251,34 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 		return front
 	return enemy_minions
 
+# [FIX] destroy_minion délègue entièrement à DeathSystem
 func destroy_minion(target: Minion) -> void:
-	target.health = 0
-	await death_system.process_deaths()
+	await death_system.destroy(target)
 
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
+# [FIX] _on_card_played délègue la validation et l'état à CardSystem
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	print("_on_card_played — row: %s, index: %d" % [row, insert_index])
 	if game_over or card_data.cost > mana:
 		return
 	row = _normalized_row(row)
-	if card_data.card_type == "Minion" and not can_play_card_on_row(card_data, row):
-		return
-	if card_data.card_type == "Minion" and not can_summon_to_row(true, row):
-		push_warning("Rangée %s pleine." % row)
-		return
-	if card_data.requires_target:
-		pending_card         = card_data
-		pending_row          = row
-		pending_insert_index = insert_index
-		waiting_for_target   = true
-		# ← Popup gauche pendant le ciblage
-		card_popup_system.show_targeting_popup(card_data)
-		targeting_system.begin_targeting(card_data, row, insert_index)
-		return
-	card_system.play_card(card_data, row, insert_index)
+	await card_system.handle_card_played(card_data, row, insert_index)
 
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
 	await board_system.summon_minion(card_data, is_player, row, insert_index)
 
-func resolve_card_target(target: Minion) -> void:
-	pass
+func _on_targeting_cancelled() -> void:
+	waiting_for_target   = false
+	pending_card         = null
+	pending_row          = ROW_FRONT
+	pending_insert_index = -1
+	hand.set_hand(hand_cards)
 
+func reset_targeting_state() -> void:
+	waiting_for_target   = false
+	pending_card         = null
+	pending_row          = ROW_FRONT
+	pending_insert_index = -1
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
