@@ -1,6 +1,93 @@
-[gd_scene format=3 uid="uid://4xcbdy48uylq"]
+[gd_scene load_steps=13 format=3 uid="uid://4xcbdy48uylq"]
 
 [ext_resource type="Script" uid="uid://bm8waatx386un" path="res://scripts/systems/TurnChoicePanel.gd" id="1_n1oof"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="2_theme"]
+[ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="3_cinzel"]
+[ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="4_back"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
+bg_color = Color(0.09, 0.078, 0.125, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.545, 0.412, 0.078, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_hover"]
+bg_color = Color(0.133, 0.118, 0.196, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.941, 0.753, 0.251, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.941, 0.753, 0.251, 0.22)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_pressed"]
+bg_color = Color(0.06, 0.05, 0.1, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.85, 0.4, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.941, 0.753, 0.251, 0.3)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_disabled"]
+bg_color = Color(0.07, 0.065, 0.08, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.36, 0.28, 0.5)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_art_frame"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.03, 0.025, 0.05, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.545, 0.412, 0.078, 0.55)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="Gradient" id="Gradient_mana"]
+offsets = PackedFloat32Array(0, 0.25, 0.55, 0.8, 1)
+colors = PackedColorArray(0.92, 0.98, 1, 1, 0.45, 0.75, 1, 1, 0.15, 0.35, 0.85, 1, 0.07, 0.12, 0.4, 0.9, 0.05, 0.07, 0.2, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_mana"]
+gradient = SubResource("Gradient_mana")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.45)
+fill_to = Vector2(0.5, 0.95)
 
 [node name="TurnChoicePanel" type="Control" unique_id=1856936643]
 visible = false
@@ -11,6 +98,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_n1oof")
 
 [node name="Background" type="ColorRect" parent="." unique_id=2068474173]
@@ -20,7 +108,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.5)
+color = Color(0, 0, 0, 0.62)
 
 [node name="CenterContainer" type="CenterContainer" parent="." unique_id=484299498]
 layout_mode = 1
@@ -34,26 +122,49 @@ mouse_filter = 2
 [node name="VBox" type="VBoxContainer" parent="CenterContainer" unique_id=1533653602]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 26
 
-[node name="Title" type="Label" parent="CenterContainer/VBox" unique_id=1503648489]
+[node name="Header" type="VBoxContainer" parent="CenterContainer/VBox" unique_id=901000001]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+mouse_filter = 2
+theme_override_constants/separation = 2
+
+[node name="Subtitle" type="Label" parent="CenterContainer/VBox/Header" unique_id=901000002]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.788, 0.635, 0.153, 0.85)
+theme_override_fonts/font = ExtResource("3_cinzel")
+theme_override_font_sizes/font_size = 15
+text = "— DÉBUT DU TOUR —"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer/VBox/Header" unique_id=1503648489]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.941, 0.753, 0.251, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_cinzel")
+theme_override_font_sizes/font_size = 36
 text = "Choisissez votre bonus"
 horizontal_alignment = 1
 
 [node name="HBox" type="HBoxContainer" parent="CenterContainer/VBox" unique_id=268450191]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 48
 
 [node name="DrawButton" type="Button" parent="CenterContainer/VBox/HBox" unique_id=599851861]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 260)
+custom_minimum_size = Vector2(230, 330)
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_card_disabled")
+theme_override_styles/hover = SubResource("StyleBoxFlat_card_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_card_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_card_normal")
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/DrawButton" unique_id=822296506]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/VBox/HBox/DrawButton" unique_id=822296506]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,34 +172,63 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
 
-[node name="Icon" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=133621577]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/DrawButton/Margin" unique_id=901000003]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "[Carte]"
-horizontal_alignment = 1
+mouse_filter = 2
+theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=1488981890]
+[node name="ArtFrame" type="PanelContainer" parent="CenterContainer/VBox/HBox/DrawButton/Margin/VBox" unique_id=901000004]
 layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_art_frame")
+
+[node name="Art" type="TextureRect" parent="CenterContainer/VBox/HBox/DrawButton/Margin/VBox/ArtFrame" unique_id=901000005]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("4_back")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardTitle" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/Margin/VBox" unique_id=1488981890]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.941, 0.753, 0.251, 1)
+theme_override_fonts/font = ExtResource("3_cinzel")
 theme_override_font_sizes/font_size = 22
-text = "Piocher"
+text = "Pioche"
 horizontal_alignment = 1
 
-[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/VBox" unique_id=1330168548]
+[node name="Sep" type="HSeparator" parent="CenterContainer/VBox/HBox/DrawButton/Margin/VBox" unique_id=901000006]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Ajouter une carte a votre main"
+mouse_filter = 2
+
+[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/DrawButton/Margin/VBox" unique_id=1330168548]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
+theme_override_font_sizes/font_size = 15
+text = "Piochez une carte
+supplémentaire de votre deck."
 horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="ManaButton" type="Button" parent="CenterContainer/VBox/HBox" unique_id=1645004796]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 260)
+custom_minimum_size = Vector2(230, 330)
 layout_mode = 2
 mouse_default_cursor_shape = 2
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_card_disabled")
+theme_override_styles/hover = SubResource("StyleBoxFlat_card_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_card_pressed")
+theme_override_styles/normal = SubResource("StyleBoxFlat_card_normal")
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/ManaButton" unique_id=836337496]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/VBox/HBox/ManaButton" unique_id=836337496]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -96,24 +236,54 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 14
 
-[node name="Icon" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=835266103]
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/VBox/HBox/ManaButton/Margin" unique_id=901000007]
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "[Mana]"
-horizontal_alignment = 1
+mouse_filter = 2
+theme_override_constants/separation = 8
 
-[node name="Label" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=212587748]
+[node name="ArtFrame" type="PanelContainer" parent="CenterContainer/VBox/HBox/ManaButton/Margin/VBox" unique_id=901000008]
 layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_art_frame")
+
+[node name="Art" type="TextureRect" parent="CenterContainer/VBox/HBox/ManaButton/Margin/VBox/ArtFrame" unique_id=901000009]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_mana")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardTitle" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/Margin/VBox" unique_id=212587748]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.941, 0.753, 0.251, 1)
+theme_override_fonts/font = ExtResource("3_cinzel")
 theme_override_font_sizes/font_size = 22
-text = "Mana Max"
+text = "Cristal de mana"
 horizontal_alignment = 1
 
-[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/VBox" unique_id=215727476]
+[node name="Sep" type="HSeparator" parent="CenterContainer/VBox/HBox/ManaButton/Margin/VBox" unique_id=901000010]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Augmenter votre
-mana maximum"
+mouse_filter = 2
+
+[node name="Desc" type="Label" parent="CenterContainer/VBox/HBox/ManaButton/Margin/VBox" unique_id=215727476]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.81, 0.72, 1)
+theme_override_font_sizes/font_size = 15
+text = "Gagnez définitivement
++1 cristal de mana maximum."
 horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="Hint" type="Label" parent="CenterContainer/VBox" unique_id=901000011]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
+theme_override_font_sizes/font_size = 14
+text = "Un seul choix par tour — choisissez avec sagesse."
+horizontal_alignment = 1
