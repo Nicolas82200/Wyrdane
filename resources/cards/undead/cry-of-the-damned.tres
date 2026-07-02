@@ -10,7 +10,12 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
+duration = "UntilEndOfTurn"
 value = 1
+race_filter = "Undead"
+threshold_op = "GreaterOrEqual"
+threshold_count = 5
+value_if_threshold = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

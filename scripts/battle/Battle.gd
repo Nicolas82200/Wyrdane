@@ -63,6 +63,7 @@ var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
 var aura_system := AuraSystem.new()
+var temp_effect_system := TempEffectSystem.new()
 
 var effect_manager := EffectManager.new()
 var player_minions: Array[Minion] = []
@@ -99,7 +100,7 @@ func _init_data() -> void:
 	enemy_hero  = Hero.new(30)
 
 func _init_systems() -> void:
-	hand.can_play_check      = can_afford_card
+	hand.can_play_check      = can_play_card
 	hand.create_drag_preview = _create_card_drag_preview
 	trigger_system = TriggerSystem.new()
 	trigger_system.init(self)
@@ -121,6 +122,7 @@ func _init_systems() -> void:
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
 	aura_system.init(self)
+	temp_effect_system.init(self)
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
@@ -358,6 +360,10 @@ func _on_hand_drag_ended() -> void:
 
 func can_afford_card(card_data: CardData) -> bool:
 	return card_data != null and mana >= card_data.cost
+
+# Jouabilité complète : mana + conditions du sort (cibles valides, cimetière...)
+func can_play_card(card_data: CardData) -> bool:
+	return can_afford_card(card_data) and card_system.conditions_met(card_data)
 
 func _create_card_drag_preview(card_data: CardData) -> Control:
 	var preview: BoardMinion = BOARD_MINION_SCENE.instantiate() as BoardMinion

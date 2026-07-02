@@ -11,6 +11,9 @@
 script = ExtResource("1_cardeffect")
 target = "AllEnemiesFront"
 value = 1
+threshold_op = "GreaterOrEqual"
+threshold_count = 4
+value_if_threshold = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

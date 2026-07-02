@@ -32,6 +32,13 @@ class_name CardEffect
 @export var race_filter: String = ""
 @export var row_filter: String = ""  # "Front", "Back", ou "" pour les deux
 
+# ─── Conditions sur la cible ──────────────────────────────────────────────────
+# -1 = pas de condition. Sert aux sorts du type "un serviteur ennemi de 3 HP ou
+# moins" (Poigne du Cimetière) ou "ayant 2 ATK ou moins" (Jugement Divin).
+# Vérifié au ciblage (TargetingSystem) ET à la résolution (EffectManager).
+@export var target_max_hp: int = -1
+@export var target_max_atk: int = -1
+
 # ─── Pool d'invocation aléatoire (SummonRandom) ───────────────────────────────
 @export var pool_max_cost: int = -1        # -1 = pas de limite
 @export var pool_min_cost: int = -1
@@ -42,9 +49,8 @@ class_name CardEffect
 # ─── Octroi de mot-clé temporaire ou permanent (GrantKeyword) ────────────────
 @export var granted_keyword: String = ""          # "TAUNT", "AEGIS", "CHARGE", "DISCIPLINE"...
 @export var granted_keyword_is_human: bool = false # true si le nom ci-dessus vient de KeywordHuman.Type
-# Durée gérée par le champ `duration` déjà présent plus haut.
-# ⚠️ Le retrait effectif du mot-clé en fin de tour n'est PAS encore câblé côté EffectManager/TurnSystem —
-# seul le champ de configuration est prêt ici.
+# Durée gérée par le champ `duration` déjà présent plus haut ;
+# le retrait en fin de tour est assuré par TempEffectSystem.
 
 # ─── Seuils conditionnels avec comparateur ───────────────────────────────────
 # Permet "si N ou plus / N ou moins / exactement N, alors valeur ou nombre différent".
@@ -53,8 +59,8 @@ class_name CardEffect
 @export var threshold_count: int = -1
 @export var value_if_threshold: int = 0
 @export var count_if_threshold: int = 0
-# ⚠️ threshold_op / threshold_scope ne sont pas encore lus par EffectManager — à câbler
-# dans _damage_all, _buff, _buff_row et la logique de SummonMinion/SummonRandom (count_if_threshold).
+# Le seuil est comparé au nombre de cibles résolues (Damage/DamageAll/Buff/BuffRow)
+# ou, pour SummonMinion/SummonRandom, au nombre d'alliés dans la rangée d'invocation.
 
 func get_effect_type() -> int:
 	return EffectType.from_name(effect_id)
