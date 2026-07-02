@@ -28,7 +28,7 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 # [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
-@onready var mana_label: Label                         = $ManaLabel
+@onready var mana_display: ManaDisplay                 = $ManaDisplay
 @onready var end_turn_button: Button                   = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
@@ -191,7 +191,7 @@ func trigger_effects(minion: Minion, trigger_name: String) -> void:
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
 func update_mana_ui() -> void:
-	mana_label.text = "%d/%d" % [mana, max_mana]
+	mana_display.set_mana(mana, max_mana)
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost

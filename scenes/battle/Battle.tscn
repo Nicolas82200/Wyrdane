@@ -11,6 +11,8 @@
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="10_q5nyf"]
 [ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
+[ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
+[ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 corner_radius_top_left = 100
@@ -182,40 +184,38 @@ grow_vertical = 2
 alignment = 1
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
-custom_minimum_size = Vector2(100, 0)
+custom_minimum_size = Vector2(170, 48)
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -170.0
-offset_top = -100.0
-offset_right = -70.0
-offset_bottom = -60.0
+offset_left = -230.0
+offset_top = -104.0
+offset_right = -60.0
+offset_bottom = -56.0
 grow_horizontal = 0
 grow_vertical = 0
 action_mode = 0
 text = "Fin du tour"
+script = ExtResource("13_etbtn")
 
-[node name="ManaLabel" type="Label" parent="." unique_id=1934083572]
-custom_minimum_size = Vector2(100, 50)
+[node name="ManaDisplay" type="PanelContainer" parent="." unique_id=1934083572]
+custom_minimum_size = Vector2(170, 60)
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -170.0
-offset_top = -155.0
-offset_right = -70.0
-offset_bottom = -105.0
+offset_left = -230.0
+offset_top = -172.0
+offset_right = -60.0
+offset_bottom = -112.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_fonts/font = ExtResource("6_vbfmk")
-theme_override_font_sizes/font_size = 16
-horizontal_alignment = 1
-vertical_alignment = 1
+script = ExtResource("14_manad")
 
 [node name="PlayerHeroPanel" type="Panel" parent="." unique_id=1723469268]
 custom_minimum_size = Vector2(135, 187)
