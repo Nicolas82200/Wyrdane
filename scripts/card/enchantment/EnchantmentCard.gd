@@ -1,21 +1,23 @@
-extends PanelContainer
+extends Control
+
+# Visuel d'une carte Enchantement ou Rituel posée dans sa zone (à droite du board).
+# Affiche le card art comme les unités sur le board ; le détail (nom, effet)
+# est disponible en tooltip au survol.
 
 var card_data: CardData
 var is_player: bool
 
-func _ready() -> void:
-	custom_minimum_size = Vector2(100, 150)
-	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
 func setup(new_data: CardData, new_is_player: bool) -> void:
 	card_data = new_data
 	is_player = new_is_player
-	if has_node("MarginContainer/VBox/NameLabel"):
-		$MarginContainer/VBox/NameLabel.text = card_data.card_name
-	if has_node("MarginContainer/VBox/DescLabel"):
-		$MarginContainer/VBox/DescLabel.text = card_data.description
-	if has_node("CostBadge"):
-		$CostBadge.text = str(card_data.cost)
-	if card_data.texture and has_node("MarginContainer/VBox/ArtRect"):
-		$MarginContainer/VBox/ArtRect.texture = card_data.texture
+	if card_data.texture:
+		$Art.texture = card_data.texture
+	$CostBadge.text = str(card_data.cost)
+	tooltip_text = "%s\n%s" % [card_data.card_name, card_data.description]
+	$TurnsLabel.visible = false
+
+# Compteur de tours restants (Rituels à durée limitée uniquement)
+func set_turns_left(turns: int) -> void:
+	$TurnsLabel.visible = turns > 0
+	if turns > 0:
+		$TurnsLabel.text = "%d tour%s" % [turns, "s" if turns > 1 else ""]

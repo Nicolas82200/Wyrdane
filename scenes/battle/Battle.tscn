@@ -34,6 +34,18 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ritualzone"]
+bg_color = Color(0.35, 0.12, 0.12, 0.22)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.35, 0.3, 0.45)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
 [node name="Battle" type="Control" unique_id=2071817443]
 layout_mode = 3
 anchors_preset = 15
@@ -202,10 +214,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -940.0
+offset_left = 810.0
 offset_top = -330.0
-offset_right = -810.0
-offset_bottom = -10.0
+offset_right = 940.0
+offset_bottom = -170.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -228,17 +240,115 @@ vertical_alignment = 1
 autowrap_mode = 3
 
 [node name="EnemyEnchantmentZone" type="VBoxContainer" parent="Board"]
-custom_minimum_size = Vector2(130, 320)
+custom_minimum_size = Vector2(130, 160)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -940.0
+offset_left = 810.0
 offset_top = -330.0
-offset_right = -810.0
+offset_right = 940.0
+offset_bottom = -170.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="EnemyRitualPanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 810.0
+offset_top = -160.0
+offset_right = 940.0
 offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ritualzone")
+
+[node name="ZoneLabel" type="Label" parent="Board/EnemyRitualPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.7, 0.35)
+theme_override_fonts/font = ExtResource("6_vbfmk")
+theme_override_font_sizes/font_size = 12
+text = "Rituels"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="EnemyRitualZone" type="VBoxContainer" parent="Board"]
+custom_minimum_size = Vector2(130, 150)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 810.0
+offset_top = -160.0
+offset_right = 940.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="PlayerRitualPanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 810.0
+offset_top = 10.0
+offset_right = 940.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ritualzone")
+
+[node name="ZoneLabel" type="Label" parent="Board/PlayerRitualPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.7, 0.35)
+theme_override_fonts/font = ExtResource("6_vbfmk")
+theme_override_font_sizes/font_size = 12
+text = "Rituels"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="PlayerRitualZone" type="VBoxContainer" parent="Board"]
+custom_minimum_size = Vector2(130, 150)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 810.0
+offset_top = 10.0
+offset_right = 940.0
+offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -251,9 +361,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -940.0
-offset_top = 10.0
-offset_right = -810.0
+offset_left = 810.0
+offset_top = 170.0
+offset_right = 940.0
 offset_bottom = 330.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -277,16 +387,16 @@ vertical_alignment = 1
 autowrap_mode = 3
 
 [node name="PlayerEnchantmentZone" type="VBoxContainer" parent="Board"]
-custom_minimum_size = Vector2(130, 320)
+custom_minimum_size = Vector2(130, 160)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -940.0
-offset_top = 10.0
-offset_right = -810.0
+offset_left = 810.0
+offset_top = 170.0
+offset_right = 940.0
 offset_bottom = 330.0
 grow_horizontal = 2
 grow_vertical = 2

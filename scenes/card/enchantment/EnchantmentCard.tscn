@@ -1,35 +1,16 @@
 [gd_scene format=3 uid="uid://b0ykvjjhyq4rw"]
 
 [ext_resource type="Script" uid="uid://b3yuw6ylj18kj" path="res://scripts/card/enchantment/EnchantmentCard.gd" id="1_lr356"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://cstppl282uxc6" path="res://assets/borders/undead-border-card.png" id="3_border"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.16, 0.16, 0.21, 0.59)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.35, 0.54, 0.88)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_highlight"]
-bg_color = Color(1, 0.9, 0.3, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.9, 0.3, 0)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rarity"]
-bg_color = Color(0.5, 0.5, 0.5, 0.59)
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cost"]
 bg_color = Color(0.05, 0.25, 0.55, 0.92)
@@ -43,58 +24,81 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[node name="EnchantmentCard" type="PanelContainer" unique_id=967650399]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_turns"]
+bg_color = Color(0.25, 0.05, 0.05, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.35, 0.3, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="EnchantmentCard" type="Control"]
 custom_minimum_size = Vector2(100, 150)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 100.0
+offset_bottom = 150.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 script = ExtResource("1_lr356")
 
-[node name="HighlightOverlay" type="Panel" parent="." unique_id=100000001]
-layout_mode = 2
+[node name="BorderFrameBlack" type="Panel" parent="."]
+layout_mode = 0
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 104.0
+offset_bottom = 154.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_highlight")
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
 
-[node name="RarityBar" type="Panel" parent="." unique_id=100000002]
-layout_mode = 2
+[node name="Art" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(100, 150)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 150.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rarity")
+expand_mode = 1
 
-[node name="CostBadge" type="Label" parent="." unique_id=100000003]
-layout_mode = 2
-theme_override_font_sizes/font_size = 11
+[node name="BorderFrame" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(100, 150)
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 150.0
+mouse_filter = 2
+texture = ExtResource("3_border")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="CostBadge" type="Label" parent="."]
+layout_mode = 0
+offset_left = 70.0
+offset_top = 4.0
+offset_right = 96.0
+offset_bottom = 26.0
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxFlat_cost")
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MarginContainer" type="MarginContainer" parent="." unique_id=100000004]
-layout_mode = 2
-theme_override_constants/margin_left = 5
-theme_override_constants/margin_top = 5
-theme_override_constants/margin_right = 5
-theme_override_constants/margin_bottom = 10
-
-[node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=100000005]
-layout_mode = 2
-theme_override_constants/separation = 3
-
-[node name="ArtRect" type="TextureRect" parent="MarginContainer/VBox" unique_id=100000006]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 1
-
-[node name="NameLabel" type="Label" parent="MarginContainer/VBox" unique_id=100000007]
-clip_contents = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 9
-text = "Nom"
+[node name="TurnsLabel" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 18.0
+offset_top = 126.0
+offset_right = 82.0
+offset_bottom = 146.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_turns")
+text = "2 tours"
 horizontal_alignment = 1
-
-[node name="DescLabel" type="Label" parent="MarginContainer/VBox" unique_id=100000008]
-layout_mode = 2
-theme_override_font_sizes/font_size = 8
-text = "Description"
-horizontal_alignment = 1
-autowrap_mode = 3
+vertical_alignment = 1
