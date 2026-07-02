@@ -24,6 +24,7 @@ flavour_text = "Sous l'éclipse, la magie adverse perd ses repères. Les morts, 
 texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"
+ritual_duration = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_ryzr5")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ij7qk")])
 rarity = "Legendary"
