@@ -23,6 +23,7 @@ flavour_text = "Le cercle appelle. Les morts n'ont pas appris à décliner."
 texture = ExtResource("3_texture")
 cost = 5
 card_type = "Ritual"
+ritual_duration = 3
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_mcgxf")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lq0u9")])
 rarity = "Epic"

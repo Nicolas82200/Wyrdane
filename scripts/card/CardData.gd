@@ -11,6 +11,8 @@ class_name CardData
 @export var race: Race.Type = Race.Type.UNDEAD
 @export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  
 @export_enum("Minion", "Instant", "Ritual", "Enchantment") var card_type: String = "Minion"
+# Rituels uniquement : nombre de tours actifs (0 = instantané, -1 = permanent)
+@export var ritual_duration: int = 0
 
 @export var attack: int = 0
 @export var health: int = 0

@@ -35,6 +35,14 @@ corner_detail = 20
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cq78b"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 10
+
 [node name="BoardMinion" type="Control" unique_id=1988522358]
 custom_minimum_size = Vector2(100, 150)
 layout_mode = 3
@@ -46,6 +54,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
 script = ExtResource("1_4o810")
+
+[node name="BorderFrameBlack" type="Panel" parent="."]
+layout_mode = 0
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 104.0
+offset_bottom = 154.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
 
 [node name="BorderFrameColor" type="Panel" parent="." unique_id=2082425329]
 custom_minimum_size = Vector2(100, 150)

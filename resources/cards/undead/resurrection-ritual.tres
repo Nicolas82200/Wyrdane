@@ -23,6 +23,7 @@ flavour_text = "Le cercle ne ferme jamais complètement. C'est voulu."
 texture = ExtResource("3_texture")
 cost = 5
 card_type = "Ritual"
+ritual_duration = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_mxb68")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_609d2")])
 rarity = "Epic"
