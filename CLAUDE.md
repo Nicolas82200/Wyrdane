@@ -12,32 +12,47 @@ Liste complète des cartes : voir `CARDS.md`.
 ## Lancer et tester le projet
 
 - Ouvrir dans Godot 4 (moteur "Forward Plus")
-- Scène principale : `scenes/battle/Battle.tscn`
-- Lancer avec F5 dans l'éditeur Godot
+- Scène principale (F5) : `scenes/loading/LoadingScreen.tscn` — charge toutes les cartes via `CardLibrary` puis ouvre le menu principal
+- Pour tester directement une bataille : lancer `scenes/battle/Battle.tscn` (F6). Attention : `CardLibrary` n'est alors pas pré-chargé, certains systèmes (deck IA notamment) utilisent un fallback
 - Pas de suite de tests automatisés pour l'instant — toute nouvelle fonctionnalité doit être vérifiée manuellement en jeu jusqu'à ce qu'un framework de test soit mis en place
+- Vérification syntaxique possible en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit`
 
 ## Structure du projet
 
 ```
 scenes/
-├── battle/          # Scène principale de bataille
-├── card/             # Affichage d'une carte
-├── hand/               # Gestion de la main du joueur
-├── hero/                 # Panneaux du héros
-├── minion/              # Affichage serviteur sur board
-└── graveyard/          # Affichage du cimetière
+├── battle/          # Scène de bataille + panneau choix Mana/Pioche
+├── card/            # Affichage d'une carte (+ cartes enchantement)
+├── deck/            # Deck builder et liste des decks
+├── graveyard/       # Vue du cimetière
+├── hand/            # Main du joueur
+├── loading/         # Écran de chargement (scène principale)
+├── mainMenu/        # Menu principal
+├── minion/          # Serviteur sur le board
+└── settings/        # Menus de réglages (audio, contrôles, graphismes)
 
 scripts/
-├── battle/          # Logique de bataille, board, lanes
-├── card/             # Logique de carte et drag&drop
-├── data/               # Structures de données (CardData, Keyword, etc.)
-├── effects/           # Système d'effets de cartes
-├── hand/                # Gestion et layout de la main
-├── minion/             # Logique serviteur
-└── hero/                # Logique héros
+├── EffectManager/   # Moteur d'exécution des effets de cartes
+├── audio/           # AudioManager (autoload)
+├── battle/          # Battle.gd — orchestrateur central de la bataille
+├── card/            # CardData, Card (UI), CardEffect, styles
+├── data/            # Énumérations (EffectType, Keyword, Race, TargetType, TriggerType...)
+├── deck/            # DeckBuilder, DeckData, DeckList, DeckManager (autoload)
+├── graveyard/       # Cimetière (logique + vue)
+├── hand/            # Gestion et layout de la main
+├── hero/            # Héros et panneaux héros
+├── loading/         # CardLibrary (autoload) + écran de chargement
+├── mainMenu/        # Menu principal
+├── minion/          # Minion (logique) et BoardMinion (visuel)
+├── settings/        # Menus de réglages
+└── systems/         # Systèmes de jeu (AISystem, CombatSystem, TurnSystem, DeathSystem...)
 ```
 
-Autoloads globaux (voir `project.godot`) : `AudioManager`, `DeckManager`, `TooltipData`, `CardLibrary`.
+Autoloads globaux (voir `project.godot`) :
+- `AudioManager` — `scripts/audio/AudioManager.gd`
+- `DeckManager` — `scripts/deck/DeckManager.gd`
+- `TooltipData` — `scripts/systems/TooltipData.gd`
+- `CardLibrary` — `scripts/loading/CardLibrary.gd`
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
@@ -55,18 +70,21 @@ Autoloads globaux (voir `project.godot`) : `AudioManager`, `DeckManager`, `Toolt
 ### Triggers (déclencheurs d'effets)
 `Invocation`, `Dernier Souffle`, `Assaut`, `Blessure`, `Éveil` (début de tour), `Déclin` (fin de tour), `Ralliement` (unité alliée arrive), `Deuil` (unité alliée meurt), `Sortilège` (sort allié lancé), `Sacrifice`, `Exécution` (unité ennemie meurt), `Carnage` (n'importe quelle unité meurt).
 
-Convention attendue pour les noms de fonctions GDScript associées aux triggers (à confirmer/adapter si une convention existe déjà dans `scripts/effects/`) : `_on_invocation()`, `_on_last_breath()`, etc. **Toujours vérifier le pattern existant dans `scripts/effects/` avant d'en inventer un nouveau.**
+Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/data/TriggerType.gd`) et sont déclenchés par nom via `EffectManager.trigger_effects(battle, minion, "OnAwaken")` ou `TriggerSystem.fire("OnSummon", minion, is_player)`. Les effets eux-mêmes sont **data-driven** : chaque carte (`CardData.effects`) porte des ressources `CardEffect` (effect_id, cible, valeur) exécutées par `EffectManager.execute_effect()` — rien n'est codé en dur dans les serviteurs. **Avant d'ajouter un effet, vérifier si son `effect_id` existe déjà dans le `match` de `EffectManager.gd`.**
 
 ### Mots-clés
 `REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `AILES NOIRES`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
 
-### Mécaniques spéciales — Mort-Vivant (race actuellement implémentée dans CARDS.md)
+### Mécaniques spéciales — Mort-Vivant
 - **Infection** — perte de 1 HP au début du tour adverse, persiste jusqu'à mort
 - **Mort-rage** — se déclenche une seule fois, quand le serviteur passe sous 50% HP max
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
 
-Races prévues mais pas encore détaillées en cartes : Humain, Elfe, Nain, Démon (thèmes listés dans `README.md`).
+Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`) et **Humain** (`human/`, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...). Races prévues : Elfe, Nain, Démon.
+
+### IA adverse
+L'adversaire est piloté par `scripts/systems/AISystem.gd` : il a son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana. Son tour se joue automatiquement après celui du joueur (branché dans `TurnSystem.end_turn()`) en 3 phases : ressource (mana ou pioche), pose de serviteurs, attaques (provocation > létal héros > trade favorable). Pendant son tour, `battle.enemy_turn_active` bloque les inputs du joueur. Limite actuelle : l'IA ne joue que des serviteurs (pas de sorts/rituels/enchantements).
 
 ## Décisions de design UI
 
@@ -122,11 +140,12 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-IA adverse, mode campagne, collection de cartes, construction de deck, effets avancés, multijoueur, animations shaders — aucun de ces éléments n'est encore implémenté.
+- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain), système d'effets/triggers/enchantements/auras
+- ⬜ À faire : écran de fin de partie (actuellement `game_over` bloque juste les inputs), sorts/rituels pour l'IA, mode campagne, collection de cartes, multijoueur, animations shaders, tests automatisés
 
 ## Notes pour les agents
 
-- Avant d'implémenter une nouvelle carte : lire son entrée exacte dans `CARDS.md`, identifier son trigger, vérifier s'il existe déjà une carte avec un effet similaire dans `scripts/effects/` pour réutiliser le pattern
+- Avant d'implémenter une nouvelle carte : lire son entrée exacte dans `CARDS.md`, identifier son trigger, vérifier s'il existe déjà un `effect_id` similaire dans `scripts/EffectManager/EffectManager.gd` pour réutiliser le pattern, et créer la ressource `.tres` dans `resources/cards/<race>/`
 - Ne pas inventer de nouveau mot-clé ou trigger sans qu'il soit d'abord ajouté à `README.md`
 - Le projet est en français dans sa documentation et son contenu visible par le joueur (noms de cartes, effets, UI, tooltips) — garder cette langue pour tout ce qui est visible en jeu. Le code (variables, fonctions) peut rester en anglais sauf convention contraire déjà en place. **Seuls les noms de branches et les commits sont toujours en anglais** (voir Workflow Git ci-dessus).
 
