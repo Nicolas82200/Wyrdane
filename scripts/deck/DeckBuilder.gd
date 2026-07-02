@@ -8,6 +8,12 @@ const MAX_COPIES := 4
 # [FIX] Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
+# Taille des cartes dans la grille de collection
+const GRID_CARD_SCALE       := 0.9
+const GRID_CARD_HOVER_SCALE := 1.05
+const GRID_WRAPPER_SIZE     := Vector2(236, 354)
+const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
+
 @onready var card_grid:        GridContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
@@ -39,8 +45,6 @@ var _filter_cost:       int    = -1
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
 func _ready() -> void:
-	_style_button(save_button)
-	_style_button(back_button)
 	save_button.pressed.connect(_on_save)
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
@@ -101,8 +105,8 @@ func _load_next_batch(generation: int) -> void:
 
 func _add_card_to_grid(card_data: CardData) -> void:
 	var wrapper := Control.new()
-	wrapper.custom_minimum_size = Vector2(200, 300)
-	wrapper.size                = Vector2(200, 300)
+	wrapper.custom_minimum_size = GRID_WRAPPER_SIZE
+	wrapper.size                = GRID_WRAPPER_SIZE
 	wrapper.clip_contents       = false
 	wrapper.mouse_filter        = Control.MOUSE_FILTER_STOP
 	card_grid.add_child(wrapper)
@@ -110,7 +114,7 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	var card_visual: Card = CARD_SCENE.instantiate() as Card
 	card_visual.set_non_interactive()
 	card_visual.mouse_filter  = Control.MOUSE_FILTER_IGNORE
-	card_visual.scale         = Vector2(0.75, 0.75)
+	card_visual.scale         = Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE)
 	card_visual.pivot_offset  = Vector2(0, 0)
 	card_visual.position      = Vector2(0, 0)
 	wrapper.add_child(card_visual)
@@ -129,22 +133,28 @@ func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
 	_hovering = true
+	wrapper.z_index = 2  # passe au-dessus des cartes voisines pendant le zoom
 	var tween := create_tween()
-	tween.tween_property(card_visual, "scale", Vector2(0.80, 0.80), 0.12)\
+	tween.tween_property(card_visual, "scale",
+		Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var tooltip_x: float = wrapper.global_position.x + wrapper.size.x + 15
+	var tooltip_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE + 12
 	var tooltip_y: float = wrapper.global_position.y
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
 		return
-	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y)
+	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
 
 func _on_card_wrapper_exited(card_visual: Card) -> void:
 	_hovered_wrapper = null
 	_hovering = false
+	var wrapper := card_visual.get_parent() as Control
+	if wrapper:
+		wrapper.z_index = 0
 	var tween := create_tween()
-	tween.tween_property(card_visual, "scale", Vector2(0.75, 0.75), 0.12)\
+	tween.tween_property(card_visual, "scale",
+		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_hide_keyword_tooltips()
 
@@ -292,36 +302,10 @@ func _on_back() -> void:
 	DeckManager.save_decks()
 	queue_free()
 
-# ─── Style boutons ────────────────────────────────────────────────────────────
-
-func _style_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color                   = Color("1a1a2eaa")
-	normal.border_width_left          = 2
-	normal.border_width_right         = 2
-	normal.border_width_top           = 2
-	normal.border_width_bottom        = 2
-	normal.border_color               = Color("8b6914")
-	normal.corner_radius_top_left     = 6
-	normal.corner_radius_top_right    = 6
-	normal.corner_radius_bottom_left  = 6
-	normal.corner_radius_bottom_right = 6
-	btn.add_theme_stylebox_override("normal", normal)
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color     = Color("2a2a4ecc")
-	hover.border_color = Color("c9a227")
-	btn.add_theme_stylebox_override("hover", hover)
-	var pressed_style := normal.duplicate() as StyleBoxFlat
-	pressed_style.bg_color     = Color("0d0d1eee")
-	pressed_style.border_color = Color("f0c040")
-	btn.add_theme_stylebox_override("pressed", pressed_style)
-	btn.add_theme_color_override("font_color",       Color("e8d5a3"))
-	btn.add_theme_color_override("font_hover_color", Color("fff5d6"))
-	btn.add_theme_font_size_override("font_size", 16)
-
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
-func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
+func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
+		wrapper: Control = null) -> void:
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
@@ -329,6 +313,14 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 	_tooltip_layer.layer = 20
 	add_child(_tooltip_layer)
 	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
+
+	# Tooltip de race — centré sous la carte
+	var race_panel: Control = null
+	if wrapper != null and TooltipData.RACE_DESCRIPTIONS.has(card_data.race):
+		race_panel = TooltipData.make_race_tooltip(TooltipData.RACE_DESCRIPTIONS[card_data.race])
+		race_panel.position = Vector2(-9999, -9999)
+		_tooltip_layer.add_child(race_panel)
+
 	await get_tree().process_frame
 	if not _hovering:
 		_hide_keyword_tooltips()
@@ -339,6 +331,15 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 		panel.global_position = Vector2(base_x, base_y)
 		base_y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
+
+	if race_panel != null and is_instance_valid(race_panel) and is_instance_valid(wrapper):
+		# Calé sous le bord visuel de la carte agrandie (pivot en haut-gauche)
+		var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
+		race_panel.global_position = Vector2(
+			wrapper.global_position.x + card_size.x / 2.0 - race_panel.size.x / 2.0,
+			wrapper.global_position.y + card_size.y + 4
+		)
+		_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:
 	for tooltip in _keyword_tooltips:

@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://c53ofvbh8ht3r"]
 
 [ext_resource type="Script" uid="uid://cb6pyg3reh2yy" path="res://scripts/deck/DeckList.gd" id="1_hgole"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="2_theme"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_font"]
+[ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="4_italic"]
 
 [node name="DeckList" type="Control" unique_id=1385171376]
 layout_mode = 3
@@ -9,6 +12,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("2_theme")
 script = ExtResource("1_hgole")
 
 [node name="Background" type="ColorRect" parent="." unique_id=200000001]
@@ -28,39 +32,71 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="CenterContainer" unique_id=200000003]
-custom_minimum_size = Vector2(600, 0)
+[node name="Panel" type="PanelContainer" parent="CenterContainer" unique_id=200000010]
 layout_mode = 2
-theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="CenterContainer/VBox" unique_id=200000004]
+[node name="Margin" type="MarginContainer" parent="CenterContainer/Panel" unique_id=200000011]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel/Margin" unique_id=200000003]
+custom_minimum_size = Vector2(680, 0)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000004]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 36
 text = "Mes Decks"
 horizontal_alignment = 1
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/VBox" unique_id=200000005]
-custom_minimum_size = Vector2(600, 400)
+[node name="Subtitle" type="Label" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000012]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.6)
+theme_override_fonts/font = ExtResource("4_italic")
+theme_override_font_sizes/font_size = 16
+text = "Choisis le deck qui t'accompagnera au combat"
+horizontal_alignment = 1
+
+[node name="SepTop" type="HSeparator" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000013]
 layout_mode = 2
 
-[node name="DecksContainer" type="VBoxContainer" parent="CenterContainer/VBox/ScrollContainer" unique_id=200000006]
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000005]
+custom_minimum_size = Vector2(680, 420)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="DecksContainer" type="VBoxContainer" parent="CenterContainer/Panel/Margin/VBox/ScrollContainer" unique_id=200000006]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
-
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/VBox" unique_id=200000007]
-layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="BackButton" type="Button" parent="CenterContainer/VBox/ButtonRow" unique_id=200000008]
+[node name="SepBottom" type="HSeparator" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000014]
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000007]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="CenterContainer/Panel/Margin/VBox/ButtonRow" unique_id=200000008]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Retour"
+text = "← Retour"
 
-[node name="CreateButton" type="Button" parent="CenterContainer/VBox/ButtonRow" unique_id=200000009]
+[node name="CreateButton" type="Button" parent="CenterContainer/Panel/Margin/VBox/ButtonRow" unique_id=200000009]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "+ Nouveau Deck"

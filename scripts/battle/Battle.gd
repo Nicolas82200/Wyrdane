@@ -13,6 +13,7 @@ const _GraveyardSystemScript = preload("res://scripts/systems/GraveyardSystem.gd
 const _AnimationSystemScript = preload("res://scripts/systems/AnimationSystem.gd")
 const _HeroSystemScript      = preload("res://scripts/systems/HeroSystem.gd")
 const _TargetingSystemScript = preload("res://scripts/systems/TargetingSystem.gd")
+const _AISystemScript        = preload("res://scripts/systems/AISystem.gd")
 
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 const CARD_BACK          = preload("res://assets/card_back/card-back.png")
@@ -27,7 +28,7 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 # [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
-@onready var mana_label: Label                         = $ManaLabel
+@onready var mana_display: ManaDisplay                 = $ManaDisplay
 @onready var end_turn_button: Button                   = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
@@ -59,6 +60,7 @@ var graveyard_system    := _GraveyardSystemScript.new()
 var animation_system    := _AnimationSystemScript.new()
 var hero_system         := _HeroSystemScript.new()
 var targeting_system    := _TargetingSystemScript.new()
+var ai_system           := _AISystemScript.new()
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
@@ -81,6 +83,7 @@ var max_mana: int                = 1
 var player_hero: Hero
 var enemy_hero: Hero
 var game_over: bool              = false
+var enemy_turn_active: bool      = false
 var _is_dragging_card: bool      = false
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
@@ -96,8 +99,6 @@ func _ready() -> void:
 func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
-	var enemy_card: CardData = load("res://resources/cards/undead/putrefied-leviathan.tres") as CardData
-	enemy_minions.append(Minion.new(enemy_card, false, ROW_FRONT))
 
 func _init_systems() -> void:
 	hand.can_play_check      = can_afford_card
@@ -117,6 +118,7 @@ func _init_systems() -> void:
 	board_visual_system.init(self)
 	death_system.init(self)
 	targeting_system.init(self)
+	ai_system.init(self)
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
@@ -148,6 +150,7 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
+	ai_system.setup()
 	await deck_system.start_game()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
@@ -190,7 +193,7 @@ func trigger_effects(minion: Minion, trigger_name: String) -> void:
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 
 func update_mana_ui() -> void:
-	mana_label.text = "%d/%d" % [mana, max_mana]
+	mana_display.set_mana(mana, max_mana)
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost
@@ -261,7 +264,7 @@ func destroy_minion(target: Minion) -> void:
 
 # [FIX] _on_card_played délègue la validation et l'état à CardSystem
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or card_data.cost > mana:
+	if game_over or enemy_turn_active or card_data.cost > mana:
 		return
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
@@ -284,7 +287,7 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over:
+	if game_over or enemy_turn_active:
 		return
 	turn_system.end_turn()
 

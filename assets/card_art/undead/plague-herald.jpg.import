@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bpyaioaeyxpj3"
-path="res://.godot/imported/zombie-rider.jpg-0dd6e0753403cebd6b7c472b3c2b1f87.ctex"
+uid="uid://byxmqsttb384h"
+path="res://.godot/imported/plague-herald.jpg-2f41140487d5ee418326f4aca40fa803.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/undead/zombie-rider.jpg"
-dest_files=["res://.godot/imported/zombie-rider.jpg-0dd6e0753403cebd6b7c472b3c2b1f87.ctex"]
+source_file="res://assets/card_art/undead/plague-herald.jpg"
+dest_files=["res://.godot/imported/plague-herald.jpg-2f41140487d5ee418326f4aca40fa803.ctex"]
 
 [params]
 

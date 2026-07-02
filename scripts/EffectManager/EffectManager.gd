@@ -8,7 +8,7 @@ func execute_effect(
 	selected_target: Minion = null
 ) -> void:
 	if source_minion != null and source_minion.card_data != null:
-		battle.card_popup_system.show_card_popup(source_minion.card_data)
+		battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
 	match effect.effect_id:
 		"Damage":           await _damage(battle, source_minion, effect, selected_target)
 		"Heal":             _heal(battle, source_minion, effect, selected_target)

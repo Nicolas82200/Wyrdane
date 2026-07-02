@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://5ueiet5a68ib"
-path="res://.godot/imported/the-plague-foctor.jpg-096e2179ecbb105d6f2f38b0ba913905.ctex"
+uid="uid://vsw7vyo40ct"
+path="res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/card_art/undead/the-plague-foctor.jpg"
-dest_files=["res://.godot/imported/the-plague-foctor.jpg-096e2179ecbb105d6f2f38b0ba913905.ctex"]
+source_file="res://assets/card_art/undead/deadrider.jpg"
+dest_files=["res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.ctex"]
 
 [params]
 
