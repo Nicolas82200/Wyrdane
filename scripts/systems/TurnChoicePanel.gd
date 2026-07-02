@@ -6,18 +6,23 @@ signal draw_selected
 signal mana_selected
 
 const HOVER_SCALE := Vector2(1.06, 1.06)
+const PEEK_ALPHA := 0.12
 
 @onready var background: ColorRect = $Background
 @onready var draw_button: Button = %DrawButton
 @onready var mana_button: Button = %ManaButton
+@onready var peek_button: Button = %PeekButton
 
 # Un tween de scale par carte, pour ne pas cumuler hover + entrée
 var _scale_tweens: Dictionary = {}
+var _peek_tween: Tween
 
 func _ready() -> void:
 	hide()
 	_setup_card(draw_button, _on_draw_button_pressed)
 	_setup_card(mana_button, _on_mana_button_pressed)
+	peek_button.mouse_entered.connect(_set_peek.bind(true))
+	peek_button.mouse_exited.connect(_set_peek.bind(false))
 
 func _setup_card(button: Button, on_pressed: Callable) -> void:
 	button.pressed.connect(on_pressed)
@@ -71,6 +76,20 @@ func _on_card_mouse_exited(button: Button) -> void:
 	_new_scale_tween(button).tween_property(button, "scale", Vector2.ONE, 0.12) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
+# ─── Voir ma main ─────────────────────────────────────────────────────────────
+
+# Tant que le bouton est survolé, le panneau s'estompe pour laisser voir la main
+func _set_peek(peeking: bool) -> void:
+	if not visible or draw_button.disabled:
+		return
+	if _peek_tween and _peek_tween.is_valid():
+		_peek_tween.kill()
+	if peeking:
+		AudioManager.play(AudioManager.HOVER)
+	_peek_tween = create_tween()
+	_peek_tween.tween_property(self, "modulate:a", PEEK_ALPHA if peeking else 1.0, 0.18) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 # ─── Sélection ────────────────────────────────────────────────────────────────
 
 func _on_draw_button_pressed() -> void:
@@ -82,6 +101,8 @@ func _on_mana_button_pressed() -> void:
 func _confirm_choice(chosen: Button, selected_signal: Signal) -> void:
 	draw_button.disabled = true
 	mana_button.disabled = true
+	if _peek_tween and _peek_tween.is_valid():
+		_peek_tween.kill()
 	AudioManager.play(AudioManager.BUTTON)
 	var other: Button = mana_button if chosen == draw_button else draw_button
 	chosen.pivot_offset = chosen.size / 2.0
