@@ -33,6 +33,9 @@ func get_targeting_popup_tip() -> Vector2:
 		screen_pos.y + _persistent_card.size.y / 2.0
 	)
 
+# Awaitable : rend la main dès que la popup de CETTE carte est arrivée à
+# l'emplacement d'affichage, pour que l'appelant déclenche son effet au même
+# moment. La popup reste ensuite affichée puis disparaît en arrière-plan.
 func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 	if card_data == null:
 		return
@@ -45,18 +48,24 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		if visual != null and is_instance_valid(visual):
 			origin = visual.get_screen_position() + visual.size / 2.0
 			has_origin = true
-	_popup_queue.append({"card_data": card_data, "origin": origin, "has_origin": has_origin})
+	var entry := {"card_data": card_data, "origin": origin, "has_origin": has_origin, "shown": false}
+	_popup_queue.append(entry)
 	if not _popup_active:
 		_process_popup_queue()
+	while not entry["shown"]:
+		await battle.get_tree().process_frame
 
 func _process_popup_queue() -> void:
 	_popup_active = true
 	while not _popup_queue.is_empty():
 		var entry: Dictionary = _popup_queue.pop_front()
-		await _display_popup(entry["card_data"], entry["origin"], entry["has_origin"])
+		await _display_popup(entry)
 	_popup_active = false
 
-func _display_popup(card_data: CardData, origin: Vector2, has_origin: bool) -> void:
+func _display_popup(entry: Dictionary) -> void:
+	var card_data: CardData = entry["card_data"]
+	var origin: Vector2 = entry["origin"]
+	var has_origin: bool = entry["has_origin"]
 	var card: Card = CARD_SCENE.instantiate()
 	_popup_layer.add_child(card)
 	card.set_non_interactive()
@@ -90,6 +99,9 @@ func _display_popup(card_data: CardData, origin: Vector2, has_origin: bool) -> v
 		var settle = card.create_tween()
 		settle.tween_property(card, "scale", Vector2(1.0, 1.0), 0.08)
 		await settle.finished
+
+	# La popup est en place : libère l'appelant en attente dans show_card_popup
+	entry["shown"] = true
 
 	await battle.get_tree().create_timer(DISPLAY_DURATION).timeout
 
