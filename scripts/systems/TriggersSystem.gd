@@ -56,6 +56,7 @@ func _fire_on_enchantments(ctx: TriggerContext) -> void:
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
 			await _execute_enchantment_effects(card_data, is_player, ctx)
+			await battle.pace_actions()
 
 func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_owner_is_player: bool) -> bool:
 	for trigger in card_data.trigger_types:

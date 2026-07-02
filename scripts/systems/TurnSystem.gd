@@ -42,13 +42,17 @@ func _begin_player_turn() -> void:
 	battle.turn_choice_panel.show_choice()
 
 func _apply_infection_damage() -> void:
+	var any_infected := false
 	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
 		if minion.infected:
+			any_infected = true
 			var dealt: int = minion.take_damage(1)
 			if dealt > 0 and not minion.is_dead():
 				await battle.effect_manager.trigger_effects(battle, minion, "OnDamaged")
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
+	if any_infected:
+		await battle.pace_actions()
 
 func choose_draw() -> void:
 	draw_card()

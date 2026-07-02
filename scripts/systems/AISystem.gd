@@ -4,7 +4,6 @@ class_name AISystem
 # IA adverse : gère son propre deck, sa main et son mana,
 # puis joue son tour en 3 phases (ressource, pose, attaque).
 
-const ACTION_DELAY := 0.45
 const DECK_SIZE    := 20
 const MAX_COPIES   := 2
 const MANA_CAP     := 10
@@ -34,6 +33,7 @@ func take_turn() -> void:
 	battle.enemy_turn_active = true
 	battle.end_turn_button.disabled = true
 	_resource_phase()
+	await _pause()
 	await _play_cards_phase()
 	await _attack_phase()
 	battle.end_turn_button.disabled = false
@@ -196,4 +196,4 @@ func _ready_attack_total() -> int:
 	return total
 
 func _pause() -> void:
-	await battle.get_tree().create_timer(ACTION_DELAY).timeout
+	await battle.pace_actions()

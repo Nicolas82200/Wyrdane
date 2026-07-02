@@ -468,6 +468,7 @@ func trigger_effects(battle, minion: Minion, trigger_name: String) -> void:
 		return
 	for effect in minion.card_data.effects:
 		await execute_effect(battle, minion, effect)
+	await battle.pace_actions()
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:
 	if source_minion != null:
