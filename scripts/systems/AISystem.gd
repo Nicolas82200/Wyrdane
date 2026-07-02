@@ -33,6 +33,13 @@ func take_turn() -> void:
 	battle.enemy_turn_active = true
 	battle.end_turn_button.disabled = true
 	_resource_phase()
+	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
+	# son tour, Déclin pour le camp adverse
+	for minion in battle.enemy_minions.duplicate():
+		await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken")
+	await battle.trigger_system.fire("OnAwaken", null, false)
+	for minion in battle.player_minions.duplicate():
+		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
 	await _play_cards_phase()
 	await _attack_phase()
 	battle.end_turn_button.disabled = false

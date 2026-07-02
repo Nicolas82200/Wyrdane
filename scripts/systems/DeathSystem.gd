@@ -67,9 +67,10 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 	for minion in same_camp:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnGrief")
 
-	# Mort-rage (Serviteur) + Carnage (Rituel/Enchantement) : un ENNEMI vient de mourir
+	# Carnage (Rituel/Enchantement) : un ENNEMI vient de mourir
+	# (Mort-rage n'est PAS lié à la mort : il se déclenche via notify_damaged
+	# quand le serviteur passe sous 50% de ses HP max)
 	for minion in other_camp:
-		await battle.effect_manager.trigger_effects(battle, minion, "OnDeathRage")
 		await battle.effect_manager.trigger_effects(battle, minion, "OnCarnage")
 
 	await battle.trigger_system.fire("OnGrief", null, dead_were_player)

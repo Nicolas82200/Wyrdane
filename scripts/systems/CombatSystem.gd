@@ -34,14 +34,14 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	if defender.has_keyword(Keyword.Type.DEADLY_POISON):
 		attacker.health = 0
 
-	if dealt_to_attacker > 0 and not attacker.is_dead():
-		await battle.effect_manager.trigger_effects(battle, attacker, "OnDamaged")
+	if dealt_to_attacker > 0:
+		await battle.effect_manager.notify_damaged(battle, attacker)
 	if dealt_to_defender > 0 and not defender.is_dead():
-		await battle.effect_manager.trigger_effects(battle, defender, "OnDamaged")
+		await battle.effect_manager.notify_damaged(battle, defender)
 		if defender.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):
 			var counter: int = attacker.take_damage(defender.attack)
-			if counter > 0 and not attacker.is_dead():
-				await battle.effect_manager.trigger_effects(battle, attacker, "OnDamaged")
+			if counter > 0:
+				await battle.effect_manager.notify_damaged(battle, attacker)
 	
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
 		battle.hero_system.get_owner_hero(attacker).heal(dealt_to_defender)

@@ -30,6 +30,7 @@ enum Type {
 	DAMAGE_ALL_MINIONS = 26,
 	RETURN_FROM_GRAVE  = 27,
 	RESURRECT_LAST     = 28,
+	GRANT_KEYWORD      = 29,
 }
 static func get_name(effect_type: int) -> String:
 	match effect_type:
@@ -62,6 +63,7 @@ static func get_name(effect_type: int) -> String:
 		Type.DAMAGE_ALL_MINIONS: return "DamageAllMinions"
 		Type.RETURN_FROM_GRAVE:  return "ReturnFromGrave"
 		Type.RESURRECT_LAST:     return "ResurrectLast"
+		Type.GRANT_KEYWORD:      return "GrantKeyword"
 		_:                       return "Unknown"
 static func from_name(effect_name: String) -> int:
 	match effect_name:
@@ -94,4 +96,5 @@ static func from_name(effect_name: String) -> int:
 		"DamageAllMinions": return Type.DAMAGE_ALL_MINIONS
 		"ReturnFromGrave":  return Type.RETURN_FROM_GRAVE
 		"ResurrectLast":    return Type.RESURRECT_LAST
+		"GrantKeyword":     return Type.GRANT_KEYWORD
 		_:                  return Type.DAMAGE

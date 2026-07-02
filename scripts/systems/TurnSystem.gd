@@ -20,9 +20,11 @@ func end_turn() -> void:
 	battle.trigger_system.tick_enchantment_durations(false)
 
 	await _apply_infection_damage()
+	battle.temp_effect_system.expire_end_of_player_turn()
 	await battle.ai_system.take_turn()
 	if battle.game_over:
 		return
+	battle.temp_effect_system.expire_end_of_enemy_turn()
 	await _begin_player_turn()
 
 func _begin_player_turn() -> void:
@@ -58,8 +60,8 @@ func _apply_infection_damage() -> void:
 		if minion.infected:
 			any_infected = true
 			var dealt: int = minion.take_damage(1)
-			if dealt > 0 and not minion.is_dead():
-				await battle.effect_manager.trigger_effects(battle, minion, "OnDamaged")
+			if dealt > 0:
+				await battle.effect_manager.notify_damaged(battle, minion)
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 	if any_infected:

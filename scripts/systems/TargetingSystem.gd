@@ -127,25 +127,21 @@ func _show_valid_targets(card_data: CardData) -> void:
 	var target_str: String = card_data.effects[0].target
 	match target_str:
 		"EnemyMinion":
-			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR)
+			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
 		"AllyMinion":
-			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR)
+			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR, card_data)
 		"AnyMinion":
-			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR)
-			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR)
+			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
+			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR, card_data)
 		"EnemyHero":
 			_highlight_hero(false)
 		"OwnerHero":
 			_highlight_hero(true)
 
-func _highlight_side(minions: Array[Minion], color: Color) -> void:
-	var has_taunt := minions.any(func(m: Minion) -> bool:
-		return m.has_keyword(Keyword.Type.TAUNT)
-	)
+func _highlight_side(minions: Array[Minion], color: Color, card_data: CardData) -> void:
 	for minion in minions:
-		if has_taunt and not minion.has_keyword(Keyword.Type.TAUNT):
-			continue
-		_highlight_minion(minion, color)
+		if _is_valid_target_minion(minion, card_data):
+			_highlight_minion(minion, color)
 
 func _highlight_minion(minion: Minion, color: Color) -> void:
 	var visual: BoardMinion = battle.board_visual_system.find_visual(minion) as BoardMinion
@@ -171,34 +167,49 @@ func _clear_highlights() -> void:
 			node.modulate = Color.WHITE
 	_highlighted.clear()
 
+# Rempart ne restreint que les ATTAQUES (SelectionSystem/CombatSystem),
+# pas le ciblage des sorts et effets.
 func _is_valid_target_minion(minion: Minion, card_data: CardData) -> bool:
 	if card_data == null or card_data.effects.is_empty():
 		return false
-	var t := card_data.effects[0].target
-	match t:
+	var effect: CardEffect = card_data.effects[0]
+	match effect.target:
 		"EnemyMinion":
-			if not minion.owner_is_player:
-				return _check_taunt(minion, battle.enemy_minions)
-			return false
-		"AllyMinion":
 			if minion.owner_is_player:
-				return _check_taunt(minion, battle.player_minions)
-			return false
-		"AnyMinion":
-			var enemies :Array[Minion]= battle.enemy_minions
-			var allies  :Array[Minion]= battle.player_minions
+				return false
+		"AllyMinion":
 			if not minion.owner_is_player:
-				return _check_taunt(minion, enemies)
-			else:
-				return _check_taunt(minion, allies)
+				return false
+		"AnyMinion":
+			pass
 		_:
 			return false
+	return _matches_effect_conditions(minion, effect)
 
-func _check_taunt(minion: Minion, side: Array[Minion]) -> bool:
-	# S'il existe un Rempart dans ce camp, seuls les Remparts sont valides
-	var has_taunt := side.any(func(m: Minion) -> bool:
-		return m.has_keyword(Keyword.Type.TAUNT)
-	)
-	if has_taunt:
-		return minion.has_keyword(Keyword.Type.TAUNT)
+# Conditions déclarées sur l'effet : race, rangée, seuils de HP/ATK
+# ("un serviteur ennemi de 3 HP ou moins", "un Mort-Vivant allié"...)
+func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
+	if not effect.race_filter.is_empty() \
+			and minion.card_data.race != Race.from_string(effect.race_filter):
+		return false
+	if not effect.row_filter.is_empty() and minion.board_row != effect.row_filter:
+		return false
+	if effect.target_max_hp >= 0 and minion.health > effect.target_max_hp:
+		return false
+	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
+		return false
 	return true
+
+# Une carte à ciblage obligatoire est-elle jouable en l'état du plateau ?
+func has_any_valid_target(card_data: CardData) -> bool:
+	if card_data == null or card_data.effects.is_empty():
+		return true
+	match card_data.effects[0].target:
+		"EnemyMinion", "AllyMinion", "AnyMinion":
+			for minion in battle.player_minions + battle.enemy_minions:
+				if _is_valid_target_minion(minion, card_data):
+					return true
+			return false
+		_:
+			# EnemyHero/OwnerHero et cibles non sélectionnées : toujours disponibles
+			return true
