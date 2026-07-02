@@ -553,16 +553,20 @@ func notify_damaged(battle, minion: Minion) -> void:
 
 func trigger_effects(battle, minion: Minion, trigger_name: String) -> void:
 	if minion == null:
-		return
-	var trigger_found := false
+		return false
 	for trigger in minion.card_data.trigger_types:
 		if trigger.type == trigger_name:
-			trigger_found = true
-			break
-	if not trigger_found:
-		return
+			return true
+	return false
+
+# Retourne true si le trigger a réellement déclenché des effets,
+# pour que l'appelant puisse espacer les actions (pacing) si besoin
+func trigger_effects(battle, minion: Minion, trigger_name: String) -> bool:
+	if not has_trigger(minion, trigger_name):
+		return false
 	for effect in minion.card_data.effects:
 		await execute_effect(battle, minion, effect)
+	return true
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:
 	if source_minion != null:

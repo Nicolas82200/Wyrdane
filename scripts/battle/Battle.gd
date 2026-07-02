@@ -24,6 +24,8 @@ const MAX_MINIONS_PER_ROW := 10
 const BOARD_MINION_SIZE  := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
+const ACTION_PACE                 := 1.0
+const ATTACK_PACE                 := 0.5
 
 # [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
@@ -34,6 +36,8 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 @onready var player_back_container: Control            = $Board/PlayerBackLine
 @onready var enemy_front_container: Control            = $Board/EnemyFrontLine
 @onready var enemy_back_container: Control             = $Board/EnemyBackLine
+@onready var player_enchantment_zone: VBoxContainer    = $Board/PlayerEnchantmentZone
+@onready var enemy_enchantment_zone: VBoxContainer     = $Board/EnemyEnchantmentZone
 @onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
 @onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
 @onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
@@ -189,6 +193,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func trigger_effects(minion: Minion, trigger_name: String) -> void:
 	effect_manager.trigger_effects(self, minion, trigger_name)
+
+# Pause commune entre deux actions visibles (effets déclenchés, enchantements,
+# infections, actions de l'IA) pour laisser le temps de lire ce qui se passe.
+# À insérer uniquement ENTRE deux actions : jamais avant la première ni après
+# la dernière — une action isolée ne doit subir aucun délai
+func pace_actions(delay: float = ACTION_PACE) -> void:
+	if game_over:
+		return
+	await get_tree().create_timer(delay).timeout
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 

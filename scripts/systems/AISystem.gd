@@ -4,7 +4,6 @@ class_name AISystem
 # IA adverse : gère son propre deck, sa main et son mana,
 # puis joue son tour en 3 phases (ressource, pose, attaque).
 
-const ACTION_DELAY := 0.45
 const DECK_SIZE    := 20
 const MAX_COPIES   := 2
 const MANA_CAP     := 10
@@ -56,29 +55,36 @@ func _resource_phase() -> void:
 	for minion in battle.enemy_minions:
 		minion.refresh_attacks()
 
+# Pause AVANT chaque action sauf la première : une action isolée reste fluide
 func _play_cards_phase() -> void:
+	var played := false
 	while not battle.game_over:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return
+		if played:
+			await battle.pace_actions()
 		var row: String = _pick_row_for(card)
 		hand.erase(card)
 		mana -= card.cost
 		await battle.board_system.summon_minion(card, false, row)
-		await _pause()
+		played = true
 
 func _attack_phase() -> void:
+	var attacked := false
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
 			var target: Minion = _pick_attack_target(attacker)
+			if target == null and not _can_attack_player_hero(attacker):
+				break
+			if attacked:
+				await battle.pace_actions(battle.ATTACK_PACE)
 			if target != null:
 				await battle.combat_system.resolve_combat(attacker, target)
-			elif _can_attack_player_hero(attacker):
+			else:
 				await battle.combat_system.perform_hero_attack(attacker)
 				battle.board_visual_system.refresh_board()
-			else:
-				break
-			await _pause()
+			attacked = true
 
 # ─── Deck / main ──────────────────────────────────────────────────────────────
 
@@ -201,6 +207,3 @@ func _ready_attack_total() -> int:
 		if minion.can_attack():
 			total += minion.attack * minion.attacks_remaining
 	return total
-
-func _pause() -> void:
-	await battle.get_tree().create_timer(ACTION_DELAY).timeout
