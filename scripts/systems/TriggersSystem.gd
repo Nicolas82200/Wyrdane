@@ -43,23 +43,29 @@ func get_active_enchantments(is_player: bool) -> Array:
 # ─── Fire ─────────────────────────────────────────────────────────────────────
 
 # paced : espace chaque enchantement déclenché d'une pause (phases de tour) ;
-# à laisser false pour les triggers résolus au milieu d'une action (combat)
-func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false) -> void:
+# à laisser false pour les triggers résolus au milieu d'une action (combat).
+# already_acted : true si une action vient déjà d'avoir lieu dans la même file —
+# la pause est insérée AVANT chaque déclenchement suivant, jamais avant le premier.
+# Retourne l'état "au moins une action a eu lieu" pour chaîner le pacing.
+func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false, already_acted: bool = false) -> bool:
 	var ctx := TriggerContext.new(trigger_name, source, is_player, extra)
-	await _fire_on_enchantments(ctx, paced)
+	return await _fire_on_enchantments(ctx, paced, already_acted)
 
 # ─── Enchantements ────────────────────────────────────────────────────────────
 
-func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false) -> void:
+func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_acted: bool = false) -> bool:
+	var acted := already_acted
 	for is_player in [true, false]:
 		var to_process: Array = _enchantments[is_player].duplicate()
 		for entry in to_process:
 			var card_data: CardData = entry["card_data"]
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
-			await _execute_enchantment_effects(card_data, is_player, ctx)
-			if paced:
+			if paced and acted:
 				await battle.pace_actions()
+			await _execute_enchantment_effects(card_data, is_player, ctx)
+			acted = true
+	return acted
 
 func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_owner_is_player: bool) -> bool:
 	for trigger in card_data.trigger_types:

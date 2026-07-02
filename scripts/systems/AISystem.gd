@@ -33,7 +33,6 @@ func take_turn() -> void:
 	battle.enemy_turn_active = true
 	battle.end_turn_button.disabled = true
 	_resource_phase()
-	await _pause()
 	await _play_cards_phase()
 	await _attack_phase()
 	battle.end_turn_button.disabled = false
@@ -49,29 +48,36 @@ func _resource_phase() -> void:
 	for minion in battle.enemy_minions:
 		minion.refresh_attacks()
 
+# Pause AVANT chaque action sauf la première : une action isolée reste fluide
 func _play_cards_phase() -> void:
+	var played := false
 	while not battle.game_over:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return
+		if played:
+			await battle.pace_actions()
 		var row: String = _pick_row_for(card)
 		hand.erase(card)
 		mana -= card.cost
 		await battle.board_system.summon_minion(card, false, row)
-		await _pause()
+		played = true
 
 func _attack_phase() -> void:
+	var attacked := false
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
 			var target: Minion = _pick_attack_target(attacker)
+			if target == null and not _can_attack_player_hero(attacker):
+				break
+			if attacked:
+				await battle.pace_actions(battle.ATTACK_PACE)
 			if target != null:
 				await battle.combat_system.resolve_combat(attacker, target)
-			elif _can_attack_player_hero(attacker):
+			else:
 				await battle.combat_system.perform_hero_attack(attacker)
 				battle.board_visual_system.refresh_board()
-			else:
-				break
-			await _pause()
+			attacked = true
 
 # ─── Deck / main ──────────────────────────────────────────────────────────────
 
@@ -194,6 +200,3 @@ func _ready_attack_total() -> int:
 		if minion.can_attack():
 			total += minion.attack * minion.attacks_remaining
 	return total
-
-func _pause() -> void:
-	await battle.pace_actions()

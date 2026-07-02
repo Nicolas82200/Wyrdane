@@ -456,17 +456,18 @@ func _get_random_pool(_effect: CardEffect) -> Array[CardData]:
 	push_warning("_get_random_pool : CardDatabase non connecté")
 	return []
 
+func has_trigger(minion: Minion, trigger_name: String) -> bool:
+	if minion == null:
+		return false
+	for trigger in minion.card_data.trigger_types:
+		if trigger.type == trigger_name:
+			return true
+	return false
+
 # Retourne true si le trigger a réellement déclenché des effets,
 # pour que l'appelant puisse espacer les actions (pacing) si besoin
 func trigger_effects(battle, minion: Minion, trigger_name: String) -> bool:
-	if minion == null:
-		return false
-	var trigger_found := false
-	for trigger in minion.card_data.trigger_types:
-		if trigger.type == trigger_name:
-			trigger_found = true
-			break
-	if not trigger_found:
+	if not has_trigger(minion, trigger_name):
 		return false
 	for effect in minion.card_data.effects:
 		await execute_effect(battle, minion, effect)

@@ -33,9 +33,9 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		return
 	attacker_visual.z_index = 50
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, 0.2)\
+	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, 0.15)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, 0.15)\
+	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, 0.12)\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		if not is_instance_valid(target):
@@ -51,7 +51,7 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
 		flash.tween_property(target, "modulate", Color.WHITE, 0.18)
 	)
-	tween.tween_property(attacker_visual, "position", start_pos, 0.3)\
+	tween.tween_property(attacker_visual, "position", start_pos, 0.25)\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	if is_instance_valid(attacker_visual):
