@@ -47,7 +47,7 @@ corner_radius_bottom_left = 12
 custom_minimum_size = Vector2(100, 150)
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_bg")Fa
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 script = ExtResource("1_lr356")
 
 [node name="HighlightOverlay" type="Panel" parent="." unique_id=100000001]

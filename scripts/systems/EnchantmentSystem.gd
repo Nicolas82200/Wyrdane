@@ -38,6 +38,15 @@ func remove_enchantment(card_data: CardData, is_player: bool) -> void:
 			child.queue_free()
 			return
 
+# Destruction : retire du jeu, envoie au cimetière et recalcule les auras.
+# À utiliser pour toute sortie de jeu (effet "détruire enchantement", expiration...)
+func destroy_enchantment(card_data: CardData, is_player: bool) -> void:
+	remove_enchantment(card_data, is_player)
+	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
+	graveyard.add_spell(card_data)
+	battle.aura_system.recompute_all()
+	battle.board_visual_system.refresh_board()
+
 func get_enchantments(is_player: bool) -> Array[CardData]:
 	return player_enchantments if is_player else enemy_enchantments
 

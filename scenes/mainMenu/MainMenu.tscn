@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c5v5upfwslyv6" path="res://scripts/mainMenu/MainMenu.gd" id="1_1bhmf"]
 [ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="1_settings"]
-[ext_resource type="VideoStream" uid="uid://dkp17xehfxjdo" path="res://assets/main-menu/main-menu.ogv" id="2_xwq4k"]
+[ext_resource type="VideoStream" uid="uid://detsxoxojoqv1" path="res://assets/main-menu/mainMenu.ogv" id="3_bkukm"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_xwq4k"]
 [ext_resource type="PackedScene" uid="uid://c53ofvbh8ht3r" path="res://scenes/deck/DeckList.tscn" id="4_decklist"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
@@ -25,7 +25,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-stream = ExtResource("2_xwq4k")
+stream = ExtResource("3_bkukm")
 autoplay = true
 expand = true
 loop = true
