@@ -42,13 +42,15 @@ func get_active_enchantments(is_player: bool) -> Array:
 
 # ─── Fire ─────────────────────────────────────────────────────────────────────
 
-func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}) -> void:
+# paced : espace chaque enchantement déclenché d'une pause (phases de tour) ;
+# à laisser false pour les triggers résolus au milieu d'une action (combat)
+func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false) -> void:
 	var ctx := TriggerContext.new(trigger_name, source, is_player, extra)
-	await _fire_on_enchantments(ctx)
+	await _fire_on_enchantments(ctx, paced)
 
 # ─── Enchantements ────────────────────────────────────────────────────────────
 
-func _fire_on_enchantments(ctx: TriggerContext) -> void:
+func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false) -> void:
 	for is_player in [true, false]:
 		var to_process: Array = _enchantments[is_player].duplicate()
 		for entry in to_process:
@@ -56,7 +58,8 @@ func _fire_on_enchantments(ctx: TriggerContext) -> void:
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
 			await _execute_enchantment_effects(card_data, is_player, ctx)
-			await battle.pace_actions()
+			if paced:
+				await battle.pace_actions()
 
 func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_owner_is_player: bool) -> bool:
 	for trigger in card_data.trigger_types:

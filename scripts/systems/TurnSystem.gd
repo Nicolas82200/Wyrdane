@@ -9,15 +9,17 @@ func init(_battle) -> void:
 func end_turn() -> void:
 	# Fin de tour — serviteurs joueur
 	for minion in battle.player_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
+		if await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd"):
+			await battle.pace_actions()
 	# Fin de tour — enchantements joueur
-	await battle.trigger_system.fire("OnTurnEnd", null, true)
+	await battle.trigger_system.fire("OnTurnEnd", null, true, {}, true)
 	battle.trigger_system.tick_enchantment_durations(true)
 
 	# Fin de tour — serviteurs ennemis
 	for minion in battle.enemy_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd")
-	await battle.trigger_system.fire("OnTurnEnd", null, false)
+		if await battle.effect_manager.trigger_effects(battle, minion, "OnTurnEnd"):
+			await battle.pace_actions()
+	await battle.trigger_system.fire("OnTurnEnd", null, false, {}, true)
 	battle.trigger_system.tick_enchantment_durations(false)
 
 	await _apply_infection_damage()
@@ -31,14 +33,17 @@ func _begin_player_turn() -> void:
 	for minion in battle.player_minions.duplicate():
 		minion.refresh_attacks()
 	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnTurnStart")
-	await battle.trigger_system.fire("OnTurnStart", null, true)
-	await battle.trigger_system.fire("OnTurnStart", null, false)
+		if await battle.effect_manager.trigger_effects(battle, minion, "OnTurnStart"):
+			await battle.pace_actions()
+	await battle.trigger_system.fire("OnTurnStart", null, true, {}, true)
+	await battle.trigger_system.fire("OnTurnStart", null, false, {}, true)
 	for minion in battle.player_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken")
-	await battle.trigger_system.fire("OnAwaken", null, true)
+		if await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken"):
+			await battle.pace_actions()
+	await battle.trigger_system.fire("OnAwaken", null, true, {}, true)
 	for minion in battle.enemy_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
+		if await battle.effect_manager.trigger_effects(battle, minion, "OnDecline"):
+			await battle.pace_actions()
 	battle.turn_choice_panel.show_choice()
 
 func _apply_infection_damage() -> void:
