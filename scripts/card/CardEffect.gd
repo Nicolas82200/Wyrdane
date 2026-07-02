@@ -53,7 +53,7 @@ class_name CardEffect
 @export var threshold_count: int = -1
 @export var value_if_threshold: int = 0
 @export var count_if_threshold: int = 0
-@export_enum("", "OwnMinions", "EnemyMinions", "OwnRaceMinions", "FrontRow", "EnemyFrontRow") var threshold_scope: String = ""
+@export_enum("None", "OwnMinions", "EnemyMinions", "OwnRaceMinions", "FrontRow", "EnemyFrontRow") var threshold_scope: String = "None"
 # ⚠️ threshold_op / threshold_scope ne sont pas encore lus par EffectManager — à câbler
 # dans _damage_all, _buff, _buff_row et la logique de SummonMinion/SummonRandom (count_if_threshold).
 

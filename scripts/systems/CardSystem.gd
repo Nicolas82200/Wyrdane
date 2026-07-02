@@ -46,22 +46,22 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			else:
 				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
-		battle.player_graveyard.add_spell(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
-		for effect in card_data.effects:
-			if target is Minion:
-				await battle.effect_manager.execute_effect(battle, null, effect, target)
-			else:
-				await battle.effect_manager.execute_effect(battle, null, effect)
-		# Enregistre l'enchantement si c'est un enchantement
 		if card_data.card_type == "Enchantment":
-			var duration: int = card_data.get("duration") if card_data.get("duration") != null else -1
-			battle.trigger_system.register_enchantment(card_data, true, duration)
-			battle.aura_system.recompute_all()
+			# Reste en jeu dans sa zone jusqu'à destruction — effets via TriggerSystem/AuraSystem
+			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
+			battle.aura_system.recompute_all()
+		else:
+			battle.player_graveyard.add_spell(card_data)
+			for effect in card_data.effects:
+				if target is Minion:
+					await battle.effect_manager.execute_effect(battle, null, effect, target)
+				else:
+					await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
 
 	battle.reset_targeting_state()
@@ -70,19 +70,19 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion(card_data, true, row, insert_index)
 	else:
-		battle.player_graveyard.add_spell(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
-		for effect in card_data.effects:
-			await battle.effect_manager.execute_effect(battle, null, effect)
-		# Enregistre l'enchantement si c'est un enchantement
 		if card_data.card_type == "Enchantment":
-			var duration: int = card_data.get("duration") if card_data.get("duration") != null else -1
-			battle.trigger_system.register_enchantment(card_data, true, duration)
-			battle.aura_system.recompute_all()
+			# Reste en jeu dans sa zone jusqu'à destruction — effets via TriggerSystem/AuraSystem
+			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
+			battle.aura_system.recompute_all()
+		else:
+			battle.player_graveyard.add_spell(card_data)
+			for effect in card_data.effects:
+				await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
 
 func _remove_from_hand(card_data: CardData) -> void:
