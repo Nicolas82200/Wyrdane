@@ -55,6 +55,11 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
+			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
+			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
+			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)
 			for effect in card_data.effects:
@@ -78,6 +83,11 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			# Reste en jeu dans sa zone jusqu'à destruction — effets via TriggerSystem/AuraSystem
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
+			battle.aura_system.recompute_all()
+		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
+			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
+			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)
