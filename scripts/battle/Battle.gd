@@ -392,6 +392,10 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 	preview.z_index = 200
 	add_child(preview)
 	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
+	# Attaque/Santé n'ont de sens que pour un serviteur — masquées pour les sorts
+	if card_data.card_type != "Minion":
+		preview.attack_label.visible = false
+		preview.health_label.visible = false
 	preview.scale    = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
 	return preview
