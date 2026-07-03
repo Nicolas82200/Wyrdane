@@ -24,6 +24,10 @@ const HERO_DEATH := "hero_death"
 # UI
 const BUTTON := "button"
 const HOVER := "hover"
+const CONFIRM := "confirm"
+const OPEN_MENU := "open_menu"
+const CLOSE_MENU := "close_menu"
+const SHUFFLE := "shuffle"
 
 # Musique
 const BATTLE_MUSIC := [preload(
@@ -41,6 +45,29 @@ func _ready() -> void:
 	add_child(music_player)
 	_apply_saved_settings()
 	load_sounds()
+	# Sons UI branchés automatiquement sur tout bouton ajouté à l'arbre
+	get_tree().node_added.connect(_on_node_added)
+
+
+# ─── Sons UI automatiques ────────────────────────────────────────────────────
+# Chaque BaseButton du jeu reçoit un son de hover et de clic.
+# Opt-out par bouton via les metas "no_hover_sound" / "no_click_sound".
+
+func _on_node_added(node: Node) -> void:
+	if node is BaseButton and not node.has_meta("_ui_sound_wired"):
+		node.set_meta("_ui_sound_wired", true)
+		node.mouse_entered.connect(_on_button_hover.bind(node))
+		node.pressed.connect(_on_button_pressed.bind(node))
+
+func _on_button_hover(button: BaseButton) -> void:
+	if button.disabled or button.has_meta("no_hover_sound"):
+		return
+	play_with_pitch(HOVER)
+
+func _on_button_pressed(button: BaseButton) -> void:
+	if button.has_meta("no_click_sound"):
+		return
+	play(BUTTON)
 
 func play_battle_music() -> void:
 	# [FIX] Bus déjà assigné dans _ready(), pas besoin de le réassigner ici
@@ -77,6 +104,24 @@ func load_sounds() -> void:
 
 	sounds = {
 
+		BUTTON: [
+			preload("res://assets/audio/sound-effect/interface/button_pressed.mp3")
+		],
+		HOVER: [
+			preload("res://assets/audio/sound-effect/interface/hover_button.mp3")
+		],
+		CONFIRM: [
+			preload("res://assets/audio/sound-effect/interface/confirm.wav")
+		],
+		OPEN_MENU: [
+			preload("res://assets/audio/sound-effect/interface/open_menu.wav")
+		],
+		CLOSE_MENU: [
+			preload("res://assets/audio/sound-effect/interface/close_menu.wav")
+		],
+		SHUFFLE: [
+			preload("res://assets/audio/sound-effect/interface/shuffle_cards.mp3")
+		],
 		DRAW: [
 			preload("res://assets/audio/sound-effect/global/draw-card-01.mp3"),
 			preload("res://assets/audio/sound-effect/global/draw-card-02.mp3"),
@@ -160,11 +205,8 @@ func play(sound_name: String) -> void:
 		sound = variants.pick_random()
 	else:
 		sound = variants
-	var player := AudioStreamPlayer.new()
-	add_child(player)
-	player.stream = sound
-	player.finished.connect(player.queue_free)
-	player.play()
+	# [FIX] Passe par _spawn_player pour jouer sur le bus SFX
+	_spawn_player(sound, false)
 
 
 func play_with_pitch(
@@ -180,12 +222,8 @@ func play_with_pitch(
 		sound = variants.pick_random()
 	else:
 		sound = variants
-	var player := AudioStreamPlayer.new()
-	add_child(player)
-	player.stream = sound
-	player.pitch_scale = randf_range(min_pitch, max_pitch)
-	player.finished.connect(player.queue_free)
-	player.play()
+	# [FIX] Passe par _spawn_player pour jouer sur le bus SFX
+	_spawn_player(sound, true, min_pitch, max_pitch)
 
 
 func play_for_style(sound_name: String, style: int, pitch_variation := true) -> void:
