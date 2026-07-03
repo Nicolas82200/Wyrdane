@@ -59,7 +59,7 @@ Autoloads globaux (voir `project.godot`) :
 ### Types de cartes
 - **Serviteur** — unité posée sur le plateau (Avant ou Arrière, ou Hybride ↕️)
 - **Éphémère** — sort à effet immédiat, jeté et défaussé
-- **Rituel** — sort permanent actif X tours, effet se déclenche à chaque tour selon un trigger
+- **Rituel** — sort persistant doté de X charges ; chaque charge est consommée uniquement lorsque son trigger se déclenche réellement (et non passivement à chaque tour). Détruit quand ses charges sont épuisées. Décrément géré par `TriggerSystem._consume_ritual_charge`
 - **Enchantement** — effet passif permanent jusqu'à destruction
 
 ### Positionnement (lane types)
