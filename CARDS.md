@@ -73,29 +73,29 @@ Positionnement (Lane Types)
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 01 | Rampant en Décomposition | ⚔️ | 1 | 1 | 1 | Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle). | Il ne sait plus pourquoi il avance. Il avance, c'est tout. |
-| 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 || La faim ne disparaît pas avec la mort. Elle empire. |
-| 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART. | Personne ne se souvient de son nom. Lui non plus. |
-| 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 || Il était enfant. C'était avant. |
+| 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 | NÉCROPHAGE. | La faim ne disparaît pas avec la mort. Elle empire. |
+| 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART. CHAIR MORTE. | Personne ne se souvient de son nom. Lui non plus. |
+| 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 | HORDE. | Il était enfant. C'était avant. |
 | 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : inflige Infection à un serviteur ennemi adjacent. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
 | 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Ralliement : tes serviteurs en rangée Avant ont +0/+1 HP jusqu'à fin de tour. | Il ne commande pas. Il pousse. Et ça suffit. |
 | 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Ralliement : inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
 | 09 | Horde Mineure | ⚔️ | 3 | 1 | 1 | Arrivée : invoque 2 Rampants 1/1 en rangée Avant. | Un seul ne fait pas peur. Mais il n'est jamais seul. |
-| 10 | Mort-Vivant Enchaîné | ⚔️ | 3 | 3 | 3 || Les chaînes ne le retiennent plus. Elles font partie de lui. |
-| 11 | Larve Cadavérique | ↕️ | 1 | 1 | 1 | Dernier Souffle : le serviteur allié adjacent gagne +1/+1. | Elle n'est pas née de la vie. Elle est née de ce qui reste. |
+| 10 | Mort-Vivant Enchaîné | ⚔️ | 3 | 3 | 3 | HORDE. | Les chaînes ne le retiennent plus. Elles font partie de lui. |
+| 11 | Larve Cadavérique | ↕️ | 1 | 1 | 1 | NÉCROPHAGE. | Elle n'est pas née de la vie. Elle est née de ce qui reste. |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 12 | Pestilent | ↕️ | 2 | 1 | 2 | Arrivée : inflige Infection à un serviteur ennemi ciblé. | Son souffle est une condamnation à retardement. |
+| 12 | Pestilent | ↕️ | 2 | 1 | 2 | PESTIFÉRÉ. | Son souffle est une condamnation à retardement. |
 | 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART. Blessure : réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
 | 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à fin de tour. | Son cri ne terrorise plus. Il réveille. |
 | 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
 | 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : invoque un Cadavre Errant en rangée Avant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
 | 17 | Géant Boursouflé | ⚔️ | 5 | 4 | 6 | Dernier Souffle : inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant. | Sa mort est plus dangereuse que sa vie.Rapport de bataille, campagne de la Vallée Grise |
-| 18 | Émissaire de la Peste | ↕️ | 4 | 3 | 4 | Arrivée : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse. | Il ne vient pas combattre. Il vient annoncer. |
-| 19 | Soldat Réanimé | ⚔️ | 3 | 4 | 3 | Arrivée : si réanimé depuis le cimetière, entre avec +1/+1. | La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience. |
+| 18 | Émissaire de la Peste | ↕️ | 4 | 3 | 4 | PESTIFÉRÉ. | Il ne vient pas combattre. Il vient annoncer. |
+| 19 | Soldat Réanimé | ⚔️ | 3 | 4 | 3 | REVENANT. | La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience. |
 | 20 | Banshee Zombie | 🛡️ | 4 | 2 | 5 | Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse. | Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler. |
 | 21 | Possédé Hurlant | ⚔️ | 3 | 5 | 1 | ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière). | Même les morts refusent de le reprendre. |
 | 22 | Cavalier Zombie | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP. | Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte. |
@@ -108,13 +108,13 @@ Positionnement (Lane Types)
 | 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
 | 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE. Mort-rage : serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
 | 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Ralliement : invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
-| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART. Blessure : les dégâts excédentaires ne se propagent pas. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
+| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART. CHAIR MORTE. Blessure : les dégâts excédentaires ne se propagent pas. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
 | 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : vole 2 HP au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
 | 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
 | 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | AILES NOIRES. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
-| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. Mort-rage : +3/+0, revient en jeu avec 1 HP. | La fièvre l'a tué. Ce qui reste est plus rapide. |
+| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
 | 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
 ### Légendaires

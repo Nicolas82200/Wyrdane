@@ -11,7 +11,9 @@ enum Type {
 	BLACK_WINGS,
 }
 
-static func get_name(keyword: int) -> String:
+# Nommé get_keyword_name (et non get_name) : un static get_name est masqué
+# par la méthode native Resource.get_name quand on l'appelle via la classe.
+static func get_keyword_name(keyword: int) -> String:
 	match keyword:
 		Type.TAUNT:          return "Rempart"
 		Type.CHARGE:         return "Assaut"
