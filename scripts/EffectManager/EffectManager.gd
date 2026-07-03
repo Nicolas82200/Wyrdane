@@ -554,7 +554,7 @@ func notify_damaged(battle, minion: Minion) -> void:
 		minion.death_rage_triggered = true
 		await trigger_effects(battle, minion, "OnDeathRage")
 
-func trigger_effects(battle, minion: Minion, trigger_name: String) -> void:
+func has_trigger(minion: Minion, trigger_name: String) -> bool:
 	if minion == null:
 		return false
 	for trigger in minion.card_data.trigger_types:
