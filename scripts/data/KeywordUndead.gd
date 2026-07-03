@@ -13,7 +13,9 @@ enum Type {
 	CHAIR_MORTE,  # Immunisé à l'Infection, au poison (Venin mortel) et aux effets de peur.
 }
 
-static func get_name(keyword: int) -> String:
+# Nommé get_keyword_name (et non get_name) : un static get_name est masqué
+# par la méthode native Resource.get_name quand on l'appelle via la classe.
+static func get_keyword_name(keyword: int) -> String:
 	match keyword:
 		Type.PESTIFERE:   return "Pestiféré"
 		Type.NECROPHAGE:  return "Nécrophage"
