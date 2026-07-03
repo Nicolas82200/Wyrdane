@@ -190,12 +190,6 @@ Liste complète des cartes de la race **Humain**.
 
 ---
 
-# FateBound — CARDS_HUMAIN.md
-
-Liste complète des cartes de la race **Humain**.
-
----
-
 ## Légende
 
 **Stats**
