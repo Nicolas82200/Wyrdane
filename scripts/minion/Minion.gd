@@ -16,14 +16,21 @@ var aura_health_bonus: int = 0
 var attacks_remaining: int = 0
 var keywords: Array[int] = []
 var human_keywords: Array[int] = []
+var undead_keywords: Array[int] = []
 var board_row: String = "Front"
 
 var formation_active: bool = false
 var silenced: bool = false
 var frozen_turns: int = 0
 var corrupted: bool = false
-var infected: bool = false
+# CHAIR MORTE bloque toute pose d'Infection, quelle que soit la source
+var infected: bool = false:
+	set(value):
+		if value and has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+			return
+		infected = value
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
+var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
@@ -38,6 +45,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	damage_taken      = 0
 	keywords          = data.get_keyword_values()
 	human_keywords    = data.get_human_keyword_values()
+	undead_keywords   = data.get_undead_keyword_values()
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
 
 # ─── Stats calculées (lecture seule — passe par base_* pour modifier) ─────────
@@ -102,10 +110,22 @@ func add_human_keyword(keyword: int) -> void:
 func remove_human_keyword(keyword: int) -> void:
 	human_keywords.erase(keyword)
 
+func has_undead_keyword(keyword: int) -> bool:
+	return keyword in undead_keywords
+
+func add_undead_keyword(keyword: int) -> void:
+	if keyword not in undead_keywords:
+		undead_keywords.append(keyword)
+
+func remove_undead_keyword(keyword: int) -> void:
+	undead_keywords.erase(keyword)
+
 func get_keywords_text() -> String:
 	var names: Array[String] = []
 	for keyword in keywords:
 		names.append(Keyword.get_name(keyword))
 	for keyword in human_keywords:
 		names.append(KeywordHuman.get_name(keyword))
+	for keyword in undead_keywords:
+		names.append(KeywordUndead.get_name(keyword))
 	return ", ".join(names)
