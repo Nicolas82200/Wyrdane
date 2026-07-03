@@ -9,12 +9,16 @@ extends Control
 @onready var graphism_button = $Panel/VBox/ButtonsMargin/ButtonsVBox/GraphismButton
 @onready var control_button  = $Panel/VBox/ButtonsMargin/ButtonsVBox/ControlButton
 @onready var close_button    = $Panel/VBox/CloseMargin/CloseButton
+@onready var title_label     = $Panel/VBox/TitleMargin/Title
 
 func _ready() -> void:
 	_style_all_buttons()
 	audio_button.pressed.connect(_on_audio)
 	graphism_button.pressed.connect(_on_graphism)
 	control_button.pressed.connect(_on_control)
+
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()
 	# Le son de fermeture est joué dans close(), pas le clic générique
 	close_button.set_meta("no_click_sound", true)
 	close_button.pressed.connect(close)
@@ -64,6 +68,14 @@ func _on_sub_back() -> void:
 	graphism_menu.hide()
 	control_menu.hide()
 	panel.show()
+
+# Met à jour les libellés du menu racine dans la langue courante.
+func _retranslate() -> void:
+	title_label.text     = SettingsManager.t("settings.title")
+	audio_button.text    = SettingsManager.t("settings.audio")
+	graphism_button.text = SettingsManager.t("settings.graphics")
+	control_button.text  = SettingsManager.t("settings.controls")
+	close_button.text    = SettingsManager.t("settings.close")
 
 func _style_all_buttons() -> void:
 	for btn in [audio_button, graphism_button, control_button, close_button]:
