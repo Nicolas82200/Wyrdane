@@ -5,6 +5,12 @@
 [ext_resource type="Texture2D" uid="uid://d4g4nmmij1ch4" path="res://assets/card_art/human/spear-wall.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="6_kwh"]
+
+[sub_resource type="Resource" id="Resource_kwh1"]
+script = ExtResource("6_kwh")
+keyword_type = 1
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
 [sub_resource type="Resource" id="Resource_0stmo"]
 script = ExtResource("1_cardeffect")
@@ -31,6 +37,7 @@ unit_style = 5
 attack = 1
 health = 6
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_7o9ka")])
+human_keywords = Array[ExtResource("6_kwh")]([SubResource("Resource_kwh1")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_f5zfb")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0stmo")])
 rarity = "Epic"

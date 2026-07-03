@@ -13,7 +13,9 @@ enum Type {
 	FORTIFICATION,   # Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis.
 }
 
-static func get_name(keyword: int) -> String:
+# Nommé get_keyword_name (et non get_name) : un static get_name est masqué
+# par la méthode native Resource.get_name quand on l'appelle via la classe.
+static func get_keyword_name(keyword: int) -> String:
 	match keyword:
 		Type.DISCIPLINE:     return "Discipline"
 		Type.FORMATION:      return "Formation"
