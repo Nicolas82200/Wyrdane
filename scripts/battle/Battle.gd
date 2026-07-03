@@ -47,6 +47,9 @@ const ATTACK_PACE                 := 0.5
 @onready var graveyard_view: GraveyardView             = $GraveyardView
 @onready var deck_button                               = $DeckButton
 @onready var deck_count_label                          = $DeckButton/CountLabel
+@onready var enemy_deck_button: Button                 = $EnemyDeckButton
+@onready var enemy_deck_count_label: Label             = $EnemyDeckButton/CountLabel
+@onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
 @onready var settings_menu: AudioSettingsMenu          = $AudioSettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var turn_choice_panel                         = $TurnChoicePanel
@@ -145,8 +148,9 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
-	# Cliquer sur le deck n'a pas d'action : pas de son de clic
+	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
+	enemy_deck_button.set_meta("no_click_sound", true)
 
 func _start_game() -> void:
 	update_mana_ui()
