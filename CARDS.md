@@ -18,7 +18,19 @@ Positionnement (Lane Types)
 
 ---
 
-## Mots-clés
+## Mots-clés exclusifs Mort-Vivant
+
+| Mot-clé | Effet |
+|---|---|
+| `PESTIFÉRÉ` | Les attaques de ce serviteur infligent **Infection** en plus des dégâts. |
+| `NÉCROPHAGE` | Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente. |
+| `HORDE` | Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0. |
+| `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie). Ne se déclenche pas en cas de Sacrifice. |
+| `CHAIR MORTE` | Immunisé à l'Infection, au poison et aux effets de peur. |
+
+---
+
+## Mots-clés partagés (rappel)
 
 | Mot-clé | Description |
 |---|---|

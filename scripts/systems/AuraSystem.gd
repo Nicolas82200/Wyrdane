@@ -11,6 +11,7 @@ func recompute_all() -> void:
 		minion.aura_attack_bonus = 0
 		minion.aura_health_bonus = 0
 	_apply_formation()
+	_apply_horde()
 	_apply_enchantment_auras()
 
 func _apply_formation() -> void:
@@ -25,6 +26,15 @@ func _apply_formation() -> void:
 		if idx > 0 or idx < same_row.size() - 1:
 			minion.aura_attack_bonus += 1
 			minion.aura_health_bonus += 1
+
+func _apply_horde() -> void:
+	for minion in battle.player_minions + battle.enemy_minions:
+		if not minion.has_undead_keyword(KeywordUndead.Type.HORDE):
+			continue
+		var allies: Array[Minion] = battle.get_owner_minions(minion)
+		var undead_count: int = allies.filter(func(m: Minion): return m.card_data.race == Race.Type.UNDEAD).size()
+		if undead_count >= 3:
+			minion.aura_attack_bonus += 1
 
 func _apply_enchantment_auras() -> void:
 	for is_player in [true, false]:

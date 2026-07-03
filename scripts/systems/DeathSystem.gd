@@ -11,6 +11,7 @@ func process_deaths() -> void:
 	if processing_deaths:
 		return
 	processing_deaths = true
+	_apply_revenant(battle.player_minions + battle.enemy_minions)
 	var dead_player: Array[Minion] = battle.player_minions.filter(func(m: Minion): return m.is_dead())
 	var dead_enemy:  Array[Minion] = battle.enemy_minions.filter(func(m: Minion): return m.is_dead())
 	var dead_all:    Array[Minion] = []
@@ -33,6 +34,19 @@ func process_deaths() -> void:
 	battle.aura_system.recompute_all()
 	battle.board_visual_system.refresh_board()
 	await process_deaths()
+
+# REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par partie.
+# Un Sacrifice volontaire consomme le serviteur normalement (pas de relève).
+func _apply_revenant(minions: Array[Minion]) -> void:
+	for minion in minions:
+		if not minion.is_dead():
+			continue
+		if minion.sacrificed or minion.revenant_triggered:
+			continue
+		if not minion.has_undead_keyword(KeywordUndead.Type.REVENANT):
+			continue
+		minion.revenant_triggered = true
+		minion.health = 1
 
 func _animate_deaths(dead_minions: Array[Minion]) -> void:
 	for minion in dead_minions:
@@ -62,6 +76,12 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 		return
 	var same_camp: Array[Minion]  = battle.player_minions if dead_were_player else battle.enemy_minions
 	var other_camp: Array[Minion] = battle.enemy_minions if dead_were_player else battle.player_minions
+
+	# NÉCROPHAGE : chaque survivant du camp gagne +1/+1 permanent par allié mort
+	for minion in same_camp:
+		if minion.has_undead_keyword(KeywordUndead.Type.NECROPHAGE):
+			minion.base_attack     += dead_minions.size()
+			minion.base_max_health += dead_minions.size()
 
 	# Deuil (OnGrief) : un ALLIÉ vient de mourir → survivants du même camp réagissent
 	for minion in same_camp:
