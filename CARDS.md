@@ -300,7 +300,7 @@ Liste complète des cartes de la race **Humain**.
 | H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Ralliement : invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
 | H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE. ASSAUT. Blessure : gagne +2/+0 jusqu'à fin de tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
 | H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : annule tous les effets Infection sur tes serviteurs alliés. Immunise tes serviteurs à l'Infection ce tour. | *La corruption s'arrête là où il pose le regard.* |
-| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
+| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT. Éveil : invoque un Fantassin Aguerri 2/2 en rangée Avant si tu as 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
 
 ### Légendaires
 
@@ -346,7 +346,7 @@ Liste complète des cartes de la race **Humain**.
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 tours | Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant. | *Chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 tours | **Ralliement** : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
 | H60 | Mur Infranchissable | 6 | Épique | 2 tours | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
-| H61 | Bannière du Roi | 5 | Épique | Permanent | Éveil : si tu as un Humain Légendaire en jeu, invoque un Chevalier du Mur 2/5 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
+| H61 | Bannière du Roi | 5 | Épique | Permanent | Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
 | H62 | Résistance Acharnée | 4 | Épique | 3 tours | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
 | H63 | Purge Sainte | 6 | Légendaire | Instantané | Détruit tous les serviteurs Mort-Vivants ennemis ayant 3 HP ou moins. | *Ce n'est pas une prière. C'est une déclaration.* |
 | H64 | Grande Mobilisation | 8 | Légendaire | Instantané | Invoque 4 Humains aléatoires de coût ≤4 en rangée Avant. Coûte 7 si ta rangée Avant est vide. | *Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois.* |
@@ -365,7 +365,7 @@ Liste complète des cartes de la race **Humain**.
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : chaque fois qu'un serviteur ennemi meurt, tes serviteurs en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0). | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
 | H72 | Ordre des Anciens | 5 | Épique | Éveil : si tu as 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
-| H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
+| H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 6 | Légendaire | Éveil : tous tes serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 5 | Légendaire | Présence : tes serviteurs Humains en rangée Avant sont immunisés à l'Infection. Les marqueurs Infection déjà présents sont retirés à la fin de chaque tour. | *L'Empire ne cède pas à la pourriture. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
 
