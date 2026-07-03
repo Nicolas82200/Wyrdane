@@ -258,7 +258,7 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H01 | Conscrit | ⚔️ | 1 | 1 | 2 | — | *Il n'a pas choisi de venir. Il est venu quand même.* |
-| H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : invoque un Éclaireur 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
+| H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
 | H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART. | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
 | H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *Seul, il tient. Ensemble, ils avancent.* |
 | H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : inflige 1 dégât à un serviteur ennemi en rangée Avant ciblé. | *Il ne rate pas. Il attend juste le bon moment.* |
@@ -275,16 +275,16 @@ Liste complète des cartes de la race **Humain**.
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H12 | Chevalier du Mur | ⚔️ | 3 | 2 | 5 | REMPART. CONTRE-ATTAQUE. | *Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
 | H13 | Inquisiteur de Fer | ↕️ | 3 | 3 | 2 | Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse. | *Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle.* |
-| H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
+| H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Ralliement** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
 | H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | AILES NOIRES : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
-| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié ciblé. Dernier Souffle : invoque un Éclaireur 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
+| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié ciblé. Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
 | H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
 | H21 | Éclaireur Infiltré | ⚔️ | 3 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant.* |
 | H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : gagne REMPART jusqu'à fin de tour. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
-| H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : invoque un Milicien 2/1 en rangée Avant. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
+| H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
 
 ### Épiques
 
@@ -292,15 +292,15 @@ Liste complète des cartes de la race **Humain**.
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H24 | Maréchal de Campagne | 🛡️ | 5 | 2 | 5 | COMMANDEMENT. Éveil : tous les serviteurs Humains alliés gagnent +1/+0 jusqu'à fin de tour. | *Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.* |
 | H25 | Champion du Peuple | ⚔️ | 4 | 5 | 4 | Exécution : soigne le héros allié de 2 HP. | *Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
-| H26 | Paladin de l'Aube | ⚔️ | 5 | 4 | 5 | ÉGIDE. MOISSON. Arrivée : invoque un Éclaireur 1/1 en rangée Avant. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
+| H26 | Paladin de l'Aube | ⚔️ | 5 | 4 | 5 | ÉGIDE. MOISSON. Arrivée : invoque un Éclaireur Rapide 1/1 en rangée Avant. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
 | H27 | Brise-Mort | ⚔️ | 4 | 4 | 3 | Arrivée : détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé. | *"Tu es déjà mort une fois. Je vais m'assurer que tu ne l'oublies pas."* |
 | H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART. FORMATION. Carnage : inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
 | H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Ralliement : place le serviteur allié invoqué dans la rangée de ton choix, même si elle est pleine (échange avec un autre). | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
 | H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL. DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
-| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Ralliement : invoque un Éclaireur 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
+| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Ralliement : invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
 | H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE. ASSAUT. Blessure : gagne +2/+0 jusqu'à fin de tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
 | H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : annule tous les effets Infection sur tes serviteurs alliés. Immunise tes serviteurs à l'Infection ce tour. | *La corruption s'arrête là où il pose le regard.* |
-| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT. Éveil : invoque un Chevalier 2/2 en rangée Avant si tu as 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
+| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
 
 ### Légendaires
 
@@ -308,7 +308,7 @@ Liste complète des cartes de la race **Humain**.
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H35 | Le Roi Soldat | ⚔️ | 7 | 6 | 8 | COMMANDEMENT. ÉGIDE. Arrivée : tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente. | *Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts.* |
 | H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif au choix. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
-| H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Bouclier Brisé 0/3 REMPART adjacent. | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
+| H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART. | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
 | H38 | Commandant des Derniers | 🛡️ | 7 | 5 | 6 | COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
 | H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART. ÉGIDE. DISCIPLINE. Arrivée : tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour adverse. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
 
@@ -327,7 +327,7 @@ Liste complète des cartes de la race **Humain**.
 | H46 | Jugement Divin | 3 | Rare | Détruit un serviteur ennemi ayant 2 ATK ou moins. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
 | H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent ASSAUT ce tour et peuvent attaquer depuis la rangée Arrière ce tour. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
 | H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
-| H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
+| H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
 | H51 | Massacre Sacré | 4 | Épique | Inflige 3 dégâts à tous les serviteurs Mort-Vivants ennemis en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
 | H52 | Formation Défensive | 3 | Épique | Tous tes serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à fin du tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
@@ -342,11 +342,11 @@ Liste complète des cartes de la race **Humain**.
 | H54 | Hymne de Guerre | 4 | Rare | 3 tours | Ralliement : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
 | H55 | Fortification des Lignes | 5 | Rare | Permanent | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
 | H56 | Serment du Sang | 4 | Rare | 3 tours | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
-| H57 | Marche Forcée | 3 | Rare | 2 tours | Éveil : invoque un Éclaireur 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
+| H57 | Marche Forcée | 3 | Rare | 2 tours | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 tours | Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant. | *Chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 tours | **Ralliement** : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
 | H60 | Mur Infranchissable | 6 | Épique | 2 tours | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
-| H61 | Bannière du Roi | 5 | Épique | Permanent | Éveil : si tu as un Humain Légendaire en jeu, invoque un Chevalier 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
+| H61 | Bannière du Roi | 5 | Épique | Permanent | Éveil : si tu as un Humain Légendaire en jeu, invoque un Chevalier du Mur 2/5 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
 | H62 | Résistance Acharnée | 4 | Épique | 3 tours | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
 | H63 | Purge Sainte | 6 | Légendaire | Instantané | Détruit tous les serviteurs Mort-Vivants ennemis ayant 3 HP ou moins. | *Ce n'est pas une prière. C'est une déclaration.* |
 | H64 | Grande Mobilisation | 8 | Légendaire | Instantané | Invoque 4 Humains aléatoires de coût ≤4 en rangée Avant. Coûte 7 si ta rangée Avant est vide. | *Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois.* |
@@ -364,8 +364,8 @@ Liste complète des cartes de la race **Humain**.
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : si tu as un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : chaque fois qu'un serviteur ennemi meurt, tes serviteurs en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0). | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
-| H72 | Ordre des Anciens | 5 | Épique | Éveil : si tu as 5 Humains ou plus en jeu, invoque un Héros Tombé 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
-| H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Chevalier 2/2 et un Milicien 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
+| H72 | Ordre des Anciens | 5 | Épique | Éveil : si tu as 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
+| H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 6 | Légendaire | Éveil : tous tes serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 5 | Légendaire | Présence : tes serviteurs Humains en rangée Avant sont immunisés à l'Infection. Les marqueurs Infection déjà présents sont retirés à la fin de chaque tour. | *L'Empire ne cède pas à la pourriture. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
 
