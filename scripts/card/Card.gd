@@ -47,6 +47,13 @@ const LANE_ICONS := {
 	"Hybrid": preload("res://assets/icons/hibrid_lane.png"),
 }
 
+# Icône filigrane indiquant le type des cartes non-serviteur
+const TYPE_ICONS := {
+	"Instant":     preload("res://assets/icons/instant.png"),
+	"Ritual":      preload("res://assets/icons/ritual.png"),
+	"Enchantment": preload("res://assets/icons/enchantment.png"),
+}
+
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
@@ -112,10 +119,15 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 
-	# Icône de rangée : serviteurs uniquement
-	lane_icon.visible = is_minion and LANE_ICONS.has(data.board_position)
-	if lane_icon.visible:
-		lane_icon.texture = LANE_ICONS[data.board_position]
+	# Filigrane central : icône de rangée (serviteurs) ou de type (cartes non-serviteur)
+	if is_minion:
+		lane_icon.visible = LANE_ICONS.has(data.board_position)
+		if lane_icon.visible:
+			lane_icon.texture = LANE_ICONS[data.board_position]
+	else:
+		lane_icon.visible = TYPE_ICONS.has(data.card_type)
+		if lane_icon.visible:
+			lane_icon.texture = TYPE_ICONS[data.card_type]
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][font_size=10][i]" + data.flavour_text + "[/i][/font_size][/center]"
