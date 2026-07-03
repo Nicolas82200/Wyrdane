@@ -259,6 +259,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `HeroSystem.gd`: Gestion des héros des joueurs.
 *   `TargetingSystem.gd`: Gestion du ciblage d'entités pour les effets de cartes.
 *   `EnchantmentSystem.gd`: Gestion des enchantements et modifications de statistiques des serviteurs.
+*   `TempEffectSystem.gd`: Effets temporaires (buffs/debuffs et mots-clés à durée limitée), retirés automatiquement en fin de tour (`UntilEndOfTurn` / `UntilEndOfEnemyTurn`).
 *   `AISystem.gd`: Adversaire — deck, main, mana et déroulé automatique de son tour.
 *   `AuraSystem.gd`: Recalcul des bonus d'aura (Présence) des serviteurs.
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
@@ -272,7 +273,9 @@ Ces scripts définissent des types et des données utilisées à travers le proj
 
 *   `ArrowOverlay.gd`
 *   `EffectType.gd`
-*   `Keyword.gd`
+*   `Keyword.gd` — mots-clés génériques
+*   `KeywordHuman.gd` — mots-clés propres aux Humains (Commandement, Contre-attaque...)
+*   `KeywordUndead.gd` — mots-clés propres aux Morts-Vivants (Infection, Mort-rage...)
 *   `Race.gd`
 *   `TargetType.gd`
 *   `TriggerType.gd`

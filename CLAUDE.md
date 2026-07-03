@@ -36,7 +36,7 @@ scripts/
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
 ├── card/            # CardData, Card (UI), CardEffect, styles
-├── data/            # Énumérations (EffectType, Keyword, Race, TargetType, TriggerType...)
+├── data/            # Énumérations (EffectType, Keyword, KeywordHuman, KeywordUndead, Race, TargetType, TriggerType...)
 ├── deck/            # DeckBuilder, DeckData, DeckList, DeckManager (autoload)
 ├── graveyard/       # Cimetière (logique + vue)
 ├── hand/            # Gestion et layout de la main
