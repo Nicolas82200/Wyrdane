@@ -145,6 +145,8 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
+	# Cliquer sur le deck n'a pas d'action : pas de son de clic
+	deck_button.set_meta("no_click_sound", true)
 
 func _start_game() -> void:
 	update_mana_ui()
