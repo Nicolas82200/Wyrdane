@@ -22,7 +22,12 @@ func _ready() -> void:
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
-	close_credits.pressed.connect(func(): credits_panel.hide())
+	# Le son de fermeture remplace le clic générique
+	close_credits.set_meta("no_click_sound", true)
+	close_credits.pressed.connect(func():
+		AudioManager.play(AudioManager.CLOSE_MENU)
+		credits_panel.hide()
+	)
 	# [FIX] Null-check restauré — settings_menu peut légitimement être absent
 	if settings_menu:
 		settings_button.pressed.connect(settings_menu.open)
@@ -34,6 +39,7 @@ func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
 		push_warning("CardLibrary pas encore chargé !")
 		return
+	AudioManager.play(AudioManager.OPEN_MENU)
 	deck_list.visible = true
 	if deck_list.has_method("_refresh"):
 		deck_list._refresh()
@@ -46,6 +52,7 @@ func _on_future() -> void:
 
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
+	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
 
 func _on_quit() -> void:
 	get_tree().quit()

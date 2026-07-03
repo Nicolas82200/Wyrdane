@@ -11,7 +11,9 @@ const CARD_BACK  = preload("res://assets/card_back/card-back.png")
 
 func _ready() -> void:
 	$PanelContainer/MarginContainer/VBoxContainer/ScrollContainer.custom_minimum_size = Vector2(0, 400)
-	close_btn.pressed.connect(hide)
+	# Le son de fermeture est joué dans close(), pas le clic générique
+	close_btn.set_meta("no_click_sound", true)
+	close_btn.pressed.connect(close)
 	color_rect.gui_input.connect(_on_background_clicked)
 	hide()
 
@@ -19,9 +21,14 @@ func _on_background_clicked(event: InputEvent) -> void:
 	if event is InputEventMouseButton \
 	and event.button_index == MOUSE_BUTTON_LEFT \
 	and event.pressed:
-		hide()
+		close()
+
+func close() -> void:
+	AudioManager.play(AudioManager.CLOSE_MENU)
+	hide()
 
 func open(graveyard: Graveyard) -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
 	for child in container.get_children():
 		child.queue_free()
 	count_label.text = "Cimetière (%d)" % graveyard.size()

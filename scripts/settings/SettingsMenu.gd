@@ -15,6 +15,8 @@ func _ready() -> void:
 	audio_button.pressed.connect(_on_audio)
 	graphism_button.pressed.connect(_on_graphism)
 	control_button.pressed.connect(_on_control)
+	# Le son de fermeture est joué dans close(), pas le clic générique
+	close_button.set_meta("no_click_sound", true)
 	close_button.pressed.connect(close)
 
 	if audio_menu.has_signal("back_requested"):
@@ -37,10 +39,12 @@ func _ready() -> void:
 	control_menu.hide()
 
 func open() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
 	panel.show()
 	show()
 
 func close() -> void:
+	AudioManager.play(AudioManager.CLOSE_MENU)
 	hide()
 
 func _on_audio() -> void:
