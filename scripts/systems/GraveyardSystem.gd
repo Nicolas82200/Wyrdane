@@ -22,11 +22,16 @@ func init(_battle: Node) -> void:
 	)
 
 func _setup(graveyard: Graveyard, button: Button, preview: Card, label: Label) -> void:
-	# La scène Card fait 250x375 : on ramène l'aperçu à 150x225 (taille du deck)
-	var scale := Vector2(150, 225) / Vector2(250, 375)
+	# Le cadre noir extérieur de la carte va de (-8,-9) à (258,381) = 266x390.
+	# On l'ajuste à la taille exacte du deck (150x225) et on recale l'aperçu pour
+	# que ce cadre coïncide avec le coin haut-gauche du bouton.
+	var frame := Vector2(266, 390)
+	var target := Vector2(150, 225)
+	var s: float = minf(target.x / frame.x, target.y / frame.y)
 	preview.visible = false
 	button.visible  = false
-	preview.scale   = scale
+	preview.scale    = Vector2(s, s)
+	preview.position = Vector2(8.0 * s, 9.0 * s)
 	graveyard.graveyard_changed.connect(func(): update_btn(graveyard, preview, label))
 	button.pressed.connect(func(): battle.graveyard_view.open(graveyard))
 	if preview.has_method("set_non_interactive"):
