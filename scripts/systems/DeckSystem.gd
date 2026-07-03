@@ -20,6 +20,7 @@ func load_deck() -> void:
 			battle.deck.append(card)
 
 func start_game() -> void:
+	AudioManager.play(AudioManager.SHUFFLE)
 	battle.deck.shuffle()
 	for i in range(5):
 		battle.hand_cards.append(battle.deck.pop_back())
