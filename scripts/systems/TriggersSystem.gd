@@ -65,7 +65,21 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 				await battle.pace_actions()
 			await _execute_enchantment_effects(card_data, is_player, ctx)
 			acted = true
+			_consume_ritual_charge(entry, is_player)
 	return acted
+
+# Un rituel à durée limitée ne perd une charge que lorsque son effet se
+# déclenche réellement (et non passivement à chaque tour). Quand le compteur
+# atteint 0, le rituel est détruit et envoyé au cimetière.
+# Les enchantements permanents (turns_left == -1) ne sont jamais décrémentés.
+func _consume_ritual_charge(entry: Dictionary, is_player: bool) -> void:
+	if entry["turns_left"] == -1:
+		return
+	entry["turns_left"] -= 1
+	if entry["turns_left"] <= 0:
+		battle.enchantment_system.destroy_enchantment(entry["card_data"], is_player)
+	else:
+		battle.enchantment_system.update_turns_left(entry["card_data"], is_player, entry["turns_left"])
 
 func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_owner_is_player: bool) -> bool:
 	for trigger in card_data.trigger_types:
@@ -112,20 +126,6 @@ func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")
 
 # ─── Durées ───────────────────────────────────────────────────────────────────
-
-func tick_enchantment_durations(is_player: bool) -> void:
-	var expired: Array = []
-	for entry in _enchantments[is_player]:
-		if entry["turns_left"] == -1:
-			continue
-		entry["turns_left"] -= 1
-		if entry["turns_left"] <= 0:
-			expired.append(entry)
-		else:
-			battle.enchantment_system.update_turns_left(entry["card_data"], is_player, entry["turns_left"])
-	for entry in expired:
-		# Retire aussi le visuel de la zone et envoie la carte au cimetière
-		battle.enchantment_system.destroy_enchantment(entry["card_data"], is_player)
 
 func clear_all(is_player: bool) -> void:
 	_enchantments[is_player].clear()

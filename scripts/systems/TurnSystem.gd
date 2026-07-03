@@ -12,12 +12,10 @@ func end_turn() -> void:
 	acted = await _trigger_minions_paced(battle.player_minions, "OnTurnEnd", acted)
 	# Fin de tour — enchantements joueur
 	acted = await battle.trigger_system.fire("OnTurnEnd", null, true, {}, true, acted)
-	battle.trigger_system.tick_enchantment_durations(true)
 
 	# Fin de tour — serviteurs ennemis
 	acted = await _trigger_minions_paced(battle.enemy_minions, "OnTurnEnd", acted)
 	acted = await battle.trigger_system.fire("OnTurnEnd", null, false, {}, true, acted)
-	battle.trigger_system.tick_enchantment_durations(false)
 
 	await _apply_infection_damage()
 	battle.temp_effect_system.expire_end_of_player_turn()
