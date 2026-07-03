@@ -22,7 +22,7 @@ func init(_battle: Node) -> void:
 	)
 
 func _setup(graveyard: Graveyard, button: Button, preview: Card, label: Label) -> void:
-	var scale := Vector2(120, 180) / Vector2(200, 300)
+	var scale := Vector2(150, 225) / Vector2(200, 300)
 	preview.visible = false
 	button.visible  = false
 	preview.scale   = scale
