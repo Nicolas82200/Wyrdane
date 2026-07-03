@@ -173,10 +173,6 @@ func _process(_delta: float) -> void:
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		get_tree().quit()
-
 func _unhandled_input(event: InputEvent) -> void:
 	if targeting_system.is_targeting():
 		if event is InputEventMouseButton \
@@ -190,12 +186,68 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+	# Raccourcis clavier (fin de tour, choix mana/pioche, cimetières, Échap)
+	if _handle_shortcut(event):
+		get_viewport().set_input_as_handled()
+		return
+
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.pressed \
 			and not Input.is_key_pressed(KEY_CTRL):
 		if selection_system.is_multi_selecting:
 			selection_system.clear_multi_selection()
+
+# ─── Raccourcis clavier ───────────────────────────────────────────────────────
+
+# Traite un raccourci clavier. Retourne true si l'événement a été consommé.
+func _handle_shortcut(event: InputEvent) -> bool:
+	# Échap "intelligent" : annule/ferme le contexte prioritaire ouvert
+	if event.is_action_pressed("ui_cancel"):
+		return _handle_cancel()
+
+	# Choix mana/pioche : uniquement quand le panneau attend une décision
+	if event.is_action_pressed("choose_mana"):
+		if turn_choice_panel.is_active():
+			turn_choice_panel.select_mana()
+		return true
+	if event.is_action_pressed("choose_draw"):
+		if turn_choice_panel.is_active():
+			turn_choice_panel.select_draw()
+		return true
+
+	# Fin de tour : neutralisée tant qu'un choix de début de tour est en attente
+	if event.is_action_pressed("end_turn"):
+		if not turn_choice_panel.is_active():
+			_on_end_turn_pressed()
+		return true
+
+	if event.is_action_pressed("toggle_graveyard"):
+		_toggle_graveyard(player_graveyard)
+		return true
+	if event.is_action_pressed("toggle_enemy_graveyard"):
+		_toggle_graveyard(enemy_graveyard)
+		return true
+
+	return false
+
+# Échap : ferme un overlay ouvert par ordre de priorité, sinon ouvre les réglages.
+func _handle_cancel() -> bool:
+	if graveyard_view.visible:
+		graveyard_view.close()
+		return true
+	if settings_menu.visible:
+		settings_menu.close()
+		return true
+	settings_menu.open()
+	return true
+
+# Ouvre le cimetière demandé, ou le referme s'il est déjà visible.
+func _toggle_graveyard(target_graveyard: Graveyard) -> void:
+	if graveyard_view.visible:
+		graveyard_view.close()
+	else:
+		graveyard_view.open(target_graveyard)
 
 # ─── Trigger centralisé ───────────────────────────────────────────────────────
 

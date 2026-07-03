@@ -45,6 +45,9 @@ func open() -> void:
 	_load_settings()
 	show()
 
+func close() -> void:
+	_on_close()
+
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("audio", "master", master_slider.value)
