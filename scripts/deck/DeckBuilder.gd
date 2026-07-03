@@ -367,6 +367,13 @@ func _build_filter_bar() -> void:
 		func() -> int: return _filter_race,
 		race_labels)
 
+	# Type de carte
+	filter_bar.add_child(_make_filter_label("Type :"))
+	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment"],
+		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
+		func() -> String: return _filter_type,
+		["Tous", "Serviteur", "Éphémère", "Rituel", "Enchantement"])
+
 	# Rareté
 	filter_bar.add_child(_make_filter_label("Rareté :"))
 	_add_filter_group(filter_bar, ["", "Common", "Rare", "Epic", "Legendary"],
