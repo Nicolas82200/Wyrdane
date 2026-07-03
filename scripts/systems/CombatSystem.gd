@@ -29,10 +29,17 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	AudioManager.play(AudioManager.HIT)
 
-	if attacker.has_keyword(Keyword.Type.DEADLY_POISON):
+	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
+	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
 		defender.health = 0
-	if defender.has_keyword(Keyword.Type.DEADLY_POISON):
+	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and not attacker.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
 		attacker.health = 0
+
+	# PESTIFÉRÉ : l'attaque inflige Infection en plus des dégâts
+	# (pas d'infection si les dégâts ont été annulés, ex: ÉGIDE ; le setter
+	# de infected gère l'immunité CHAIR MORTE)
+	if attacker.has_undead_keyword(KeywordUndead.Type.PESTIFERE) and dealt_to_defender > 0 and not defender.is_dead():
+		defender.infected = true
 
 	if dealt_to_attacker > 0:
 		await battle.effect_manager.notify_damaged(battle, attacker)
