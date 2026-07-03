@@ -32,6 +32,21 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#5a1f1f96"),
 }
 
+# Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
+const TYPE_LABELS := {
+	"Minion":      "Serviteur",
+	"Instant":     "Éphémère",
+	"Ritual":      "Rituel",
+	"Enchantment": "Enchantement",
+}
+
+# Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
+const LANE_ICONS := {
+	"Front":  preload("res://assets/icons/front_lane.png"),
+	"Back":   preload("res://assets/icons/back_lane.png"),
+	"Hybrid": preload("res://assets/icons/hibrid_lane.png"),
+}
+
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
@@ -40,7 +55,8 @@ const RACE_COLORS := {
 @onready var desc_label: RichTextLabel = $DescLabel
 @onready var border: TextureRect       = $BorderFrame
 @onready var text_background: Control  = $TextBackground
-@onready var rarity_gem: TextureRect   = $RarityGem
+@onready var type_label: Label         = $TypeLabel
+@onready var lane_icon: TextureRect    = $LaneIcon
 
 var data: CardData
 var drag_enabled := true
@@ -65,9 +81,15 @@ var can_drag_check: Callable = Callable()
 var create_drag_preview: Callable = Callable()
 
 var _race_bg_style := StyleBoxFlat.new()
+var _type_style    := StyleBoxFlat.new()
 
 func _ready() -> void:
 	text_background.add_theme_stylebox_override("panel", _race_bg_style)
+	_type_style.set_corner_radius_all(8)
+	_type_style.set_border_width_all(1)
+	_type_style.content_margin_left = 8.0
+	_type_style.content_margin_right = 8.0
+	type_label.add_theme_stylebox_override("normal", _type_style)
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -90,6 +112,11 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 
+	# Icône de rangée : serviteurs uniquement
+	lane_icon.visible = is_minion and LANE_ICONS.has(data.board_position)
+	if lane_icon.visible:
+		lane_icon.texture = LANE_ICONS[data.board_position]
+
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][font_size=10][i]" + data.flavour_text + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
@@ -106,12 +133,23 @@ func update_display() -> void:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
 
 	_apply_race_style()
-	_apply_rarity_style()
+	_apply_type_style()
 
-func _apply_rarity_style() -> void:
-	var color : Color = RARITY_COLORS.get(data.rarity, Color.WHITE)
-	color.a = 1.0
-	rarity_gem.modulate = color
+# Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
+func _apply_type_style() -> void:
+	var label_text: String = TYPE_LABELS.get(data.card_type, "Serviteur")
+	if data.card_type == "Ritual":
+		if data.ritual_duration > 0:
+			label_text += " • %d tour%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
+		elif data.ritual_duration == -1:
+			label_text += " • Permanent"
+	type_label.text = label_text
+
+	var rarity_color: Color = RARITY_COLORS.get(data.rarity, Color("808080"))
+	var bg := rarity_color
+	bg.a = 0.85
+	_type_style.bg_color = bg
+	_type_style.border_color = rarity_color
 
 func _apply_race_style() -> void:
 	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
@@ -259,8 +297,9 @@ func show_back(show_card_back: bool) -> void:
 		health_label.hide()
 		desc_label.hide()
 		border.hide()
-		rarity_gem.hide()
+		lane_icon.hide()
 		text_background.hide()
+		type_label.hide()
 	else:
 		if data:
 			update_display()
@@ -270,5 +309,5 @@ func show_back(show_card_back: bool) -> void:
 		health_label.show()
 		desc_label.show()
 		border.show()
-		rarity_gem.show()
 		text_background.show()
+		type_label.show()
