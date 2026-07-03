@@ -84,7 +84,8 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
-			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
+			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
@@ -113,7 +114,8 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
-			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
+			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
