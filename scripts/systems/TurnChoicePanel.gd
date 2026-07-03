@@ -93,6 +93,17 @@ func _set_peek(peeking: bool) -> void:
 
 # ─── Sélection ────────────────────────────────────────────────────────────────
 
+# Le panneau attend-il un choix ? (visible et boutons encore actifs)
+func is_active() -> bool:
+	return visible and not draw_button.disabled
+
+# Raccourcis clavier : déclenchent le même chemin qu'un clic sur la carte
+func select_draw() -> void:
+	_on_draw_button_pressed()
+
+func select_mana() -> void:
+	_on_mana_button_pressed()
+
 func _on_draw_button_pressed() -> void:
 	_confirm_choice(draw_button, draw_selected)
 
