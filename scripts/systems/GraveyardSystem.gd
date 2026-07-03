@@ -22,7 +22,8 @@ func init(_battle: Node) -> void:
 	)
 
 func _setup(graveyard: Graveyard, button: Button, preview: Card, label: Label) -> void:
-	var scale := Vector2(150, 225) / Vector2(200, 300)
+	# La scène Card fait 250x375 : on ramène l'aperçu à 150x225 (taille du deck)
+	var scale := Vector2(150, 225) / Vector2(250, 375)
 	preview.visible = false
 	button.visible  = false
 	preview.scale   = scale
