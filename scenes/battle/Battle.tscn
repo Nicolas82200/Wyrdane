@@ -13,14 +13,55 @@
 [ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
+[ext_resource type="Script" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
+bg_color = Color(0.09, 0.07, 0.06, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.55, 0.26, 1)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
+shadow_color = Color(0.72, 0.55, 0.26, 0.2)
+shadow_size = 8
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nyp61"]
-corner_radius_top_left = 150
-corner_radius_top_right = 150
+bg_color = Color(0.09, 0.07, 0.06, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.55, 0.26, 1)
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+shadow_color = Color(0.72, 0.55, 0.26, 0.2)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lanefront"]
+bg_color = Color(0.5, 0.22, 0.15, 0.07)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.42, 0.3, 0.22)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laneback"]
+bg_color = Color(0.18, 0.28, 0.5, 0.07)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.62, 0.9, 0.22)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_enchzone"]
 bg_color = Color(0.25, 0.15, 0.35, 0.22)
@@ -82,6 +123,142 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="EnemyBackLanePanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -318.0
+offset_right = 600.0
+offset_bottom = -192.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_laneback")
+
+[node name="EnemyFrontLanePanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -148.0
+offset_right = 600.0
+offset_bottom = -22.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lanefront")
+
+[node name="PlayerFrontLanePanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = 22.0
+offset_right = 600.0
+offset_bottom = 148.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lanefront")
+
+[node name="PlayerBackLanePanel" type="Panel" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = 192.0
+offset_right = 600.0
+offset_bottom = 318.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_laneback")
+
+[node name="EnemyBackLaneIndicator" type="Control" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -588.0
+offset_top = -271.0
+offset_right = -508.0
+offset_bottom = -239.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_lanein")
+filled_row = 0
+fill_color = Color(0.45, 0.62, 0.9, 0.9)
+
+[node name="EnemyFrontLaneIndicator" type="Control" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -588.0
+offset_top = -101.0
+offset_right = -508.0
+offset_bottom = -69.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_lanein")
+filled_row = 1
+fill_color = Color(0.85, 0.42, 0.3, 0.9)
+
+[node name="PlayerFrontLaneIndicator" type="Control" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -588.0
+offset_top = 69.0
+offset_right = -508.0
+offset_bottom = 101.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_lanein")
+filled_row = 0
+fill_color = Color(0.85, 0.42, 0.3, 0.9)
+
+[node name="PlayerBackLaneIndicator" type="Control" parent="Board"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -588.0
+offset_top = 239.0
+offset_right = -508.0
+offset_bottom = 271.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15_lanein")
+filled_row = 1
+fill_color = Color(0.45, 0.62, 0.9, 0.9)
 
 [node name="EnemyFrontHighlight" type="ColorRect" parent="Board" unique_id=2126227615]
 visible = false
@@ -157,6 +334,7 @@ offset_right = 600.0
 offset_bottom = -180.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="EnemyFrontLine" type="HBoxContainer" parent="Board" unique_id=2126227614]
@@ -173,6 +351,7 @@ offset_right = 600.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="PlayerFrontLine" type="HBoxContainer" parent="Board" unique_id=447161652]
@@ -189,6 +368,7 @@ offset_right = 600.0
 offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="PlayerBackLine" type="HBoxContainer" parent="Board" unique_id=447161653]
@@ -205,6 +385,7 @@ offset_right = 600.0
 offset_bottom = 330.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="EnemyEnchantmentPanel" type="Panel" parent="Board"]

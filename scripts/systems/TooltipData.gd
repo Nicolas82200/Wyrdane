@@ -62,6 +62,29 @@ const KEYWORD_HUMAN_DESCRIPTIONS := {
 	},
 }
 
+const KEYWORD_UNDEAD_DESCRIPTIONS := {
+	KeywordUndead.Type.PESTIFERE: {
+		"title": "Pestiféré",
+		"desc": "Les attaques de ce serviteur infligent Infection en plus des dégâts."
+	},
+	KeywordUndead.Type.NECROPHAGE: {
+		"title": "Nécrophage",
+		"desc": "Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente."
+	},
+	KeywordUndead.Type.HORDE: {
+		"title": "Horde",
+		"desc": "Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0."
+	},
+	KeywordUndead.Type.REVENANT: {
+		"title": "Revenant",
+		"desc": "La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie)."
+	},
+	KeywordUndead.Type.CHAIR_MORTE: {
+		"title": "Chair morte",
+		"desc": "Immunisé à l'Infection, au poison et aux effets de peur."
+	},
+}
+
 # Toutes les valeurs "trigger_name" (String) doivent correspondre EXACTEMENT
 # aux chaînes utilisées dans TriggerType.get_name() / le champ trigger.type de CardData.
 const TRIGGER_DESCRIPTIONS := {
@@ -94,8 +117,9 @@ const RACE_DESCRIPTIONS := {
 	Race.Type.DEMON:  "Démon",
 }
 
-const COLOR_KEYWORD       := Color(0.15, 0.28, 0.48, 1.0)  # Mort-Vivant / partagé
-const COLOR_KEYWORD_HUMAN := Color(0.55, 0.42, 0.10, 1.0)  # Humain
+const COLOR_KEYWORD        := Color(0.15, 0.28, 0.48, 1.0)  # Mots-clés partagés
+const COLOR_KEYWORD_HUMAN  := Color(0.55, 0.42, 0.10, 1.0)  # Humain
+const COLOR_KEYWORD_UNDEAD := Color(0.25, 0.36, 0.16, 1.0)  # Mort-Vivant (vert putride)
 const COLOR_TRIGGER       := Color(0.38, 0.22, 0.06, 1.0)
 const COLOR_EFFECT        := Color(0.18, 0.32, 0.18, 1.0)
 
@@ -250,6 +274,16 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 			continue
 		var info: Dictionary = KEYWORD_HUMAN_DESCRIPTIONS[keyword]
 		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_KEYWORD_HUMAN)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	# 1c. Mots-clés Mort-Vivant (enum KeywordUndead.Type)
+	for keyword in card_data.get_undead_keyword_values():
+		if not KEYWORD_UNDEAD_DESCRIPTIONS.has(keyword):
+			continue
+		var info: Dictionary = KEYWORD_UNDEAD_DESCRIPTIONS[keyword]
+		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_KEYWORD_UNDEAD)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)

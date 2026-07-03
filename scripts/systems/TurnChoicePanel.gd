@@ -21,10 +21,14 @@ func _ready() -> void:
 	hide()
 	_setup_card(draw_button, _on_draw_button_pressed)
 	_setup_card(mana_button, _on_mana_button_pressed)
+	# Presser "voir ma main" n'a pas d'action : pas de son de clic
+	peek_button.set_meta("no_click_sound", true)
 	peek_button.mouse_entered.connect(_set_peek.bind(true))
 	peek_button.mouse_exited.connect(_set_peek.bind(false))
 
 func _setup_card(button: Button, on_pressed: Callable) -> void:
+	# Le son de confirmation est joué dans _confirm_choice, pas le clic générique
+	button.set_meta("no_click_sound", true)
 	button.pressed.connect(on_pressed)
 	button.mouse_entered.connect(_on_card_mouse_entered.bind(button))
 	button.mouse_exited.connect(_on_card_mouse_exited.bind(button))
@@ -65,7 +69,6 @@ func _new_scale_tween(button: Button) -> Tween:
 func _on_card_mouse_entered(button: Button) -> void:
 	if button.disabled:
 		return
-	AudioManager.play(AudioManager.HOVER)
 	button.pivot_offset = button.size / 2.0
 	_new_scale_tween(button).tween_property(button, "scale", HOVER_SCALE, 0.12) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -84,8 +87,6 @@ func _set_peek(peeking: bool) -> void:
 		return
 	if _peek_tween and _peek_tween.is_valid():
 		_peek_tween.kill()
-	if peeking:
-		AudioManager.play(AudioManager.HOVER)
 	_peek_tween = create_tween()
 	_peek_tween.tween_property(self, "modulate:a", PEEK_ALPHA if peeking else 1.0, 0.18) \
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -103,7 +104,7 @@ func _confirm_choice(chosen: Button, selected_signal: Signal) -> void:
 	mana_button.disabled = true
 	if _peek_tween and _peek_tween.is_valid():
 		_peek_tween.kill()
-	AudioManager.play(AudioManager.BUTTON)
+	AudioManager.play(AudioManager.CONFIRM)
 	var other: Button = mana_button if chosen == draw_button else draw_button
 	chosen.pivot_offset = chosen.size / 2.0
 	var tween := _new_scale_tween(chosen).set_parallel(true)
