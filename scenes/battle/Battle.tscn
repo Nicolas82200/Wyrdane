@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 [ext_resource type="Script" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
+[ext_resource type="Script" path="res://scripts/hand/EnemyHandDisplay.gd" id="16_enhand"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 bg_color = Color(0.09, 0.07, 0.06, 0.95)
@@ -86,6 +87,8 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_deck"]
 
 [node name="Battle" type="Control" unique_id=2071817443]
 layout_mode = 3
@@ -678,12 +681,12 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -550.0
-offset_top = -50.0
-offset_right = -550.0
-offset_bottom = -200.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = -601.0
+offset_top = -225.0
+offset_right = -481.0
+offset_bottom = -45.0
+grow_horizontal = 0
+grow_vertical = 0
 
 [node name="CountLabel" type="Label" parent="PlayerGraveyardButton" unique_id=376800410]
 custom_minimum_size = Vector2(120, 180)
@@ -705,8 +708,9 @@ mouse_filter = 2
 custom_minimum_size = Vector2(120, 180)
 layout_mode = 0
 offset_left = 430.0
-offset_right = 430.0
-offset_bottom = 200.0
+offset_top = 25.0
+offset_right = 550.0
+offset_bottom = 205.0
 
 [node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
 custom_minimum_size = Vector2(120, 180)
@@ -736,12 +740,16 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -700.0
-offset_top = -50.0
-offset_right = -700.0
-offset_bottom = -200.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = -775.0
+offset_top = -270.0
+offset_right = -625.0
+offset_bottom = -45.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
 
 [node name="CountLabel" type="Label" parent="DeckButton" unique_id=2036986601]
 custom_minimum_size = Vector2(100, 150)
@@ -762,6 +770,47 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("9_2ckr4")
 expand_mode = 1
+
+[node name="EnemyDeckButton" type="Button" parent="."]
+custom_minimum_size = Vector2(120, 180)
+layout_mode = 0
+offset_left = 286.0
+offset_top = 25.0
+offset_right = 406.0
+offset_bottom = 205.0
+theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
+
+[node name="CountLabel" type="Label" parent="EnemyDeckButton"]
+custom_minimum_size = Vector2(100, 150)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardBack" type="TextureRect" parent="EnemyDeckButton"]
+custom_minimum_size = Vector2(120, 180)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("9_2ckr4")
+expand_mode = 1
+
+[node name="EnemyHandDisplay" type="Control" parent="."]
+layout_mode = 0
+offset_left = 1053.0
+offset_top = 20.0
+offset_right = 1553.0
+offset_bottom = 140.0
+mouse_filter = 2
+script = ExtResource("16_enhand")
 
 [node name="SettingsButton" type="Button" parent="." unique_id=1329099647]
 layout_mode = 0
