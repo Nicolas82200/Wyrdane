@@ -5,31 +5,24 @@
 [ext_resource type="Texture2D" uid="uid://bqr176760a1ut" path="res://assets/card_art/undead/plague-emissary.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://fly4qfjek3e6" path="res://scripts/card/KeywordChoiceUndead.gd" id="6_kwu"]
 
-[sub_resource type="Resource" id="Resource_9foa5"]
-script = ExtResource("1_cardeffect")
-effect_id = "DebuffATK"
-target = "EnemyMinion"
-value = 2
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
-[sub_resource type="Resource" id="Resource_8cnwy"]
-script = ExtResource("5_trig")
-type = "ONPLAY"
+[sub_resource type="Resource" id="Resource_kwu1"]
+script = ExtResource("6_kwu")
+keyword_type = 0
+metadata/_custom_type_script = "uid://fly4qfjek3e6"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Émissaire de la Peste"
-description = "Arrivée : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse."
+description = "PESTIFÉRÉ : ses attaques infligent Infection en plus des dégâts."
 flavour_text = "Il ne vient pas combattre. Il vient annoncer."
 texture = ExtResource("3_texture")
 cost = 4
 unit_style = 1
 attack = 3
 health = 4
-trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_8cnwy")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_9foa5")])
-requires_target = true
+undead_keywords = Array[ExtResource("6_kwu")]([SubResource("Resource_kwu1")])
 rarity = "Rare"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

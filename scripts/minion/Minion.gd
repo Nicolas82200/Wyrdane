@@ -123,9 +123,9 @@ func remove_undead_keyword(keyword: int) -> void:
 func get_keywords_text() -> String:
 	var names: Array[String] = []
 	for keyword in keywords:
-		names.append(Keyword.get_name(keyword))
+		names.append(Keyword.get_keyword_name(keyword))
 	for keyword in human_keywords:
-		names.append(KeywordHuman.get_name(keyword))
+		names.append(KeywordHuman.get_keyword_name(keyword))
 	for keyword in undead_keywords:
-		names.append(KeywordUndead.get_name(keyword))
+		names.append(KeywordUndead.get_keyword_name(keyword))
 	return ", ".join(names)
