@@ -24,6 +24,12 @@ func setup() -> void:
 	deck.shuffle()
 	for i in range(STARTING_HAND):
 		_draw_card()
+	refresh_ui()
+
+# Deck et main de l'IA visibles par le joueur (dos de cartes + compteurs)
+func refresh_ui() -> void:
+	battle.deck_system.update_enemy_deck_ui()
+	battle.enemy_hand_display.set_count(hand.size())
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
@@ -67,6 +73,7 @@ func _play_cards_phase() -> void:
 		var row: String = _pick_row_for(card)
 		hand.erase(card)
 		mana -= card.cost
+		refresh_ui()
 		await battle.board_system.summon_minion(card, false, row)
 		played = true
 
@@ -115,6 +122,7 @@ func _draw_card() -> void:
 	if deck.is_empty():
 		return
 	hand.append(deck.pop_back())
+	refresh_ui()
 
 # ─── Choix de pose ────────────────────────────────────────────────────────────
 
