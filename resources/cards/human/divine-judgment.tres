@@ -8,9 +8,9 @@
 
 [sub_resource type="Resource" id="Resource_y4iga"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyLowHP"
-target = "AllEnemies"
-value = 2
+effect_id = "Destroy"
+target = "EnemyMinion"
+target_max_atk = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
@@ -23,5 +23,6 @@ cost = 3
 race = 1
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_y4iga")])
+requires_target = true
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

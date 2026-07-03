@@ -23,6 +23,7 @@ var silenced: bool = false
 var frozen_turns: int = 0
 var corrupted: bool = false
 var infected: bool = false
+var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false

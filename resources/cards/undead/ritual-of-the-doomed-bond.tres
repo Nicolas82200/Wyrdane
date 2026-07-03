@@ -24,6 +24,7 @@ flavour_text = "Chaque allié qui tombe tire un fil. L'ennemi finit par sentir l
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
+ritual_duration = 3
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_tv32m")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_nax22")])
 rarity = "Epic"

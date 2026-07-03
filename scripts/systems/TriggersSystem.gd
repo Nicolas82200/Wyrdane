@@ -121,6 +121,8 @@ func tick_enchantment_durations(is_player: bool) -> void:
 		entry["turns_left"] -= 1
 		if entry["turns_left"] <= 0:
 			expired.append(entry)
+		else:
+			battle.enchantment_system.update_turns_left(entry["card_data"], is_player, entry["turns_left"])
 	for entry in expired:
 		# Retire aussi le visuel de la zone et envoie la carte au cimetière
 		battle.enchantment_system.destroy_enchantment(entry["card_data"], is_player)
