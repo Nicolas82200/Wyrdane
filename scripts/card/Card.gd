@@ -219,7 +219,7 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.rotation_degrees = drag_rotation
 
 	# [FIX] Utilise _battle mis en cache — plus d'appel à get_tree().current_scene chaque frame
-	if _battle and _battle.get("drop_system"):
+	if _battle and _battle.get("drop_system") and SettingsManager.show_play_highlights:
 		_battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
 
 func _input(event: InputEvent) -> void:
