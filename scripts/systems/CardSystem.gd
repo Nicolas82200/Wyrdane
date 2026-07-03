@@ -12,7 +12,18 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 	if card_data.card_type == "Minion" and not battle.can_summon_to_row(true, row):
 		push_warning("Rangée %s pleine." % row)
 		return
+	if not conditions_met(card_data):
+		push_warning("Conditions non remplies pour jouer %s." % card_data.card_name)
+		battle.hand.set_hand(battle.hand_cards)
+		return
 	if card_data.requires_target:
+		# Serviteur à effet ciblé sans cible valide : on le pose quand même,
+		# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
+		# en amont par conditions_met)
+		if card_data.card_type == "Minion" \
+				and not battle.targeting_system.has_any_valid_target(card_data):
+			await play_card(card_data, row, insert_index)
+			return
 		battle.pending_card         = card_data
 		battle.pending_row          = row
 		battle.pending_insert_index = insert_index
@@ -21,6 +32,23 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		battle.targeting_system.begin_targeting(card_data, row, insert_index)
 		return
 	await play_card(card_data, row, insert_index)
+
+# Un sort dont les conditions ne sont pas remplies (aucune cible valide,
+# cimetière vide...) ne doit pas pouvoir être lancé.
+func conditions_met(card_data: CardData) -> bool:
+	if card_data == null:
+		return false
+	if card_data.card_type == "Minion":
+		return true
+	if card_data.requires_target \
+			and not battle.targeting_system.has_any_valid_target(card_data):
+		return false
+	for effect in card_data.effects:
+		match effect.effect_id:
+			"Resurrect", "ResurrectLast", "ReturnFromGrave":
+				if battle.player_graveyard.get_minions().is_empty():
+					return false
+	return true
 
 func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await battle.card_popup_system.show_targeting_popup(card_data)
@@ -55,6 +83,11 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
+			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
+			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
+			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)
 			for effect in card_data.effects:
@@ -78,6 +111,11 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			# Reste en jeu dans sa zone jusqu'à destruction — effets via TriggerSystem/AuraSystem
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
+			battle.aura_system.recompute_all()
+		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
+			# Rituel à durée : reste dans sa zone, effets via triggers, expire via tick_enchantment_durations
+			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
+			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)

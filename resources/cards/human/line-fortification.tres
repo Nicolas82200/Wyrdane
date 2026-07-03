@@ -25,6 +25,7 @@ texture = ExtResource("3_texture")
 cost = 5
 race = 1
 card_type = "Ritual"
+ritual_duration = -1
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_pcnia")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_up2qq")])
 rarity = "Rare"

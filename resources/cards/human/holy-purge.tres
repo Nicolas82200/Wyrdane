@@ -11,6 +11,7 @@ script = ExtResource("1_cardeffect")
 effect_id = "DestroyLowHP"
 target = "AllEnemies"
 value = 3
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

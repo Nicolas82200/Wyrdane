@@ -12,6 +12,7 @@ script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllyMinion"
 value_2 = 2
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

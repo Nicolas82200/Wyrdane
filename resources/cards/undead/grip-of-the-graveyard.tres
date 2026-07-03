@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "ReturnToHand"
 target = "EnemyMinion"
+target_max_hp = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

@@ -22,6 +22,7 @@ flavour_text = "Elle ne tue pas. Elle prépare."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
+ritual_duration = 1
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yhhce")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
