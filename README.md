@@ -44,7 +44,7 @@ var minion_to_visual: Dictionary = {} # Minion -> BoardMinion
 
 Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 
-1.  Animation `_animate_attack_lunge()` (dans `AnimationSystem`)
+1.  Animation `play_attack_lunge()` (dans `AnimationSystem`)
 2.  Trigger `OnAttack` (géré par `EffectManager`)
 3.  Application des dégâts simultanés.
 4.  Effets spéciaux :
@@ -62,7 +62,7 @@ Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem
 Étapes :
 
 1.  Détection des unités mortes.
-2.  Animation `_play_death_animation` (dans `AnimationSystem`).
+2.  Animation `play_death()` (dans `AnimationSystem`).
 3.  Suppression visuelle.
 4.  Ajout au cimetière (géré par `GraveyardSystem`).
 5.  Trigger `DEATHRATTLE` (géré par `EffectManager`).
@@ -126,10 +126,13 @@ EffectManager.execute_targeted_effect()
 
 Triggers disponibles (`TriggerType.gd`) :
 
-*   ONPLAY
-*   DEATHRATTLE
-*   ONTURNSTART / ONTURNEND
-*   OnAttack / OnDamaged
+*   `ONPLAY` (Invocation) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
+*   `OnDamaged` (Blessure) / `OnAttack` / `OnExecution` (Exécution)
+*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire
+*   `OnTurnStart` / `OnTurnEnd`
+*   `OnRally` (Ralliement) / `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
+*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage)
+*   `OnSummon` (Appel) / `OnAura` (Présence) / `OnResonance` (Résonance)
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
 
@@ -140,6 +143,20 @@ Deux lignes par joueur (`ROW_FRONT`, `ROW_BACK`) :
 *   Front protège Back.
 *   Back inaccessible si Front occupée (selon logique d’attaque).
 *   Les cartes peuvent être limitées par `board_position` (dans `CardData`).
+
+### 🤖 IA adverse
+
+L'adversaire est piloté par `AISystem` (`scripts/systems/AISystem.gd`), avec son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana.
+
+Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
+
+1.  **Ressource** — mana ou pioche (symétrique du choix joueur du `TurnChoicePanel`).
+2.  **Pose** — joue les serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière).
+3.  **Attaque** — priorité : Provocation > létal sur le héros > trade favorable (tuer sans mourir) > héros.
+
+Pendant son tour, `battle.enemy_turn_active` verrouille les inputs joueur (cartes, attaques, bouton fin de tour).
+
+⚠️ Limite actuelle : l'IA ne joue que des **serviteurs** — pas de sorts, rituels ni enchantements.
 
 ### 🚨 Systèmes de protection anti-bug
 
@@ -167,9 +184,9 @@ _is_dragging_card (dans Battle.gd et Hand.gd)
 
 Animations centralisées dans `AnimationSystem.gd` :
 
-*   `_animate_attack_lunge`
-*   `_play_death_animation`
-*   `_play_summon_animation`
+*   `play_attack_lunge`
+*   `play_death`
+*   `play_summon`
 
 Toutes utilisent :
 
@@ -188,7 +205,7 @@ create_tween()
 *   `Hero.gd` → HP + logique du joueur
 *   `Graveyard.gd` → stockage des minions morts et cartes défaussées
 *   `EffectManager.gd` → moteur centralisé pour l'exécution des effets
-*   `EffectManagerData.gd` → (Potentiellement une donnée ou une ancienne version, à vérifier l'usage actuel avec `EffectManager.gd`)
+*   `AISystem.gd` → adversaire : deck, main, mana et déroulé de son tour
 
 ### ⚠️ Point important (debug futur)
 
@@ -242,6 +259,12 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `HeroSystem.gd`: Gestion des héros des joueurs.
 *   `TargetingSystem.gd`: Gestion du ciblage d'entités pour les effets de cartes.
 *   `EnchantmentSystem.gd`: Gestion des enchantements et modifications de statistiques des serviteurs.
+*   `AISystem.gd`: Adversaire — deck, main, mana et déroulé automatique de son tour.
+*   `AuraSystem.gd`: Recalcul des bonus d'aura (Présence) des serviteurs.
+*   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
+*   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau.
+*   `TurnChoicePanel.gd`: Panneau du choix Mana/Pioche en début de tour.
+*   `TooltipData.gd`: Tooltips des mots-clés (autoload).
 
 ### Scripts de Données et Énumérations (`scripts/data/`)
 
@@ -268,8 +291,10 @@ Ces dossiers contiennent les définitions logiques et visuelles des cartes et se
 
 Le projet utilise des singletons pour des systèmes globaux :
 
-*   `AudioManager` (`res://scripts/autoload/audio/AudioManager.gd`): Gestion de la musique et des effets sonores.
-*   `DeckManager` (`res://scripts/autoload/deck/DeckManager.gd`): Gestion du deck global.
+*   `AudioManager` (`res://scripts/audio/AudioManager.gd`): Gestion de la musique et des effets sonores.
+*   `DeckManager` (`res://scripts/deck/DeckManager.gd`): Gestion des decks du joueur (deck actif, sauvegarde).
+*   `TooltipData` (`res://scripts/systems/TooltipData.gd`): Données des tooltips de mots-clés.
+*   `CardLibrary` (`res://scripts/loading/CardLibrary.gd`): Chargement de toutes les `CardData` de `resources/cards/`.
 
 ---
 
@@ -302,5 +327,23 @@ Le projet utilise des singletons pour des systèmes globaux :
 *   **Considérer un "GameManager" global (ou pousser plus loin le concept Battle)**: Le script `Battle.gd` est déjà très central. S'il continue de grandir, le transformer en un `GameManager` plus global (qui instancie et gère le `Battle` lui-même, par exemple) pourrait clarifier les responsabilités entre la scène de bataille et la gestion globale du jeu.
 *   **Gestion des ressources (prélodage)**: Bien que `preload` soit utilisé, pour des jeux plus grands, une stratégie de chargement de ressources plus avancée (chargement asynchrone, mise en cache) pourrait être envisagée.
 *   **Nommage des variables privées**: L'utilisation de `_` pour les variables privées est bonne. Assurer une cohérence stricte serait un plus (ex: `_is_dragging_card`).
-*   **`EffectManagerData` vs `EffectManager`**: Clarifier la relation entre ces deux, si `EffectManagerData` est une donnée ou si `EffectManager` l'a remplacé, serait utile.
-```
+
+---
+
+## 🗺️ Roadmap
+
+### Implémenté
+*   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras)
+*   Deux races jouables : Mort-Vivant et Humain (~150 cartes, voir `CARDS.md`)
+*   IA adverse basique (`AISystem`) — serviteurs uniquement
+*   Deck builder et gestion de decks (`DeckManager`)
+*   Menu principal, réglages (audio, contrôles, graphismes), écran de chargement
+
+### À faire
+*   Écran de fin de partie (victoire/défaite) — actuellement `game_over` bloque juste les inputs
+*   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
+*   Nouvelles races : Elfe, Nain, Démon
+*   Mode campagne et collection de cartes
+*   Multijoueur
+*   Animations shaders
+*   Tests automatisés (GUT / gdUnit4)
