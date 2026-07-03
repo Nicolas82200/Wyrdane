@@ -230,6 +230,7 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 			continue
 		target.keywords.clear()
 		target.human_keywords.clear()
+		target.undead_keywords.clear()
 		target.silenced = true
 
 func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
@@ -284,6 +285,7 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.damage_taken     = 0
 		target.keywords         = effect.transform_card.get_keyword_values()
 		target.human_keywords   = effect.transform_card.get_human_keyword_values()
+		target.undead_keywords  = effect.transform_card.get_undead_keyword_values()
 		target.silenced         = false
 
 func _draw_cards(battle, count: int) -> void:
