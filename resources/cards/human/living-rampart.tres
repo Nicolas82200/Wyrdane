@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dnved3j7oq5kg"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_gfohq"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_hkw"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_d7r1c"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_385w7"]
 [ext_resource type="Texture2D" uid="uid://d2vcd500320dl" path="res://assets/card_art/human/living-rampart.jpg" id="4_lsemj"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_gtmur"]
-[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="6_kwh"]
 
 [sub_resource type="Resource" id="Resource_yair7"]
 script = ExtResource("1_gfohq")
@@ -15,13 +15,13 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [sub_resource type="Resource" id="Resource_cdn7p"]
 script = ExtResource("2_d7r1c")
 
-[sub_resource type="Resource" id="Resource_kwh1"]
-script = ExtResource("6_kwh")
+[sub_resource type="Resource" id="Resource_hkw1"]
+script = ExtResource("2_hkw")
 keyword_type = 4
 metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
-[sub_resource type="Resource" id="Resource_kwh2"]
-script = ExtResource("6_kwh")
+[sub_resource type="Resource" id="Resource_hkw2"]
+script = ExtResource("2_hkw")
 keyword_type = 2
 metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
@@ -41,7 +41,7 @@ unit_style = 5
 attack = 4
 health = 10
 keywords = Array[ExtResource("2_d7r1c")]([SubResource("Resource_cdn7p")])
-human_keywords = Array[ExtResource("6_kwh")]([SubResource("Resource_kwh1"), SubResource("Resource_kwh2")])
+human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1"), SubResource("Resource_hkw2")])
 trigger_types = Array[ExtResource("5_gtmur")]([SubResource("Resource_xqt8n")])
 effects = Array[ExtResource("1_gfohq")]([SubResource("Resource_yair7")])
 rarity = "Legendary"

@@ -113,7 +113,7 @@ Positionnement (Lane Types)
 | 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
 | 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
-| 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | AILES NOIRES. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut. | On ne le voit pas venir. On ne le voit que partir. |
+| 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | AILES NOIRES. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
 | 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
 | 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
@@ -271,7 +271,7 @@ Liste complète des cartes de la race **Humain**.
 | H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT. Arrivée : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
 | H07 | Vétéran des Marches | ⚔️ | 3 | 2 | 4 | Blessure : gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
 | H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Ralliement : le serviteur allié adjacent gagne +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
-| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : inflige 1 dégât supplémentaire si un allié est adjacent. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
+| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
 | H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : restaure 1 HP à un serviteur Humain allié ciblé. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
 | H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
 
@@ -284,7 +284,7 @@ Liste complète des cartes de la race **Humain**.
 | H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Ralliement** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
-| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | **Peut cibler n'importe quel serviteur ennemi (Avant ou Arrière) — propriété permanente, comme AILES NOIRES.** | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
+| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | AILES NOIRES : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
 | H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié ciblé. Dernier Souffle : invoque un Éclaireur 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
 | H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
@@ -366,7 +366,7 @@ Liste complète des cartes de la race **Humain**.
 | H65 | Citadelle des Hommes | 4 | Rare | Présence : tes serviteurs en rangée Avant ont +0/+1 HP de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
 | H66 | Lignée des Braves | 3 | Rare | Deuil : quand un Humain allié meurt, pioche 1 carte. | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
 | H67 | Pacte de Résistance | 3 | Rare | Présence : les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
-| H68 | Temple de Guerre | 5 | Épique | Appel : chaque Humain invoqué gagne FORMATION de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
+| H68 | Temple de Guerre | 5 | Épique | Appel : chaque serviteur allié invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : si tu as un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : chaque fois qu'un serviteur ennemi meurt, tes serviteurs en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0). | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
