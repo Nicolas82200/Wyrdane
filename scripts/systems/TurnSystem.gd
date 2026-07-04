@@ -72,6 +72,7 @@ func choose_draw() -> void:
 func choose_mana() -> void:
 	battle.max_mana += 1
 	_finish_turn_start()
+	battle.mana_display.pulse_max()
 
 func _finish_turn_start() -> void:
 	battle.mana = battle.max_mana
