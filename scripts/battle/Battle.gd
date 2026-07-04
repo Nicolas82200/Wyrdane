@@ -68,6 +68,10 @@ var animation_system    := _AnimationSystemScript.new()
 var hero_system         := _HeroSystemScript.new()
 var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
+# Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
+# ai_system par défaut ; sera réassigné en mode multijoueur.
+var opponent: OpponentDriver
+var net_registry := NetRegistry.new()
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
@@ -127,6 +131,7 @@ func _init_systems() -> void:
 	death_system.init(self)
 	targeting_system.init(self)
 	ai_system.init(self)
+	opponent = ai_system
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)

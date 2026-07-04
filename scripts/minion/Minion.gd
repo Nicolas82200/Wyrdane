@@ -4,6 +4,10 @@ class_name Minion
 var owner_is_player: bool
 var card_data: CardData
 
+# Identifiant réseau stable, partagé entre les deux clients en multijoueur.
+# 0 = non enregistré (proxies d'effet, aperçus de drag). Attribué par NetRegistry.
+var net_id: int = 0
+
 # Stats permanentes : base de la carte + tous les buffs "définitifs" appliqués (Buff, Commandement...)
 var base_attack: int
 var base_max_health: int

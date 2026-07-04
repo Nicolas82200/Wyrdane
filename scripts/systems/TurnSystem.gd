@@ -19,7 +19,7 @@ func end_turn() -> void:
 
 	await _apply_infection_damage()
 	battle.temp_effect_system.expire_end_of_player_turn()
-	await battle.ai_system.take_turn()
+	await battle.opponent.take_turn()
 	if battle.game_over:
 		return
 	battle.temp_effect_system.expire_end_of_enemy_turn()
