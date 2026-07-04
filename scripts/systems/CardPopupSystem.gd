@@ -2,7 +2,10 @@ extends RefCounted
 class_name CardPopupSystem
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
-const DISPLAY_DURATION = 2.0
+# Temps de lecture, popup en place, AVANT que l'effet ne se joue
+const READ_HOLD = 0.5
+# Temps où la popup reste affichée pendant/après la résolution de l'effet
+const DISPLAY_DURATION = 1.0
 const LEFT_MARGIN = 24.0
 
 var battle
@@ -10,12 +13,17 @@ var _popup_layer: CanvasLayer
 var _persistent_card: Card = null
 var _popup_queue: Array = []
 var _popup_active: bool = false
+# Carte de la popup d'effet actuellement affichée (origine de la courbe d'effet)
+var _effect_card: Card = null
+var _effect_arrow: ArrowOverlay = null
 
 func init(_battle) -> void:
 	battle = _battle
 	_popup_layer = CanvasLayer.new()
 	_popup_layer.layer = 10
 	battle.add_child(_popup_layer)
+	_effect_arrow = ArrowOverlay.new()
+	_popup_layer.add_child(_effect_arrow)
 
 # Emplacement commun de toutes les popups : à gauche de l'écran, centré verticalement
 func _get_left_slot_position(card_size: Vector2) -> Vector2:
@@ -70,6 +78,8 @@ func _display_popup(entry: Dictionary) -> void:
 	_popup_layer.add_child(card)
 	card.set_non_interactive()
 	card.set_data(card_data)
+	# Cette carte devient l'origine des courbes d'effet tracées vers les cibles
+	_effect_card = card
 
 	await card.get_tree().process_frame
 	card.pivot_offset = card.size / 2.0
@@ -88,19 +98,19 @@ func _display_popup(entry: Dictionary) -> void:
 		t_in.tween_property(card, "modulate:a", 1.0, 0.15)
 		await t_in.finished
 	else:
-		# Pas de source sur le plateau : apparition sur place
+		# Pas de source sur le plateau (sorts) : glisse depuis le bord gauche
+		card.scale = Vector2(1.0, 1.0)
 		card.position = target_pos
-		card.scale = Vector2(0.5, 0.5)
+		card.position.x = -card.size.x
 		var t_in = card.create_tween().set_parallel(true)
-		t_in.tween_property(card, "scale", Vector2(1.1, 1.1), 0.2)\
-			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-		t_in.tween_property(card, "modulate:a", 1.0, 0.15)
+		t_in.tween_property(card, "position:x", LEFT_MARGIN, 0.3)\
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		t_in.tween_property(card, "modulate:a", 1.0, 0.2)
 		await t_in.finished
-		var settle = card.create_tween()
-		settle.tween_property(card, "scale", Vector2(1.0, 1.0), 0.08)
-		await settle.finished
 
-	# La popup est en place : libère l'appelant en attente dans show_card_popup
+	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
+	# le joueur voie la description de l'effet avant qu'il ne se joue.
+	await battle.get_tree().create_timer(READ_HOLD).timeout
 	entry["shown"] = true
 
 	await battle.get_tree().create_timer(DISPLAY_DURATION).timeout
@@ -110,7 +120,39 @@ func _display_popup(entry: Dictionary) -> void:
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	t_out.tween_property(card, "modulate:a", 0.0, 0.15)
 	await t_out.finished
+	if _effect_card == card:
+		_effect_card = null
+		clear_effect_arrows()
 	card.queue_free()
+
+# ── Courbe d'effet : de la popup vers les cibles ──────────────────────────────
+
+# Position du bout de la courbe côté popup (bord droit de la carte d'effet)
+func get_effect_popup_tip() -> Vector2:
+	if _effect_card == null or not is_instance_valid(_effect_card):
+		return Vector2.ZERO
+	var screen_pos: Vector2 = _effect_card.get_screen_position()
+	return Vector2(
+		screen_pos.x + _effect_card.size.x,
+		screen_pos.y + _effect_card.size.y / 2.0
+	)
+
+# Trace une courbe depuis la popup d'effet vers chaque position de cible, la
+# laisse visible un court instant (pour que le joueur voie qui est touché),
+# puis rend la main à l'appelant qui applique alors l'effet.
+func show_effect_arrows(target_positions: Array, hold: float = 0.35) -> void:
+	var from: Vector2 = get_effect_popup_tip()
+	if from == Vector2.ZERO or target_positions.is_empty():
+		return
+	var pts: Array[Vector2] = []
+	for p in target_positions:
+		pts.append(p)
+	_effect_arrow.show_arrows(from, pts)
+	await battle.get_tree().create_timer(hold).timeout
+
+func clear_effect_arrows() -> void:
+	if _effect_arrow != null and is_instance_valid(_effect_arrow):
+		_effect_arrow.hide_arrow()
 
 # ── Popup persistante (pendant le ciblage) ────────────────────────────────────
 
