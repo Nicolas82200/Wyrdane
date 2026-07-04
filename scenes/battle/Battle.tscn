@@ -8,7 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="7_kos6x"]
 [ext_resource type="PackedScene" uid="uid://b5x1ff0bko5km" path="res://scenes/graveyard/GraveyardView.tscn" id="7_nyp61"]
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
-[ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="10_q5nyf"]
+[ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="10_q5nyf"]
 [ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
@@ -839,13 +839,14 @@ offset_right = 8.0
 offset_bottom = 8.0
 text = "⚙️"
 
-[node name="AudioSettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
-layout_mode = 0
-anchors_preset = 0
-anchor_right = 0.0
-anchor_bottom = 0.0
-grow_horizontal = 1
-grow_vertical = 1
+[node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+show_quit = true
 
 [node name="TurnChoicePanel" parent="." unique_id=1856936643 instance=ExtResource("12_pk84k")]
 layout_mode = 1
