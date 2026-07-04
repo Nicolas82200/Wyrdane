@@ -69,8 +69,9 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
 
+	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		var summoned: Minion = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
+		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 		for effect in card_data.effects:
 			if target is Minion:
 				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
@@ -104,11 +105,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 					await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
 
+	# Émission réseau : le joueur local a joué cette carte sur une cible.
+	if battle.net_emitter != null:
+		battle.net_emitter.play_card(card_data, row, insert_index,
+			summoned, target if target is Minion else null)
+
 	battle.reset_targeting_state()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
+	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		await battle.board_system.summon_minion(card_data, true, row, insert_index)
+		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
@@ -133,6 +140,10 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			for effect in card_data.effects:
 				await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
+
+	# Émission réseau : le joueur local a joué cette carte (sans cible).
+	if battle.net_emitter != null:
+		battle.net_emitter.play_card(card_data, row, insert_index, summoned, null)
 
 func _remove_from_hand(card_data: CardData) -> void:
 	var idx: int = battle.hand_cards.find(card_data)

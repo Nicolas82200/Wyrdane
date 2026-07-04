@@ -23,6 +23,8 @@ func process_deaths() -> void:
 	await _animate_deaths(dead_all)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
+	for dead in dead_all:
+		battle.net_registry.unregister(dead)
 	_send_to_graveyards(dead_player, dead_enemy)
 	await _trigger_deathrattle(dead_player)
 	await _trigger_deathrattle(dead_enemy)

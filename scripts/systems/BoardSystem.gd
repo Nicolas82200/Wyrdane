@@ -14,6 +14,7 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return null
 	var minion := Minion.new(card_data, is_player, row)
+	battle.net_registry.register(minion)
 	_insert(minion, is_player, row, insert_index)
 	_apply_commandement_bonus(minion, is_player)
 	_spawn(minion, is_player)
