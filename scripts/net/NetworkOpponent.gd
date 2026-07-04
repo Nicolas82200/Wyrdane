@@ -63,12 +63,17 @@ func _on_command_received(command: Dictionary) -> void:
 func _apply(cmd: Dictionary) -> void:
 	match NetCommand.type_of(cmd):
 		NetCommand.TURN_CHOICE:
-			pass  # TODO: rejouer le choix mana/pioche côté ennemi
+			pass  # TODO: rejouer le choix mana/pioche côté ennemi (modèle de ressources adverse)
 		NetCommand.PLAY_CARD:
-			pass  # TODO: invoquer/lancer côté ennemi avec net_id imposé
+			pass  # TODO: invoquer/lancer côté ennemi avec net_id imposé (déterminisme des effets)
 		NetCommand.ATTACK:
-			pass  # TODO: résoudre l'attaque entre net_ids via CombatSystem
+			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
+			var defender: Minion = battle.net_registry.resolve(cmd.get("defender", 0))
+			if attacker != null and defender != null:
+				await battle.combat_system.resolve_combat(attacker, defender)
 		NetCommand.ATTACK_HERO:
-			pass  # TODO: attaque du héros joueur via CombatSystem
+			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
+			if attacker != null:
+				await battle.combat_system.perform_hero_attack(attacker)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
