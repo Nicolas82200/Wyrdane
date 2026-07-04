@@ -606,6 +606,16 @@ grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("14_manad")
 
+[node name="EnemyManaDisplay" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(170, 60)
+layout_mode = 1
+anchors_preset = 0
+offset_left = 60.0
+offset_top = 112.0
+offset_right = 230.0
+offset_bottom = 172.0
+script = ExtResource("14_manad")
+
 [node name="PlayerHeroPanel" type="Panel" parent="." unique_id=1723469268]
 custom_minimum_size = Vector2(135, 187)
 layout_mode = 1
