@@ -72,6 +72,9 @@ var ai_system           := _AISystemScript.new()
 # ai_system par défaut ; sera réassigné en mode multijoueur.
 var opponent: OpponentDriver
 var net_registry := NetRegistry.new()
+# Émetteur des actions du joueur local vers le pair distant. null en solo :
+# aucun point d'appel n'émet alors quoi que ce soit.
+var net_emitter: NetEmitter = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
