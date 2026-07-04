@@ -1,4 +1,4 @@
-extends Node
+extends OpponentDriver
 class_name AISystem
 
 # IA adverse : gère son propre deck, sa main et son mana,
@@ -9,15 +9,10 @@ const MAX_COPIES   := 2
 const MANA_CAP     := 10
 const STARTING_HAND := 4
 
-var battle
-
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
 var mana: int             = 0
 var max_mana: int         = 0
-
-func init(_battle) -> void:
-	battle = _battle
 
 func setup() -> void:
 	_build_deck()

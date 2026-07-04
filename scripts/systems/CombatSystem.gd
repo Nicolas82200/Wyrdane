@@ -7,6 +7,10 @@ func init(_battle) -> void:
 	battle = _battle
 
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
+	# Émission réseau : uniquement les attaques initiées par le joueur LOCAL.
+	# Les attaques rejouées du pair (serviteur ennemi) ne réémettent pas.
+	if battle.net_emitter != null and attacker.owner_is_player:
+		battle.net_emitter.attack(attacker, defender)
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	if attacker_visual and defender_visual:
@@ -64,6 +68,8 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	battle.board_visual_system.refresh_board()
 
 func perform_hero_attack(attacker: Minion) -> void:
+	if battle.net_emitter != null and attacker.owner_is_player:
+		battle.net_emitter.attack_hero(attacker)
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	if visual:

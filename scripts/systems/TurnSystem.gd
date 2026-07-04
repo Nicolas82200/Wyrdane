@@ -19,7 +19,10 @@ func end_turn() -> void:
 
 	await _apply_infection_damage()
 	battle.temp_effect_system.expire_end_of_player_turn()
-	await battle.ai_system.take_turn()
+	# Émission réseau : dernière commande du tour local, avant de passer la main.
+	if battle.net_emitter != null:
+		battle.net_emitter.end_turn()
+	await battle.opponent.take_turn()
 	if battle.game_over:
 		return
 	battle.temp_effect_system.expire_end_of_enemy_turn()
@@ -66,10 +69,14 @@ func _apply_infection_damage() -> void:
 		await battle.pace_actions()
 
 func choose_draw() -> void:
+	if battle.net_emitter != null:
+		battle.net_emitter.turn_choice("draw")
 	draw_card()
 	_finish_turn_start()
 
 func choose_mana() -> void:
+	if battle.net_emitter != null:
+		battle.net_emitter.turn_choice("mana")
 	battle.max_mana += 1
 	_finish_turn_start()
 	battle.mana_display.pulse_max()
