@@ -113,11 +113,21 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 24
 
-[node name="CloseButton" type="Button" parent="Panel/VBox/CloseMargin" unique_id=100000014]
+[node name="CloseVBox" type="VBoxContainer" parent="Panel/VBox/CloseMargin" unique_id=100000018]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000014]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Fermer"
+
+[node name="QuitButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000019]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "🚪  Quitter la partie"
 
 [node name="AudioSettingsMenu" parent="." unique_id=100000015 instance=ExtResource("2_audio")]
 unique_name_in_owner = true
