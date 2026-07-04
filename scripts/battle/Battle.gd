@@ -31,6 +31,7 @@ const ATTACK_PACE                 := 0.5
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
+@onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
 @onready var end_turn_button: Button                   = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
@@ -267,6 +268,9 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 
 func update_mana_ui() -> void:
 	mana_display.set_mana(mana, max_mana)
+
+func update_enemy_mana_ui() -> void:
+	enemy_mana_display.set_mana(ai_system.mana, ai_system.max_mana)
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost
