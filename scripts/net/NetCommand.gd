@@ -25,13 +25,17 @@ const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
 
 # ─── Constructeurs ────────────────────────────────────────────────────────────
 
+# net_id : id que l'émetteur a attribué au serviteur invoqué (0 pour un sort ou
+# quand la carte ne crée pas de serviteur). Le pair distant crée le serviteur
+# miroir avec CE MÊME id (NetRegistry.register_with_id) pour rester synchronisé.
 static func play_card(card_path: String, row: String, insert_index: int,
-		target_net_id: int = TARGET_NONE) -> Dictionary:
+		net_id: int = TARGET_NONE, target_net_id: int = TARGET_NONE) -> Dictionary:
 	return {
 		"type": PLAY_CARD,
 		"card": card_path,
 		"row": row,
 		"index": insert_index,
+		"net_id": net_id,
 		"target": target_net_id,
 	}
 
