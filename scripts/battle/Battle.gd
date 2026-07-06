@@ -169,10 +169,20 @@ func _setup_network() -> void:
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
+	net.peer_disconnected.connect(_on_net_peer_disconnected)
 	var netopp := NetworkOpponent.new(net)
 	add_child(netopp)
 	netopp.init(self)
 	opponent = netopp
+
+# Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
+# tour distant et fige les inputs). Le joueur peut alors quitter via les réglages.
+func _on_net_peer_disconnected(_reason: String) -> void:
+	if game_over:
+		return
+	game_over = true
+	enemy_turn_active = false
+	push_warning("Adversaire déconnecté — partie interrompue.")
 
 func _connect_signals() -> void:
 	hand.card_played.connect(_on_card_played)
@@ -218,6 +228,8 @@ func _start_game() -> void:
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
 	await opponent.take_turn()
+	if game_over:
+		return
 	await turn_system._begin_player_turn()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
@@ -336,6 +348,9 @@ func update_mana_ui() -> void:
 
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
+
+func update_enemy_hand_ui() -> void:
+	enemy_hand_display.set_count(opponent.get_hand_count())
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost

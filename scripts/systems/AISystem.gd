@@ -23,8 +23,14 @@ func setup() -> void:
 # Deck et main de l'IA visibles par le joueur (dos de cartes + compteurs)
 func refresh_ui() -> void:
 	battle.deck_system.update_enemy_deck_ui()
-	battle.enemy_hand_display.set_count(hand.size())
+	battle.update_enemy_hand_ui()
 	battle.update_enemy_mana_ui()
+
+func get_deck_count() -> int:
+	return deck.size()
+
+func get_hand_count() -> int:
+	return hand.size()
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 

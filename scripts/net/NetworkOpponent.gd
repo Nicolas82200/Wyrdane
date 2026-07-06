@@ -20,12 +20,30 @@ func _init(network_manager: NetworkManager) -> void:
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
 const MANA_CAP := 10
+const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
+
+# Compteurs cosmétiques du camp distant (dos de deck / main), suivis via les
+# commandes reçues faute de connaître les cartes réelles de l'adversaire.
+var _deck_count: int = 0
+var _hand_count: int = 0
 
 func setup() -> void:
 	# Mana initial du camp adverse, miroir du 1er tour du joueur local.
 	mana = 1
 	max_mana = 1
+	# Compteurs initiaux d'après le deck reçu au handshake, moins la main de départ.
+	var deck_size: int = NetContext.setup.get("opponent_deck", []).size()
+	_hand_count = min(STARTING_HAND, deck_size)
+	_deck_count = max(0, deck_size - _hand_count)
 	battle.update_enemy_mana_ui()
+	battle.update_enemy_hand_ui()
+	battle.deck_system.update_enemy_deck_ui()
+
+func get_deck_count() -> int:
+	return _deck_count
+
+func get_hand_count() -> int:
+	return _hand_count
 
 # Attend et rejoue le tour du joueur distant, commande par commande, jusqu'à
 # recevoir END_TURN, puis rend la main à TurnSystem.
@@ -34,6 +52,9 @@ func take_turn() -> void:
 	battle.enemy_turn_active = true
 	_turn_over = false
 	while not _turn_over:
+		# Sortie de secours : partie terminée ou pair déconnecté.
+		if battle.game_over:
+			break
 		while not _queue.is_empty():
 			var cmd: Dictionary = _queue.pop_front()
 			if NetCommand.type_of(cmd) == NetCommand.END_TURN:
@@ -84,6 +105,13 @@ func _apply(cmd: Dictionary) -> void:
 			# chez l'émetteur).
 			if cmd.get("choice", "mana") == "mana":
 				max_mana = min(max_mana + 1, MANA_CAP)
+			else:
+				# Pioche : une carte quitte le deck pour la main adverse.
+				if _deck_count > 0:
+					_deck_count -= 1
+					_hand_count += 1
+				battle.update_enemy_hand_ui()
+				battle.deck_system.update_enemy_deck_ui()
 			mana = max_mana
 			battle.update_enemy_mana_ui()
 		NetCommand.PLAY_CARD:
@@ -110,12 +138,21 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
 		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+	# La carte jouée quitte la main adverse (compteur cosmétique).
+	if _hand_count > 0:
+		_hand_count -= 1
+		battle.update_enemy_hand_ui()
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
-		if card.requires_target and cmd.get("target", NetCommand.TARGET_NONE) != NetCommand.TARGET_NONE:
-			push_warning("NetworkOpponent : effet d'invocation ciblé distant non encore rejoué")
-		await battle.board_system.summon_minion_return(card, false, row, index)
+		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index)
+		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : on rejoue la
+		# boucle d'effets avec la cible résolue par net_id, comme côté émetteur.
+		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
+		if target_id != NetCommand.TARGET_NONE and summoned != null:
+			var target: Minion = battle.net_registry.resolve(target_id)
+			for effect in card.effects:
+				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
