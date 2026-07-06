@@ -11,8 +11,7 @@ const STARTING_HAND := 4
 
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
-var mana: int             = 0
-var max_mana: int         = 0
+# mana / max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
 	_build_deck()

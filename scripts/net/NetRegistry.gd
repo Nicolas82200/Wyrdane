@@ -15,18 +15,51 @@ var _next_id: int = 1
 var _stride: int = 1
 var _by_id: Dictionary = {}  # int -> Minion
 
+# File d'ids imposés (rejeu distant) : register() les consomme dans l'ordre au
+# lieu de générer, pour que les serviteurs miroirs (carte + jetons d'effet)
+# portent EXACTEMENT les mêmes ids que chez l'émetteur.
+var _imposed: Array[int] = []
+# Capture (côté émetteur) : liste ordonnée des ids créés par l'action en cours,
+# transmise ensuite au pair pour le rejeu.
+var _capturing: bool = false
+var _captured: Array[int] = []
+
 # À appeler en début de partie réseau pour fixer la parité locale.
 func configure(start_id: int, stride: int) -> void:
 	_next_id = start_id
 	_stride = stride
 
-# Enregistre un serviteur créé localement : lui attribue le prochain id libre.
+# Enregistre un serviteur créé localement : lui attribue le prochain id libre,
+# ou un id imposé si une file de rejeu est en cours.
 func register(minion: Minion) -> int:
-	var id: int = _next_id
-	_next_id += _stride
+	var id: int
+	if not _imposed.is_empty():
+		id = _imposed.pop_front()
+	else:
+		id = _next_id
+		_next_id += _stride
 	minion.net_id = id
 	_by_id[id] = minion
+	if _capturing:
+		_captured.append(id)
 	return id
+
+# ─── Capture (émetteur) ───────────────────────────────────────────────────────
+
+func begin_capture() -> void:
+	_capturing = true
+	_captured = []
+
+func end_capture() -> Array[int]:
+	_capturing = false
+	return _captured
+
+# ─── Ids imposés (rejeu distant) ──────────────────────────────────────────────
+
+func set_imposed_ids(ids: Array) -> void:
+	_imposed = []
+	for i in ids:
+		_imposed.append(int(i))
 
 # Enregistre un serviteur miroir avec un id imposé (reçu du réseau).
 func register_with_id(minion: Minion, id: int) -> void:
