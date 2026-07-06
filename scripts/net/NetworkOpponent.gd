@@ -98,7 +98,34 @@ func _apply_play_card(cmd: Dictionary) -> void:
 			push_warning("NetworkOpponent : effet d'invocation ciblé distant non encore rejoué")
 		await battle.board_system.summon_minion_return(card, false, row, index)
 	else:
-		push_warning("NetworkOpponent : sort/rituel distant non encore rejoué (%s)" % card.card_type)
+		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
 	# serviteurs que prévu) pour ne pas contaminer les invocations suivantes.
 	battle.net_registry.set_imposed_ids([])
+
+# Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
+# owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles
+# du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
+func _apply_enemy_spell(card: CardData, target_id: int) -> void:
+	if card.card_type == "Enchantment":
+		battle.trigger_system.register_enchantment(card, false, -1)
+		battle.enchantment_system.add_enchantment(card, false)
+		battle.aura_system.recompute_all()
+	elif card.card_type == "Ritual" and card.ritual_duration != 0:
+		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
+		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
+		battle.aura_system.recompute_all()
+	else:
+		battle.enemy_graveyard.add_spell(card)
+		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent
+		# AVANT les effets du sort, comme dans CardSystem, pour garder l'ordre
+		# d'attribution des ids identique entre les deux clients.
+		for ally in battle.enemy_minions.duplicate():
+			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
+		var proxy := Minion.new(card, false, "")
+		var target: Minion = null
+		if target_id != NetCommand.TARGET_NONE:
+			target = battle.net_registry.resolve(target_id)
+		for effect in card.effects:
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+	battle.board_visual_system.refresh_board()
