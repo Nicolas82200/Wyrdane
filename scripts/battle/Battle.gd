@@ -179,6 +179,8 @@ func _connect_signals() -> void:
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
+	SettingsManager.language_changed.connect(func(_l): _retranslate_battle())
+	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
@@ -430,6 +432,10 @@ func _on_end_turn_pressed() -> void:
 	if game_over or enemy_turn_active:
 		return
 	turn_system.end_turn()
+
+# Met à jour les libellés fixes de la bataille dans la langue courante.
+func _retranslate_battle() -> void:
+	end_turn_button.text = SettingsManager.t("battle.end_turn")
 
 func draw_card() -> void:
 	turn_system.draw_card()

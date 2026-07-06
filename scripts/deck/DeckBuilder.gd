@@ -21,7 +21,8 @@ const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
-@onready var filter_bar:       HBoxContainer = %FilterBar  
+@onready var filter_bar:       HBoxContainer = %FilterBar
+@onready var header_label:     Label         = $MainVBox/HeaderBar/HeaderMargin/HeaderHBox/HeaderLabel
 
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
@@ -50,8 +51,19 @@ func _ready() -> void:
 	deck_name_edit.text_changed.connect(_on_name_changed)
 	search_edit.text_changed.connect(_on_search_changed)
 	_load_all_cards()
-	_build_filter_bar()   # ← nouveau
 	_refresh_deck_list()
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()   # construit aussi la barre de filtres localisée
+
+# Met à jour les libellés fixes et la barre de filtres dans la langue courante.
+func _retranslate() -> void:
+	header_label.text            = SettingsManager.t("deck.title")
+	back_button.text             = SettingsManager.t("ui.back")
+	save_button.text             = SettingsManager.t("deck.save")
+	search_edit.placeholder_text = SettingsManager.t("deck.search")
+	deck_name_edit.placeholder_text = SettingsManager.t("deck.name_placeholder")
+	_build_filter_bar()   # relocalise les libellés de filtres (sélection préservée)
+	_update_count_label()
 
 # ─── Chargement cartes ────────────────────────────────────────────────────────
 
@@ -79,7 +91,7 @@ func _refresh_card_grid() -> void:
 
 
 func _match_filters(c: CardData) -> bool:
-	if _filter_text != "" and not c.card_name.to_lower().contains(_filter_text.to_lower()):
+	if _filter_text != "" and not c.display_name().to_lower().contains(_filter_text.to_lower()):
 		return false
 	if _filter_race != -1 and c.race != _filter_race:
 		return false
@@ -224,7 +236,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	row.add_child(cost_panel)
 
 	var name_lbl := Label.new()
-	name_lbl.text                  = card.card_name
+	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_size_override("font_size", 14)
@@ -259,7 +271,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 
 func _update_count_label() -> void:
 	var count := current_deck.size() if current_deck else 0
-	card_count_label.text     = "%d / %d  cartes  (min %d)" % [count, MAX_CARDS, MIN_CARDS]
+	card_count_label.text     = SettingsManager.t("deck.count_format") % [count, MAX_CARDS, MIN_CARDS]
 	card_count_label.modulate = Color(1, 0.4, 0.4) if count < MIN_CARDS else Color(0.5, 0.9, 0.5)
 
 # ─── Actions ──────────────────────────────────────────────────────────────────
@@ -355,38 +367,47 @@ func _hide_keyword_tooltips() -> void:
 ## Crée la barre de filtres directement en code sous la SearchEdit.
 ## Appelle cette fonction dans _ready(), après _load_all_cards().
 func _build_filter_bar() -> void:
+	# Reconstruit à chaque appel (notamment au changement de langue) : on vide
+	# d'abord les libellés/groupes existants. La sélection active est préservée
+	# car chaque groupe s'initialise depuis les variables _filter_*.
+	for child in filter_bar.get_children():
+		child.queue_free()
+
+	var all_label := SettingsManager.t("deck.filter_all")
+
 	# Race
 	var race_values: Array = [-1]
-	var race_labels: Array[String] = ["Tous"]
+	var race_labels: Array[String] = [all_label]
 	for key in Race.Type.keys():
 		race_values.append(Race.Type[key])
-		race_labels.append(key.capitalize())
-	filter_bar.add_child(_make_filter_label("Race :"))
+		race_labels.append(SettingsManager.t("RACE_" + key))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
 	_add_filter_group(filter_bar, race_values,
 		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),
 		func() -> int: return _filter_race,
 		race_labels)
 
 	# Type de carte
-	filter_bar.add_child(_make_filter_label("Type :"))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
 	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment"],
 		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
 		func() -> String: return _filter_type,
-		["Tous", "Serviteur", "Éphémère", "Rituel", "Enchantement"])
+		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
+			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment")])
 
 	# Rareté
-	filter_bar.add_child(_make_filter_label("Rareté :"))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))
 	_add_filter_group(filter_bar, ["", "Common", "Rare", "Epic", "Legendary"],
 		func(v: String) -> void: _filter_rarity = v; _refresh_card_grid(),
 		func() -> String: return _filter_rarity,
-		["Tous", "Common", "Rare", "Epic", "Legendary"])
+		[all_label, "Common", "Rare", "Epic", "Legendary"])
 
 	# Coût
-	filter_bar.add_child(_make_filter_label("Coût :"))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_cost")))
 	_add_filter_group(filter_bar, [-1, 0, 1, 2, 3, 4, 5, 6, 7],
 		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
 		func() -> int: return _filter_cost,
-		["Tous", "0", "1", "2", "3", "4", "5", "6", "7+"])
+		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
 
 
 func _make_filter_label(text: String) -> Label:

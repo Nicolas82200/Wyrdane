@@ -110,7 +110,7 @@ func set_data(new_data: CardData) -> void:
 	data = new_data
 	update_display()
 func update_display() -> void:
-	name_label.text   = data.card_name
+	name_label.text   = data.display_name()
 	cost_label.text   = str(data.cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
@@ -130,11 +130,11 @@ func update_display() -> void:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=10][i]" + data.flavour_text + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
-		desc_label.text = data.description + "\n\n[font_size=10][i]" + data.flavour_text + "[/i][/font_size]"
+		desc_label.text = data.display_description() + "\n\n[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
-		desc_label.text = data.description
+		desc_label.text = data.display_description()
 
 	if data.texture:
 		art.texture = data.texture
