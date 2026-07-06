@@ -88,6 +88,10 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 
 var effect_manager := EffectManager.new()
+# RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
+# seedé par le handshake pour que les deux clients tirent la même séquence ;
+# en solo il est simplement aléatoire.
+var game_rng := RandomNumberGenerator.new()
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
@@ -120,6 +124,7 @@ func _ready() -> void:
 func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
+	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
 	hand.can_play_check      = can_play_card
@@ -159,7 +164,8 @@ func _setup_network() -> void:
 	var net: NetworkManager = NetContext.net
 	var setup: Dictionary = NetContext.setup
 	network_manager = net
-	seed(setup.get("seed", 0))
+	# RNG de jeu déterministe et partagé entre les deux clients.
+	game_rng.seed = setup.get("seed", 0)
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
