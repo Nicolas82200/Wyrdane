@@ -15,14 +15,13 @@ var _net: NetworkManager
 func _init(net: NetworkManager) -> void:
 	_net = net
 
-# summoned : le serviteur invoqué (pour transmettre son net_id), null pour un sort.
+# ids : net_id de tous les serviteurs créés par l'action (capturés via NetRegistry).
 # target : cible choisie de l'effet, null si aucune.
 func play_card(card_data: CardData, row: String, insert_index: int,
-		summoned: Minion = null, target: Minion = null) -> void:
-	var net_id: int = summoned.net_id if summoned != null else NetCommand.TARGET_NONE
+		ids: Array = [], target: Minion = null) -> void:
 	var target_id: int = target.net_id if target != null else NetCommand.TARGET_NONE
 	_net.send_command(NetCommand.play_card(
-		card_data.resource_path, row, insert_index, net_id, target_id))
+		card_data.resource_path, row, insert_index, ids, target_id))
 
 func attack(attacker: Minion, defender: Minion) -> void:
 	_net.send_command(NetCommand.attack(attacker.net_id, defender.net_id))
