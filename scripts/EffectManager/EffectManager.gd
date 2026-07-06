@@ -396,11 +396,18 @@ func _buff_row(battle, source_minion, effect) -> void:
 		target.base_max_health += effect.value_2
 		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
 
+# Rangée d'invocation voulue par l'effet (voir CardEffect.summon_row)
+func _summon_row(effect: CardEffect, source_minion: Minion) -> String:
+	match effect.summon_row:
+		"Back":   return "Back"
+		"Source": return source_minion.board_row if source_minion else "Front"
+		_:        return "Front"
+
 func _summon_minion(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if effect.summon_card == null:
 		return
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
-	var preferred_row: String = source_minion.board_row if source_minion else "Front"
+	var preferred_row: String = _summon_row(effect, source_minion)
 	# Seuil comparé au nombre d'alliés déjà dans la rangée d'invocation
 	# (Appel aux Armes : rangée Avant vide -> 3 Miliciens au lieu de 2)
 	var row_allies: int = battle.get_row_minions(is_player, preferred_row).size()
@@ -420,7 +427,7 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var pool: Array[CardData] = _get_random_pool(effect)
 	if pool.is_empty():
 		return
-	var preferred_row: String = source_minion.board_row if source_minion else "Front"
+	var preferred_row: String = _summon_row(effect, source_minion)
 	var row_allies: int = battle.get_row_minions(is_player, preferred_row).size()
 	var summon_count: int = _effective_count(effect, row_allies)
 	for i in range(summon_count):
@@ -603,9 +610,27 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 
-func _get_random_pool(_effect: CardEffect) -> Array[CardData]:
-	push_warning("_get_random_pool : CardDatabase non connecté")
-	return []
+func _get_random_pool(effect: CardEffect) -> Array[CardData]:
+	# Puise dans toutes les cartes chargées (CardLibrary est un autoload global).
+	# Ne retient que des serviteurs, filtrés par coût et par race si demandé.
+	if CardLibrary == null or not CardLibrary.is_loaded or CardLibrary.all_cards.is_empty():
+		push_warning("_get_random_pool : CardLibrary non chargé (test direct de Battle.tscn ?)")
+		return []
+	var race_filter: int = -1
+	if not effect.pool_race_filter.is_empty():
+		race_filter = Race.from_string(effect.pool_race_filter)
+	var pool: Array[CardData] = []
+	for card in CardLibrary.all_cards:
+		if card.card_type != "Minion":
+			continue
+		if effect.pool_max_cost >= 0 and card.cost > effect.pool_max_cost:
+			continue
+		if effect.pool_min_cost >= 0 and card.cost < effect.pool_min_cost:
+			continue
+		if race_filter != -1 and card.race != race_filter:
+			continue
+		pool.append(card)
+	return pool
 
 # Point d'entrée unique après des dégâts non létaux : déclenche Blessure
 # (OnDamaged) puis Mort-rage (OnDeathRage) une seule fois quand le serviteur

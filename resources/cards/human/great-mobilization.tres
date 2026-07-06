@@ -10,6 +10,8 @@
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
 count = 4
+pool_max_cost = 4
+pool_race_filter = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
