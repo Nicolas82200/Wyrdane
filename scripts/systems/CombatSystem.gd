@@ -59,7 +59,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 
 	if defender.is_dead():
 		await battle.effect_manager.trigger_effects(battle, attacker, "OnExecution")
-		if attacker.has_keyword(Keyword.Type.RAVAGE):
+		if attacker.has_keyword(Keyword.Type.RAVAGE) and not defender.card_data.blocks_overkill:
 			var excess: int = a_dmg - defender.max_health
 			if excess > 0:
 				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)

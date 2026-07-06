@@ -10,6 +10,7 @@ func recompute_all() -> void:
 	for minion in battle.player_minions + battle.enemy_minions:
 		minion.aura_attack_bonus = 0
 		minion.aura_health_bonus = 0
+		minion.aura_damage_reduction = 0
 	_apply_formation()
 	_apply_horde()
 	_apply_enchantment_auras()
@@ -51,6 +52,8 @@ func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> voi
 				_aura_buff_row(effect, is_player)
 			"AuraBuffPerAllyInRow":
 				_aura_buff_per_ally_row(effect, is_player)
+			"AuraDamageReduction":
+				_aura_damage_reduction(effect, is_player)
 			_:
 				pass  # à étendre carte par carte
 
@@ -67,3 +70,11 @@ func _aura_buff_per_ally_row(effect: CardEffect, is_player: bool) -> void:
 	var front_count: int = battle.get_front_minions(is_player).size()
 	for t in battle.get_back_minions(is_player):
 		t.aura_health_bonus += effect.value_2 * front_count
+
+# Réduction de dégâts d'aura (Pacte de Résistance). Filtre optionnel par race
+# via race_filter ("Human" = seulement les serviteurs Humains alliés).
+func _aura_damage_reduction(effect: CardEffect, is_player: bool) -> void:
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	for t in (battle.player_minions if is_player else battle.enemy_minions):
+		if race == -1 or t.card_data.race == race:
+			t.aura_damage_reduction += effect.value

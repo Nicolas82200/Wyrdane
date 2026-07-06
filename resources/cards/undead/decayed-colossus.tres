@@ -29,6 +29,7 @@ cost = 6
 unit_style = 2
 attack = 7
 health = 7
+blocks_overkill = true
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_l9ner")])
 undead_keywords = Array[ExtResource("6_kwu")]([SubResource("Resource_kwu1")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_pgrzq")])

@@ -16,6 +16,9 @@ var damage_taken: int = 0
 # Bonus d'aura, recalculés ENTIÈREMENT à chaque update — jamais incrémentés à la main ailleurs
 var aura_attack_bonus: int = 0
 var aura_health_bonus: int = 0
+# Réduction de dégâts : part inhérente à la carte + part d'aura (Pacte de
+# Résistance...). L'aura est remise à zéro puis recalculée par AuraSystem.
+var aura_damage_reduction: int = 0
 
 var attacks_remaining: int = 0
 var keywords: Array[int] = []
@@ -81,10 +84,16 @@ func refresh_attacks() -> void:
 func consume_attack() -> void:
 	attacks_remaining = max(attacks_remaining - 1, 0)
 
+var damage_reduction: int:
+	get: return max(0, card_data.damage_reduction + aura_damage_reduction)
+
 func take_damage(amount: int) -> int:
 	if has_keyword(Keyword.Type.AEGIS):
 		remove_keyword(Keyword.Type.AEGIS)
 		return 0
+	# Réduction de dégâts : un coup qui touche inflige toujours au moins 1.
+	if amount > 0 and damage_reduction > 0:
+		amount = max(1, amount - damage_reduction)
 	var before: int = health
 	health = max(health - amount, 0)
 	return before - health

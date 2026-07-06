@@ -17,6 +17,13 @@ class_name CardData
 @export var attack: int = 0
 @export var health: int = 0
 
+# Réduction de dégâts inhérente : chaque source de dégâts subie est réduite de
+# cette valeur, sans jamais descendre sous 1 (Défenseur Juré, Zombie Bouclier).
+@export var damage_reduction: int = 0
+# Immunité au débordement (RAVAGE) : quand ce serviteur défend et meurt, les
+# dégâts excédentaires ne sont PAS reportés sur le héros (Colosse Décomposé).
+@export var blocks_overkill: bool = false
+
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []
 @export var undead_keywords: Array[KeywordChoiceUndead] = []
