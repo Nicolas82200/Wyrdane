@@ -23,33 +23,51 @@ func end_turn() -> void:
 	battle.temp_effect_system.expire_end_of_enemy_turn()
 	await _begin_player_turn()
 
-# Phase de fin de tour (OnTurnEnd des deux camps + Infection). Symétrique : itère
-# tous les serviteurs, donc rejouable à l'identique sur le pair pour rester synchro.
-func run_turn_end_triggers() -> void:
+# Phase de fin de tour (OnTurnEnd des deux camps + Infection). is_local_turn :
+# true si c'est le tour du joueur local. L'ordre est relatif au joueur du tour
+# (identique sur les deux clients) pour un rejeu déterministe.
+func run_turn_end_triggers(is_local_turn: bool = true) -> void:
+	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
+	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	var acted := false
-	# Fin de tour — serviteurs joueur
-	acted = await _trigger_minions_paced(battle.player_minions, "OnTurnEnd", acted)
-	# Fin de tour — enchantements joueur
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, true, {}, true, acted)
-
-	# Fin de tour — serviteurs ennemis
-	acted = await _trigger_minions_paced(battle.enemy_minions, "OnTurnEnd", acted)
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, false, {}, true, acted)
+	# Fin de tour — serviteurs du joueur du tour
+	acted = await _trigger_minions_paced(turn_minions, "OnTurnEnd", acted)
+	acted = await battle.trigger_system.fire("OnTurnEnd", null, is_local_turn, {}, true, acted)
+	# Fin de tour — serviteurs adverses
+	acted = await _trigger_minions_paced(other_minions, "OnTurnEnd", acted)
+	acted = await battle.trigger_system.fire("OnTurnEnd", null, not is_local_turn, {}, true, acted)
 
 	await _apply_infection_damage()
 
 func _begin_player_turn() -> void:
+	# Capture les ids des serviteurs créés par les déclencheurs de début de tour.
+	if battle.net_emitter != null:
+		battle.net_registry.begin_capture()
+	await run_turn_start_triggers(true)
+	# Émission réseau : le pair rejoue la même phase pour le tour qui commence.
+	if battle.net_emitter != null:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.turn_start(ids)
+	battle.turn_choice_panel.show_choice()
+
+# Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
+# OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
+# c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
+func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
-	for minion in battle.player_minions.duplicate():
+	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
+	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
+	for minion in turn_minions.duplicate():
 		minion.refresh_attacks()
 	var acted := false
-	acted = await _trigger_minions_paced(battle.player_minions + battle.enemy_minions, "OnTurnStart", acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, true, {}, true, acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, false, {}, true, acted)
-	acted = await _trigger_minions_paced(battle.player_minions, "OnAwaken", acted)
-	acted = await battle.trigger_system.fire("OnAwaken", null, true, {}, true, acted)
-	acted = await _trigger_minions_paced(battle.enemy_minions, "OnDecline", acted)
-	battle.turn_choice_panel.show_choice()
+	# Ordre relatif au joueur du tour (identique sur les deux clients) plutôt que
+	# player/enemy relatif au client, pour un tirage RNG déterministe.
+	acted = await _trigger_minions_paced(turn_minions + other_minions, "OnTurnStart", acted)
+	acted = await battle.trigger_system.fire("OnTurnStart", null, is_local_turn, {}, true, acted)
+	acted = await battle.trigger_system.fire("OnTurnStart", null, not is_local_turn, {}, true, acted)
+	acted = await _trigger_minions_paced(turn_minions, "OnAwaken", acted)
+	acted = await battle.trigger_system.fire("OnAwaken", null, is_local_turn, {}, true, acted)
+	acted = await _trigger_minions_paced(other_minions, "OnDecline", acted)
 
 # Déclenche un trigger sur chaque serviteur de la liste, avec une pause AVANT
 # chaque déclenchement sauf le premier de la file. Retourne l'état "acted"

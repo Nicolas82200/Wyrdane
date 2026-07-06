@@ -18,6 +18,7 @@ const ATTACK      := "ATTACK"       # un serviteur en attaque un autre
 const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
 const TURN_CHOICE := "TURN_CHOICE"  # choix de début de tour : "mana" ou "draw"
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
+const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
@@ -53,6 +54,10 @@ static func turn_choice(choice: String) -> Dictionary:
 # lors du rejeu de cette phase sur le pair.
 static func end_turn(ids: Array = []) -> Dictionary:
 	return {"type": END_TURN, "ids": ids}
+
+# ids : serviteurs créés par les déclencheurs de début de tour, à imposer au rejeu.
+static func turn_start(ids: Array = []) -> Dictionary:
+	return {"type": TURN_START, "ids": ids}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).
