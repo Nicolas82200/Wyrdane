@@ -37,6 +37,11 @@ func take_turn() -> void:
 		while not _queue.is_empty():
 			var cmd: Dictionary = _queue.pop_front()
 			if NetCommand.type_of(cmd) == NetCommand.END_TURN:
+				# Rejoue la phase de fin de tour distante (OnTurnEnd + Infection)
+				# avec les ids imposés pour d'éventuelles invocations de triggers.
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+				await battle.turn_system.run_turn_end_triggers(false)
+				battle.net_registry.set_imposed_ids([])
 				_turn_over = true
 				break
 			await _apply(cmd)
@@ -68,6 +73,11 @@ func _on_command_received(command: Dictionary) -> void:
 # serviteurs par net_id via battle.net_registry.resolve().
 func _apply(cmd: Dictionary) -> void:
 	match NetCommand.type_of(cmd):
+		NetCommand.TURN_START:
+			# Rejoue la phase de début du tour distant (is_local_turn = false).
+			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+			await battle.turn_system.run_turn_start_triggers(false)
+			battle.net_registry.set_imposed_ids([])
 		NetCommand.TURN_CHOICE:
 			# Choix de début de tour distant : mana augmente la réserve, pioche non.
 			# Affichage cosmétique côté joueur local (les plays sont déjà validés
