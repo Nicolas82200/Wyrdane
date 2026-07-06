@@ -17,6 +17,7 @@ const _AISystemScript        = preload("res://scripts/systems/AISystem.gd")
 
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 const CARD_BACK          = preload("res://assets/card_back/card-back.png")
+const MAIN_MENU_SCENE    := "res://scenes/mainMenu/MainMenu.tscn"
 const MAX_STACK_VISUAL   := 8
 const ROW_FRONT          := "Front"
 const ROW_BACK           := "Back"
@@ -31,6 +32,7 @@ const ATTACK_PACE                 := 0.5
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
+@onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
 @onready var end_turn_button: Button                   = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
@@ -50,7 +52,7 @@ const ATTACK_PACE                 := 0.5
 @onready var enemy_deck_button: Button                 = $EnemyDeckButton
 @onready var enemy_deck_count_label: Label             = $EnemyDeckButton/CountLabel
 @onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
-@onready var settings_menu: AudioSettingsMenu          = $AudioSettingsMenu
+@onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var turn_choice_panel                         = $TurnChoicePanel
 
@@ -175,6 +177,7 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
+	settings_menu.quit_requested.connect(_on_quit_match)
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
@@ -283,6 +286,11 @@ func _handle_cancel() -> bool:
 	settings_menu.open()
 	return true
 
+# Quitte la partie en cours et revient au menu principal.
+func _on_quit_match() -> void:
+	settings_menu.close()
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
 # Ouvre le cimetière demandé, ou le referme s'il est déjà visible.
 func _toggle_graveyard(target_graveyard: Graveyard) -> void:
 	if graveyard_view.visible:
@@ -308,6 +316,9 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 
 func update_mana_ui() -> void:
 	mana_display.set_mana(mana, max_mana)
+
+func update_enemy_mana_ui() -> void:
+	enemy_mana_display.set_mana(ai_system.mana, ai_system.max_mana)
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost
