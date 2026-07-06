@@ -22,7 +22,9 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	battle.check_game_end()
 
 func _execute_damage(attacker: Minion, defender: Minion) -> void:
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
+	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
+	# sur les serviteurs adjacents à la cible).
+	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
 	# Résonance — enchantements réagissent quand un allié de la même race attaque
 	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player)
