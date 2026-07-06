@@ -15,7 +15,8 @@ class_name NetHandshake
 
 # Émis quand les deux HELLO ont été échangés. setup contient tout ce qu'il faut
 # pour démarrer la bataille réseau (voir _finish).
-signal ready(setup: Dictionary)
+# (nommé "completed" et non "ready" : Node possède déjà un signal "ready".)
+signal completed(setup: Dictionary)
 
 var _net: NetworkManager
 var _local_deck: Array = []
@@ -73,7 +74,7 @@ func _finish() -> void:
 		"parity_stride": _local_stride(),
 	}
 	_net.command_received.disconnect(_on_command_received)
-	ready.emit(setup)
+	completed.emit(setup)
 
 # ─── Parité d'ids locale ──────────────────────────────────────────────────────
 

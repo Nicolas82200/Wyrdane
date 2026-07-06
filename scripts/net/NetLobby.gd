@@ -68,7 +68,7 @@ func _on_peer_connected() -> void:
 	_log_line("✓ Pair connecté — handshake…")
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
-	_handshake.ready.connect(_on_handshake_ready)
+	_handshake.completed.connect(_on_handshake_ready)
 	_handshake.start()
 
 func _on_peer_disconnected(reason: String) -> void:
