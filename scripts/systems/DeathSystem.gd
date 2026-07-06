@@ -95,7 +95,11 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 	for minion in other_camp:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnCarnage")
 
-	await battle.trigger_system.fire("OnGrief", null, dead_were_player)
+	# Un OnGrief par allié mort (source = le mort) afin que les enchantements
+	# puissent conditionner leur effet sur qui vient de mourir (ex: Mémorial des
+	# Héros : seulement si un Humain Légendaire meurt).
+	for dead in dead_minions:
+		await battle.trigger_system.fire("OnGrief", dead, dead_were_player)
 	await battle.trigger_system.fire("OnCarnage", null, not dead_were_player)
 
 func _trigger_sacrifice(dead_minions: Array[Minion], dead_were_player: bool) -> void:
