@@ -50,6 +50,11 @@ func execute_effect(
 func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
 	await execute_effect(battle, null, effect, target)
 
+# Tirage aléatoire via le RNG de jeu partagé (déterministe et synchronisé en
+# réseau), et non le RNG global — sinon les deux clients divergeraient.
+func _rng_pick(battle, array: Array):
+	return array[battle.game_rng.randi() % array.size()]
+
 # ─── Ciblage ──────────────────────────────────────────────────────────────────
 
 func _get_targets(
@@ -90,11 +95,11 @@ func _get_targets(
 		"RandomEnemy":
 			var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
 			if not enemies.is_empty():
-				result.append(enemies.pick_random())
+				result.append(_rng_pick(battle, enemies))
 		"RandomAlly":
 			var allies: Array[Minion] = battle.get_owner_minions(source_minion)
 			if not allies.is_empty():
-				result.append(allies.pick_random())
+				result.append(_rng_pick(battle, allies))
 	return result
 
 func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion]:
@@ -429,7 +434,7 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 			row = "Back" if row == "Front" else "Front"
 		if not battle.can_summon_to_row(is_player, row):
 			break
-		await battle.summon_minion(pool.pick_random(), is_player, row)
+		await battle.summon_minion(_rng_pick(battle, pool), is_player, row)
 		await battle.get_tree().create_timer(0.15).timeout
 
 func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:

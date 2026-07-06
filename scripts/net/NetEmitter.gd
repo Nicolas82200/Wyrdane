@@ -32,5 +32,8 @@ func attack_hero(attacker: Minion) -> void:
 func turn_choice(choice: String) -> void:
 	_net.send_command(NetCommand.turn_choice(choice))
 
-func end_turn() -> void:
-	_net.send_command(NetCommand.end_turn())
+func end_turn(ids: Array = []) -> void:
+	_net.send_command(NetCommand.end_turn(ids))
+
+func turn_start(ids: Array = []) -> void:
+	_net.send_command(NetCommand.turn_start(ids))
