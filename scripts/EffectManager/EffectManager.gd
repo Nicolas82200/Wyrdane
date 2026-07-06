@@ -724,12 +724,14 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 	return false
 
 # Retourne true si le trigger a réellement déclenché des effets,
-# pour que l'appelant puisse espacer les actions (pacing) si besoin
-func trigger_effects(battle, minion: Minion, trigger_name: String) -> bool:
+# pour que l'appelant puisse espacer les actions (pacing) si besoin.
+# selected_target : cible contextuelle de l'évènement (ex: défenseur d'une
+# attaque pour OnAttack) transmise aux effets qui en ont besoin (SplashDamage...).
+func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
 	for effect in minion.card_data.effects:
-		await execute_effect(battle, minion, effect)
+		await execute_effect(battle, minion, effect, selected_target)
 	return true
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:
