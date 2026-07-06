@@ -24,6 +24,10 @@ TooltipData="*uid://bxsh8pr326i0h"
 CardLibrary="*uid://d3txnel4suoji"
 SettingsManager="*res://scripts/settings/SettingsManager.gd"
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/game.fr.translation", "res://translations/game.en.translation")
+
 [display]
 
 window/size/viewport_width=1920

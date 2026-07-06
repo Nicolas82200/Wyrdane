@@ -17,27 +17,21 @@ enum Type {
 # par la méthode native Resource.get_name quand on l'appelle via la classe.
 static func get_keyword_name(keyword: int) -> String:
 	match keyword:
-		Type.PESTIFERE:   return "Pestiféré"
-		Type.NECROPHAGE:  return "Nécrophage"
-		Type.HORDE:       return "Horde"
-		Type.REVENANT:    return "Revenant"
-		Type.CHAIR_MORTE: return "Chair morte"
-		_:                return "Inconnu"
+		Type.PESTIFERE:   return TranslationServer.translate("KW_PESTIFERE_NAME")
+		Type.NECROPHAGE:  return TranslationServer.translate("KW_NECROPHAGE_NAME")
+		Type.HORDE:       return TranslationServer.translate("KW_HORDE_NAME")
+		Type.REVENANT:    return TranslationServer.translate("KW_REVENANT_NAME")
+		Type.CHAIR_MORTE: return TranslationServer.translate("KW_CHAIR_MORTE_NAME")
+		_:                return "?"
 
 static func get_description(keyword: int) -> String:
 	match keyword:
-		Type.PESTIFERE:
-			return "Les attaques de ce serviteur infligent Infection en plus des dégâts."
-		Type.NECROPHAGE:
-			return "Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente."
-		Type.HORDE:
-			return "Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0."
-		Type.REVENANT:
-			return "La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie)."
-		Type.CHAIR_MORTE:
-			return "Immunisé à l'Infection, au poison et aux effets de peur."
-		_:
-			return ""
+		Type.PESTIFERE:   return TranslationServer.translate("KW_PESTIFERE_DESC")
+		Type.NECROPHAGE:  return TranslationServer.translate("KW_NECROPHAGE_DESC")
+		Type.HORDE:       return TranslationServer.translate("KW_HORDE_DESC")
+		Type.REVENANT:    return TranslationServer.translate("KW_REVENANT_DESC")
+		Type.CHAIR_MORTE: return TranslationServer.translate("KW_CHAIR_MORTE_DESC")
+		_:                return ""
 
 static func from_name(keyword_name: String) -> int:
 	match keyword_name:
