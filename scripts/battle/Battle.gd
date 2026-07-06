@@ -347,6 +347,9 @@ func update_mana_ui() -> void:
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
 
+func update_enemy_hand_ui() -> void:
+	enemy_hand_display.set_count(opponent.get_hand_count())
+
 func _pay_mana(cost: int) -> void:
 	mana -= cost
 	update_mana_ui()

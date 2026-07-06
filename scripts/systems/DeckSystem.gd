@@ -40,7 +40,7 @@ func update_deck_ui() -> void:
 	_update_pile_ui(battle.deck_button, battle.deck_count_label, battle.deck.size())
 
 func update_enemy_deck_ui() -> void:
-	_update_pile_ui(battle.enemy_deck_button, battle.enemy_deck_count_label, battle.ai_system.deck.size())
+	_update_pile_ui(battle.enemy_deck_button, battle.enemy_deck_count_label, battle.opponent.get_deck_count())
 
 func _update_pile_ui(button: Button, label: Label, count: int) -> void:
 	button.visible = count > 0
