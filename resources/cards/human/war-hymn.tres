@@ -9,13 +9,16 @@
 [sub_resource type="Resource" id="Resource_d5nyq"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
+target = "AllyMinion"
 value = 1
 value_2 = 1
+condition_type = "TriggerSourceRace"
+condition_race = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_htc7i"]
 script = ExtResource("5_trig")
-type = "OnAttack"
+type = "OnSummon"
 
 [resource]
 script = ExtResource("4_carddata")
