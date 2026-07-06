@@ -20,4 +20,5 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 func set_turns_left(turns: int) -> void:
 	$TurnsLabel.visible = turns > 0
 	if turns > 0:
-		$TurnsLabel.text = "%d tour%s" % [turns, "s" if turns > 1 else ""]
+		var fmt := SettingsManager.t("enchant.turns_many") if turns > 1 else SettingsManager.t("enchant.turns_one")
+		$TurnsLabel.text = fmt % turns
