@@ -27,6 +27,8 @@ func setup() -> void:
 # Attend et rejoue le tour du joueur distant, commande par commande, jusqu'à
 # recevoir END_TURN, puis rend la main à TurnSystem.
 func take_turn() -> void:
+	# Bloque les inputs locaux pendant le tour distant (comme l'IA en solo).
+	battle.enemy_turn_active = true
 	_turn_over = false
 	while not _turn_over:
 		while not _queue.is_empty():
@@ -39,6 +41,7 @@ func take_turn() -> void:
 		if not _turn_over:
 			# Rien à rejouer pour l'instant : on attend le prochain paquet.
 			await battle.get_tree().process_frame
+	battle.enemy_turn_active = false
 
 func refresh_ui() -> void:
 	pass
