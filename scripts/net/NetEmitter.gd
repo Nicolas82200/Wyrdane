@@ -34,3 +34,6 @@ func turn_choice(choice: String) -> void:
 
 func end_turn(ids: Array = []) -> void:
 	_net.send_command(NetCommand.end_turn(ids))
+
+func turn_start(ids: Array = []) -> void:
+	_net.send_command(NetCommand.turn_start(ids))
