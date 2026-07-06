@@ -34,6 +34,9 @@ func take_turn() -> void:
 	battle.enemy_turn_active = true
 	_turn_over = false
 	while not _turn_over:
+		# Sortie de secours : partie terminée ou pair déconnecté.
+		if battle.game_over:
+			break
 		while not _queue.is_empty():
 			var cmd: Dictionary = _queue.pop_front()
 			if NetCommand.type_of(cmd) == NetCommand.END_TURN:
