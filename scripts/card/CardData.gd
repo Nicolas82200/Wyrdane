@@ -27,6 +27,20 @@ class_name CardData
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity: String = "Common"
 @export_enum("Front", "Back", "Hybrid") var board_position: String = "Front"
 
+# ─── Textes localisés ─────────────────────────────────────────────────────────
+# Le texte français (nom/description/ambiance) sert de clé de traduction : il est
+# résolu dans la langue courante via translations/game.csv. Si aucune traduction
+# n'existe pour la locale active, TranslationServer renvoie la chaîne d'origine
+# (donc le français), ce qui garde un repli naturel.
+func display_name() -> String:
+	return TranslationServer.translate(card_name)
+
+func display_description() -> String:
+	return TranslationServer.translate(description)
+
+func display_flavour() -> String:
+	return TranslationServer.translate(flavour_text)
+
 func get_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in keywords:
