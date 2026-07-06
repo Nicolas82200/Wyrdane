@@ -113,9 +113,14 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
-		if card.requires_target and cmd.get("target", NetCommand.TARGET_NONE) != NetCommand.TARGET_NONE:
-			push_warning("NetworkOpponent : effet d'invocation ciblé distant non encore rejoué")
-		await battle.board_system.summon_minion_return(card, false, row, index)
+		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index)
+		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : on rejoue la
+		# boucle d'effets avec la cible résolue par net_id, comme côté émetteur.
+		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
+		if target_id != NetCommand.TARGET_NONE and summoned != null:
+			var target: Minion = battle.net_registry.resolve(target_id)
+			for effect in card.effects:
+				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
