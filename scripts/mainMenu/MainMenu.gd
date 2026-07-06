@@ -12,11 +12,15 @@ const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 @onready var close_credits:   Button = $CreditsPanel/CloseCreditsButton
 @onready var decks_button:    Button = $NavPanel/NavMargin/VBoxContainer/DecksButton
 @onready var deck_list:       Control = $DeckList
+@onready var subtitle_label:  Label  = $SubtitleLabel
+@onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
 # [FIX] Non typé — typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
 func _ready() -> void:
 	AudioManager.play_battle_music()
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()
 	play_button.pressed.connect(_on_play)
 	future_button.pressed.connect(_on_future)
 	credits_button.pressed.connect(_on_credits)
@@ -56,3 +60,15 @@ func _on_credits() -> void:
 
 func _on_quit() -> void:
 	get_tree().quit()
+
+# Met à jour tous les libellés du menu dans la langue courante.
+func _retranslate() -> void:
+	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
+	play_button.text    = SettingsManager.t("MENU_PLAY")
+	decks_button.text   = SettingsManager.t("MENU_DECKS")
+	future_button.text  = SettingsManager.t("MENU_FUTURE")
+	settings_button.text = SettingsManager.t("MENU_SETTINGS")
+	credits_button.text = SettingsManager.t("MENU_CREDITS")
+	quit_button.text    = SettingsManager.t("MENU_QUIT")
+	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
+	close_credits.text  = SettingsManager.t("MENU_CLOSE")
