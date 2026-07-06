@@ -11,6 +11,9 @@
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
 summon_card = ExtResource("6_summon")
+condition_type = "LegendaryAllyInPlay"
+condition_race = "Human"
+condition_count = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_hce7k"]

@@ -61,9 +61,14 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			var card_data: CardData = entry["card_data"]
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
+			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort) :
+			# le rituel ne réagit pas et ne consomme donc pas de charge.
+			var proxy := _make_proxy(card_data, is_player)
+			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, ctx.source_minion):
+				continue
 			if paced and acted:
 				await battle.pace_actions()
-			await _execute_enchantment_effects(card_data, is_player, ctx)
+			await _execute_enchantment_effects_with_proxy(proxy, card_data, is_player, ctx)
 			acted = true
 			_consume_ritual_charge(entry, is_player)
 	return acted
@@ -118,7 +123,9 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 	return false
 
 func _execute_enchantment_effects(card_data: CardData, is_player: bool, ctx: TriggerContext) -> void:
-	var proxy := _make_proxy(card_data, is_player)
+	await _execute_enchantment_effects_with_proxy(_make_proxy(card_data, is_player), card_data, is_player, ctx)
+
+func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData, _is_player: bool, ctx: TriggerContext) -> void:
 	for effect in card_data.effects:
 		await battle.effect_manager.execute_effect(battle, proxy, effect, ctx.source_minion)
 
