@@ -11,7 +11,7 @@ class_name CardEffect
 	"DamageAll", "BuffRow", "BuffAdjacent", "SplashDamage",
 	"DebuffATK", "DestroyLowHP", "BuffIfCondition",
 	"DamageAllMinions", "ReturnFromGrave",
-	"GrantKeyword"
+	"GrantKeyword", "AuraBuffRow", "AuraBuffPerAllyInRow"
 ) var effect_id: String = "Damage"
 
 @export_enum(
