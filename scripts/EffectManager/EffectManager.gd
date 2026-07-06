@@ -76,10 +76,12 @@ func _get_targets(
 			result.append_array(battle.player_minions)
 			result.append_array(battle.enemy_minions)
 		"AllEnemiesFront":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			# Source nulle = sort lancé par le joueur => camp joueur (comme les
+			# cibles "Allies"). On vise donc la rangée Avant du camp ADVERSE.
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			result.append_array(battle.get_front_minions(not is_p))
 		"AllEnemiesBack":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			result.append_array(battle.get_back_minions(not is_p))
 		"AllAlliesFront":
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
@@ -370,7 +372,7 @@ func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
 			targets.append_array(battle.player_minions)
 			targets.append_array(battle.enemy_minions)
 		"AllEnemiesFront":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			targets.append_array(battle.get_front_minions(not is_p))
 		_:
 			targets.append_array(_resolve_targets(battle, source_minion, effect))
