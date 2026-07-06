@@ -68,7 +68,7 @@ func _apply(cmd: Dictionary) -> void:
 		NetCommand.TURN_CHOICE:
 			pass  # TODO: rejouer le choix mana/pioche côté ennemi (modèle de ressources adverse)
 		NetCommand.PLAY_CARD:
-			pass  # TODO: invoquer/lancer côté ennemi avec net_id imposé (déterminisme des effets)
+			await _apply_play_card(cmd)
 		NetCommand.ATTACK:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
 			var defender: Minion = battle.net_registry.resolve(cmd.get("defender", 0))
@@ -80,3 +80,25 @@ func _apply(cmd: Dictionary) -> void:
 				await battle.combat_system.perform_hero_attack(attacker)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
+
+# Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
+# jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
+# Limité aux serviteurs pour l'instant : les sorts distants demandent un
+# EffectManager conscient du propriétaire (brique suivante).
+func _apply_play_card(cmd: Dictionary) -> void:
+	var card: CardData = load(cmd.get("card", "")) as CardData
+	if card == null:
+		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
+		return
+	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+	if card.card_type == "Minion":
+		var row: String = cmd.get("row", "Front")
+		var index: int = cmd.get("index", -1)
+		if card.requires_target and cmd.get("target", NetCommand.TARGET_NONE) != NetCommand.TARGET_NONE:
+			push_warning("NetworkOpponent : effet d'invocation ciblé distant non encore rejoué")
+		await battle.board_system.summon_minion_return(card, false, row, index)
+	else:
+		push_warning("NetworkOpponent : sort/rituel distant non encore rejoué (%s)" % card.card_type)
+	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
+	# serviteurs que prévu) pour ne pas contaminer les invocations suivantes.
+	battle.net_registry.set_imposed_ids([])

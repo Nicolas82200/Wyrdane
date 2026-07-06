@@ -66,6 +66,10 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
 
+	# Capture les ids de tous les serviteurs créés par l'action, pour les rejouer.
+	if battle.net_emitter != null:
+		battle.net_registry.begin_capture()
+
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
 		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
@@ -101,15 +105,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 
 	# Émission réseau : le joueur local a joué cette carte sur une cible.
 	if battle.net_emitter != null:
+		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.play_card(card_data, row, insert_index,
-			summoned, target if target is Minion else null)
+			ids, target if target is Minion else null)
 
 	battle.reset_targeting_state()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
-	var summoned: Minion = null
+	if battle.net_emitter != null:
+		battle.net_registry.begin_capture()
 	if card_data.card_type == "Minion":
-		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
+		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
@@ -134,7 +140,8 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 
 	# Émission réseau : le joueur local a joué cette carte (sans cible).
 	if battle.net_emitter != null:
-		battle.net_emitter.play_card(card_data, row, insert_index, summoned, null)
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.play_card(card_data, row, insert_index, ids, null)
 
 func _remove_from_hand(card_data: CardData) -> void:
 	var idx: int = battle.hand_cards.find(card_data)
