@@ -7,6 +7,25 @@ func init(_battle) -> void:
 	battle = _battle
 
 func end_turn() -> void:
+	# Capture les ids des serviteurs créés par les déclencheurs de fin de tour
+	# (ex. Dernier Souffle), pour que le pair les rejoue avec les mêmes ids.
+	if battle.net_emitter != null:
+		battle.net_registry.begin_capture()
+	await run_turn_end_triggers()
+	battle.temp_effect_system.expire_end_of_player_turn()
+	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
+	if battle.net_emitter != null:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.end_turn(ids)
+	await battle.opponent.take_turn()
+	if battle.game_over:
+		return
+	battle.temp_effect_system.expire_end_of_enemy_turn()
+	await _begin_player_turn()
+
+# Phase de fin de tour (OnTurnEnd des deux camps + Infection). Symétrique : itère
+# tous les serviteurs, donc rejouable à l'identique sur le pair pour rester synchro.
+func run_turn_end_triggers() -> void:
 	var acted := false
 	# Fin de tour — serviteurs joueur
 	acted = await _trigger_minions_paced(battle.player_minions, "OnTurnEnd", acted)
@@ -18,15 +37,6 @@ func end_turn() -> void:
 	acted = await battle.trigger_system.fire("OnTurnEnd", null, false, {}, true, acted)
 
 	await _apply_infection_damage()
-	battle.temp_effect_system.expire_end_of_player_turn()
-	# Émission réseau : dernière commande du tour local, avant de passer la main.
-	if battle.net_emitter != null:
-		battle.net_emitter.end_turn()
-	await battle.opponent.take_turn()
-	if battle.game_over:
-		return
-	battle.temp_effect_system.expire_end_of_enemy_turn()
-	await _begin_player_turn()
 
 func _begin_player_turn() -> void:
 	battle.aura_system.recompute_all()

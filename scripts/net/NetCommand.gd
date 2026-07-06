@@ -49,8 +49,10 @@ static func attack_hero(attacker_net_id: int) -> Dictionary:
 static func turn_choice(choice: String) -> Dictionary:
 	return {"type": TURN_CHOICE, "choice": choice}
 
-static func end_turn() -> Dictionary:
-	return {"type": END_TURN}
+# ids : net_id des serviteurs créés par les déclencheurs de fin de tour, à imposer
+# lors du rejeu de cette phase sur le pair.
+static func end_turn(ids: Array = []) -> Dictionary:
+	return {"type": END_TURN, "ids": ids}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).

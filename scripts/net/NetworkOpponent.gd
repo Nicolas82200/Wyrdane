@@ -37,6 +37,11 @@ func take_turn() -> void:
 		while not _queue.is_empty():
 			var cmd: Dictionary = _queue.pop_front()
 			if NetCommand.type_of(cmd) == NetCommand.END_TURN:
+				# Rejoue la phase de fin de tour distante (OnTurnEnd + Infection)
+				# avec les ids imposés pour d'éventuelles invocations de triggers.
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+				await battle.turn_system.run_turn_end_triggers()
+				battle.net_registry.set_imposed_ids([])
 				_turn_over = true
 				break
 			await _apply(cmd)
