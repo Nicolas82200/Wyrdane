@@ -51,9 +51,12 @@ func conditions_met(card_data: CardData) -> bool:
 	return true
 
 func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
-	await battle.card_popup_system.show_targeting_popup(card_data)
-	await battle.get_tree().create_timer(0.4).timeout
-	battle.card_popup_system.hide_targeting_popup()
+	# Les sorts éphémères montrent leur popup d'effet dans _resolve (glisse depuis
+	# la gauche, puis l'effet). Inutile de doubler avec un reveal de ciblage ici.
+	if card_data.card_type != "Instant":
+		await battle.card_popup_system.show_targeting_popup(card_data)
+		await battle.get_tree().create_timer(0.4).timeout
+		battle.card_popup_system.hide_targeting_popup()
 	battle._pay_mana(card_data.cost)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -96,6 +99,9 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)
+			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
+			# que l'effet ne se joue
+			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				if target is Minion:
 					await battle.effect_manager.execute_effect(battle, null, effect, target)
@@ -134,6 +140,9 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.aura_system.recompute_all()
 		else:
 			battle.player_graveyard.add_spell(card_data)
+			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
+			# que l'effet ne se joue
+			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()

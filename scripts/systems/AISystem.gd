@@ -25,6 +25,7 @@ func setup() -> void:
 func refresh_ui() -> void:
 	battle.deck_system.update_enemy_deck_ui()
 	battle.enemy_hand_display.set_count(hand.size())
+	battle.update_enemy_mana_ui()
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
@@ -48,13 +49,18 @@ func take_turn() -> void:
 
 # Symétrique du TurnChoicePanel du joueur : pioche OU mana
 func _resource_phase() -> void:
+	var gained_max := false
 	if max_mana >= MANA_CAP or (hand.size() <= 2 and max_mana >= 4):
 		_draw_card()
 	else:
 		max_mana += 1
+		gained_max = true
 	mana = max_mana
 	for minion in battle.enemy_minions:
 		minion.refresh_attacks()
+	battle.update_enemy_mana_ui()
+	if gained_max:
+		battle.enemy_mana_display.pulse_max()
 
 # Pause AVANT chaque action sauf la première : une action isolée reste fluide
 func _play_cards_phase() -> void:
