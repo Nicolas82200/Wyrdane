@@ -79,7 +79,7 @@ func _refresh_card_grid() -> void:
 
 
 func _match_filters(c: CardData) -> bool:
-	if _filter_text != "" and not c.card_name.to_lower().contains(_filter_text.to_lower()):
+	if _filter_text != "" and not c.display_name().to_lower().contains(_filter_text.to_lower()):
 		return false
 	if _filter_race != -1 and c.race != _filter_race:
 		return false
@@ -224,7 +224,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	row.add_child(cost_panel)
 
 	var name_lbl := Label.new()
-	name_lbl.text                  = card.card_name
+	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_size_override("font_size", 14)

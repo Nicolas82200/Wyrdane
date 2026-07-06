@@ -13,7 +13,7 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 	if card_data.texture:
 		$Art.texture = card_data.texture
 	$CostBadge.text = str(card_data.cost)
-	tooltip_text = "%s\n%s" % [card_data.card_name, card_data.description]
+	tooltip_text = "%s\n%s" % [card_data.display_name(), card_data.display_description()]
 	$TurnsLabel.visible = false
 
 # Compteur de tours restants (Rituels à durée limitée uniquement)
