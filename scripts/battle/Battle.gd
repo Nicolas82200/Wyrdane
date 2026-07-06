@@ -75,6 +75,8 @@ var net_registry := NetRegistry.new()
 # Émetteur des actions du joueur local vers le pair distant. null en solo :
 # aucun point d'appel n'émet alors quoi que ce soit.
 var net_emitter: NetEmitter = null
+# En mode réseau : true si c'est le joueur local qui commence la partie.
+var net_local_first: bool = true
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
@@ -154,6 +156,7 @@ func _setup_network() -> void:
 	var setup: Dictionary = NetContext.setup
 	seed(setup.get("seed", 0))
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
+	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
 	var netopp := NetworkOpponent.new(net)
 	add_child(netopp)
@@ -188,10 +191,20 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, false)
 	if NetContext.active:
 		opponent.setup()
-		NetContext.clear()
 	else:
 		ai_system.setup()
 	await deck_system.start_game()
+	if NetContext.active:
+		var local_first: bool = net_local_first
+		NetContext.clear()
+		# Si le joueur distant commence, on lui passe la main avant notre 1er tour.
+		if not local_first:
+			await _run_remote_first_turn()
+
+# Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
+func _run_remote_first_turn() -> void:
+	await opponent.take_turn()
+	await turn_system._begin_player_turn()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
 
