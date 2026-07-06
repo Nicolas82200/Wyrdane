@@ -19,10 +19,13 @@ func _init(network_manager: NetworkManager) -> void:
 
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
+const MANA_CAP := 10
+
 func setup() -> void:
-	# Deck adverse, parité d'ids et main de départ sont fixés par le handshake
-	# HELLO (brique suivante).
-	pass
+	# Mana initial du camp adverse, miroir du 1er tour du joueur local.
+	mana = 1
+	max_mana = 1
+	battle.update_enemy_mana_ui()
 
 # Attend et rejoue le tour du joueur distant, commande par commande, jusqu'à
 # recevoir END_TURN, puis rend la main à TurnSystem.
@@ -66,7 +69,13 @@ func _on_command_received(command: Dictionary) -> void:
 func _apply(cmd: Dictionary) -> void:
 	match NetCommand.type_of(cmd):
 		NetCommand.TURN_CHOICE:
-			pass  # TODO: rejouer le choix mana/pioche côté ennemi (modèle de ressources adverse)
+			# Choix de début de tour distant : mana augmente la réserve, pioche non.
+			# Affichage cosmétique côté joueur local (les plays sont déjà validés
+			# chez l'émetteur).
+			if cmd.get("choice", "mana") == "mana":
+				max_mana = min(max_mana + 1, MANA_CAP)
+			mana = max_mana
+			battle.update_enemy_mana_ui()
 		NetCommand.PLAY_CARD:
 			await _apply_play_card(cmd)
 		NetCommand.ATTACK:

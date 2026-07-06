@@ -79,6 +79,8 @@ var net_registry := NetRegistry.new()
 var net_emitter: NetEmitter = null
 # En mode réseau : true si c'est le joueur local qui commence la partie.
 var net_local_first: bool = true
+# Référence au transport réseau, pour le fermer proprement en quittant le match.
+var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
@@ -156,6 +158,7 @@ func _init_systems() -> void:
 func _setup_network() -> void:
 	var net: NetworkManager = NetContext.net
 	var setup: Dictionary = NetContext.setup
+	network_manager = net
 	seed(setup.get("seed", 0))
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
@@ -289,6 +292,12 @@ func _handle_cancel() -> bool:
 # Quitte la partie en cours et revient au menu principal.
 func _on_quit_match() -> void:
 	settings_menu.close()
+	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
+	if network_manager != null:
+		network_manager.close()
+		network_manager.queue_free()
+		network_manager = null
+	NetContext.clear()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 # Ouvre le cimetière demandé, ou le referme s'il est déjà visible.
@@ -318,7 +327,7 @@ func update_mana_ui() -> void:
 	mana_display.set_mana(mana, max_mana)
 
 func update_enemy_mana_ui() -> void:
-	enemy_mana_display.set_mana(ai_system.mana, ai_system.max_mana)
+	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost
