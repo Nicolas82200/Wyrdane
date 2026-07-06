@@ -135,6 +135,8 @@ func _init_systems() -> void:
 	targeting_system.init(self)
 	ai_system.init(self)
 	opponent = ai_system
+	if NetContext.active:
+		_setup_network()
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
@@ -143,6 +145,20 @@ func _init_systems() -> void:
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
+
+# Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
+# (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
+# NetRegistry / la graine RNG sont alignés sur le handshake.
+func _setup_network() -> void:
+	var net: NetworkManager = NetContext.net
+	var setup: Dictionary = NetContext.setup
+	seed(setup.get("seed", 0))
+	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
+	net_emitter = NetEmitter.new(net)
+	var netopp := NetworkOpponent.new(net)
+	add_child(netopp)
+	netopp.init(self)
+	opponent = netopp
 
 func _connect_signals() -> void:
 	hand.card_played.connect(_on_card_played)
@@ -170,7 +186,11 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
-	ai_system.setup()
+	if NetContext.active:
+		opponent.setup()
+		NetContext.clear()
+	else:
+		ai_system.setup()
 	await deck_system.start_game()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
