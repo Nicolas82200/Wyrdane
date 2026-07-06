@@ -39,6 +39,15 @@ class_name CardEffect
 @export var target_max_hp: int = -1
 @export var target_max_atk: int = -1
 
+# ─── Rangée d'invocation (SummonMinion / SummonRandom) ────────────────────────
+# "Front"  : toujours en rangée Avant (comportement par défaut : la quasi-totalité
+#            des cartes d'invocation précisent « en rangée Avant »).
+# "Back"   : toujours en rangée Arrière.
+# "Source" : dans la rangée du serviteur source (utile pour un serviteur qui
+#            invoque à côté de lui). Retombe sur Avant si la source est un sort.
+# Dans tous les cas, si la rangée voulue est pleine, on bascule sur l'autre.
+@export_enum("Front", "Back", "Source") var summon_row: String = "Front"
+
 # ─── Pool d'invocation aléatoire (SummonRandom) ───────────────────────────────
 @export var pool_max_cost: int = -1        # -1 = pas de limite
 @export var pool_min_cost: int = -1
