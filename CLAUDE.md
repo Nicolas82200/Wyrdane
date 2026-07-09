@@ -14,6 +14,7 @@ Liste complète des cartes : voir `CARDS.md`.
 - Ouvrir dans Godot 4 (moteur "Forward Plus")
 - Scène principale (F5) : `scenes/loading/LoadingScreen.tscn` — charge toutes les cartes via `CardLibrary` puis ouvre le menu principal
 - Pour tester directement une bataille : lancer `scenes/battle/Battle.tscn` (F6). Attention : `CardLibrary` n'est alors pas pré-chargé, certains systèmes (deck IA notamment) utilisent un fallback
+- Pour tester le multijoueur en local : lancer deux instances du jeu sur `scenes/net/NetLobby.tscn` — l'une clique « Héberger », l'autre saisit `127.0.0.1` puis « Rejoindre »
 - Pas de suite de tests automatisés pour l'instant — toute nouvelle fonctionnalité doit être vérifiée manuellement en jeu jusqu'à ce qu'un framework de test soit mis en place
 - Vérification syntaxique possible en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit`
 
@@ -29,7 +30,8 @@ scenes/
 ├── loading/         # Écran de chargement (scène principale)
 ├── mainMenu/        # Menu principal
 ├── minion/          # Serviteur sur le board
-└── settings/        # Menus de réglages (audio, contrôles, graphismes)
+├── net/             # Lobby multijoueur (NetLobby) + scène de test réseau
+└── settings/        # Menus de réglages (audio, contrôles, graphismes, affichage)
 
 scripts/
 ├── EffectManager/   # Moteur d'exécution des effets de cartes
@@ -44,8 +46,11 @@ scripts/
 ├── loading/         # CardLibrary (autoload) + écran de chargement
 ├── mainMenu/        # Menu principal
 ├── minion/          # Minion (logique) et BoardMinion (visuel)
-├── settings/        # Menus de réglages
+├── net/             # Couche multijoueur (NetworkManager, NetworkOpponent, NetLobby, protocole de commandes...)
+├── settings/        # Menus de réglages + SettingsManager (autoload)
 └── systems/         # Systèmes de jeu (AISystem, CombatSystem, TurnSystem, DeathSystem...)
+
+translations/        # Traductions FR/EN (game.csv → .translation compilés par Godot)
 ```
 
 Autoloads globaux (voir `project.godot`) :
@@ -53,6 +58,7 @@ Autoloads globaux (voir `project.godot`) :
 - `DeckManager` — `scripts/deck/DeckManager.gd`
 - `TooltipData` — `scripts/systems/TooltipData.gd`
 - `CardLibrary` — `scripts/loading/CardLibrary.gd`
+- `SettingsManager` — `scripts/settings/SettingsManager.gd` (réglages persistants + i18n)
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
@@ -81,10 +87,22 @@ Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
 
-Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`) et **Humain** (`human/`, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...). Races prévues : Elfe, Nain, Démon.
+Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`) et **Humain** (`human/`, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...). **Démon** : contenu défini dans `CARDS.md` (~75 cartes), implémentation moteur restant à faire. Races prévues : Elfe, Nain.
 
-### IA adverse
-L'adversaire est piloté par `scripts/systems/AISystem.gd` : il a son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana. Son tour se joue automatiquement après celui du joueur (branché dans `TurnSystem.end_turn()`) en 3 phases : ressource (mana ou pioche), pose de serviteurs, attaques (provocation > létal héros > trade favorable). Pendant son tour, `battle.enemy_turn_active` bloque les inputs du joueur. Limite actuelle : l'IA ne joue que des serviteurs (pas de sorts/rituels/enchantements).
+### Adversaire : IA ou joueur distant (`OpponentDriver`)
+Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
+- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), main et mana. Tour automatique en 3 phases : ressource (mana ou pioche), pose de serviteurs, attaques (provocation > létal héros > trade favorable). Limite actuelle : l'IA ne joue que des serviteurs (pas de sorts/rituels/enchantements).
+- **`NetworkOpponent`** (`scripts/net/NetworkOpponent.gd`, mode réseau) — ne décide rien : rejoue localement, dans l'ordre, les commandes reçues du joueur distant jusqu'à `END_TURN`.
+
+Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendant le tour adverse.
+
+### Multijoueur (1v1 réseau)
+Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque client émet ses actions (`NetEmitter`) et rejoue celles du pair distant — pas de serveur d'autorité.
+- **Transport** : interface `NetTransport`, implémentation `ENetTransport` (P2P hôte/client, IP directe ou LAN), créée par `TransportFactory`. `NetworkManager` orchestre : connexion, sérialisation `var_to_bytes` (types de base uniquement, jamais d'objets arbitraires), routage des commandes.
+- **Entrée en jeu** : `scenes/net/NetLobby.tscn` (Héberger / Rejoindre par IP) → handshake `NetHandshake` (échange des decks, graine RNG partagée, premier joueur) → les deux clients basculent sur `Battle.tscn` ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
+- **Protocole** : vocabulaire dans `NetCommand.gd` (`PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE`, `END_TURN`, `TURN_START`, `HELLO`). Une carte est désignée par son `resource_path`, un serviteur par un `net_id` stable attribué par `NetRegistry`.
+- **Déterminisme** : RNG de jeu partagée (seed du handshake) pour que les effets aléatoires donnent le même résultat des deux côtés ; les triggers de début/fin de tour (Éveil/Déclin, infection) sont synchronisés.
+- La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
 
 ## Décisions de design UI
 
@@ -99,6 +117,15 @@ L'adversaire est piloté par `scripts/systems/AISystem.gd` : il a son propre dec
 - Lorsqu'un choix Mana/Pioche est affiché, le plateau est légèrement assombri.
 - La main reste visible afin que le joueur puisse consulter ses cartes avant de choisir.
 - Les cartes de la main restent non interactives pendant ce choix.
+
+## Internationalisation (i18n)
+
+Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.csv` (clé, fr, en) compilé en `game.fr.translation` / `game.en.translation`.
+- Tout texte UI passe par `SettingsManager.t("CLE")` (délègue au `TranslationServer`) ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`
+- Les cartes (noms, effets, flavour) sont également traduites — les 151 cartes ont leurs clés dans le CSV
+- **Tout nouveau texte visible par le joueur doit avoir sa ligne FR + EN dans `translations/game.csv`** — ne jamais mettre de chaîne en dur dans l'UI
+- Une clé absente du CSV est affichée telle quelle en jeu (utile pour repérer les oublis)
+- Sélecteur de langue dans les réglages d'affichage
 
 ## Conventions de code
 
@@ -140,8 +167,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain), système d'effets/triggers/enchantements/auras, écran de fin de partie (victoire/défaite/déconnexion)
-- ⬜ À faire : sorts/rituels pour l'IA, mode campagne, collection de cartes, multijoueur, animations shaders, tests automatisés
+- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain — 151 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), i18n FR/EN complète (UI + cartes), menu réglages en jeu
+- ⬜ À faire : écran de fin de partie (actuellement `game_over` bloque juste les inputs), sorts/rituels pour l'IA, matchmaking/hébergement au-delà de l'IP directe, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents
 
