@@ -45,6 +45,11 @@ func execute_effect(
 		"DamageAllMinions": await _damage_all_minions(battle, source_minion, effect)
 		"ReturnFromGrave":  _return_from_grave(battle, source_minion, effect, selected_target)
 		"GrantKeyword":     await _grant_keyword(battle, source_minion, effect, selected_target)
+		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
+		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
+		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
+		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect)
+		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -682,6 +687,63 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+
+# ─── Agression ────────────────────────────────────────────────────────────────
+
+# Attaque immédiate d'une cible choisie automatiquement : le serviteur ennemi le
+# plus faible en HP (Cavalier Zombie). Ignore la contrainte de rangée : c'est un
+# effet, pas une attaque déclarée par le joueur.
+func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null:
+		return
+	var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
+	if enemies.is_empty():
+		return
+	var target: Minion = enemies[0]
+	for e in enemies:
+		if e.health < target.health:
+			target = e
+	await battle.combat_system.resolve_combat(source_minion, target)
+
+# Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
+func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	for target in targets:
+		target.infected = false
+
+# Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
+# Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,
+# offrant donc une relance nette une seule fois dans le tour.
+func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null or source_minion.extra_attack_used_this_turn:
+		return
+	source_minion.extra_attack_used_this_turn = true
+	source_minion.attacks_remaining += 1
+
+# Sacrifie `count` alliés (coût du Don de Chair). Sans UI : choisit automatiquement
+# les plus faibles (HP puis ATK). Marqués `sacrificed` pour déclencher OnSacrifice
+# et empêcher REVENANT de les relever.
+func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var allies: Array[Minion] = battle.get_owner_minions(source_minion).duplicate()
+	if allies.is_empty():
+		return
+	allies.sort_custom(func(a: Minion, b: Minion) -> bool:
+		if a.health != b.health:
+			return a.health < b.health
+		return a.attack < b.attack
+	)
+	var n: int = mini(effect.count, allies.size())
+	for i in range(n):
+		allies[i].sacrificed = true
+		allies[i].health = 0
+	await battle.death_system.process_deaths()
+
+# Active la Contre-Offensive pour le camp du lanceur : ce tour, chaque Humain de
+# ce camp qui tue un ennemi gagne une attaque supplémentaire (voir CombatSystem).
+func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	battle.counter_offensive[is_player] = true
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 
