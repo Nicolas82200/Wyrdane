@@ -725,7 +725,6 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
 
 ### À faire
-*   Écran de fin de partie (victoire/défaite) — actuellement `game_over` bloque juste les inputs
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
 *   Multijoueur : matchmaking / hébergement au-delà de l'IP directe (code de partie, serveur relais...)
 *   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
