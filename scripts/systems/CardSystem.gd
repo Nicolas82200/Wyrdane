@@ -48,6 +48,10 @@ func conditions_met(card_data: CardData) -> bool:
 			"Resurrect", "ResurrectLast", "ReturnFromGrave":
 				if battle.player_graveyard.get_minions().is_empty():
 					return false
+			"SacrificeAlly":
+				# Impossible de payer le coût de sacrifice sans assez d'alliés.
+				if battle.player_minions.size() < effect.count:
+					return false
 	return true
 
 func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:

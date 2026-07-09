@@ -13,6 +13,7 @@ func end_turn() -> void:
 		battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
 	battle.temp_effect_system.expire_end_of_player_turn()
+	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
 	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()

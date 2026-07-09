@@ -110,6 +110,9 @@ var enemy_hero: Hero
 var game_over: bool              = false
 var enemy_turn_active: bool      = false
 var _is_dragging_card: bool      = false
+# Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
+# Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
+var counter_offensive: Dictionary = {true: false, false: false}
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
