@@ -7,6 +7,7 @@ extends Control
 # puis les DEUX clients basculent sur la scène Battle en mode réseau.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
+const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
 var _net: NetworkManager
 var _handshake: NetHandshake
@@ -44,6 +45,11 @@ func _build_ui() -> void:
 	join_btn.pressed.connect(_on_join_pressed)
 	buttons.add_child(join_btn)
 
+	var back_btn := Button.new()
+	back_btn.text = SettingsManager.t("NET_BACK")
+	back_btn.pressed.connect(_on_back_pressed)
+	buttons.add_child(back_btn)
+
 	_log = RichTextLabel.new()
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_log)
@@ -61,6 +67,12 @@ func _on_host_pressed() -> void:
 func _on_join_pressed() -> void:
 	var err := _net.join_game(_ip_field.text)
 	_log_line("Rejoint %s (err=%d)" % [_ip_field.text, err])
+
+func _on_back_pressed() -> void:
+	# Coupe une éventuelle connexion en cours avant de revenir au menu.
+	_net.close()
+	AudioManager.play(AudioManager.CLOSE_MENU)
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
