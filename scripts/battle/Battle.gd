@@ -87,6 +87,8 @@ var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
 var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
+var cost_system := CostSystem.new()
+var sacrifice_system := SacrificeSystem.new()
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -157,9 +159,13 @@ func _init_systems() -> void:
 	card_popup_system.init(self)
 	aura_system.init(self)
 	temp_effect_system.init(self)
+	cost_system.init(self)
+	sacrifice_system.init(self)
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
+	add_child(sacrifice_system)
+	#hand.display_cost = get_card_cost
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
 # (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
@@ -248,6 +254,18 @@ func _process(_delta: float) -> void:
 # ─── Input ────────────────────────────────────────────────────────────────────
 
 func _unhandled_input(event: InputEvent) -> void:
+	if sacrifice_system.is_active():
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_RIGHT \
+				and event.pressed:
+			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_cancel"):
+			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+
 	if targeting_system.is_targeting():
 		if event is InputEventMouseButton \
 				and event.button_index == MOUSE_BUTTON_RIGHT \
@@ -441,7 +459,10 @@ func destroy_minion(target: Minion) -> void:
 
 # [FIX] _on_card_played délègue la validation et l'état à CardSystem
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or enemy_turn_active or card_data.cost > mana:
+	if game_over or enemy_turn_active or get_card_cost(card_data) > mana:
+		return
+	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
+	if sacrifice_system.is_active():
 		return
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
@@ -548,8 +569,12 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
+# Coût effectif d'une carte de la main du joueur (remises comprises).
+func get_card_cost(card_data: CardData) -> int:
+	return cost_system.get_cost(card_data, true)
+
 func can_afford_card(card_data: CardData) -> bool:
-	return card_data != null and mana >= card_data.cost
+	return card_data != null and mana >= get_card_cost(card_data)
 
 # Jouabilité complète : mana + conditions du sort (cibles valides, cimetière...)
 func can_play_card(card_data: CardData) -> bool:

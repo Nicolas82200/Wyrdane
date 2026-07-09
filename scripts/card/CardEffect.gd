@@ -13,7 +13,9 @@ class_name CardEffect
 	"DamageAllMinions", "ReturnFromGrave",
 	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
 	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
-	"SacrificeAlly", "GrantCounterOffensive"
+	"SacrificeAlly", "GrantCounterOffensive",
+	"GainMana", "DrawCardDiscount",
+	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction"
 ) var effect_id: String = "Damage"
 
 @export_enum(

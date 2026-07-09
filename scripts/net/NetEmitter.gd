@@ -37,3 +37,7 @@ func end_turn(ids: Array = []) -> void:
 
 func turn_start(ids: Array = []) -> void:
 	_net.send_command(NetCommand.turn_start(ids))
+
+# Activation locale d'un Rituel de Sacrifice (victimes déjà choisies).
+func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) -> void:
+	_net.send_command(NetCommand.activate_ritual(card_data.resource_path, victim_ids, ids))

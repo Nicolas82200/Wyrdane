@@ -13,6 +13,7 @@ func end_turn() -> void:
 		battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
 	battle.temp_effect_system.expire_end_of_player_turn()
+	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
 	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
 	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
 	if battle.net_emitter != null:
@@ -56,6 +57,7 @@ func _begin_player_turn() -> void:
 # c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
+	battle.cost_system.on_turn_started(is_local_turn)
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():

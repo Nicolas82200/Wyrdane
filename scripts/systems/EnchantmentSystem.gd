@@ -49,9 +49,26 @@ func _add_card(card_data: CardData, is_player: bool, duration: int) -> void:
 	var visual = ENCHANTMENT_CARD_SCENE.instantiate()
 	zone.add_child(visual)
 	visual.setup(card_data, is_player)
+	visual.activate_requested.connect(_on_card_activate_requested)
 	if duration > 0:
 		visual.set_turns_left(duration)
 	_relayout(zone)
+	refresh_activatable()
+
+# Clic sur un rituel posé : demande d'activation (Rituels de Sacrifice)
+func _on_card_activate_requested(card_data: CardData, is_player: bool) -> void:
+	battle.sacrifice_system.try_begin(card_data, is_player)
+
+# Met à jour la surbrillance "activable" des rituels posés (Sacrifice possible)
+func refresh_activatable() -> void:
+	for zone in [battle.player_ritual_zone, battle.enemy_ritual_zone,
+			battle.player_enchantment_zone, battle.enemy_enchantment_zone]:
+		if zone == null:
+			continue
+		for child in zone.get_children():
+			if child.has_method("set_activatable") and not child.is_queued_for_deletion():
+				child.set_activatable(
+					battle.sacrifice_system.can_activate(child.card_data, child.is_player))
 
 func remove_enchantment(card_data: CardData, is_player: bool) -> void:
 	var zone: HBoxContainer = _zone_for(card_data, is_player)

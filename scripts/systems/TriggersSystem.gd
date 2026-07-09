@@ -73,6 +73,33 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			_consume_ritual_charge(entry, is_player)
 	return acted
 
+# ─── Rituels de Sacrifice ─────────────────────────────────────────────────────
+
+# Activation volontaire d'un rituel de Sacrifice : tue les victimes (marquées
+# `sacrificed`), exécute les effets du rituel puis consomme une charge.
+# Appelé par SacrificeSystem (joueur local) et par NetworkOpponent (rejeu).
+func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Array) -> void:
+	var entry: Dictionary = _find_entry(card_data, is_player)
+	if entry.is_empty():
+		return
+	for victim in victims:
+		if victim == null or victim.is_dead():
+			continue
+		victim.sacrificed = true
+		victim.health = 0
+	await battle.death_system.process_deaths()
+	var proxy := _make_proxy(card_data, is_player)
+	for effect in card_data.effects:
+		await battle.effect_manager.execute_effect(battle, proxy, effect)
+	_consume_ritual_charge(entry, is_player)
+	battle.board_visual_system.refresh_board()
+
+func _find_entry(card_data: CardData, is_player: bool) -> Dictionary:
+	for entry in _enchantments[is_player]:
+		if entry["card_data"] == card_data:
+			return entry
+	return {}
+
 # Un rituel à durée limitée ne perd une charge que lorsque son effet se
 # déclenche réellement (et non passivement à chaque tour). Quand le compteur
 # atteint 0, le rituel est détruit et envoyé au cimetière.

@@ -56,6 +56,7 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 	if is_player:
 		visual.minion_clicked.connect(battle.selection_system.on_player_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_ally_minion_clicked(m, v))
+		visual.minion_clicked.connect(func(m, v): battle.sacrifice_system.on_ally_minion_clicked(m, v))
 	else:
 		visual.minion_clicked.connect(battle.selection_system.on_enemy_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_enemy_minion_clicked(m, v))
@@ -111,6 +112,9 @@ func refresh_board() -> void:
 	if battle.selection_system.selected_attacker \
 	and battle.selection_system.selected_attacker not in battle.player_minions:
 		battle.selection_system.clear_selection()
+
+	# Surbrillance des Rituels de Sacrifice activables (dépend du board)
+	battle.enchantment_system.refresh_activatable()
 
 	_refreshing = false
 

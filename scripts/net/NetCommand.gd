@@ -19,6 +19,7 @@ const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
 const TURN_CHOICE := "TURN_CHOICE"  # choix de début de tour : "mana" ou "draw"
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
+const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
@@ -58,6 +59,17 @@ static func end_turn(ids: Array = []) -> Dictionary:
 # ids : serviteurs créés par les déclencheurs de début de tour, à imposer au rejeu.
 static func turn_start(ids: Array = []) -> Dictionary:
 	return {"type": TURN_START, "ids": ids}
+
+# Activation volontaire d'un Rituel de Sacrifice : le rituel est désigné par son
+# resource_path, les victimes par leur net_id ; ids = serviteurs créés par
+# l'effet du rituel (à imposer au rejeu).
+static func activate_ritual(card_path: String, victim_ids: Array, ids: Array = []) -> Dictionary:
+	return {
+		"type": ACTIVATE_RITUAL,
+		"card": card_path,
+		"victims": victim_ids,
+		"ids": ids,
+	}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).
