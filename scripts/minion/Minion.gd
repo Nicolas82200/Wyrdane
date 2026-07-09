@@ -16,6 +16,12 @@ var damage_taken: int = 0
 # Bonus d'aura, recalculés ENTIÈREMENT à chaque update — jamais incrémentés à la main ailleurs
 var aura_attack_bonus: int = 0
 var aura_health_bonus: int = 0
+# Réduction de dégâts : part inhérente à la carte + part d'aura (Pacte de
+# Résistance...). L'aura est remise à zéro puis recalculée par AuraSystem.
+var aura_damage_reduction: int = 0
+# Immunité à l'Infection accordée par une aura (Aegis de l'Empire). Remise à zéro
+# puis recalculée par AuraSystem.
+var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
 var keywords: Array[int] = []
@@ -27,10 +33,11 @@ var formation_active: bool = false
 var silenced: bool = false
 var frozen_turns: int = 0
 var corrupted: bool = false
-# CHAIR MORTE bloque toute pose d'Infection, quelle que soit la source
+# CHAIR MORTE, ou une immunité d'aura (Aegis de l'Empire), bloque toute pose
+# d'Infection quelle que soit la source
 var infected: bool = false:
 	set(value):
-		if value and has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+		if value and is_infection_immune():
 			return
 		infected = value
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
@@ -38,6 +45,8 @@ var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
+# Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
+var extra_attack_used_this_turn: bool = false
 var buffs: Array = []
 
 func _init(data: CardData, is_player: bool = true, row: String = "Front") -> void:
@@ -72,6 +81,7 @@ func is_frozen() -> bool:
 	return frozen_turns > 0
 
 func refresh_attacks() -> void:
+	extra_attack_used_this_turn = false
 	if frozen_turns > 0:
 		frozen_turns -= 1
 		attacks_remaining = 0
@@ -81,10 +91,16 @@ func refresh_attacks() -> void:
 func consume_attack() -> void:
 	attacks_remaining = max(attacks_remaining - 1, 0)
 
+var damage_reduction: int:
+	get: return max(0, card_data.damage_reduction + aura_damage_reduction)
+
 func take_damage(amount: int) -> int:
 	if has_keyword(Keyword.Type.AEGIS):
 		remove_keyword(Keyword.Type.AEGIS)
 		return 0
+	# Réduction de dégâts : un coup qui touche inflige toujours au moins 1.
+	if amount > 0 and damage_reduction > 0:
+		amount = max(1, amount - damage_reduction)
 	var before: int = health
 	health = max(health - amount, 0)
 	return before - health
@@ -113,6 +129,9 @@ func add_human_keyword(keyword: int) -> void:
 
 func remove_human_keyword(keyword: int) -> void:
 	human_keywords.erase(keyword)
+
+func is_infection_immune() -> bool:
+	return has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE) or infection_immune_aura
 
 func has_undead_keyword(keyword: int) -> bool:
 	return keyword in undead_keywords
