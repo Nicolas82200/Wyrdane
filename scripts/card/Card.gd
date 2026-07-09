@@ -109,6 +109,15 @@ func set_data(new_data: CardData) -> void:
 		return
 	data = new_data
 	update_display()
+
+# Coût effectif affiché (remises de mana comprises) : vert si réduit.
+# Utilisé par la main en bataille ; ailleurs le coût de base reste affiché.
+func set_display_cost(cost: int) -> void:
+	if data == null:
+		return
+	cost_label.text = str(cost)
+	cost_label.add_theme_color_override("font_color",
+		Color(0.45, 1.0, 0.45) if cost < data.cost else Color.WHITE)
 func update_display() -> void:
 	name_label.text   = data.display_name()
 	cost_label.text   = str(data.cost)
