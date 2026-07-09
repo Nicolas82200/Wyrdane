@@ -19,6 +19,9 @@ var aura_health_bonus: int = 0
 # Réduction de dégâts : part inhérente à la carte + part d'aura (Pacte de
 # Résistance...). L'aura est remise à zéro puis recalculée par AuraSystem.
 var aura_damage_reduction: int = 0
+# Immunité à l'Infection accordée par une aura (Aegis de l'Empire). Remise à zéro
+# puis recalculée par AuraSystem.
+var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
 var keywords: Array[int] = []
@@ -30,10 +33,11 @@ var formation_active: bool = false
 var silenced: bool = false
 var frozen_turns: int = 0
 var corrupted: bool = false
-# CHAIR MORTE bloque toute pose d'Infection, quelle que soit la source
+# CHAIR MORTE, ou une immunité d'aura (Aegis de l'Empire), bloque toute pose
+# d'Infection quelle que soit la source
 var infected: bool = false:
 	set(value):
-		if value and has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+		if value and is_infection_immune():
 			return
 		infected = value
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
@@ -125,6 +129,9 @@ func add_human_keyword(keyword: int) -> void:
 
 func remove_human_keyword(keyword: int) -> void:
 	human_keywords.erase(keyword)
+
+func is_infection_immune() -> bool:
+	return has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE) or infection_immune_aura
 
 func has_undead_keyword(keyword: int) -> bool:
 	return keyword in undead_keywords

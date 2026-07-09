@@ -43,6 +43,7 @@ func execute_effect(
 		"GrantKeyword":     await _grant_keyword(battle, source_minion, effect, selected_target)
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
+		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -619,6 +620,13 @@ func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> vo
 		if e.health < target.health:
 			target = e
 	await battle.combat_system.resolve_combat(source_minion, target)
+
+# Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
+func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	for target in targets:
+		target.infected = false
 
 # Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
 # Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,

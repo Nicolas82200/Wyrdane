@@ -11,6 +11,7 @@ func recompute_all() -> void:
 		minion.aura_attack_bonus = 0
 		minion.aura_health_bonus = 0
 		minion.aura_damage_reduction = 0
+		minion.infection_immune_aura = false
 	_apply_formation()
 	_apply_horde()
 	_apply_enchantment_auras()
@@ -54,6 +55,8 @@ func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> voi
 				_aura_buff_per_ally_row(effect, is_player)
 			"AuraDamageReduction":
 				_aura_damage_reduction(effect, is_player)
+			"AuraInfectionImmunity":
+				_aura_infection_immunity(effect, is_player)
 			_:
 				pass  # à étendre carte par carte
 
@@ -78,3 +81,16 @@ func _aura_damage_reduction(effect: CardEffect, is_player: bool) -> void:
 	for t in (battle.player_minions if is_player else battle.enemy_minions):
 		if race == -1 or t.card_data.race == race:
 			t.aura_damage_reduction += effect.value
+
+# Immunité à l'Infection d'aura (Aegis de l'Empire). Filtres optionnels par race
+# (race_filter) et par rangée (row_filter). Retire aussi tout marqueur présent :
+# un serviteur immunisé ne reste pas infecté.
+func _aura_infection_immunity(effect: CardEffect, is_player: bool) -> void:
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	for t in (battle.player_minions if is_player else battle.enemy_minions):
+		if race != -1 and t.card_data.race != race:
+			continue
+		if not effect.row_filter.is_empty() and t.board_row != effect.row_filter:
+			continue
+		t.infection_immune_aura = true
+		t.infected = false
