@@ -64,10 +64,13 @@ func _animate_deaths(dead_minions: Array[Minion]) -> void:
 		battle.board_visual_system.remove_visual(minion)
 
 func _send_to_graveyards(dead_player: Array[Minion], dead_enemy: Array[Minion]) -> void:
+	# Les serviteurs "retirés du jeu" (Possédé Hurlant) ne vont pas au cimetière.
 	for minion in dead_player:
-		battle.player_graveyard.add_minion(minion.card_data)
+		if not minion.card_data.exile_on_death:
+			battle.player_graveyard.add_minion(minion.card_data)
 	for minion in dead_enemy:
-		battle.enemy_graveyard.add_minion(minion.card_data)
+		if not minion.card_data.exile_on_death:
+			battle.enemy_graveyard.add_minion(minion.card_data)
 
 func _trigger_deathrattle(dead_minions: Array[Minion]) -> void:
 	for minion in dead_minions:

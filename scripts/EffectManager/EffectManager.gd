@@ -44,6 +44,7 @@ func execute_effect(
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
+		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
