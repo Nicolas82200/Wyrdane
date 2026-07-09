@@ -17,27 +17,21 @@ enum Type {
 # par la méthode native Resource.get_name quand on l'appelle via la classe.
 static func get_keyword_name(keyword: int) -> String:
 	match keyword:
-		Type.DISCIPLINE:     return "Discipline"
-		Type.FORMATION:      return "Formation"
-		Type.CONTRE_ATTAQUE: return "Contre-attaque"
-		Type.COMMANDEMENT:   return "Commandement"
-		Type.FORTIFICATION:  return "Fortification"
-		_:                   return "Inconnu"
+		Type.DISCIPLINE:     return TranslationServer.translate("KW_DISCIPLINE_NAME")
+		Type.FORMATION:      return TranslationServer.translate("KW_FORMATION_NAME")
+		Type.CONTRE_ATTAQUE: return TranslationServer.translate("KW_CONTRE_ATTAQUE_NAME")
+		Type.COMMANDEMENT:   return TranslationServer.translate("KW_COMMANDEMENT_NAME")
+		Type.FORTIFICATION:  return TranslationServer.translate("KW_FORTIFICATION_NAME")
+		_:                   return "?"
 
 static func get_description(keyword: int) -> String:
 	match keyword:
-		Type.DISCIPLINE:
-			return "Immunisé aux effets de silence, contrôle mental et peur ennemis."
-		Type.FORMATION:
-			return "Tant qu'un serviteur allié est adjacent, ce serviteur gagne +1/+1."
-		Type.CONTRE_ATTAQUE:
-			return "Blessure : si ce serviteur survit, inflige son ATK en retour à l'attaquant."
-		Type.COMMANDEMENT:
-			return "Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente."
-		Type.FORTIFICATION:
-			return "Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis."
-		_:
-			return ""
+		Type.DISCIPLINE:     return TranslationServer.translate("KW_DISCIPLINE_DESC")
+		Type.FORMATION:      return TranslationServer.translate("KW_FORMATION_DESC")
+		Type.CONTRE_ATTAQUE: return TranslationServer.translate("KW_CONTRE_ATTAQUE_DESC")
+		Type.COMMANDEMENT:   return TranslationServer.translate("KW_COMMANDEMENT_DESC")
+		Type.FORTIFICATION:  return TranslationServer.translate("KW_FORTIFICATION_DESC")
+		_:                   return ""
 
 static func from_name(keyword_name: String) -> int:
 	match keyword_name:
