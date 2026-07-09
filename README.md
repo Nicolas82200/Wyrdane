@@ -341,9 +341,9 @@ Le projet utilise des singletons pour des systèmes globaux :
 *   IA adverse basique (`AISystem`) — serviteurs uniquement
 *   Deck builder et gestion de decks (`DeckManager`)
 *   Menu principal, réglages (audio, contrôles, graphismes), écran de chargement
+*   Écran de fin de partie (victoire/défaite/déconnexion) avec Rejouer et retour au menu
 
 ### À faire
-*   Écran de fin de partie (victoire/défaite) — actuellement `game_over` bloque juste les inputs
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
 *   Nouvelles races : Elfe, Nain, Démon
 *   Mode campagne et collection de cartes
