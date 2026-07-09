@@ -27,6 +27,9 @@ enum Type {
 	# Global
 	INSECT,
 	LARVA,
+	# Human (ajouté en fin d'enum pour ne pas décaler les valeurs
+	# déjà sérialisées dans les .tres existants)
+	SOLDIER,
 }
 
 static func get_style_name(style: Type) -> String:
@@ -48,12 +51,13 @@ static func get_style_name(style: Type) -> String:
 		Type.IMP:           return "Diablotin"
 		Type.DEMON_WARRIOR: return "Guerrier Démoniaque"
 		Type.SUCCUBUS:      return "Succube"
+		Type.SOLDIER:       return "Soldat"
 		_:                  return "Inconnu"
 
 static func get_styles_for_race(race: Race.Type) -> Array[Type]:
 	match race:
 		Race.Type.UNDEAD: return [Type.ZOMBIE,Type.MAJOR_ZOMBIE, Type.ABOMINATION, Type.SPECTRAL, Type.DEATH_KNIGHT]
-		Race.Type.HUMAN:  return [Type.KNIGHT, Type.ARCHER, Type.MAGE, Type.PALADIN]
+		Race.Type.HUMAN:  return [Type.KNIGHT, Type.ARCHER, Type.MAGE, Type.PALADIN, Type.SOLDIER]
 		Race.Type.ELF:    return [Type.RANGER, Type.DRUID, Type.BLADE_DANCER]
 		Race.Type.DWARF:  return [Type.BERSERKER, Type.RUNESMITH]
 		Race.Type.DEMON:  return [Type.IMP, Type.DEMON_WARRIOR, Type.SUCCUBUS]

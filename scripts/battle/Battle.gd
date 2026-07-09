@@ -165,7 +165,7 @@ func _init_systems() -> void:
 	add_child(trigger_system)
 	add_child(targeting_system)
 	add_child(sacrifice_system)
-	#hand.display_cost = get_card_cost
+	hand.display_cost = get_card_cost
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
 # (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
