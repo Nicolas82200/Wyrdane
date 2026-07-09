@@ -15,7 +15,8 @@ class_name CardEffect
 	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
 	"SacrificeAlly", "GrantCounterOffensive",
 	"GainMana", "DrawCardDiscount",
-	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction"
+	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
+	"DestroyRandomEnchantment"
 ) var effect_id: String = "Damage"
 
 @export_enum(

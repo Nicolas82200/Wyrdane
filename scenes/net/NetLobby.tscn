@@ -1,8 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://chmatgk14sm1m"]
 
-[ext_resource type="Script" path="res://scripts/net/NetLobby.gd" id="1"]
+[ext_resource type="Script" uid="uid://dy5lhmbfw5ve4" path="res://scripts/net/NetLobby.gd" id="1"]
 
-[node name="NetLobby" type="Control"]
+[node name="NetLobby" type="Control" unique_id=1280816343]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
