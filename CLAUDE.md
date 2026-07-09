@@ -140,8 +140,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain), système d'effets/triggers/enchantements/auras
-- ⬜ À faire : écran de fin de partie (actuellement `game_over` bloque juste les inputs), sorts/rituels pour l'IA, mode campagne, collection de cartes, multijoueur, animations shaders, tests automatisés
+- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain), système d'effets/triggers/enchantements/auras, écran de fin de partie (victoire/défaite/déconnexion)
+- ⬜ À faire : sorts/rituels pour l'IA, mode campagne, collection de cartes, multijoueur, animations shaders, tests automatisés
 
 ## Notes pour les agents
 
