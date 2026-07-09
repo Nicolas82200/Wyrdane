@@ -341,12 +341,33 @@ Le projet utilise des singletons pour des systèmes globaux :
 *   IA adverse basique (`AISystem`) — serviteurs uniquement
 *   Deck builder et gestion de decks (`DeckManager`)
 *   Menu principal, réglages (audio, contrôles, graphismes), écran de chargement
+*   Multijoueur 1v1 en IP directe / LAN (ENet) — voir ci-dessous
+
+### Multijoueur (scripts/net)
+
+Modèle **relais de commandes** : l'adversaire est abstrait derrière `OpponentDriver`
+(l'IA en solo, `NetworkOpponent` en réseau), branché dans `TurnSystem` via
+`battle.opponent`. Chaque client émet ses actions (`NetEmitter`) et rejoue celles
+du pair.
+
+*   Transport agnostique (`NetTransport` + `ENetTransport`, `TransportFactory`) et
+    `NetworkManager` (sérialisation des commandes) — swap Steam prévu sans toucher le jeu
+*   Lobby héberger/rejoindre (`scenes/net/NetLobby.tscn`) → handshake (`NetHandshake` :
+    decks, seed RNG partagée, qui commence, parité d'ids) → bascule en `Battle` réseau
+    via `NetContext`
+*   Synchronisé : invocations (+ jetons via ids imposés `NetRegistry`), cris de guerre
+    ciblés, attaques, sorts/rituels/enchantements, déclencheurs début/fin de tour,
+    infection, aléatoire déterministe (`battle.game_rng`)
+*   Ordre des tours imposé, mana/main/deck adverses affichés, déconnexion gérée
+
+À faire (multi) : écran de fin réseau, reconnexion, sync fine des effets rares
+(ex. `ReturnToHand` d'un serviteur ennemi).
 
 ### À faire
 *   Écran de fin de partie (victoire/défaite) — actuellement `game_over` bloque juste les inputs
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
 *   Nouvelles races : Elfe, Nain, Démon
 *   Mode campagne et collection de cartes
-*   Multijoueur
+*   Backend Steam pour le multijoueur (via `TransportFactory`)
 *   Animations shaders
 *   Tests automatisés (GUT / gdUnit4)
