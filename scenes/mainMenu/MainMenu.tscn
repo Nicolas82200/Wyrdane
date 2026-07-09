@@ -112,10 +112,10 @@ text = "Mes Decks"
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
 layout_mode = 2
 
-[node name="FutureButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1362418039]
+[node name="MultiplayerButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1362418039]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-text = "A venir..."
+text = "Multijoueur"
 
 [node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=68074911]
 custom_minimum_size = Vector2(0, 52)

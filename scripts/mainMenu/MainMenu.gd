@@ -2,9 +2,10 @@
 extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
+const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
-@onready var future_button:   Button = $NavPanel/NavMargin/VBoxContainer/FutureButton
+@onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
 @onready var settings_button: Button = $NavPanel/NavMargin/VBoxContainer/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/VBoxContainer/CreditsButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/VBoxContainer/QuitButton
@@ -22,7 +23,7 @@ func _ready() -> void:
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	play_button.pressed.connect(_on_play)
-	future_button.pressed.connect(_on_future)
+	multiplayer_button.pressed.connect(_on_multiplayer)
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
@@ -51,8 +52,12 @@ func _on_decks_button_pressed() -> void:
 func _on_play() -> void:
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
-func _on_future() -> void:
-	pass
+func _on_multiplayer() -> void:
+	if DeckManager.get_active_deck() == null:
+		push_warning("Aucun deck actif : crée/sélectionne un deck avant de jouer en ligne.")
+		return
+	AudioManager.play(AudioManager.OPEN_MENU)
+	get_tree().change_scene_to_file(NET_LOBBY_SCENE)
 
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
@@ -66,7 +71,7 @@ func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
-	future_button.text  = SettingsManager.t("MENU_FUTURE")
+	multiplayer_button.text = SettingsManager.t("MENU_MULTIPLAYER")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
