@@ -88,6 +88,10 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 
 var effect_manager := EffectManager.new()
+# RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
+# seedé par le handshake pour que les deux clients tirent la même séquence ;
+# en solo il est simplement aléatoire.
+var game_rng := RandomNumberGenerator.new()
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
@@ -120,6 +124,7 @@ func _ready() -> void:
 func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
+	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
 	hand.can_play_check      = can_play_card
@@ -159,20 +164,33 @@ func _setup_network() -> void:
 	var net: NetworkManager = NetContext.net
 	var setup: Dictionary = NetContext.setup
 	network_manager = net
-	seed(setup.get("seed", 0))
+	# RNG de jeu déterministe et partagé entre les deux clients.
+	game_rng.seed = setup.get("seed", 0)
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
+	net.peer_disconnected.connect(_on_net_peer_disconnected)
 	var netopp := NetworkOpponent.new(net)
 	add_child(netopp)
 	netopp.init(self)
 	opponent = netopp
+
+# Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
+# tour distant et fige les inputs). Le joueur peut alors quitter via les réglages.
+func _on_net_peer_disconnected(_reason: String) -> void:
+	if game_over:
+		return
+	game_over = true
+	enemy_turn_active = false
+	push_warning("Adversaire déconnecté — partie interrompue.")
 
 func _connect_signals() -> void:
 	hand.card_played.connect(_on_card_played)
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
+	SettingsManager.language_changed.connect(func(_l): _retranslate_battle())
+	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
@@ -210,6 +228,8 @@ func _start_game() -> void:
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
 	await opponent.take_turn()
+	if game_over:
+		return
 	await turn_system._begin_player_turn()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
@@ -329,6 +349,9 @@ func update_mana_ui() -> void:
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
 
+func update_enemy_hand_ui() -> void:
+	enemy_hand_display.set_count(opponent.get_hand_count())
+
 func _pay_mana(cost: int) -> void:
 	mana -= cost
 	update_mana_ui()
@@ -424,6 +447,10 @@ func _on_end_turn_pressed() -> void:
 	if game_over or enemy_turn_active:
 		return
 	turn_system.end_turn()
+
+# Met à jour les libellés fixes de la bataille dans la langue courante.
+func _retranslate_battle() -> void:
+	end_turn_button.text = SettingsManager.t("battle.end_turn")
 
 func draw_card() -> void:
 	turn_system.draw_card()

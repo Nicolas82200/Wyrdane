@@ -29,3 +29,11 @@ func take_turn() -> void:
 # Rafraîchit l'affichage du camp adverse (dos de cartes, compteurs).
 func refresh_ui() -> void:
 	pass
+
+# Compteurs affichés côté joueur local (dos de deck / main adverse). Surchargés
+# par chaque implémentation (l'IA lit ses tableaux ; le réseau suit des compteurs).
+func get_deck_count() -> int:
+	return 0
+
+func get_hand_count() -> int:
+	return 0
