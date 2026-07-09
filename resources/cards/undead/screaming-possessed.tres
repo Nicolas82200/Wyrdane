@@ -26,6 +26,7 @@ texture = ExtResource("3_texture")
 cost = 3
 attack = 5
 health = 1
+exile_on_death = true
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_lv5ii"), SubResource("Resource_uxx7u")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_zva7e")])
 rarity = "Rare"
