@@ -9,8 +9,7 @@
 
 [sub_resource type="Resource" id="Resource_37zap"]
 script = ExtResource("1_h0jmg")
-effect_id = "Destroy"
-target = "EnemyMinion"
+effect_id = "DestroyRandomEnchantment"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_hkw1"]
@@ -25,7 +24,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_yv1py")
 card_name = "La Grande Inquisitrice"
-description = "DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif au choix."
+description = "DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif aléatoire."
 flavour_text = "Elle ne combat pas la magie ennemie. Elle la refuse."
 texture = ExtResource("4_k4mkx")
 cost = 6
@@ -36,7 +35,6 @@ health = 6
 human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
 trigger_types = Array[ExtResource("5_swfui")]([SubResource("Resource_zc833")])
 effects = Array[ExtResource("1_h0jmg")]([SubResource("Resource_37zap")])
-requires_target = true
 rarity = "Legendary"
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

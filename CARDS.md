@@ -266,12 +266,12 @@ Liste complète des cartes de la race **Humain**.
 | H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
 | H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART. | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
 | H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *Seul, il tient. Ensemble, ils avancent.* |
-| H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : inflige 1 dégât à un serviteur ennemi en rangée Avant ciblé. | *Il ne rate pas. Il attend juste le bon moment.* |
+| H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant. | *Il ne rate pas. Il attend juste le bon moment.* |
 | H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT. Arrivée : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
 | H07 | Vétéran des Marches | ⚔️ | 3 | 2 | 4 | Blessure : gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
 | H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Ralliement : le serviteur allié adjacent gagne +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
 | H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
-| H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : restaure 1 HP à un serviteur Humain allié ciblé. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
+| H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : restaure 1 HP à un serviteur Humain allié aléatoire. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
 | H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
 
 ### Rares
@@ -284,7 +284,7 @@ Liste complète des cartes de la race **Humain**.
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Ralliement** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
 | H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | AILES NOIRES : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
-| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié ciblé. Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
+| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié aléatoire. Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
 | H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
 | H21 | Éclaireur Infiltré | ⚔️ | 3 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant.* |
@@ -312,7 +312,7 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H35 | Le Roi Soldat | ⚔️ | 7 | 6 | 8 | COMMANDEMENT. ÉGIDE. Arrivée : tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente. | *Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts.* |
-| H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif au choix. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
+| H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif aléatoire. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
 | H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART. | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
 | H38 | Commandant des Derniers | 🛡️ | 7 | 5 | 6 | COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
 | H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART. ÉGIDE. DISCIPLINE. Arrivée : tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour adverse. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
