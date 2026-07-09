@@ -65,7 +65,11 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 			var excess: int = a_dmg - defender.max_health
 			if excess > 0:
 				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
-			
+		# Contre-Offensive : un Humain qui tue rejoue immédiatement (+1 attaque, le
+		# consume_attack ci-dessous ramène au net d'une relance).
+		if attacker.card_data.race == Race.Type.HUMAN and battle.counter_offensive.get(attacker.owner_is_player, false):
+			attacker.attacks_remaining += 1
+
 	attacker.consume_attack()
 	battle.board_visual_system.refresh_board()
 

@@ -61,6 +61,12 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 - **Immunité au débordement** (`CardData.blocks_overkill`) : quand un serviteur défenseur meurt, les dégâts excédentaires de RAVAGE ne sont pas reportés sur le héros (Colosse Décomposé). Vérifiée dans `CombatSystem`.
 - **Immunité à l'Infection** (`Minion.infection_immune_aura` + `is_infection_immune()`) : accordée par une aura via l'effet `AuraInfectionImmunity` (Aegis de l'Empire : Humains alliés en rangée Avant), en plus de CHAIR MORTE. Le setter de `infected` bloque toute pose ; l'effet `CureInfection` retire les marqueurs déjà présents (Inquisiteur Suprême).
 
+### ⚔️ Autres mécaniques d'effet
+
+- **Exil à la mort** (`CardData.exile_on_death`) : le serviteur ne rejoint pas le cimetière (Possédé Hurlant). Filtré dans `DeathSystem._send_to_graveyards`.
+- **Coût de sacrifice** (effet `SacrificeAlly`) : sacrifie N alliés (les plus faibles, auto) avant de résoudre le reste de l'effet ; `CardSystem.conditions_met` interdit le lancer sans assez d'alliés (Don de Chair).
+- **Contre-Offensive** (`Battle.counter_offensive` + effet `GrantCounterOffensive`) : ce tour, chaque Humain du camp qui tue un ennemi rejoue immédiatement (+1 attaque dans `CombatSystem`, expire en fin de tour).
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
