@@ -41,6 +41,8 @@ var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
+# Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
+var extra_attack_used_this_turn: bool = false
 var buffs: Array = []
 
 func _init(data: CardData, is_player: bool = true, row: String = "Front") -> void:
@@ -75,6 +77,7 @@ func is_frozen() -> bool:
 	return frozen_turns > 0
 
 func refresh_attacks() -> void:
+	extra_attack_used_this_turn = false
 	if frozen_turns > 0:
 		frozen_turns -= 1
 		attacks_remaining = 0
