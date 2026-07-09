@@ -23,6 +23,8 @@ class_name CardData
 # Immunité au débordement (RAVAGE) : quand ce serviteur défend et meurt, les
 # dégâts excédentaires ne sont PAS reportés sur le héros (Colosse Décomposé).
 @export var blocks_overkill: bool = false
+# Retiré du jeu à la mort : ne rejoint pas le cimetière (Possédé Hurlant).
+@export var exile_on_death: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []
