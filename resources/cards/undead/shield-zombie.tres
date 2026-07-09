@@ -22,6 +22,7 @@ texture = ExtResource("3_texture")
 cost = 2
 attack = 1
 health = 5
+damage_reduction = 1
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_xicfz")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_003dd")])
 rarity = "Rare"

@@ -55,6 +55,12 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 7.  `remove_dead_minions()` (dans `DeathSystem`)
 8.  `check_game_end()`
 
+### 🛡️ Mécaniques défensives
+
+- **Réduction de dégâts** (`CardData.damage_reduction` + `Minion.aura_damage_reduction`) : chaque source de dégâts subie est réduite d'un montant fixe, sans jamais descendre sous 1 quand un coup touche. La part inhérente vient de la carte (Défenseur Juré, Zombie Bouclier) ; une part peut être ajoutée par une aura via l'effet `AuraDamageReduction` (Pacte de Résistance : Humains alliés −1). Appliquée dans `Minion.take_damage`.
+- **Immunité au débordement** (`CardData.blocks_overkill`) : quand un serviteur défenseur meurt, les dégâts excédentaires de RAVAGE ne sont pas reportés sur le héros (Colosse Décomposé). Vérifiée dans `CombatSystem`.
+- **Immunité à l'Infection** (`Minion.infection_immune_aura` + `is_infection_immune()`) : accordée par une aura via l'effet `AuraInfectionImmunity` (Aegis de l'Empire : Humains alliés en rangée Avant), en plus de CHAIR MORTE. Le setter de `infected` bloque toute pose ; l'effet `CureInfection` retire les marqueurs déjà présents (Inquisiteur Suprême).
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -136,6 +142,14 @@ Triggers disponibles (`TriggerType.gd`) :
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
 
+Capacités du moteur d'effets :
+
+*   **Conditions** — un `CardEffect` peut être conditionné (état du plateau, du lanceur...) avant de s'exécuter.
+*   **Valeurs dynamiques** — les montants d'un effet peuvent être calculés à l'exécution (ex: en fonction d'un décompte d'unités) plutôt que fixes.
+*   **Rituels** — chaque charge n'est consommée que lorsque le trigger du rituel se déclenche réellement (`TriggerSystem._consume_ritual_charge`), pas passivement à chaque tour.
+*   **Auras de rangée** (`OnAura`) — buffs appliqués à toute une rangée, recalculés par `AuraSystem`.
+*   **Feedback visuel** — popup de la carte à l'origine de l'effet + courbes/flèches dessinées vers les cibles (`CardPopupSystem`, `ArrowOverlay`).
+
 ### 🧠 Gestion des lanes
 
 Deux lignes par joueur (`ROW_FRONT`, `ROW_BACK`) :
@@ -144,9 +158,18 @@ Deux lignes par joueur (`ROW_FRONT`, `ROW_BACK`) :
 *   Back inaccessible si Front occupée (selon logique d’attaque).
 *   Les cartes peuvent être limitées par `board_position` (dans `CardData`).
 
-### 🤖 IA adverse
+### 🤖 Adversaire : abstraction `OpponentDriver`
 
-L'adversaire est piloté par `AISystem` (`scripts/systems/AISystem.gd`), avec son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana.
+Le camp adverse est piloté via l'interface `OpponentDriver` (`scripts/net/OpponentDriver.gd`) : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` **sans savoir si l'adversaire est l'IA ou un joueur distant**. Deux implémentations :
+
+*   `AISystem` (mode solo) — décide ses actions localement.
+*   `NetworkOpponent` (mode réseau) — rejoue les commandes reçues du joueur distant.
+
+Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cartes, attaques, bouton fin de tour) pendant le tour adverse.
+
+#### IA (`AISystem`)
+
+L'IA (`scripts/systems/AISystem.gd`) a son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
@@ -154,9 +177,48 @@ Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin d
 2.  **Pose** — joue les serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière).
 3.  **Attaque** — priorité : Provocation > létal sur le héros > trade favorable (tuer sans mourir) > héros.
 
-Pendant son tour, `battle.enemy_turn_active` verrouille les inputs joueur (cartes, attaques, bouton fin de tour).
-
 ⚠️ Limite actuelle : l'IA ne joue que des **serviteurs** — pas de sorts, rituels ni enchantements.
+
+### 🌐 Multijoueur 1v1 (réseau)
+
+Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **relais de commandes** (pas de serveur d'autorité) : chaque client émet ses actions et rejoue localement celles du pair distant.
+
+#### Couche transport
+
+*   `NetTransport` — interface abstraite (host/join/send/close).
+*   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
+*   `TransportFactory` — crée le backend demandé (prévu pour accueillir d'autres backends, ex: Steam).
+*   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
+
+#### Entrée en partie
+
+1.  `scenes/net/NetLobby.tscn` — un joueur clique « Héberger », l'autre saisit l'IP et « Rejoindre ».
+2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
+3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
+
+#### Protocole (`NetCommand.gd`)
+
+Commandes échangées : `PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE` (mana/pioche), `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
+
+*   `NetEmitter` — émet les actions du joueur local sous forme de commandes.
+*   `NetworkOpponent` — met en file les commandes distantes et les rejoue dans l'ordre jusqu'à `END_TURN`.
+
+#### Déterminisme et synchronisation
+
+*   **RNG de jeu partagée** (graine échangée au handshake) : les effets aléatoires produisent le même résultat sur les deux clients.
+*   Triggers de début/fin de tour (Éveil/Déclin) et infection synchronisés entre clients ; les effets d'invocation ciblés sont rejoués côté distant.
+*   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
+*   Déconnexion du pair en cours de partie gérée (message + sortie propre) ; quitter la partie déconnecte proprement.
+
+### 🌍 Internationalisation (i18n)
+
+Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
+
+*   `translations/game.csv` (clé, fr, en) — compilé automatiquement par Godot en `game.fr.translation` / `game.en.translation`.
+*   `SettingsManager.t("CLE")` délègue au `TranslationServer` ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`.
+*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 151 cartes** (noms, effets, flavour).
+*   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
+*   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
 ### 🚨 Systèmes de protection anti-bug
 
@@ -205,7 +267,9 @@ create_tween()
 *   `Hero.gd` → HP + logique du joueur
 *   `Graveyard.gd` → stockage des minions morts et cartes défaussées
 *   `EffectManager.gd` → moteur centralisé pour l'exécution des effets
-*   `AISystem.gd` → adversaire : deck, main, mana et déroulé de son tour
+*   `OpponentDriver.gd` → interface du camp adverse (IA ou joueur distant)
+*   `AISystem.gd` → adversaire IA : deck, main, mana et déroulé de son tour
+*   `NetworkManager.gd` → connexion réseau et routage des commandes de jeu
 
 ### ⚠️ Point important (debug futur)
 
@@ -263,9 +327,24 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `AISystem.gd`: Adversaire — deck, main, mana et déroulé automatique de son tour.
 *   `AuraSystem.gd`: Recalcul des bonus d'aura (Présence) des serviteurs.
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
-*   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau.
+*   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
 *   `TurnChoicePanel.gd`: Panneau du choix Mana/Pioche en début de tour.
 *   `TooltipData.gd`: Tooltips des mots-clés (autoload).
+
+### Scripts Réseau (`scripts/net/`)
+
+Couche multijoueur 1v1 (voir la section « Multijoueur 1v1 » plus haut pour l'architecture) :
+
+*   `NetTransport.gd` / `ENetTransport.gd` / `TransportFactory.gd`: Abstraction et implémentation ENet du transport.
+*   `NetworkManager.gd`: Connexion, sérialisation et routage des commandes de jeu.
+*   `NetCommand.gd`: Vocabulaire partagé des commandes (`PLAY_CARD`, `ATTACK`, `END_TURN`...).
+*   `NetHandshake.gd`: Échange d'ouverture (decks, graine RNG, premier joueur).
+*   `NetLobby.gd`: Écran Héberger/Rejoindre (scène `scenes/net/NetLobby.tscn`).
+*   `NetContext.gd`: Passe-plat statique entre le lobby et la scène Battle.
+*   `NetEmitter.gd`: Émission des actions du joueur local en commandes réseau.
+*   `NetRegistry.gd`: Attribution de `net_id` stables aux serviteurs.
+*   `OpponentDriver.gd`: Interface commune IA / joueur distant.
+*   `NetworkOpponent.gd`: Rejeu local des commandes du joueur distant.
 
 ### Scripts de Données et Énumérations (`scripts/data/`)
 
@@ -298,6 +377,7 @@ Le projet utilise des singletons pour des systèmes globaux :
 *   `DeckManager` (`res://scripts/deck/DeckManager.gd`): Gestion des decks du joueur (deck actif, sauvegarde).
 *   `TooltipData` (`res://scripts/systems/TooltipData.gd`): Données des tooltips de mots-clés.
 *   `CardLibrary` (`res://scripts/loading/CardLibrary.gd`): Chargement de toutes les `CardData` de `resources/cards/`.
+*   `SettingsManager` (`res://scripts/settings/SettingsManager.gd`): Réglages persistants (langue, highlights de zones...) et accès aux traductions via `t(key)`.
 
 ---
 
@@ -610,6 +690,8 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 #### Hébergement (non tranché)
 Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hôte** (`ENetMultiplayerPeer`, API haut-niveau Godot) pour une v1 jouable entre amis via code de partie, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
 
+👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport ENet P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
+
 #### Visibilité entre joueurs (validé)
 - **Le plateau (board)** de chaque joueur est **visible par tous les autres joueurs** à tout moment (permet de scouter les adversaires, anticiper les fusions/synergies en cours, décision stratégique classique d'autobattler).
 - **La main** de chaque joueur reste **strictement privée** — seul son possesseur la voit. Ça inclut la boutique en cours de consultation, qui fait partie de l'espace privé du joueur jusqu'à ce que les cartes soient posées sur le plateau.
@@ -625,20 +707,23 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 ## 🗺️ Roadmap
 
 ### Implémenté
-*   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras)
-*   Deux races jouables : Mort-Vivant et Humain (~150 cartes, voir `CARDS.md`)
+*   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
+*   Deux races jouables : Mort-Vivant et Humain (151 cartes, voir `CARDS.md`)
 *   Contenu de cartes de la race Démon défini (~75 cartes, voir `CARDS.md`) — implémentation moteur restant à faire, voir points à trancher dans `CARDS.md`
 *   IA adverse basique (`AISystem`) — serviteurs uniquement
-*   Deck builder et gestion de decks (`DeckManager`)
-*   Menu principal, réglages (audio, contrôles, graphismes), écran de chargement
+*   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
+*   **Internationalisation FR/EN** — toute l'UI et les 151 cartes, via le système de traduction natif Godot (`translations/game.csv`)
+*   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
+*   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
+*   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
 *   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
 
 ### À faire
 *   Écran de fin de partie (victoire/défaite) — actuellement `game_over` bloque juste les inputs
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
-*   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite le multijoueur
+*   Multijoueur : matchmaking / hébergement au-delà de l'IP directe (code de partie, serveur relais...)
+*   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
 *   Nouvelles races : Elfe, Nain (Démon désormais en contenu, reste à coder côté moteur)
 *   Mode campagne et collection de cartes
-*   Multijoueur (prérequis du mode Battle Royale)
 *   Animations shaders
 *   Tests automatisés (GUT / gdUnit4)
