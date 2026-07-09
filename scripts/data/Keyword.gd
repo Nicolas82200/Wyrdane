@@ -15,15 +15,15 @@ enum Type {
 # par la méthode native Resource.get_name quand on l'appelle via la classe.
 static func get_keyword_name(keyword: int) -> String:
 	match keyword:
-		Type.TAUNT:          return "Rempart"
-		Type.CHARGE:         return "Assaut"
-		Type.AEGIS:          return "Égide"
-		Type.LIFESTEAL:      return "Moisson"
-		Type.FURY:           return "Frénésie"
-		Type.DEADLY_POISON:  return "Venin mortel"
-		Type.RAVAGE:         return "Ravage"
-		Type.BLACK_WINGS:    return "Ailes noires"
-		_:                   return "Inconnu"
+		Type.TAUNT:          return TranslationServer.translate("KW_TAUNT_NAME")
+		Type.CHARGE:         return TranslationServer.translate("KW_CHARGE_NAME")
+		Type.AEGIS:          return TranslationServer.translate("KW_AEGIS_NAME")
+		Type.LIFESTEAL:      return TranslationServer.translate("KW_LIFESTEAL_NAME")
+		Type.FURY:           return TranslationServer.translate("KW_FURY_NAME")
+		Type.DEADLY_POISON:  return TranslationServer.translate("KW_DEADLY_POISON_NAME")
+		Type.RAVAGE:         return TranslationServer.translate("KW_RAVAGE_NAME")
+		Type.BLACK_WINGS:    return TranslationServer.translate("KW_BLACK_WINGS_NAME")
+		_:                   return "?"
 
 static func from_name(keyword_name: String) -> int:
 	match keyword_name:

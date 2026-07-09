@@ -7,6 +7,10 @@ func execute_effect(
 	effect: CardEffect,
 	selected_target: Minion = null
 ) -> void:
+	# Condition d'exécution : si non remplie, l'effet est purement et simplement
+	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
+	if not _condition_met(battle, source_minion, effect, selected_target):
+		return
 	if source_minion != null and source_minion.card_data != null:
 		# Attend que la popup soit affichée pour que l'effet se produise en même temps
 		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
@@ -41,6 +45,10 @@ func execute_effect(
 		"DamageAllMinions": await _damage_all_minions(battle, source_minion, effect)
 		"ReturnFromGrave":  _return_from_grave(battle, source_minion, effect, selected_target)
 		"GrantKeyword":     await _grant_keyword(battle, source_minion, effect, selected_target)
+		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
+		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
+		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
+		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -81,10 +89,12 @@ func _get_targets(
 			result.append_array(battle.player_minions)
 			result.append_array(battle.enemy_minions)
 		"AllEnemiesFront":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			# Source nulle = sort lancé par le joueur => camp joueur (comme les
+			# cibles "Allies"). On vise donc la rangée Avant du camp ADVERSE.
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			result.append_array(battle.get_front_minions(not is_p))
 		"AllEnemiesBack":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			result.append_array(battle.get_back_minions(not is_p))
 		"AllAlliesFront":
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
@@ -151,6 +161,58 @@ func _effective_count(effect: CardEffect, reference_count: int) -> int:
 	if effect.threshold_op != "None" and _threshold_met(effect, reference_count):
 		return effect.count_if_threshold
 	return effect.count
+
+# ─── Conditions d'exécution ───────────────────────────────────────────────────
+
+func _cmp(value: int, op: String, target: int) -> bool:
+	match op:
+		"GreaterOrEqual": return value >= target
+		"LessOrEqual":    return value <= target
+		"Equal":          return value == target
+		_:                return true
+
+func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> bool:
+	if effect.condition_type == "None":
+		return true
+	var race: int = Race.from_string(effect.condition_race) if not effect.condition_race.is_empty() else -1
+	match effect.condition_type:
+		"AlliesInPlay":
+			var n: int = battle.get_owner_minions(source_minion).size()
+			return _cmp(n, effect.condition_op, effect.condition_count)
+		"AlliesOfRaceInPlay":
+			var n: int = battle.get_owner_minions(source_minion).filter(
+				func(m: Minion): return race == -1 or m.card_data.race == race
+			).size()
+			return _cmp(n, effect.condition_op, effect.condition_count)
+		"LegendaryAllyInPlay":
+			var n: int = battle.get_owner_minions(source_minion).filter(
+				func(m: Minion): return m.card_data.rarity == "Legendary" and (race == -1 or m.card_data.race == race)
+			).size()
+			return _cmp(n, effect.condition_op, effect.condition_count)
+		"EnemyFrontCount":
+			var n: int = battle.get_enemy_minions(source_minion).filter(
+				func(m: Minion): return m.board_row == "Front"
+			).size()
+			return _cmp(n, effect.condition_op, effect.condition_count)
+		"TriggerSourceLegendary":
+			if selected_target == null or selected_target.card_data == null:
+				return false
+			if selected_target.card_data.rarity != "Legendary":
+				return false
+			return race == -1 or selected_target.card_data.race == race
+		"TriggerSourceRace":
+			if selected_target == null or selected_target.card_data == null:
+				return false
+			return race == -1 or selected_target.card_data.race == race
+	return true
+
+# True si au moins un effet de la carte peut s'appliquer (condition remplie).
+# Sert aux enchantements/rituels pour ne pas consommer de charge à vide.
+func any_condition_met(battle, source_minion: Minion, card_data: CardData, selected_target: Minion = null) -> bool:
+	for effect in card_data.effects:
+		if _condition_met(battle, source_minion, effect, selected_target):
+			return true
+	return false
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -375,7 +437,7 @@ func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
 			targets.append_array(battle.player_minions)
 			targets.append_array(battle.enemy_minions)
 		"AllEnemiesFront":
-			var is_p: bool = source_minion != null and source_minion.owner_is_player
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			targets.append_array(battle.get_front_minions(not is_p))
 		_:
 			targets.append_array(_resolve_targets(battle, source_minion, effect))
@@ -401,15 +463,34 @@ func _buff_row(battle, source_minion, effect) -> void:
 		target.base_max_health += effect.value_2
 		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
 
+# Nombre de serviteurs à invoquer (compte fixe, seuil, ou dynamique "par allié")
+func _summon_count(battle, source_minion: Minion, effect: CardEffect, row_allies: int) -> int:
+	if effect.count_mode == "PerAllyOfRace":
+		var race: int = Race.from_string(effect.count_race) if not effect.count_race.is_empty() else -1
+		var n: int = battle.get_owner_minions(source_minion).filter(
+			func(m: Minion): return m != source_minion and (race == -1 or m.card_data.race == race)
+		).size()
+		if effect.count_max >= 0:
+			n = mini(n, effect.count_max)
+		return n
+	return _effective_count(effect, row_allies)
+
+# Rangée d'invocation voulue par l'effet (voir CardEffect.summon_row)
+func _summon_row(effect: CardEffect, source_minion: Minion) -> String:
+	match effect.summon_row:
+		"Back":   return "Back"
+		"Source": return source_minion.board_row if source_minion else "Front"
+		_:        return "Front"
+
 func _summon_minion(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if effect.summon_card == null:
 		return
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
-	var preferred_row: String = source_minion.board_row if source_minion else "Front"
+	var preferred_row: String = _summon_row(effect, source_minion)
 	# Seuil comparé au nombre d'alliés déjà dans la rangée d'invocation
 	# (Appel aux Armes : rangée Avant vide -> 3 Miliciens au lieu de 2)
 	var row_allies: int = battle.get_row_minions(is_player, preferred_row).size()
-	var summon_count: int = _effective_count(effect, row_allies)
+	var summon_count: int = _summon_count(battle, source_minion, effect, row_allies)
 	for i in range(summon_count):
 		var row: String = preferred_row
 		if not battle.can_summon_to_row(is_player, row):
@@ -425,7 +506,7 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var pool: Array[CardData] = _get_random_pool(effect)
 	if pool.is_empty():
 		return
-	var preferred_row: String = source_minion.board_row if source_minion else "Front"
+	var preferred_row: String = _summon_row(effect, source_minion)
 	var row_allies: int = battle.get_row_minions(is_player, preferred_row).size()
 	var summon_count: int = _effective_count(effect, row_allies)
 	for i in range(summon_count):
@@ -606,11 +687,62 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
 
+# ─── Agression ────────────────────────────────────────────────────────────────
+
+# Attaque immédiate d'une cible choisie automatiquement : le serviteur ennemi le
+# plus faible en HP (Cavalier Zombie). Ignore la contrainte de rangée : c'est un
+# effet, pas une attaque déclarée par le joueur.
+func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null:
+		return
+	var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
+	if enemies.is_empty():
+		return
+	var target: Minion = enemies[0]
+	for e in enemies:
+		if e.health < target.health:
+			target = e
+	await battle.combat_system.resolve_combat(source_minion, target)
+
+# Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
+func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	for target in targets:
+		target.infected = false
+
+# Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
+# Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,
+# offrant donc une relance nette une seule fois dans le tour.
+func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null or source_minion.extra_attack_used_this_turn:
+		return
+	source_minion.extra_attack_used_this_turn = true
+	source_minion.attacks_remaining += 1
+
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 
-func _get_random_pool(_effect: CardEffect) -> Array[CardData]:
-	push_warning("_get_random_pool : CardDatabase non connecté")
-	return []
+func _get_random_pool(effect: CardEffect) -> Array[CardData]:
+	# Puise dans toutes les cartes chargées (CardLibrary est un autoload global).
+	# Ne retient que des serviteurs, filtrés par coût et par race si demandé.
+	if CardLibrary == null or not CardLibrary.is_loaded or CardLibrary.all_cards.is_empty():
+		push_warning("_get_random_pool : CardLibrary non chargé (test direct de Battle.tscn ?)")
+		return []
+	var race_filter: int = -1
+	if not effect.pool_race_filter.is_empty():
+		race_filter = Race.from_string(effect.pool_race_filter)
+	var pool: Array[CardData] = []
+	for card in CardLibrary.all_cards:
+		if card.card_type != "Minion":
+			continue
+		if effect.pool_max_cost >= 0 and card.cost > effect.pool_max_cost:
+			continue
+		if effect.pool_min_cost >= 0 and card.cost < effect.pool_min_cost:
+			continue
+		if race_filter != -1 and card.race != race_filter:
+			continue
+		pool.append(card)
+	return pool
 
 # Point d'entrée unique après des dégâts non létaux : déclenche Blessure
 # (OnDamaged) puis Mort-rage (OnDeathRage) une seule fois quand le serviteur
@@ -634,12 +766,14 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 	return false
 
 # Retourne true si le trigger a réellement déclenché des effets,
-# pour que l'appelant puisse espacer les actions (pacing) si besoin
-func trigger_effects(battle, minion: Minion, trigger_name: String) -> bool:
+# pour que l'appelant puisse espacer les actions (pacing) si besoin.
+# selected_target : cible contextuelle de l'évènement (ex: défenseur d'une
+# attaque pour OnAttack) transmise aux effets qui en ont besoin (SplashDamage...).
+func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
 	for effect in minion.card_data.effects:
-		await execute_effect(battle, minion, effect)
+		await execute_effect(battle, minion, effect, selected_target)
 	return true
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:

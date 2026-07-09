@@ -60,6 +60,10 @@ toggle_enemy_graveyard={
 ]
 }
 
+[internationalization]
+
+locale/translations=PackedStringArray("res://translations/game.fr.translation", "res://translations/game.en.translation")
+
 [physics]
 
 3d/physics_engine="Jolt Physics"

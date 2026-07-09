@@ -31,7 +31,7 @@ func open(graveyard: Graveyard) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	for child in container.get_children():
 		child.queue_free()
-	count_label.text = "Cimetière (%d)" % graveyard.size()
+	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
 	for entry in graveyard.entries:
 		if graveyard.is_face_down(entry):
 			_add_card_back()

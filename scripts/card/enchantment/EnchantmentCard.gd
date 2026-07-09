@@ -13,11 +13,12 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 	if card_data.texture:
 		$Art.texture = card_data.texture
 	$CostBadge.text = str(card_data.cost)
-	tooltip_text = "%s\n%s" % [card_data.card_name, card_data.description]
+	tooltip_text = "%s\n%s" % [card_data.display_name(), card_data.display_description()]
 	$TurnsLabel.visible = false
 
 # Compteur de tours restants (Rituels à durée limitée uniquement)
 func set_turns_left(turns: int) -> void:
 	$TurnsLabel.visible = turns > 0
 	if turns > 0:
-		$TurnsLabel.text = "%d tour%s" % [turns, "s" if turns > 1 else ""]
+		var fmt := SettingsManager.t("enchant.turns_many") if turns > 1 else SettingsManager.t("enchant.turns_one")
+		$TurnsLabel.text = fmt % turns
