@@ -12,6 +12,12 @@ script = ExtResource("2_hkw")
 keyword_type = 0
 metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
+[sub_resource type="Resource" id="Resource_cure"]
+script = ExtResource("1_cardeffect")
+effect_id = "CureInfection"
+target = "AllAllies"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [sub_resource type="Resource" id="Resource_rhcce"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
@@ -29,6 +35,7 @@ attack = 3
 health = 5
 human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_rhcce")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cure")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
