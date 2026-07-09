@@ -51,6 +51,7 @@ func execute_effect(
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		"GainMana":         _gain_mana(battle, source_minion, effect)
+		"DestroyRandomEnchantment": await _destroy_random_enchantment(battle, source_minion, effect)
 		"DrawCardDiscount": _draw_card_discount(battle, effect)
 		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
 			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
@@ -108,11 +109,14 @@ func _get_targets(
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			result.append_array(battle.get_back_minions(is_p))
 		"RandomEnemy":
-			var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
+			# Filtres (rangée, race, HP...) appliqués AVANT le tirage : la cible
+			# aléatoire est tirée parmi les candidats valides, sinon un row_filter
+			# pourrait invalider le tirage au lieu de restreindre le pool.
+			var enemies: Array[Minion] = _filter_targets(battle.get_enemy_minions(source_minion), effect)
 			if not enemies.is_empty():
 				result.append(_rng_pick(battle, enemies))
 		"RandomAlly":
-			var allies: Array[Minion] = battle.get_owner_minions(source_minion)
+			var allies: Array[Minion] = _filter_targets(battle.get_owner_minions(source_minion), effect)
 			if not allies.is_empty():
 				result.append(_rng_pick(battle, allies))
 	return result
@@ -755,6 +759,17 @@ func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect, selected
 func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	battle.counter_offensive[is_player] = true
+
+# Détruit un enchantement ou rituel ennemi actif aléatoire (La Grande
+# Inquisitrice, Éveil). Tirage via le RNG partagé pour rester synchronisé en réseau.
+func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var enemy_is_player: bool = not (source_minion.owner_is_player if source_minion else true)
+	var pool: Array[CardData] = []
+	pool.append_array(battle.enchantment_system.get_enchantments(enemy_is_player))
+	pool.append_array(battle.enchantment_system.get_rituals(enemy_is_player))
+	if pool.is_empty():
+		return
+	battle.enchantment_system.destroy_enchantment(_rng_pick(battle, pool), enemy_is_player)
 
 # Mana temporaire : ajoute `value` au mana DISPONIBLE du camp de la source, sans
 # toucher au mana maximum — le surplus non dépensé est perdu au tour suivant

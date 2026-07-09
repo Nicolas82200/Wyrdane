@@ -178,9 +178,23 @@ func load_sounds() -> void:
 				preload("res://assets/audio/sound-effect/global/horse-neigh-03.wav"),
 				preload("res://assets/audio/sound-effect/global/horse-neigh-04.wav"),
 			],
-			UnitStyle.Type.ARCHER:        [],
-			UnitStyle.Type.MAGE:          [],
-			UnitStyle.Type.PALADIN:       [],
+			UnitStyle.Type.ARCHER:        [
+				preload("res://assets/audio/sound-effect/global/loading_bow.mp3"),
+				preload("res://assets/audio/sound-effect/global/bow-and-arrow.wav"),
+			],
+			UnitStyle.Type.MAGE:          [
+				preload("res://assets/audio/sound-effect/global/spell-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-03.wav"),
+			],
+			UnitStyle.Type.PALADIN:       [
+				preload("res://assets/audio/sound-effect/global/holy-spell-01.wav"),
+			],
+			UnitStyle.Type.SOLDIER:       [
+				preload("res://assets/audio/sound-effect/human/soldier_01.mp3"),
+				preload("res://assets/audio/sound-effect/human/soldier_02.mp3"),
+				preload("res://assets/audio/sound-effect/human/soldier_03.mp3"),
+			],
 			UnitStyle.Type.RANGER:        [],
 			UnitStyle.Type.DRUID:         [],
 			UnitStyle.Type.BLADE_DANCER:  [],

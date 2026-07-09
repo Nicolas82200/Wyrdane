@@ -9,8 +9,9 @@
 [sub_resource type="Resource" id="Resource_lqlv9"]
 script = ExtResource("1_cardeffect")
 effect_id = "Heal"
-target = "AllyMinion"
+target = "RandomAlly"
 value = 1
+race_filter = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_cvx3q"]
@@ -20,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Guérisseur de Camp"
-description = "Éveil : restaure 1 HP à un serviteur Humain allié ciblé."
+description = "Éveil : restaure 1 HP à un serviteur Humain allié aléatoire."
 flavour_text = "Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame."
 texture = ExtResource("3_texture")
 cost = 3
@@ -29,6 +30,5 @@ unit_style = 7
 health = 3
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_cvx3q")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lqlv9")])
-requires_target = true
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
