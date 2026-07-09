@@ -55,6 +55,7 @@ const ATTACK_PACE                 := 0.5
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var turn_choice_panel                         = $TurnChoicePanel
+@onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
 var board_system        := _BoardSystemScript.new()
@@ -179,13 +180,14 @@ func _setup_network() -> void:
 	opponent = netopp
 
 # Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
-# tour distant et fige les inputs). Le joueur peut alors quitter via les réglages.
+# tour distant et fige les inputs) et on affiche l'écran de fin en mode
+# déconnexion (retour au menu uniquement, rejouer n'a pas de sens sans le pair).
 func _on_net_peer_disconnected(_reason: String) -> void:
 	if game_over:
 		return
 	game_over = true
 	enemy_turn_active = false
-	push_warning("Adversaire déconnecté — partie interrompue.")
+	_show_game_over("disconnect")
 
 func _connect_signals() -> void:
 	hand.card_played.connect(_on_card_played)
@@ -202,6 +204,8 @@ func _connect_signals() -> void:
 	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
 	settings_menu.quit_requested.connect(_on_quit_match)
+	game_over_screen.menu_requested.connect(_on_quit_match)
+	game_over_screen.replay_requested.connect(_on_replay_match)
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
@@ -303,6 +307,9 @@ func _handle_shortcut(event: InputEvent) -> bool:
 
 # Échap : ferme un overlay ouvert par ordre de priorité, sinon ouvre les réglages.
 func _handle_cancel() -> bool:
+	# L'écran de fin ne se ferme pas : le joueur doit choisir Rejouer ou Menu.
+	if game_over_screen.visible:
+		return true
 	if graveyard_view.visible:
 		graveyard_view.close()
 		return true
@@ -322,6 +329,16 @@ func _on_quit_match() -> void:
 		network_manager = null
 	NetContext.clear()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+# Relance une bataille depuis l'écran de fin (solo uniquement : le bouton
+# Rejouer est masqué en réseau, mais on nettoie le transport par sécurité).
+func _on_replay_match() -> void:
+	if network_manager != null:
+		network_manager.close()
+		network_manager.queue_free()
+		network_manager = null
+	NetContext.clear()
+	get_tree().reload_current_scene()
 
 # Ouvre le cimetière demandé, ou le referme s'il est déjà visible.
 func _toggle_graveyard(target_graveyard: Graveyard) -> void:
@@ -509,8 +526,17 @@ func _move_visual_if_needed(_minion: Minion, visual: BoardMinion, container: Con
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
 func check_game_end() -> void:
+	if game_over:
+		return
 	if enemy_hero.is_dead() or player_hero.is_dead():
 		game_over = true
+		_show_game_over("defeat" if player_hero.is_dead() else "victory")
+
+# Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
+# l'écran de fin par-dessus le plateau.
+func _show_game_over(result: String) -> void:
+	await get_tree().create_timer(1.0).timeout
+	game_over_screen.show_result(result)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 

@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/hand/EnemyHandDisplay.gd" id="16_enhand"]
 [ext_resource type="Texture2D" uid="uid://bench4nt1con0" path="res://assets/icons/enchantment.png" id="17_ench"]
 [ext_resource type="Texture2D" uid="uid://brit4l1icon00" path="res://assets/icons/ritual.png" id="18_ritual"]
+[ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 bg_color = Color(0.09, 0.07, 0.06, 0.95)
@@ -850,3 +851,11 @@ show_quit = true
 
 [node name="TurnChoicePanel" parent="." unique_id=1856936643 instance=ExtResource("12_pk84k")]
 layout_mode = 1
+
+[node name="GameOverScreen" parent="." instance=ExtResource("19_gameover")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
