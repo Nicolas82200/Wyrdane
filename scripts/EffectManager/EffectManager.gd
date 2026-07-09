@@ -41,6 +41,8 @@ func execute_effect(
 		"DamageAllMinions": await _damage_all_minions(battle, source_minion, effect)
 		"ReturnFromGrave":  _return_from_grave(battle, source_minion, effect, selected_target)
 		"GrantKeyword":     await _grant_keyword(battle, source_minion, effect, selected_target)
+		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
+		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -600,6 +602,32 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+
+# ─── Agression ────────────────────────────────────────────────────────────────
+
+# Attaque immédiate d'une cible choisie automatiquement : le serviteur ennemi le
+# plus faible en HP (Cavalier Zombie). Ignore la contrainte de rangée : c'est un
+# effet, pas une attaque déclarée par le joueur.
+func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null:
+		return
+	var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
+	if enemies.is_empty():
+		return
+	var target: Minion = enemies[0]
+	for e in enemies:
+		if e.health < target.health:
+			target = e
+	await battle.combat_system.resolve_combat(source_minion, target)
+
+# Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
+# Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,
+# offrant donc une relance nette une seule fois dans le tour.
+func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) -> void:
+	if source_minion == null or source_minion.extra_attack_used_this_turn:
+		return
+	source_minion.extra_attack_used_this_turn = true
+	source_minion.attacks_remaining += 1
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 
