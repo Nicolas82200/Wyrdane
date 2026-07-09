@@ -125,6 +125,8 @@ func _apply(cmd: Dictionary) -> void:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
 			if attacker != null:
 				await battle.combat_system.perform_hero_attack(attacker)
+		NetCommand.ACTIVATE_RITUAL:
+			await _apply_activate_ritual(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
@@ -138,6 +140,8 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
 		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+	# Suivi des coûts du camp distant (compteurs "premier de la race joué ce tour")
+	battle.cost_system.on_card_played(card, false)
 	# La carte jouée quitte la main adverse (compteur cosmétique).
 	if _hand_count > 0:
 		_hand_count -= 1
@@ -157,6 +161,23 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
 	# serviteurs que prévu) pour ne pas contaminer les invocations suivantes.
+	battle.net_registry.set_imposed_ids([])
+
+# Rejoue l'activation d'un Rituel de Sacrifice distant côté ENNEMI : le rituel
+# est retrouvé par resource_path parmi les rituels adverses en jeu, les victimes
+# par net_id ; l'exécution passe par le même chemin que côté émetteur.
+func _apply_activate_ritual(cmd: Dictionary) -> void:
+	var card: CardData = load(cmd.get("card", "")) as CardData
+	if card == null:
+		push_warning("NetworkOpponent : rituel introuvable '%s'" % cmd.get("card", ""))
+		return
+	var victims: Array = []
+	for victim_id in cmd.get("victims", []):
+		var victim: Minion = battle.net_registry.resolve(victim_id)
+		if victim != null:
+			victims.append(victim)
+	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+	await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
 	battle.net_registry.set_imposed_ids([])
 
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy

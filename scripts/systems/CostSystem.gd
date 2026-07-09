@@ -1,0 +1,86 @@
+extends RefCounted
+class_name CostSystem
+
+# Coût effectif en mana d'une carte, après réductions :
+#  - remises temporaires par carte ("cette carte coûte 1 de moins ce tour",
+#    ex. Doigt Décharné) — expirent à la fin du tour du joueur ;
+#  - auras d'enchantements (Présence) :
+#      AuraSpellCostReduction      : les sorts alliés coûtent N de moins (min 1)
+#      AuraFirstOfRaceCostReduction: le premier serviteur de la race joué chaque
+#                                    tour coûte N de moins (min 1)
+# Le paiement (_pay_mana) et la jouabilité (can_afford_card) passent par ici ;
+# la valeur de base card_data.cost n'est jamais modifiée.
+
+var battle
+
+# Remises temporaires : CardData (instance en main) -> réduction cumulée.
+var _temp_discounts: Dictionary = {}
+# Nombre de serviteurs joués ce tour, par camp puis par race (clé = Race.Type).
+var _race_played_this_turn: Dictionary = {true: {}, false: {}}
+
+func init(_battle) -> void:
+	battle = _battle
+
+func get_cost(card_data: CardData, is_player: bool) -> int:
+	if card_data == null:
+		return 0
+	var cost: int = card_data.cost
+	# Auras de coût (min 1 : une carte à 1 ne devient jamais gratuite par aura)
+	var aura_reduction: int = _aura_reduction(card_data, is_player)
+	if aura_reduction > 0:
+		cost = max(1, cost - aura_reduction)
+	# Remises temporaires par carte (peuvent descendre à 0)
+	if _temp_discounts.has(card_data):
+		cost = max(0, cost - int(_temp_discounts[card_data]))
+	return cost
+
+func _aura_reduction(card_data: CardData, is_player: bool) -> int:
+	var reduction: int = 0
+	for entry in battle.trigger_system.get_active_enchantments(is_player):
+		var enchant: CardData = entry["card_data"]
+		if not enchant.trigger_types.any(func(t): return t.type == "OnAura"):
+			continue
+		for effect in enchant.effects:
+			match effect.effect_id:
+				"AuraSpellCostReduction":
+					if card_data.card_type != "Minion":
+						reduction += effect.value
+				"AuraFirstOfRaceCostReduction":
+					if card_data.card_type == "Minion" \
+							and card_data.race == Race.from_string(effect.race_filter) \
+							and _race_played_count(is_player, card_data.race) == 0:
+						reduction += effect.value
+	return reduction
+
+func _race_played_count(is_player: bool, race: int) -> int:
+	return int(_race_played_this_turn[is_player].get(race, 0))
+
+# ─── Remises temporaires ──────────────────────────────────────────────────────
+
+func add_temp_discount(card_data: CardData, amount: int) -> void:
+	if card_data == null or amount <= 0:
+		return
+	_temp_discounts[card_data] = int(_temp_discounts.get(card_data, 0)) + amount
+	if battle.hand != null:
+		battle.hand.refresh_costs()
+
+# ─── Suivi de tour ────────────────────────────────────────────────────────────
+
+# À appeler quand une carte est effectivement jouée (après paiement).
+func on_card_played(card_data: CardData, is_player: bool) -> void:
+	if card_data == null:
+		return
+	_temp_discounts.erase(card_data)
+	if card_data.card_type == "Minion":
+		var per_race: Dictionary = _race_played_this_turn[is_player]
+		per_race[card_data.race] = int(per_race.get(card_data.race, 0)) + 1
+
+# Début du tour d'un camp : ses compteurs "premier de la race" repartent à zéro.
+func on_turn_started(is_player: bool) -> void:
+	_race_played_this_turn[is_player] = {}
+
+# Fin du tour du joueur local : les remises "ce tour" expirent.
+func expire_end_of_player_turn() -> void:
+	_temp_discounts.clear()
+	if battle.hand != null:
+		battle.hand.refresh_costs()
