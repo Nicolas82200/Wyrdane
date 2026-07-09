@@ -49,6 +49,7 @@ func execute_effect(
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect)
+		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -719,6 +720,30 @@ func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) ->
 		return
 	source_minion.extra_attack_used_this_turn = true
 	source_minion.attacks_remaining += 1
+
+# Sacrifie `count` alliés (coût du Don de Chair). Sans UI : choisit automatiquement
+# les plus faibles (HP puis ATK). Marqués `sacrificed` pour déclencher OnSacrifice
+# et empêcher REVENANT de les relever.
+func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var allies: Array[Minion] = battle.get_owner_minions(source_minion).duplicate()
+	if allies.is_empty():
+		return
+	allies.sort_custom(func(a: Minion, b: Minion) -> bool:
+		if a.health != b.health:
+			return a.health < b.health
+		return a.attack < b.attack
+	)
+	var n: int = mini(effect.count, allies.size())
+	for i in range(n):
+		allies[i].sacrificed = true
+		allies[i].health = 0
+	await battle.death_system.process_deaths()
+
+# Active la Contre-Offensive pour le camp du lanceur : ce tour, chaque Humain de
+# ce camp qui tue un ennemi gagne une attaque supplémentaire (voir CombatSystem).
+func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	battle.counter_offensive[is_player] = true
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 

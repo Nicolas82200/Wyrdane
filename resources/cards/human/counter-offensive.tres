@@ -7,6 +7,11 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
+[sub_resource type="Resource" id="Resource_co"]
+script = ExtResource("1_cardeffect")
+effect_id = "GrantCounterOffensive"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Contre-Offensive"
@@ -16,5 +21,6 @@ texture = ExtResource("3_texture")
 cost = 3
 race = 1
 card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_co")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
