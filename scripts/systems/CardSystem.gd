@@ -61,14 +61,16 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 		await battle.card_popup_system.show_targeting_popup(card_data)
 		await battle.get_tree().create_timer(0.4).timeout
 		battle.card_popup_system.hide_targeting_popup()
-	battle._pay_mana(card_data.cost)
+	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
 	await _resolve(card_data, row, insert_index)
 
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
-	battle._pay_mana(card_data.cost)
+	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)

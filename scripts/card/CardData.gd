@@ -33,6 +33,15 @@ class_name CardData
 @export var effects: Array[CardEffect] = []
 @export var requires_target: bool = false
 
+# ─── Coût de Sacrifice (Rituels à trigger OnSacrifice) ────────────────────────
+# Nombre de serviteurs alliés à sacrifier pour activer le rituel (0 = pas de
+# coût de sacrifice). Le joueur active le rituel en cliquant dessus puis en
+# choisissant ses victimes (voir SacrificeSystem).
+@export var sacrifice_count: int = 0
+# Condition sur les victimes : HP max autorisés (-1 = pas de condition).
+# Ex. Pacte Sanglant : "un serviteur allié à 2 HP ou moins".
+@export var sacrifice_max_hp: int = -1
+
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity: String = "Common"
 @export_enum("Front", "Back", "Hybrid") var board_position: String = "Front"
 

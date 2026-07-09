@@ -48,8 +48,12 @@ func execute_effect(
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
-		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect)
+		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
+		"GainMana":         _gain_mana(battle, source_minion, effect)
+		"DrawCardDiscount": _draw_card_discount(battle, effect)
+		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
+			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -721,10 +725,17 @@ func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) ->
 	source_minion.extra_attack_used_this_turn = true
 	source_minion.attacks_remaining += 1
 
-# Sacrifie `count` alliés (coût du Don de Chair). Sans UI : choisit automatiquement
-# les plus faibles (HP puis ATK). Marqués `sacrificed` pour déclencher OnSacrifice
-# et empêcher REVENANT de les relever.
-func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect) -> void:
+# Sacrifie `count` alliés (coût du Don de Chair). Si une cible a été choisie par
+# le joueur (target "AllyMinion" + requires_target), c'est elle qui est sacrifiée ;
+# sinon (IA, pas de ciblage) on choisit automatiquement les plus faibles (HP puis
+# ATK). Marqués `sacrificed` pour déclencher OnSacrifice et empêcher REVENANT.
+func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target != null and not selected_target.is_dead():
+		await _point_arrows_to(battle, [selected_target])
+		selected_target.sacrificed = true
+		selected_target.health = 0
+		await battle.death_system.process_deaths()
+		return
 	var allies: Array[Minion] = battle.get_owner_minions(source_minion).duplicate()
 	if allies.is_empty():
 		return
@@ -744,6 +755,34 @@ func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	battle.counter_offensive[is_player] = true
+
+# Mana temporaire : ajoute `value` au mana DISPONIBLE du camp de la source, sans
+# toucher au mana maximum — le surplus non dépensé est perdu au tour suivant
+# (Vortex des Âmes : Carnage -> +1 mana ce tour).
+func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	var amount: int = maxi(1, effect.value)
+	if is_player:
+		battle.mana += amount
+		battle.update_mana_ui()
+	else:
+		battle.opponent.mana += amount
+		battle.update_enemy_mana_ui()
+
+# Pioche `value` carte(s) ; chaque carte piochée de la race `race_filter` (ou
+# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Décharné).
+# Comme DrawCard, ne concerne que le deck du joueur local.
+func _draw_card_discount(battle, effect: CardEffect) -> void:
+	var count: int = maxi(1, effect.value)
+	var discount: int = maxi(1, effect.value_2)
+	for i in range(count):
+		if battle.deck.is_empty():
+			return
+		var drawn: CardData = battle.deck.back()
+		battle.deck_system.draw_card()
+		if effect.race_filter.is_empty() \
+				or drawn.race == Race.from_string(effect.race_filter):
+			battle.cost_system.add_temp_discount(drawn, discount)
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 

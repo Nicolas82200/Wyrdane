@@ -19,6 +19,9 @@ var _base_positions:    Dictionary     = {}
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
+# Coût effectif d'une carte (remises de mana comprises), injecté par Battle.
+# Non défini hors bataille : le coût de base est alors affiché.
+var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
@@ -132,6 +135,8 @@ func _on_card_hover(card: Card) -> void:
 	if card.dragging:
 		return
 	preview.set_data(card.data)
+	if display_cost.is_valid():
+		preview.set_display_cost(display_cost.call(card.data))
 	preview.scale   = Vector2(1.1, 1.1)
 	preview.z_index = 100
 	var pos := card.global_position
@@ -279,3 +284,14 @@ func _connect_card(card: Card) -> void:
 		card.can_drag_check = can_play_check
 	if create_drag_preview.is_valid():
 		card.create_drag_preview = create_drag_preview
+	if display_cost.is_valid():
+		card.set_display_cost(display_cost.call(card.data))
+
+# Réaffiche le coût effectif de chaque carte en main (appelé quand une remise
+# de mana apparaît ou expire).
+func refresh_costs() -> void:
+	if not display_cost.is_valid():
+		return
+	for card in container.get_children():
+		if card is Card and card.data != null and not card.is_queued_for_deletion():
+			card.set_display_cost(display_cost.call(card.data))

@@ -9,6 +9,7 @@
 [sub_resource type="Resource" id="Resource_h5lmn"]
 script = ExtResource("1_cardeffect")
 effect_id = "DrawCard"
+value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_tgns8"]
@@ -18,11 +19,13 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de la Fosse Sans Fond"
-description = "Sacrifice (tous tes serviteurs) : pioche 1 carte par sacrifié."
-flavour_text = "Il a tout donné. Il savait exactement ce que ça valait."
+description = "Sacrifice (un serviteur allié) : pioche 1 carte."
+flavour_text = "Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois."
 texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"
+ritual_duration = 2
+sacrifice_count = 1
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_tgns8")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_h5lmn")])
 rarity = "Epic"

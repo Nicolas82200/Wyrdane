@@ -8,8 +8,8 @@
 
 [sub_resource type="Resource" id="Resource_r3wum"]
 script = ExtResource("1_cardeffect")
-effect_id = "Buff"
-value = -1
+effect_id = "AuraSpellCostReduction"
+value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_38vi9"]
