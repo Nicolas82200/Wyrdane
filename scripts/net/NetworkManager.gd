@@ -18,15 +18,23 @@ var is_host: bool = false
 
 func host_game(port: int = NetTransport.DEFAULT_PORT,
 		backend: TransportFactory.Backend = TransportFactory.Backend.ENET) -> int:
-	_setup_transport(backend)
-	is_host = true
-	return transport.host({"port": port})
+	return host_game_with(backend, {"port": port})
 
 func join_game(ip: String, port: int = NetTransport.DEFAULT_PORT,
 		backend: TransportFactory.Backend = TransportFactory.Backend.ENET) -> int:
+	return join_game_with(backend, {"ip": ip, "port": port})
+
+# Variantes génériques : params opaque interprété par le backend
+# (ENet : ip/port ; Steam : lobby_id optionnel, sinon partie rapide).
+func host_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
+	_setup_transport(backend)
+	is_host = true
+	return transport.host(params)
+
+func join_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
 	_setup_transport(backend)
 	is_host = false
-	return transport.join({"ip": ip, "port": port})
+	return transport.join(params)
 
 # Envoie une commande de jeu (SUMMON, ATTACK, END_TURN...) au pair distant.
 func send_command(command: Dictionary, reliable: bool = true) -> void:
