@@ -20,7 +20,6 @@ enum Type {
 	DEBUFF             = 17,
 	RESURRECT          = 18,
 	STEAL_MINION       = 19,
-	# [FIX] Effets ajoutés — déjà gérés par EffectManager mais absents de cet enum
 	INFECT_ADJACENT    = 20,
 	BUFF_ADJACENT      = 21,
 	SPLASH_DAMAGE      = 22,

@@ -48,13 +48,13 @@ const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
 var _tooltip_layer: CanvasLayer = null
 
-# [FIX] Référence mise en cache — plus de get_tree().current_scene partout
+# Référence Battle mise en cache
 var _battle: Node = null
 
 func _ready() -> void:
 	_battle = get_tree().current_scene
 
-	# [FIX] Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
+	# Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
 	_highlight_style = StyleBoxFlat.new()
 	_highlight_style.bg_color            = Color.TRANSPARENT
 	_highlight_style.border_width_left   = 2
@@ -128,7 +128,7 @@ func update_display() -> void:
 	health_label.text = str(max(minion.health, 0))
 	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
 	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
-	var owners_turn := minion.owner_is_player == _is_player_turn()
+	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
 	var c := EXHAUSTED_TINT if (owners_turn and not minion.can_attack()) else Color.WHITE
 	modulate.r = c.r
 	modulate.g = c.g
@@ -153,7 +153,7 @@ func _is_player_turn() -> bool:
 func _update_ready_glow() -> void:
 	if _ready_glow == null or minion == null:
 		return
-	var show := minion.owner_is_player \
+	var show: bool = minion.owner_is_player \
 		and _is_player_turn() \
 		and minion.can_attack() \
 		and not is_selected \
@@ -227,7 +227,7 @@ func _on_mouse_entered() -> void:
 	_hover_preview.scale = Vector2(0.9, 0.9)
 	await get_tree().process_frame
 
-	# [FIX] Guard sur _mouse_is_over — évite les états invalides si la souris sort pendant l'await
+	# Évite les états invalides si la souris sort pendant l'await
 	if not _mouse_is_over or not is_instance_valid(_hover_preview):
 		_cleanup_hover()
 		return
