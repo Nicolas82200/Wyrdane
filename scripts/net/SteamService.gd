@@ -15,6 +15,13 @@ class_name SteamService
 # 4. L'AppID de test 480 (Spacewar) est utilisé par défaut ci-dessous —
 #    à remplacer par le vrai AppID FateBound une fois la page Steam créée
 #
+# ⚠ Le backend Steam NE PEUT PAS se tester avec deux instances locales du jeu :
+# elles partagent le même compte Steam, or les lobbies/P2P Steamworks exigent
+# deux comptes distincts (l'hôte ne voit jamais « entrer » son propre compte).
+# SteamTransport détecte ce cas et affiche NET_STEAM_SAME_ACCOUNT. Pour tester
+# en local à deux instances, utiliser le mode IP directe (127.0.0.1) ; pour
+# tester Steam, il faut deux machines/sessions avec deux comptes connectés.
+#
 # Le singleton n'existant pas à la compilation, tous les appels sont dynamiques
 # (aucun typage Steam ici ni dans SteamTransport).
 
@@ -47,6 +54,11 @@ static func ensure_init() -> bool:
 		push_warning("SteamService : init Steam échouée — %s" % [result.get("verbal", "raison inconnue")])
 		return false
 	_initialized = true
+	# Autorise explicitement le relais Steam (TURN-like) en secours quand la
+	# connexion P2P directe échoue (NAT strict, pare-feu). Normalement activé
+	# par défaut, mais on le force pour ne laisser aucun doute.
+	if s.has_method("allowP2PPacketRelay"):
+		s.allowP2PPacketRelay(true)
 	return true
 
 # À appeler chaque frame tant qu'une session Steam est active : fait avancer
