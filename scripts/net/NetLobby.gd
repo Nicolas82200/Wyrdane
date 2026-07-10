@@ -5,6 +5,10 @@ extends Control
 #   - l'autre saisit l'IP (127.0.0.1 en local) puis « Rejoindre »
 # À la connexion, un handshake échange les decks / la graine / le premier joueur,
 # puis les DEUX clients basculent sur la scène Battle en mode réseau.
+#
+# Si l'extension GodotSteam est présente (voir SteamService), une seconde rangée
+# propose le backend Steam : « Héberger (Steam) » crée un lobby public tagué
+# FateBound, « Partie rapide (Steam) » rejoint le premier lobby trouvé.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
@@ -50,6 +54,20 @@ func _build_ui() -> void:
 	back_btn.pressed.connect(_on_back_pressed)
 	buttons.add_child(back_btn)
 
+	if SteamService.is_available():
+		var steam_buttons := HBoxContainer.new()
+		root.add_child(steam_buttons)
+
+		var steam_host_btn := Button.new()
+		steam_host_btn.text = SettingsManager.t("NET_STEAM_HOST")
+		steam_host_btn.pressed.connect(_on_steam_host_pressed)
+		steam_buttons.add_child(steam_host_btn)
+
+		var steam_quick_btn := Button.new()
+		steam_quick_btn.text = SettingsManager.t("NET_STEAM_QUICK")
+		steam_quick_btn.pressed.connect(_on_steam_quick_pressed)
+		steam_buttons.add_child(steam_quick_btn)
+
 	_log = RichTextLabel.new()
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_log)
@@ -66,6 +84,20 @@ func _on_host_pressed() -> void:
 func _on_join_pressed() -> void:
 	var err := _net.join_game(_ip_field.text)
 	_log_line("Rejoint %s (err=%d)" % [_ip_field.text, err])
+
+func _on_steam_host_pressed() -> void:
+	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
+	if err == OK:
+		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+	else:
+		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+
+func _on_steam_quick_pressed() -> void:
+	var err := _net.join_game_with(TransportFactory.Backend.STEAM)
+	if err == OK:
+		_log_line(SettingsManager.t("NET_STEAM_SEARCHING"))
+	else:
+		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 
 func _on_back_pressed() -> void:
 	# Coupe une éventuelle connexion en cours avant de revenir au menu.
