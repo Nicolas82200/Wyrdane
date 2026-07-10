@@ -53,8 +53,18 @@ func execute_effect(
 		"GainMana":         _gain_mana(battle, source_minion, effect)
 		"DestroyRandomEnchantment": await _destroy_random_enchantment(battle, source_minion, effect)
 		"DrawCardDiscount": _draw_card_discount(battle, effect)
+		"Corrupt":          await _corrupt(battle, source_minion, effect, selected_target)
+		"StealHealthFromHero": await _steal_health_from_hero(battle, source_minion, effect)
+		"BlockSelfDamage":  _block_self_damage(battle, source_minion, effect)
+		"PreventEnemyHeroHeal": _prevent_enemy_hero_heal(battle, source_minion, effect)
+		"SacrificeDrawPerVictim": await _sacrifice_draw_per_victim(battle, source_minion, effect, selected_target)
+		"StealMinionThenDestroy": await _steal_minion_then_destroy(battle, source_minion, effect, selected_target)
 		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
 			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
+		"AuraBuffRow", "AuraBuffPerAllyInRow", "AuraSelfDamageReduction":
+			pass  # Auras d'enchantement : recalculées par AuraSystem, rien à exécuter
+		"CancelSpellOnRaceTarget":
+			pass  # Annulation de sort : résolue en amont par TriggerSystem.try_cancel_spell
 		_:
 			push_warning("Effet non implémenté : %s" % effect.effect_id)
 	await battle.death_system.process_deaths()
@@ -274,7 +284,10 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
 		"OwnerHero":
 			await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
-			battle.hero_system.damage(battle.hero_system.get_owner_hero(source_minion), effect.value)
+			# "Ton héros perd X HP" : dégâts auto-infligés — passent par le pipeline
+			# self_damage (blocages, réduction, garde-fou 1 HP, SANG NOIR, OnSelfDamage)
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
+			await battle.hero_system.self_damage(is_p, effect.value)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
@@ -340,6 +353,7 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 		target.keywords.clear()
 		target.human_keywords.clear()
 		target.undead_keywords.clear()
+		target.demon_keywords.clear()
 		target.silenced = true
 
 func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
@@ -405,6 +419,7 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.keywords         = effect.transform_card.get_keyword_values()
 		target.human_keywords   = effect.transform_card.get_human_keyword_values()
 		target.undead_keywords  = effect.transform_card.get_undead_keyword_values()
+		target.demon_keywords   = effect.transform_card.get_demon_keyword_values()
 		target.silenced         = false
 
 func _draw_cards(battle, count: int) -> void:
@@ -415,6 +430,9 @@ func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_t
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets)
 	for target in targets:
+		# Immunité au contrôle mental (DISCIPLINE, CHAIR DE SOUFRE)
+		if target.is_mind_control_immune():
+			continue
 		var from_player: bool = target.owner_is_player
 		target.owner_is_player = not from_player
 		if from_player:
@@ -639,17 +657,28 @@ func _damage_all_minions(battle, source_minion: Minion, effect: CardEffect) -> v
 		if dealt > 0:
 			await notify_damaged(battle, minion)
 
-# Ramène depuis le cimetière en main (Rituel d'Exhumation)
+# Ramène depuis le cimetière en main (Rituel d'Exhumation, Grand Rituel du
+# Pacte). race_filter optionnel : prend le mort le plus récent de cette race.
 func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
 	var dead: Array[CardData] = graveyard.get_minions()
 	if dead.is_empty():
 		return
-	# Prend le dernier mort par défaut (ou le ciblé si implémenté plus tard)
-	var card_data: CardData = dead.back()
-	battle.hand_cards.append(card_data)
-	battle.hand.set_hand(battle.hand_cards)
+	# Prend le dernier mort (filtré par race si demandé)
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var card_data: CardData = null
+	for i in range(dead.size() - 1, -1, -1):
+		if race == -1 or dead[i].race == race:
+			card_data = dead[i]
+			break
+	if card_data == null:
+		return
+	if is_player:
+		battle.hand_cards.append(card_data)
+		battle.hand.set_hand(battle.hand_cards)
+	else:
+		battle.ai_system.hand.append(card_data)
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
 func _resurrect_last(battle, source_minion: Minion, _effect: CardEffect) -> void:
@@ -683,6 +712,21 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_human_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, true, effect.duration)
+		elif effect.granted_keyword_is_demon:
+			var kw: int = KeywordDemon.from_name(effect.granted_keyword)
+			if kw == -1:
+				push_warning("GrantKeyword : mot-clé Démon inconnu '%s'" % effect.granted_keyword)
+				continue
+			if target.has_demon_keyword(kw):
+				continue
+			target.add_demon_keyword(kw)
+			battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
+			# PACTE octroyé après l'arrivée : donne aussi ASSAUT (le coût en HP ne
+			# s'applique qu'à l'entrée en jeu, pas rétroactivement)
+			if kw == KeywordDemon.Type.PACTE and not target.has_keyword(Keyword.Type.CHARGE):
+				target.add_keyword(Keyword.Type.CHARGE)
+				battle.temp_effect_system.add_temp_keyword(target, Keyword.Type.CHARGE, false, effect.duration)
+			battle.aura_system.recompute_all()
 		else:
 			var kw: int = Keyword.from_name(effect.granted_keyword)
 			if kw == -1:
@@ -795,6 +839,79 @@ func _draw_card_discount(battle, effect: CardEffect) -> void:
 		if effect.race_filter.is_empty() \
 				or drawn.race == Race.from_string(effect.race_filter):
 			battle.cost_system.add_temp_discount(drawn, discount)
+
+# ─── Effets Démon ─────────────────────────────────────────────────────────────
+
+# Inflige `value` marqueur(s) de Corruption (min 1) aux cibles : -1 ATK permanent
+# par marqueur, cumulable. Immunité gérée par Minion.apply_corruption (CHAIR DE
+# SOUFRE). Cartes : Souffle Corrupteur, Le Corrupteur, Vague de Corruption...
+func _corrupt(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	var stacks: int = maxi(1, effect.value)
+	for target in targets:
+		target.apply_corruption(stacks)
+
+# Vole `value` HP au héros ENNEMI et en soigne le héros allié d'autant
+# (Suceur d'Âmes). Distinct de StealHealth, qui vise les serviteurs.
+func _steal_health_from_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_p: bool = source_minion == null or source_minion.owner_is_player
+	await _point_arrow_to_hero(battle, is_p)
+	var enemy_hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
+	var stolen: int = mini(effect.value, maxi(enemy_hero.health, 0))
+	battle.hero_system.damage(enemy_hero, stolen)
+	battle.hero_system.get_owner_hero(source_minion).heal(stolen)
+
+# Absolution Écarlate : les dégâts que tes propres cartes infligeraient à ton
+# héros ce tour sont annulés. Expiré par TurnSystem en fin de tour.
+func _block_self_damage(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var is_p: bool = source_minion == null or source_minion.owner_is_player
+	battle.hero_system.self_damage_blocked[is_p] = true
+
+# Rituel de la Terreur : le héros ennemi ne peut pas soigner jusqu'à la fin de
+# son prochain tour (décrément dans TurnSystem, vérifié par Hero.heal).
+func _prevent_enemy_hero_heal(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var enemy_hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
+	enemy_hero.heal_block_turns = maxi(enemy_hero.heal_block_turns, maxi(1, effect.value))
+
+# Ultime Sacrifice : sacrifie jusqu'à `count` alliés (les plus faibles si aucune
+# cible choisie), puis pioche 1 carte ET inflige `value` dégâts auto-infligés au
+# héros PAR victime effectivement sacrifiée.
+func _sacrifice_draw_per_victim(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var is_p: bool = source_minion == null or source_minion.owner_is_player
+	var victims: Array[Minion] = []
+	if selected_target != null and not selected_target.is_dead():
+		victims.append(selected_target)
+	else:
+		var allies: Array[Minion] = battle.get_owner_minions(source_minion).duplicate()
+		allies.sort_custom(func(a: Minion, b: Minion) -> bool:
+			if a.health != b.health:
+				return a.health < b.health
+			return a.attack < b.attack
+		)
+		victims = allies.slice(0, mini(effect.count, allies.size()))
+	if victims.is_empty():
+		return
+	await _point_arrows_to(battle, victims)
+	for victim in victims:
+		victim.sacrificed = true
+		victim.health = 0
+	await battle.death_system.process_deaths()
+	if is_p:
+		_draw_cards(battle, victims.size())
+	await battle.hero_system.self_damage(is_p, effect.value * victims.size())
+
+# Emprise Écarlate : prend le contrôle d'un serviteur ennemi jusqu'à la fin de
+# ce tour, puis le détruit (TempEffectSystem). Respecte l'immunité au contrôle
+# mental (DISCIPLINE, CHAIR DE SOUFRE).
+func _steal_minion_then_destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null or selected_target.is_mind_control_immune():
+		return
+	await _steal_minion(battle, source_minion, effect, selected_target)
+	# Le serviteur volé peut agir immédiatement pendant ce tour d'emprunt
+	selected_target.attacks_remaining = maxi(selected_target.attacks_remaining, 1)
+	var duration: String = effect.duration if effect.duration != "Permanent" else "UntilEndOfTurn"
+	battle.temp_effect_system.add_destroy_at_expiry(selected_target, duration)
 
 # ─── Pool aléatoire ───────────────────────────────────────────────────────────
 

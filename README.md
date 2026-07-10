@@ -70,6 +70,27 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 - **Mana temporaire** (effet `GainMana`) : ajoute du mana disponible sans toucher au maximum ; le surplus est perdu au tour suivant (Vortex des Âmes).
 - **Contre-Offensive** (`Battle.counter_offensive` + effet `GrantCounterOffensive`) : ce tour, chaque Humain du camp qui tue un ennemi rejoue immédiatement (+1 attaque dans `CombatSystem`, expire en fin de tour).
 
+### 🔥 Mécaniques Démon
+
+Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`) :
+
+| Mot-clé | Effet | Implémentation |
+|---|---|---|
+| `PACTE` | À l'arrivée en jeu, ton héros perd son coût en mana en HP ; gagne ASSAUT. | ASSAUT dans `Minion._init`, coût en HP dans `BoardSystem.summon_minion_return` |
+| `CORRUPTION` | Les attaques infligent Corruption en plus des dégâts. | `CombatSystem._execute_damage` |
+| `TERREUR` | La cible attaquée ne peut pas attaquer au prochain tour adverse. | `Minion.terror_turns` (séparé du Gel), immunités à la peur respectées |
+| `RANG INFERNAL` | +1/+0 par tranche de 10 HP manquants sur ton héros. | Aura recalculée (`AuraSystem._apply_infernal_rank`) |
+| `CHAIR DE SOUFRE` | Immunisé à Corruption, à la peur et au contrôle mental. | `Minion.is_corruption_immune` / `is_fear_immune` / `is_mind_control_immune` |
+| `SANG NOIR` | +1/+0 permanent quand ton héros perd des HP à cause de tes propres cartes. | `HeroSystem._on_self_damage_dealt` |
+
+- **Corruption** (`Minion.corruption_stacks` + `apply_corruption()`) : marqueur cumulable, chaque marqueur retire 1 ATK de façon permanente (min 0). Posée par le mot-clé CORRUPTION à l'attaque ou par l'effet `Corrupt` (Souffle Corrupteur, Le Corrupteur...). CHAIR DE SOUFRE y est immunisé.
+- **Dégâts auto-infligés** (`HeroSystem.self_damage`) : « ton héros perd X HP » (effet `Damage` ciblant `OwnerHero`, coût du PACTE...) passe par un pipeline dédié : annulation totale (`CardData.blocks_self_damage` — Le Gardien du Pacte Brisé — ou effet `BlockSelfDamage` "ce tour" — Absolution Écarlate), réduction par occurrence (aura `AuraSelfDamageReduction` — Sceau de Préservation), **garde-fou : ne réduit jamais son propre héros sous 1 HP**, puis réactions SANG NOIR et trigger `OnSelfDamage` (Autel de la Souffrance).
+- **Trigger `OnSelfDamage`** : déclenché sur les enchantements du camp dont le héros vient de perdre des HP à cause de ses propres cartes.
+- **Blocage de soin** (`Hero.heal_block_turns` + effet `PreventEnemyHeroHeal`) : le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour (Rituel de la Terreur). Décrémenté en fin de tour du héros concerné (`TurnSystem`).
+- **Annulation de sort** (`TriggerSystem.try_cancel_spell` + effet `CancelSpellOnRaceTarget`) : un rituel adverse à trigger `OnSpell` peut contrer un sort ciblant un de ses serviteurs de la race demandée (Rituel de l'Éclipse Rouge) ; le sort est défaussé sans effet, les autres effets du rituel s'exécutent et une charge est consommée. Vérifiée dans `CardSystem.resolve_with_target` et rejouée à l'identique par `NetworkOpponent`.
+- **Vol temporaire** (effet `StealMinionThenDestroy` + `TempEffectSystem.add_destroy_at_expiry`) : prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit (Emprise Écarlate). Immunités au contrôle mental respectées.
+- **Drain de héros** (effet `StealHealthFromHero`) : vole X HP au héros ennemi et en soigne le héros allié d'autant (Suceur d'Âmes).
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -148,6 +169,7 @@ Triggers disponibles (`TriggerType.gd`) :
 *   `OnRally` (Ralliement) / `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
 *   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage)
 *   `OnSummon` (Appel) / `OnAura` (Présence) / `OnResonance` (Résonance)
+*   `OnSelfDamage` (Sacrifice du sang — le héros du camp perd des HP à cause de ses propres cartes)
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
 
@@ -364,6 +386,7 @@ Ces scripts définissent des types et des données utilisées à travers le proj
 *   `Keyword.gd` — mots-clés génériques
 *   `KeywordHuman.gd` — mots-clés propres aux Humains (Commandement, Contre-attaque...)
 *   `KeywordUndead.gd` — mots-clés propres aux Morts-Vivants (Infection, Mort-rage...)
+*   `KeywordDemon.gd` — mots-clés propres aux Démons (Pacte, Corruption, Rang infernal...)
 *   `Race.gd`
 *   `TargetType.gd`
 *   `TriggerType.gd`
