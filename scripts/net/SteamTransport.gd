@@ -124,12 +124,23 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 	if lobby_id != _lobby_id:
 		return
 	if chat_state == CHAT_ENTERED:
-		if _is_host and _remote_id == 0:
-			_remote_id = changed_id
-			connected.emit()
+		_adopt_remote_as_host(changed_id)
 	elif changed_id == _remote_id:
 		_remote_id = 0
 		disconnected.emit("peer_left_lobby")
+
+# Côté hôte, l'adversaire peut se manifester par DEUX callbacks dont l'ordre
+# n'est pas garanti : lobby_chat_update (entrée dans le lobby) et
+# p2p_session_request (son premier paquet — le HELLO du handshake). Si on
+# n'écoutait que le premier, le HELLO pouvait être lu par poll() avant que
+# `connected` ne soit émis, donc avant que le handshake local n'existe : le
+# paquet était perdu et l'hôte restait bloqué au lobby. On émet donc
+# `connected` à la première manifestation, quelle qu'elle soit.
+func _adopt_remote_as_host(remote_id: int) -> void:
+	if not _is_host or _remote_id != 0:
+		return
+	_remote_id = remote_id
+	connected.emit()
 
 # ── Côté client ──
 
