@@ -34,6 +34,7 @@ var _is_loading_grid: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []
+var _race_tooltip:     Control        = null
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
@@ -399,12 +400,25 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 		_hide_keyword_tooltips()
 		return
 
+	for panel in panels:
+		if is_instance_valid(panel):
+			_keyword_tooltips.append(panel)
+	_race_tooltip = race_panel
+	_position_hover_tooltips()
+
+## Repositionne les tooltips sur la carte survolée. Appelé à chaque frame tant
+## que le survol dure, pour que les tooltips suivent le scroll de la grille.
+func _position_hover_tooltips() -> void:
+	var wrapper := _hovered_wrapper
+	if wrapper == null or not is_instance_valid(wrapper):
+		return
+
 	# Emprise de la carte zoomée (pivot au centre de la carte)
 	var card_size   := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
 	var card_center := wrapper.global_position + CARD_BASE_SIZE / 2.0
 	var vp          := get_viewport_rect().size
 	var base_y      := wrapper.global_position.y
-	for panel in panels:
+	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
 		var px := card_center.x + card_size.x / 2.0 + 12.0
@@ -412,23 +426,32 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 			px = card_center.x - card_size.x / 2.0 - panel.size.x - 12.0
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
-		_keyword_tooltips.append(panel)
 
-	if race_panel != null and is_instance_valid(race_panel):
+	if _race_tooltip != null and is_instance_valid(_race_tooltip):
 		var rx: float = clampf(
-			card_center.x - race_panel.size.x / 2.0,
-			4.0, vp.x - race_panel.size.x - 4.0)
+			card_center.x - _race_tooltip.size.x / 2.0,
+			4.0, vp.x - _race_tooltip.size.x - 4.0)
 		var ry: float = card_center.y + card_size.y / 2.0 + 4.0
-		if ry + race_panel.size.y > vp.y:
-			ry = card_center.y - card_size.y / 2.0 - race_panel.size.y - 4.0
-		race_panel.global_position = Vector2(rx, ry)
-		_keyword_tooltips.append(race_panel)
+		if ry + _race_tooltip.size.y > vp.y:
+			ry = card_center.y - card_size.y / 2.0 - _race_tooltip.size.y - 4.0
+		_race_tooltip.global_position = Vector2(rx, ry)
+
+	if _max_tooltip != null and is_instance_valid(_max_tooltip):
+		_max_tooltip.global_position = \
+			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
+
+func _process(_delta: float) -> void:
+	if _hovering:
+		_position_hover_tooltips()
 
 func _hide_keyword_tooltips() -> void:
 	for tooltip in _keyword_tooltips:
 		if is_instance_valid(tooltip):
 			tooltip.queue_free()
 	_keyword_tooltips.clear()
+	if _race_tooltip != null and is_instance_valid(_race_tooltip):
+		_race_tooltip.queue_free()
+	_race_tooltip = null
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
