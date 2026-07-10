@@ -108,6 +108,7 @@ func _on_back_pressed() -> void:
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
 func _on_peer_connected() -> void:
+	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
 	_log_line("✓ Pair connecté — handshake…")
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
@@ -115,7 +116,13 @@ func _on_peer_connected() -> void:
 	_handshake.start()
 
 func _on_peer_disconnected(reason: String) -> void:
-	_log_line("✗ Pair déconnecté (%s)" % [reason])
+	match reason:
+		"steam_same_account":
+			_log_line(SettingsManager.t("NET_STEAM_SAME_ACCOUNT"))
+		"steam_no_lobby_found":
+			_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY"))
+		_:
+			_log_line("✗ Pair déconnecté (%s)" % [reason])
 
 # Deck local mélangé, sous forme de resource_path (identifiant partagé).
 func _local_deck_paths() -> Array:
@@ -127,6 +134,7 @@ func _local_deck_paths() -> Array:
 	return paths
 
 func _on_handshake_ready(setup: Dictionary) -> void:
+	print("[NetLobby] _on_handshake_ready  self=%s  in_tree=%s" % [self, is_inside_tree()])
 	_log_line("Handshake OK — lancement de la bataille réseau…")
 	# Le NetworkManager doit survivre au changement de scène : on le reparente
 	# sous la racine de l'arbre avant de charger Battle.

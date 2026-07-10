@@ -49,12 +49,15 @@ func close() -> void:
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
 func _setup_transport(backend: TransportFactory.Backend) -> void:
+	print("[NetworkManager] _setup_transport  ancien_transport=%s" % [transport])
 	if transport != null:
 		transport.close()
 		transport.queue_free()
 	transport = TransportFactory.create(backend)
 	add_child(transport)
-	transport.connected.connect(func() -> void: peer_connected.emit())
+	transport.connected.connect(func() -> void: 
+		print("[NetworkManager] transport.connected reçu")
+		peer_connected.emit())
 	transport.disconnected.connect(func(reason: String) -> void: peer_disconnected.emit(reason))
 	transport.packet_received.connect(_on_packet_received)
 
