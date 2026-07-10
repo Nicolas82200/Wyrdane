@@ -123,6 +123,12 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: int, chat_state: int) -> void:
 	if lobby_id != _lobby_id:
 		return
+	# L'hôte reçoit aussi ce callback pour sa propre entrée dans le lobby
+	# qu'il vient de créer : il faut l'ignorer, sinon _remote_id se retrouve
+	# affecté au SteamID de l'hôte lui-même et le vrai pair n'est jamais pris
+	# en compte (le P2P n'est alors jamais accepté côté hôte).
+	if changed_id == _steam.getSteamID():
+		return
 	if chat_state == CHAT_ENTERED:
 		_adopt_remote_as_host(changed_id)
 	elif changed_id == _remote_id:
