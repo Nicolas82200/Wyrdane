@@ -27,12 +27,18 @@ var attacks_remaining: int = 0
 var keywords: Array[int] = []
 var human_keywords: Array[int] = []
 var undead_keywords: Array[int] = []
+var demon_keywords: Array[int] = []
 var board_row: String = "Front"
 
 var formation_active: bool = false
 var silenced: bool = false
 var frozen_turns: int = 0
-var corrupted: bool = false
+# TERREUR : tours pendant lesquels ce serviteur ne peut pas attaquer. Séparé de
+# frozen_turns (Gel) pour ne pas mélanger les visuels/immunités des deux mécaniques.
+var terror_turns: int = 0
+# Corruption (Démon) : marqueurs cumulables, chaque marqueur = -1 ATK permanent.
+# La perte d'ATK est appliquée sur base_attack au moment de la pose (apply_corruption).
+var corruption_stacks: int = 0
 # CHAIR MORTE, ou une immunité d'aura (Aegis de l'Empire), bloque toute pose
 # d'Infection quelle que soit la source
 var infected: bool = false:
@@ -59,6 +65,10 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	keywords          = data.get_keyword_values()
 	human_keywords    = data.get_human_keyword_values()
 	undead_keywords   = data.get_undead_keyword_values()
+	demon_keywords    = data.get_demon_keyword_values()
+	# PACTE accorde ASSAUT (le coût en HP du héros est appliqué par BoardSystem à l'arrivée)
+	if has_demon_keyword(KeywordDemon.Type.PACTE):
+		add_keyword(Keyword.Type.CHARGE)
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
 
 # ─── Stats calculées (lecture seule — passe par base_* pour modifier) ─────────
@@ -75,12 +85,13 @@ var health: int:
 
 # ─── Combat (inchangé) ──────────────────────────────────────────────────────
 func can_attack() -> bool:
-	return attacks_remaining > 0 and frozen_turns == 0
+	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0
 
 func refresh_attacks() -> void:
 	extra_attack_used_this_turn = false
-	if frozen_turns > 0:
-		frozen_turns -= 1
+	if frozen_turns > 0 or terror_turns > 0:
+		frozen_turns = max(frozen_turns - 1, 0)
+		terror_turns = max(terror_turns - 1, 0)
 		attacks_remaining = 0
 		return
 	attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
@@ -132,3 +143,37 @@ func is_infection_immune() -> bool:
 
 func has_undead_keyword(keyword: int) -> bool:
 	return keyword in undead_keywords
+
+func has_demon_keyword(keyword: int) -> bool:
+	return keyword in demon_keywords
+
+func add_demon_keyword(keyword: int) -> void:
+	if keyword not in demon_keywords:
+		demon_keywords.append(keyword)
+
+func remove_demon_keyword(keyword: int) -> void:
+	demon_keywords.erase(keyword)
+
+# ─── Corruption / immunités Démon ─────────────────────────────────────────────
+
+# CHAIR DE SOUFRE : immunisé à Corruption, à la peur (TERREUR) et au contrôle mental.
+func is_corruption_immune() -> bool:
+	return has_demon_keyword(KeywordDemon.Type.CHAIR_DE_SOUFRE)
+
+# Peur : CHAIR MORTE (Mort-Vivant), DISCIPLINE (Humain) et CHAIR DE SOUFRE (Démon)
+# y sont tous trois immunisés d'après leurs définitions.
+func is_fear_immune() -> bool:
+	return has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE) \
+		or has_human_keyword(KeywordHuman.Type.DISCIPLINE) \
+		or has_demon_keyword(KeywordDemon.Type.CHAIR_DE_SOUFRE)
+
+func is_mind_control_immune() -> bool:
+	return has_human_keyword(KeywordHuman.Type.DISCIPLINE) \
+		or has_demon_keyword(KeywordDemon.Type.CHAIR_DE_SOUFRE)
+
+# Pose `stacks` marqueur(s) de Corruption : -1 ATK permanent par marqueur, cumulable.
+func apply_corruption(stacks: int = 1) -> void:
+	if stacks <= 0 or is_corruption_immune():
+		return
+	corruption_stacks += stacks
+	base_attack = max(0, base_attack - stacks)
