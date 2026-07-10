@@ -1,8 +1,9 @@
 extends RefCounted
 class_name TransportFactory
 
-# Choisit l'implémentation de transport à utiliser. Aujourd'hui : ENet.
-# Demain : ajouter Backend.STEAM + son implémentation, sans toucher au reste.
+# Choisit l'implémentation de transport à utiliser : ENet (IP directe / LAN)
+# ou Steam (lobby + P2P Steamworks via GodotSteam — voir SteamService pour la
+# détection de l'extension et les instructions d'installation).
 
 enum Backend { ENET, STEAM }
 
@@ -11,7 +12,8 @@ static func create(backend: Backend = Backend.ENET) -> NetTransport:
 		Backend.ENET:
 			return ENetTransport.new()
 		Backend.STEAM:
-			push_error("SteamTransport pas encore implémenté — fallback ENet")
-			return ENetTransport.new()
+			# La disponibilité réelle (extension + client Steam lancé) est
+			# vérifiée par SteamTransport.host()/join() → ERR_UNAVAILABLE.
+			return SteamTransport.new()
 		_:
 			return ENetTransport.new()
