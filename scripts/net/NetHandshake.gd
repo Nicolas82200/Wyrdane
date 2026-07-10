@@ -53,6 +53,7 @@ func start() -> void:
 func _on_command_received(command: Dictionary) -> void:
 	if NetCommand.type_of(command) != NetCommand.HELLO:
 		return
+	print("[NetHandshake] HELLO reçu  self=%s  sent=%s  remote_received_avant=%s" % [self, _sent, _remote_received])
 	_remote_deck = command.get("deck", [])
 	_remote_received = true
 	# L'invité adopte les paramètres partagés décidés par l'hôte.
@@ -66,6 +67,7 @@ func _try_finish() -> void:
 		_finish()
 
 func _finish() -> void:
+	print("[NetHandshake] _finish  self=%s" % [self])
 	var setup := {
 		"opponent_deck": _remote_deck,
 		"seed": _seed,
