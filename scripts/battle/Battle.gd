@@ -234,7 +234,7 @@ func _start_game() -> void:
 		opponent.setup()
 	else:
 		ai_system.setup()
-	await deck_system.start_game()
+		deck_system.start_game()
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
@@ -248,7 +248,7 @@ func _start_game() -> void:
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
-	await opponent.take_turn()
+	opponent.take_turn()
 	if game_over:
 		return
 	await turn_system._begin_player_turn()
