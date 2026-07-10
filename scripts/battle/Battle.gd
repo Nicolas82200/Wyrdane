@@ -567,10 +567,10 @@ func check_game_end() -> void:
 		_show_game_over("defeat" if player_hero.is_dead() else "victory")
 
 # Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
-# l'écran de fin par-dessus le plateau.
+# l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
 func _show_game_over(result: String) -> void:
 	await get_tree().create_timer(1.0).timeout
-	game_over_screen.show_result(result)
+	game_over_screen.show_result(result, network_manager == null)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
