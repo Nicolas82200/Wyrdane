@@ -14,8 +14,8 @@ const GRID_CARD_HOVER_SCALE := 1.025
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
-# Preview au survol — même principe que sur le board (BoardMinion)
-const PREVIEW_SCALE := 1.0
+# Preview au survol — même principe et même échelle que sur le board (BoardMinion)
+const PREVIEW_SCALE := 0.9
 const PREVIEW_GAP   := 12.0
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT    := Color(0.38, 0.38, 0.38, 1)
@@ -349,8 +349,8 @@ func _on_back() -> void:
 
 # ─── Preview de carte au survol — même principe que sur le board ─────────────
 
-## Affiche une carte pleine taille à côté de `anchor` (à droite par défaut,
-## à gauche si demandé ou si la place manque à droite).
+## Affiche la carte en popup à côté de `anchor` (à droite par défaut,
+## à gauche si demandé ou si la place manque à droite), sans l'agrandir.
 func _show_hover_preview(card_data: CardData, anchor: Control, prefer_left: bool = false) -> void:
 	_clear_hover_preview()
 	var preview := CARD_SCENE.instantiate() as Card
