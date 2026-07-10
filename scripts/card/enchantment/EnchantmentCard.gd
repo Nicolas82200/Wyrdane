@@ -1,17 +1,32 @@
 extends Control
 
 # Visuel d'une carte Enchantement ou Rituel posée dans sa zone (à droite du board).
-# Affiche le card art comme les unités sur le board ; le détail (nom, effet)
-# est disponible en tooltip au survol.
+# Affiche le card art comme les unités sur le board ; au survol, la carte
+# originale apparaît en aperçu à gauche (les zones étant en colonne de droite),
+# avec les tooltips de mots-clés — même comportement que BoardMinion.
 # Les Rituels de Sacrifice du joueur sont cliquables : le clic demande leur
 # activation (choix des victimes via SacrificeSystem).
 
 signal activate_requested(card_data: CardData, is_player: bool)
 
 const ACTIVATABLE_TINT := Color(1.25, 1.15, 0.75)
+const CARD_SCENE = preload("res://scenes/card/Card.tscn")
+const PREVIEW_SCALE := 0.9
 
 var card_data: CardData
 var is_player: bool
+
+var _hover_preview: Card = null
+var _tooltip_layer: CanvasLayer = null
+var _keyword_tooltips: Array[Control] = []
+var _mouse_is_over: bool = false
+var _battle: Node = null
+
+func _ready() -> void:
+	_battle = get_tree().current_scene
+	mouse_entered.connect(_on_mouse_entered)
+	mouse_exited.connect(_on_mouse_exited)
+	tree_exiting.connect(_cleanup_hover)
 
 func setup(new_data: CardData, new_is_player: bool) -> void:
 	card_data = new_data
@@ -19,7 +34,6 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 	if card_data.texture:
 		$Art.texture = card_data.texture
 	$CostBadge.text = str(card_data.cost)
-	tooltip_text = "%s\n%s" % [card_data.display_name(), card_data.display_description()]
 	$TurnsLabel.visible = false
 
 # Compteur de tours restants (Rituels à durée limitée uniquement)
@@ -39,3 +53,105 @@ func _gui_input(event: InputEvent) -> void:
 			and event.pressed:
 		activate_requested.emit(card_data, is_player)
 		accept_event()
+
+# ─── Hover & Preview ──────────────────────────────────────────────────────────
+# Même aperçu que BoardMinion, mais la carte originale apparaît à GAUCHE
+# (les zones enchantements/rituels occupent la colonne de droite du board).
+
+func _on_mouse_entered() -> void:
+	_mouse_is_over = true
+	if card_data == null or _battle == null:
+		return
+	if _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
+		return
+	if _hover_preview != null:
+		return
+	if CARD_SCENE == null or not CARD_SCENE.can_instantiate():
+		push_error("EnchantmentCard: CARD_SCENE is invalid")
+		return
+	_hover_preview = CARD_SCENE.instantiate()
+	if _hover_preview == null:
+		push_error("EnchantmentCard: instantiate() returned null")
+		return
+	_hover_preview.drag_enabled = false
+	_hover_preview.z_index = 1000
+	_battle.add_child(_hover_preview)
+	_hover_preview.set_data(card_data)
+	_hover_preview.scale = Vector2(PREVIEW_SCALE, PREVIEW_SCALE)
+	await get_tree().process_frame
+
+	# Évite les états invalides si la souris sort pendant l'await
+	if not _mouse_is_over or not is_instance_valid(_hover_preview):
+		_cleanup_hover()
+		return
+
+	_hover_preview.global_position = global_position + Vector2(
+		-_hover_preview.size.x * PREVIEW_SCALE - 15,
+		(size.y - _hover_preview.size.y * PREVIEW_SCALE) / 2.0
+	)
+	# Tooltips alignés à gauche de l'aperçu
+	var tooltip_right := _hover_preview.global_position.x - 15
+	var tooltip_y := _hover_preview.global_position.y
+	await _show_keyword_tooltips(tooltip_right, tooltip_y)
+
+func _on_mouse_exited() -> void:
+	_mouse_is_over = false
+	_cleanup_hover()
+
+func _cleanup_hover() -> void:
+	_hide_keyword_tooltips()
+	if _hover_preview and is_instance_valid(_hover_preview):
+		_hover_preview.queue_free()
+	_hover_preview = null
+
+# ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
+# right_x est le bord DROIT des panneaux : ils s'empilent vers la gauche
+# pour ne pas recouvrir l'aperçu ni la zone survolée.
+
+func _show_keyword_tooltips(right_x: float, base_y: float) -> void:
+	_hide_keyword_tooltips()
+	if card_data == null:
+		return
+	_tooltip_layer = CanvasLayer.new()
+	_tooltip_layer.layer = 20
+	_battle.add_child(_tooltip_layer)
+
+	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
+	await get_tree().process_frame
+
+	if not _mouse_is_over:
+		_hide_keyword_tooltips()
+		return
+
+	var y := base_y
+	for panel in panels:
+		if not is_instance_valid(panel):
+			continue
+		panel.global_position = Vector2(right_x - panel.size.x, y)
+		y += panel.size.y + 6
+		_keyword_tooltips.append(panel)
+
+	if TooltipData.RACE_DESCRIPTIONS.has(card_data.race):
+		if not is_instance_valid(_tooltip_layer):
+			return
+		var race_panel := TooltipData.make_race_tooltip(TooltipData.RACE_DESCRIPTIONS[card_data.race])
+		race_panel.position = Vector2(-9999, -9999)
+		_tooltip_layer.add_child(race_panel)
+		await get_tree().process_frame
+		if is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
+			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * PREVIEW_SCALE
+			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * PREVIEW_SCALE) / 2.0
+			race_panel.global_position = Vector2(
+				preview_center_x - race_panel.size.x / 2.0,
+				preview_bottom + 6
+			)
+			_keyword_tooltips.append(race_panel)
+
+func _hide_keyword_tooltips() -> void:
+	for tooltip in _keyword_tooltips:
+		if is_instance_valid(tooltip):
+			tooltip.queue_free()
+	_keyword_tooltips.clear()
+	if _tooltip_layer and is_instance_valid(_tooltip_layer):
+		_tooltip_layer.queue_free()
+		_tooltip_layer = null
