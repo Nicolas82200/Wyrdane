@@ -145,6 +145,46 @@ func _play_popup(entry: Dictionary) -> void:
 	_active_card = card
 	# Cette carte devient l'origine des courbes d'effet tracées vers les cibles
 	_effect_card = card
+
+	await card.get_tree().process_frame
+	card.pivot_offset = card.size / 2.0
+
+	# La nouvelle prend l'emplacement principal, les anciennes reculent
+	_stack.push_front(card)
+	while _stack.size() > MAX_STACKED:
+		_remove_from_stack(_stack.back())
+	_reflow_stack()
+
+	var target_pos: Vector2 = _stack_slot_position(0, card.size)
+	card.modulate.a = 0.0
+
+	if has_origin:
+		# Arrive depuis l'emplacement de la carte sur le plateau
+		card.position = origin - card.size / 2.0
+		card.scale = Vector2(0.3, 0.3)
+		var t_in = card.create_tween().set_parallel(true)
+		card.set_meta("popup_tween", t_in)
+		t_in.tween_property(card, "position", target_pos, 0.4)\
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.4)\
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		t_in.tween_property(card, "modulate:a", 1.0, 0.15)
+		# Pas de `await t_in.finished` : le tween peut être tué par _reflow_stack
+		# (expiration d'une autre popup pendant l'arrivée) et un tween tué
+		# n'émet jamais `finished` — l'await bloquerait la partie entière.
+		await battle.get_tree().create_timer(0.4).timeout
+	else:
+		# Pas de source sur le plateau (sorts) : glisse depuis le bord gauche
+		card.scale = Vector2(1.0, 1.0)
+		card.position = target_pos
+		card.position.x = -card.size.x
+		var t_in = card.create_tween().set_parallel(true)
+		card.set_meta("popup_tween", t_in)
+		t_in.tween_property(card, "position:x", LEFT_MARGIN, 0.3)\
+			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		t_in.tween_property(card, "modulate:a", 1.0, 0.2)
+		# Même raison que ci-dessus : ne jamais awaiter un tween qui peut être tué
+		await battle.get_tree().create_timer(0.3).timeout
 	# Dessinée au-dessus des popups en attente
 	_popup_layer.move_child(card, _popup_layer.get_child_count() - 1)
 	_kill_popup_tween(card)
