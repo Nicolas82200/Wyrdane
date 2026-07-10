@@ -155,4 +155,3 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")
-
