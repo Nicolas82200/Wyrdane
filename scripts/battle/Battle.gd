@@ -28,7 +28,6 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
 const ATTACK_PACE                 := 0.5
 
-# [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
@@ -126,7 +125,6 @@ func _ready() -> void:
 	_connect_signals()
 	_start_game()
 
-# [FIX] _ready() découpé en 4 fonctions claires
 func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
@@ -207,7 +205,6 @@ func _connect_signals() -> void:
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
 	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
-	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
 	settings_menu.quit_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
@@ -422,7 +419,6 @@ func can_summon_to_row(is_player: bool, row: String) -> bool:
 func _normalized_row(row: String) -> String:
 	return ROW_BACK if row == ROW_BACK else ROW_FRONT
 
-# [FIX] _insert_minion_in_row et get_row_count_in supprimés d'ici
 # La logique d'insertion vit désormais dans BoardSystem._insert()
 
 func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
@@ -451,13 +447,11 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 		return front
 	return enemy_minions
 
-# [FIX] destroy_minion délègue entièrement à DeathSystem
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
 
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
-# [FIX] _on_card_played délègue la validation et l'état à CardSystem
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	if game_over or enemy_turn_active or get_card_cost(card_data) > mana:
 		return
@@ -502,22 +496,7 @@ func _on_draw_selected() -> void:
 func _on_mana_selected() -> void:
 	turn_system.choose_mana()
 
-func discard_card(card_data: CardData) -> void:
-	hand_cards.erase(card_data)
-	player_graveyard.add_discard(card_data)
-
 # ─── Cimetière ────────────────────────────────────────────────────────────────
-
-func _update_graveyard_btn(graveyard: Graveyard, preview: Card, label: Label) -> void:
-	var last: CardData = graveyard.last_card_data()
-	if last == null:
-		preview.visible = false
-		label.text = "0"
-		return
-	preview.visible = true
-	preview.get_parent().visible = true
-	preview.set_data(last)
-	label.text = str(graveyard.size())
 
 # ─── Règles d'attaque ─────────────────────────────────────────────────────────
 
@@ -532,17 +511,6 @@ func _can_attack_hero(attacker: Minion) -> bool:
 	if has_enemy_taunt(attacker):
 		return false
 	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
-
-# ─── Board ────────────────────────────────────────────────────────────────────
-
-func _has_split_row_containers(is_player: bool) -> bool:
-	if is_player:
-		return player_front_container != null and player_back_container != null
-	return enemy_front_container != null and enemy_back_container != null
-
-func _move_visual_if_needed(_minion: Minion, visual: BoardMinion, container: Control) -> void:
-	if visual.get_parent() != container:
-		visual.reparent(container)
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
@@ -596,11 +564,3 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 
 func is_dragging_card() -> bool:
 	return _is_dragging_card
-
-func _get_visuals_for_dead_minions(dead_minions: Array[Minion]) -> Array[BoardMinion]:
-	var visuals: Array[BoardMinion] = []
-	for minion in dead_minions:
-		var visual: BoardMinion = board_visual_system.find_visual(minion)
-		if visual != null:
-			visuals.append(visual)
-	return visuals

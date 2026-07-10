@@ -5,7 +5,7 @@ const ALL_CARDS_PATH := "res://resources/cards"
 const MIN_CARDS := 40
 const MAX_CARDS := 60
 const MAX_COPIES := 4
-# [FIX] Nombre de cartes instanciées par frame — ajuste selon les perfs
+# Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
 # Taille des cartes dans la grille de collection
