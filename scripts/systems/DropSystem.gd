@@ -3,14 +3,16 @@ extends Node
 class_name DropSystem
 
 const BOARD_MINION_SIZE           := Vector2(100, 150)
-const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
-const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
+const DROP_HIGHLIGHT_COLOR        := Color(0.5, 0.85, 0.55, 0.1)
+const DROP_HIGHLIGHT_BORDER_COLOR := Color(0.55, 0.85, 0.6, 0.45)
 
 var battle: Node
 
 var _drop_highlights:        Dictionary = {}
 var _zone_highlights:        Dictionary = {}
 var _drop_placeholder:       Control    = null
+var _placeholder_style:       StyleBoxFlat  = null
+var _placeholder_empty_style: StyleBoxEmpty = StyleBoxEmpty.new()
 var _drop_placeholder_row:   String     = ""
 var _drop_placeholder_index: int        = -1
 var _last_placeholder_index: int        = -1
@@ -44,10 +46,12 @@ func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_s
 		panel.visible = can_show
 		if can_show:
 			_fit_drop_highlight_to(row_container, panel)
+	# Le placeholder (espace réservé) reste actif même sans highlight :
+	# les serviteurs s'écartent pour prévisualiser le placement de la carte
 	var drop_row: String = get_player_drop_row_at(mouse, card_data)
-	if display_show and not drop_row.is_empty() and battle.can_summon_to_row(true, drop_row):
+	if not drop_row.is_empty() and battle.can_summon_to_row(true, drop_row):
 		var insert_index: int = _get_stable_player_drop_index_at(mouse, drop_row)
-		_update_drop_placeholder(drop_row, insert_index)
+		_update_drop_placeholder(drop_row, insert_index, display_show)
 		return true
 	_clear_drop_placeholder()
 	return false
@@ -200,12 +204,15 @@ func _get_stable_player_drop_index_at(mouse: Vector2, row: String) -> int:
 
 # ─── Placeholder ──────────────────────────────────────────────────────────────
 
-func _update_drop_placeholder(row: String, insert_index: int) -> void:
+func _update_drop_placeholder(row: String, insert_index: int, show_style: bool) -> void:
 	var container: Control = _get_player_row_container(row)
 	if container == null:
 		return
 	if _drop_placeholder == null:
 		_drop_placeholder = _create_drop_placeholder()
+	# Highlights désactivés : le placeholder écarte les serviteurs mais reste invisible
+	_drop_placeholder.add_theme_stylebox_override(
+		"panel", _placeholder_style if show_style else _placeholder_empty_style)
 	if _drop_placeholder.get_parent() != container:
 		if _drop_placeholder.get_parent() != null:
 			_drop_placeholder.get_parent().remove_child(_drop_placeholder)
@@ -226,7 +233,7 @@ func _create_drop_placeholder() -> Panel:
 	placeholder.mouse_filter       = Control.MOUSE_FILTER_IGNORE
 	placeholder.custom_minimum_size = BOARD_MINION_SIZE
 	var style := StyleBoxFlat.new()
-	style.bg_color                = Color(1.0, 0.45, 0.05, 0.16)
+	style.bg_color                = Color(0.5, 0.85, 0.55, 0.08)
 	style.border_color            = DROP_HIGHLIGHT_BORDER_COLOR
 	style.border_width_left       = 2
 	style.border_width_right      = 2
@@ -236,6 +243,7 @@ func _create_drop_placeholder() -> Panel:
 	style.corner_radius_top_right    = 6
 	style.corner_radius_bottom_left  = 6
 	style.corner_radius_bottom_right = 6
+	_placeholder_style = style
 	placeholder.add_theme_stylebox_override("panel", style)
 	return placeholder
 
