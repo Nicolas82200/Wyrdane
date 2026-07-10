@@ -91,31 +91,6 @@ func describe_effect(effect: CardEffect) -> String:
 		"StealMinion":     return _tr("EFF_STEAL_DESC")
 		_:                 return ""
 
-func _target_label(target: String) -> String:
-	match target:
-		"Self":              return "à ce serviteur"
-		"EnemyMinion":       return "à un serviteur ennemi"
-		"AllyMinion":        return "à un serviteur allié"
-		"AnyMinion":         return "à un serviteur"
-		"AllEnemies":        return "à tous les serviteurs ennemis"
-		"AllAllies":         return "à tous les serviteurs alliés"
-		"AllMinions":        return "à tous les serviteurs"
-		"AllEnemiesFront":   return "à tous les serviteurs ennemis en première ligne"
-		"AllEnemiesBack":    return "à tous les serviteurs ennemis en deuxième ligne"
-		"AllAlliesFront":    return "à tous les serviteurs alliés en première ligne"
-		"AllAlliesBack":     return "à tous les serviteurs alliés en deuxième ligne"
-		"RandomEnemy":       return "à un serviteur ennemi aléatoire"
-		"RandomAlly":        return "à un serviteur allié aléatoire"
-		"EnemyHero":         return "au héros ennemi"
-		"OwnerHero":         return "à votre héros"
-		_:                   return "à la cible"
-
-func _count_label(n: int, singular: String, plural: String) -> String:
-	return "%d %s" % [n, singular if n <= 1 else plural]
-
-func _count_prefix(n: int, name: String) -> String:
-	return "%d × %s" % [n, name] if n > 1 else name
-
 # ─── Fabrique de panels ───────────────────────────────────────────────────────
 
 func make_tooltip_panel(title: String, desc: String,

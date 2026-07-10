@@ -77,9 +77,6 @@ var health: int:
 func can_attack() -> bool:
 	return attacks_remaining > 0 and frozen_turns == 0
 
-func is_frozen() -> bool:
-	return frozen_turns > 0
-
 func refresh_attacks() -> void:
 	extra_attack_used_this_turn = false
 	if frozen_turns > 0:
@@ -135,20 +132,3 @@ func is_infection_immune() -> bool:
 
 func has_undead_keyword(keyword: int) -> bool:
 	return keyword in undead_keywords
-
-func add_undead_keyword(keyword: int) -> void:
-	if keyword not in undead_keywords:
-		undead_keywords.append(keyword)
-
-func remove_undead_keyword(keyword: int) -> void:
-	undead_keywords.erase(keyword)
-
-func get_keywords_text() -> String:
-	var names: Array[String] = []
-	for keyword in keywords:
-		names.append(Keyword.get_keyword_name(keyword))
-	for keyword in human_keywords:
-		names.append(KeywordHuman.get_keyword_name(keyword))
-	for keyword in undead_keywords:
-		names.append(KeywordUndead.get_keyword_name(keyword))
-	return ", ".join(names)

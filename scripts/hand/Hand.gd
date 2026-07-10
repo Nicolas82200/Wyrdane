@@ -26,7 +26,7 @@ var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
 
-# [FIX] Référence mise en cache — plus de get_tree().current_scene à chaque hover
+# Référence Battle mise en cache
 var _battle: Node = null
 
 func _ready() -> void:
@@ -41,7 +41,6 @@ func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: V
 	else:
 		await _set_hand_animated(cards, deck_origin)
 
-# [FIX] Deux branches de set_hand extraites en méthodes séparées
 func _set_hand_instant(cards: Array[CardData]) -> void:
 	for c in container.get_children():
 		c.queue_free()
@@ -126,7 +125,6 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
-	# [FIX] Utilise _battle mis en cache
 	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
 	for c in container.get_children():
@@ -165,7 +163,6 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
-	# [FIX] Plus de dict locaux ni de _make_tooltip_panel — tout vient de TooltipData
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
 	_battle.add_child(_tooltip_layer)
@@ -189,7 +186,6 @@ func _hide_keyword_tooltips() -> void:
 
 # ─── Layout ───────────────────────────────────────────────────────────────────
 
-# [FIX] Calcul de layout extrait — plus de duplication entre set_compact et _update_hand_layout
 func _compute_layout(cards: Array) -> Dictionary:
 	var count := cards.size()
 	var viewport           := get_viewport_rect().size
@@ -252,9 +248,6 @@ func _card_position(index: int, layout: Dictionary, card: Control, norm: float) 
 		layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
 	)
 
-func is_compact() -> bool:
-	return _is_compact
-
 # ─── Connexions ───────────────────────────────────────────────────────────────
 
 func _relay_drag_started() -> void:
@@ -264,7 +257,6 @@ func _relay_drag_ended() -> void:
 	drag_ended.emit()
 
 func _connect_card(card: Card) -> void:
-	# [FIX] Injection de hand_ref — Card.gd n'a plus besoin de get_parent().get_parent()
 	card.hand_ref = self
 
 	if not card.card_clicked.is_connected(_on_card_clicked):

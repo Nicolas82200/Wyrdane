@@ -82,9 +82,3 @@ func get_trigger_names() -> Array[String]:
 	for trigger in trigger_types:
 		names.append(trigger.type)
 	return names
-
-func get_trigger_types_as_enum() -> Array[int]:
-	var enum_types: Array[int] = []
-	for trigger in trigger_types:
-		enum_types.append(TriggerType.from_name(trigger.type))
-	return enum_types
