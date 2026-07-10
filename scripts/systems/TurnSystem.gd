@@ -12,9 +12,10 @@ func end_turn() -> void:
 	if battle.net_emitter != null:
 		battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
-	battle.temp_effect_system.expire_end_of_player_turn()
+	await battle.temp_effect_system.expire_end_of_player_turn()
 	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
 	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
+	battle.hero_system.self_damage_blocked[true] = false  # Absolution Écarlate expire
 	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
@@ -22,7 +23,8 @@ func end_turn() -> void:
 	await battle.opponent.take_turn()
 	if battle.game_over:
 		return
-	battle.temp_effect_system.expire_end_of_enemy_turn()
+	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
 
 # Phase de fin de tour (OnTurnEnd des deux camps + Infection). is_local_turn :
@@ -38,6 +40,11 @@ func run_turn_end_triggers(is_local_turn: bool = true) -> void:
 	# Fin de tour — serviteurs adverses
 	acted = await _trigger_minions_paced(other_minions, "OnTurnEnd", acted)
 	acted = await battle.trigger_system.fire("OnTurnEnd", null, not is_local_turn, {}, true, acted)
+
+	# Blocage de soin (Rituel de la Terreur) : expire à la fin du tour du héros
+	# dont c'est le tour ("jusqu'à la fin de son prochain tour").
+	var turn_hero: Hero = battle.player_hero if is_local_turn else battle.enemy_hero
+	turn_hero.heal_block_turns = max(turn_hero.heal_block_turns - 1, 0)
 
 	await _apply_infection_damage()
 

@@ -26,8 +26,10 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	# sur les serviteurs adjacents à la cible).
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
-	# Résonance — enchantements réagissent quand un allié de la même race attaque
-	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player)
+	# Résonance — enchantements réagissent quand un allié de la même race attaque.
+	# La cible de l'attaque est transmise pour les effets qui la visent
+	# (Aura de Corruption, Idole du Grand Pacte).
+	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
 
 	var a_dmg: int = attacker.attack
 	var d_dmg: int = defender.attack
@@ -46,6 +48,16 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	# de infected gère l'immunité CHAIR MORTE)
 	if attacker.has_undead_keyword(KeywordUndead.Type.PESTIFERE) and dealt_to_defender > 0 and not defender.is_dead():
 		defender.infected = true
+
+	# CORRUPTION : l'attaque inflige Corruption en plus des dégâts (-1 ATK
+	# permanent, cumulable ; apply_corruption gère l'immunité CHAIR DE SOUFRE)
+	if attacker.has_demon_keyword(KeywordDemon.Type.CORRUPTION) and dealt_to_defender > 0 and not defender.is_dead():
+		defender.apply_corruption(1)
+
+	# TERREUR : la cible ne peut pas attaquer lors du prochain tour adverse
+	# (sans effet sur les serviteurs immunisés à la peur)
+	if attacker.has_demon_keyword(KeywordDemon.Type.TERREUR) and not defender.is_dead() and not defender.is_fear_immune():
+		defender.terror_turns = max(defender.terror_turns, 1)
 
 	if dealt_to_attacker > 0:
 		await battle.effect_manager.notify_damaged(battle, attacker)
