@@ -122,6 +122,10 @@ func cancel() -> void:
 
 func _show_valid_targets(card_data: CardData) -> void:
 	_clear_highlights()
+	# La flèche de ciblage reste toujours affichée ; seules les surbrillances
+	# des cibles valides sont conditionnées par le réglage d'affichage.
+	if not SettingsManager.show_play_highlights:
+		return
 	if card_data == null or card_data.effects.is_empty():
 		return
 	var target_str: String = card_data.effects[0].target

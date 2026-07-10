@@ -32,6 +32,28 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#5a1f1f96"),
 }
 
+# Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
+const TYPE_LABELS := {
+	"Minion":      "Serviteur",
+	"Instant":     "Éphémère",
+	"Ritual":      "Rituel",
+	"Enchantment": "Enchantement",
+}
+
+# Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
+const LANE_ICONS := {
+	"Front":  preload("res://assets/icons/front_lane.png"),
+	"Back":   preload("res://assets/icons/back_lane.png"),
+	"Hybrid": preload("res://assets/icons/hibrid_lane.png"),
+}
+
+# Icône filigrane indiquant le type des cartes non-serviteur
+const TYPE_ICONS := {
+	"Instant":     preload("res://assets/icons/instant.png"),
+	"Ritual":      preload("res://assets/icons/ritual.png"),
+	"Enchantment": preload("res://assets/icons/enchantment.png"),
+}
+
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
@@ -40,12 +62,13 @@ const RACE_COLORS := {
 @onready var desc_label: RichTextLabel = $DescLabel
 @onready var border: TextureRect       = $BorderFrame
 @onready var text_background: Control  = $TextBackground
-@onready var rarity_gem: TextureRect   = $RarityGem
+@onready var type_label: Label         = $TypeLabel
+@onready var lane_icon: TextureRect    = $LaneIcon
 
 var data: CardData
 var drag_enabled := true
 
-# [FIX] Référence injectée à la main — plus de get_parent().get_parent() fragile
+# Référence vers la main, injectée par Hand
 var hand_ref: Control = null
 
 # Drag state
@@ -58,16 +81,22 @@ var drag_rotation     := 0.0
 var _drag_board_minion: Control = null
 var _drag_released    := false
 
-# [FIX] Référence cachée en début de drag — plus de get_tree().current_scene dans _process
+# Référence battle mise en cache au début du drag
 var _battle: Node = null
 
 var can_drag_check: Callable = Callable()
 var create_drag_preview: Callable = Callable()
 
 var _race_bg_style := StyleBoxFlat.new()
+var _type_style    := StyleBoxFlat.new()
 
 func _ready() -> void:
 	text_background.add_theme_stylebox_override("panel", _race_bg_style)
+	_type_style.set_corner_radius_all(8)
+	_type_style.set_border_width_all(1)
+	_type_style.content_margin_left = 8.0
+	_type_style.content_margin_right = 8.0
+	type_label.add_theme_stylebox_override("normal", _type_style)
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -80,8 +109,17 @@ func set_data(new_data: CardData) -> void:
 		return
 	data = new_data
 	update_display()
+
+# Coût effectif affiché (remises de mana comprises) : vert si réduit.
+# Utilisé par la main en bataille ; ailleurs le coût de base reste affiché.
+func set_display_cost(cost: int) -> void:
+	if data == null:
+		return
+	cost_label.text = str(cost)
+	cost_label.add_theme_color_override("font_color",
+		Color(0.45, 1.0, 0.45) if cost < data.cost else Color.WHITE)
 func update_display() -> void:
-	name_label.text   = data.card_name
+	name_label.text   = data.display_name()
 	cost_label.text   = str(data.cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
@@ -90,12 +128,22 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 
-	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=10][i]" + data.flavour_text + "[/i][/font_size][/center]"
-	elif not data.flavour_text.is_empty():
-		desc_label.text = data.description + "\n\n[font_size=10][i]" + data.flavour_text + "[/i][/font_size]"
+	# Filigrane central : icône de rangée (serviteurs) ou de type (cartes non-serviteur)
+	if is_minion:
+		lane_icon.visible = LANE_ICONS.has(data.board_position)
+		if lane_icon.visible:
+			lane_icon.texture = LANE_ICONS[data.board_position]
 	else:
-		desc_label.text = data.description
+		lane_icon.visible = TYPE_ICONS.has(data.card_type)
+		if lane_icon.visible:
+			lane_icon.texture = TYPE_ICONS[data.card_type]
+
+	if not data.flavour_text.is_empty() and data.description.is_empty():
+		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+	elif not data.flavour_text.is_empty():
+		desc_label.text = data.display_description() + "\n\n[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
+	else:
+		desc_label.text = data.display_description()
 
 	if data.texture:
 		art.texture = data.texture
@@ -106,12 +154,23 @@ func update_display() -> void:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
 
 	_apply_race_style()
-	_apply_rarity_style()
+	_apply_type_style()
 
-func _apply_rarity_style() -> void:
-	var color : Color = RARITY_COLORS.get(data.rarity, Color.WHITE)
-	color.a = 1.0
-	rarity_gem.modulate = color
+# Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
+func _apply_type_style() -> void:
+	var label_text: String = TYPE_LABELS.get(data.card_type, "Serviteur")
+	if data.card_type == "Ritual":
+		if data.ritual_duration > 0:
+			label_text += " • %d tour%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
+		elif data.ritual_duration == -1:
+			label_text += " • Permanent"
+	type_label.text = label_text
+
+	var rarity_color: Color = RARITY_COLORS.get(data.rarity, Color("808080"))
+	var bg := rarity_color
+	bg.a = 0.85
+	_type_style.bg_color = bg
+	_type_style.border_color = rarity_color
 
 func _apply_race_style() -> void:
 	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
@@ -156,7 +215,6 @@ func _gui_input(event: InputEvent) -> void:
 	z_index           = 100
 	visible           = false
 
-	# [FIX] On cache la référence battle UNE fois au début du drag
 	_battle = battle
 
 	if create_drag_preview.is_valid():
@@ -180,9 +238,11 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.global_position = current_mouse - Vector2(50, 75)
 		_drag_board_minion.rotation_degrees = drag_rotation
 
-	# [FIX] Utilise _battle mis en cache — plus d'appel à get_tree().current_scene chaque frame
+	# Toujours appelé pendant le drag : sans highlights, le placeholder
+	# continue d'écarter les serviteurs pour prévisualiser le placement
 	if _battle and _battle.get("drop_system"):
-		_battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
+		_battle.drop_system.update_player_drop_highlight(
+			data, get_viewport().get_mouse_position(), SettingsManager.show_play_highlights)
 
 func _input(event: InputEvent) -> void:
 	if not dragging:
@@ -194,7 +254,6 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _on_drag_released() -> void:
-	# [FIX] Guard retiré — set_input_as_handled() dans _input suffit à éviter le double appel
 	dragging      = false
 	drag_rotation = 0.0
 
@@ -225,7 +284,6 @@ func _on_drag_released() -> void:
 	_restore_in_hand()
 	drag_ended.emit()
 
-# [FIX] _restore_in_hand utilise hand_ref injecté — plus de navigation par get_parent().get_parent()
 func _restore_in_hand() -> void:
 	visible = true
 	rotation_degrees = 0.0
@@ -233,7 +291,6 @@ func _restore_in_hand() -> void:
 	if hand_ref and hand_ref.has_method("_update_hand_layout"):
 		hand_ref._update_hand_layout()
 
-# [FIX] _update_hand_layout et _return_to_hand fusionnés dans _restore_in_hand
 # Les deux faisaient la même chose avec une navigation fragile — supprimés
 
 # ─── Utilitaires ──────────────────────────────────────────────────────────────
@@ -242,9 +299,6 @@ func _set_children_mouse_filter(filter: int) -> void:
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = filter
-
-func is_dragging() -> bool:
-	return dragging
 
 func set_non_interactive() -> void:
 	drag_enabled = false
@@ -259,8 +313,9 @@ func show_back(show_card_back: bool) -> void:
 		health_label.hide()
 		desc_label.hide()
 		border.hide()
-		rarity_gem.hide()
+		lane_icon.hide()
 		text_background.hide()
+		type_label.hide()
 	else:
 		if data:
 			update_display()
@@ -270,5 +325,5 @@ func show_back(show_card_back: bool) -> void:
 		health_label.show()
 		desc_label.show()
 		border.show()
-		rarity_gem.show()
 		text_background.show()
+		type_label.show()

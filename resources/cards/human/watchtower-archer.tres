@@ -8,8 +8,9 @@
 
 [sub_resource type="Resource" id="Resource_w0w18"]
 script = ExtResource("1_vfw1h")
-target = "EnemyMinion"
+target = "RandomEnemy"
 value = 1
+row_filter = "Front"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_olp2p"]
@@ -19,7 +20,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_k6lv7")
 card_name = "Archer de Guet"
-description = "Éveil : inflige 1 dégât à un serviteur ennemi en rangée Avant ciblé."
+description = "Éveil : inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant."
 flavour_text = "Il ne rate pas. Il attend juste le bon moment."
 texture = ExtResource("4_xbky5")
 cost = 2
@@ -29,6 +30,5 @@ attack = 2
 health = 1
 trigger_types = Array[ExtResource("5_ofx0p")]([SubResource("Resource_olp2p")])
 effects = Array[ExtResource("1_vfw1h")]([SubResource("Resource_w0w18")])
-requires_target = true
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

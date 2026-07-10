@@ -4,12 +4,24 @@ class_name DeckList
 @onready var decks_container: VBoxContainer = %DecksContainer
 @onready var create_button: Button          = %CreateButton
 @onready var back_button: Button            = %BackButton
+@onready var title_label: Label             = $CenterContainer/Panel/Margin/VBox/Title
+@onready var subtitle_label: Label          = $CenterContainer/Panel/Margin/VBox/Subtitle
 
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 func _ready() -> void:
 	create_button.pressed.connect(_on_create_deck)
 	back_button.pressed.connect(_on_back)
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()   # appelle aussi _refresh()
+
+# Met à jour les libellés fixes dans la langue courante (les lignes de deck sont
+# régénérées par _refresh, appelé ici aussi pour relocaliser leurs boutons).
+func _retranslate() -> void:
+	title_label.text    = SettingsManager.t("decklist.title")
+	subtitle_label.text = SettingsManager.t("decklist.subtitle")
+	create_button.text  = SettingsManager.t("decklist.create")
+	back_button.text    = SettingsManager.t("ui.back")
 	_refresh()
 
 func _refresh() -> void:
@@ -77,7 +89,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Bouton choisir — désactivé si déjà actif
 	var select_btn := Button.new()
-	select_btn.text = "Actif" if is_active else "Choisir"
+	select_btn.text = SettingsManager.t("decklist.active") if is_active else SettingsManager.t("decklist.select")
 	select_btn.disabled = is_active
 	select_btn.custom_minimum_size = Vector2(96, 0)
 	select_btn.add_theme_font_size_override("font_size", 15)
@@ -86,7 +98,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Bouton éditer
 	var edit_btn := Button.new()
-	edit_btn.text = "Éditer"
+	edit_btn.text = SettingsManager.t("decklist.edit")
 	edit_btn.custom_minimum_size = Vector2(84, 0)
 	edit_btn.add_theme_font_size_override("font_size", 15)
 	edit_btn.pressed.connect(_on_edit_deck.bind(index))

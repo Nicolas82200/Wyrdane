@@ -11,7 +11,17 @@ class_name CardEffect
 	"DamageAll", "BuffRow", "BuffAdjacent", "SplashDamage",
 	"DebuffATK", "DestroyLowHP", "BuffIfCondition",
 	"DamageAllMinions", "ReturnFromGrave",
-	"GrantKeyword"
+	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
+	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
+	"SacrificeAlly", "GrantCounterOffensive",
+	"GainMana", "DrawCardDiscount",
+	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
+	"DestroyRandomEnchantment",
+	"AuraBuffRow", "AuraBuffPerAllyInRow",
+	"Corrupt", "StealHealthFromHero", "BlockSelfDamage",
+	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
+	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
+	"AuraSelfDamageReduction"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -39,6 +49,37 @@ class_name CardEffect
 @export var target_max_hp: int = -1
 @export var target_max_atk: int = -1
 
+# ─── Condition d'exécution ────────────────────────────────────────────────────
+# L'effet n'est appliqué que si la condition est remplie. "None" = toujours.
+#  AlliesInPlay          : nombre de serviteurs alliés en jeu
+#  AlliesOfRaceInPlay    : idem filtré par condition_race
+#  LegendaryAllyInPlay   : nombre d'alliés Légendaires (filtré par condition_race si non vide)
+#  EnemyFrontCount       : nombre d'ennemis en rangée Avant
+#  TriggerSourceLegendary: la cible/source de l'évènement (ex: allié mort) est
+#                          Légendaire (filtrée par condition_race si non vide)
+#  TriggerSourceRace     : la cible/source de l'évènement est de race condition_race
+@export_enum("None", "AlliesInPlay", "AlliesOfRaceInPlay", "LegendaryAllyInPlay", "EnemyFrontCount", "TriggerSourceLegendary", "TriggerSourceRace") var condition_type: String = "None"
+@export_enum("GreaterOrEqual", "LessOrEqual", "Equal") var condition_op: String = "GreaterOrEqual"
+@export var condition_count: int = 1
+@export var condition_race: String = ""   # "Human", "Undead"... ou "" = toutes races
+
+# ─── Compte dynamique (SummonMinion) ──────────────────────────────────────────
+# "Fixed"        : invoque `count` serviteurs.
+# "PerAllyOfRace": invoque un serviteur par allié de `count_race` déjà en jeu,
+#                  plafonné à `count_max` (Porte-Étendard : par Humain, max 3).
+@export_enum("Fixed", "PerAllyOfRace") var count_mode: String = "Fixed"
+@export var count_race: String = ""
+@export var count_max: int = -1           # -1 = pas de plafond
+
+# ─── Rangée d'invocation (SummonMinion / SummonRandom) ────────────────────────
+# "Front"  : toujours en rangée Avant (comportement par défaut : la quasi-totalité
+#            des cartes d'invocation précisent « en rangée Avant »).
+# "Back"   : toujours en rangée Arrière.
+# "Source" : dans la rangée du serviteur source (utile pour un serviteur qui
+#            invoque à côté de lui). Retombe sur Avant si la source est un sort.
+# Dans tous les cas, si la rangée voulue est pleine, on bascule sur l'autre.
+@export_enum("Front", "Back", "Source") var summon_row: String = "Front"
+
 # ─── Pool d'invocation aléatoire (SummonRandom) ───────────────────────────────
 @export var pool_max_cost: int = -1        # -1 = pas de limite
 @export var pool_min_cost: int = -1
@@ -49,6 +90,7 @@ class_name CardEffect
 # ─── Octroi de mot-clé temporaire ou permanent (GrantKeyword) ────────────────
 @export var granted_keyword: String = ""          # "TAUNT", "AEGIS", "CHARGE", "DISCIPLINE"...
 @export var granted_keyword_is_human: bool = false # true si le nom ci-dessus vient de KeywordHuman.Type
+@export var granted_keyword_is_demon: bool = false # true si le nom ci-dessus vient de KeywordDemon.Type
 # Durée gérée par le champ `duration` déjà présent plus haut ;
 # le retrait en fin de tour est assuré par TempEffectSystem.
 
@@ -61,9 +103,3 @@ class_name CardEffect
 @export var count_if_threshold: int = 0
 # Le seuil est comparé au nombre de cibles résolues (Damage/DamageAll/Buff/BuffRow)
 # ou, pour SummonMinion/SummonRandom, au nombre d'alliés dans la rangée d'invocation.
-
-func get_effect_type() -> int:
-	return EffectType.from_name(effect_id)
-
-func get_target_type() -> int:
-	return TargetType.from_name(target)

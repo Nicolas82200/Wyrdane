@@ -24,7 +24,6 @@ func get_active_deck() -> DeckData:
 
 func set_active_deck(index: int) -> void:
 	active_deck_index = clamp(index, 0, decks.size() - 1)
-	# [FIX] _save_meta supprimé — save_decks() suffit, pas besoin de recharger le fichier
 	save_decks()
 
 # ─── CRUD ─────────────────────────────────────────────────────────────────────

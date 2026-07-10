@@ -3,6 +3,12 @@ class_name BoardSystem
 
 var battle: Node
 
+# True pendant la diffusion d'un évènement OnSummon. Empêche qu'un serviteur
+# invoqué EN RÉACTION à une arrivée (ex: Fosse Commune, Architecte de la Horde)
+# ne redéclenche une nouvelle vague OnSummon → sinon le plateau se remplirait
+# en boucle. Le serviteur invoqué garde tout de même son propre effet ONPLAY.
+var _firing_on_summon: bool = false
+
 func init(_battle: Node) -> void:
 	battle = _battle
 
@@ -14,23 +20,32 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return null
 	var minion := Minion.new(card_data, is_player, row)
+	battle.net_registry.register(minion)
 	_insert(minion, is_player, row, insert_index)
 	_apply_commandement_bonus(minion, is_player)
 	_spawn(minion, is_player)
 	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)
 	await battle.get_tree().create_timer(0.2).timeout
 
+	# PACTE : à l'arrivée en jeu, le héros du propriétaire perd des HP égaux au
+	# coût en mana du serviteur (l'ASSAUT est accordé dans Minion._init).
+	if minion.has_demon_keyword(KeywordDemon.Type.PACTE):
+		await battle.hero_system.self_damage(is_player, card_data.cost)
+
 	# Effet d'invocation du minion lui-même
 	await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
 
-	# OnSummon sur les alliés déjà en jeu (pas le minion lui-même)
-	var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).duplicate()
-	for ally in allies:
-		if ally != minion:
-			await battle.effect_manager.trigger_effects(battle, ally, "OnSummon")
-
-	# Appel — enchantements réagissent à l'invocation
-	await battle.trigger_system.fire("OnSummon", minion, is_player)
+	# OnSummon sur les alliés déjà en jeu + enchantements (pas le minion lui-même).
+	# Supprimé si l'on est déjà en train de traiter une arrivée (anti-boucle).
+	if not _firing_on_summon:
+		_firing_on_summon = true
+		var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).duplicate()
+		for ally in allies:
+			if ally != minion:
+				await battle.effect_manager.trigger_effects(battle, ally, "OnSummon")
+		# Appel — enchantements réagissent à l'invocation
+		await battle.trigger_system.fire("OnSummon", minion, is_player)
+		_firing_on_summon = false
 	battle.aura_system.recompute_all()
 	battle.board_visual_system.refresh_board()
 	return minion

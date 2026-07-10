@@ -61,11 +61,62 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			var card_data: CardData = entry["card_data"]
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
+			# Les rituels d'annulation de sort ne réagissent PAS au fire OnSpell
+			# générique : ils sont résolus en amont par try_cancel_spell (sinon ils
+			# consommeraient une charge sur chaque sort, ciblé ou non).
+			if ctx.trigger_name == "OnSpell" and _is_spell_cancel_card(card_data):
+				continue
+			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort) :
+			# le rituel ne réagit pas et ne consomme donc pas de charge.
+			var proxy := _make_proxy(card_data, is_player)
+			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, ctx.source_minion):
+				continue
 			if paced and acted:
 				await battle.pace_actions()
-			await _execute_enchantment_effects(card_data, is_player, ctx)
+			await _execute_enchantment_effects_with_proxy(proxy, card_data, is_player, ctx)
 			acted = true
+			_consume_ritual_charge(entry, is_player)
 	return acted
+
+# ─── Rituels de Sacrifice ─────────────────────────────────────────────────────
+
+# Activation volontaire d'un rituel de Sacrifice : tue les victimes (marquées
+# `sacrificed`), exécute les effets du rituel puis consomme une charge.
+# Appelé par SacrificeSystem (joueur local) et par NetworkOpponent (rejeu).
+func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Array) -> void:
+	var entry: Dictionary = _find_entry(card_data, is_player)
+	if entry.is_empty():
+		return
+	for victim in victims:
+		if victim == null or victim.is_dead():
+			continue
+		victim.sacrificed = true
+		victim.health = 0
+	await battle.death_system.process_deaths()
+	var proxy := _make_proxy(card_data, is_player)
+	for effect in card_data.effects:
+		await battle.effect_manager.execute_effect(battle, proxy, effect)
+	_consume_ritual_charge(entry, is_player)
+	battle.board_visual_system.refresh_board()
+
+func _find_entry(card_data: CardData, is_player: bool) -> Dictionary:
+	for entry in _enchantments[is_player]:
+		if entry["card_data"] == card_data:
+			return entry
+	return {}
+
+# Un rituel à durée limitée ne perd une charge que lorsque son effet se
+# déclenche réellement (et non passivement à chaque tour). Quand le compteur
+# atteint 0, le rituel est détruit et envoyé au cimetière.
+# Les enchantements permanents (turns_left == -1) ne sont jamais décrémentés.
+func _consume_ritual_charge(entry: Dictionary, is_player: bool) -> void:
+	if entry["turns_left"] == -1:
+		return
+	entry["turns_left"] -= 1
+	if entry["turns_left"] <= 0:
+		battle.enchantment_system.destroy_enchantment(entry["card_data"], is_player)
+	else:
+		battle.enchantment_system.update_turns_left(entry["card_data"], is_player, entry["turns_left"])
 
 func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_owner_is_player: bool) -> bool:
 	for trigger in card_data.trigger_types:
@@ -103,43 +154,52 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 
 	return false
 
-func _execute_enchantment_effects(card_data: CardData, is_player: bool, ctx: TriggerContext) -> void:
-	var proxy := _make_proxy(card_data, is_player)
+func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData, _is_player: bool, ctx: TriggerContext) -> void:
+	# Cible contextuelle : la cible explicite de l'évènement si fournie (ex: le
+	# défenseur d'une attaque pour OnResonance), sinon la source de l'évènement.
+	var context_target: Minion = ctx.extra.get("target", ctx.source_minion)
 	for effect in card_data.effects:
-		await battle.effect_manager.execute_effect(battle, proxy, effect, ctx.source_minion)
+		await battle.effect_manager.execute_effect(battle, proxy, effect, context_target)
 
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")
 
-# ─── Durées ───────────────────────────────────────────────────────────────────
+func _is_spell_cancel_card(card_data: CardData) -> bool:
+	return card_data.effects.any(func(e: CardEffect): return e.effect_id == "CancelSpellOnRaceTarget")
 
-func tick_enchantment_durations(is_player: bool) -> void:
-	var expired: Array = []
-	for entry in _enchantments[is_player]:
-		if entry["turns_left"] == -1:
+# ─── Annulation de sort (Rituel de l'Éclipse Rouge) ──────────────────────────
+# Appelé par CardSystem AVANT de résoudre un sort ciblé : si le camp adverse au
+# lanceur possède un rituel/enchantement à trigger OnSpell portant un effet
+# "CancelSpellOnRaceTarget" dont la race correspond à la cible (qui doit
+# appartenir au camp du rituel), le sort est annulé. Les autres effets du rituel
+# (ex: perte de HP de son propriétaire) s'exécutent et une charge est consommée.
+# Retourne true si le sort a été annulé.
+func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
+	if target == null:
+		return false
+	var owner_is_player: bool = not caster_is_player
+	if target.owner_is_player != owner_is_player:
+		return false
+	for entry in _enchantments[owner_is_player].duplicate():
+		var card_data: CardData = entry["card_data"]
+		if not card_data.get_trigger_names().has("OnSpell"):
 			continue
-		entry["turns_left"] -= 1
-		if entry["turns_left"] <= 0:
-			expired.append(entry)
-		else:
-			battle.enchantment_system.update_turns_left(entry["card_data"], is_player, entry["turns_left"])
-	for entry in expired:
-		# Retire aussi le visuel de la zone et envoie la carte au cimetière
-		battle.enchantment_system.destroy_enchantment(entry["card_data"], is_player)
-
-func clear_all(is_player: bool) -> void:
-	_enchantments[is_player].clear()
-
-# ─── Présence (Aura) ──────────────────────────────────────────────────────────
-
-func apply_auras() -> void:
-	for is_player in [true, false]:
-		for entry in _enchantments[is_player]:
-			var card_data: CardData = entry["card_data"]
-			var has_aura := card_data.trigger_types.any(
-				func(t): return t.type == "OnAura"
-			)
-			if has_aura:
-				var proxy := _make_proxy(card_data, is_player)
-				for effect in card_data.effects:
-					await battle.effect_manager.execute_effect(battle, proxy, effect)
+		var cancel_effect: CardEffect = null
+		for effect in card_data.effects:
+			if effect.effect_id == "CancelSpellOnRaceTarget":
+				cancel_effect = effect
+				break
+		if cancel_effect == null:
+			continue
+		if not cancel_effect.race_filter.is_empty() \
+				and target.card_data.race != Race.from_string(cancel_effect.race_filter):
+			continue
+		var proxy := _make_proxy(card_data, owner_is_player)
+		for effect in card_data.effects:
+			if effect.effect_id == "CancelSpellOnRaceTarget":
+				continue
+			await battle.effect_manager.execute_effect(battle, proxy, effect)
+		_consume_ritual_charge(entry, owner_is_player)
+		battle.board_visual_system.refresh_board()
+		return true
+	return false

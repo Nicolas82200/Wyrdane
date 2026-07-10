@@ -3,6 +3,7 @@ class_name ArrowOverlay
 
 var from_pos: Vector2 = Vector2.ZERO
 var to_pos: Vector2 = Vector2.ZERO
+var to_points: Array[Vector2] = []
 var visible_arrow: bool = false
 
 const ARROW_COLOR    := Color(0.92, 0.92, 0.95, 0.90)
@@ -15,6 +16,15 @@ const SEGMENTS       := 40  # fluidité de la courbe
 func show_arrow(from: Vector2, to: Vector2) -> void:
 	from_pos = from
 	to_pos   = to
+	to_points = [to]
+	visible_arrow = true
+	visible = true
+	queue_redraw()
+
+# Plusieurs cibles partageant la même origine (effets de zone / aléatoires)
+func show_arrows(from: Vector2, tos: Array[Vector2]) -> void:
+	from_pos = from
+	to_points = tos.duplicate()
 	visible_arrow = true
 	visible = true
 	queue_redraw()
@@ -22,25 +32,29 @@ func show_arrow(from: Vector2, to: Vector2) -> void:
 func hide_arrow() -> void:
 	visible_arrow = false
 	visible = false
+	to_points.clear()
 	queue_redraw()
 
 func _draw() -> void:
 	if not visible_arrow:
 		return
-	var delta := to_pos - from_pos
+	for tp in to_points:
+		_draw_curve(from_pos, tp)
+
+func _draw_curve(start: Vector2, target: Vector2) -> void:
+	var delta := target - start
 	if delta.length() < 10.0:
 		return
 
 	# Points de contrôle : la courbe part vers la droite puis descend vers la cible
-	var cp1 := from_pos + Vector2(delta.x * 0.6, 0)
-	var cp2 := to_pos   - Vector2(0, delta.y * 0.3)
+	var cp1 := start  + Vector2(delta.x * 0.6, 0)
+	var cp2 := target - Vector2(0, delta.y * 0.3)
 
-	var points := _bezier_points(from_pos, cp1, cp2, to_pos, SEGMENTS)
+	var points := _bezier_points(start, cp1, cp2, target, SEGMENTS)
 
 	# Direction finale pour la tête
 	var dir := (points[points.size() - 1] - points[points.size() - 2]).normalized()
-	var tip  := to_pos
-	var end  := tip - dir * ARROWHEAD_SIZE * 0.6
+	var end := target - dir * ARROWHEAD_SIZE * 0.6
 
 	# Tronque le dernier segment pour ne pas dépasser sous la tête
 	points[points.size() - 1] = end

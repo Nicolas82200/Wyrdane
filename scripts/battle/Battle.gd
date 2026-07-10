@@ -17,6 +17,7 @@ const _AISystemScript        = preload("res://scripts/systems/AISystem.gd")
 
 const BOARD_MINION_SCENE = preload("res://scenes/minion/BoardMinion.tscn")
 const CARD_BACK          = preload("res://assets/card_back/card-back.png")
+const MAIN_MENU_SCENE    := "res://scenes/mainMenu/MainMenu.tscn"
 const MAX_STACK_VISUAL   := 8
 const ROW_FRONT          := "Front"
 const ROW_BACK           := "Back"
@@ -27,11 +28,11 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
 const ATTACK_PACE                 := 0.5
 
-# [FIX] @onready sans get_node_or_null() pour les noeuds obligatoires
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
-@onready var end_turn_button: Button                   = $EndTurnButton
+@onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
+@onready var end_turn_button: EndTurnButton            = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
 @onready var enemy_front_container: Control            = $Board/EnemyFrontLine
@@ -47,9 +48,13 @@ const ATTACK_PACE                 := 0.5
 @onready var graveyard_view: GraveyardView             = $GraveyardView
 @onready var deck_button                               = $DeckButton
 @onready var deck_count_label                          = $DeckButton/CountLabel
-@onready var settings_menu: AudioSettingsMenu          = $AudioSettingsMenu
+@onready var enemy_deck_button: Button                 = $EnemyDeckButton
+@onready var enemy_deck_count_label: Label             = $EnemyDeckButton/CountLabel
+@onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
+@onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var turn_choice_panel                         = $TurnChoicePanel
+@onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
 var board_system        := _BoardSystemScript.new()
@@ -65,13 +70,33 @@ var animation_system    := _AnimationSystemScript.new()
 var hero_system         := _HeroSystemScript.new()
 var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
+# Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
+# ai_system par défaut ; sera réassigné en mode multijoueur.
+var opponent: OpponentDriver
+var net_registry := NetRegistry.new()
+# Émetteur des actions du joueur local vers le pair distant. null en solo :
+# aucun point d'appel n'émet alors quoi que ce soit.
+var net_emitter: NetEmitter = null
+# En mode réseau : true si c'est le joueur local qui commence la partie.
+var net_local_first: bool = true
+# Référence au transport réseau, pour le fermer proprement en quittant le match.
+var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
 var trigger_system: TriggerSystem
 var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
+var cost_system := CostSystem.new()
+var sacrifice_system := SacrificeSystem.new()
+# Bannière de transition de tour (« À vous de jouer » / « Tour adverse »),
+# créée en code pour ne pas toucher Battle.tscn.
+var turn_banner: TurnBanner
 
 var effect_manager := EffectManager.new()
+# RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
+# seedé par le handshake pour que les deux clients tirent la même séquence ;
+# en solo il est simplement aléatoire.
+var game_rng := RandomNumberGenerator.new()
 var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
@@ -90,6 +115,9 @@ var enemy_hero: Hero
 var game_over: bool              = false
 var enemy_turn_active: bool      = false
 var _is_dragging_card: bool      = false
+# Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
+# Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
+var counter_offensive: Dictionary = {true: false, false: false}
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
@@ -100,10 +128,10 @@ func _ready() -> void:
 	_connect_signals()
 	_start_game()
 
-# [FIX] _ready() découpé en 4 fonctions claires
 func _init_data() -> void:
 	player_hero = Hero.new(30)
 	enemy_hero  = Hero.new(30)
+	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
 	hand.can_play_check      = can_play_card
@@ -124,29 +152,73 @@ func _init_systems() -> void:
 	death_system.init(self)
 	targeting_system.init(self)
 	ai_system.init(self)
+	opponent = ai_system
+	if NetContext.active:
+		_setup_network()
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
 	aura_system.init(self)
 	temp_effect_system.init(self)
+	cost_system.init(self)
+	sacrifice_system.init(self)
+	turn_banner = TurnBanner.new()
+	add_child(turn_banner)
+	# Sous TurnChoicePanel : la bannière ne masque jamais un panneau de décision.
+	move_child(turn_banner, turn_choice_panel.get_index())
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
+	add_child(sacrifice_system)
+	hand.display_cost = get_card_cost
+
+# Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
+# (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
+# NetRegistry / la graine RNG sont alignés sur le handshake.
+func _setup_network() -> void:
+	var net: NetworkManager = NetContext.net
+	var setup: Dictionary = NetContext.setup
+	network_manager = net
+	# RNG de jeu déterministe et partagé entre les deux clients.
+	game_rng.seed = setup.get("seed", 0)
+	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
+	net_local_first = setup.get("local_first", true)
+	net_emitter = NetEmitter.new(net)
+	net.peer_disconnected.connect(_on_net_peer_disconnected)
+	var netopp := NetworkOpponent.new(net)
+	add_child(netopp)
+	netopp.init(self)
+	opponent = netopp
+
+# Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
+# tour distant et fige les inputs) et on affiche l'écran de fin en mode
+# déconnexion (retour au menu uniquement, rejouer n'a pas de sens sans le pair).
+func _on_net_peer_disconnected(_reason: String) -> void:
+	if game_over:
+		return
+	game_over = true
+	enemy_turn_active = false
+	_show_game_over("disconnect")
 
 func _connect_signals() -> void:
 	hand.card_played.connect(_on_card_played)
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
+	SettingsManager.language_changed.connect(func(_l): _retranslate_battle())
+	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	turn_choice_panel.draw_selected.connect(_on_draw_selected)
 	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
-	# [FIX] plus de null-check grâce au @onready sans get_node_or_null
 	settings_button.pressed.connect(settings_menu.open)
-	# Cliquer sur le deck n'a pas d'action : pas de son de clic
+	settings_menu.quit_requested.connect(_on_quit_match)
+	game_over_screen.menu_requested.connect(_on_quit_match)
+	game_over_screen.replay_requested.connect(_on_replay_match)
+	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
+	enemy_deck_button.set_meta("no_click_sound", true)
 
 func _start_game() -> void:
 	update_mana_ui()
@@ -158,8 +230,28 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
-	ai_system.setup()
-	await deck_system.start_game()
+	if NetContext.active:
+		opponent.setup()
+	else:
+		ai_system.setup()
+		deck_system.start_game()
+	if NetContext.active:
+		var local_first: bool = net_local_first
+		NetContext.clear()
+		# Si le joueur distant commence, on lui passe la main avant notre 1er tour.
+		if not local_first:
+			await _run_remote_first_turn()
+			return
+	# Le joueur local ouvre la partie : annonce de son premier tour.
+	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+	update_end_turn_hint()
+
+# Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
+func _run_remote_first_turn() -> void:
+	opponent.take_turn()
+	if game_over:
+		return
+	await turn_system._begin_player_turn()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
 
@@ -169,11 +261,19 @@ func _process(_delta: float) -> void:
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 
-func _input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
-		get_tree().quit()
-
 func _unhandled_input(event: InputEvent) -> void:
+	if sacrifice_system.is_active():
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_RIGHT \
+				and event.pressed:
+			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_cancel"):
+			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+
 	if targeting_system.is_targeting():
 		if event is InputEventMouseButton \
 				and event.button_index == MOUSE_BUTTON_RIGHT \
@@ -186,12 +286,92 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
+	# Raccourcis clavier (fin de tour, choix mana/pioche, cimetières, Échap)
+	if _handle_shortcut(event):
+		get_viewport().set_input_as_handled()
+		return
+
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.pressed \
 			and not Input.is_key_pressed(KEY_CTRL):
 		if selection_system.is_multi_selecting:
 			selection_system.clear_multi_selection()
+
+# ─── Raccourcis clavier ───────────────────────────────────────────────────────
+
+# Traite un raccourci clavier. Retourne true si l'événement a été consommé.
+func _handle_shortcut(event: InputEvent) -> bool:
+	# Échap "intelligent" : annule/ferme le contexte prioritaire ouvert
+	if event.is_action_pressed("ui_cancel"):
+		return _handle_cancel()
+
+	# Choix mana/pioche : uniquement quand le panneau attend une décision
+	if event.is_action_pressed("choose_mana"):
+		if turn_choice_panel.is_active():
+			turn_choice_panel.select_mana()
+		return true
+	if event.is_action_pressed("choose_draw"):
+		if turn_choice_panel.is_active():
+			turn_choice_panel.select_draw()
+		return true
+
+	# Fin de tour : neutralisée tant qu'un choix de début de tour est en attente
+	if event.is_action_pressed("end_turn"):
+		if not turn_choice_panel.is_active():
+			_on_end_turn_pressed()
+		return true
+
+	if event.is_action_pressed("toggle_graveyard"):
+		_toggle_graveyard(player_graveyard)
+		return true
+	if event.is_action_pressed("toggle_enemy_graveyard"):
+		_toggle_graveyard(enemy_graveyard)
+		return true
+
+	return false
+
+# Échap : ferme un overlay ouvert par ordre de priorité, sinon ouvre les réglages.
+func _handle_cancel() -> bool:
+	# L'écran de fin ne se ferme pas : le joueur doit choisir Rejouer ou Menu.
+	if game_over_screen.visible:
+		return true
+	if graveyard_view.visible:
+		graveyard_view.close()
+		return true
+	if settings_menu.visible:
+		settings_menu.close()
+		return true
+	settings_menu.open()
+	return true
+
+# Quitte la partie en cours et revient au menu principal.
+func _on_quit_match() -> void:
+	settings_menu.close()
+	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
+	if network_manager != null:
+		network_manager.close()
+		network_manager.queue_free()
+		network_manager = null
+	NetContext.clear()
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+# Relance une bataille depuis l'écran de fin (solo uniquement : le bouton
+# Rejouer est masqué en réseau, mais on nettoie le transport par sécurité).
+func _on_replay_match() -> void:
+	if network_manager != null:
+		network_manager.close()
+		network_manager.queue_free()
+		network_manager = null
+	NetContext.clear()
+	get_tree().reload_current_scene()
+
+# Ouvre le cimetière demandé, ou le referme s'il est déjà visible.
+func _toggle_graveyard(target_graveyard: Graveyard) -> void:
+	if graveyard_view.visible:
+		graveyard_view.close()
+	else:
+		graveyard_view.open(target_graveyard)
 
 # ─── Trigger centralisé ───────────────────────────────────────────────────────
 
@@ -211,6 +391,13 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 
 func update_mana_ui() -> void:
 	mana_display.set_mana(mana, max_mana)
+	update_end_turn_hint()
+
+func update_enemy_mana_ui() -> void:
+	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
+
+func update_enemy_hand_ui() -> void:
+	enemy_hand_display.set_count(opponent.get_hand_count())
 
 func _pay_mana(cost: int) -> void:
 	mana -= cost
@@ -244,7 +431,6 @@ func can_summon_to_row(is_player: bool, row: String) -> bool:
 func _normalized_row(row: String) -> String:
 	return ROW_BACK if row == ROW_BACK else ROW_FRONT
 
-# [FIX] _insert_minion_in_row et get_row_count_in supprimés d'ici
 # La logique d'insertion vit désormais dans BoardSystem._insert()
 
 func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
@@ -273,15 +459,16 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 		return front
 	return enemy_minions
 
-# [FIX] destroy_minion délègue entièrement à DeathSystem
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
 
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
-# [FIX] _on_card_played délègue la validation et l'état à CardSystem
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or enemy_turn_active or card_data.cost > mana:
+	if game_over or enemy_turn_active or get_card_cost(card_data) > mana:
+		return
+	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
+	if sacrifice_system.is_active():
 		return
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
@@ -308,6 +495,43 @@ func _on_end_turn_pressed() -> void:
 		return
 	turn_system.end_turn()
 
+# Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
+# Fin de tour et bannière de transition. Appelé par AISystem / NetworkOpponent.
+func set_enemy_turn(active: bool) -> void:
+	enemy_turn_active = active
+	end_turn_button.disabled = active
+	_retranslate_battle()
+	if game_over:
+		# Partie terminée pendant le tour adverse : pas d'annonce de tour
+		end_turn_button.set_ready_hint(false)
+		return
+	if active:
+		end_turn_button.set_ready_hint(false)
+		turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
+	else:
+		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+		update_end_turn_hint()
+
+# Halo sur « Fin du tour » quand il ne reste plus aucune action possible.
+func update_end_turn_hint() -> void:
+	end_turn_button.set_ready_hint(_player_has_no_actions())
+
+func _player_has_no_actions() -> bool:
+	if game_over or enemy_turn_active or turn_choice_panel.is_active():
+		return false
+	for card in hand_cards:
+		if can_play_card(card):
+			return false
+	for minion in player_minions:
+		if minion.can_attack():
+			return false
+	return true
+
+# Met à jour les libellés fixes de la bataille dans la langue courante.
+func _retranslate_battle() -> void:
+	var key := "battle.enemy_turn" if enemy_turn_active else "battle.end_turn"
+	end_turn_button.text = SettingsManager.t(key)
+
 func draw_card() -> void:
 	turn_system.draw_card()
 
@@ -317,22 +541,7 @@ func _on_draw_selected() -> void:
 func _on_mana_selected() -> void:
 	turn_system.choose_mana()
 
-func discard_card(card_data: CardData) -> void:
-	hand_cards.erase(card_data)
-	player_graveyard.add_discard(card_data)
-
 # ─── Cimetière ────────────────────────────────────────────────────────────────
-
-func _update_graveyard_btn(graveyard: Graveyard, preview: Card, label: Label) -> void:
-	var last: CardData = graveyard.last_card_data()
-	if last == null:
-		preview.visible = false
-		label.text = "0"
-		return
-	preview.visible = true
-	preview.get_parent().visible = true
-	preview.set_data(last)
-	label.text = str(graveyard.size())
 
 # ─── Règles d'attaque ─────────────────────────────────────────────────────────
 
@@ -348,22 +557,20 @@ func _can_attack_hero(attacker: Minion) -> bool:
 		return false
 	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
 
-# ─── Board ────────────────────────────────────────────────────────────────────
-
-func _has_split_row_containers(is_player: bool) -> bool:
-	if is_player:
-		return player_front_container != null and player_back_container != null
-	return enemy_front_container != null and enemy_back_container != null
-
-func _move_visual_if_needed(_minion: Minion, visual: BoardMinion, container: Control) -> void:
-	if visual.get_parent() != container:
-		visual.reparent(container)
-
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
 func check_game_end() -> void:
+	if game_over:
+		return
 	if enemy_hero.is_dead() or player_hero.is_dead():
 		game_over = true
+		_show_game_over("defeat" if player_hero.is_dead() else "victory")
+
+# Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
+# l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
+func _show_game_over(result: String) -> void:
+	await get_tree().create_timer(1.0).timeout
+	game_over_screen.show_result(result, network_manager == null)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
@@ -375,8 +582,12 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
+# Coût effectif d'une carte de la main du joueur (remises comprises).
+func get_card_cost(card_data: CardData) -> int:
+	return cost_system.get_cost(card_data, true)
+
 func can_afford_card(card_data: CardData) -> bool:
-	return card_data != null and mana >= card_data.cost
+	return card_data != null and mana >= get_card_cost(card_data)
 
 # Jouabilité complète : mana + conditions du sort (cibles valides, cimetière...)
 func can_play_card(card_data: CardData) -> bool:
@@ -388,17 +599,13 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 	preview.z_index = 200
 	add_child(preview)
 	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
+	# Attaque/Santé n'ont de sens que pour un serviteur — masquées pour les sorts
+	if card_data.card_type != "Minion":
+		preview.attack_label.visible = false
+		preview.health_label.visible = false
 	preview.scale    = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
 	return preview
 
 func is_dragging_card() -> bool:
 	return _is_dragging_card
-
-func _get_visuals_for_dead_minions(dead_minions: Array[Minion]) -> Array[BoardMinion]:
-	var visuals: Array[BoardMinion] = []
-	for minion in dead_minions:
-		var visual: BoardMinion = board_visual_system.find_visual(minion)
-		if visual != null:
-			visuals.append(visual)
-	return visuals

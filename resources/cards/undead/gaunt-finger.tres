@@ -8,13 +8,11 @@
 
 [sub_resource type="Resource" id="Resource_cm5bo"]
 script = ExtResource("1_cardeffect")
-effect_id = "DrawCard"
+effect_id = "DrawCardDiscount"
 value = 1
+value_2 = 1
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
-[sub_resource type="Resource" id="Resource_ont69"]
-script = ExtResource("5_trig")
-type = "OnSpell"
 
 [resource]
 script = ExtResource("4_carddata")
@@ -23,7 +21,6 @@ description = "Pioche 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce 
 flavour_text = "Il désigne. Quelque chose, quelque part, répond."
 texture = ExtResource("3_texture")
 card_type = "Instant"
-trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_ont69")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cm5bo")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
