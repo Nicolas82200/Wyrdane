@@ -174,10 +174,12 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 # ── Commun ──
 
 func _on_p2p_session_request(remote_id: int) -> void:
-	# 1v1 : on n'accepte que le pair attendu (l'hôte ne connaît le sien qu'à
-	# l'entrée dans le lobby, déjà passée quand ce callback arrive).
+	# 1v1 : premier arrivé = notre pair ; ensuite on n'accepte que lui.
 	if _remote_id == 0 or remote_id == _remote_id:
 		_steam.acceptP2PSessionWithUser(remote_id)
+		# Ce callback peut précéder lobby_chat_update : c'est alors lui qui
+		# déclenche `connected` côté hôte (voir _adopt_remote_as_host).
+		_adopt_remote_as_host(remote_id)
 
 func _on_p2p_session_connect_fail(steam_id: int, _session_error: int) -> void:
 	if steam_id == _remote_id and _remote_id != 0:
