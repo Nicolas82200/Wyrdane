@@ -238,8 +238,11 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.global_position = current_mouse - Vector2(50, 75)
 		_drag_board_minion.rotation_degrees = drag_rotation
 
-	if _battle and _battle.get("drop_system") and SettingsManager.show_play_highlights:
-		_battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
+	# Toujours appelé pendant le drag : sans highlights, le placeholder
+	# continue d'écarter les serviteurs pour prévisualiser le placement
+	if _battle and _battle.get("drop_system"):
+		_battle.drop_system.update_player_drop_highlight(
+			data, get_viewport().get_mouse_position(), SettingsManager.show_play_highlights)
 
 func _input(event: InputEvent) -> void:
 	if not dragging:
