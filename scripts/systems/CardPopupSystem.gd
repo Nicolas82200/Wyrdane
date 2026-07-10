@@ -142,7 +142,10 @@ func _push_popup(entry: Dictionary) -> void:
 		t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.4)\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 		t_in.tween_property(card, "modulate:a", 1.0, 0.15)
-		await t_in.finished
+		# Pas de `await t_in.finished` : le tween peut être tué par _reflow_stack
+		# (expiration d'une autre popup pendant l'arrivée) et un tween tué
+		# n'émet jamais `finished` — l'await bloquerait la partie entière.
+		await battle.get_tree().create_timer(0.4).timeout
 	else:
 		# Pas de source sur le plateau (sorts) : glisse depuis le bord gauche
 		card.scale = Vector2(1.0, 1.0)
@@ -153,7 +156,8 @@ func _push_popup(entry: Dictionary) -> void:
 		t_in.tween_property(card, "position:x", LEFT_MARGIN, 0.3)\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 		t_in.tween_property(card, "modulate:a", 1.0, 0.2)
-		await t_in.finished
+		# Même raison que ci-dessus : ne jamais awaiter un tween qui peut être tué
+		await battle.get_tree().create_timer(0.3).timeout
 
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
