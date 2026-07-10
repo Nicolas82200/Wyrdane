@@ -149,9 +149,6 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 
 	return false
 
-func _execute_enchantment_effects(card_data: CardData, is_player: bool, ctx: TriggerContext) -> void:
-	await _execute_enchantment_effects_with_proxy(_make_proxy(card_data, is_player), card_data, is_player, ctx)
-
 func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData, _is_player: bool, ctx: TriggerContext) -> void:
 	for effect in card_data.effects:
 		await battle.effect_manager.execute_effect(battle, proxy, effect, ctx.source_minion)
@@ -159,21 +156,3 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")
 
-# ─── Durées ───────────────────────────────────────────────────────────────────
-
-func clear_all(is_player: bool) -> void:
-	_enchantments[is_player].clear()
-
-# ─── Présence (Aura) ──────────────────────────────────────────────────────────
-
-func apply_auras() -> void:
-	for is_player in [true, false]:
-		for entry in _enchantments[is_player]:
-			var card_data: CardData = entry["card_data"]
-			var has_aura := card_data.trigger_types.any(
-				func(t): return t.type == "OnAura"
-			)
-			if has_aura:
-				var proxy := _make_proxy(card_data, is_player)
-				for effect in card_data.effects:
-					await battle.effect_manager.execute_effect(battle, proxy, effect)

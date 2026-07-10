@@ -97,9 +97,3 @@ class_name CardEffect
 @export var count_if_threshold: int = 0
 # Le seuil est comparé au nombre de cibles résolues (Damage/DamageAll/Buff/BuffRow)
 # ou, pour SummonMinion/SummonRandom, au nombre d'alliés dans la rangée d'invocation.
-
-func get_effect_type() -> int:
-	return EffectType.from_name(effect_id)
-
-func get_target_type() -> int:
-	return TargetType.from_name(target)

@@ -49,7 +49,7 @@ func get_hand_count() -> int:
 # recevoir END_TURN, puis rend la main à TurnSystem.
 func take_turn() -> void:
 	# Bloque les inputs locaux pendant le tour distant (comme l'IA en solo).
-	battle.enemy_turn_active = true
+	battle.set_enemy_turn(true)
 	_turn_over = false
 	while not _turn_over:
 		# Sortie de secours : partie terminée ou pair déconnecté.
@@ -70,7 +70,7 @@ func take_turn() -> void:
 		if not _turn_over:
 			# Rien à rejouer pour l'instant : on attend le prochain paquet.
 			await battle.get_tree().process_frame
-	battle.enemy_turn_active = false
+	battle.set_enemy_turn(false)
 
 func refresh_ui() -> void:
 	pass
