@@ -28,11 +28,12 @@ func _ready() -> void:
 	menu_button.pressed.connect(func(): menu_requested.emit())
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 
-# Affiche l'écran pour le résultat donné. En déconnexion réseau, rejouer n'a
-# pas de sens (le pair est parti) : seul le retour au menu est proposé.
-func show_result(result: String) -> void:
+# Affiche l'écran pour le résultat donné. En réseau, rejouer n'a pas de sens
+# (relancer la scène repartirait en solo contre l'IA, et en déconnexion le pair
+# est parti) : seul le retour au menu est proposé.
+func show_result(result: String, allow_replay: bool = true) -> void:
 	_result = result
-	replay_button.visible = result != "disconnect"
+	replay_button.visible = allow_replay and result != "disconnect"
 	match result:
 		"defeat":
 			title_label.add_theme_color_override("font_color", TITLE_DEFEAT_COLOR)
