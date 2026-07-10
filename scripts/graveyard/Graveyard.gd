@@ -14,9 +14,6 @@ func add_minion(card_data: CardData) -> void:
 func add_spell(card_data: CardData) -> void:
 	_add(card_data, Origin.SPELL_PLAYED)
 
-func add_discard(card_data: CardData) -> void:
-	_add(card_data, Origin.CARD_DISCARDED)
-
 func _add(card_data: CardData, origin: Origin) -> void:
 	entries.append({ "card_data": card_data, "origin": origin })
 	graveyard_changed.emit()
@@ -32,7 +29,7 @@ func last_card_data() -> CardData:
 		return null
 	return entries.back()["card_data"]
 
-# [FIX] Méthode manquante — appelée par EffectManager (_resurrect, _resurrect_last, _return_from_grave)
+# Appelée par EffectManager (_resurrect, _resurrect_last, _return_from_grave)
 # Retourne uniquement les cartes mortes au combat, pas les sorts ni les défausses
 func get_minions() -> Array[CardData]:
 	var result: Array[CardData] = []

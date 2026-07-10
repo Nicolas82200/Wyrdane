@@ -68,7 +68,7 @@ const TYPE_ICONS := {
 var data: CardData
 var drag_enabled := true
 
-# [FIX] Référence injectée à la main — plus de get_parent().get_parent() fragile
+# Référence vers la main, injectée par Hand
 var hand_ref: Control = null
 
 # Drag state
@@ -81,7 +81,7 @@ var drag_rotation     := 0.0
 var _drag_board_minion: Control = null
 var _drag_released    := false
 
-# [FIX] Référence cachée en début de drag — plus de get_tree().current_scene dans _process
+# Référence battle mise en cache au début du drag
 var _battle: Node = null
 
 var can_drag_check: Callable = Callable()
@@ -215,7 +215,6 @@ func _gui_input(event: InputEvent) -> void:
 	z_index           = 100
 	visible           = false
 
-	# [FIX] On cache la référence battle UNE fois au début du drag
 	_battle = battle
 
 	if create_drag_preview.is_valid():
@@ -239,7 +238,6 @@ func _process(_delta: float) -> void:
 		_drag_board_minion.global_position = current_mouse - Vector2(50, 75)
 		_drag_board_minion.rotation_degrees = drag_rotation
 
-	# [FIX] Utilise _battle mis en cache — plus d'appel à get_tree().current_scene chaque frame
 	if _battle and _battle.get("drop_system") and SettingsManager.show_play_highlights:
 		_battle.drop_system.update_player_drop_highlight(data, get_viewport().get_mouse_position(), true)
 
@@ -253,7 +251,6 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _on_drag_released() -> void:
-	# [FIX] Guard retiré — set_input_as_handled() dans _input suffit à éviter le double appel
 	dragging      = false
 	drag_rotation = 0.0
 
@@ -284,7 +281,6 @@ func _on_drag_released() -> void:
 	_restore_in_hand()
 	drag_ended.emit()
 
-# [FIX] _restore_in_hand utilise hand_ref injecté — plus de navigation par get_parent().get_parent()
 func _restore_in_hand() -> void:
 	visible = true
 	rotation_degrees = 0.0
@@ -292,7 +288,6 @@ func _restore_in_hand() -> void:
 	if hand_ref and hand_ref.has_method("_update_hand_layout"):
 		hand_ref._update_hand_layout()
 
-# [FIX] _update_hand_layout et _return_to_hand fusionnés dans _restore_in_hand
 # Les deux faisaient la même chose avec une navigation fragile — supprimés
 
 # ─── Utilitaires ──────────────────────────────────────────────────────────────
@@ -301,9 +296,6 @@ func _set_children_mouse_filter(filter: int) -> void:
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = filter
-
-func is_dragging() -> bool:
-	return dragging
 
 func set_non_interactive() -> void:
 	drag_enabled = false

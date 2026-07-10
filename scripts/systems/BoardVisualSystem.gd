@@ -116,6 +116,9 @@ func refresh_board() -> void:
 	# Surbrillance des Rituels de Sacrifice activables (dépend du board)
 	battle.enchantment_system.refresh_activatable()
 
+	# Halo « Fin du tour » : l'état du board conditionne les actions restantes
+	battle.update_end_turn_hint()
+
 	_refreshing = false
 
 	if _refresh_again:

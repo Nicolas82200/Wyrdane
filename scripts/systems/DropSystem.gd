@@ -6,7 +6,6 @@ const BOARD_MINION_SIZE           := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 
-# [FIX] Type explicite
 var battle: Node
 
 var _drop_highlights:        Dictionary = {}
@@ -122,7 +121,7 @@ func _ensure_drop_highlights() -> void:
 		return
 	var board: Control = battle.get_node_or_null("Board") as Control
 	if board == null:
-		# [FIX] Erreur explicite si Board manque — évite un échec silencieux au premier drag
+		# Erreur explicite si Board manque — évite un échec silencieux au premier drag
 		push_error("DropSystem: nœud 'Board' introuvable, les highlights ne seront pas créés.")
 		return
 	for row in [battle.ROW_FRONT, battle.ROW_BACK]:
