@@ -87,7 +87,7 @@ Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
 
-Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`) et **Humain** (`human/`, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...). **Démon** : contenu défini dans `CARDS.md` (~75 cartes), implémentation moteur restant à faire. Races prévues : Elfe, Nain.
+Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`) et **Humain** (`human/`, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...). **Démon** : contenu défini dans `CARDS.md` (~75 cartes) ; le moteur est prêt (mots-clés dans `KeywordDemon.gd`, Corruption, pipeline de dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage` — voir « Mécaniques Démon » dans `README.md`), les ressources `.tres` des cartes restent à créer dans `resources/cards/demon/`. Races prévues : Elfe, Nain.
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :

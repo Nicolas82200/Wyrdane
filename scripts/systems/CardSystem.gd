@@ -88,6 +88,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			else:
 				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
+		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
+		# contrer un sort ciblant un de ses serviteurs. Le sort est alors défaussé
+		# sans effet (mana déjà payé).
+		if target is Minion and await battle.trigger_system.try_cancel_spell(true, target):
+			battle.player_graveyard.add_spell(card_data)
+			battle.board_visual_system.refresh_board()
+			if battle.net_emitter != null:
+				var cancelled_ids: Array = battle.net_registry.end_capture()
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids, target)
+			battle.reset_targeting_state()
+			return
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
