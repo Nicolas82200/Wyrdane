@@ -16,7 +16,12 @@ class_name CardEffect
 	"SacrificeAlly", "GrantCounterOffensive",
 	"GainMana", "DrawCardDiscount",
 	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
-	"DestroyRandomEnchantment"
+	"DestroyRandomEnchantment",
+	"AuraBuffRow", "AuraBuffPerAllyInRow",
+	"Corrupt", "StealHealthFromHero", "BlockSelfDamage",
+	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
+	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
+	"AuraSelfDamageReduction"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -85,6 +90,7 @@ class_name CardEffect
 # ─── Octroi de mot-clé temporaire ou permanent (GrantKeyword) ────────────────
 @export var granted_keyword: String = ""          # "TAUNT", "AEGIS", "CHARGE", "DISCIPLINE"...
 @export var granted_keyword_is_human: bool = false # true si le nom ci-dessus vient de KeywordHuman.Type
+@export var granted_keyword_is_demon: bool = false # true si le nom ci-dessus vient de KeywordDemon.Type
 # Durée gérée par le champ `duration` déjà présent plus haut ;
 # le retrait en fin de tour est assuré par TempEffectSystem.
 

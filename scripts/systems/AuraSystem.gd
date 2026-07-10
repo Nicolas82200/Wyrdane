@@ -12,8 +12,11 @@ func recompute_all() -> void:
 		minion.aura_health_bonus = 0
 		minion.aura_damage_reduction = 0
 		minion.infection_immune_aura = false
+	battle.hero_system.self_damage_reduction[true] = 0
+	battle.hero_system.self_damage_reduction[false] = 0
 	_apply_formation()
 	_apply_horde()
+	_apply_infernal_rank()
 	_apply_enchantment_auras()
 
 func _apply_formation() -> void:
@@ -38,6 +41,17 @@ func _apply_horde() -> void:
 		if undead_count >= 3:
 			minion.aura_attack_bonus += 1
 
+# RANG INFERNAL : +1 ATK par tranche de 10 HP manquants sur le héros du
+# propriétaire. Calculé en aura pour suivre les HP du héros à la hausse comme à
+# la baisse (soins compris).
+func _apply_infernal_rank() -> void:
+	for minion in battle.player_minions + battle.enemy_minions:
+		if not minion.has_demon_keyword(KeywordDemon.Type.RANG_INFERNAL):
+			continue
+		var hero: Hero = battle.player_hero if minion.owner_is_player else battle.enemy_hero
+		var missing: int = max(0, hero.max_health - hero.health)
+		minion.aura_attack_bonus += missing / 10
+
 func _apply_enchantment_auras() -> void:
 	for is_player in [true, false]:
 		for entry in battle.trigger_system.get_active_enchantments(is_player):
@@ -57,6 +71,8 @@ func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> voi
 				_aura_damage_reduction(effect, is_player)
 			"AuraInfectionImmunity":
 				_aura_infection_immunity(effect, is_player)
+			"AuraSelfDamageReduction":
+				_aura_self_damage_reduction(effect, is_player)
 			_:
 				pass  # à étendre carte par carte
 
@@ -70,7 +86,13 @@ func _aura_buff_row(effect: CardEffect, is_player: bool) -> void:
 		t.aura_health_bonus += effect.value_2
 
 func _aura_buff_per_ally_row(effect: CardEffect, is_player: bool) -> void:
-	var front_count: int = battle.get_front_minions(is_player).size()
+	# race_filter optionnel : ne compte que les alliés Avant de cette race
+	# (Symbiose Infernale : +0/+1 par Démon allié en rangée Avant).
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var front: Array[Minion] = battle.get_front_minions(is_player)
+	if race != -1:
+		front = front.filter(func(m: Minion): return m.card_data.race == race)
+	var front_count: int = front.size()
 	for t in battle.get_back_minions(is_player):
 		t.aura_health_bonus += effect.value_2 * front_count
 
@@ -94,3 +116,8 @@ func _aura_infection_immunity(effect: CardEffect, is_player: bool) -> void:
 			continue
 		t.infection_immune_aura = true
 		t.infected = false
+
+# Réduction des dégâts auto-infligés au héros, par occurrence (Sceau de
+# Préservation). Consommée par HeroSystem.self_damage.
+func _aura_self_damage_reduction(effect: CardEffect, is_player: bool) -> void:
+	battle.hero_system.self_damage_reduction[is_player] += max(0, effect.value)
