@@ -5,7 +5,7 @@ Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
 > **Notes de révision (à répercuter dans `CLAUDE.md` et `README.md`, et côté code si adopté) :**
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
 > - Les Rituels Mort-Vivant/Humain avec une durée "Instantané" ou "Ce tour" ont été retravaillés en effets vraiment récurrents (voir IDs 54, 56, 57, 58, 60, 62, 63, 64 côté Mort-Vivant ; H55, H61, H63, H64 côté Humain). Les Rituels Démon utilisent directement le système de **charges** décrit dans `CLAUDE.md`.
-> - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier, avec ses points d'implémentation encore à trancher côté moteur.
+> - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les ressources `.tres` des cartes restent à créer dans `resources/cards/demon/`.
 
 ---
 
