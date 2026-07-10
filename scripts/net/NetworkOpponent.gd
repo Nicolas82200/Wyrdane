@@ -194,15 +194,20 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		battle.aura_system.recompute_all()
 	else:
 		battle.enemy_graveyard.add_spell(card)
+		var target: Minion = null
+		if target_id != NetCommand.TARGET_NONE:
+			target = battle.net_registry.resolve(target_id)
+		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
+		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
+		if target != null and await battle.trigger_system.try_cancel_spell(false, target):
+			battle.board_visual_system.refresh_board()
+			return
 		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent
 		# AVANT les effets du sort, comme dans CardSystem, pour garder l'ordre
 		# d'attribution des ids identique entre les deux clients.
 		for ally in battle.enemy_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		var proxy := Minion.new(card, false, "")
-		var target: Minion = null
-		if target_id != NetCommand.TARGET_NONE:
-			target = battle.net_registry.resolve(target_id)
 		for effect in card.effects:
 			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
 	battle.board_visual_system.refresh_board()
