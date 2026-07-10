@@ -13,10 +13,10 @@ config_version=5
 config/name="Card Game"
 run/main_scene="uid://byp8qcya3aete"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
-run/autoload_on_startup=false
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/image="res://assets/splash/boot_splash.png"
+config/icon="res://icon.svg"
+run/autoload_on_startup=false
 
 [autoload]
 
