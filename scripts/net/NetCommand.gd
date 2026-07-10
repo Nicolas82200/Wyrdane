@@ -21,6 +21,7 @@ const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
+const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -82,6 +83,12 @@ static func hello(deck_paths: Array, start_id: int, stride: int, seed: int) -> D
 		"stride": stride,
 		"seed": seed,
 	}
+
+# Accusé de réception du HELLO : garantit à l'émetteur que son deck est bien
+# arrivé (le premier paquet P2P peut se perdre pendant l'établissement de la
+# session — voir la boucle de renvoi dans NetHandshake).
+static func hello_ack() -> Dictionary:
+	return {"type": HELLO_ACK}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

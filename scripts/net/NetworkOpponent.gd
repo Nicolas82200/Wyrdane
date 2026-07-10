@@ -82,7 +82,12 @@ func _on_command_received(command: Dictionary) -> void:
 		return
 	match NetCommand.type_of(command):
 		NetCommand.HELLO:
-			# Handshake : traité hors de la file de tour (brique suivante).
+			# HELLO tardif : notre handshake est terminé mais le pair renvoie le
+			# sien, donc notre HELLO_ACK s'est perdu et il attend encore au
+			# lobby. On répond pour le débloquer (voir NetHandshake).
+			net.send_command(NetCommand.hello_ack())
+		NetCommand.HELLO_ACK:
+			# Résidu de handshake (doublon) : rien à rejouer.
 			pass
 		_:
 			_queue.append(command)

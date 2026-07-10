@@ -12,6 +12,8 @@ class_name NetworkManager
 signal peer_connected()
 signal peer_disconnected(reason: String)
 signal command_received(command: Dictionary)
+# Relais du diagnostic de connexion du transport (affiché au lobby).
+signal status(message: String)
 
 var transport: NetTransport = null
 var is_host: bool = false
@@ -60,6 +62,7 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 		peer_connected.emit())
 	transport.disconnected.connect(func(reason: String) -> void: peer_disconnected.emit(reason))
 	transport.packet_received.connect(_on_packet_received)
+	transport.status.connect(func(message: String) -> void: status.emit(message))
 
 func _on_packet_received(bytes: PackedByteArray) -> void:
 	# allow_objects reste false (défaut) : on ne désérialise jamais d'objets
