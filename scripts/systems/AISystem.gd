@@ -37,8 +37,7 @@ func get_hand_count() -> int:
 func take_turn() -> void:
 	if battle.game_over:
 		return
-	battle.enemy_turn_active = true
-	battle.end_turn_button.disabled = true
+	battle.set_enemy_turn(true)
 	_resource_phase()
 	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
 	# son tour, Déclin pour le camp adverse
@@ -49,8 +48,7 @@ func take_turn() -> void:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
 	await _play_cards_phase()
 	await _attack_phase()
-	battle.end_turn_button.disabled = false
-	battle.enemy_turn_active = false
+	battle.set_enemy_turn(false)
 
 # Symétrique du TurnChoicePanel du joueur : pioche OU mana
 func _resource_phase() -> void:

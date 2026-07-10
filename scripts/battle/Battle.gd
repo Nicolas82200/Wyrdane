@@ -32,7 +32,7 @@ const ATTACK_PACE                 := 0.5
 @onready var hand: Hand                                = $Hand
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
 @onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
-@onready var end_turn_button: Button                   = $EndTurnButton
+@onready var end_turn_button: EndTurnButton            = $EndTurnButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
 @onready var enemy_front_container: Control            = $Board/EnemyFrontLine
@@ -88,6 +88,9 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
+# Bannière de transition de tour (« À vous de jouer » / « Tour adverse »),
+# créée en code pour ne pas toucher Battle.tscn.
+var turn_banner: TurnBanner
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -159,6 +162,10 @@ func _init_systems() -> void:
 	temp_effect_system.init(self)
 	cost_system.init(self)
 	sacrifice_system.init(self)
+	turn_banner = TurnBanner.new()
+	add_child(turn_banner)
+	# Sous TurnChoicePanel : la bannière ne masque jamais un panneau de décision.
+	move_child(turn_banner, turn_choice_panel.get_index())
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
@@ -234,6 +241,10 @@ func _start_game() -> void:
 		# Si le joueur distant commence, on lui passe la main avant notre 1er tour.
 		if not local_first:
 			await _run_remote_first_turn()
+			return
+	# Le joueur local ouvre la partie : annonce de son premier tour.
+	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+	update_end_turn_hint()
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
@@ -380,6 +391,7 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 
 func update_mana_ui() -> void:
 	mana_display.set_mana(mana, max_mana)
+	update_end_turn_hint()
 
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
@@ -483,9 +495,42 @@ func _on_end_turn_pressed() -> void:
 		return
 	turn_system.end_turn()
 
+# Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
+# Fin de tour et bannière de transition. Appelé par AISystem / NetworkOpponent.
+func set_enemy_turn(active: bool) -> void:
+	enemy_turn_active = active
+	end_turn_button.disabled = active
+	_retranslate_battle()
+	if game_over:
+		# Partie terminée pendant le tour adverse : pas d'annonce de tour
+		end_turn_button.set_ready_hint(false)
+		return
+	if active:
+		end_turn_button.set_ready_hint(false)
+		turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
+	else:
+		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+		update_end_turn_hint()
+
+# Halo sur « Fin du tour » quand il ne reste plus aucune action possible.
+func update_end_turn_hint() -> void:
+	end_turn_button.set_ready_hint(_player_has_no_actions())
+
+func _player_has_no_actions() -> bool:
+	if game_over or enemy_turn_active or turn_choice_panel.is_active():
+		return false
+	for card in hand_cards:
+		if can_play_card(card):
+			return false
+	for minion in player_minions:
+		if minion.can_attack():
+			return false
+	return true
+
 # Met à jour les libellés fixes de la bataille dans la langue courante.
 func _retranslate_battle() -> void:
-	end_turn_button.text = SettingsManager.t("battle.end_turn")
+	var key := "battle.enemy_turn" if enemy_turn_active else "battle.end_turn"
+	end_turn_button.text = SettingsManager.t(key)
 
 func draw_card() -> void:
 	turn_system.draw_card()
