@@ -14,13 +14,11 @@ func load_all_cards() -> void:
 	_scan_recursive(ALL_CARDS_PATH)
 	all_cards.sort_custom(func(a: CardData, b: CardData) -> bool: return a.cost < b.cost)
 	is_loaded = true
-	print("Cartes chargées : ", all_cards.size())  # <-- debug temporaire
 	loading_finished.emit()
 
 func _scan_recursive(path: String) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
-		print("ERREUR: impossible d'ouvrir ", path)
 		return
 	dir.list_dir_begin()
 	var file_name := dir.get_next()

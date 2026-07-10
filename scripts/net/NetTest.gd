@@ -56,7 +56,6 @@ func _build_ui() -> void:
 
 func _log_line(text: String) -> void:
 	_log.append_text(text + "\n")
-	print(text)
 
 # ─── Actions UI ───────────────────────────────────────────────────────────────
 
