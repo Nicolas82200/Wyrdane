@@ -10,7 +10,7 @@ const CARDS_PER_FRAME := 5
 
 # Taille des cartes dans la grille de collection
 const GRID_CARD_SCALE       := 0.9
-const GRID_CARD_HOVER_SCALE := 1.1   # léger zoom au survol, autour du centre
+const GRID_CARD_HOVER_SCALE := 1  # léger zoom au survol, autour du centre
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
