@@ -128,7 +128,7 @@ func update_display() -> void:
 	health_label.text = str(max(minion.health, 0))
 	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
 	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
-	var owners_turn := minion.owner_is_player == _is_player_turn()
+	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
 	var c := EXHAUSTED_TINT if (owners_turn and not minion.can_attack()) else Color.WHITE
 	modulate.r = c.r
 	modulate.g = c.g
@@ -153,7 +153,7 @@ func _is_player_turn() -> bool:
 func _update_ready_glow() -> void:
 	if _ready_glow == null or minion == null:
 		return
-	var show := minion.owner_is_player \
+	var show: bool = minion.owner_is_player \
 		and _is_player_turn() \
 		and minion.can_attack() \
 		and not is_selected \
