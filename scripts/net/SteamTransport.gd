@@ -15,6 +15,7 @@ class_name SteamTransport
 
 const LOBBY_GAME_KEY := "game"
 const LOBBY_GAME_VALUE := "fatebound"
+const LOBBY_OWNER_KEY := "owner_id"
 const CHANNEL := 0
 
 # Constantes Steamworks recopiées (le singleton n'existe pas à la compilation).
@@ -117,6 +118,11 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 	_lobby_id = lobby_id
 	# Tag le lobby pour que la recherche « partie rapide » le trouve.
 	_steam.setLobbyData(lobby_id, LOBBY_GAME_KEY, LOBBY_GAME_VALUE)
+	# Publie le SteamID de l'hôte dans les données du lobby : contrairement à
+	# getLobbyOwner (fiable seulement une fois membre), cette donnée est lisible
+	# depuis les résultats de recherche et permet au client d'écarter ses
+	# propres lobbies (cas « même compte », voir _on_lobby_match_list).
+	_steam.setLobbyData(lobby_id, LOBBY_OWNER_KEY, str(_steam.getSteamID()))
 	_steam.setLobbyJoinable(lobby_id, true)
 
 # Un membre entre / sort du lobby (hôte : détecte l'arrivée de l'adversaire).
@@ -153,10 +159,14 @@ func _adopt_remote_as_host(remote_id: int) -> void:
 func _on_lobby_match_list(lobbies: Array) -> void:
 	if _is_host:
 		return
-	if lobbies.is_empty():
-		disconnected.emit("steam_no_lobby_found")
-		return
-	_steam.joinLobby(lobbies[0])
+	# Écarte les lobbies créés par notre propre compte (test à deux instances
+	# locales : le « rejoindre » retomberait sur le lobby de l'autre instance).
+	var own_id := str(_steam.getSteamID())
+	for lobby_id in lobbies:
+		if _steam.getLobbyData(lobby_id, LOBBY_OWNER_KEY) != own_id:
+			_steam.joinLobby(lobby_id)
+			return
+	disconnected.emit("steam_same_account" if not lobbies.is_empty() else "steam_no_lobby_found")
 
 func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	if _is_host:
@@ -166,6 +176,17 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		return
 	_lobby_id = lobby_id
 	_remote_id = _steam.getLobbyOwner(lobby_id)
+	# Même compte Steam des deux côtés (deux instances locales sur un seul
+	# client Steam) : joinLobby « réussit » car le compte est déjà membre du
+	# lobby, mais l'hôte ne voit jamais de second joueur entrer et le P2P
+	# bouclerait sur soi-même. On refuse explicitement plutôt que de laisser
+	# le client croire qu'il est connecté.
+	if _remote_id == _steam.getSteamID():
+		_steam.leaveLobby(lobby_id)
+		_lobby_id = 0
+		_remote_id = 0
+		disconnected.emit("steam_same_account")
+		return
 	# Paquet vide : ouvre la session P2P côté hôte (déclenche sa
 	# p2p_session_request), le contenu est ignoré par poll().
 	_steam.sendP2PPacket(_remote_id, PackedByteArray(), P2P_SEND_RELIABLE, CHANNEL)
