@@ -40,7 +40,6 @@ preload(
 
 func _ready() -> void:
 	music_player = AudioStreamPlayer.new()
-	# [FIX] Bus assigné à la création, avant tout play
 	music_player.bus = "Music"
 	add_child(music_player)
 	_apply_saved_settings()
@@ -70,7 +69,6 @@ func _on_button_pressed(button: BaseButton) -> void:
 	play(BUTTON)
 
 func play_battle_music() -> void:
-	# [FIX] Bus déjà assigné dans _ready(), pas besoin de le réassigner ici
 	var music: AudioStream = BATTLE_MUSIC.pick_random()
 	if music_player.stream == music and music_player.playing:
 		return
@@ -79,7 +77,6 @@ func play_battle_music() -> void:
 
 func _spawn_player(sound: AudioStream, pitch_variation: bool, min_pitch := 0.92, max_pitch := 1.08) -> void:
 	var player := AudioStreamPlayer.new()
-	# [FIX] Bus assigné avant play()
 	player.bus = "SFX"
 	add_child(player)
 	player.stream = sound
@@ -178,9 +175,23 @@ func load_sounds() -> void:
 				preload("res://assets/audio/sound-effect/global/horse-neigh-03.wav"),
 				preload("res://assets/audio/sound-effect/global/horse-neigh-04.wav"),
 			],
-			UnitStyle.Type.ARCHER:        [],
-			UnitStyle.Type.MAGE:          [],
-			UnitStyle.Type.PALADIN:       [],
+			UnitStyle.Type.ARCHER:        [
+				preload("res://assets/audio/sound-effect/global/loading_bow.mp3"),
+				preload("res://assets/audio/sound-effect/global/bow-and-arrow.wav"),
+			],
+			UnitStyle.Type.MAGE:          [
+				preload("res://assets/audio/sound-effect/global/spell-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-03.wav"),
+			],
+			UnitStyle.Type.PALADIN:       [
+				preload("res://assets/audio/sound-effect/global/holy-spell-01.wav"),
+			],
+			UnitStyle.Type.SOLDIER:       [
+				preload("res://assets/audio/sound-effect/human/soldier_01.mp3"),
+				preload("res://assets/audio/sound-effect/human/soldier_02.mp3"),
+				preload("res://assets/audio/sound-effect/human/soldier_03.mp3"),
+			],
 			UnitStyle.Type.RANGER:        [],
 			UnitStyle.Type.DRUID:         [],
 			UnitStyle.Type.BLADE_DANCER:  [],
@@ -205,7 +216,6 @@ func play(sound_name: String) -> void:
 		sound = variants.pick_random()
 	else:
 		sound = variants
-	# [FIX] Passe par _spawn_player pour jouer sur le bus SFX
 	_spawn_player(sound, false)
 
 
@@ -222,7 +232,6 @@ func play_with_pitch(
 		sound = variants.pick_random()
 	else:
 		sound = variants
-	# [FIX] Passe par _spawn_player pour jouer sur le bus SFX
 	_spawn_player(sound, true, min_pitch, max_pitch)
 
 
@@ -240,6 +249,3 @@ func play_for_style(sound_name: String, style: int, pitch_variation := true) -> 
 		return
 	var sound: AudioStream = variants.pick_random() if variants is Array else variants
 	_spawn_player(sound, pitch_variation)
-
-func stop_music() -> void:
-	music_player.stop()

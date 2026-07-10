@@ -13,6 +13,14 @@ const PEEK_ALPHA := 0.12
 @onready var mana_button: Button = %ManaButton
 @onready var peek_button: Button = %PeekButton
 
+@onready var _subtitle:   Label = $CenterContainer/VBox/Header/Subtitle
+@onready var _title:      Label = $CenterContainer/VBox/Header/Title
+@onready var _draw_title: Label = $CenterContainer/VBox/HBox/DrawButton/Margin/VBox/CardTitle
+@onready var _draw_desc:  Label = $CenterContainer/VBox/HBox/DrawButton/Margin/VBox/Desc
+@onready var _mana_title: Label = $CenterContainer/VBox/HBox/ManaButton/Margin/VBox/CardTitle
+@onready var _mana_desc:  Label = $CenterContainer/VBox/HBox/ManaButton/Margin/VBox/Desc
+@onready var _hint:       Label = $CenterContainer/VBox/Hint
+
 # Un tween de scale par carte, pour ne pas cumuler hover + entrée
 var _scale_tweens: Dictionary = {}
 var _peek_tween: Tween
@@ -25,6 +33,19 @@ func _ready() -> void:
 	peek_button.set_meta("no_click_sound", true)
 	peek_button.mouse_entered.connect(_set_peek.bind(true))
 	peek_button.mouse_exited.connect(_set_peek.bind(false))
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()
+
+# Met à jour les libellés fixes du panneau dans la langue courante.
+func _retranslate() -> void:
+	_subtitle.text   = SettingsManager.t("turn.start")
+	_title.text      = SettingsManager.t("turn.choose")
+	_draw_title.text = SettingsManager.t("turn.draw_title")
+	_draw_desc.text  = SettingsManager.t("turn.draw_desc")
+	_mana_title.text = SettingsManager.t("turn.mana_title")
+	_mana_desc.text  = SettingsManager.t("turn.mana_desc")
+	_hint.text       = SettingsManager.t("turn.hint")
+	peek_button.text = SettingsManager.t("turn.peek")
 
 func _setup_card(button: Button, on_pressed: Callable) -> void:
 	# Le son de confirmation est joué dans _confirm_choice, pas le clic générique
@@ -92,6 +113,17 @@ func _set_peek(peeking: bool) -> void:
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 # ─── Sélection ────────────────────────────────────────────────────────────────
+
+# Le panneau attend-il un choix ? (visible et boutons encore actifs)
+func is_active() -> bool:
+	return visible and not draw_button.disabled
+
+# Raccourcis clavier : déclenchent le même chemin qu'un clic sur la carte
+func select_draw() -> void:
+	_on_draw_button_pressed()
+
+func select_mana() -> void:
+	_on_mana_button_pressed()
 
 func _on_draw_button_pressed() -> void:
 	_confirm_choice(draw_button, draw_selected)

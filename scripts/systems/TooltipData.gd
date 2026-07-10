@@ -4,122 +4,86 @@ extends Node
 
 # ─── Données descriptives ─────────────────────────────────────────────────────
 
+# Chaque entrée mappe l'enum vers les clés de traduction (nom + description)
+# définies dans translations/game.csv. Le texte affiché est résolu au moment de
+# construire le tooltip (voir _tr) pour suivre la langue courante.
 const KEYWORD_DESCRIPTIONS := {
-	Keyword.Type.TAUNT: {
-		"title": "Rempart",
-		"desc": "Doit être attaqué en priorité par les serviteurs ennemis."
-	},
-	Keyword.Type.AEGIS: {
-		"title": "Égide",
-		"desc": "Absorbe la prochaine source de dégâts. Le bouclier disparaît ensuite."
-	},
-	Keyword.Type.CHARGE: {
-		"title": "Assaut",
-		"desc": "Peut attaquer dès le tour où elle est invoquée."
-	},
-	Keyword.Type.LIFESTEAL: {
-		"title": "Moisson",
-		"desc": "Les dégâts infligés soignent votre héros d'autant."
-	},
-	Keyword.Type.FURY: {
-		"title": "Frénésie",
-		"desc": "Peut attaquer deux fois par tour."
-	},
-	Keyword.Type.DEADLY_POISON: {
-		"title": "Venin mortel",
-		"desc": "Toute blessure infligée par ce serviteur détruit la cible, quelle que soit sa vie restante."
-	},
-	Keyword.Type.RAVAGE: {
-		"title": "Ravage",
-		"desc": "Les dégâts excédentaires sont infligés directement au héros adverse."
-	},
-	Keyword.Type.BLACK_WINGS: {
-		"title": "Ailes noires",
-		"desc": "Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros."
-	},
+	Keyword.Type.TAUNT:         { "title": "KW_TAUNT_NAME",         "desc": "KW_TAUNT_DESC" },
+	Keyword.Type.AEGIS:         { "title": "KW_AEGIS_NAME",         "desc": "KW_AEGIS_DESC" },
+	Keyword.Type.CHARGE:        { "title": "KW_CHARGE_NAME",        "desc": "KW_CHARGE_DESC" },
+	Keyword.Type.LIFESTEAL:     { "title": "KW_LIFESTEAL_NAME",     "desc": "KW_LIFESTEAL_DESC" },
+	Keyword.Type.FURY:          { "title": "KW_FURY_NAME",          "desc": "KW_FURY_DESC" },
+	Keyword.Type.DEADLY_POISON: { "title": "KW_DEADLY_POISON_NAME", "desc": "KW_DEADLY_POISON_DESC" },
+	Keyword.Type.RAVAGE:        { "title": "KW_RAVAGE_NAME",        "desc": "KW_RAVAGE_DESC" },
+	Keyword.Type.BLACK_WINGS:   { "title": "KW_BLACK_WINGS_NAME",   "desc": "KW_BLACK_WINGS_DESC" },
 }
 
 const KEYWORD_HUMAN_DESCRIPTIONS := {
-	KeywordHuman.Type.DISCIPLINE: {
-		"title": "Discipline",
-		"desc": "Immunisé aux effets de silence, contrôle mental et peur ennemis."
-	},
-	KeywordHuman.Type.FORMATION: {
-		"title": "Formation",
-		"desc": "Tant qu'un serviteur allié est adjacent, ce serviteur gagne +1/+1."
-	},
-	KeywordHuman.Type.CONTRE_ATTAQUE: {
-		"title": "Contre-attaque",
-		"desc": "Blessure : si ce serviteur survit, inflige son ATK en retour à l'attaquant."
-	},
-	KeywordHuman.Type.COMMANDEMENT: {
-		"title": "Commandement",
-		"desc": "Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente."
-	},
-	KeywordHuman.Type.FORTIFICATION: {
-		"title": "Fortification",
-		"desc": "Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis."
-	},
+	KeywordHuman.Type.DISCIPLINE:     { "title": "KW_DISCIPLINE_NAME",     "desc": "KW_DISCIPLINE_DESC" },
+	KeywordHuman.Type.FORMATION:      { "title": "KW_FORMATION_NAME",      "desc": "KW_FORMATION_DESC" },
+	KeywordHuman.Type.CONTRE_ATTAQUE: { "title": "KW_CONTRE_ATTAQUE_NAME", "desc": "KW_CONTRE_ATTAQUE_DESC" },
+	KeywordHuman.Type.COMMANDEMENT:   { "title": "KW_COMMANDEMENT_NAME",   "desc": "KW_COMMANDEMENT_DESC" },
+	KeywordHuman.Type.FORTIFICATION:  { "title": "KW_FORTIFICATION_NAME",  "desc": "KW_FORTIFICATION_DESC" },
 }
 
 const KEYWORD_UNDEAD_DESCRIPTIONS := {
-	KeywordUndead.Type.PESTIFERE: {
-		"title": "Pestiféré",
-		"desc": "Les attaques de ce serviteur infligent Infection en plus des dégâts."
-	},
-	KeywordUndead.Type.NECROPHAGE: {
-		"title": "Nécrophage",
-		"desc": "Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente."
-	},
-	KeywordUndead.Type.HORDE: {
-		"title": "Horde",
-		"desc": "Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0."
-	},
-	KeywordUndead.Type.REVENANT: {
-		"title": "Revenant",
-		"desc": "La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie)."
-	},
-	KeywordUndead.Type.CHAIR_MORTE: {
-		"title": "Chair morte",
-		"desc": "Immunisé à l'Infection, au poison et aux effets de peur."
-	},
+	KeywordUndead.Type.PESTIFERE:   { "title": "KW_PESTIFERE_NAME",   "desc": "KW_PESTIFERE_DESC" },
+	KeywordUndead.Type.NECROPHAGE:  { "title": "KW_NECROPHAGE_NAME",  "desc": "KW_NECROPHAGE_DESC" },
+	KeywordUndead.Type.HORDE:       { "title": "KW_HORDE_NAME",       "desc": "KW_HORDE_DESC" },
+	KeywordUndead.Type.REVENANT:    { "title": "KW_REVENANT_NAME",    "desc": "KW_REVENANT_DESC" },
+	KeywordUndead.Type.CHAIR_MORTE: { "title": "KW_CHAIR_MORTE_NAME", "desc": "KW_CHAIR_MORTE_DESC" },
 }
 
-# Toutes les valeurs "trigger_name" (String) doivent correspondre EXACTEMENT
-# aux chaînes utilisées dans TriggerType.get_name() / le champ trigger.type de CardData.
+const KEYWORD_DEMON_DESCRIPTIONS := {
+	KeywordDemon.Type.PACTE:           { "title": "KW_PACTE_NAME",           "desc": "KW_PACTE_DESC" },
+	KeywordDemon.Type.CORRUPTION:      { "title": "KW_CORRUPTION_NAME",      "desc": "KW_CORRUPTION_DESC" },
+	KeywordDemon.Type.TERREUR:         { "title": "KW_TERREUR_NAME",         "desc": "KW_TERREUR_DESC" },
+	KeywordDemon.Type.RANG_INFERNAL:   { "title": "KW_RANG_INFERNAL_NAME",   "desc": "KW_RANG_INFERNAL_DESC" },
+	KeywordDemon.Type.CHAIR_DE_SOUFRE: { "title": "KW_CHAIR_DE_SOUFRE_NAME", "desc": "KW_CHAIR_DE_SOUFRE_DESC" },
+	KeywordDemon.Type.SANG_NOIR:       { "title": "KW_SANG_NOIR_NAME",       "desc": "KW_SANG_NOIR_DESC" },
+}
+
+# Les clés de ce dict (String) doivent correspondre EXACTEMENT au champ
+# trigger.type de CardData ; les valeurs pointent vers game.csv.
 const TRIGGER_DESCRIPTIONS := {
-	"ONPLAY":       { "title": "Arrivée",          "desc": "Déclenché lorsque ce serviteur arrive sur le champ de bataille." },
-	"DEATHRATTLE":  { "title": "Dernier souffle",  "desc": "Déclenché quand ce serviteur meurt." },
-	"CHARGE":       { "title": "Assaut",           "desc": "Peut attaquer dès le tour où elle est invoquée." },
-	"OnDamaged":    { "title": "Blessure",         "desc": "Déclenché quand ce serviteur reçoit des dégâts." },
-	"OnAwaken":     { "title": "Éveil",            "desc": "Déclenché au début de votre tour." },
-	"OnDecline":    { "title": "Déclin",           "desc": "Déclenché au début du tour ennemi." },
-	"OnRally":      { "title": "Ralliement",       "desc": "Déclenché quand ce serviteur attaque." },
-	"OnGrief":      { "title": "Deuil",            "desc": "Déclenché quand un serviteur allié meurt." },
-	"OnSpell":      { "title": "Sortilège",        "desc": "Déclenché quand l'adversaire joue un sort." },
-	"OnSacrifice":  { "title": "Sacrifice",        "desc": "Sacrifie un ou plusieurs serviteur en cout supplémentaire" },
-	"OnExecution":  { "title": "Exécution",        "desc": "Déclenché quand ce serviteur tue un ennemi en attaquant." },
-	"OnCarnage":    { "title": "Carnage",          "desc": "Déclenché quand un serviteur ennemi meurt." },
-	"OnAttack":     { "title": "Attaque",          "desc": "Déclenché quand ce serviteur attaque." },
-	"OnTurnStart":  { "title": "Début de tour",    "desc": "Déclenché au début de chaque tour." },
-	"OnTurnEnd":    { "title": "Fin de tour",      "desc": "Déclenché à la fin de chaque tour." },
-	"OnDeathRage":  { "title": "Mort-rage",        "desc": "Déclenché quand un serviteur ennemi meurt." },
-	"OnAura":       { "title": "Présence",         "desc": "Effet passif continu actif tant que l'enchantement est en jeu." },
-	"OnSummon":     { "title": "Appel",            "desc": "Déclenché chaque fois qu'un serviteur allié entre en jeu." },
-	"OnResonance":  { "title": "Résonance",        "desc": "Déclenché quand un serviteur allié attaque." },
+	"ONPLAY":       { "title": "TRIG_ONPLAY_NAME",      "desc": "TRIG_ONPLAY_DESC" },
+	"DEATHRATTLE":  { "title": "TRIG_DEATHRATTLE_NAME", "desc": "TRIG_DEATHRATTLE_DESC" },
+	"CHARGE":       { "title": "TRIG_CHARGE_NAME",      "desc": "TRIG_CHARGE_DESC" },
+	"OnDamaged":    { "title": "TRIG_ONDAMAGED_NAME",   "desc": "TRIG_ONDAMAGED_DESC" },
+	"OnAwaken":     { "title": "TRIG_ONAWAKEN_NAME",    "desc": "TRIG_ONAWAKEN_DESC" },
+	"OnDecline":    { "title": "TRIG_ONDECLINE_NAME",   "desc": "TRIG_ONDECLINE_DESC" },
+	"OnRally":      { "title": "TRIG_ONRALLY_NAME",     "desc": "TRIG_ONRALLY_DESC" },
+	"OnGrief":      { "title": "TRIG_ONGRIEF_NAME",     "desc": "TRIG_ONGRIEF_DESC" },
+	"OnSpell":      { "title": "TRIG_ONSPELL_NAME",     "desc": "TRIG_ONSPELL_DESC" },
+	"OnSacrifice":  { "title": "TRIG_ONSACRIFICE_NAME", "desc": "TRIG_ONSACRIFICE_DESC" },
+	"OnExecution":  { "title": "TRIG_ONEXECUTION_NAME", "desc": "TRIG_ONEXECUTION_DESC" },
+	"OnCarnage":    { "title": "TRIG_ONCARNAGE_NAME",   "desc": "TRIG_ONCARNAGE_DESC" },
+	"OnAttack":     { "title": "TRIG_ONATTACK_NAME",    "desc": "TRIG_ONATTACK_DESC" },
+	"OnTurnStart":  { "title": "TRIG_ONTURNSTART_NAME", "desc": "TRIG_ONTURNSTART_DESC" },
+	"OnTurnEnd":    { "title": "TRIG_ONTURNEND_NAME",   "desc": "TRIG_ONTURNEND_DESC" },
+	"OnDeathRage":  { "title": "TRIG_ONDEATHRAGE_NAME", "desc": "TRIG_ONDEATHRAGE_DESC" },
+	"OnAura":       { "title": "TRIG_ONAURA_NAME",      "desc": "TRIG_ONAURA_DESC" },
+	"OnSummon":     { "title": "TRIG_ONSUMMON_NAME",    "desc": "TRIG_ONSUMMON_DESC" },
+	"OnResonance":  { "title": "TRIG_ONRESONANCE_NAME", "desc": "TRIG_ONRESONANCE_DESC" },
+	"OnSelfDamage": { "title": "TRIG_ONSELFDAMAGE_NAME", "desc": "TRIG_ONSELFDAMAGE_DESC" },
 }
 
 const RACE_DESCRIPTIONS := {
-	Race.Type.UNDEAD: "Mort-Vivant",
-	Race.Type.HUMAN:  "Humain",
-	Race.Type.ELF:    "Elfe",
-	Race.Type.DWARF:  "Nain",
-	Race.Type.DEMON:  "Démon",
+	Race.Type.UNDEAD: "RACE_UNDEAD",
+	Race.Type.HUMAN:  "RACE_HUMAN",
+	Race.Type.ELF:    "RACE_ELF",
+	Race.Type.DWARF:  "RACE_DWARF",
+	Race.Type.DEMON:  "RACE_DEMON",
 }
+
+# Résout une clé de traduction dans la langue courante.
+func _tr(key: String) -> String:
+	return TranslationServer.translate(key)
 
 const COLOR_KEYWORD        := Color(0.15, 0.28, 0.48, 1.0)  # Mots-clés partagés
 const COLOR_KEYWORD_HUMAN  := Color(0.55, 0.42, 0.10, 1.0)  # Humain
 const COLOR_KEYWORD_UNDEAD := Color(0.25, 0.36, 0.16, 1.0)  # Mort-Vivant (vert putride)
+const COLOR_KEYWORD_DEMON  := Color(0.42, 0.12, 0.12, 1.0)  # Démon (rouge écarlate)
 const COLOR_TRIGGER       := Color(0.38, 0.22, 0.06, 1.0)
 const COLOR_EFFECT        := Color(0.18, 0.32, 0.18, 1.0)
 
@@ -130,45 +94,15 @@ const COLOR_EFFECT        := Color(0.18, 0.32, 0.18, 1.0)
 
 func describe_effect(effect: CardEffect) -> String:
 	match effect.effect_id:
-		"Freeze":
-			return "Empêche un serviteur d'attaquer."
-		"InfectEnemy":
-			return "Inflige 1 dégât chaque tour."
-		"InfectAdjacent":
-			return "Inflige l'Infection à un serviteur ennemi adjacent."
-		"Transform":
-			return "Transforme un serviteur en une autre créature."
-		"Silence":
-			return "Retire les mots-clés et effets."
-		"StealMinion":
-			return "Prend le contrôle d'un serviteur ennemi."
-		_:
-			return ""
-
-func _target_label(target: String) -> String:
-	match target:
-		"Self":              return "à ce serviteur"
-		"EnemyMinion":       return "à un serviteur ennemi"
-		"AllyMinion":        return "à un serviteur allié"
-		"AnyMinion":         return "à un serviteur"
-		"AllEnemies":        return "à tous les serviteurs ennemis"
-		"AllAllies":         return "à tous les serviteurs alliés"
-		"AllMinions":        return "à tous les serviteurs"
-		"AllEnemiesFront":   return "à tous les serviteurs ennemis en première ligne"
-		"AllEnemiesBack":    return "à tous les serviteurs ennemis en deuxième ligne"
-		"AllAlliesFront":    return "à tous les serviteurs alliés en première ligne"
-		"AllAlliesBack":     return "à tous les serviteurs alliés en deuxième ligne"
-		"RandomEnemy":       return "à un serviteur ennemi aléatoire"
-		"RandomAlly":        return "à un serviteur allié aléatoire"
-		"EnemyHero":         return "au héros ennemi"
-		"OwnerHero":         return "à votre héros"
-		_:                   return "à la cible"
-
-func _count_label(n: int, singular: String, plural: String) -> String:
-	return "%d %s" % [n, singular if n <= 1 else plural]
-
-func _count_prefix(n: int, name: String) -> String:
-	return "%d × %s" % [n, name] if n > 1 else name
+		"Freeze":          return _tr("EFF_FREEZE_DESC")
+		"InfectEnemy":     return _tr("EFF_INFECT_ENEMY_DESC")
+		"InfectAdjacent":  return _tr("EFF_INFECT_ADJ_DESC")
+		"Transform":       return _tr("EFF_TRANSFORM_DESC")
+		"Silence":         return _tr("EFF_SILENCE_DESC")
+		"StealMinion":     return _tr("EFF_STEAL_DESC")
+		"Corrupt":         return _tr("EFF_CORRUPT_DESC")
+		"StealMinionThenDestroy": return _tr("EFF_STEAL_DESTROY_DESC")
+		_:                 return ""
 
 # ─── Fabrique de panels ───────────────────────────────────────────────────────
 
@@ -222,7 +156,8 @@ func make_tooltip_panel(title: String, desc: String,
 
 	return panel
 
-func make_race_tooltip(race_name: String) -> PanelContainer:
+# race_key : une clé de traduction de race (RACE_*), résolue dans la langue courante.
+func make_race_tooltip(race_key: String) -> PanelContainer:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color                   = Color(0.18, 0.18, 0.18, 0.92)
 	bg.border_width_left          = 1
@@ -240,7 +175,7 @@ func make_race_tooltip(race_name: String) -> PanelContainer:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var label := Label.new()
-	label.text = race_name
+	label.text = _tr(race_key)
 	label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75, 1.0))
 	label.add_theme_font_size_override("font_size", 12)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -263,7 +198,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_KEYWORD)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -273,7 +208,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_HUMAN_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_HUMAN_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_KEYWORD_HUMAN)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_HUMAN)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -283,7 +218,17 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_UNDEAD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_UNDEAD_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_KEYWORD_UNDEAD)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_UNDEAD)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	# 1d. Mots-clés Démon (enum KeywordDemon.Type)
+	for keyword in card_data.get_demon_keyword_values():
+		if not KEYWORD_DEMON_DESCRIPTIONS.has(keyword):
+			continue
+		var info: Dictionary = KEYWORD_DEMON_DESCRIPTIONS[keyword]
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_DEMON)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -298,7 +243,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if trigger.type == "OnAura" and card_data.card_type == "Minion":
 			continue
 		var info: Dictionary = TRIGGER_DESCRIPTIONS[trigger.type]
-		var panel := make_tooltip_panel(info["title"], info["desc"], COLOR_TRIGGER)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_TRIGGER)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -318,10 +263,12 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 
 func _effect_title(effect_id: String) -> String:
 	match effect_id:
-		"Freeze":           return "Gel"
-		"InfectEnemy":      return "Infection"
-		"InfectAdjacent":   return "Infection"
-		"Transform":        return "Transformation"
-		"Silence":          return "Silence"
-		"StealMinion":      return "Vol de serviteur"
+		"Freeze":           return _tr("EFF_FREEZE_NAME")
+		"InfectEnemy":      return _tr("EFF_INFECT_NAME")
+		"InfectAdjacent":   return _tr("EFF_INFECT_NAME")
+		"Transform":        return _tr("EFF_TRANSFORM_NAME")
+		"Silence":          return _tr("EFF_SILENCE_NAME")
+		"StealMinion":      return _tr("EFF_STEAL_NAME")
+		"Corrupt":          return _tr("EFF_CORRUPT_NAME")
+		"StealMinionThenDestroy": return _tr("EFF_STEAL_NAME")
 		_:                  return effect_id

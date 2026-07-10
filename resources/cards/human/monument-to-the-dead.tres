@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
-[ext_resource type="Texture2D" uid="uid://65pex8mhgqwvd" path="res://assets/card_art/undead/monument-of-death.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://ubxc8ovhnifn" path="res://assets/card_art/undead/monument-of-death.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
@@ -14,6 +14,8 @@ type = "OnGrief"
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
 count = 2
+pool_max_cost = 3
+pool_race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

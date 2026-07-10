@@ -2,12 +2,11 @@
 extends Node
 class_name GraveyardSystem
 
-# [FIX] Type explicite
 var battle: Node
 
 func init(_battle: Node) -> void:
 	battle = _battle
-	# [FIX] Labels récupérés via @onready de GameBoard plutôt que par chemin string fragile
+	# Labels récupérés via les @onready de GameBoard
 	_setup(
 		battle.player_graveyard,
 		battle.player_graveyard_btn,
@@ -22,16 +21,21 @@ func init(_battle: Node) -> void:
 	)
 
 func _setup(graveyard: Graveyard, button: Button, preview: Card, label: Label) -> void:
-	var scale := Vector2(120, 180) / Vector2(200, 300)
+	# Le cadre noir extérieur de la carte va de (-8,-9) à (258,381) = 266x390.
+	# On le fait remplir exactement une case de carte (150x225, comme le deck) et on
+	# recale l'aperçu pour que ce cadre coïncide avec le coin haut-gauche du bouton.
+	var frame := Vector2(266, 390)
+	var target := Vector2(150, 225)
+	var s := target / frame
 	preview.visible = false
 	button.visible  = false
-	preview.scale   = scale
+	preview.scale    = s
+	preview.position = Vector2(8.0 * s.x, 9.0 * s.y)
 	graveyard.graveyard_changed.connect(func(): update_btn(graveyard, preview, label))
 	button.pressed.connect(func(): battle.graveyard_view.open(graveyard))
 	if preview.has_method("set_non_interactive"):
 		preview.set_non_interactive()
 
-# [FIX] update_btn centralisé ici — _update_graveyard_btn dans GameBoard est mort-code, peut être supprimé
 func update_btn(graveyard: Graveyard, preview: Card, label: Label) -> void:
 	var last: CardData = graveyard.last_card_data()
 	if last == null:

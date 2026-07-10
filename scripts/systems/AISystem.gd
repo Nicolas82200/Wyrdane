@@ -1,4 +1,4 @@
-extends Node
+extends OpponentDriver
 class_name AISystem
 
 # IA adverse : gère son propre deck, sa main et son mana,
@@ -9,29 +9,35 @@ const MAX_COPIES   := 2
 const MANA_CAP     := 10
 const STARTING_HAND := 4
 
-var battle
-
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
-var mana: int             = 0
-var max_mana: int         = 0
-
-func init(_battle) -> void:
-	battle = _battle
+# mana / max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
 	_build_deck()
 	deck.shuffle()
 	for i in range(STARTING_HAND):
 		_draw_card()
+	refresh_ui()
+
+# Deck et main de l'IA visibles par le joueur (dos de cartes + compteurs)
+func refresh_ui() -> void:
+	battle.deck_system.update_enemy_deck_ui()
+	battle.update_enemy_hand_ui()
+	battle.update_enemy_mana_ui()
+
+func get_deck_count() -> int:
+	return deck.size()
+
+func get_hand_count() -> int:
+	return hand.size()
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
 func take_turn() -> void:
 	if battle.game_over:
 		return
-	battle.enemy_turn_active = true
-	battle.end_turn_button.disabled = true
+	battle.set_enemy_turn(true)
 	_resource_phase()
 	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
 	# son tour, Déclin pour le camp adverse
@@ -42,18 +48,22 @@ func take_turn() -> void:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
 	await _play_cards_phase()
 	await _attack_phase()
-	battle.end_turn_button.disabled = false
-	battle.enemy_turn_active = false
+	battle.set_enemy_turn(false)
 
 # Symétrique du TurnChoicePanel du joueur : pioche OU mana
 func _resource_phase() -> void:
+	var gained_max := false
 	if max_mana >= MANA_CAP or (hand.size() <= 2 and max_mana >= 4):
 		_draw_card()
 	else:
 		max_mana += 1
+		gained_max = true
 	mana = max_mana
 	for minion in battle.enemy_minions:
 		minion.refresh_attacks()
+	battle.update_enemy_mana_ui()
+	if gained_max:
+		battle.enemy_mana_display.pulse_max()
 
 # Pause AVANT chaque action sauf la première : une action isolée reste fluide
 func _play_cards_phase() -> void:
@@ -67,6 +77,7 @@ func _play_cards_phase() -> void:
 		var row: String = _pick_row_for(card)
 		hand.erase(card)
 		mana -= card.cost
+		refresh_ui()
 		await battle.board_system.summon_minion(card, false, row)
 		played = true
 
@@ -115,6 +126,7 @@ func _draw_card() -> void:
 	if deck.is_empty():
 		return
 	hand.append(deck.pop_back())
+	refresh_ui()
 
 # ─── Choix de pose ────────────────────────────────────────────────────────────
 

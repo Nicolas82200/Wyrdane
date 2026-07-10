@@ -23,6 +23,8 @@ func process_deaths() -> void:
 	await _animate_deaths(dead_all)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
+	for dead in dead_all:
+		battle.net_registry.unregister(dead)
 	_send_to_graveyards(dead_player, dead_enemy)
 	await _trigger_deathrattle(dead_player)
 	await _trigger_deathrattle(dead_enemy)
@@ -62,10 +64,13 @@ func _animate_deaths(dead_minions: Array[Minion]) -> void:
 		battle.board_visual_system.remove_visual(minion)
 
 func _send_to_graveyards(dead_player: Array[Minion], dead_enemy: Array[Minion]) -> void:
+	# Les serviteurs "retirés du jeu" (Possédé Hurlant) ne vont pas au cimetière.
 	for minion in dead_player:
-		battle.player_graveyard.add_minion(minion.card_data)
+		if not minion.card_data.exile_on_death:
+			battle.player_graveyard.add_minion(minion.card_data)
 	for minion in dead_enemy:
-		battle.enemy_graveyard.add_minion(minion.card_data)
+		if not minion.card_data.exile_on_death:
+			battle.enemy_graveyard.add_minion(minion.card_data)
 
 func _trigger_deathrattle(dead_minions: Array[Minion]) -> void:
 	for minion in dead_minions:
@@ -93,7 +98,11 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 	for minion in other_camp:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnCarnage")
 
-	await battle.trigger_system.fire("OnGrief", null, dead_were_player)
+	# Un OnGrief par allié mort (source = le mort) afin que les enchantements
+	# puissent conditionner leur effet sur qui vient de mourir (ex: Mémorial des
+	# Héros : seulement si un Humain Légendaire meurt).
+	for dead in dead_minions:
+		await battle.trigger_system.fire("OnGrief", dead, dead_were_player)
 	await battle.trigger_system.fire("OnCarnage", null, not dead_were_player)
 
 func _trigger_sacrifice(dead_minions: Array[Minion], dead_were_player: bool) -> void:

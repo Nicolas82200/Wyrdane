@@ -37,18 +37,24 @@ var _targetable_style: StyleBoxFlat = null
 var _targetable: bool = false
 var _pulse_time: float = 0.0
 var _mouse_is_over: bool = false
+var _ready_glow: Panel = null
+var _ready_style: StyleBoxFlat = null
+var _ready_pulse: float = 0.0
+
+const READY_GLOW_COLOR := Color(0.35, 1.0, 0.45)
+const EXHAUSTED_TINT   := Color(0.5, 0.5, 0.5)
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
 var _tooltip_layer: CanvasLayer = null
 
-# [FIX] Référence mise en cache — plus de get_tree().current_scene partout
+# Référence Battle mise en cache
 var _battle: Node = null
 
 func _ready() -> void:
 	_battle = get_tree().current_scene
 
-	# [FIX] Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
+	# Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
 	_highlight_style = StyleBoxFlat.new()
 	_highlight_style.bg_color            = Color.TRANSPARENT
 	_highlight_style.border_width_left   = 2
@@ -69,6 +75,27 @@ func _ready() -> void:
 	if border_color:
 		border_color.add_theme_stylebox_override("panel", _race_style)
 
+	# Halo « prêt à attaquer » — bordure verte pulsante autour du serviteur
+	_ready_style = StyleBoxFlat.new()
+	_ready_style.bg_color            = Color.TRANSPARENT
+	_ready_style.border_width_left   = 4
+	_ready_style.border_width_right  = 4
+	_ready_style.border_width_top    = 4
+	_ready_style.border_width_bottom = 4
+	_ready_style.border_color        = READY_GLOW_COLOR
+	_ready_style.corner_radius_top_left     = 8
+	_ready_style.corner_radius_top_right    = 8
+	_ready_style.corner_radius_bottom_left  = 8
+	_ready_style.corner_radius_bottom_right = 8
+	_ready_glow = Panel.new()
+	_ready_glow.name = "ReadyGlow"
+	_ready_glow.position = Vector2(-5, -5)
+	_ready_glow.size = Vector2(110, 160)
+	_ready_glow.add_theme_stylebox_override("panel", _ready_style)
+	_ready_glow.visible = false
+	add_child(_ready_glow)
+	move_child(_ready_glow, border_highlight.get_index())
+
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	for child in get_children():
 		if child is Control:
@@ -77,6 +104,10 @@ func _ready() -> void:
 	mouse_exited.connect(_on_mouse_exited)
 
 func _process(delta: float) -> void:
+	if _ready_glow != null and _ready_glow.visible:
+		_ready_pulse += delta * 2.5
+		_ready_style.border_color.a = 0.55 + sin(_ready_pulse) * 0.35
+		_ready_glow.queue_redraw()
 	if not _targetable or _targetable_style == null:
 		return
 	_pulse_time += delta * 3.0
@@ -95,16 +126,42 @@ func update_display() -> void:
 		return
 	attack_label.text = str(minion.attack)
 	health_label.text = str(max(minion.health, 0))
-	var c := Color.WHITE if minion.can_attack() else Color(0.7, 0.7, 0.7)
+	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
+	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
+	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
+	var c := EXHAUSTED_TINT if (owners_turn and not minion.can_attack()) else Color.WHITE
 	modulate.r = c.r
 	modulate.g = c.g
 	modulate.b = c.b
+	_update_ready_glow()
 	if minion.card_data.texture:
 		art.texture = minion.card_data.texture
 	_race_style.border_color = BORDER_RACE_COLORS.get(minion.card_data.race, Color.WHITE)
 	if border_color:
 		border_color.queue_redraw()
 	_refresh_keyword_icons()
+
+# ─── Halo « prêt à attaquer » ────────────────────────────────────────────────
+
+func _is_player_turn() -> bool:
+	if _battle == null or not ("enemy_turn_active" in _battle):
+		return false
+	if "game_over" in _battle and _battle.game_over:
+		return false
+	return not _battle.enemy_turn_active
+
+func _update_ready_glow() -> void:
+	if _ready_glow == null or minion == null:
+		return
+	var show: bool = minion.owner_is_player \
+		and _is_player_turn() \
+		and minion.can_attack() \
+		and not is_selected \
+		and not _targetable
+	if show and not _ready_glow.visible:
+		_ready_pulse = 0.0
+		_ready_style.border_color = READY_GLOW_COLOR
+	_ready_glow.visible = show
 
 # ─── Sélection / Ciblage ──────────────────────────────────────────────────────
 
@@ -115,6 +172,7 @@ func set_selected(value: bool, multi: bool = false) -> void:
 		border_highlight.add_theme_stylebox_override("panel", _highlight_style)
 	_highlight_style.border_color = Color(1.0, 0.45, 0.05) if (value and multi) else Color(1.0, 0.9, 0.3)
 	border_highlight.queue_redraw()
+	_update_ready_glow()
 
 func set_targetable(value: bool, color: Color = Color.WHITE) -> void:
 	_targetable = value
@@ -133,6 +191,7 @@ func set_targetable(value: bool, color: Color = Color.WHITE) -> void:
 	else:
 		border_highlight.add_theme_stylebox_override("panel", _highlight_style)
 		border_highlight.visible = is_selected
+	_update_ready_glow()
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 
@@ -168,7 +227,7 @@ func _on_mouse_entered() -> void:
 	_hover_preview.scale = Vector2(0.9, 0.9)
 	await get_tree().process_frame
 
-	# [FIX] Guard sur _mouse_is_over — évite les états invalides si la souris sort pendant l'await
+	# Évite les états invalides si la souris sort pendant l'await
 	if not _mouse_is_over or not is_instance_valid(_hover_preview):
 		_cleanup_hover()
 		return

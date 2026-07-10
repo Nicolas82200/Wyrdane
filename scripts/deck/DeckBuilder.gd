@@ -5,14 +5,17 @@ const ALL_CARDS_PATH := "res://resources/cards"
 const MIN_CARDS := 40
 const MAX_CARDS := 60
 const MAX_COPIES := 4
-# [FIX] Nombre de cartes instanciées par frame — ajuste selon les perfs
+# Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
 # Taille des cartes dans la grille de collection
 const GRID_CARD_SCALE       := 0.9
-const GRID_CARD_HOVER_SCALE := 1.05
+const GRID_CARD_HOVER_SCALE := 1  # léger zoom au survol, autour du centre
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
+
+# Teinte des cartes de la grille dont le max de copies est atteint
+const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 
 @onready var card_grid:        GridContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
@@ -21,7 +24,8 @@ const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
-@onready var filter_bar:       HBoxContainer = %FilterBar  
+@onready var filter_bar:       HBoxContainer = %FilterBar
+@onready var header_label:     Label         = $MainVBox/HeaderBar/HeaderMargin/HeaderHBox/HeaderLabel
 
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
@@ -30,9 +34,17 @@ var _is_loading_grid: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []
+var _race_tooltip:     Control        = null
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
+
+# Calque pour le tooltip « max de copies » (au-dessus de la grille)
+var _overlay_layer: CanvasLayer = null
+var _max_tooltip:   Control     = null
+
+# resource_path -> Card (visuel dans la grille), pour griser au max de copies
+var _grid_visuals: Dictionary = {}
 
 # ─── Filtres ──────────────────────────────────────────────────────────────────
 
@@ -45,13 +57,27 @@ var _filter_cost:       int    = -1
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
 func _ready() -> void:
+	_overlay_layer = CanvasLayer.new()
+	_overlay_layer.layer = 19
+	add_child(_overlay_layer)
 	save_button.pressed.connect(_on_save)
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
 	search_edit.text_changed.connect(_on_search_changed)
 	_load_all_cards()
-	_build_filter_bar()   # ← nouveau
 	_refresh_deck_list()
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()   # construit aussi la barre de filtres localisée
+
+# Met à jour les libellés fixes et la barre de filtres dans la langue courante.
+func _retranslate() -> void:
+	header_label.text            = SettingsManager.t("deck.title")
+	back_button.text             = SettingsManager.t("ui.back")
+	save_button.text             = SettingsManager.t("deck.save")
+	search_edit.placeholder_text = SettingsManager.t("deck.search")
+	deck_name_edit.placeholder_text = SettingsManager.t("deck.name_placeholder")
+	_build_filter_bar()   # relocalise les libellés de filtres (sélection préservée)
+	_update_count_label()
 
 # ─── Chargement cartes ────────────────────────────────────────────────────────
 
@@ -69,6 +95,7 @@ func _refresh_card_grid() -> void:
 	var my_generation: int = _load_generation
 	for child in card_grid.get_children():
 		child.queue_free()
+	_grid_visuals.clear()
 
 	_pending_cards.clear()
 	for card_data in _all_cards:
@@ -79,7 +106,7 @@ func _refresh_card_grid() -> void:
 
 
 func _match_filters(c: CardData) -> bool:
-	if _filter_text != "" and not c.card_name.to_lower().contains(_filter_text.to_lower()):
+	if _filter_text != "" and not c.display_name().to_lower().contains(_filter_text.to_lower()):
 		return false
 	if _filter_race != -1 and c.race != _filter_race:
 		return false
@@ -115,10 +142,15 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	card_visual.set_non_interactive()
 	card_visual.mouse_filter  = Control.MOUSE_FILTER_IGNORE
 	card_visual.scale         = Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE)
-	card_visual.pivot_offset  = Vector2(0, 0)
+	# Pivot au centre : le zoom au survol s'étend uniformément autour de la carte
+	card_visual.pivot_offset  = CARD_BASE_SIZE / 2.0
 	card_visual.position      = Vector2(0, 0)
 	wrapper.add_child(card_visual)
 	card_visual.set_data(card_data)
+
+	_grid_visuals[card_data.resource_path] = card_visual
+	if _is_card_maxed(card_data):
+		card_visual.modulate = MAXED_TINT
 
 	wrapper.gui_input.connect(_on_card_wrapper_input.bind(card_data))
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
@@ -138,13 +170,9 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	tween.tween_property(card_visual, "scale",
 		Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	var tooltip_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE + 12
-	var tooltip_y: float = wrapper.global_position.y
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
-		return
-	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+	if _is_card_maxed(card_data):
+		_show_max_copies_tooltip(wrapper)
+	await _show_keyword_tooltips(card_data, wrapper)
 
 func _on_card_wrapper_exited(card_visual: Card) -> void:
 	_hovered_wrapper = null
@@ -156,6 +184,7 @@ func _on_card_wrapper_exited(card_visual: Card) -> void:
 	tween.tween_property(card_visual, "scale",
 		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_clear_max_tooltip()
 	_hide_keyword_tooltips()
 
 # ─── Liste deck à droite ──────────────────────────────────────────────────────
@@ -163,6 +192,7 @@ func _on_card_wrapper_exited(card_visual: Card) -> void:
 func _refresh_deck_list() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
+	_update_grid_maxed_states()
 	if current_deck == null:
 		_update_count_label()
 		return
@@ -224,7 +254,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	row.add_child(cost_panel)
 
 	var name_lbl := Label.new()
-	name_lbl.text                  = card.card_name
+	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_size_override("font_size", 14)
@@ -259,7 +289,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 
 func _update_count_label() -> void:
 	var count := current_deck.size() if current_deck else 0
-	card_count_label.text     = "%d / %d  cartes  (min %d)" % [count, MAX_CARDS, MIN_CARDS]
+	card_count_label.text     = SettingsManager.t("deck.count_format") % [count, MAX_CARDS, MIN_CARDS]
 	card_count_label.modulate = Color(1, 0.4, 0.4) if count < MIN_CARDS else Color(0.5, 0.9, 0.5)
 
 # ─── Actions ──────────────────────────────────────────────────────────────────
@@ -276,6 +306,9 @@ func _on_add_card(card_data: CardData) -> void:
 		return
 	current_deck.add_card(card_data)
 	_refresh_deck_list()
+	# Si on vient d'atteindre le max de copies, feedback immédiat sous le curseur
+	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
+		_show_max_copies_tooltip(_hovered_wrapper)
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -302,50 +335,123 @@ func _on_back() -> void:
 	DeckManager.save_decks()
 	queue_free()
 
+# ─── Limite de copies ─────────────────────────────────────────────────────────
+
+func _count_in_deck(path: String) -> int:
+	if current_deck == null:
+		return 0
+	var count := 0
+	for p in current_deck.card_paths:
+		if p == path:
+			count += 1
+	return count
+
+func _is_card_maxed(card_data: CardData) -> bool:
+	return _count_in_deck(card_data.resource_path) >= MAX_COPIES
+
+## Grise les cartes de la grille dont le deck contient déjà le max de copies.
+func _update_grid_maxed_states() -> void:
+	for path in _grid_visuals.keys():
+		var visual: Card = _grid_visuals[path]
+		if not is_instance_valid(visual):
+			continue
+		visual.modulate = MAXED_TINT if _count_in_deck(path) >= MAX_COPIES else Color.WHITE
+
+## Tooltip centré sur la carte grisée : max de copies atteint.
+func _show_max_copies_tooltip(anchor: Control) -> void:
+	_clear_max_tooltip()
+	var panel := TooltipData.make_race_tooltip("deck.max_copies_reached")
+	panel.position = Vector2(-9999, -9999)
+	_overlay_layer.add_child(panel)
+	_max_tooltip = panel
+	await get_tree().process_frame
+	if not is_instance_valid(panel):
+		return
+	if not _hovering or not is_instance_valid(anchor):
+		_clear_max_tooltip()
+		return
+	panel.global_position = anchor.global_position + (anchor.size - panel.size) / 2.0
+
+func _clear_max_tooltip() -> void:
+	if _max_tooltip != null and is_instance_valid(_max_tooltip):
+		_max_tooltip.queue_free()
+	_max_tooltip = null
+
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
-func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
-		wrapper: Control = null) -> void:
+## Panneaux de mots-clés à côté de la carte survolée, tooltip de race centré dessous.
+func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 	_hide_keyword_tooltips()
-	if card_data == null:
+	if card_data == null or wrapper == null:
 		return
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
 	add_child(_tooltip_layer)
 	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
 
-	# Tooltip de race — centré sous la carte
 	var race_panel: Control = null
-	if wrapper != null and TooltipData.RACE_DESCRIPTIONS.has(card_data.race):
+	if TooltipData.RACE_DESCRIPTIONS.has(card_data.race):
 		race_panel = TooltipData.make_race_tooltip(TooltipData.RACE_DESCRIPTIONS[card_data.race])
 		race_panel.position = Vector2(-9999, -9999)
 		_tooltip_layer.add_child(race_panel)
 
 	await get_tree().process_frame
-	if not _hovering:
+	if not _hovering or not is_instance_valid(wrapper):
 		_hide_keyword_tooltips()
 		return
+
 	for panel in panels:
+		if is_instance_valid(panel):
+			_keyword_tooltips.append(panel)
+	_race_tooltip = race_panel
+	_position_hover_tooltips()
+
+## Repositionne les tooltips sur la carte survolée. Appelé à chaque frame tant
+## que le survol dure, pour que les tooltips suivent le scroll de la grille.
+func _position_hover_tooltips() -> void:
+	var wrapper := _hovered_wrapper
+	if wrapper == null or not is_instance_valid(wrapper):
+		return
+
+	# Emprise de la carte zoomée (pivot au centre de la carte)
+	var card_size   := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
+	var card_center := wrapper.global_position + CARD_BASE_SIZE / 2.0
+	var vp          := get_viewport_rect().size
+	var base_y      := wrapper.global_position.y
+	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		panel.global_position = Vector2(base_x, base_y)
+		var px := card_center.x + card_size.x / 2.0 + 12.0
+		if px + panel.size.x > vp.x:
+			px = card_center.x - card_size.x / 2.0 - panel.size.x - 12.0
+		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
-		_keyword_tooltips.append(panel)
 
-	if race_panel != null and is_instance_valid(race_panel) and is_instance_valid(wrapper):
-		# Calé sous le bord visuel de la carte agrandie (pivot en haut-gauche)
-		var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
-		race_panel.global_position = Vector2(
-			wrapper.global_position.x + card_size.x / 2.0 - race_panel.size.x / 2.0,
-			wrapper.global_position.y + card_size.y + 4
-		)
-		_keyword_tooltips.append(race_panel)
+	if _race_tooltip != null and is_instance_valid(_race_tooltip):
+		var rx: float = clampf(
+			card_center.x - _race_tooltip.size.x / 2.0,
+			4.0, vp.x - _race_tooltip.size.x - 4.0)
+		var ry: float = card_center.y + card_size.y / 2.0 + 4.0
+		if ry + _race_tooltip.size.y > vp.y:
+			ry = card_center.y - card_size.y / 2.0 - _race_tooltip.size.y - 4.0
+		_race_tooltip.global_position = Vector2(rx, ry)
+
+	if _max_tooltip != null and is_instance_valid(_max_tooltip):
+		_max_tooltip.global_position = \
+			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
+
+func _process(_delta: float) -> void:
+	if _hovering:
+		_position_hover_tooltips()
 
 func _hide_keyword_tooltips() -> void:
 	for tooltip in _keyword_tooltips:
 		if is_instance_valid(tooltip):
 			tooltip.queue_free()
 	_keyword_tooltips.clear()
+	if _race_tooltip != null and is_instance_valid(_race_tooltip):
+		_race_tooltip.queue_free()
+	_race_tooltip = null
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
@@ -355,31 +461,47 @@ func _hide_keyword_tooltips() -> void:
 ## Crée la barre de filtres directement en code sous la SearchEdit.
 ## Appelle cette fonction dans _ready(), après _load_all_cards().
 func _build_filter_bar() -> void:
+	# Reconstruit à chaque appel (notamment au changement de langue) : on vide
+	# d'abord les libellés/groupes existants. La sélection active est préservée
+	# car chaque groupe s'initialise depuis les variables _filter_*.
+	for child in filter_bar.get_children():
+		child.queue_free()
+
+	var all_label := SettingsManager.t("deck.filter_all")
+
 	# Race
 	var race_values: Array = [-1]
-	var race_labels: Array[String] = ["Tous"]
+	var race_labels: Array[String] = [all_label]
 	for key in Race.Type.keys():
 		race_values.append(Race.Type[key])
-		race_labels.append(key.capitalize())
-	filter_bar.add_child(_make_filter_label("Race :"))
+		race_labels.append(SettingsManager.t("RACE_" + key))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
 	_add_filter_group(filter_bar, race_values,
 		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),
 		func() -> int: return _filter_race,
 		race_labels)
 
+	# Type de carte
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
+	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment"],
+		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
+		func() -> String: return _filter_type,
+		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
+			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment")])
+
 	# Rareté
-	filter_bar.add_child(_make_filter_label("Rareté :"))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))
 	_add_filter_group(filter_bar, ["", "Common", "Rare", "Epic", "Legendary"],
 		func(v: String) -> void: _filter_rarity = v; _refresh_card_grid(),
 		func() -> String: return _filter_rarity,
-		["Tous", "Common", "Rare", "Epic", "Legendary"])
+		[all_label, "Common", "Rare", "Epic", "Legendary"])
 
 	# Coût
-	filter_bar.add_child(_make_filter_label("Coût :"))
+	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_cost")))
 	_add_filter_group(filter_bar, [-1, 0, 1, 2, 3, 4, 5, 6, 7],
 		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
 		func() -> int: return _filter_cost,
-		["Tous", "0", "1", "2", "3", "4", "5", "6", "7+"])
+		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
 
 
 func _make_filter_label(text: String) -> Label:
