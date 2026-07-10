@@ -218,12 +218,14 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close).
 *   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
-*   `TransportFactory` — crée le backend demandé (prévu pour accueillir d'autres backends, ex: Steam).
+*   `SteamTransport` — implémentation Steam : lobby Steam public tagué FateBound pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby FateBound disponible.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID FateBound — instructions d'installation dans l'en-tête du fichier.
+*   `TransportFactory` — crée le backend demandé (ENet ou Steam).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
 
 #### Entrée en partie
 
-1.  `scenes/net/NetLobby.tscn` — un joueur clique « Héberger », l'autre saisit l'IP et « Rejoindre ».
+1.  `scenes/net/NetLobby.tscn` — un joueur clique « Héberger », l'autre saisit l'IP et « Rejoindre ». Si GodotSteam est présent, une seconde rangée propose « Héberger (Steam) » et « Partie rapide (Steam) ».
 2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
 3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 
@@ -366,7 +368,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 
 Couche multijoueur 1v1 (voir la section « Multijoueur 1v1 » plus haut pour l'architecture) :
 
-*   `NetTransport.gd` / `ENetTransport.gd` / `TransportFactory.gd`: Abstraction et implémentation ENet du transport.
+*   `NetTransport.gd` / `ENetTransport.gd` / `SteamTransport.gd` / `SteamService.gd` / `TransportFactory.gd`: Abstraction du transport et ses implémentations ENet et Steam (GodotSteam optionnel).
 *   `NetworkManager.gd`: Connexion, sérialisation et routage des commandes de jeu.
 *   `NetCommand.gd`: Vocabulaire partagé des commandes (`PLAY_CARD`, `ATTACK`, `END_TURN`...).
 *   `NetHandshake.gd`: Échange d'ouverture (decks, graine RNG, premier joueur).
@@ -741,9 +743,10 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Deux races jouables : Mort-Vivant et Humain (151 cartes, voir `CARDS.md`)
-*   Contenu de cartes de la race Démon défini (~75 cartes, voir `CARDS.md`) — implémentation moteur restant à faire, voir points à trancher dans `CARDS.md`
+*   Race Démon : contenu défini (~75 cartes, voir `CARDS.md`), **support moteur en place** (mots-clés `KeywordDemon.gd`, Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et illustrations importées (`assets/card_art/demon/`) — les ressources `.tres` des cartes restent à créer dans `resources/cards/demon/`
 *   IA adverse basique (`AISystem`) — serviteurs uniquement
 *   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
+*   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
 *   **Internationalisation FR/EN** — toute l'UI et les 151 cartes, via le système de traduction natif Godot (`translations/game.csv`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
@@ -752,9 +755,10 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 
 ### À faire
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
-*   Multijoueur : matchmaking / hébergement au-delà de l'IP directe (code de partie, serveur relais...)
+*   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
 *   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
-*   Nouvelles races : Elfe, Nain (Démon désormais en contenu, reste à coder côté moteur)
+*   Cartes Démon : créer les ~75 ressources `.tres` dans `resources/cards/demon/` (moteur et illustrations prêts) + passe d'éligibilité des Incantations
+*   Nouvelles races : Elfe, Nain
 *   Mode campagne et collection de cartes
 *   Animations shaders
 *   Tests automatisés (GUT / gdUnit4)
