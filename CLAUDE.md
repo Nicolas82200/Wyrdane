@@ -167,8 +167,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain — 151 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
-- ⬜ À faire : sorts/rituels pour l'IA, matchmaking/hébergement au-delà de l'IP directe, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
+- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, deux races de cartes (Mort-Vivant, Humain — 151 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), support moteur de la race Démon (cartes `.tres` restantes), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+- ⬜ À faire : cartes Démon (~75 ressources `.tres`), sorts/rituels pour l'IA, page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents
 
