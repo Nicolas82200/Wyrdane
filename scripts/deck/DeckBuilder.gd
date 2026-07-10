@@ -14,8 +14,9 @@ const GRID_CARD_HOVER_SCALE := 1.025
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
-# Preview au survol — même principe et même échelle que sur le board (BoardMinion)
-const PREVIEW_SCALE := 0.9
+# Preview au survol — même principe que sur le board (BoardMinion),
+# affichée à la taille native de Card.tscn
+const PREVIEW_SCALE := 1.0
 const PREVIEW_GAP   := 12.0
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT    := Color(0.38, 0.38, 0.38, 1)
