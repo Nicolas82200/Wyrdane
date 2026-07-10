@@ -34,6 +34,15 @@ const KEYWORD_UNDEAD_DESCRIPTIONS := {
 	KeywordUndead.Type.CHAIR_MORTE: { "title": "KW_CHAIR_MORTE_NAME", "desc": "KW_CHAIR_MORTE_DESC" },
 }
 
+const KEYWORD_DEMON_DESCRIPTIONS := {
+	KeywordDemon.Type.PACTE:           { "title": "KW_PACTE_NAME",           "desc": "KW_PACTE_DESC" },
+	KeywordDemon.Type.CORRUPTION:      { "title": "KW_CORRUPTION_NAME",      "desc": "KW_CORRUPTION_DESC" },
+	KeywordDemon.Type.TERREUR:         { "title": "KW_TERREUR_NAME",         "desc": "KW_TERREUR_DESC" },
+	KeywordDemon.Type.RANG_INFERNAL:   { "title": "KW_RANG_INFERNAL_NAME",   "desc": "KW_RANG_INFERNAL_DESC" },
+	KeywordDemon.Type.CHAIR_DE_SOUFRE: { "title": "KW_CHAIR_DE_SOUFRE_NAME", "desc": "KW_CHAIR_DE_SOUFRE_DESC" },
+	KeywordDemon.Type.SANG_NOIR:       { "title": "KW_SANG_NOIR_NAME",       "desc": "KW_SANG_NOIR_DESC" },
+}
+
 # Les clés de ce dict (String) doivent correspondre EXACTEMENT au champ
 # trigger.type de CardData ; les valeurs pointent vers game.csv.
 const TRIGGER_DESCRIPTIONS := {
@@ -56,6 +65,7 @@ const TRIGGER_DESCRIPTIONS := {
 	"OnAura":       { "title": "TRIG_ONAURA_NAME",      "desc": "TRIG_ONAURA_DESC" },
 	"OnSummon":     { "title": "TRIG_ONSUMMON_NAME",    "desc": "TRIG_ONSUMMON_DESC" },
 	"OnResonance":  { "title": "TRIG_ONRESONANCE_NAME", "desc": "TRIG_ONRESONANCE_DESC" },
+	"OnSelfDamage": { "title": "TRIG_ONSELFDAMAGE_NAME", "desc": "TRIG_ONSELFDAMAGE_DESC" },
 }
 
 const RACE_DESCRIPTIONS := {
@@ -73,6 +83,7 @@ func _tr(key: String) -> String:
 const COLOR_KEYWORD        := Color(0.15, 0.28, 0.48, 1.0)  # Mots-clés partagés
 const COLOR_KEYWORD_HUMAN  := Color(0.55, 0.42, 0.10, 1.0)  # Humain
 const COLOR_KEYWORD_UNDEAD := Color(0.25, 0.36, 0.16, 1.0)  # Mort-Vivant (vert putride)
+const COLOR_KEYWORD_DEMON  := Color(0.42, 0.12, 0.12, 1.0)  # Démon (rouge écarlate)
 const COLOR_TRIGGER       := Color(0.38, 0.22, 0.06, 1.0)
 const COLOR_EFFECT        := Color(0.18, 0.32, 0.18, 1.0)
 
@@ -89,6 +100,8 @@ func describe_effect(effect: CardEffect) -> String:
 		"Transform":       return _tr("EFF_TRANSFORM_DESC")
 		"Silence":         return _tr("EFF_SILENCE_DESC")
 		"StealMinion":     return _tr("EFF_STEAL_DESC")
+		"Corrupt":         return _tr("EFF_CORRUPT_DESC")
+		"StealMinionThenDestroy": return _tr("EFF_STEAL_DESTROY_DESC")
 		_:                 return ""
 
 # ─── Fabrique de panels ───────────────────────────────────────────────────────
@@ -210,6 +223,16 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		parent.add_child(panel)
 		panels.append(panel)
 
+	# 1d. Mots-clés Démon (enum KeywordDemon.Type)
+	for keyword in card_data.get_demon_keyword_values():
+		if not KEYWORD_DEMON_DESCRIPTIONS.has(keyword):
+			continue
+		var info: Dictionary = KEYWORD_DEMON_DESCRIPTIONS[keyword]
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_DEMON)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
 	# 2. Déclencheurs
 	for trigger in card_data.trigger_types:
 		if not TRIGGER_DESCRIPTIONS.has(trigger.type):
@@ -246,4 +269,6 @@ func _effect_title(effect_id: String) -> String:
 		"Transform":        return _tr("EFF_TRANSFORM_NAME")
 		"Silence":          return _tr("EFF_SILENCE_NAME")
 		"StealMinion":      return _tr("EFF_STEAL_NAME")
+		"Corrupt":          return _tr("EFF_CORRUPT_NAME")
+		"StealMinionThenDestroy": return _tr("EFF_STEAL_NAME")
 		_:                  return effect_id

@@ -573,9 +573,11 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 ---
 
-## ⚠️ Points à trancher avant intégration (Démon)
+## ✅ Points d'intégration tranchés (Démon)
 
-1. **`CORRUPTION` comme mécanique cumulable permanente** : nécessite un système de marqueur similaire à Infection (`KeywordUndead.gd`) mais avec un effet différent (perte d'ATK permanente au lieu de perte de HP en tour). Probablement une nouvelle classe `KeywordDemon.gd`, à créer sur le modèle de `KeywordHuman.gd`.
-2. **`PACTE` et `RANG INFERNAL` référencent les HP du héros allié** : à vérifier que `EffectManager`/`HeroSystem` exposent déjà une cible "ton propre héros" pour les dégâts auto-infligés (nouveauté par rapport à Mort-Vivant/Humain).
-3. **Risque de mort auto-infligée** : avec le cumul de PACTE + RANG INFERNAL + Incantations à coût de vie, un deck Démon agressif peut potentiellement s'auto-éliminer. Une garde-fou (dégâts auto-infligés ne peuvent jamais réduire le héros à moins de 1 HP) est probablement à prévoir. Les cartes de résilience (D38, D50, D75) atténuent ce risque mais ne le suppriment pas pour un deck qui les ignore.
-4. **`Le Gardien du Pacte Brisé` (D38)** : annuler complètement une catégorie de dégâts (plutôt que les rediriger ou les réduire) est un pattern qui n'existe pas encore dans le moteur (le plus proche est ÉGIDE, qui annule une seule source de dégâts, pas une catégorie entière en continu).
+Le support moteur est en place (voir « Mécaniques Démon » dans `README.md`) ; seules les ressources `.tres` des cartes restent à créer.
+
+1. **`CORRUPTION`** : marqueur cumulable `Minion.corruption_stacks` + `apply_corruption()` (-1 ATK permanent par marqueur), mots-clés dans `KeywordDemon.gd` sur le modèle de `KeywordHuman.gd`. Posée par le mot-clé à l'attaque (`CombatSystem`) ou par l'effet `Corrupt`.
+2. **Dégâts auto-infligés** : pipeline `HeroSystem.self_damage` — l'effet `Damage` ciblant `OwnerHero` y passe désormais, tout comme le coût du PACTE. `RANG INFERNAL` est une aura recalculée sur les HP manquants du héros.
+3. **Garde-fou adopté** : les dégâts auto-infligés ne réduisent jamais son propre héros sous 1 HP (clampé dans `HeroSystem.self_damage`).
+4. **`Le Gardien du Pacte Brisé` (D38)** : flag `CardData.blocks_self_damage` — tant qu'un serviteur qui le porte est en jeu, les dégâts auto-infligés du camp sont annulés (vérifié en tête du pipeline `self_damage`).

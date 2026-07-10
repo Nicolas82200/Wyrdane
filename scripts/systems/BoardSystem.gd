@@ -27,6 +27,11 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)
 	await battle.get_tree().create_timer(0.2).timeout
 
+	# PACTE : à l'arrivée en jeu, le héros du propriétaire perd des HP égaux au
+	# coût en mana du serviteur (l'ASSAUT est accordé dans Minion._init).
+	if minion.has_demon_keyword(KeywordDemon.Type.PACTE):
+		await battle.hero_system.self_damage(is_player, card_data.cost)
+
 	# Effet d'invocation du minion lui-même
 	await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
 
