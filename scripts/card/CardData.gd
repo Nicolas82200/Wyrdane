@@ -25,10 +25,14 @@ class_name CardData
 @export var blocks_overkill: bool = false
 # Retiré du jeu à la mort : ne rejoint pas le cimetière (Possédé Hurlant).
 @export var exile_on_death: bool = false
+# Tant que ce serviteur est en jeu, les dégâts que tes propres cartes infligent
+# à ton héros sont annulés (Le Gardien du Pacte Brisé). Lu par HeroSystem.self_damage.
+@export var blocks_self_damage: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []
 @export var undead_keywords: Array[KeywordChoiceUndead] = []
+@export var demon_keywords: Array[KeywordChoiceDemon] = []
 @export var trigger_types: Array[TriggerTypeChoice] = []
 @export var effects: Array[CardEffect] = []
 @export var requires_target: bool = false
@@ -74,6 +78,12 @@ func get_human_keyword_values() -> Array[int]:
 func get_undead_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in undead_keywords:
+		values.append(kw.keyword_type)
+	return values
+
+func get_demon_keyword_values() -> Array[int]:
+	var values: Array[int] = []
+	for kw in demon_keywords:
 		values.append(kw.keyword_type)
 	return values
 

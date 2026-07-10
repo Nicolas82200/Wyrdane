@@ -1,10 +1,13 @@
 extends Resource
 class_name TriggerTypeChoice
 
+# Liste alignée sur TriggerType.get_name — ce sont ces chaînes exactes qui sont
+# comparées par EffectManager.has_trigger et TriggerSystem._enchantment_reacts.
 @export_enum(
 	"ONPLAY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
-	"RALLY", "OnGrief", "SPELLCAST", "SACRIFICE", "OnExecution", "CARNAGE",
-	"OnAttack", "ONTURNSTART", "ONTURNEND", "MOURNING"
+	"OnRally", "OnGrief", "OnSpell", "OnSacrifice", "OnExecution", "OnCarnage",
+	"OnAttack", "OnTurnStart", "OnTurnEnd", "OnMourning", "OnDeathRage",
+	"OnAura", "OnSummon", "OnResonance", "OnSelfDamage"
 ) var type: String = "DEATHRATTLE"
 
 func _to_string() -> String:
