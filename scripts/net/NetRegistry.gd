@@ -61,11 +61,6 @@ func set_imposed_ids(ids: Array) -> void:
 	for i in ids:
 		_imposed.append(int(i))
 
-# Enregistre un serviteur miroir avec un id imposé (reçu du réseau).
-func register_with_id(minion: Minion, id: int) -> void:
-	minion.net_id = id
-	_by_id[id] = minion
-
 func unregister(minion: Minion) -> void:
 	if minion != null:
 		_by_id.erase(minion.net_id)

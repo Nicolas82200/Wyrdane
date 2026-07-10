@@ -15,7 +15,7 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
 @onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
-# [FIX] Non typé — typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
+# Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
 func _ready() -> void:
@@ -33,7 +33,7 @@ func _ready() -> void:
 		AudioManager.play(AudioManager.CLOSE_MENU)
 		credits_panel.hide()
 	)
-	# [FIX] Null-check restauré — settings_menu peut légitimement être absent
+	# settings_menu peut légitimement être absent
 	if settings_menu:
 		settings_button.pressed.connect(settings_menu.open)
 	else:

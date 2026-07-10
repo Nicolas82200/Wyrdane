@@ -61,9 +61,6 @@ func execute_effect(
 	battle.board_visual_system.refresh_board()
 	battle.hero_system.update_ui()
 
-func execute_targeted_effect(battle, effect: CardEffect, target: Minion) -> void:
-	await execute_effect(battle, null, effect, target)
-
 # Tirage aléatoire via le RNG de jeu partagé (déterministe et synchronisé en
 # réseau), et non le RNG global — sinon les deux clients divergeraient.
 func _rng_pick(battle, array: Array):

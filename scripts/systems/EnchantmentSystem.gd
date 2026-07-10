@@ -121,9 +121,3 @@ func get_enchantments(is_player: bool) -> Array[CardData]:
 
 func get_rituals(is_player: bool) -> Array[CardData]:
 	return player_rituals if is_player else enemy_rituals
-
-func has_enchantment(card_name: String, is_player: bool) -> bool:
-	for enc in get_enchantments(is_player):
-		if enc.card_name == card_name:
-			return true
-	return false
