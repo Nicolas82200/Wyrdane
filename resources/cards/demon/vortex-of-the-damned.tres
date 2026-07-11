@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://ltz9xkwz5y6qe"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://dgksqd84qhj2s" path="res://assets/card_art/demon/vortex-of-the-damned.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_tr8dt"]
+script = ExtResource("4_trig")
+type = "OnCarnage"
+
+[sub_resource type="Resource" id="Resource_064t9"]
+script = ExtResource("1_cardeffect")
+effect_id = "GainMana"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_0dd4h"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Vortex des Damnés"
+description = "Carnage : gagne 1 mana temporaire ce tour ; ton héros perd 1 HP."
+flavour_text = "Les âmes qui s'y perdent paient toujours un peu plus que prévu."
+texture = ExtResource("3_texture")
+cost = 6
+race = 4
+card_type = "Enchantment"
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_tr8dt")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_064t9"), SubResource("Resource_0dd4h")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

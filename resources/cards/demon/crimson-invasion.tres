@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://db5yds356ojea"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://sg65lrduot2vm" path="res://assets/card_art/demon/crimson-invasion.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_bvc6j"]
+script = ExtResource("4_trig")
+type = "OnAwaken"
+
+[sub_resource type="Resource" id="Resource_crfqx"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonRandom"
+pool_race_filter = "Demon"
+pool_max_cost = 4
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_0j2mo"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Invasion Écarlate"
+description = "Éveil : invoque un Démon aléatoire de coût ≤4 ; ton héros perd 1 HP."
+flavour_text = "Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour."
+texture = ExtResource("3_texture")
+cost = 7
+race = 4
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_bvc6j")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_crfqx"), SubResource("Resource_0j2mo")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

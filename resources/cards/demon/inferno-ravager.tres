@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://v1g43fdncrinx"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://fx6tc563jhkn9" path="res://assets/card_art/demon/inferno-ravager.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
+
+[sub_resource type="Resource" id="Resource_672j2"]
+script = ExtResource("4_kw")
+name_fr = "Ravage"
+
+[sub_resource type="Resource" id="Resource_szqch"]
+script = ExtResource("5_kwd")
+keyword_type = 3
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Ravageur des Flammes"
+description = "RAVAGE. RANG INFERNAL."
+flavour_text = "Plus ton héros saigne, plus il brûle fort."
+texture = ExtResource("3_texture")
+cost = 5
+race = 4
+unit_style = 15
+attack = 6
+health = 4
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_672j2")])
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_szqch")])
+rarity = "Epic"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
