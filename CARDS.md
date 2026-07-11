@@ -5,7 +5,7 @@ Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
 > **Notes de révision (à répercuter dans `CLAUDE.md` et `README.md`, et côté code si adopté) :**
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
 > - Les Rituels Mort-Vivant/Humain avec une durée "Instantané" ou "Ce tour" ont été retravaillés en effets vraiment récurrents (voir IDs 54, 56, 57, 58, 60, 62, 63, 64 côté Mort-Vivant ; H55, H61, H63, H64 côté Humain). Les Rituels Démon utilisent directement le système de **charges** décrit dans `CLAUDE.md`.
-> - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les ressources `.tres` des cartes restent à créer dans `resources/cards/demon/`.
+> - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
 
 ---
 
@@ -575,7 +575,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 ## ✅ Points d'intégration tranchés (Démon)
 
-Le support moteur est en place (voir « Mécaniques Démon » dans `README.md`) ; seules les ressources `.tres` des cartes restent à créer.
+Le support moteur est en place (voir « Mécaniques Démon » dans `README.md`) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
 
 1. **`CORRUPTION`** : marqueur cumulable `Minion.corruption_stacks` + `apply_corruption()` (-1 ATK permanent par marqueur), mots-clés dans `KeywordDemon.gd` sur le modèle de `KeywordHuman.gd`. Posée par le mot-clé à l'attaque (`CombatSystem`) ou par l'effet `Corrupt`.
 2. **Dégâts auto-infligés** : pipeline `HeroSystem.self_damage` — l'effet `Damage` ciblant `OwnerHero` y passe désormais, tout comme le coût du PACTE. `RANG INFERNAL` est une aura recalculée sur les HP manquants du héros.

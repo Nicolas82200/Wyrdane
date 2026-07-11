@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://poasicwp00amk"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://71n44fln85qb2" path="res://assets/card_art/demon/black-flame-prophet.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_kyru4"]
+script = ExtResource("4_kwd")
+keyword_type = 1
+
+[sub_resource type="Resource" id="Resource_lvj4r"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_o086b"]
+script = ExtResource("1_cardeffect")
+effect_id = "Corrupt"
+target = "EnemyMinion"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Grand Prophète Écarlate"
+description = "CORRUPTION. Arrivée : inflige Corruption à un serviteur ennemi ciblé."
+flavour_text = "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser."
+texture = ExtResource("3_texture")
+cost = 4
+race = 4
+unit_style = 16
+attack = 2
+health = 4
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_kyru4")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_lvj4r")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_o086b")])
+requires_target = true
+rarity = "Epic"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
