@@ -74,7 +74,8 @@ func _send_to_graveyards(dead_player: Array[Minion], dead_enemy: Array[Minion]) 
 
 func _trigger_deathrattle(dead_minions: Array[Minion]) -> void:
 	for minion in dead_minions:
-		await battle.effect_manager.trigger_effects(battle, minion, "DEATHRATTLE")
+		var target: Minion = await battle.effect_manager.resolve_trigger_target(battle, minion, "DEATHRATTLE")
+		await battle.effect_manager.trigger_effects(battle, minion, "DEATHRATTLE", target)
 
 func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: bool) -> void:
 	if dead_minions.is_empty():

@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Réveil Soudain"
-description = "Ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant."
+description = "Ressuscite le dernier serviteur allié mort avec 1 HP en rangée Avant."
 flavour_text = "Il n'y a pas de repos pour ceux qu'on rappelle."
 texture = ExtResource("3_texture")
 card_type = "Instant"

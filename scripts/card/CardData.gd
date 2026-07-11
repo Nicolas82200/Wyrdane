@@ -36,6 +36,11 @@ class_name CardData
 @export var trigger_types: Array[TriggerTypeChoice] = []
 @export var effects: Array[CardEffect] = []
 @export var requires_target: bool = false
+# Un enchantement/rituel dont le trigger peut se redéclencher plusieurs fois
+# dans le même tour (ex: OnSummon à chaque arrivée alliée) ne réagit qu'une
+# seule fois par tour si ce flag est activé (Fosse Commune, pour éviter
+# qu'un Rampant invoqué ne redéclenche la condition en boucle).
+@export var trigger_once_per_turn: bool = false
 
 # ─── Coût de Sacrifice (Rituels à trigger OnSacrifice) ────────────────────────
 # Nombre de serviteurs alliés à sacrifier pour activer le rituel (0 = pas de

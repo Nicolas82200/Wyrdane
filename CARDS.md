@@ -81,7 +81,7 @@ Positionnement (Lane Types)
 | 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 | NÉCROPHAGE. | La faim ne disparaît pas avec la mort. Elle empire. |
 | 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART. CHAIR MORTE. | Personne ne se souvient de son nom. Lui non plus. |
 | 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 | HORDE. | Il était enfant. C'était avant. |
-| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : inflige Infection à un serviteur ennemi adjacent. | Même en tombant, il répand ce qui l'a tué. |
+| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : inflige Infection à un serviteur ennemi ciblé. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
 | 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Ralliement : tes serviteurs en rangée Avant ont +0/+1 HP jusqu'à fin de tour. | Il ne commande pas. Il pousse. Et ça suffit. |
 | 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Ralliement : inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
@@ -139,7 +139,7 @@ Positionnement (Lane Types)
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | 40 | Souffle Nécrotique | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé. | Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien. |
-| 41 | Réveil Soudain | 1 | Commune | Ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant. | Il n'y a pas de repos pour ceux qu'on rappelle. |
+| 41 | Réveil Soudain | 1 | Commune | Ressuscite le dernier serviteur allié mort avec 1 HP en rangée Avant. | Il n'y a pas de repos pour ceux qu'on rappelle. |
 | 42 | Vague de Putréfaction | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant. | La peste ne choisit pas. Elle couvre. |
 | 43 | Don de Chair | 2 | Rare | Sacrifice (un serviteur allié) : inflige 3 dégâts au héros ennemi. | Il a donné son corps. Il n'avait plus besoin de consentir. |
 | 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
@@ -178,7 +178,7 @@ Positionnement (Lane Types)
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | 65 | Autel des Damnés | 3 | Rare | Deuil : pioche 1 carte. | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
-| 66 | Fosse Commune | 4 | Rare | Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. | Plus elle se remplit, plus elle déborde. |
+| 66 | Fosse Commune | 4 | Rare | Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
 | 67 | Aura de Décrépitude | 3 | Rare | Résonance : ce Mort-Vivant attaquant gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
 | 68 | Cimetière Vivant | 5 | Épique | Deuil : ce Mort-Vivant revient en jeu à la fin du tour avec 1 HP. (Une seule fois par serviteur.) | Le sol ici ne garde rien. Il régurgite. |
 | 69 | Brouillard Pestilentiel | 3 | Rare | Présence : à chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 HP supplémentaire. | On ne le voit pas. On ne le sent même plus, après un moment. |
@@ -363,7 +363,7 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | H65 | Citadelle des Hommes | 4 | Rare | Présence : tes serviteurs en rangée Avant ont +0/+1 HP de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
-| H66 | Lignée des Braves | 3 | Rare | Deuil : quand un Humain allié meurt, pioche 1 carte. | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
+| H66 | Lignée des Braves | 3 | Rare | Deuil : quand un Humain allié meurt, pioche 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
 | H67 | Pacte de Résistance | 3 | Rare | Présence : les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
 | H68 | Temple de Guerre | 5 | Épique | Appel : chaque serviteur allié invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : si tu as un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
