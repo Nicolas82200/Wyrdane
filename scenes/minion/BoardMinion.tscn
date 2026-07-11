@@ -14,23 +14,34 @@ border_color = Color(0.29803923, 0.19215687, 1, 0)
 border_blend = true
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vx08u"]
-bg_color = Color(0, 1, 0, 0.078431375)
-skew = Vector2(-0.2, 0)
-border_color = Color(0, 0, 0, 0)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+bg_color = Color(0.78431374, 0.28627452, 0.03529412, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.6862745, 0.20392157, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 24
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f18y1"]
-bg_color = Color(1, 0, 0, 0.19607843)
-skew = Vector2(0, 0.2)
-border_color = Color(0, 0, 0, 0)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-corner_detail = 20
+bg_color = Color(0.08627451, 0.42745098, 0.11764706, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.4, 0.9098039, 0.29803923, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 24
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cq78b"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -87,28 +98,33 @@ offset_right = 40.0
 offset_bottom = 40.0
 
 [node name="AttackLabel" type="Label" parent="." unique_id=1995837948]
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 0
-offset_left = 10.0
-offset_top = 115.0
-offset_right = 40.0
-offset_bottom = 145.0
+offset_left = 0.0
+offset_top = 124.0
+offset_right = 32.0
+offset_bottom = 156.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_is0y1")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_vx08u")
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="HealthLabel" type="Label" parent="." unique_id=824405222]
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 0
-offset_left = 60.0
-offset_top = 115.0
-offset_right = 90.0
-offset_bottom = 145.0
+offset_left = 68.0
+offset_top = 124.0
+offset_right = 100.0
+offset_bottom = 156.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.69411767, 0.36078432, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("2_is0y1")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_f18y1")
 horizontal_alignment = 1
 vertical_alignment = 1
