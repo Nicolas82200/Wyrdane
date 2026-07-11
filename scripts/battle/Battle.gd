@@ -95,6 +95,11 @@ var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
+# Décompte du temps de tour du joueur local, créé en code pour ne pas toucher
+# Battle.tscn (voir TurnTimer). Démarré/arrêté par set_enemy_turn et
+# TurnSystem._begin_player_turn ; l'expiration entraîne une fin de tour
+# automatique (voir _on_turn_timer_timeout).
+var turn_timer: TurnTimer
 # Panneau de mulligan (choix de la main de départ), créé en code pour ne pas
 # toucher Battle.tscn (voir MulliganPanel).
 var mulligan_panel: MulliganPanel
@@ -177,6 +182,9 @@ func _init_systems() -> void:
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
 	add_child(combat_log_panel)
+	turn_timer = TurnTimer.new()
+	turn_timer.timeout.connect(_on_turn_timer_timeout)
+	add_child(turn_timer)
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
@@ -213,6 +221,7 @@ func _on_net_peer_disconnected(_reason: String) -> void:
 		return
 	game_over = true
 	enemy_turn_active = false
+	turn_timer.stop()
 	_show_game_over("disconnect")
 
 func _connect_signals() -> void:
@@ -262,6 +271,7 @@ func _start_game() -> void:
 	# Le joueur local ouvre la partie : annonce de son premier tour.
 	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 	update_end_turn_hint()
+	turn_timer.start()
 
 # Phase de mulligan précédant le tour 1 : le joueur local choisit les cartes de
 # sa main de départ à remplacer. En réseau, chaque camp mulligan indépendamment
@@ -524,12 +534,25 @@ func _on_end_turn_pressed() -> void:
 		return
 	turn_system.end_turn()
 
+# Expiration du décompte de tour : résout le choix Mana/Pioche s'il est encore
+# en attente (la Mana est le choix par défaut, sans perte d'information contrairement
+# à la Pioche qui révèle une carte), puis termine le tour comme un clic normal.
+func _on_turn_timer_timeout() -> void:
+	if game_over or enemy_turn_active:
+		return
+	if turn_choice_panel.is_active():
+		turn_choice_panel.select_mana()
+	else:
+		turn_system.end_turn()
+
 # Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
 # Fin de tour et bannière de transition. Appelé par AISystem / NetworkOpponent.
 func set_enemy_turn(active: bool) -> void:
 	enemy_turn_active = active
 	end_turn_button.disabled = active
 	_retranslate_battle()
+	if active:
+		turn_timer.stop()
 	if game_over:
 		# Partie terminée pendant le tour adverse : pas d'annonce de tour
 		end_turn_button.set_ready_hint(false)
@@ -595,6 +618,7 @@ func check_game_end() -> void:
 		return
 	if enemy_hero.is_dead() or player_hero.is_dead():
 		game_over = true
+		turn_timer.stop()
 		_show_game_over("defeat" if player_hero.is_dead() else "victory")
 
 # Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
