@@ -64,6 +64,7 @@ func self_damage(is_player: bool, amount: int) -> int:
 	if dealt <= 0:
 		return 0
 	hero.take_damage(dealt)
+	battle.combat_log.self_damage(is_player, dealt)
 	await _on_self_damage_dealt(is_player)
 	update_ui()
 	return dealt

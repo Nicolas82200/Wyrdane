@@ -52,6 +52,7 @@ func _apply_revenant(minions: Array[Minion]) -> void:
 
 func _animate_deaths(dead_minions: Array[Minion]) -> void:
 	for minion in dead_minions:
+		battle.combat_log.minion_died(minion)
 		var visual = battle.board_visual_system.get_visual(minion)
 		if visual:
 			battle.animation_system.play_death(visual)
