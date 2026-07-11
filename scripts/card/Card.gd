@@ -12,6 +12,9 @@ const HAND_RETURN_DISTANCE := 50.0
 const BOARD_MINION_SCENE  = preload("res://scenes/minion/BoardMinion.tscn")
 const BOARD_MINION_SIZE   := Vector2(100, 150)
 const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
+# Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
+# DeckBuilder.MAXED_TINT).
+const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -71,6 +74,9 @@ var data: CardData
 var drag_enabled := true
 # En phase de mulligan : un simple clic remplace la carte, aucun drag possible.
 var mulligan_mode := false
+# Cette carte a déjà été échangée pendant le mulligan en cours : grisée, plus
+# cliquable tant que la phase de mulligan n'est pas terminée.
+var mulligan_swapped := false
 
 # Référence vers la main, injectée par Hand
 var hand_ref: Control = null
@@ -180,10 +186,18 @@ func _apply_race_style() -> void:
 	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
 	text_background.queue_redraw()
 
+# ─── Mulligan ─────────────────────────────────────────────────────────────────
+
+func set_mulligan_swapped(swapped: bool) -> void:
+	mulligan_swapped = swapped
+	modulate = MULLIGAN_SWAPPED_TINT if swapped else Color.WHITE
+
 # ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
 func _gui_input(event: InputEvent) -> void:
 	if mulligan_mode:
+		if mulligan_swapped:
+			return
 		if event is InputEventMouseButton \
 				and event.button_index == MOUSE_BUTTON_LEFT \
 				and event.pressed:
