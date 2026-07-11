@@ -41,9 +41,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -300.0
-offset_top = -280.0
+offset_top = -312.0
 offset_right = 300.0
-offset_bottom = 280.0
+offset_bottom = 312.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -178,6 +178,24 @@ theme_override_font_sizes/font_size = 18
 text = "Langue"
 
 [node name="LanguageOption" type="OptionButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow" unique_id=600000031]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+
+[node name="DifficultyRow" type="HBoxContainer" parent="PanelContainer/VBox/RowsMargin/RowsVBox" unique_id=600000032]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DifficultyLabel" type="Label" parent="PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow" unique_id=600000033]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 18
+text = "Difficulté IA"
+
+[node name="DifficultyOption" type="OptionButton" parent="PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow" unique_id=600000034]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
