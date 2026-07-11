@@ -39,8 +39,14 @@ func _ready() -> void:
 	_toggle_button.text = "📜"
 	_toggle_button.custom_minimum_size = TOGGLE_SIZE
 	_toggle_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_toggle_button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_toggle_button.position = Vector2(-TOGGLE_SIZE.x - 8, 8)
+	# set_anchors_preset ne suffit pas : avec anchor_left=anchor_right=1.0,
+	# les offsets doivent être fixés explicitement pour définir le rectangle
+	# final (Control.position serait en espace ABSOLU du parent, pas relatif
+	# au coin ancré, et placerait le bouton hors écran).
+	_toggle_button.offset_left   = -TOGGLE_SIZE.x - 8
+	_toggle_button.offset_top    = 8
+	_toggle_button.offset_right  = -8
+	_toggle_button.offset_bottom = 8 + TOGGLE_SIZE.y
 	_toggle_button.pressed.connect(_on_toggle_pressed)
 	add_child(_toggle_button)
 
@@ -49,7 +55,7 @@ func _ready() -> void:
 	_badge.add_theme_color_override("font_color", Color("ff4444"))
 	_badge.add_theme_font_size_override("font_size", 20)
 	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_badge.position = Vector2(-10, -6)
+	_badge.position = Vector2(TOGGLE_SIZE.x - 14, -6)
 	_badge.visible = false
 	_toggle_button.add_child(_badge)
 
@@ -60,10 +66,12 @@ func _ready() -> void:
 func _build_panel() -> void:
 	_panel = PanelContainer.new()
 	_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_panel.position = Vector2(-PANEL_SIZE.x - 8, 8 + TOGGLE_SIZE.y + 6)
-	_panel.custom_minimum_size = PANEL_SIZE
-	_panel.size = PANEL_SIZE
+	# Voir le commentaire équivalent sur _toggle_button : offsets explicites,
+	# pas position, pour rester ancré au bon coin quel que soit la taille du parent.
+	_panel.offset_left   = -PANEL_SIZE.x - 8
+	_panel.offset_top    = 8 + TOGGLE_SIZE.y + 6
+	_panel.offset_right  = -8
+	_panel.offset_bottom = 8 + TOGGLE_SIZE.y + 6 + PANEL_SIZE.y
 	var style := StyleBoxFlat.new()
 	style.bg_color              = Color("1a0e0ee6")
 	style.border_width_top      = 2
