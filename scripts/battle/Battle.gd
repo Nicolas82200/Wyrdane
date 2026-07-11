@@ -129,6 +129,11 @@ var counter_offensive: Dictionary = {true: false, false: false}
 # "Commencer" et un clic sur une carte de la main la remplace au lieu de la jouer.
 var _mulligan_active: bool = false
 signal mulligan_confirmed
+# Nombre maximum d'échanges pendant le mulligan, et suivi des index déjà
+# échangés (une carte reçue en remplacement ne peut pas être re-mulligan).
+const MULLIGAN_MAX_SWAPS := 2
+var _mulligan_swap_count: int = 0
+var _mulligan_swapped_indices: Array[int] = []
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
@@ -275,6 +280,8 @@ func _start_game() -> void:
 # attend juste que le pair ait fini avant de lancer le tour 1.
 func _run_mulligan() -> void:
 	_mulligan_active = true
+	_mulligan_swap_count = 0
+	_mulligan_swapped_indices.clear()
 	hand.set_mulligan_mode(true)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	turn_banner.show_banner(SettingsManager.t("mulligan.banner"))
@@ -297,11 +304,16 @@ func _run_mulligan() -> void:
 	update_end_turn_hint()
 
 func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
+	if index in _mulligan_swapped_indices or _mulligan_swap_count >= MULLIGAN_MAX_SWAPS:
+		return
 	var new_data: CardData = deck_system.mulligan_replace_one(index)
 	if new_data == null:
 		return
+	_mulligan_swap_count += 1
+	_mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
 	hand.flip_replace_at(index, new_data)
+	hand.set_card_mulligan_swapped(index, true)
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
