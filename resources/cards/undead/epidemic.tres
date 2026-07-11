@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Épidémie"
-description = "Ce tour : Serviteurs non Mort-Vivants ennemis -2/-2. Ceux réduits à 0 HP ne vont pas dans le cimetière adverse."
+description = "Serviteurs non Mort-Vivants ennemis -2/-2. Ceux réduits à 0 HP ne vont pas dans le cimetière adverse."
 flavour_text = "Elle ne tue pas. Elle prépare."
 texture = ExtResource("3_texture")
 cost = 4

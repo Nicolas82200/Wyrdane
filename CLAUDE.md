@@ -15,8 +15,17 @@ Liste complète des cartes : voir `CARDS.md`.
 - Scène principale (F5) : `scenes/loading/LoadingScreen.tscn` — charge toutes les cartes via `CardLibrary` puis ouvre le menu principal
 - Pour tester directement une bataille : lancer `scenes/battle/Battle.tscn` (F6). Attention : `CardLibrary` n'est alors pas pré-chargé, certains systèmes (deck IA notamment) utilisent un fallback
 - Pour tester le multijoueur en local : lancer deux instances du jeu sur `scenes/net/NetLobby.tscn` — l'une clique « Héberger », l'autre saisit `127.0.0.1` puis « Rejoindre »
-- Pas de suite de tests automatisés pour l'instant — toute nouvelle fonctionnalité doit être vérifiée manuellement en jeu jusqu'à ce qu'un framework de test soit mis en place
 - Vérification syntaxique possible en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit`
+- Tests automatisés (GUT) : voir section « Tests automatisés » plus bas
+
+## Tests automatisés
+
+Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. Tests dans `tests/unit/`.
+
+- Lancer toute la suite en CLI (headless) : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`
+- Après un `git pull`/`git clone` (ou si les tests échouent avec des erreurs "class_names have not been imported" / "Failed to instantiate an autoload"), régénérer le cache d'import une fois : `godot --headless --path . --import`
+- Les scripts purs sans dépendance de scène (ex. `Minion`, `CardData`) sont testables directement en instanciant la classe. Éviter de dépendre des autoloads globaux (`CardLibrary`, etc.) dans les tests : le runner GUT (mode `-s`) ne les initialise pas de façon fiable — préférer charger le script cible directement (`load("res://...").new()`) quand c'est possible
+- Toute nouvelle carte ou tout nouveau système de jeu mérite un test si sa logique n'est pas triviale (calcul de dégâts, conditions de trigger, intégrité des ressources `.tres`)
 
 ## Structure du projet
 

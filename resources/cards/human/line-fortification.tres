@@ -19,7 +19,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fortification des Lignes"
-description = "Permanent : Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour."
+description = "Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour."
 flavour_text = "Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas."
 texture = ExtResource("3_texture")
 cost = 5

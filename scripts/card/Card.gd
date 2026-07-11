@@ -162,7 +162,7 @@ func _apply_type_style() -> void:
 	var label_text: String = TYPE_LABELS.get(data.card_type, "Serviteur")
 	if data.card_type == "Ritual":
 		if data.ritual_duration > 0:
-			label_text += " • %d tour%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
+			label_text += " • %d charge%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
 		elif data.ritual_duration == -1:
 			label_text += " • Permanent"
 	type_label.text = label_text

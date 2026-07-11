@@ -9,19 +9,25 @@
 [sub_resource type="Resource" id="Resource_g2ak0"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
-count = 4
+count = 1
 pool_max_cost = 4
 pool_race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_awaken"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Arrivée de Masse"
-description = "Invoque 4 Mort-Vivants aléatoires de coût ≤4. Coûte 6 si tu as 3 serviteurs ou moins en jeu."
+description = "Éveil : invoque un Mort-Vivant aléatoire de coût ≤4."
 flavour_text = "Il n'a pas ouvert une porte. Il a retiré le mur."
 texture = ExtResource("3_texture")
 cost = 7
 card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_g2ak0")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

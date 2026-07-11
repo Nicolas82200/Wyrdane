@@ -36,11 +36,11 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 	$CostBadge.text = str(card_data.cost)
 	$TurnsLabel.visible = false
 
-# Compteur de tours restants (Rituels à durée limitée uniquement)
+# Compteur de charges restantes (Rituels à durée limitée uniquement)
 func set_turns_left(turns: int) -> void:
 	$TurnsLabel.visible = turns > 0
 	if turns > 0:
-		var fmt := SettingsManager.t("enchant.turns_many") if turns > 1 else SettingsManager.t("enchant.turns_one")
+		var fmt := SettingsManager.t("enchant.charges_many") if turns > 1 else SettingsManager.t("enchant.charges_one")
 		$TurnsLabel.text = fmt % turns
 
 # Surbrillance dorée quand le rituel est activable (Sacrifice disponible)

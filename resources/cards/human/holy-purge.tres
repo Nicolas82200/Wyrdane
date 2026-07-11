@@ -14,15 +14,21 @@ value = 3
 race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_awaken"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purge Sainte"
-description = "Détruit tous les serviteurs Mort-Vivants ennemis ayant 3 HP ou moins."
+description = "Éveil : détruit les serviteurs Mort-Vivants ennemis ayant 3 HP ou moins."
 flavour_text = "Ce n'est pas une prière. C'est une déclaration."
 texture = ExtResource("3_texture")
 cost = 6
 race = 1
 card_type = "Ritual"
+ritual_duration = 2
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_dio4z")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
