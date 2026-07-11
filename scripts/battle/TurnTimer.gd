@@ -1,63 +1,71 @@
 extends Control
 class_name TurnTimer
 
-## Décompte du temps de tour du joueur local : un petit panneau affichant le
-## temps restant (mm:ss), qui passe en alerte sous WARNING_THRESHOLD secondes.
-## Créé entièrement en code par Battle (aucun nœud dans Battle.tscn), sur le
-## modèle de TurnBanner. À l'expiration, émet `timeout` : Battle enchaîne alors
-## sur une fin de tour automatique (voir Battle._on_turn_timer_timeout).
+## Décompte du temps de tour du joueur local : une barre verticale qui se vide
+## (de haut en bas), placée à gauche de ManaDisplay/EndTurnButton, qui passe en
+## alerte sous WARNING_THRESHOLD secondes. Créée entièrement en code par Battle
+## (aucun nœud dans Battle.tscn), sur le modèle de TurnBanner. À l'expiration,
+## émet `timeout` : Battle enchaîne alors sur une fin de tour (ou de mulligan)
+## automatique (voir Battle._on_turn_timer_timeout).
 
 signal timeout
 
-const FONT_BOLD := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
-const DEFAULT_DURATION := 90.0
+const DEFAULT_DURATION := 45.0
 const WARNING_THRESHOLD := 10.0
-const COLOR_NORMAL  := Color("e8d5a3")
+const COLOR_NORMAL  := Color("c9a227")
 const COLOR_WARNING := Color("e05252")
+const BAR_WIDTH := 14.0
 
 var time_left: float = 0.0
 var running: bool    = false
 
-var _panel: PanelContainer
-var _label: Label
+var _bar: ProgressBar
+var _fill_style: StyleBoxFlat
 
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	custom_minimum_size = Vector2(170, 32)
-	offset_left   = -230.0
-	offset_top    = -140.0
-	offset_right  = -60.0
-	offset_bottom = -108.0
+	custom_minimum_size = Vector2(BAR_WIDTH, 116)
+	# Aligné à gauche du bloc ManaDisplay/EndTurnButton (voir leurs offsets dans
+	# Battle.tscn : x -230..-60, y -172..-56), avec un petit espace entre les deux.
+	offset_left   = -254.0
+	offset_top    = -172.0
+	offset_right  = -240.0
+	offset_bottom = -56.0
 
-	_panel = PanelContainer.new()
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var style := StyleBoxFlat.new()
-	style.bg_color              = Color("1a0e0edd")
-	style.border_width_top      = 1
-	style.border_width_bottom   = 1
-	style.border_color          = Color("c9a227")
-	style.content_margin_top    = 4
-	style.content_margin_bottom = 4
-	_panel.add_theme_stylebox_override("panel", style)
+	_bar = ProgressBar.new()
+	_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bar.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_bar.fill_mode = ProgressBar.FILL_BOTTOM_TO_TOP
+	_bar.show_percentage = false
+	_bar.min_value = 0.0
 
-	_label = Label.new()
-	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label.add_theme_font_override("font", FONT_BOLD)
-	_label.add_theme_font_size_override("font_size", 22)
-	_panel.add_child(_label)
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color        = Color("1a0e0edd")
+	bg_style.border_width_left   = 1
+	bg_style.border_width_right  = 1
+	bg_style.border_width_top    = 1
+	bg_style.border_width_bottom = 1
+	bg_style.border_color = Color("c9a227")
+	_bar.add_theme_stylebox_override("background", bg_style)
 
-	add_child(_panel)
+	_fill_style = StyleBoxFlat.new()
+	_fill_style.bg_color = COLOR_NORMAL
+	_bar.add_theme_stylebox_override("fill", _fill_style)
+
+	add_child(_bar)
 	visible = false
 
-# Démarre (ou redémarre) le décompte pour le tour en cours.
+# Démarre (ou redémarre) le décompte pour le tour/mulligan en cours.
 func start(duration: float = DEFAULT_DURATION) -> void:
 	time_left = duration
 	running = true
 	visible = true
-	_refresh_label()
+	if _bar != null:
+		_bar.max_value = duration
+		_bar.value = duration
+	if _fill_style != null:
+		_fill_style.bg_color = COLOR_NORMAL
 
 func stop() -> void:
 	running = false
@@ -67,7 +75,7 @@ func _process(delta: float) -> void:
 	if not running:
 		return
 	var just_timed_out := tick(delta)
-	_refresh_label()
+	_refresh_bar()
 	if just_timed_out:
 		timeout.emit()
 
@@ -81,9 +89,8 @@ func tick(delta: float) -> bool:
 		return true
 	return false
 
-func _refresh_label() -> void:
-	if _label == null:
+func _refresh_bar() -> void:
+	if _bar == null:
 		return
-	var seconds := int(ceil(time_left))
-	_label.text = "%d:%02d" % [seconds / 60, seconds % 60]
-	_label.add_theme_color_override("font_color", COLOR_WARNING if time_left <= WARNING_THRESHOLD else COLOR_NORMAL)
+	_bar.value = time_left
+	_fill_style.bg_color = COLOR_WARNING if time_left <= WARNING_THRESHOLD else COLOR_NORMAL
