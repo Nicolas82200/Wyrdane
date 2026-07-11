@@ -4,3 +4,7 @@
 .import/
 export_preserts.cfg
 .tmp
+
+# GodotSteam extension download/extraction leftovers (Windows temp files)
+addons/godotsteam/**/~*
+*.TMP
