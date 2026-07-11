@@ -187,6 +187,8 @@ func _attackable_player_minions(attacker: Minion) -> Array[Minion]:
 
 # Miroir de Battle._can_attack_hero pour un attaquant ennemi
 func _can_attack_player_hero(attacker: Minion) -> bool:
+	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
+		return false
 	for minion in _attackable_player_minions(attacker):
 		if minion.has_keyword(Keyword.Type.TAUNT):
 			return false

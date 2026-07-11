@@ -553,6 +553,8 @@ func _can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
 	return true
 
 func _can_attack_hero(attacker: Minion) -> bool:
+	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
+		return false
 	if has_enemy_taunt(attacker):
 		return false
 	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
