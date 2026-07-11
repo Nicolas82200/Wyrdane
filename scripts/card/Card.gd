@@ -13,6 +13,7 @@ const BOARD_MINION_SIZE   := Vector2(100, 150)
 const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 
 const BORDER_TEXTURES := {
+	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
 	Race.Type.UNDEAD: preload("res://assets/borders/undead-border-card.png"),
 	Race.Type.HUMAN:  preload("res://assets/borders/human-border-card.png")
 }
