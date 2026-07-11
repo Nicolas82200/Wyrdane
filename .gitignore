@@ -8,3 +8,8 @@ export_preserts.cfg
 # GodotSteam extension download/extraction leftovers (Windows temp files)
 addons/godotsteam/**/~*
 *.TMP
+
+# Traductions compilées par Godot depuis translations/game.csv : régénérées
+# à l'import, leur sérialisation binaire change à chaque recompilation même
+# sans changement de contenu (diffs fantômes, conflits binaires non fusionnables)
+translations/*.translation
