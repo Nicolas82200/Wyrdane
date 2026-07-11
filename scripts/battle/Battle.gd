@@ -27,6 +27,7 @@ const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
 const ATTACK_PACE                 := 0.5
+const MULLIGAN_DURATION           := 45.0
 
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
@@ -280,7 +281,9 @@ func _run_mulligan() -> void:
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
+	turn_timer.start(MULLIGAN_DURATION)
 	await mulligan_confirmed
+	turn_timer.stop()
 	end_turn_button.disabled = true
 	end_turn_button.set_ready_hint(false)
 	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
@@ -552,11 +555,18 @@ func _on_end_turn_pressed() -> void:
 		return
 	turn_system.end_turn()
 
-# Expiration du décompte de tour : résout le choix Mana/Pioche s'il est encore
-# en attente (la Mana est le choix par défaut, sans perte d'information contrairement
-# à la Pioche qui révèle une carte), puis termine le tour comme un clic normal.
+# Expiration du décompte : pendant le mulligan, garde la main actuelle telle
+# quelle (comme un clic sur "Commencer"). En tour normal, résout le choix
+# Mana/Pioche s'il est encore en attente (la Mana est le choix par défaut,
+# sans perte d'information contrairement à la Pioche qui révèle une carte),
+# puis termine le tour comme un clic normal.
 func _on_turn_timer_timeout() -> void:
-	if game_over or enemy_turn_active:
+	if game_over:
+		return
+	if _mulligan_active:
+		mulligan_confirmed.emit()
+		return
+	if enemy_turn_active:
 		return
 	if turn_choice_panel.is_active():
 		turn_choice_panel.select_mana()
