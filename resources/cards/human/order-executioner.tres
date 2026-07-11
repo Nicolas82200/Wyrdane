@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://l4dej5g9rhpf8"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_hkw"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://bnoi002vjrla3" path="res://assets/card_art/human/order-executioner.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+
+[sub_resource type="Resource" id="Resource_hkw1"]
+script = ExtResource("2_hkw")
+keyword_type = 0
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
+[sub_resource type="Resource" id="Resource_kw1"]
+script = ExtResource("2_kw")
+name_fr = "Venin mortel"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Exécuteur de l'Ordre"
+description = "VENIN MORTEL. DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement)."
+flavour_text = "Il n'a pas de haine. Il a des instructions. C'est pire."
+texture = ExtResource("3_texture")
+cost = 5
+race = 1
+unit_style = 19
+attack = 5
+health = 4
+cannot_attack_hero = true
+keywords = Array[ExtResource("2_kw")]([SubResource("Resource_kw1")])
+human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
