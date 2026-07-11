@@ -26,11 +26,21 @@ const RARITY_COLORS := {
 }
 
 const RACE_COLORS := {
-	Race.Type.UNDEAD: Color("#342e1aa5"),
-	Race.Type.HUMAN:  Color("#5a4a3596"),
+	Race.Type.UNDEAD: Color("#0d0b09b5"),
+	Race.Type.HUMAN:  Color("#3a2c12c0"),
 	Race.Type.ELF:    Color("#2f5d5096"),
 	Race.Type.DWARF:  Color("#5a3a2296"),
-	Race.Type.DEMON:  Color("#5a1f1f96"),
+	Race.Type.DEMON:  Color("#2a0a10c0"),
+}
+
+# Couleur du texte (nom + description) par race — toujours plus claire que RACE_COLORS
+const DEFAULT_NAME_COLOR := Color(0.9490196, 0.8901961, 0.7764706, 1)
+const DEFAULT_DESC_COLOR := Color(1, 1, 1, 0.8549019608)
+
+const RACE_TEXT_COLORS := {
+	Race.Type.UNDEAD: Color("#c8c5ba"),
+	Race.Type.HUMAN:  Color("#cfa85e"),
+	Race.Type.DEMON:  Color("#c9525f"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -176,6 +186,14 @@ func _apply_type_style() -> void:
 func _apply_race_style() -> void:
 	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
 	text_background.queue_redraw()
+
+	var name_color: Color = RACE_TEXT_COLORS.get(data.race, DEFAULT_NAME_COLOR)
+	name_label.add_theme_color_override("font_color", name_color)
+
+	var desc_color: Color = RACE_TEXT_COLORS.get(data.race, DEFAULT_DESC_COLOR)
+	if RACE_TEXT_COLORS.has(data.race):
+		desc_color.a = 0.88
+	desc_label.add_theme_color_override("default_color", desc_color)
 
 # ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
