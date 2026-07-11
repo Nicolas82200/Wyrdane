@@ -5,6 +5,7 @@ class_name Card
 signal card_clicked(card: CardData, row: String, insert_index: int)
 signal drag_started
 signal drag_ended
+signal mulligan_clicked
 
 const DRAG_THRESHOLD      := 350.0
 const HAND_RETURN_DISTANCE := 50.0
@@ -68,6 +69,8 @@ const TYPE_ICONS := {
 
 var data: CardData
 var drag_enabled := true
+# En phase de mulligan : un simple clic remplace la carte, aucun drag possible.
+var mulligan_mode := false
 
 # Référence vers la main, injectée par Hand
 var hand_ref: Control = null
@@ -180,6 +183,13 @@ func _apply_race_style() -> void:
 # ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
 func _gui_input(event: InputEvent) -> void:
+	if mulligan_mode:
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_LEFT \
+				and event.pressed:
+			mulligan_clicked.emit()
+			get_viewport().set_input_as_handled()
+		return
 	if not drag_enabled:
 		return
 	if not (event is InputEventMouseButton
