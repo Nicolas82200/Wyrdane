@@ -47,7 +47,7 @@ shadow_size = 8
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_pportrait"]
 shader = ExtResource("22_roundshader")
-shader_parameter/rect_size = Vector2(135, 187)
+shader_parameter/rect_size = Vector2(129, 181)
 shader_parameter/radius_top_left = 100.0
 shader_parameter/radius_top_right = 100.0
 shader_parameter/radius_bottom_right = 0.0
@@ -55,7 +55,7 @@ shader_parameter/radius_bottom_left = 0.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_eportrait"]
 shader = ExtResource("22_roundshader")
-shader_parameter/rect_size = Vector2(135, 187)
+shader_parameter/rect_size = Vector2(129, 181)
 shader_parameter/radius_top_left = 0.0
 shader_parameter/radius_top_right = 0.0
 shader_parameter/radius_bottom_right = 100.0
@@ -658,6 +658,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -696,6 +700,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
