@@ -20,7 +20,7 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("3_gqd7o")
 card_name = "Résistance Acharnée"
-description = "3 tours : Carnage allié : quand un Humain allié meurt, le héros allié gagne 1 HP."
+description = "Carnage allié : quand un Humain allié meurt, le héros allié gagne 1 HP."
 flavour_text = "Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux."
 texture = ExtResource("4_qgakc")
 cost = 4
