@@ -5,6 +5,7 @@ class_name Hand
 signal card_played(card_data: CardData, row: String, insert_index: int)
 signal drag_started
 signal drag_ended
+signal mulligan_card_clicked(index: int, card_data: CardData)
 
 @onready var container = $CardsContainer
 @onready var preview   = $CardPreview
@@ -25,6 +26,9 @@ var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
+# Phase de mulligan : un clic sur une carte la remplace directement (pas de
+# drag). Appliqué à chaque carte connectée, y compris celles créées après coup.
+var _mulligan_mode:     bool           = false
 
 # Référence Battle mise en cache
 var _battle: Node = null
@@ -120,6 +124,40 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 
 func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: int = -1) -> void:
 	card_played.emit(card_data, row, insert_index)
+
+# ─── Mulligan ─────────────────────────────────────────────────────────────────
+
+func set_mulligan_mode(active: bool) -> void:
+	_mulligan_mode = active
+	for card in container.get_children():
+		if card is Card:
+			card.mulligan_mode = active
+
+# L'index dans container (== index dans battle.hand_cards, même ordre) identifie
+# la carte sans ambiguïté : deux exemplaires d'une même carte partagent la même
+# ressource CardData, donc comparer par égalité de données désignerait toujours
+# le premier exemplaire au lieu de celui réellement cliqué.
+func _on_mulligan_card_clicked(card: Card) -> void:
+	var index: int = container.get_children().find(card)
+	if index != -1:
+		mulligan_card_clicked.emit(index, card.data)
+
+# Remplace en place la carte à cet index, avec un effet de retournement (comme
+# la pioche animée), sans reconstruire toute la main.
+func flip_replace_at(index: int, new_data: CardData) -> void:
+	var children := container.get_children()
+	if index < 0 or index >= children.size():
+		return
+	var card: Card = children[index]
+	var target_scale_x: float = card.scale.x
+	var tween := create_tween()
+	tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(func():
+		card.set_data(new_data)
+		if display_cost.is_valid():
+			card.set_display_cost(display_cost.call(new_data))
+	)
+	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
 
 # ─── Hover ────────────────────────────────────────────────────────────────────
 
@@ -269,6 +307,9 @@ func _connect_card(card: Card) -> void:
 		card.mouse_entered.connect(_on_card_hover.bind(card))
 	if not card.mouse_exited.is_connected(_on_card_unhover):
 		card.mouse_exited.connect(_on_card_unhover)
+	if not card.mulligan_clicked.is_connected(_on_mulligan_card_clicked):
+		card.mulligan_clicked.connect(_on_mulligan_card_clicked.bind(card))
+	card.mulligan_mode = _mulligan_mode
 	for child in card.get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
