@@ -103,7 +103,7 @@ class FakeCardPopupSystem:
 
 
 class FakeDeathSystem:
-	func process_deaths() -> void:
+	func process_deaths(_silent: Array = []) -> void:
 		pass
 
 
