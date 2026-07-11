@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dqzt0k3nfmb1x"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dq0t0k3nfmb1x"]
 
 [ext_resource type="Texture2D" uid="uid://c262fq4np822e" path="res://assets/card_art/undead/minor-zombie.jpg" id="1_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]

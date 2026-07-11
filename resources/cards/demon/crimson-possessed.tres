@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
-[ext_resource type="Texture2D" uid="uid://umyu4k4akuf5m" path="res://assets/card_art/demon/crimson-possessed.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://b3k0gqoqc7iep" path="res://assets/card_art/demon/crimson-possessed.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 

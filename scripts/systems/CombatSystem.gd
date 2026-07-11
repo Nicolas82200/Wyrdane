@@ -15,13 +15,18 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	if attacker_visual and defender_visual:
 		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual)
-	await _execute_damage(attacker, defender)
+	var dealt_to_defender: int = await _execute_damage(attacker, defender)
 	await battle.get_tree().create_timer(0.05).timeout
-	await battle.death_system.process_deaths()
+	# Le résultat (mort ou non) n'est logué qu'une fois la résolution de mort
+	# terminée (REVENANT peut relever le serviteur) ; les deux serviteurs sont
+	# passés en "silent" pour que DeathSystem ne double-logue pas leur mort
+	# séparément — leur sort est déjà visible dans cette entrée d'attaque.
+	await battle.death_system.process_deaths([attacker, defender])
+	battle.combat_log.attack(attacker, defender, dealt_to_defender, attacker.is_dead(), defender.is_dead())
 	battle.hero_system.update_ui()
 	battle.check_game_end()
 
-func _execute_damage(attacker: Minion, defender: Minion) -> void:
+func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
 	# sur les serviteurs adjacents à la cible).
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
@@ -36,7 +41,6 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	AudioManager.play(AudioManager.HIT)
-	battle.combat_log.attack(attacker, defender, dealt_to_defender)
 
 	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
 	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
@@ -85,6 +89,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 
 	attacker.consume_attack()
 	battle.board_visual_system.refresh_board()
+	return dealt_to_defender
 
 func perform_hero_attack(attacker: Minion) -> void:
 	if battle.net_emitter != null and attacker.owner_is_player:
