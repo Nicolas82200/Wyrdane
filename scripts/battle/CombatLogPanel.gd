@@ -7,8 +7,9 @@ class_name CombatLogPanel
 ## gauche de l'écran, centré verticalement ; au clic, le panneau se déploie
 ## depuis la gauche vers la droite (largeur animée), sur environ 35% de la
 ## hauteur de l'écran, centré verticalement. Chaque ligne = une icône + de
-## courts segments colorés par camp (pas de phrase). Créé entièrement en
-## code par Battle (aucun nœud dans Battle.tscn).
+## courtes miniatures d'illustration de carte (bordure colorée par camp) et
+## quelques segments texte pour les nombres/flèches — pas de phrase. Créé
+## entièrement en code par Battle (aucun nœud dans Battle.tscn).
 ##
 ## Positionnement en pixels ABSOLUS (position/size), pas via anchors : les
 ## enfants ancrés hérités de la taille du parent au moment de leur création
@@ -21,9 +22,10 @@ const FONT_BOLD    := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const FONT_REGULAR := preload("res://assets/fonts/MedievalSharp-Book.ttf")
 const MARGIN        := 8.0
 const TOGGLE_SIZE   := Vector2(40, 40)
-const PANEL_WIDTH   := 260.0
+const PANEL_WIDTH   := 300.0
 const PANEL_HEIGHT_RATIO := 0.35
 const ANIM_TIME     := 0.25
+const THUMB_SIZE    := Vector2(24, 32)
 const COLOR_PLAYER  := Color("9fd3ff")
 const COLOR_ENEMY   := Color("ffb199")
 const COLOR_NEUTRAL := Color("d8c9a3")
@@ -171,12 +173,15 @@ func _on_entry_added(entry: Dictionary) -> void:
 	row.add_child(icon_label)
 
 	for segment in entry["segments"]:
-		var seg_label := Label.new()
-		seg_label.text = segment["text"]
-		seg_label.add_theme_font_override("font", FONT_REGULAR)
-		seg_label.add_theme_font_size_override("font_size", 13)
-		seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
-		row.add_child(seg_label)
+		if segment["type"] == "card":
+			row.add_child(_make_card_thumb(segment))
+		else:
+			var seg_label := Label.new()
+			seg_label.text = segment["text"]
+			seg_label.add_theme_font_override("font", FONT_REGULAR)
+			seg_label.add_theme_font_size_override("font_size", 13)
+			seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
+			row.add_child(seg_label)
 
 	_list.add_child(row)
 	while _list.get_child_count() > CombatLogSystem.MAX_ENTRIES:
@@ -187,6 +192,32 @@ func _on_entry_added(entry: Dictionary) -> void:
 		_scroll_to_bottom()
 	else:
 		_badge.visible = true
+
+# Miniature de l'illustration de la carte, encadrée d'une bordure colorée par
+# camp (bleu = vous, rouge = adversaire) — le nom reste accessible en tooltip.
+func _make_card_thumb(segment: Dictionary) -> Control:
+	var frame := PanelContainer.new()
+	frame.tooltip_text = segment.get("name", "")
+	var style := StyleBoxFlat.new()
+	style.bg_color              = Color(0, 0, 0, 0)
+	style.border_width_top      = 2
+	style.border_width_bottom   = 2
+	style.border_width_left     = 2
+	style.border_width_right    = 2
+	style.border_color          = _segment_color(segment.get("is_player"))
+	style.content_margin_left   = 0
+	style.content_margin_right  = 0
+	style.content_margin_top    = 0
+	style.content_margin_bottom = 0
+	frame.add_theme_stylebox_override("panel", style)
+
+	var tex := TextureRect.new()
+	tex.texture = segment.get("texture")
+	tex.custom_minimum_size = THUMB_SIZE
+	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex.stretch_mode = TextureRect.STRETCH_SCALE
+	frame.add_child(tex)
+	return frame
 
 func _segment_color(is_player) -> Color:
 	if is_player == true:
