@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dqzt0k3nfmb1x"]
+
+[ext_resource type="Texture2D" uid="uid://c262fq4np822e" path="res://assets/card_art/undead/minor-zombie.jpg" id="1_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Zombie"
+description = ""
+flavour_text = "Ni vivant, ni mort. Juste debout."
+texture = ExtResource("1_texture")
+cost = 1
+attack = 1
+health = 1
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

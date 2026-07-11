@@ -88,7 +88,7 @@ Autoloads globaux (voir `project.godot`) :
 Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/data/TriggerType.gd`) et sont déclenchés par nom via `EffectManager.trigger_effects(battle, minion, "OnAwaken")` ou `TriggerSystem.fire("OnSummon", minion, is_player)`. Les effets eux-mêmes sont **data-driven** : chaque carte (`CardData.effects`) porte des ressources `CardEffect` (effect_id, cible, valeur) exécutées par `EffectManager.execute_effect()` — rien n'est codé en dur dans les serviteurs. **Avant d'ajouter un effet, vérifier si son `effect_id` existe déjà dans le `match` de `EffectManager.gd`.**
 
 ### Mots-clés
-`REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `AILES NOIRES`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
+`REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `INFILTRATION`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
 
 ### Mécaniques spéciales — Mort-Vivant
 - **Infection** — perte de 1 HP au début du tour adverse, persiste jusqu'à mort
@@ -96,7 +96,7 @@ Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
 
-Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`, 75 cartes), **Humain** (`human/`, 75 cartes, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...) et **Démon** (`demon/`, 75 cartes, mots-clés dans `KeywordDemon.gd`, Corruption, pipeline de dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage` — voir « Mécaniques Démon » dans `README.md`). Races prévues (non commencées, seuls les enums `Race.Type.ELF`/`Race.Type.DWARF` existent) : Elfe, Nain.
+Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`, 76 cartes dont 1 jeton), **Humain** (`human/`, 75 cartes, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...) et **Démon** (`demon/`, 75 cartes, mots-clés dans `KeywordDemon.gd`, Corruption, pipeline de dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage` — voir « Mécaniques Démon » dans `README.md`). Races prévues (non commencées, seuls les enums `Race.Type.ELF`/`Race.Type.DWARF` existent) : Elfe, Nain.
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
@@ -176,7 +176,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 226 cartes au total), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
 - ⬜ À faire : sorts/rituels pour l'IA, page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents
