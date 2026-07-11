@@ -17,7 +17,7 @@ keyword_type = 0
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Assassin des Ombres Rouges"
-description = "AILES NOIRES. PACTE."
+description = "INFILTRATION. PACTE."
 flavour_text = "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri."
 texture = ExtResource("3_texture")
 cost = 3

@@ -43,7 +43,7 @@ Positionnement (Lane Types)
 | `ASSAUT` | Peut attaquer le tour de son invocation. |
 | `FRÉNÉSIE` | Peut attaquer deux fois par tour. |
 | `RAVAGE` | Les dégâts excédentaires sont infligés directement au héros adverse. |
-| `AILES NOIRES` | Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros. |
+| `INFILTRATION` | Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros. |
 | `MOISSON` | Les dégâts infligés par ce serviteur soignent le héros allié d'autant. |
 | `VENIN MORTEL` | Toute blessure infligée par ce serviteur détruit la cible, quelle que soit sa vie restante. |
 | `ÉGIDE` | Annule la première source de dégâts reçue. |
@@ -77,7 +77,7 @@ Positionnement (Lane Types)
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 01 | Rampant en Décomposition | ⚔️ | 1 | 1 | 1 | Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle). | Il ne sait plus pourquoi il avance. Il avance, c'est tout. |
+| 01 | Rampant en Décomposition | ⚔️ | 1 | 1 | 1 | Dernier Souffle : invoque un Zombie 1/1 sous ton contrôle. | Il ne sait plus pourquoi il avance. Il avance, c'est tout. |
 | 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 | NÉCROPHAGE. | La faim ne disparaît pas avec la mort. Elle empire. |
 | 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART. CHAIR MORTE. | Personne ne se souvient de son nom. Lui non plus. |
 | 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 | HORDE. | Il était enfant. C'était avant. |
@@ -118,7 +118,7 @@ Positionnement (Lane Types)
 | 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
 | 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
-| 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | AILES NOIRES. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
+| 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
 | 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
 | 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
@@ -188,6 +188,12 @@ Positionnement (Lane Types)
 | 73 | Vortex des Âmes | 6 | Légendaire | Carnage : gagne 1 mana temporaire ce tour. | Les âmes qui s'y perdent alimentent quelque chose que personne ne comprend vraiment. |
 | 74 | Monument aux Morts | 5 | Épique | Deuil : invoque 2 Mort-Vivants aléatoires de coût ≤3. | On l'a érigé pour honorer les disparus. Il préfère les renvoyer. |
 | 75 | Murmure Funeste | 1 | Rare | Présence : le premier Mort-Vivant joué chaque tour coûte 1 de moins (min 1). | On ne l'entend pas. On sent juste que quelque chose a dit oui. |
+
+### Jetons
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
 
 # FateBound — CARDS_HUMAIN.md
 
@@ -283,7 +289,7 @@ Liste complète des cartes de la race **Humain**.
 | H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Ralliement** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
-| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | AILES NOIRES : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
+| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
 | H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié aléatoire. Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
 | H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
@@ -423,7 +429,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | `ASSAUT` | Peut attaquer le tour de son invocation. |
 | `FRÉNÉSIE` | Peut attaquer deux fois par tour. |
 | `RAVAGE` | Les dégâts excédentaires sont infligés directement au héros adverse. |
-| `AILES NOIRES` | Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros. |
+| `INFILTRATION` | Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros. |
 | `MOISSON` | Les dégâts infligés par ce serviteur soignent le héros allié d'autant. |
 | `VENIN MORTEL` | Toute blessure infligée par ce serviteur détruit la cible, quelle que soit sa vie restante. |
 | `ÉGIDE` | Annule la première source de dégâts reçue. |
@@ -498,7 +504,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
 | D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
-| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | AILES NOIRES. PACTE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
+| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. PACTE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. PACTE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
 | D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART. RANG INFERNAL. | *Il siège sur ce que ton héros a déjà perdu.* |
 
