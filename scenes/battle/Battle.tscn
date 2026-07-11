@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
 [ext_resource type="Texture2D" uid="uid://bs3l57fgcqb6k" path="res://assets/heros_art/king-aldric-dawnbearer.jpg" id="20_pheroart"]
 [ext_resource type="Texture2D" uid="uid://dypdopuwgal1s" path="res://assets/heros_art/azhar-the-fallen.jpg" id="21_eheroart"]
+[ext_resource type="Shader" path="res://resources/shaders/rounded_corners.gdshader" id="22_roundshader"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 bg_color = Color(0.09, 0.07, 0.06, 0.95)
@@ -43,6 +44,22 @@ corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 shadow_color = Color(0.72, 0.55, 0.26, 0.2)
 shadow_size = 8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pportrait"]
+shader = ExtResource("22_roundshader")
+shader_parameter/rect_size = Vector2(135, 187)
+shader_parameter/radius_top_left = 100.0
+shader_parameter/radius_top_right = 100.0
+shader_parameter/radius_bottom_right = 0.0
+shader_parameter/radius_bottom_left = 0.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eportrait"]
+shader = ExtResource("22_roundshader")
+shader_parameter/rect_size = Vector2(135, 187)
+shader_parameter/radius_top_left = 0.0
+shader_parameter/radius_top_right = 0.0
+shader_parameter/radius_bottom_right = 100.0
+shader_parameter/radius_bottom_left = 100.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lanefront"]
 bg_color = Color(0.1, 0.1, 0.12, 0.18)
@@ -636,6 +653,7 @@ grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_vbfmk")
 
 [node name="Portrait" type="TextureRect" parent="PlayerHeroPanel"]
+material = SubResource("ShaderMaterial_pportrait")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -673,6 +691,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_nyp61")
 script = ExtResource("4_w6b63")
 
 [node name="Portrait" type="TextureRect" parent="EnemyHeroPanel"]
+material = SubResource("ShaderMaterial_eportrait")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
