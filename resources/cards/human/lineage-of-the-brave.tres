@@ -19,7 +19,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Lignée des Braves"
-description = "Deuil : quand un Humain allié meurt, pioche 1 carte."
+description = "Deuil : quand un Humain allié meurt, pioche 1 carte. (Une seule fois par tour.)"
 flavour_text = "Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire."
 texture = ExtResource("3_texture")
 cost = 3
@@ -28,4 +28,5 @@ card_type = "Enchantment"
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_66upm")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_b40dt")])
 rarity = "Rare"
+trigger_once_per_turn = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

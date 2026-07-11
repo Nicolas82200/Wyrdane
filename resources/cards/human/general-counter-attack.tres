@@ -13,7 +13,7 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Contre-Attaque Générale"
-description = "2 tours : Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant."
+description = "Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant."
 flavour_text = "Chaque coup reçu est une réponse en attente."
 texture = ExtResource("3_texture")
 cost = 5

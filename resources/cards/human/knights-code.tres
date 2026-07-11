@@ -20,7 +20,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Code du Chevalier"
-description = "3 tours : Assaut : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire."
+description = "Assaut : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire."
 flavour_text = "L'honneur ne protège pas. Mais il donne un tranchant supplémentaire."
 texture = ExtResource("3_texture")
 cost = 5

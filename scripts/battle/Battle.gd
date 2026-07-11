@@ -274,7 +274,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	if targeting_system.is_targeting():
+	if targeting_system.is_targeting() and not targeting_system.is_trigger_targeting():
 		if event is InputEventMouseButton \
 				and event.button_index == MOUSE_BUTTON_RIGHT \
 				and event.pressed:
