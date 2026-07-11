@@ -23,6 +23,7 @@ func _ready() -> void:
 	add_child(_net)
 	_net.peer_connected.connect(_on_peer_connected)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
+	_net.status.connect(_log_line)
 	_build_ui()
 
 func _build_ui() -> void:
@@ -113,6 +114,7 @@ func _on_peer_connected() -> void:
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
 	_handshake.completed.connect(_on_handshake_ready)
+	_handshake.progress.connect(_log_line)
 	_handshake.start()
 
 func _on_peer_disconnected(reason: String) -> void:
