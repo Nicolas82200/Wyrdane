@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
-[ext_resource type="Texture2D" uid="uid://7khyr33snvp8a" path="res://assets/card_art/demon/crown-of-the-pact.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://0108y1t8qfnd" path="res://assets/card_art/demon/crown-of-the-pact.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 
 [sub_resource type="Resource" id="Resource_szohy"]
