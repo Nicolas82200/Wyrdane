@@ -17,6 +17,9 @@ signal connected()
 signal packet_received(bytes: PackedByteArray)
 # Le pair distant est parti (déconnexion volontaire ou perte de lien).
 signal disconnected(reason: String)
+# Trace lisible des étapes d'établissement de la connexion (diagnostic affiché
+# dans le journal du lobby — voir NetLobby).
+signal status(message: String)
 
 # Héberge une session. params opaque selon le backend (ex. {"port": int}).
 # Retourne OK ou un code d'erreur.
