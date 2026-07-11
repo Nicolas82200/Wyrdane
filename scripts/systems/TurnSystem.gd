@@ -65,6 +65,7 @@ func _begin_player_turn() -> void:
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
 	battle.cost_system.on_turn_started(is_local_turn)
+	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():

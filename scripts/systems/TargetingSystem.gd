@@ -6,6 +6,7 @@ signal target_selected(target)
 
 var battle
 var _active: bool = false
+var _trigger_mode: bool = false
 var _pending_card: CardData = null
 var _pending_row: String = "Front"
 var _pending_insert_index: int = -1
@@ -26,6 +27,22 @@ func init(_battle) -> void:
 	canvas_layer.add_child(_arrow)
 func is_targeting() -> bool:
 	return _active
+
+func is_trigger_targeting() -> bool:
+	return _trigger_mode
+
+# Ciblage à froid pour un effet déclenché en cours de partie (ex: Dernier
+# Souffle de Charognard Putride), en dehors de toute pose de carte depuis la
+# main. Pas de flèche (le serviteur source n'a déjà plus de visuel), juste les
+# cibles valides en surbrillance ; ne peut pas être annulé (la mort a déjà eu
+# lieu, il n'y a rien à défaire).
+func prompt_trigger_target(card_data: CardData) -> Minion:
+	_pending_card = card_data
+	_trigger_mode = true
+	_active       = true
+	_show_valid_targets(card_data)
+	var result = await target_selected
+	return result
 
 func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
 	_pending_card         = card_data
@@ -97,6 +114,11 @@ func _finish(target) -> void:
 	_clear_highlights()
 	_arrow.hide_arrow()
 	battle.set_process(false)
+	if _trigger_mode:
+		_trigger_mode = false
+		_pending_card = null
+		target_selected.emit(target)
+		return
 	# ← Cache la popup de ciblage
 	battle.card_popup_system.hide_targeting_popup()
 	var card   := _pending_card

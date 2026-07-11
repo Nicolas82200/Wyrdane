@@ -18,7 +18,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de Résurrection"
-description = "2 tours : Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant."
+description = "Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant."
 flavour_text = "Le cercle ne ferme jamais complètement. C'est voulu."
 texture = ExtResource("3_texture")
 cost = 5
