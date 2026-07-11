@@ -132,6 +132,20 @@ func set_mulligan_mode(active: bool) -> void:
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
+			# Fin du mulligan : la partie commence, les cartes échangées redeviennent
+			# normales (le grisé n'a de sens que pendant la phase de mulligan).
+			if not active:
+				card.set_mulligan_swapped(false)
+
+# Grise la carte à cet index pour indiquer qu'elle vient d'être échangée et ne
+# peut plus être re-mulligan tant que la phase de mulligan est en cours.
+func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
+	var children := container.get_children()
+	if index < 0 or index >= children.size():
+		return
+	var card: Card = children[index]
+	if card is Card:
+		card.set_mulligan_swapped(swapped)
 
 # L'index dans container (== index dans battle.hand_cards, même ordre) identifie
 # la carte sans ambiguïté : deux exemplaires d'une même carte partagent la même
