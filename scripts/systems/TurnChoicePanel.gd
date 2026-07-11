@@ -74,10 +74,12 @@ func _play_entrance() -> void:
 		button.pivot_offset = button.size / 2.0
 		button.scale = Vector2(0.7, 0.7)
 		button.modulate.a = 0.0
-		var tween := _new_scale_tween(button).set_parallel(true)
-		tween.tween_property(button, "scale", Vector2.ONE, 0.35) \
+		# Le fondu tourne sur un tween séparé du scale : survoler la carte pendant
+		# son entrée tue le tween de scale (via _new_scale_tween) et ne doit pas
+		# interrompre le fondu, sinon la carte reste transparente pour toujours.
+		_new_scale_tween(button).tween_property(button, "scale", Vector2.ONE, 0.35) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).set_delay(delay)
-		tween.tween_property(button, "modulate:a", 1.0, 0.2).set_delay(delay)
+		create_tween().tween_property(button, "modulate:a", 1.0, 0.2).set_delay(delay)
 		delay += 0.12
 
 func _new_scale_tween(button: Button) -> Tween:
