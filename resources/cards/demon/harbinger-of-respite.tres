@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://8kimd33a94jpy"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://9gogcrrlr4qvb" path="res://assets/card_art/demon/harbinger-of-respite.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_12yen"]
+script = ExtResource("4_trig")
+type = "OnDamaged"
+
+[sub_resource type="Resource" id="Resource_g3p6w"]
+script = ExtResource("1_cardeffect")
+effect_id = "HealHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Suppôt du Répit"
+description = "Blessure : ton héros regagne 1 HP."
+flavour_text = "Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège."
+texture = ExtResource("3_texture")
+cost = 3
+race = 4
+unit_style = 14
+attack = 2
+health = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_12yen")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_g3p6w")])
+rarity = "Rare"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

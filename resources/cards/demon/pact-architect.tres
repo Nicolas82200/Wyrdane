@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://k3obqostkikca"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://wxyb8gem7db41" path="res://assets/card_art/demon/pact-architect.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://lnmfmrvaguehb" path="res://resources/cards/demon/hellspawn-larva.tres" id="6_summon"]
+
+[sub_resource type="Resource" id="Resource_4egxs"]
+script = ExtResource("4_kwd")
+keyword_type = 0
+
+[sub_resource type="Resource" id="Resource_5zrmt"]
+script = ExtResource("5_trig")
+type = "OnRally"
+
+[sub_resource type="Resource" id="Resource_zvwtj"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonMinion"
+summon_row = "Front"
+summon_card = ExtResource("6_summon")
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Architecte du Pacte"
+description = "PACTE. Ralliement : invoque une Larve Infernale 2/1 en rangée Avant."
+flavour_text = "Chaque contrat qu'il signe en engendre un autre, sans fin."
+texture = ExtResource("3_texture")
+cost = 3
+race = 4
+unit_style = 15
+attack = 2
+health = 3
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_4egxs")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_5zrmt")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_zvwtj")])
+rarity = "Epic"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

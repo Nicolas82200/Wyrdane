@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://o4a36na0oaihl"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://ua1wtd075n4eu" path="res://assets/card_art/demon/abyssal-sentinel.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_ope86"]
+script = ExtResource("4_kw")
+name_fr = "Rempart"
+
+[sub_resource type="Resource" id="Resource_phxlk"]
+script = ExtResource("5_trig")
+type = "OnDamaged"
+
+[sub_resource type="Resource" id="Resource_vj0rq"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_v41k1"]
+script = ExtResource("1_cardeffect")
+effect_id = "Heal"
+target = "Self"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Sentinelle du Gouffre"
+description = "REMPART. Blessure : ton héros perd 1 HP ; ce serviteur regagne 1 HP."
+flavour_text = "Elle boit la douleur des autres. La tienne fera l'affaire."
+texture = ExtResource("3_texture")
+cost = 3
+race = 4
+unit_style = 15
+attack = 1
+health = 4
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_ope86")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_phxlk")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_vj0rq"), SubResource("Resource_v41k1")])
+rarity = "Common"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
