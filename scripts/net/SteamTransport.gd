@@ -2,12 +2,26 @@ extends NetTransport
 class_name SteamTransport
 
 # Implémentation Steam du transport : lobby Steam pour la mise en relation,
-# API P2P Steamworks (sendP2PPacket / readP2PPacket) pour les octets de jeu.
+# API Steam Networking Sockets (createListenSocketP2P / connectP2P /
+# sendMessageToConnection / receiveMessagesOnConnection) pour les octets de
+# jeu.
 #
-# - host() : crée un lobby public tagué "fatebound" ; la partie démarre quand
-#   un second membre entre dans le lobby.
+# On utilisait auparavant l'ancienne API P2P (sendP2PPacket), dépréciée par
+# Valve : sa traversée NAT est moins fiable et elle ne bascule pas toujours
+# proprement sur le relais Steam (SDR) quand la connexion directe échoue —
+# symptôme observé : deux joueurs sur des réseaux différents restaient
+# bloqués indéfiniment au handshake bien que le lobby les considère connectés.
+# Networking Sockets gère ce basculement automatiquement et expose un vrai
+# état de connexion (network_connection_status_changed), donc `connected`
+# n'est émis qu'une fois la connexion P2P RÉELLEMENT établie — plus une
+# simple présomption basée sur la présence dans le lobby.
+#
+# - host() : crée un lobby public tagué "fatebound" ET un socket d'écoute P2P.
+#   La partie démarre quand un second membre entre dans le lobby ET que sa
+#   connexion P2P entrante est acceptée.
 # - join() : rejoint un lobby précis ({"lobby_id": int}) ou, sans id, cherche
-#   le premier lobby FateBound ouvert (partie rapide).
+#   le premier lobby FateBound ouvert (partie rapide), puis ouvre la connexion
+#   P2P vers l'hôte.
 #
 # Comme pour ENet, aucun identifiant Steam (SteamID64, lobby id) ne fuit hors
 # de cette classe : le reste du jeu ne voit que l'interface NetTransport.
@@ -16,34 +30,37 @@ class_name SteamTransport
 const LOBBY_GAME_KEY := "game"
 const LOBBY_GAME_VALUE := "fatebound"
 const LOBBY_OWNER_KEY := "owner_id"
-const CHANNEL := 0
+const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 
 # Constantes Steamworks recopiées (le singleton n'existe pas à la compilation).
 const LOBBY_TYPE_PUBLIC := 2
 const LOBBY_OK := 1                    # CHAT_ROOM_ENTER_RESPONSE_SUCCESS
 const CHAT_ENTERED := 1                # CHAT_MEMBER_STATE_CHANGE_ENTERED
-const P2P_SEND_UNRELIABLE := 0
-const P2P_SEND_RELIABLE := 2
 const LOBBY_DISTANCE_WORLDWIDE := 3    # LOBBY_DISTANCE_FILTER_WORLDWIDE
 
-# EP2PSessionError, pour rendre p2p_session_connect_fail lisible dans le log.
-const P2P_ERRORS := {
-	1: "l'autre joueur ne fait pas tourner le jeu",
-	2: "pas les droits sur l'application",
-	3: "l'autre joueur n'est pas connecté à Steam",
-	4: "délai de connexion dépassé (NAT/pare-feu ?)",
-}
+# ESteamNetworkingConnectionState (isteamnetworkingtypes.h).
+const CONN_STATE_CONNECTING := 1
+const CONN_STATE_FINDING_ROUTE := 2
+const CONN_STATE_CONNECTED := 3
+const CONN_STATE_CLOSED_BY_PEER := 4
+const CONN_STATE_PROBLEM_DETECTED_LOCALLY := 5
+
+# k_nSteamNetworkingSend_* (isteamnetworkingtypes.h).
+const SEND_UNRELIABLE := 0
+const SEND_RELIABLE := 8
 
 var _steam: Object = null
 var _lobby_id: int = 0
-var _remote_id: int = 0  # SteamID64 du pair distant
+var _remote_id: int = 0        # SteamID64 du pair distant, connu dès le lobby
+var _listen_socket: int = 0    # hôte seulement : socket d'écoute P2P
+var _connection_handle: int = 0
 var _is_host := false
-var _got_first_packet := false
 
 func host(_params: Dictionary) -> int:
 	if not _init_steam():
 		return ERR_UNAVAILABLE
 	_is_host = true
+	_listen_socket = _steam.createListenSocketP2P(VIRTUAL_PORT, {})
 	_steam.createLobby(LOBBY_TYPE_PUBLIC, 2)  # 2 membres : c'est du 1v1
 	status.emit("Steam : création du lobby demandée…")
 	return OK
@@ -67,39 +84,38 @@ func join(params: Dictionary) -> int:
 	return OK
 
 func send(bytes: PackedByteArray, reliable: bool = true) -> void:
-	if _steam == null or _remote_id == 0:
+	if _steam == null or _connection_handle == 0:
 		return
-	_steam.sendP2PPacket(_remote_id, bytes,
-			P2P_SEND_RELIABLE if reliable else P2P_SEND_UNRELIABLE, CHANNEL)
+	_steam.sendMessageToConnection(_connection_handle, bytes,
+			SEND_RELIABLE if reliable else SEND_UNRELIABLE)
 
 func poll() -> void:
 	if _steam == null:
 		return
 	SteamService.run_callbacks()
-	while _steam.getAvailableP2PPacketSize(CHANNEL) > 0:
-		var packet: Dictionary = _steam.readP2PPacket(
-				_steam.getAvailableP2PPacketSize(CHANNEL), CHANNEL)
-		var bytes: PackedByteArray = packet.get("data", PackedByteArray())
-		if not _got_first_packet:
-			# Preuve que le P2P entrant fonctionne : précieuse au diagnostic.
-			_got_first_packet = true
-			status.emit("Steam : premier paquet P2P reçu du pair ✓")
-		# Les paquets vides servent uniquement à ouvrir la session P2P.
+	if _connection_handle == 0:
+		return
+	var messages: Array = _steam.receiveMessagesOnConnection(_connection_handle, 32)
+	for message in messages:
+		var bytes: PackedByteArray = message.get("payload", message.get("data", PackedByteArray()))
 		if not bytes.is_empty():
 			packet_received.emit(bytes)
 
 func close() -> void:
 	if _steam == null:
 		return
-	if _remote_id != 0:
-		_steam.closeP2PSessionWithUser(_remote_id)
+	if _connection_handle != 0:
+		_steam.closeConnection(_connection_handle, 0, "", false)
+	if _listen_socket != 0:
+		_steam.closeListenSocket(_listen_socket)
 	if _lobby_id != 0:
 		_steam.leaveLobby(_lobby_id)
 	_disconnect_steam_signals()
 	_steam = null
 	_lobby_id = 0
 	_remote_id = 0
-	_got_first_packet = false
+	_listen_socket = 0
+	_connection_handle = 0
 
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
@@ -116,8 +132,7 @@ func _connect_steam_signals() -> void:
 	_steam.connect("lobby_joined", _on_lobby_joined)
 	_steam.connect("lobby_match_list", _on_lobby_match_list)
 	_steam.connect("lobby_chat_update", _on_lobby_chat_update)
-	_steam.connect("p2p_session_request", _on_p2p_session_request)
-	_steam.connect("p2p_session_connect_fail", _on_p2p_session_connect_fail)
+	_steam.connect("network_connection_status_changed", _on_network_connection_status_changed)
 
 func _disconnect_steam_signals() -> void:
 	if _steam.is_connected("lobby_created", _on_lobby_created):
@@ -125,8 +140,7 @@ func _disconnect_steam_signals() -> void:
 		_steam.disconnect("lobby_joined", _on_lobby_joined)
 		_steam.disconnect("lobby_match_list", _on_lobby_match_list)
 		_steam.disconnect("lobby_chat_update", _on_lobby_chat_update)
-		_steam.disconnect("p2p_session_request", _on_p2p_session_request)
-		_steam.disconnect("p2p_session_connect_fail", _on_p2p_session_connect_fail)
+		_steam.disconnect("network_connection_status_changed", _on_network_connection_status_changed)
 
 # ── Côté hôte ──
 
@@ -149,35 +163,22 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 	_steam.setLobbyJoinable(lobby_id, true)
 
 # Un membre entre / sort du lobby (hôte : détecte l'arrivée de l'adversaire).
+# Ne fait QUE mémoriser son SteamID — la connexion P2P elle-même est initiée
+# par le client (voir _on_lobby_joined) et confirmée par
+# _on_network_connection_status_changed, seule source de vérité pour `connected`.
 func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: int, chat_state: int) -> void:
 	if lobby_id != _lobby_id:
 		return
 	# L'hôte reçoit aussi ce callback pour sa propre entrée dans le lobby
-	# qu'il vient de créer : il faut l'ignorer, sinon _remote_id se retrouve
-	# affecté au SteamID de l'hôte lui-même et le vrai pair n'est jamais pris
-	# en compte (le P2P n'est alors jamais accepté côté hôte).
+	# qu'il vient de créer : il faut l'ignorer.
 	if changed_id == _steam.getSteamID():
 		return
 	if chat_state == CHAT_ENTERED:
-		status.emit("Steam : « %s » est entré dans le lobby" % _persona(changed_id))
-		_adopt_remote_as_host(changed_id)
+		status.emit("Steam : « %s » est entré dans le lobby — en attente de sa connexion P2P…" % _persona(changed_id))
+		_remote_id = changed_id
 	elif changed_id == _remote_id:
 		_remote_id = 0
 		disconnected.emit("peer_left_lobby")
-
-# Côté hôte, l'adversaire peut se manifester par DEUX callbacks dont l'ordre
-# n'est pas garanti : lobby_chat_update (entrée dans le lobby) et
-# p2p_session_request (son premier paquet — le HELLO du handshake). Si on
-# n'écoutait que le premier, le HELLO pouvait être lu par poll() avant que
-# `connected` ne soit émis, donc avant que le handshake local n'existe : le
-# paquet était perdu et l'hôte restait bloqué au lobby. On émet donc
-# `connected` à la première manifestation, quelle qu'elle soit.
-func _adopt_remote_as_host(remote_id: int) -> void:
-	if not _is_host or _remote_id != 0:
-		return
-	_remote_id = remote_id
-	status.emit("Steam : pair adopté (%s) — connexion établie côté hôte" % _persona(remote_id))
-	connected.emit()
 
 # ── Côté client ──
 
@@ -215,32 +216,51 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		_remote_id = 0
 		disconnected.emit("steam_same_account")
 		return
-	# Paquet vide : ouvre la session P2P côté hôte (déclenche sa
-	# p2p_session_request), le contenu est ignoré par poll().
-	_steam.sendP2PPacket(_remote_id, PackedByteArray(), P2P_SEND_RELIABLE, CHANNEL)
-	connected.emit()
+	status.emit("Steam : ouverture de la connexion P2P vers l'hôte…")
+	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
 
-# ── Commun ──
+# ── Commun : suivi de la connexion P2P réelle ──
 
-func _on_p2p_session_request(remote_id: int) -> void:
-	# 1v1 : premier arrivé = notre pair ; ensuite on n'accepte que lui.
-	if _remote_id == 0 or remote_id == _remote_id:
-		_steam.acceptP2PSessionWithUser(remote_id)
-		status.emit("Steam : session P2P acceptée avec « %s »" % _persona(remote_id))
-		# Ce callback peut précéder lobby_chat_update : c'est alors lui qui
-		# déclenche `connected` côté hôte (voir _adopt_remote_as_host).
-		_adopt_remote_as_host(remote_id)
-	else:
-		status.emit("Steam : session P2P refusée (demandeur inattendu %d)" % remote_id)
+func _on_network_connection_status_changed(connect_handle: int, connection: Dictionary, _old_state: int) -> void:
+	var state: int = connection.get("connection_state", 0)
+	var remote_id := _extract_remote_id(connection)
+	match state:
+		CONN_STATE_CONNECTING:
+			# Connexion entrante sur notre socket d'écoute : uniquement pertinent
+			# côté hôte. On n'accepte que le pair déjà identifié via le lobby
+			# (1v1 : premier arrivé = notre pair).
+			if not _is_host or connection.get("listen_socket", 0) != _listen_socket:
+				return
+			if _remote_id != 0 and remote_id != 0 and remote_id != _remote_id:
+				status.emit("Steam : connexion P2P refusée (pair inattendu)")
+				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
+				return
+			_steam.acceptConnection(connect_handle)
+			status.emit("Steam : connexion P2P entrante acceptée, en attente de confirmation…")
+		CONN_STATE_CONNECTED:
+			_connection_handle = connect_handle
+			if remote_id != 0:
+				_remote_id = remote_id
+			status.emit("Steam : connexion P2P établie avec « %s » ✓" % _persona(_remote_id))
+			connected.emit()
+		CONN_STATE_CLOSED_BY_PEER, CONN_STATE_PROBLEM_DETECTED_LOCALLY:
+			if connect_handle != _connection_handle and _connection_handle != 0:
+				return
+			var end_reason: int = connection.get("end_reason", 0)
+			var end_debug: String = connection.get("end_debug", "")
+			status.emit("Steam : connexion P2P perdue (code %d — %s)" % [end_reason, end_debug])
+			_connection_handle = 0
+			disconnected.emit("steam_p2p_failed")
 
-func _on_p2p_session_connect_fail(steam_id: int, session_error: int) -> void:
-	status.emit("Steam : échec P2P vers %d — %s" % [steam_id,
-			P2P_ERRORS.get(session_error, "erreur %d" % session_error)])
-	if steam_id == _remote_id and _remote_id != 0:
-		_remote_id = 0
-		disconnected.emit("steam_p2p_failed")
+# L'identité dans le dictionnaire "connection" peut être un SteamID64 brut ou
+# un dictionnaire selon la version de GodotSteam — on gère les deux formes.
+func _extract_remote_id(connection: Dictionary) -> int:
+	var identity: Variant = connection.get("identity", 0)
+	if identity is Dictionary:
+		return int(identity.get("steam_id", identity.get("steamid", 0)))
+	return int(identity)
 
-# Pseudo Steam lisible d'un joueur (pour le journal de diagnostic).
+# Pseudo Steam d'un joueur (pour le journal de diagnostic).
 func _persona(steam_id: int) -> String:
 	var name: String = _steam.getFriendPersonaName(steam_id)
 	return name if name != "" else str(steam_id)
