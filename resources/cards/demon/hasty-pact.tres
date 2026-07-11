@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://yq6t9zbrveri9"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://kwo4ml01ktp20" path="res://assets/card_art/demon/hasty-pact.jpg" id="3_texture"]
+
+[sub_resource type="Resource" id="Resource_c75tc"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_yfixe"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Pacte Hâtif"
+description = "Ton héros perd 2 HP ; pioche 2 cartes."
+flavour_text = "Signer vite coûte cher. Signer tard coûte pareil."
+texture = ExtResource("3_texture")
+cost = 1
+race = 4
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_c75tc"), SubResource("Resource_yfixe")])
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://d7ylpf7jzlczs"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://mmsfcbvfd44x5" path="res://assets/card_art/demon/crimson-shadow-assassin.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
+
+[sub_resource type="Resource" id="Resource_48idk"]
+script = ExtResource("4_kw")
+name_fr = "Infiltration"
+
+[sub_resource type="Resource" id="Resource_b0fk8"]
+script = ExtResource("5_kwd")
+keyword_type = 0
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Assassin des Ombres Rouges"
+description = "AILES NOIRES. PACTE."
+flavour_text = "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri."
+texture = ExtResource("3_texture")
+cost = 3
+race = 4
+unit_style = 15
+attack = 4
+health = 2
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_48idk")])
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_b0fk8")])
+rarity = "Epic"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

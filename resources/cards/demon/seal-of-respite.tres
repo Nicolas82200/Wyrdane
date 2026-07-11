@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b2dsqojcrsjt7"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://2iclcjfolqpbm" path="res://assets/card_art/demon/seal-of-respite.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_q3177"]
+script = ExtResource("4_trig")
+type = "OnGrief"
+
+[sub_resource type="Resource" id="Resource_zx1us"]
+script = ExtResource("1_cardeffect")
+effect_id = "HealHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Sceau du Répit"
+description = "Présence : quand un serviteur Démon allié meurt, ton héros regagne 1 HP."
+flavour_text = "Chaque perte laisse une trace. Celle-ci, au moins, te profite."
+texture = ExtResource("3_texture")
+cost = 3
+race = 4
+card_type = "Enchantment"
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_q3177")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_zx1us")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://waobkdbag3n0i"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://5vp8aunz5vl8s" path="res://assets/card_art/demon/chainmaster.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_4vbom"]
+script = ExtResource("4_trig")
+type = "OnGrief"
+
+[sub_resource type="Resource" id="Resource_ji0e2"]
+script = ExtResource("1_cardeffect")
+effect_id = "PreventEnemyHeroHeal"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Rituel de la Terreur"
+description = "Deuil : le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour."
+flavour_text = "La peur ne referme aucune plaie. C'est précisément le but, encore et encore."
+texture = ExtResource("3_texture")
+cost = 4
+race = 4
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_4vbom")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ji0e2")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
