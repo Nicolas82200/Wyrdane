@@ -238,11 +238,11 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
+	deck_system.start_game()
 	if NetContext.active:
 		opponent.setup()
 	else:
 		ai_system.setup()
-		deck_system.start_game()
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
