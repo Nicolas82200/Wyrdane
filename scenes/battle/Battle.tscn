@@ -17,6 +17,8 @@
 [ext_resource type="Texture2D" uid="uid://bench4nt1con0" path="res://assets/icons/enchantment.png" id="17_ench"]
 [ext_resource type="Texture2D" uid="uid://brit4l1icon00" path="res://assets/icons/ritual.png" id="18_ritual"]
 [ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
+[ext_resource type="Texture2D" uid="uid://bs3l57fgcqb6k" path="res://assets/heros_art/king-aldric-dawnbearer.jpg" id="20_pheroart"]
+[ext_resource type="Texture2D" uid="uid://dypdopuwgal1s" path="res://assets/heros_art/azhar-the-fallen.jpg" id="21_eheroart"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 bg_color = Color(0.09, 0.07, 0.06, 0.95)
@@ -619,6 +621,7 @@ script = ExtResource("14_manad")
 
 [node name="PlayerHeroPanel" type="Panel" parent="." unique_id=1723469268]
 custom_minimum_size = Vector2(135, 187)
+clip_contents = true
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -631,6 +634,18 @@ offset_right = 67.5
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_vbfmk")
+
+[node name="Portrait" type="TextureRect" parent="PlayerHeroPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("20_pheroart")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="HealthLabel" type="Label" parent="PlayerHeroPanel" unique_id=1678301298]
 custom_minimum_size = Vector2(50, 50)
@@ -647,6 +662,7 @@ vertical_alignment = 1
 
 [node name="EnemyHeroPanel" type="Panel" parent="." unique_id=299686984]
 custom_minimum_size = Vector2(135, 187)
+clip_contents = true
 layout_mode = 0
 anchor_left = 0.5
 anchor_right = 0.5
@@ -655,6 +671,18 @@ offset_right = 67.5
 offset_bottom = 187.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_nyp61")
 script = ExtResource("4_w6b63")
+
+[node name="Portrait" type="TextureRect" parent="EnemyHeroPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("21_eheroart")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="HealthLabel" type="Label" parent="EnemyHeroPanel" unique_id=725538410]
 custom_minimum_size = Vector2(50, 50)
