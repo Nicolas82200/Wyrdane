@@ -28,6 +28,9 @@ class_name CardData
 # Tant que ce serviteur est en jeu, les dégâts que tes propres cartes infligent
 # à ton héros sont annulés (Le Gardien du Pacte Brisé). Lu par HeroSystem.self_damage.
 @export var blocks_self_damage: bool = false
+# Ce serviteur ne peut jamais attaquer le héros ennemi directement, même si la
+# rangée Avant adverse est vide (Exécuteur de l'Ordre). Lu par Battle._can_attack_hero.
+@export var cannot_attack_hero: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []
