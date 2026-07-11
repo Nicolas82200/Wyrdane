@@ -23,10 +23,10 @@ func init(_battle) -> void:
 func _seg_text(text: String, is_player = null) -> Dictionary:
 	return {"type": "text", "text": text, "is_player": is_player}
 
-func _seg_card(card_data: CardData, is_player: bool) -> Dictionary:
+func _seg_card(card_data: CardData, is_player: bool, is_dead: bool = false) -> Dictionary:
 	if card_data == null:
 		return _seg_text("?", is_player)
-	return {"type": "card", "texture": card_data.texture, "name": card_data.display_name(), "is_player": is_player}
+	return {"type": "card", "texture": card_data.texture, "name": card_data.display_name(), "is_player": is_player, "dead": is_dead}
 
 func _add(icon: String, segments: Array) -> void:
 	var entry := {"icon": icon, "segments": segments}
@@ -39,13 +39,13 @@ func card_played(card_data: CardData, is_player: bool) -> void:
 	var icon := "➕" if card_data.card_type == "Minion" else "✨"
 	_add(icon, [_seg_card(card_data, is_player)])
 
-func attack(attacker: Minion, defender: Minion, dmg: int) -> void:
-	if dmg <= 0:
+func attack(attacker: Minion, defender: Minion, dmg: int, attacker_dead: bool = false, defender_dead: bool = false) -> void:
+	if dmg <= 0 and not attacker_dead and not defender_dead:
 		return
 	_add("⚔️", [
-		_seg_card(attacker.card_data, attacker.owner_is_player),
-		_seg_text("→"),
-		_seg_card(defender.card_data, defender.owner_is_player),
+		_seg_card(attacker.card_data, attacker.owner_is_player, attacker_dead),
+		_seg_text("⚔️"),
+		_seg_card(defender.card_data, defender.owner_is_player, defender_dead),
 		_seg_text("-%d" % dmg),
 	])
 
@@ -54,7 +54,7 @@ func attack_hero(attacker: Minion, target_is_player: bool, dmg: int) -> void:
 		return
 	_add("⚔️", [
 		_seg_card(attacker.card_data, attacker.owner_is_player),
-		_seg_text("→"),
+		_seg_text("⚔️"),
 		_seg_text("👑", target_is_player),
 		_seg_text("-%d" % dmg),
 	])
