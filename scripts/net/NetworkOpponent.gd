@@ -184,6 +184,7 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles
 # du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
 func _apply_enemy_spell(card: CardData, target_id: int) -> void:
+	battle.combat_log.card_played(card, false)
 	if card.card_type == "Enchantment":
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
