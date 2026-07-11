@@ -22,13 +22,14 @@ const FONT_BOLD    := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const FONT_REGULAR := preload("res://assets/fonts/MedievalSharp-Book.ttf")
 const MARGIN        := 8.0
 const TOGGLE_SIZE   := Vector2(40, 40)
-const PANEL_WIDTH   := 300.0
+const PANEL_WIDTH   := 250.0
 const PANEL_HEIGHT_RATIO := 0.35
 const ANIM_TIME     := 0.25
-const THUMB_SIZE    := Vector2(24, 32)
+const THUMB_SIZE    := Vector2(30, 42)
 const COLOR_PLAYER  := Color("9fd3ff")
 const COLOR_ENEMY   := Color("ffb199")
 const COLOR_NEUTRAL := Color("d8c9a3")
+const COLOR_DEAD_TINT := Color(0.32, 0.32, 0.32, 1.0)
 
 var battle
 var combat_log: CombatLogSystem
@@ -211,12 +212,33 @@ func _make_card_thumb(segment: Dictionary) -> Control:
 	style.content_margin_bottom = 0
 	frame.add_theme_stylebox_override("panel", style)
 
+	# Un serviteur mort de cette attaque : portrait dans un Control (non-Container)
+	# pour pouvoir superposer une tête de mort par-dessus, ce que PanelContainer
+	# seul (un enfant, redimensionné à sa taille) ne permet pas.
+	var stack := Control.new()
+	stack.custom_minimum_size = THUMB_SIZE
+
 	var tex := TextureRect.new()
 	tex.texture = segment.get("texture")
-	tex.custom_minimum_size = THUMB_SIZE
+	tex.set_anchors_preset(Control.PRESET_FULL_RECT)
 	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tex.stretch_mode = TextureRect.STRETCH_SCALE
-	frame.add_child(tex)
+	var is_dead: bool = segment.get("dead", false)
+	if is_dead:
+		tex.modulate = COLOR_DEAD_TINT
+	stack.add_child(tex)
+
+	if is_dead:
+		var skull := Label.new()
+		skull.text = "💀"
+		skull.add_theme_font_size_override("font_size", int(THUMB_SIZE.y * 0.65))
+		skull.set_anchors_preset(Control.PRESET_FULL_RECT)
+		skull.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		skull.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		skull.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		stack.add_child(skull)
+
+	frame.add_child(stack)
 	return frame
 
 func _segment_color(is_player) -> Color:
