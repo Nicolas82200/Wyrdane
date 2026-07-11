@@ -14,7 +14,7 @@ const DEFAULT_DURATION := 45.0
 const WARNING_THRESHOLD := 10.0
 const COLOR_NORMAL  := Color("c9a227")
 const COLOR_WARNING := Color("e05252")
-const BAR_WIDTH := 14.0
+const BAR_WIDTH := 7.0
 
 var time_left: float = 0.0
 var running: bool    = false
@@ -28,9 +28,9 @@ func _ready() -> void:
 	custom_minimum_size = Vector2(BAR_WIDTH, 116)
 	# Aligné à gauche du bloc ManaDisplay/EndTurnButton (voir leurs offsets dans
 	# Battle.tscn : x -230..-60, y -172..-56), avec un petit espace entre les deux.
-	offset_left   = -254.0
+	offset_left   = -244.0
 	offset_top    = -172.0
-	offset_right  = -240.0
+	offset_right  = -237.0
 	offset_bottom = -56.0
 
 	_bar = ProgressBar.new()
