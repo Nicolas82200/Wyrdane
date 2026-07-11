@@ -22,6 +22,7 @@ const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éve
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
+const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -89,6 +90,11 @@ static func hello(deck_paths: Array, start_id: int, stride: int, seed: int) -> D
 # session — voir la boucle de renvoi dans NetHandshake).
 static func hello_ack() -> Dictionary:
 	return {"type": HELLO_ACK}
+
+# Le contenu du mulligan (cartes gardées/remplacées) reste privé : seule la fin
+# de la décision est communiquée, pour synchroniser le début du tour 1.
+static func mulligan_done() -> Dictionary:
+	return {"type": MULLIGAN_DONE}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

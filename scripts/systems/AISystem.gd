@@ -40,7 +40,26 @@ func setup() -> void:
 	deck.shuffle()
 	for i in range(STARTING_HAND):
 		_draw_card()
+	_mulligan()
 	refresh_ui()
+
+# Mulligan simple et immédiat (pas d'UI) : les cartes trop chères pour un
+# début de partie sont remises dans le deck et remplacées.
+const MULLIGAN_COST_THRESHOLD := 5
+
+func _mulligan() -> void:
+	var to_replace: Array[CardData] = []
+	for card in hand:
+		if card.cost >= MULLIGAN_COST_THRESHOLD:
+			to_replace.append(card)
+	if to_replace.is_empty():
+		return
+	for card in to_replace:
+		hand.erase(card)
+		deck.append(card)
+	deck.shuffle()
+	for i in range(to_replace.size()):
+		_draw_card()
 
 # Deck et main de l'IA visibles par le joueur (dos de cartes + compteurs)
 func refresh_ui() -> void:
