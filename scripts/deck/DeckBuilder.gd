@@ -106,8 +106,11 @@ func _refresh_card_grid() -> void:
 
 
 func _match_filters(c: CardData) -> bool:
-	if _filter_text != "" and not c.display_name().to_lower().contains(_filter_text.to_lower()):
-		return false
+	if _filter_text != "":
+		var needle := _filter_text.to_lower()
+		if not c.display_name().to_lower().contains(needle) \
+				and not c.description.to_lower().contains(needle):
+			return false
 	if _filter_race != -1 and c.race != _filter_race:
 		return false
 	if _filter_rarity != "" and c.rarity != _filter_rarity:
