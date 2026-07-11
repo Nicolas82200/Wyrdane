@@ -59,6 +59,11 @@ static func ensure_init() -> bool:
 	# par défaut, mais on le force pour ne laisser aucun doute.
 	if s.has_method("allowP2PPacketRelay"):
 		s.allowP2PPacketRelay(true)
+	# Requis par l'API Networking Sockets (voir SteamTransport) : initialise la
+	# connexion au réseau de relais Steam avant la première tentative P2P, pour
+	# ne pas perdre de temps à l'établir seulement au moment du premier connectP2P.
+	if s.has_method("initRelayNetworkAccess"):
+		s.initRelayNetworkAccess()
 	return true
 
 # À appeler chaque frame tant qu'une session Steam est active : fait avancer
