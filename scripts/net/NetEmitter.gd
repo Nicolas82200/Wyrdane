@@ -41,3 +41,7 @@ func turn_start(ids: Array = []) -> void:
 # Activation locale d'un Rituel de Sacrifice (victimes déjà choisies).
 func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) -> void:
 	_net.send_command(NetCommand.activate_ritual(card_data.resource_path, victim_ids, ids))
+
+# Le joueur local a validé son mulligan (contenu privé, seule la fin est notifiée).
+func mulligan_done() -> void:
+	_net.send_command(NetCommand.mulligan_done())

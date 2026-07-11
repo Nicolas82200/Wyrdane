@@ -7,7 +7,7 @@ var processing_deaths := false
 func init(_battle) -> void:
 	battle = _battle
 
-func process_deaths() -> void:
+func process_deaths(silent: Array = []) -> void:
 	if processing_deaths:
 		return
 	processing_deaths = true
@@ -20,7 +20,7 @@ func process_deaths() -> void:
 	if dead_all.is_empty():
 		processing_deaths = false
 		return
-	await _animate_deaths(dead_all)
+	await _animate_deaths(dead_all, silent)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
 	for dead in dead_all:
@@ -50,9 +50,12 @@ func _apply_revenant(minions: Array[Minion]) -> void:
 		minion.revenant_triggered = true
 		minion.health = 1
 
-func _animate_deaths(dead_minions: Array[Minion]) -> void:
+func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:
-		battle.combat_log.minion_died(minion)
+		# Les morts déjà représentées dans une entrée de log dédiée (ex : attaque
+		# fusionnée attaquant/défenseur) ne dupliquent pas de ligne 💀 séparée.
+		if not silent.has(minion):
+			battle.combat_log.minion_died(minion)
 		var visual = battle.board_visual_system.get_visual(minion)
 		if visual:
 			battle.animation_system.play_death(visual)
