@@ -6,17 +6,26 @@
 [ext_resource type="Texture2D" uid="uid://coltgcriu3r0e" path="res://assets/card_art/undead/decaying-crawler.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://dqzt0k3nfmb1x" path="res://resources/cards/undead/zombie.tres" id="6_summon"]
 
 [sub_resource type="Resource" id="Resource_2g4zh"]
 script = ExtResource("5_trig")
 
+[sub_resource type="Resource" id="Resource_zmb1e"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonMinion"
+count = 1
+summon_card = ExtResource("6_summon")
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rampant en Décomposition"
-description = "Dernier Souffle : infecte la carte du dessus du deck ennemi (entre en jeu comme Zombie 1/1 sous ton contrôle)."
+description = "Dernier Souffle : invoque un Zombie 1/1 sous ton contrôle."
 flavour_text = "Il ne sait plus pourquoi il avance. Il avance, c'est tout."
 texture = ExtResource("3_texture")
 attack = 1
 health = 1
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_2g4zh")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_zmb1e")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -14,6 +14,7 @@ KEYWORD_MAP = {
     "VENIN MORTEL": 5,
     "RAVAGE": 6,
     "AILES NOIRES": 7,
+    "INFILTRATION": 7,
     "ÉGIDE": 8,
 }
 
@@ -25,7 +26,7 @@ KEYWORD_NAMES = {
     4: "Frénésie",
     5: "Venin mortel",
     6: "Ravage",
-    7: "Ailes noires",
+    7: "Infiltration",
     8: "Égide",
 }
 
