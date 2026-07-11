@@ -88,9 +88,13 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
+var combat_log := CombatLogSystem.new()
 # Bannière de transition de tour (« À vous de jouer » / « Tour adverse »),
 # créée en code pour ne pas toucher Battle.tscn.
 var turn_banner: TurnBanner
+# Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
+# (voir CombatLogPanel).
+var combat_log_panel: CombatLogPanel
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -166,6 +170,10 @@ func _init_systems() -> void:
 	add_child(turn_banner)
 	# Sous TurnChoicePanel : la bannière ne masque jamais un panneau de décision.
 	move_child(turn_banner, turn_choice_panel.get_index())
+	combat_log.init(self)
+	combat_log_panel = CombatLogPanel.new()
+	combat_log_panel.init(self, combat_log)
+	add_child(combat_log_panel)
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
