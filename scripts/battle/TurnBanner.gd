@@ -57,7 +57,11 @@ func show_banner(text: String) -> void:
 	# Centre le panneau après mise à jour de sa taille par le texte.
 	_panel.reset_size()
 	await get_tree().process_frame
-	_panel.position = (size - _panel.size) / 2.0
+	# Utilise la taille du viewport plutôt que celle du Control : au tout
+	# premier affichage (début de bataille), le layout de ce Control
+	# ancré en plein écran peut ne pas encore avoir propagé sa taille,
+	# ce qui plaçait le panneau dans le coin haut-gauche, coupé.
+	_panel.position = (get_viewport_rect().size - _panel.size) / 2.0
 	_panel.pivot_offset = _panel.size / 2.0
 	_panel.visible = true
 	_panel.scale = Vector2(1.15, 1.15)
