@@ -12,6 +12,9 @@ var net: NetworkManager
 # Commandes du tour distant reçues mais pas encore rejouées (FIFO).
 var _queue: Array[Dictionary] = []
 var _turn_over: bool = false
+# Validé dès réception de MULLIGAN_DONE, même avant que await_mulligan() soit
+# appelé (le pair peut finir avant nous) : on ne doit pas attendre dans le vide.
+var _remote_mulligan_done: bool = false
 
 func _init(network_manager: NetworkManager) -> void:
 	net = network_manager
@@ -44,6 +47,11 @@ func get_deck_count() -> int:
 
 func get_hand_count() -> int:
 	return _hand_count
+
+# Attend le MULLIGAN_DONE du pair distant (déjà reçu, ou à recevoir).
+func await_mulligan() -> void:
+	while not _remote_mulligan_done:
+		await battle.get_tree().process_frame
 
 # Attend et rejoue le tour du joueur distant, commande par commande, jusqu'à
 # recevoir END_TURN, puis rend la main à TurnSystem.
@@ -89,6 +97,9 @@ func _on_command_received(command: Dictionary) -> void:
 		NetCommand.HELLO_ACK:
 			# Résidu de handshake (doublon) : rien à rejouer.
 			pass
+		NetCommand.MULLIGAN_DONE:
+			# Ne pas mettre en file : ce n'est pas une action de tour à rejouer.
+			_remote_mulligan_done = true
 		_:
 			_queue.append(command)
 

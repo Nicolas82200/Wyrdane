@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
-[ext_resource type="Texture2D" uid="uid://din1uarkt8fgo" path="res://assets/card_art/demon/keeper-of-the-broken-pact.jpg" id="3_texture"]
+[ext_resource type="Texture2D" uid="uid://cq8o0aiasnaly" path="res://assets/card_art/demon/keeper-of-the-broken-pact.jpg" id="3_texture"]
 
 [resource]
 script = ExtResource("2_carddata")
