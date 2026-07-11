@@ -36,6 +36,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> void:
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	AudioManager.play(AudioManager.HIT)
+	battle.combat_log.attack(attacker, defender, dealt_to_defender)
 
 	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
 	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
@@ -98,6 +99,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
 	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
+	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
 		battle.hero_system.get_owner_hero(attacker).heal(attacker.attack)
 	attacker.consume_attack()

@@ -99,6 +99,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids, target)
 			battle.reset_targeting_state()
 			return
+		battle.combat_log.card_played(card_data, true)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -140,6 +141,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
+		battle.combat_log.card_played(card_data, true)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
