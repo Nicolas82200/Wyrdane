@@ -58,6 +58,7 @@ func _begin_player_turn() -> void:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.turn_start(ids)
 	battle.turn_choice_panel.show_choice()
+	battle.turn_timer.start()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
