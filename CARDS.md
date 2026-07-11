@@ -156,20 +156,20 @@ Positionnement (Lane Types)
 
 ## Rituels
 
-| ID | Nom | ⬡ | Rareté | Durée | Effet | Flavour |
+| ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| 53 | Rituel de Résurrection | 5 | Épique | 2 tours | Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
-| 54 | Pacte Sanglant | 4 | Épique | 3 tours | Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
-| 55 | Cercle de Convocation | 5 | Épique | 3 tours | Éveil : invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
-| 56 | Communion avec les Morts | 3 | Rare | 4 tours | Deuil : pioche 1 carte par Mort-Vivant allié mort ce match (max 4). | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
-| 57 | Rituel d'Exhumation | 4 | Rare | 3 tours | Éveil : si ton cimetière contient un Mort-Vivant, ramène-le en main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
-| 58 | Cercle de Sacrifice | 6 | Légendaire | 2 tours | Sacrifice (un serviteur allié) : tes serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
-| 59 | Rituel du Lien Funeste | 4 | Épique | 3 tours | Deuil : inflige 2 dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
-| 60 | Arrivée de Masse | 7 | Légendaire | 3 tours | Éveil : invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
-| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 tours | Sortilège ennemi : annulé s'il cible un de tes Mort-Vivants. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
-| 62 | Rituel de la Fosse Sans Fond | 6 | Épique | 2 tours | Sacrifice (un serviteur allié) : pioche 1 carte. | Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois. |
-| 63 | Épidémie | 4 | Épique | 2 tours | Présence : serviteurs non Mort-Vivants ennemis -2/-2. Ceux réduits à 0 HP ne vont pas dans le cimetière adverse. | Elle ne tue pas. Elle prépare, jour après jour. |
-| 64 | Grand Rituel Nécrotique | 8 | Légendaire | 3 tours | Deuil : ramène en main le Mort-Vivant allié le plus récemment mort. | "Je n'ai perdu personne. Je les rappelle, un par un, chaque fois qu'il le faut."Le Nécromant d'Ossemoor |
+| 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
+| 54 | Pacte Sanglant | 4 | Épique | 3 charges | Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
+| 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
+| 56 | Communion avec les Morts | 3 | Rare | 4 charges | Deuil : pioche 1 carte par Mort-Vivant allié mort ce match (max 4). | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
+| 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : si ton cimetière contient un Mort-Vivant, ramène-le en main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
+| 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice (un serviteur allié) : tes serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
+| 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : inflige 2 dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
+| 60 | Arrivée de Masse | 7 | Légendaire | 3 charges | Éveil : invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
+| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 charges | Sortilège ennemi : annulé s'il cible un de tes Mort-Vivants. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
+| 62 | Rituel de la Fosse Sans Fond | 6 | Épique | 2 charges | Sacrifice (un serviteur allié) : pioche 1 carte. | Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois. |
+| 63 | Épidémie | 4 | Épique | 2 charges | Présence : serviteurs non Mort-Vivants ennemis -2/-2. Ceux réduits à 0 HP ne vont pas dans le cimetière adverse. | Elle ne tue pas. Elle prépare, jour après jour. |
+| 64 | Grand Rituel Nécrotique | 8 | Légendaire | 3 charges | Deuil : ramène en main le Mort-Vivant allié le plus récemment mort. | "Je n'ai perdu personne. Je les rappelle, un par un, chaque fois qu'il le faut."Le Nécromant d'Ossemoor |
 
 ---
 
@@ -341,24 +341,20 @@ Liste complète des cartes de la race **Humain**.
 
 ## Rituels
 
-| ID | Nom | ⬡ | Rareté | Durée | Effet | Flavour |
+| ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| H53 | Ordre de Tenir | 3 | Commune | 2 tours | Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
-| H54 | Hymne de Guerre | 4 | Rare | 3 tours | Ralliement : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
-| H55 | Fortification des Lignes | 5 | Rare | 3 tours | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
-| H56 | Serment du Sang | 4 | Rare | 3 tours | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
-| H57 | Marche Forcée | 3 | Rare | 2 tours | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
-| H58 | Contre-Attaque Générale | 5 | Épique | 2 tours | Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant. | *Chaque coup reçu est une réponse en attente.* |
-| H59 | Code du Chevalier | 5 | Épique | 3 tours | **Ralliement** : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
-| H60 | Mur Infranchissable | 6 | Épique | 2 tours | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
-<<<<<<< HEAD
+| H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
+| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Ralliement : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
+| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
+| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
+| H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
+| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant. | *Chaque coup reçu est une réponse en attente.* |
+| H59 | Code du Chevalier | 5 | Épique | 3 charges | **Ralliement** : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
+| H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
 | H61 | Bannière du Roi | 5 | Épique | Permanent | Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
-=======
-| H61 | Bannière du Roi | 5 | Épique | 2 tours | Éveil : si tu as un Humain Légendaire en jeu, invoque un Chevalier du Mur 2/5 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
->>>>>>> dev
-| H62 | Résistance Acharnée | 4 | Épique | 3 tours | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
-| H63 | Purge Sainte | 6 | Légendaire | 2 tours | Éveil : détruit un serviteur Mort-Vivant ennemi ayant 3 HP ou moins. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
-| H64 | Grande Mobilisation | 8 | Légendaire | 3 tours | Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
+| H62 | Résistance Acharnée | 4 | Épique | 3 charges | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
+| H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : détruit un serviteur Mort-Vivant ennemi ayant 3 HP ou moins. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
+| H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
 
 ---
 
@@ -528,7 +524,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D43 | Rite de Sang | 2 | Rare | Sacrifice (un serviteur allié) : ton héros regagne 3 HP ; inflige 3 dégâts au héros ennemi. | *Un sang pour un autre. L'échange est rarement équitable — sauf pour toi, cette fois.* |
 | D44 | Étreinte du Gouffre | 2 | Commune | Gèle un serviteur ennemi ciblé un tour ; ton héros perd 1 HP. | *Le froid des Abysses n'épargne personne, pas même celui qui l'invoque.* |
 | D45 | Marque du Pacte | 3 | Rare | Un serviteur Démon allié ciblé gagne PACTE et RANG INFERNAL jusqu'à fin de tour. | *La marque ne s'efface pas. Elle attend juste son heure.* |
-| D46 | Cri des Damnés | 3 | Rare | Démons alliés +1/+0 ce tour. Ton héros perd 2 HP. Si 5 ou plus en jeu : +2/+0 à la place. | *Plus ils sont nombreux à hurler, plus le prix grimpe — pour toi.* |
+| D46 | Hurlement Écarlate | 3 | Rare | Démons alliés +1/+0 ce tour. Ton héros perd 2 HP. Si 5 ou plus en jeu : +2/+0 à la place. | *Plus ils sont nombreux à hurler, plus le prix grimpe — pour toi.* |
 | D47 | Emprise Écarlate | 2 | Rare | Prend le contrôle d'un serviteur ennemi ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit. | *Elle n'emprunte jamais rien. Elle rend, mais brisé.* |
 | D48 | Communion Écarlate | 2 | Commune | Ton héros regagne 3 HP ; pioche 1 carte. | *Le pacte n'est pas qu'une dette. Parfois, il rembourse.* |
 | D49 | Ultime Sacrifice | 3 | Épique | Sacrifice (jusqu'à 3 serviteurs alliés) : pioche 1 carte par sacrifié ; ton héros perd 1 HP par sacrifié. | *Ils ne meurent pas pour rien. Ils meurent pour que tu continues — de justesse.* |
