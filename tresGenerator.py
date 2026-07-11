@@ -25,7 +25,8 @@ KW_MAP = {
     "ASSAUT": "Assaut",
     "FRÉNÉSIE": "Frénésie",
     "RAVAGE": "Ravage",
-    "AILES NOIRES": "Ailes noires",
+    "AILES NOIRES": "Infiltration",
+    "INFILTRATION": "Infiltration",
     "MOISSON": "Moisson",
     "VENIN MORTEL": "Venin mortel",
     "ÉGIDE": "Égide",
@@ -37,7 +38,7 @@ KW_MAP = {
 }
 
 # Only real keywords in Keyword.Type enum
-VALID_KW = {"Rempart", "Assaut", "Égide", "Moisson", "Frénésie", "Venin mortel", "Ravage", "Ailes noires"}
+VALID_KW = {"Rempart", "Assaut", "Égide", "Moisson", "Frénésie", "Venin mortel", "Ravage", "Infiltration"}
 
 TRIGGER_MAP = {
     "Arrivée": "ONPLAY",
@@ -502,10 +503,10 @@ make_tres("putrid-necromancer.tres", uid(), RACE_UNDEAD, 1,
 # 32 Assassin Décharné
 make_tres("gaunt-assassin.tres", uid(), RACE_UNDEAD, 1,
     "Assassin Décharné",
-    "AILES NOIRES. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut.",
+    "INFILTRATION. Ne peut pas être ciblé par sorts ennemis jusqu'à son premier Assaut.",
     "On ne le voit pas venir. On ne le voit que partir.",
     "res://assets/card_art/undead/gaunt-assassin.jpg",
-    3, 4, 2, "Minion", ["Assaut", "Ailes noires"], ["OnAttack"], [],
+    3, 4, 2, "Minion", ["Assaut", "Infiltration"], ["OnAttack"], [],
     "Epic", "Front", True)
 
 # 33 Berserker Infecté
@@ -1073,7 +1074,7 @@ make_tres("elite-archer.tres", uid(), RACE_HUMAN, 6,
     "Archer d'Élite",
     "Assaut : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière).",
     "La rangée Avant n'est pas un obstacle. C'est un couloir.",
-    human_tex("elite-archer"), 3, 3, 2, "Minion", ["Ailes noires"], ["OnAttack"], [], "Rare", "Back")
+    human_tex("elite-archer"), 3, 3, 2, "Minion", ["Infiltration"], ["OnAttack"], [], "Rare", "Back")
 
 # H18 Prêtre de Guerre
 make_tres("war-priest.tres", uid(), RACE_HUMAN, 7,
