@@ -29,8 +29,15 @@ func init(_battle) -> void:
 func register_enchantment(card_data: CardData, is_player: bool, duration: int = -1) -> void:
 	_enchantments[is_player].append({
 		"card_data":  card_data,
-		"turns_left": duration
+		"turns_left": duration,
+		"triggered_this_turn": false
 	})
+
+# Réinitialise les enchantements/rituels "une fois par tour" du camp dont le
+# tour commence (appelé depuis TurnSystem.run_turn_start_triggers).
+func reset_once_per_turn(is_player: bool) -> void:
+	for entry in _enchantments[is_player]:
+		entry["triggered_this_turn"] = false
 
 func unregister_enchantment(card_data: CardData, is_player: bool) -> void:
 	_enchantments[is_player] = _enchantments[is_player].filter(
@@ -61,6 +68,8 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			var card_data: CardData = entry["card_data"]
 			if not _enchantment_reacts(card_data, ctx, is_player):
 				continue
+			if card_data.trigger_once_per_turn and entry["triggered_this_turn"]:
+				continue
 			# Les rituels d'annulation de sort ne réagissent PAS au fire OnSpell
 			# générique : ils sont résolus en amont par try_cancel_spell (sinon ils
 			# consommeraient une charge sur chaque sort, ciblé ou non).
@@ -75,6 +84,8 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 				await battle.pace_actions()
 			await _execute_enchantment_effects_with_proxy(proxy, card_data, is_player, ctx)
 			acted = true
+			if card_data.trigger_once_per_turn:
+				entry["triggered_this_turn"] = true
 			_consume_ritual_charge(entry, is_player)
 	return acted
 

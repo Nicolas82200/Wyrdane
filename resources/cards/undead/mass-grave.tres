@@ -23,11 +23,12 @@ type = "OnSummon"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fosse Commune"
-description = "Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1."
+description = "Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.)"
 flavour_text = "Plus elle se remplit, plus elle déborde."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Enchantment"
+trigger_once_per_turn = true
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_czcnn")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_f2zu9")])
 rarity = "Rare"

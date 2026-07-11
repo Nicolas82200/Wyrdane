@@ -9,7 +9,8 @@
 
 [sub_resource type="Resource" id="Resource_8ca60"]
 script = ExtResource("1_cardeffect")
-effect_id = "InfectAdjacent"
+effect_id = "InfectEnemy"
+target = "EnemyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_2eh1g"]
@@ -18,7 +19,7 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Charognard Putride"
-description = "Dernier Souffle : inflige Infection à un serviteur ennemi adjacent."
+description = "Dernier Souffle : inflige Infection à un serviteur ennemi ciblé."
 flavour_text = "Même en tombant, il répand ce qui l'a tué."
 texture = ExtResource("3_texture")
 cost = 2

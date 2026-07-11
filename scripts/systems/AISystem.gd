@@ -39,6 +39,7 @@ func take_turn() -> void:
 		return
 	battle.set_enemy_turn(true)
 	_resource_phase()
+	battle.trigger_system.reset_once_per_turn(false)
 	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
 	# son tour, Déclin pour le camp adverse
 	for minion in battle.enemy_minions.duplicate():

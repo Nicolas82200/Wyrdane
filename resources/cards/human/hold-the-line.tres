@@ -13,7 +13,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ordre de Tenir"
-description = "2 tours : Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis."
+description = "Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis."
 flavour_text = "L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent."
 texture = ExtResource("3_texture")
 cost = 3

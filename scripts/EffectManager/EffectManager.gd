@@ -156,6 +156,35 @@ func _resolve_targets(
 ) -> Array[Minion]:
 	return _filter_targets(_get_targets(battle, source_minion, effect, selected_target), effect)
 
+# Certains effets déclenchés (ex: Dernier Souffle de Charognard Putride)
+# demandent une cible ponctuelle qu'aucun joueur n'a encore choisie au moment
+# où le trigger se déclenche (contrairement aux sorts ciblés joués depuis la
+# main). Si le serviteur mourant appartient au joueur local et qu'on n'est pas
+# dans un match réseau, on lui fait choisir la cible ; sinon (IA, adversaire
+# distant) une cible valide est tirée au sort pour ne pas bloquer la partie.
+func resolve_trigger_target(battle, minion: Minion, trigger_name: String) -> Minion:
+	if not has_trigger(minion, trigger_name):
+		return null
+	for effect in minion.card_data.effects:
+		if effect.target in ["EnemyMinion", "AllyMinion", "AnyMinion"]:
+			return await _choose_trigger_target(battle, minion, effect)
+	return null
+
+func _choose_trigger_target(battle, minion: Minion, effect: CardEffect) -> Minion:
+	var pool: Array[Minion] = _filter_targets(_trigger_target_pool(battle, minion, effect.target), effect)
+	if pool.is_empty():
+		return null
+	if minion.owner_is_player and battle.network_manager == null:
+		return await battle.targeting_system.prompt_trigger_target(minion.card_data)
+	return _rng_pick(battle, pool)
+
+func _trigger_target_pool(battle, minion: Minion, target_str: String) -> Array[Minion]:
+	match target_str:
+		"EnemyMinion": return battle.get_enemy_minions(minion)
+		"AllyMinion":  return battle.get_owner_minions(minion)
+		"AnyMinion":   return battle.get_owner_minions(minion) + battle.get_enemy_minions(minion)
+		_:             return []
+
 # ─── Seuils conditionnels ─────────────────────────────────────────────────────
 # "Si N cibles ou plus : valeur/nombre différent" (Volée de Flèches, Cri des
 # Damnés, Appel aux Armes...). Le seuil se compare à reference_count : nombre
