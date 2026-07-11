@@ -8,6 +8,7 @@ signal back_requested
 @onready var quality_option:    OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityOption
 @onready var highlight_check:   CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightCheck
 @onready var language_option:   OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageOption
+@onready var difficulty_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyOption
 @onready var apply_button:      Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton
 @onready var back_button:       Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton
 
@@ -20,6 +21,7 @@ signal back_requested
 	"graphics.quality":     $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityLabel,
 	"graphics.highlights":  $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightLabel,
 	"graphics.language":    $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageLabel,
+	"graphics.difficulty":  $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyLabel,
 	"graphics.apply":       $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton,
 	"graphics.back":        $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton,
 }
@@ -28,6 +30,13 @@ signal back_requested
 const LANGUAGE_LABELS := {
 	"fr": "Français",
 	"en": "English",
+}
+
+# Clé de traduction associée à chaque niveau de difficulté IA.
+const DIFFICULTY_LABEL_KEYS := {
+	"easy":   "difficulty.easy",
+	"normal": "difficulty.normal",
+	"hard":   "difficulty.hard",
 }
 
 func _ready() -> void:
@@ -40,6 +49,7 @@ func _ready() -> void:
 
 	_populate_quality()
 	_populate_languages()
+	_populate_difficulties()
 
 	# Surbrillances : appliqué immédiatement (pas besoin de « Appliquer »).
 	highlight_check.button_pressed = SettingsManager.show_play_highlights
@@ -47,6 +57,9 @@ func _ready() -> void:
 
 	# Langue : appliquée immédiatement pour un retour visuel direct.
 	language_option.item_selected.connect(_on_language_selected)
+
+	# Difficulté IA : appliquée immédiatement, prise en compte à la prochaine bataille.
+	difficulty_option.item_selected.connect(_on_difficulty_selected)
 
 	apply_button.pressed.connect(_apply)
 	back_button.pressed.connect(func(): back_requested.emit(); hide())
@@ -75,12 +88,29 @@ func _on_language_selected(index: int) -> void:
 	var locale: String = language_option.get_item_metadata(index)
 	SettingsManager.set_language(locale)
 
+func _populate_difficulties() -> void:
+	difficulty_option.clear()
+	var levels: Array = SettingsManager.AI_DIFFICULTIES
+	for i in levels.size():
+		var level: String = levels[i]
+		difficulty_option.add_item(SettingsManager.t(DIFFICULTY_LABEL_KEYS.get(level, level)))
+		difficulty_option.set_item_metadata(i, level)
+		if level == SettingsManager.ai_difficulty:
+			difficulty_option.selected = i
+
+func _on_difficulty_selected(index: int) -> void:
+	var level: String = difficulty_option.get_item_metadata(index)
+	SettingsManager.set_ai_difficulty(level)
+
 func _on_language_changed(_locale: String) -> void:
-	# La liste de qualité contient des textes traduits : on la régénère
-	# en conservant la sélection courante.
+	# La liste de qualité et celle de difficulté contiennent des textes
+	# traduits : on les régénère en conservant la sélection courante.
 	var prev_quality := quality_option.selected
 	_populate_quality()
 	quality_option.selected = prev_quality
+	var prev_difficulty := difficulty_option.selected
+	_populate_difficulties()
+	difficulty_option.selected = prev_difficulty
 	_retranslate()
 
 # Met à jour tous les libellés de ce menu dans la langue courante.
