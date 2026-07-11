@@ -3,13 +3,14 @@ class_name CombatLogPanel
 
 ## Panneau repliable affichant l'historique du CombatLogSystem : le joueur peut
 ## le consulter à tout moment pour comprendre un enchaînement d'effets ou
-## rattraper ce qui s'est passé pendant le tour adverse. Bouton collé au bord
-## gauche de l'écran, centré verticalement ; au clic, le panneau se déploie
-## depuis la gauche vers la droite (largeur animée), sur environ 35% de la
-## hauteur de l'écran, centré verticalement. Chaque ligne = une icône + de
-## courtes miniatures d'illustration de carte (bordure colorée par camp) et
-## quelques segments texte pour les nombres/flèches — pas de phrase. Créé
-## entièrement en code par Battle (aucun nœud dans Battle.tscn).
+## rattraper ce qui s'est passé pendant le tour adverse. Bouton et panneau
+## collés au coin supérieur gauche de l'écran (toggle en haut, panneau juste
+## en dessous) ; au clic, le panneau se déploie vers la droite (largeur
+## animée). Grand et haut (~72% de la hauteur de l'écran) pour remonter
+## presque jusqu'à la zone de mana adverse. Chaque ligne = une icône + de
+## courtes miniatures d'illustration de carte (bordure verte = vous, rouge =
+## adversaire) et quelques segments texte pour les nombres/flèches — pas de
+## phrase. Créé entièrement en code par Battle (aucun nœud dans Battle.tscn).
 ##
 ## Positionnement en pixels ABSOLUS (position/size), pas via anchors : les
 ## enfants ancrés hérités de la taille du parent au moment de leur création
@@ -22,12 +23,12 @@ const FONT_BOLD    := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const FONT_REGULAR := preload("res://assets/fonts/MedievalSharp-Book.ttf")
 const MARGIN        := 8.0
 const TOGGLE_SIZE   := Vector2(40, 40)
-const PANEL_WIDTH   := 250.0
-const PANEL_HEIGHT_RATIO := 0.35
+const PANEL_WIDTH   := 220.0
+const PANEL_HEIGHT_RATIO := 0.72
 const ANIM_TIME     := 0.25
-const THUMB_SIZE    := Vector2(30, 42)
-const COLOR_PLAYER  := Color("9fd3ff")
-const COLOR_ENEMY   := Color("ffb199")
+const THUMB_SIZE    := Vector2(42, 58)
+const COLOR_PLAYER  := Color("4CE071")
+const COLOR_ENEMY   := Color("FF4D4D")
 const COLOR_NEUTRAL := Color("d8c9a3")
 const COLOR_DEAD_TINT := Color(0.32, 0.32, 0.32, 1.0)
 
@@ -64,7 +65,7 @@ func _ready() -> void:
 	_toggle_button.text = "📜"
 	_toggle_button.custom_minimum_size = TOGGLE_SIZE
 	_toggle_button.size = TOGGLE_SIZE
-	_toggle_button.position = Vector2(MARGIN, (viewport_size.y - TOGGLE_SIZE.y) / 2.0)
+	_toggle_button.position = Vector2(MARGIN, MARGIN)
 	_toggle_button.pressed.connect(_on_toggle_pressed)
 	add_child(_toggle_button)
 
@@ -83,8 +84,7 @@ func _ready() -> void:
 
 func _build_panel(viewport_size: Vector2) -> void:
 	_panel_height = viewport_size.y * PANEL_HEIGHT_RATIO
-	var left_x: float = MARGIN + TOGGLE_SIZE.x + 6.0
-	_panel_top_left = Vector2(left_x, (viewport_size.y - _panel_height) / 2.0)
+	_panel_top_left = Vector2(MARGIN, MARGIN + TOGGLE_SIZE.y + 6.0)
 
 	# PanelContainer est un Container : il se redimensionne tout seul à chaque
 	# frame pour épouser la taille minimale de son contenu, écrasant toute
@@ -170,7 +170,7 @@ func _on_entry_added(entry: Dictionary) -> void:
 
 	var icon_label := Label.new()
 	icon_label.text = entry["icon"]
-	icon_label.add_theme_font_size_override("font_size", 14)
+	icon_label.add_theme_font_size_override("font_size", 22)
 	row.add_child(icon_label)
 
 	for segment in entry["segments"]:
@@ -180,7 +180,7 @@ func _on_entry_added(entry: Dictionary) -> void:
 			var seg_label := Label.new()
 			seg_label.text = segment["text"]
 			seg_label.add_theme_font_override("font", FONT_REGULAR)
-			seg_label.add_theme_font_size_override("font_size", 13)
+			seg_label.add_theme_font_size_override("font_size", 18)
 			seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
 			row.add_child(seg_label)
 
@@ -195,7 +195,7 @@ func _on_entry_added(entry: Dictionary) -> void:
 		_badge.visible = true
 
 # Miniature de l'illustration de la carte, encadrée d'une bordure colorée par
-# camp (bleu = vous, rouge = adversaire) — le nom reste accessible en tooltip.
+# camp (verte = vous, rouge = adversaire) — le nom reste accessible en tooltip.
 func _make_card_thumb(segment: Dictionary) -> Control:
 	var frame := PanelContainer.new()
 	frame.tooltip_text = segment.get("name", "")
