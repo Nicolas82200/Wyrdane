@@ -19,12 +19,29 @@ func load_deck() -> void:
 		for i in range(20):
 			battle.deck.append(card)
 
-func start_game() -> void:
+const STARTING_HAND := 5
+
+# Mélange le deck local et pioche la main de départ (dans battle.hand_cards),
+# sans encore l'afficher : le mulligan peut la modifier avant que Battle
+# appelle hand.set_hand().
+func deal_opening_hand() -> void:
 	AudioManager.play(AudioManager.SHUFFLE)
 	battle.deck.shuffle()
-	for i in range(5):
+	for i in range(STARTING_HAND):
 		battle.hand_cards.append(battle.deck.pop_back())
-	battle.hand.set_hand(battle.hand_cards, false)
+	update_deck_ui()
+
+# Remet les cartes remplacées au mulligan dans le deck, mélange, puis pioche
+# autant de cartes en remplacement dans battle.hand_cards.
+func mulligan_swap(discarded: Array[CardData]) -> void:
+	if discarded.is_empty():
+		return
+	for card in discarded:
+		battle.hand_cards.erase(card)
+		battle.deck.append(card)
+	battle.deck.shuffle()
+	for i in range(discarded.size()):
+		battle.hand_cards.append(battle.deck.pop_back())
 	update_deck_ui()
 
 func draw_card() -> void:
