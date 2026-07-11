@@ -33,16 +33,6 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#2a0a10c0"),
 }
 
-# Couleur du texte (nom + description) par race — toujours plus claire que RACE_COLORS
-const DEFAULT_NAME_COLOR := Color(0.9490196, 0.8901961, 0.7764706, 1)
-const DEFAULT_DESC_COLOR := Color(1, 1, 1, 0.8549019608)
-
-const RACE_TEXT_COLORS := {
-	Race.Type.UNDEAD: Color("#c8c5ba"),
-	Race.Type.HUMAN:  Color("#cfa85e"),
-	Race.Type.DEMON:  Color("#c9525f"),
-}
-
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
 const TYPE_LABELS := {
 	"Minion":      "Serviteur",
@@ -186,14 +176,6 @@ func _apply_type_style() -> void:
 func _apply_race_style() -> void:
 	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
 	text_background.queue_redraw()
-
-	var name_color: Color = RACE_TEXT_COLORS.get(data.race, DEFAULT_NAME_COLOR)
-	name_label.add_theme_color_override("font_color", name_color)
-
-	var desc_color: Color = RACE_TEXT_COLORS.get(data.race, DEFAULT_DESC_COLOR)
-	if RACE_TEXT_COLORS.has(data.race):
-		desc_color.a = 0.88
-	desc_label.add_theme_color_override("default_color", desc_color)
 
 # ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
