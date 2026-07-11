@@ -27,7 +27,7 @@ const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
 const ATTACK_PACE                 := 0.5
-const MULLIGAN_DURATION           := 45.0
+const MULLIGAN_DURATION           := 30.0
 
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
 @onready var hand: Hand                                = $Hand
