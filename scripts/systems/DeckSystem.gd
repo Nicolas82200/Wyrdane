@@ -31,18 +31,21 @@ func deal_opening_hand() -> void:
 		battle.hand_cards.append(battle.deck.pop_back())
 	update_deck_ui()
 
-# Remet les cartes remplacées au mulligan dans le deck, mélange, puis pioche
-# autant de cartes en remplacement dans battle.hand_cards.
-func mulligan_swap(discarded: Array[CardData]) -> void:
-	if discarded.is_empty():
-		return
-	for card in discarded:
-		battle.hand_cards.erase(card)
-		battle.deck.append(card)
+# Remplace UNE carte de la main (désignée par son index, pas sa CardData : deux
+# exemplaires d'une même carte partagent la même ressource) pendant le
+# mulligan : elle retourne dans le deck (mélangé), une nouvelle est piochée à
+# sa place, au même index. Retourne la nouvelle carte, ou null si le deck est
+# vide (rien à piocher, la carte reste en main) ou l'index invalide.
+func mulligan_replace_one(index: int) -> CardData:
+	if battle.deck.is_empty() or index < 0 or index >= battle.hand_cards.size():
+		return null
+	var old_card: CardData = battle.hand_cards[index]
+	battle.deck.append(old_card)
 	battle.deck.shuffle()
-	for i in range(discarded.size()):
-		battle.hand_cards.append(battle.deck.pop_back())
+	var new_card: CardData = battle.deck.pop_back()
+	battle.hand_cards[index] = new_card
 	update_deck_ui()
+	return new_card
 
 func draw_card() -> void:
 	if battle.deck.is_empty():

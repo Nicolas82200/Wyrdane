@@ -95,9 +95,6 @@ var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
-# Panneau de mulligan (choix de la main de départ), créé en code pour ne pas
-# toucher Battle.tscn (voir MulliganPanel).
-var mulligan_panel: MulliganPanel
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -125,6 +122,10 @@ var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
 var counter_offensive: Dictionary = {true: false, false: false}
+# Phase de mulligan en cours (avant le tour 1) : le bouton Fin du tour devient
+# "Commencer" et un clic sur une carte de la main la remplace au lieu de la jouer.
+var _mulligan_active: bool = false
+signal mulligan_confirmed
 
 # ─── Setup ────────────────────────────────────────────────────────────────────
 
@@ -182,10 +183,6 @@ func _init_systems() -> void:
 	add_child(targeting_system)
 	add_child(sacrifice_system)
 	hand.display_cost = get_card_cost
-	# Ajouté en dernier : au-dessus de tout (y compris la main), le mulligan
-	# précède toute autre décision.
-	mulligan_panel = MulliganPanel.new()
-	add_child(mulligan_panel)
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
 # (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
@@ -250,8 +247,8 @@ func _start_game() -> void:
 	else:
 		ai_system.setup()
 	deck_system.deal_opening_hand()
-	await _run_mulligan()
 	hand.set_hand(hand_cards, false)
+	await _run_mulligan()
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
@@ -263,17 +260,38 @@ func _start_game() -> void:
 	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 	update_end_turn_hint()
 
-# Phase de mulligan précédant le tour 1 : le joueur local choisit les cartes de
-# sa main de départ à remplacer. En réseau, chaque camp mulligan indépendamment
-# (le contenu reste privé) ; on attend juste que le pair ait fini avant de
-# lancer le tour 1, pour ne pas démarrer pendant que l'autre décide encore.
+# Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
+# normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
+# Le bouton Fin du tour devient "Commencer" et confirme la fin du mulligan.
+# En réseau, chaque camp mulligan indépendamment (le contenu reste privé) ; on
+# attend juste que le pair ait fini avant de lancer le tour 1.
 func _run_mulligan() -> void:
-	await mulligan_panel.show_mulligan(hand_cards)
-	var discarded: Array[CardData] = await mulligan_panel.confirmed
-	deck_system.mulligan_swap(discarded)
+	_mulligan_active = true
+	hand.set_mulligan_mode(true)
+	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
+	turn_banner.show_banner(SettingsManager.t("mulligan.banner"))
+	_retranslate_battle()
+	end_turn_button.disabled = false
+	end_turn_button.set_ready_hint(true)
+	await mulligan_confirmed
+	end_turn_button.disabled = true
+	end_turn_button.set_ready_hint(false)
+	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
+	hand.set_mulligan_mode(false)
+	_mulligan_active = false
 	if net_emitter != null:
 		net_emitter.mulligan_done()
 	await opponent.await_mulligan()
+	end_turn_button.disabled = false
+	_retranslate_battle()
+	update_end_turn_hint()
+
+func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
+	var new_data: CardData = deck_system.mulligan_replace_one(index)
+	if new_data == null:
+		return
+	AudioManager.play(AudioManager.DRAW)
+	hand.flip_replace_at(index, new_data)
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
@@ -522,6 +540,9 @@ func reset_targeting_state() -> void:
 func _on_end_turn_pressed() -> void:
 	if game_over or enemy_turn_active:
 		return
+	if _mulligan_active:
+		mulligan_confirmed.emit()
+		return
 	turn_system.end_turn()
 
 # Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
@@ -558,6 +579,9 @@ func _player_has_no_actions() -> bool:
 
 # Met à jour les libellés fixes de la bataille dans la langue courante.
 func _retranslate_battle() -> void:
+	if _mulligan_active:
+		end_turn_button.text = SettingsManager.t("mulligan.start_button")
+		return
 	var key := "battle.enemy_turn" if enemy_turn_active else "battle.end_turn"
 	end_turn_button.text = SettingsManager.t(key)
 
