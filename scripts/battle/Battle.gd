@@ -228,7 +228,7 @@ func _connect_signals() -> void:
 	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
-	settings_menu.quit_requested.connect(_on_quit_match)
+	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
