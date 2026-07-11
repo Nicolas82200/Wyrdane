@@ -30,6 +30,12 @@ func take_turn() -> void:
 func refresh_ui() -> void:
 	pass
 
+# Attend que le camp adverse ait terminé son mulligan. L'IA a déjà décidé de
+# façon synchrone dans setup() : rien à attendre. NetworkOpponent surcharge
+# pour attendre le MULLIGAN_DONE du pair distant.
+func await_mulligan() -> void:
+	pass
+
 # Compteurs affichés côté joueur local (dos de deck / main adverse). Surchargés
 # par chaque implémentation (l'IA lit ses tableaux ; le réseau suit des compteurs).
 func get_deck_count() -> int:

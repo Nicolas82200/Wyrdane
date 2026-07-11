@@ -95,6 +95,9 @@ var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
+# Panneau de mulligan (choix de la main de départ), créé en code pour ne pas
+# toucher Battle.tscn (voir MulliganPanel).
+var mulligan_panel: MulliganPanel
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -179,6 +182,10 @@ func _init_systems() -> void:
 	add_child(targeting_system)
 	add_child(sacrifice_system)
 	hand.display_cost = get_card_cost
+	# Ajouté en dernier : au-dessus de tout (y compris la main), le mulligan
+	# précède toute autre décision.
+	mulligan_panel = MulliganPanel.new()
+	add_child(mulligan_panel)
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
 # (NetworkOpponent), les actions locales sont émises (NetEmitter), et le
@@ -242,7 +249,9 @@ func _start_game() -> void:
 		opponent.setup()
 	else:
 		ai_system.setup()
-		deck_system.start_game()
+	deck_system.deal_opening_hand()
+	await _run_mulligan()
+	hand.set_hand(hand_cards, false)
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
@@ -253,6 +262,18 @@ func _start_game() -> void:
 	# Le joueur local ouvre la partie : annonce de son premier tour.
 	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 	update_end_turn_hint()
+
+# Phase de mulligan précédant le tour 1 : le joueur local choisit les cartes de
+# sa main de départ à remplacer. En réseau, chaque camp mulligan indépendamment
+# (le contenu reste privé) ; on attend juste que le pair ait fini avant de
+# lancer le tour 1, pour ne pas démarrer pendant que l'autre décide encore.
+func _run_mulligan() -> void:
+	await mulligan_panel.show_mulligan(hand_cards)
+	var discarded: Array[CardData] = await mulligan_panel.confirmed
+	deck_system.mulligan_swap(discarded)
+	if net_emitter != null:
+		net_emitter.mulligan_done()
+	await opponent.await_mulligan()
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
