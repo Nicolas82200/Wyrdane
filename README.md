@@ -742,12 +742,12 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
-*   Deux races jouables : Mort-Vivant et Humain (151 cartes, voir `CARDS.md`)
-*   Race Démon : contenu défini (~75 cartes, voir `CARDS.md`), **support moteur en place** (mots-clés `KeywordDemon.gd`, Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et illustrations importées (`assets/card_art/demon/`) — les ressources `.tres` des cartes restent à créer dans `resources/cards/demon/`
+*   Trois races jouables : Mort-Vivant, Humain et Démon (226 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`)
 *   IA adverse basique (`AISystem`) — serviteurs uniquement
 *   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
 *   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
-*   **Internationalisation FR/EN** — toute l'UI et les 151 cartes, via le système de traduction natif Godot (`translations/game.csv`)
+*   **Internationalisation FR/EN** — toute l'UI et les 226 cartes, via le système de traduction natif Godot (`translations/game.csv`)
+*   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion` (combat, mots-clés) et tests d'intégrité sur l'ensemble des ressources `.tres` de cartes (voir « Tests automatisés » dans `CLAUDE.md`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
@@ -757,8 +757,8 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
 *   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
-*   Cartes Démon : créer les ~75 ressources `.tres` dans `resources/cards/demon/` (moteur et illustrations prêts) + passe d'éligibilité des Incantations
+*   Cartes Démon : passe d'éligibilité des Incantations (non couverte lors de l'analyse initiale)
 *   Nouvelles races : Elfe, Nain
 *   Mode campagne et collection de cartes
 *   Animations shaders
-*   Tests automatisés (GUT / gdUnit4)
+*   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)

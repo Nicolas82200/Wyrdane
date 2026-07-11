@@ -23,7 +23,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bannière du Roi"
-description = "Permanent : Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant."
+description = "Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant."
 flavour_text = "Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout."
 texture = ExtResource("3_texture")
 cost = 5

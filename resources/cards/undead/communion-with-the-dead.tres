@@ -24,6 +24,7 @@ flavour_text = "Chaque mort laisse quelque chose derrière lui. Il suffit de sav
 texture = ExtResource("3_texture")
 cost = 3
 card_type = "Ritual"
+ritual_duration = 4
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_e9tl2")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_p1oe4")])
 rarity = "Rare"

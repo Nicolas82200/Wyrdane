@@ -11,14 +11,20 @@ script = ExtResource("1_cardeffect")
 effect_id = "ReturnFromGrave"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_awaken"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel d'Exhumation"
-description = "Ramène en main un serviteur Mort-Vivant ciblé depuis ton cimetière."
+description = "Éveil : si ton cimetière contient un Mort-Vivant, ramène-le en main."
 flavour_text = "On ne l'enterre pas. On l'entrepose."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eh88a")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

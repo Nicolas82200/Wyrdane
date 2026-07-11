@@ -9,20 +9,26 @@
 [sub_resource type="Resource" id="Resource_yf6cn"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
-count = 4
+count = 1
 pool_max_cost = 4
 pool_race_filter = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_awaken"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Grande Mobilisation"
-description = "Invoque 4 Humains aléatoires de coût ≤4 en rangée Avant. Coûte 7 si ta rangée Avant est vide."
+description = "Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant."
 flavour_text = "Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois."
 texture = ExtResource("3_texture")
 cost = 8
 race = 1
 card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yf6cn")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -8,17 +8,23 @@
 
 [sub_resource type="Resource" id="Resource_lgl0o"]
 script = ExtResource("1_cardeffect")
-effect_id = "DrawCard"
-value = 5
+effect_id = "ReturnFromGrave"
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_grief"]
+script = ExtResource("5_trig")
+type = "OnGrief"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Grand Rituel Nécrotique"
-description = "Ramène en main tous les Mort-Vivants alliés morts ce match (max 5)."
+description = "Deuil : ramène en main le Mort-Vivant allié le plus récemment mort."
 texture = ExtResource("3_texture")
 cost = 8
 card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_grief")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lgl0o")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
