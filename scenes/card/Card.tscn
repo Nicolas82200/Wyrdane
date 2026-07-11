@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://pkd71kg4dn1s" path="res://scripts/card/Card.gd" id="1_7d3tr"]
 [ext_resource type="FontFile" uid="uid://c2dxyg6e7mc6w" path="res://assets/fonts/CinzelDecorative-Black.otf" id="2_u4wdl"]
-[ext_resource type="Texture2D" uid="uid://cstppl282uxc6" path="res://assets/borders/undead-border-card.png" id="3_s5r67"]
 [ext_resource type="FontFile" uid="uid://c6ta1tbu0oeb6" path="res://assets/fonts/Cinzel-Black.otf" id="3_wcykg"]
 [ext_resource type="FontFile" uid="uid://cthx272rbm3cd" path="res://assets/fonts/CrimsonText-SemiBold.ttf" id="4_wcykg"]
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
+[ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
 bg_color = Color(0, 0, 0, 1)
@@ -136,6 +136,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_y3kt5")
 
 [node name="LaneIcon" type="TextureRect" parent="." unique_id=1153858896]
+modulate = Color(0, 0, 0, 0.68)
 custom_minimum_size = Vector2(140, 140)
 layout_mode = 0
 offset_left = 47.5
@@ -143,15 +144,14 @@ offset_top = 176.0
 offset_right = 187.5
 offset_bottom = 316.0
 mouse_filter = 2
-modulate = Color(0, 0, 0, 0.68)
 expand_mode = 1
 stretch_mode = 5
 
 [node name="NameLabel" type="Label" parent="." unique_id=743278379]
 layout_mode = 0
-offset_left = 8.0
+offset_left = 12.5
 offset_top = 158.0
-offset_right = 232.0
+offset_right = 236.5
 offset_bottom = 183.0
 theme_override_colors/font_color = Color(0.9490196, 0.8901961, 0.7764706, 1)
 theme_override_fonts/font = ExtResource("2_u4wdl")
@@ -245,6 +245,5 @@ offset_bottom = 7.5
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-texture = ExtResource("3_s5r67")
+texture = ExtResource("6_u4wdl")
 expand_mode = 1
-
