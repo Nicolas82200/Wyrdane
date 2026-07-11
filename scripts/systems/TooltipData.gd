@@ -248,6 +248,14 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		parent.add_child(panel)
 		panels.append(panel)
 
+	# 2b. Charges (Rituels à durée limitée uniquement — pas les rituels permanents)
+	if card_data.card_type == "Ritual" and card_data.ritual_duration > 0:
+		var charges_panel := make_tooltip_panel(
+			_tr("RITUAL_CHARGES_NAME"), _tr("RITUAL_CHARGES_DESC"), COLOR_TRIGGER)
+		charges_panel.position = Vector2(-9999, -9999)
+		parent.add_child(charges_panel)
+		panels.append(charges_panel)
+
 	# 3. Effets (Gel, Infection, Transformation, Silence, Vol de serviteur uniquement)
 	for effect in card_data.effects:
 		var desc := describe_effect(effect)
