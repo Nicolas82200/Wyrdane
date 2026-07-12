@@ -88,8 +88,13 @@ func _build_panel() -> void:
 	var bottom: float = get_viewport_rect().size.y - VERTICAL_GAP
 	if battle and battle.enemy_mana_display:
 		top = battle.enemy_mana_display.get_global_rect().end.y + VERTICAL_GAP
-	if battle and battle.hand:
-		bottom = battle.hand.get_global_rect().position.y - VERTICAL_GAP
+	# battle.hand (le Control racine) est délibérément étiré sur toute la hauteur
+	# de l'écran (voir Hand.gd/_compute_layout, hand_bottom = size.y - 30) pour
+	# laisser les cartes survoler/pivoter sans être coupées : son rect global ne
+	# reflète donc pas la position visuelle de la main. ManaDisplay (joueur), lui,
+	# est ancré correctement juste au-dessus de la main et sert de repère fiable.
+	if battle and battle.mana_display:
+		bottom = battle.mana_display.get_global_rect().position.y - VERTICAL_GAP
 	_panel_height = max(bottom - top, TOGGLE_SIZE.y)
 	_panel_top_left = Vector2(0.0, top)
 
