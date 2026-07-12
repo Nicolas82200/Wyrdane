@@ -25,6 +25,10 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
 @onready var filter_bar:       HBoxContainer = %FilterBar
+@onready var sort_bar:         HBoxContainer = %SortBar
+@onready var stats_panel:      VBoxContainer = %StatsPanel
+@onready var export_button:    Button        = %ExportButton
+@onready var import_button:    Button        = %ImportButton
 @onready var header_label:     Label         = $MainVBox/HeaderBar/HeaderMargin/HeaderHBox/HeaderLabel
 
 var current_deck: DeckData = null
@@ -53,6 +57,10 @@ var _filter_race:       int = -1   # Race.Type, -1 = tous
 var _filter_rarity:     String = ""
 var _filter_type:       String = ""
 var _filter_cost:       int    = -1
+var _filter_keyword:    String = ""  # "" = tous, sinon "pool:value" (voir _card_has_keyword)
+var _sort_mode:         String = ""  # "" = par défaut, "cost", "name", "rarity"
+
+const RARITY_ORDER := ["Common", "Rare", "Epic", "Legendary"]
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
@@ -64,6 +72,8 @@ func _ready() -> void:
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
 	search_edit.text_changed.connect(_on_search_changed)
+	export_button.pressed.connect(_on_export)
+	import_button.pressed.connect(_on_import)
 	_load_all_cards()
 	_refresh_deck_list()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
@@ -76,8 +86,12 @@ func _retranslate() -> void:
 	save_button.text             = SettingsManager.t("deck.save")
 	search_edit.placeholder_text = SettingsManager.t("deck.search")
 	deck_name_edit.placeholder_text = SettingsManager.t("deck.name_placeholder")
+	export_button.text = SettingsManager.t("deck.export")
+	import_button.text = SettingsManager.t("deck.import")
 	_build_filter_bar()   # relocalise les libellés de filtres (sélection préservée)
+	_build_sort_bar()
 	_update_count_label()
+	_update_stats_panel()
 
 # ─── Chargement cartes ────────────────────────────────────────────────────────
 
@@ -102,6 +116,7 @@ func _refresh_card_grid() -> void:
 		if _match_filters(card_data):
 			_pending_cards.append(card_data)
 
+	_sort_cards(_pending_cards)
 	_load_next_batch(my_generation)
 
 
@@ -121,7 +136,43 @@ func _match_filters(c: CardData) -> bool:
 		return false
 	elif _filter_cost >= 0 and _filter_cost < 7 and c.cost != _filter_cost:
 		return false
+	if _filter_keyword != "" and not _card_has_keyword(c, _filter_keyword):
+		return false
 	return true
+
+## Vérifie si une carte porte le mot-clé désigné par "pool:value"
+## (pool = K générique, H humain, U mort-vivant, D démon).
+func _card_has_keyword(c: CardData, keyword_id: String) -> bool:
+	var parts := keyword_id.split(":")
+	if parts.size() != 2:
+		return false
+	var value := int(parts[1])
+	match parts[0]:
+		"K": return value in c.get_keyword_values()
+		"H": return value in c.get_human_keyword_values()
+		"U": return value in c.get_undead_keyword_values()
+		"D": return value in c.get_demon_keyword_values()
+		_:   return false
+
+func _sort_cards(cards: Array[CardData]) -> void:
+	match _sort_mode:
+		"cost":
+			cards.sort_custom(func(a: CardData, b: CardData) -> bool:
+				if a.cost != b.cost:
+					return a.cost < b.cost
+				return a.display_name() < b.display_name())
+		"name":
+			cards.sort_custom(func(a: CardData, b: CardData) -> bool:
+				return a.display_name() < b.display_name())
+		"rarity":
+			cards.sort_custom(func(a: CardData, b: CardData) -> bool:
+				var ra := RARITY_ORDER.find(a.rarity)
+				var rb := RARITY_ORDER.find(b.rarity)
+				if ra != rb:
+					return ra < rb
+				return a.display_name() < b.display_name())
+		_:
+			pass  # ordre par défaut (celui de _all_cards)
 
 func _load_next_batch(generation: int) -> void:
 	if generation != _load_generation or _pending_cards.is_empty():
@@ -196,6 +247,7 @@ func _refresh_deck_list() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 	_update_grid_maxed_states()
+	_update_stats_panel()
 	if current_deck == null:
 		_update_count_label()
 		return
@@ -295,6 +347,139 @@ func _update_count_label() -> void:
 	card_count_label.text     = SettingsManager.t("deck.count_format") % [count, MAX_CARDS, MIN_CARDS]
 	card_count_label.modulate = Color(1, 0.4, 0.4) if count < MIN_CARDS else Color(0.5, 0.9, 0.5)
 
+# ─── Statistiques du deck (courbe de mana + répartition) ──────────────────────
+
+const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
+const CURVE_BAR_HEIGHT := 60.0
+const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
+const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
+const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
+
+func _update_stats_panel() -> void:
+	for child in stats_panel.get_children():
+		child.queue_free()
+
+	if current_deck == null:
+		return
+	var cards := current_deck.get_cards()
+	if cards.is_empty():
+		return
+
+	var curve := []
+	curve.resize(CURVE_BUCKETS)
+	curve.fill(0)
+	var type_counts: Dictionary = {}
+	var race_counts: Dictionary = {}
+	var total_cost := 0
+
+	for card in cards:
+		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
+		curve[bucket] += 1
+		total_cost += card.cost
+		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
+		race_counts[card.race] = race_counts.get(card.race, 0) + 1
+
+	var curve_title := Label.new()
+	curve_title.text = SettingsManager.t("deck.stats_curve_title")
+	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+	curve_title.add_theme_font_size_override("font_size", 13)
+	stats_panel.add_child(curve_title)
+
+	stats_panel.add_child(_make_curve_chart(curve))
+
+	var avg_label := Label.new()
+	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
+	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+	avg_label.add_theme_font_size_override("font_size", 12)
+	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_panel.add_child(avg_label)
+
+	var breakdown_title := Label.new()
+	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
+	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+	breakdown_title.add_theme_font_size_override("font_size", 13)
+	stats_panel.add_child(breakdown_title)
+
+	var type_row := HBoxContainer.new()
+	type_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	type_row.add_theme_constant_override("separation", 10)
+	for type_name in ["Minion", "Instant", "Ritual", "Enchantment"]:
+		if type_counts.has(type_name):
+			type_row.add_child(_make_chip(
+				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
+	stats_panel.add_child(type_row)
+
+	var race_row := HBoxContainer.new()
+	race_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	race_row.add_theme_constant_override("separation", 10)
+	for key in Race.Type.keys():
+		var race_value: int = Race.Type[key]
+		if race_counts.has(race_value):
+			race_row.add_child(_make_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
+	stats_panel.add_child(race_row)
+
+func _make_curve_chart(curve: Array) -> Control:
+	var max_count: int = 1
+	for c in curve:
+		max_count = max(max_count, c)
+
+	var chart := HBoxContainer.new()
+	chart.alignment = BoxContainer.ALIGNMENT_CENTER
+	chart.add_theme_constant_override("separation", 4)
+
+	for i in range(CURVE_BUCKETS):
+		var count: int = curve[i]
+		var col := VBoxContainer.new()
+		col.alignment = BoxContainer.ALIGNMENT_END
+		col.custom_minimum_size = Vector2(28, 0)
+		col.add_theme_constant_override("separation", 2)
+
+		var count_lbl := Label.new()
+		count_lbl.text = str(count) if count > 0 else ""
+		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		count_lbl.add_theme_font_size_override("font_size", 11)
+		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+		col.add_child(count_lbl)
+
+		var bar := ColorRect.new()
+		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
+		bar.custom_minimum_size = Vector2(22, height)
+		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
+		col.add_child(bar)
+
+		var cost_lbl := Label.new()
+		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
+		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cost_lbl.add_theme_font_size_override("font_size", 11)
+		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+		col.add_child(cost_lbl)
+
+		chart.add_child(col)
+
+	return chart
+
+func _make_chip(label_text: String, count: int) -> Control:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
+	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(4)
+	bg.content_margin_left   = 8
+	bg.content_margin_right  = 8
+	bg.content_margin_top    = 2
+	bg.content_margin_bottom = 2
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+
+	var lbl := Label.new()
+	lbl.text = "%s: %d" % [label_text, count]
+	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+	panel.add_child(lbl)
+
+	return panel
+
 # ─── Actions ──────────────────────────────────────────────────────────────────
 
 func load_deck(deck: DeckData) -> void:
@@ -337,6 +522,80 @@ func _on_save() -> void:
 func _on_back() -> void:
 	DeckManager.save_decks()
 	queue_free()
+
+# ─── Import / Export ───────────────────────────────────────────────────────────
+
+func _on_export() -> void:
+	if current_deck == null:
+		return
+	var code := current_deck.to_code()
+	DisplayServer.clipboard_set(code)
+
+	var dialog := AcceptDialog.new()
+	dialog.title = SettingsManager.t("deck.export_title")
+	dialog.min_size = Vector2(480, 220)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+
+	var hint := Label.new()
+	hint.text = SettingsManager.t("deck.export_hint")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(hint)
+
+	var text_edit := TextEdit.new()
+	text_edit.text = code
+	text_edit.editable = false
+	text_edit.custom_minimum_size = Vector2(0, 110)
+	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	vbox.add_child(text_edit)
+
+	dialog.add_child(vbox)
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(dialog.queue_free)
+	dialog.canceled.connect(dialog.queue_free)
+
+func _on_import() -> void:
+	if current_deck == null:
+		return
+	var dialog := AcceptDialog.new()
+	dialog.title = SettingsManager.t("deck.import_title")
+	dialog.min_size = Vector2(480, 220)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+
+	var hint := Label.new()
+	hint.text = SettingsManager.t("deck.import_hint")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(hint)
+
+	var text_edit := TextEdit.new()
+	text_edit.custom_minimum_size = Vector2(0, 110)
+	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	vbox.add_child(text_edit)
+
+	dialog.add_child(vbox)
+	add_child(dialog)
+	dialog.popup_centered()
+
+	dialog.confirmed.connect(func():
+		var imported := DeckData.from_code(text_edit.text)
+		if imported == null:
+			var err := AcceptDialog.new()
+			err.dialog_text = SettingsManager.t("deck.import_error")
+			add_child(err)
+			err.popup_centered()
+			err.confirmed.connect(err.queue_free)
+		else:
+			current_deck.name = imported.name
+			current_deck.card_paths = imported.card_paths
+			deck_name_edit.text = current_deck.name
+			_refresh_deck_list()
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(dialog.queue_free)
 
 # ─── Limite de copies ─────────────────────────────────────────────────────────
 
@@ -506,6 +765,63 @@ func _build_filter_bar() -> void:
 		func() -> int: return _filter_cost,
 		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
 
+
+## Barre secondaire : filtre par mot-clé (dropdown, trop de valeurs pour des
+## boutons radio) et tri de la grille de cartes.
+func _build_sort_bar() -> void:
+	for child in sort_bar.get_children():
+		child.queue_free()
+
+	var all_label := SettingsManager.t("deck.filter_all")
+
+	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_keyword")))
+	var kw_values: Array[String] = [""]
+	var kw_labels: Array[String] = [all_label]
+	for entry in _all_keyword_entries():
+		kw_values.append(entry["id"])
+		kw_labels.append(entry["label"])
+	sort_bar.add_child(_make_keyword_dropdown(kw_values, kw_labels))
+
+	var sort_spacer := Control.new()
+	sort_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sort_bar.add_child(sort_spacer)
+
+	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.sort_label")))
+	_add_filter_group(sort_bar, ["", "cost", "name", "rarity"],
+		func(v: String) -> void: _sort_mode = v; _refresh_card_grid(),
+		func() -> String: return _sort_mode,
+		[SettingsManager.t("deck.sort_default"), SettingsManager.t("deck.sort_cost"),
+			SettingsManager.t("deck.sort_name"), SettingsManager.t("deck.sort_rarity")])
+
+## Rassemble tous les mots-clés (générique + 3 races) sous forme d'ids "pool:value".
+func _all_keyword_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for key in Keyword.Type.keys():
+		var v: int = Keyword.Type[key]
+		entries.append({"id": "K:%d" % v, "label": Keyword.get_keyword_name(v)})
+	for key in KeywordHuman.Type.keys():
+		var v: int = KeywordHuman.Type[key]
+		entries.append({"id": "H:%d" % v, "label": KeywordHuman.get_keyword_name(v)})
+	for key in KeywordUndead.Type.keys():
+		var v: int = KeywordUndead.Type[key]
+		entries.append({"id": "U:%d" % v, "label": KeywordUndead.get_keyword_name(v)})
+	for key in KeywordDemon.Type.keys():
+		var v: int = KeywordDemon.Type[key]
+		entries.append({"id": "D:%d" % v, "label": KeywordDemon.get_keyword_name(v)})
+	return entries
+
+func _make_keyword_dropdown(values: Array[String], labels: Array[String]) -> OptionButton:
+	var opt := OptionButton.new()
+	opt.custom_minimum_size = Vector2(170, 26)
+	opt.add_theme_font_size_override("font_size", 12)
+	for i in range(labels.size()):
+		opt.add_item(labels[i])
+	var current_idx := values.find(_filter_keyword)
+	opt.selected = max(current_idx, 0)
+	opt.item_selected.connect(func(idx: int) -> void:
+		_filter_keyword = values[idx]
+		_refresh_card_grid())
+	return opt
 
 func _make_filter_label(text: String) -> Label:
 	var lbl := Label.new()
