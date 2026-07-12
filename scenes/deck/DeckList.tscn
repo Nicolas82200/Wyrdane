@@ -43,7 +43,7 @@ theme_override_constants/margin_right = 32
 theme_override_constants/margin_bottom = 28
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel/Margin" unique_id=200000003]
-custom_minimum_size = Vector2(680, 0)
+custom_minimum_size = Vector2(780, 0)
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -70,7 +70,7 @@ horizontal_alignment = 1
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/Panel/Margin/VBox" unique_id=200000005]
-custom_minimum_size = Vector2(680, 420)
+custom_minimum_size = Vector2(780, 420)
 layout_mode = 2
 horizontal_scroll_mode = 0
 
@@ -100,3 +100,10 @@ custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "+ Nouveau Deck"
+
+[node name="ImportButton" type="Button" parent="CenterContainer/Panel/Margin/VBox/ButtonRow" unique_id=200000015]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Importer"

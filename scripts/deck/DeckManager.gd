@@ -43,6 +43,23 @@ func delete_deck(index: int) -> void:
 		active_deck_index = max(0, decks.size() - 1)
 	save_decks()
 
+## Duplique le deck à l'index donné (nom + copie suffixée) et l'insère juste après.
+func duplicate_deck(index: int) -> DeckData:
+	if index < 0 or index >= decks.size():
+		return null
+	var source := decks[index]
+	var copy := DeckData.new()
+	copy.name = source.name + SettingsManager.t("decklist.copy_suffix")
+	copy.card_paths = source.card_paths.duplicate()
+	decks.insert(index + 1, copy)
+	save_decks()
+	return copy
+
+## Ajoute un deck déjà construit (import) à la liste et le sauvegarde.
+func add_deck(deck: DeckData) -> void:
+	decks.append(deck)
+	save_decks()
+
 func can_add_card(deck: DeckData, card_data: CardData) -> bool:
 	if deck.size() >= MAX_CARDS_PER_DECK:
 		return false

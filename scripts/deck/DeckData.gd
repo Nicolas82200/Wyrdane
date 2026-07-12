@@ -31,3 +31,37 @@ func remove_card_at(index: int) -> void:
 
 func size() -> int:
 	return card_paths.size()
+
+## Encode le deck en un code texte (nom + chemins des cartes) partageable.
+func to_code() -> String:
+	var lines: Array[String] = [name]
+	lines.append_array(card_paths)
+	return Marshalls.utf8_to_base64("\n".join(lines))
+
+## Décode un code généré par to_code(). Retourne null si le code est invalide
+## ou si aucune des cartes référencées n'existe plus.
+static func from_code(code: String) -> DeckData:
+	var raw := Marshalls.base64_to_utf8(code.strip_edges())
+	if raw == "":
+		return null
+	var lines := raw.split("\n")
+	if lines.is_empty():
+		return null
+	var deck := DeckData.new()
+	deck.name = lines[0]
+	var paths: Array[String] = []
+	var copies: Dictionary = {}
+	for i in range(1, lines.size()):
+		var path := lines[i]
+		if path == "" or not ResourceLoader.exists(path, "CardData"):
+			continue
+		if paths.size() >= DeckManager.MAX_CARDS_PER_DECK:
+			break
+		if copies.get(path, 0) >= DeckManager.MAX_COPIES_PER_CARD:
+			continue
+		copies[path] = copies.get(path, 0) + 1
+		paths.append(path)
+	if paths.is_empty():
+		return null
+	deck.card_paths = paths
+	return deck
