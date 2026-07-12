@@ -205,10 +205,13 @@ L'IA (`scripts/systems/AISystem.gd`) a son propre deck (20 serviteurs Mort-Vivan
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
 1.  **Ressource** — mana ou pioche (symétrique du choix joueur du `TurnChoicePanel`).
-2.  **Pose** — joue les serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière).
+2.  **Pose** — joue tous les types de cartes (Serviteur, Éphémère, Rituel, Enchantement) ; serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière) ; choisit ses cibles de sort (menace la plus forte côté joueur, allié le plus faible à soutenir).
 3.  **Attaque** — priorité : Provocation > létal sur le héros > trade favorable (tuer sans mourir) > héros.
 
-⚠️ Limite actuelle : l'IA ne joue que des **serviteurs** — pas de sorts, rituels ni enchantements.
+Trois niveaux de difficulté (réglage `SettingsManager.ai_difficulty` : `easy`/`normal`/`hard`) :
+*   **Facile** — chance de gaspiller son tour (carte/cible au hasard plutôt que le meilleur choix).
+*   **Normal** — joue toujours la meilleure carte/cible selon son évaluation.
+*   **Difficile** — priorise un sort de suppression sur la menace ennemie la plus dangereuse plutôt que la carte la plus chère.
 
 ### 🌐 Multijoueur 1v1 (réseau)
 
@@ -743,7 +746,7 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Trois races jouables : Mort-Vivant, Humain et Démon (226 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`)
-*   IA adverse basique (`AISystem`) — serviteurs uniquement
+*   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
 *   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
 *   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
 *   **Internationalisation FR/EN** — toute l'UI et les 226 cartes, via le système de traduction natif Godot (`translations/game.csv`)
@@ -754,7 +757,6 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
 
 ### À faire
-*   IA : jouer les sorts, rituels et enchantements ; niveaux de difficulté
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
 *   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
 *   Cartes Démon : passe d'éligibilité des Incantations (non couverte lors de l'analyse initiale)
