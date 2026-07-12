@@ -74,6 +74,22 @@ func on_card_played(card_data: CardData, is_player: bool) -> void:
 	if card_data.card_type == "Minion":
 		var per_race: Dictionary = _race_played_this_turn[is_player]
 		per_race[card_data.race] = int(per_race.get(card_data.race, 0)) + 1
+	else:
+		await _charge_spell_discount_self_damage(card_data, is_player)
+
+# Sanctuaire Écarlate : la première fois que sa remise de coût s'applique à un
+# sort allié chaque tour, le héros propriétaire de l'enchantement perd 1 HP.
+# `triggered_this_turn` (partagé avec TriggerSystem, remis à zéro à chaque
+# début de tour) sert de témoin "déjà chargé" pour cette instance.
+func _charge_spell_discount_self_damage(card_data: CardData, is_player: bool) -> void:
+	for entry in battle.trigger_system.get_active_enchantments(is_player):
+		var enchant: CardData = entry["card_data"]
+		if not enchant.trigger_types.any(func(t): return t.type == "OnAura"):
+			continue
+		for effect in enchant.effects:
+			if effect.effect_id == "AuraSpellCostReduction" and not entry["triggered_this_turn"]:
+				entry["triggered_this_turn"] = true
+				await battle.hero_system.self_damage(is_player, 1)
 
 # Début du tour d'un camp : ses compteurs "premier de la race" repartent à zéro.
 func on_turn_started(is_player: bool) -> void:
