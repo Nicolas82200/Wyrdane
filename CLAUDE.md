@@ -100,7 +100,7 @@ Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`u
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
-- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), main et mana. Tour automatique en 3 phases : ressource (mana ou pioche), pose de serviteurs, attaques (provocation > létal héros > trade favorable). Limite actuelle : l'IA ne joue que des serviteurs (pas de sorts/rituels/enchantements).
+- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), main et mana. Tour automatique en 3 phases : ressource (mana ou pioche), pose de cartes (serviteurs, sorts, rituels, enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
 - **`NetworkOpponent`** (`scripts/net/NetworkOpponent.gd`, mode réseau) — ne décide rien : rejoue localement, dans l'ordre, les commandes reçues du joueur distant jusqu'à `END_TURN`.
 
 Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendant le tour adverse.
@@ -176,8 +176,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse basique (serviteurs uniquement), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
-- ⬜ À faire : sorts/rituels pour l'IA, page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents
 
