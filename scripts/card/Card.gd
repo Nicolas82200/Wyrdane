@@ -66,7 +66,6 @@ const TYPE_ICONS := {
 @onready var health_label: Label       = $HealthLabel
 @onready var desc_label: RichTextLabel = $DescLabel
 @onready var border: TextureRect       = $BorderFrame
-@onready var text_background: Control  = $TextBackground
 @onready var type_label: Label         = $TypeLabel
 @onready var lane_icon: TextureRect    = $LaneIcon
 
@@ -97,11 +96,15 @@ var _battle: Node = null
 var can_drag_check: Callable = Callable()
 var create_drag_preview: Callable = Callable()
 
-var _race_bg_style := StyleBoxFlat.new()
+var _name_bg_style: StyleBoxFlat
+var _desc_bg_style: StyleBoxFlat
 var _type_style    := StyleBoxFlat.new()
 
 func _ready() -> void:
-	text_background.add_theme_stylebox_override("panel", _race_bg_style)
+	_name_bg_style = (name_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
+	name_label.add_theme_stylebox_override("normal", _name_bg_style)
+	_desc_bg_style = (desc_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
+	desc_label.add_theme_stylebox_override("normal", _desc_bg_style)
 	_type_style.set_corner_radius_all(8)
 	_type_style.set_border_width_all(1)
 	_type_style.content_margin_left = 8.0
@@ -183,8 +186,9 @@ func _apply_type_style() -> void:
 	_type_style.border_color = rarity_color
 
 func _apply_race_style() -> void:
-	_race_bg_style.bg_color = RACE_COLORS.get(data.race, Color.WHITE)
-	text_background.queue_redraw()
+	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
+	_name_bg_style.bg_color = race_color
+	_desc_bg_style.bg_color = race_color
 
 # ─── Mulligan ─────────────────────────────────────────────────────────────────
 
@@ -339,7 +343,6 @@ func show_back(show_card_back: bool) -> void:
 		desc_label.hide()
 		border.hide()
 		lane_icon.hide()
-		text_background.hide()
 		type_label.hide()
 	else:
 		if data:
@@ -350,5 +353,4 @@ func show_back(show_card_back: bool) -> void:
 		health_label.show()
 		desc_label.show()
 		border.show()
-		text_background.show()
 		type_label.show()
