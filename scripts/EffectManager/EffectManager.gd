@@ -71,6 +71,31 @@ func execute_effect(
 	battle.board_visual_system.refresh_board()
 	battle.hero_system.update_ui()
 
+# Effet dont la cible choisie par le joueur est un enchantement/rituel posé
+# (CardData), pas un Minion. Chemin séparé de execute_effect() car son
+# selected_target est typé Minion — un enchantement en jeu n'a pas
+# d'instance dédiée (deux exemplaires de la même carte partagent la même
+# ressource CardData, comme en main : voir DeckSystem.mulligan_replace_one).
+func execute_enchantment_targeted_effect(
+	battle,
+	source_minion: Minion,
+	effect: CardEffect,
+	target_enchantment: CardData
+) -> void:
+	if source_minion != null and source_minion.card_data != null:
+		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
+	match effect.effect_id:
+		"DestroyEnchantment": _destroy_target_enchantment(battle, target_enchantment)
+		_: push_warning("Effet non implémenté pour cible enchantement : %s" % effect.effect_id)
+	battle.board_visual_system.refresh_board()
+
+func _destroy_target_enchantment(battle, card_data: CardData) -> void:
+	for is_player in [true, false]:
+		if card_data in battle.enchantment_system.get_enchantments(is_player) \
+				or card_data in battle.enchantment_system.get_rituals(is_player):
+			battle.enchantment_system.destroy_enchantment(card_data, is_player)
+			return
+
 # Tirage aléatoire via le RNG de jeu partagé (déterministe et synchronisé en
 # réseau), et non le RNG global — sinon les deux clients divergeraient.
 func _rng_pick(battle, array: Array):
