@@ -10,6 +10,10 @@
 script = ExtResource("1_v0glf")
 effect_id = "Buff"
 target = "AllAllies"
+duration = "UntilEndOfTurn"
+race_filter = "Human"
+condition_type = "KeywordHumanInPlay"
+granted_keyword = "COMMANDEMENT"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 

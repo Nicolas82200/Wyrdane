@@ -36,6 +36,15 @@ func add_temp_keyword(minion: Minion, keyword: int, is_human: bool, duration: St
 		"duration": duration,
 	})
 
+func add_temp_spell_immunity(minion: Minion, duration: String) -> void:
+	if duration == "Permanent" or minion == null:
+		return
+	_entries.append({
+		"kind":     "spell_immunity",
+		"minion":   minion,
+		"duration": duration,
+	})
+
 func add_temp_demon_keyword(minion: Minion, keyword: int, duration: String) -> void:
 	if duration == "Permanent" or minion == null:
 		return
@@ -55,6 +64,23 @@ func add_destroy_at_expiry(minion: Minion, duration: String) -> void:
 		"kind":     "destroy",
 		"minion":   minion,
 		"duration": duration,
+	})
+
+# Silence temporaire (Inquisiteur de Fer, L'Éternel Gardien) : capture les
+# mots-clés avant qu'EffectManager ne les efface, pour les restaurer à
+# l'expiration. Un Silence "Permanent" (défaut de la plupart des cartes)
+# n'enregistre rien et reste donc définitif.
+func add_temp_silence(minion: Minion, duration: String) -> void:
+	if duration == "Permanent" or minion == null:
+		return
+	_entries.append({
+		"kind":            "silence",
+		"minion":          minion,
+		"keywords":        minion.keywords.duplicate(),
+		"human_keywords":  minion.human_keywords.duplicate(),
+		"undead_keywords": minion.undead_keywords.duplicate(),
+		"demon_keywords":  minion.demon_keywords.duplicate(),
+		"duration":        duration,
 	})
 
 # ─── Expiration ───────────────────────────────────────────────────────────────
@@ -98,6 +124,14 @@ func _revert(entry: Dictionary) -> void:
 		"destroy":
 			# La mort est résolue en batch par _expire, après tous les reverts
 			minion.health = 0
+		"silence":
+			minion.keywords        = entry["keywords"].duplicate()
+			minion.human_keywords  = entry["human_keywords"].duplicate()
+			minion.undead_keywords = entry["undead_keywords"].duplicate()
+			minion.demon_keywords  = entry["demon_keywords"].duplicate()
+			minion.silenced = false
+		"spell_immunity":
+			minion.spell_immune = false
 
 func _is_on_board(minion: Minion) -> bool:
 	return minion in battle.player_minions or minion in battle.enemy_minions
