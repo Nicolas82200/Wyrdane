@@ -71,6 +71,31 @@ func execute_effect(
 	battle.board_visual_system.refresh_board()
 	battle.hero_system.update_ui()
 
+# Effet dont la cible choisie par le joueur est un enchantement/rituel posé
+# (CardData), pas un Minion. Chemin séparé de execute_effect() car son
+# selected_target est typé Minion — un enchantement en jeu n'a pas
+# d'instance dédiée (deux exemplaires de la même carte partagent la même
+# ressource CardData, comme en main : voir DeckSystem.mulligan_replace_one).
+func execute_enchantment_targeted_effect(
+	battle,
+	source_minion: Minion,
+	effect: CardEffect,
+	target_enchantment: CardData
+) -> void:
+	if source_minion != null and source_minion.card_data != null:
+		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
+	match effect.effect_id:
+		"DestroyEnchantment": _destroy_target_enchantment(battle, target_enchantment)
+		_: push_warning("Effet non implémenté pour cible enchantement : %s" % effect.effect_id)
+	battle.board_visual_system.refresh_board()
+
+func _destroy_target_enchantment(battle, card_data: CardData) -> void:
+	for is_player in [true, false]:
+		if card_data in battle.enchantment_system.get_enchantments(is_player) \
+				or card_data in battle.enchantment_system.get_rituals(is_player):
+			battle.enchantment_system.destroy_enchantment(card_data, is_player)
+			return
+
 # Tirage aléatoire via le RNG de jeu partagé (déterministe et synchronisé en
 # réseau), et non le RNG global — sinon les deux clients divergeraient.
 func _rng_pick(battle, array: Array):
@@ -710,18 +735,27 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 		battle.ai_system.hand.append(card_data)
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
-func _resurrect_last(battle, source_minion: Minion, _effect: CardEffect) -> void:
+func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
 	var dead: Array[CardData] = graveyard.get_minions()
 	if dead.is_empty():
+		return
+	# Prend le dernier mort (filtré par race si demandé, ex. Rituel de Résurrection)
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var card_data: CardData = null
+	for i in range(dead.size() - 1, -1, -1):
+		if race == -1 or dead[i].race == race:
+			card_data = dead[i]
+			break
+	if card_data == null:
 		return
 	var row: String = "Front"
 	if not battle.can_summon_to_row(is_player, row):
 		row = "Back"
 	if not battle.can_summon_to_row(is_player, row):
 		return
-	await battle.summon_minion(dead.back(), is_player, row)
+	await battle.summon_minion(card_data, is_player, row)
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 	if not minions.is_empty():
 		minions.back().health = 1

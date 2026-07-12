@@ -9,6 +9,7 @@
 [sub_resource type="Resource" id="Resource_609d2"]
 script = ExtResource("1_cardeffect")
 effect_id = "ResurrectLast"
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_mxb68"]
@@ -18,7 +19,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de Résurrection"
-description = "Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant."
+description = "Éveil : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant."
 flavour_text = "Le cercle ne ferme jamais complètement. C'est voulu."
 texture = ExtResource("3_texture")
 cost = 5

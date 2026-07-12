@@ -16,6 +16,7 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 script = ExtResource("1_u8sqq")
 effect_id = "Buff"
 target = "AllAllies"
+race_filter = "Human"
 value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
