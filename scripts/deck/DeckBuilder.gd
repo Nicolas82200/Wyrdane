@@ -10,9 +10,12 @@ const CARDS_PER_FRAME := 5
 
 # Taille des cartes dans la grille de collection
 const GRID_CARD_SCALE       := 0.9
-const GRID_CARD_HOVER_SCALE := 1  # léger zoom au survol, autour du centre
 const GRID_WRAPPER_SIZE     := Vector2(236, 354)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
+
+# Preview agrandie affichée au survol (façon board/main), à la place du léger
+# zoom en place — évite le chevauchement des cartes voisines de la grille.
+const PREVIEW_SCALE := Vector2(1.35, 1.35)
 
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
@@ -30,6 +33,7 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var export_button:    Button        = %ExportButton
 @onready var import_button:    Button        = %ImportButton
 @onready var header_label:     Label         = $MainVBox/HeaderBar/HeaderMargin/HeaderHBox/HeaderLabel
+@onready var card_preview:     Card          = $CardPreview
 
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
@@ -68,6 +72,10 @@ func _ready() -> void:
 	_overlay_layer = CanvasLayer.new()
 	_overlay_layer.layer = 19
 	add_child(_overlay_layer)
+	card_preview.set_non_interactive()
+	card_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card_preview.z_index = 100
+	card_preview.hide()
 	save_button.pressed.connect(_on_save)
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
@@ -219,11 +227,10 @@ func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
 	_hovering = true
-	wrapper.z_index = 2  # passe au-dessus des cartes voisines pendant le zoom
-	var tween := create_tween()
-	tween.tween_property(card_visual, "scale",
-		Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE), 0.12)\
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	card_preview.set_data(card_data)
+	card_preview.scale = PREVIEW_SCALE
+	card_preview.show()
+	_position_hover_tooltips()
 	if _is_card_maxed(card_data):
 		_show_max_copies_tooltip(wrapper)
 	await _show_keyword_tooltips(card_data, wrapper)
@@ -231,13 +238,7 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 func _on_card_wrapper_exited(card_visual: Card) -> void:
 	_hovered_wrapper = null
 	_hovering = false
-	var wrapper := card_visual.get_parent() as Control
-	if wrapper:
-		wrapper.z_index = 0
-	var tween := create_tween()
-	tween.tween_property(card_visual, "scale",
-		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	card_preview.hide()
 	_clear_max_tooltip()
 	_hide_keyword_tooltips()
 
@@ -668,24 +669,35 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 	_race_tooltip = race_panel
 	_position_hover_tooltips()
 
-## Repositionne les tooltips sur la carte survolée. Appelé à chaque frame tant
-## que le survol dure, pour que les tooltips suivent le scroll de la grille.
+## Repositionne la preview agrandie et les tooltips par rapport à la carte
+## survolée. Appelé à chaque frame tant que le survol dure, pour que tout
+## suive le scroll de la grille.
 func _position_hover_tooltips() -> void:
 	var wrapper := _hovered_wrapper
 	if wrapper == null or not is_instance_valid(wrapper):
 		return
 
-	# Emprise de la carte zoomée (pivot au centre de la carte)
-	var card_size   := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
-	var card_center := wrapper.global_position + CARD_BASE_SIZE / 2.0
-	var vp          := get_viewport_rect().size
-	var base_y      := wrapper.global_position.y
+	var vp := get_viewport_rect().size
+	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
+	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
+
+	# Preview centrée sur la carte survolée, au-dessus si la place le permet
+	# (sinon en dessous), pour ne jamais masquer le curseur du joueur.
+	var preview_x: float = clampf(
+		wrapper_center.x - preview_size.x / 2.0, 4.0, vp.x - preview_size.x - 4.0)
+	var preview_y: float = wrapper.global_position.y - preview_size.y - 12.0
+	if preview_y < 4.0:
+		preview_y = wrapper.global_position.y + wrapper.size.y + 12.0
+	card_preview.global_position = Vector2(preview_x, preview_y)
+
+	var card_center := card_preview.global_position + preview_size / 2.0
+	var base_y       := card_preview.global_position.y
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		var px := card_center.x + card_size.x / 2.0 + 12.0
+		var px := card_preview.global_position.x + preview_size.x + 12.0
 		if px + panel.size.x > vp.x:
-			px = card_center.x - card_size.x / 2.0 - panel.size.x - 12.0
+			px = card_preview.global_position.x - panel.size.x - 12.0
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
 
@@ -693,9 +705,9 @@ func _position_hover_tooltips() -> void:
 		var rx: float = clampf(
 			card_center.x - _race_tooltip.size.x / 2.0,
 			4.0, vp.x - _race_tooltip.size.x - 4.0)
-		var ry: float = card_center.y + card_size.y / 2.0 + 4.0
+		var ry: float = card_preview.global_position.y + preview_size.y + 4.0
 		if ry + _race_tooltip.size.y > vp.y:
-			ry = card_center.y - card_size.y / 2.0 - _race_tooltip.size.y - 4.0
+			ry = card_preview.global_position.y - _race_tooltip.size.y - 4.0
 		_race_tooltip.global_position = Vector2(rx, ry)
 
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):

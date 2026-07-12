@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://bmnejyabilr4s" path="res://scripts/deck/DeckBuilder.gd" id="1_deck"]
 [ext_resource type="Theme" path="res://resources/themes/ui_theme.tres" id="2_theme"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_font"]
+[ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="4_card"]
 
 [node name="DeckBuilder" type="Control" unique_id=413371395]
 layout_mode = 3
@@ -203,3 +204,9 @@ custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
 text = "Sauvegarder le deck"
+
+[node name="CardPreview" parent="." unique_id=100000040 instance=ExtResource("4_card")]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0
+mouse_filter = 2
