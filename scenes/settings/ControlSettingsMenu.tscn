@@ -1,0 +1,209 @@
+[gd_scene format=3 uid="uid://bt0vohrgfxbke"]
+
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="1_font"]
+[ext_resource type="Script" uid="uid://cj3cr2fdlyqs4" path="res://scripts/settings/ControlSettingsMenu.gd" id="2_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.06, 0.05, 0.04, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.835, 0.639, 0.4)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key"]
+bg_color = Color(0.15, 0.12, 0.09, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.835, 0.639, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="ControlSettingsMenu" type="Control" unique_id=250814364]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_script")
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=700000001]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=700000002]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -300.0
+offset_right = 320.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="PanelContainer" unique_id=700000003]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TitleMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000004]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="Title" type="Label" parent="PanelContainer/VBox/TitleMargin" unique_id=700000005]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 32
+text = "Contrôles"
+horizontal_alignment = 1
+
+[node name="Sep" type="HSeparator" parent="PanelContainer/VBox" unique_id=700000006]
+layout_mode = 2
+
+[node name="HintMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000007]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="HintLabel" type="Label" parent="PanelContainer/VBox/HintMargin" unique_id=700000008]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "Clique sur une touche pour la modifier"
+horizontal_alignment = 1
+
+[node name="BindsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000009]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="BindsVBox" type="VBoxContainer" parent="PanelContainer/VBox/BindsMargin" unique_id=700000010]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MoveDownRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000014]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MoveDownLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/MoveDownRow" unique_id=700000015]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 17
+text = "Descendre"
+
+[node name="MoveDownButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/MoveDownRow" unique_id=700000016]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_key")
+text = "S"
+
+[node name="ConfirmRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000017]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ConfirmLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ConfirmRow" unique_id=700000018]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 17
+text = "Confirmer"
+
+[node name="ConfirmButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ConfirmRow" unique_id=700000019]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_key")
+text = "Entrée"
+
+[node name="CancelRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=986537293]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CancelLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/CancelRow" unique_id=185130313]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 17
+text = "Annuler"
+
+[node name="CancelButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/CancelRow" unique_id=984335547]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_key")
+text = "Échap"
+
+[node name="SepBottom" type="HSeparator" parent="PanelContainer/VBox" unique_id=700000020]
+layout_mode = 2
+
+[node name="BtnsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000021]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="BtnsRow" type="HBoxContainer" parent="PanelContainer/VBox/BtnsMargin" unique_id=700000022]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResetButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=700000023]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 17
+text = "Réinitialiser"
+
+[node name="BackButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=700000024]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 17
+text = "← Retour"
+

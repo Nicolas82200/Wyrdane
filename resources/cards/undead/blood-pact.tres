@@ -1,21 +1,36 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://7cbc2db55a60"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://caokwwqrh810v"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://hpsi7n2ds01a" path="res://assets/card_art/blood-pact.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_i20fk"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://hpsi7n2ds01a" path="res://assets/card_art/undead/blood-pact.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Resource" uid="uid://dx7ouoxov88ny" path="res://resources/cards/undead/minor-zombie.tres" id="6_token"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_1tsg2"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonMinion"
+count = 1
+summon_card = ExtResource("6_token")
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_uhbhy"]
+script = ExtResource("5_trig")
+type = "OnSacrifice"
+
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Pacte Sanglant"
-description = "Sacrifie tous tes zombies avec 1 PV : invoque un zombie X/X où X = nombre de sacrifiés x2."
-texture = ExtResource("2_texture")
+description = "Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Mort-Vivant 2/2."
+flavour_text = "Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour."
+texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
+ritual_duration = 3
+sacrifice_count = 1
+sacrifice_max_hp = 2
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_uhbhy")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_1tsg2")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

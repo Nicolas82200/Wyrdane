@@ -1,32 +1,33 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://e56a86872373"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://csxes3m837i0h"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://f19b8eb3a84d" path="res://assets/card_art/plague-reaper.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://bufwwwcqadj67" path="res://assets/card_art/undead/plague-reaper.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_uoy2e"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyMinion"
-value = 2
+effect_id = "DestroyLowHP"
+target = "AllEnemies"
+value = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_4ms5x"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Faucheur de la Plaie"
-description = "Cri de guerre : détruit un minion ennemi avec 2 PV ou moins."
-texture = ExtResource("2_texture")
+description = "Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins."
+flavour_text = "Il ne choisit pas les plus forts. Il choisit les presque morts — pour finir le travail."
+texture = ExtResource("3_texture")
 cost = 5
-race = "Undead"
-card_type = "Minion"
+unit_style = 1
 attack = 5
 health = 5
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "Battlecry"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_4ms5x")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_uoy2e")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

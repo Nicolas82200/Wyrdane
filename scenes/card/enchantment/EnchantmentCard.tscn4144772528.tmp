@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://b0ykvjjhyq4rw"]
+
+[ext_resource type="Script" uid="uid://b3yuw6ylj18kj" path="res://scripts/card/enchantment/EnchantmentCard.gd" id="1_lr356"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.16, 0.16, 0.21, 0.59)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.35, 0.54, 0.88)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_highlight"]
+bg_color = Color(1, 0.9, 0.3, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.9, 0.3, 0)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rarity"]
+bg_color = Color(0.5, 0.5, 0.5, 0.59)
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cost"]
+bg_color = Color(0.05, 0.25, 0.55, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.55, 0.9, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="EnchantmentCard" type="PanelContainer" unique_id=967650399]
+custom_minimum_size = Vector2(90, 120)
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+script = ExtResource("1_lr356")
+
+[node name="HighlightOverlay" type="Panel" parent="." unique_id=100000001]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_highlight")
+
+[node name="RarityBar" type="Panel" parent="." unique_id=100000002]
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rarity")
+
+[node name="CostBadge" type="Label" parent="." unique_id=100000003]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_cost")
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=100000004]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer" unique_id=100000005]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="ArtRect" type="TextureRect" parent="MarginContainer/VBox" unique_id=100000006]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 1
+
+[node name="NameLabel" type="Label" parent="MarginContainer/VBox" unique_id=100000007]
+clip_contents = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Nom"
+horizontal_alignment = 1
+
+[node name="DescLabel" type="Label" parent="MarginContainer/VBox" unique_id=100000008]
+layout_mode = 2
+theme_override_font_sizes/font_size = 8
+text = "Description"
+horizontal_alignment = 1
+autowrap_mode = 3

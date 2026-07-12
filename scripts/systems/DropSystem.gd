@@ -1,0 +1,281 @@
+# DropSystem.gd
+extends Node
+class_name DropSystem
+
+const BOARD_MINION_SIZE           := Vector2(100, 150)
+const DROP_HIGHLIGHT_COLOR        := Color(0.5, 0.85, 0.55, 0.1)
+const DROP_HIGHLIGHT_BORDER_COLOR := Color(0.55, 0.85, 0.6, 0.45)
+
+var battle: Node
+
+var _drop_highlights:        Dictionary = {}
+var _zone_highlights:        Dictionary = {}
+var _drop_placeholder:       Control    = null
+var _placeholder_style:       StyleBoxFlat  = null
+var _placeholder_empty_style: StyleBoxEmpty = StyleBoxEmpty.new()
+var _drop_placeholder_row:   String     = ""
+var _drop_placeholder_index: int        = -1
+var _last_placeholder_index: int        = -1
+var _last_placeholder_row:   String     = ""
+
+func init(_battle: Node) -> void:
+	battle = _battle
+
+# ─── Highlight ────────────────────────────────────────────────────────────────
+
+func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
+	var card_type: String = card_data.card_type if card_data != null else "Minion"
+
+	# Éphémère : aucun surlignage pendant le drag
+	if card_type == "Instant":
+		clear_player_drop_highlight()
+		return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
+
+	# Rituel / Enchantement : on surligne leur zone dédiée, pas les rangées de serviteurs
+	if card_type == "Ritual" or card_type == "Enchantment":
+		return _update_zone_drop_highlight(card_data, mouse, display_show)
+
+	_ensure_drop_highlights()
+	var allowed_rows: Array[String] = battle.get_allowed_rows_for_card(card_data)
+	for row in [battle.ROW_FRONT, battle.ROW_BACK]:
+		var panel: Panel        = _drop_highlights.get(row) as Panel
+		var row_container: Control = _get_player_row_container(row)
+		if panel == null or row_container == null:
+			continue
+		var can_show: bool = display_show and row in allowed_rows and battle.can_summon_to_row(true, row)
+		panel.visible = can_show
+		if can_show:
+			_fit_drop_highlight_to(row_container, panel)
+	# Le placeholder (espace réservé) reste actif même sans highlight :
+	# les serviteurs s'écartent pour prévisualiser le placement de la carte
+	var drop_row: String = get_player_drop_row_at(mouse, card_data)
+	if not drop_row.is_empty() and battle.can_summon_to_row(true, drop_row):
+		var insert_index: int = _get_stable_player_drop_index_at(mouse, drop_row)
+		_update_drop_placeholder(drop_row, insert_index, display_show)
+		return true
+	_clear_drop_placeholder()
+	return false
+
+func clear_player_drop_highlight() -> void:
+	for panel in _drop_highlights.values():
+		var control: Control = panel as Control
+		if control != null:
+			control.visible = false
+	for panel in _zone_highlights.values():
+		var control: Control = panel as Control
+		if control != null:
+			control.visible = false
+	_clear_drop_placeholder()
+
+# Surlignage des zones Rituel / Enchantement (les sorts persistants s'y posent)
+func _update_zone_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
+	_ensure_zone_highlights()
+	_clear_drop_placeholder()
+	for panel in _drop_highlights.values():
+		var control: Control = panel as Control
+		if control != null:
+			control.visible = false
+	for zone_type in _zone_highlights.keys():
+		var panel: Panel   = _zone_highlights.get(zone_type) as Panel
+		var zone: Control  = _get_player_zone_for(zone_type)
+		if panel == null or zone == null:
+			continue
+		var can_show: bool = display_show and zone_type == card_data.card_type
+		panel.visible = can_show
+		if can_show:
+			_fit_drop_highlight_to(zone, panel)
+	return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
+
+func _ensure_zone_highlights() -> void:
+	if not _zone_highlights.is_empty():
+		return
+	var board: Control = battle.get_node_or_null("Board") as Control
+	if board == null:
+		push_error("DropSystem: nœud 'Board' introuvable, les highlights de zone ne seront pas créés.")
+		return
+	for zone_type in ["Ritual", "Enchantment"]:
+		var panel: Panel = Panel.new()
+		panel.name         = "Player%sZoneDropHighlight" % zone_type
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.visible      = false
+		var style := StyleBoxFlat.new()
+		style.bg_color                = DROP_HIGHLIGHT_COLOR
+		style.border_color            = DROP_HIGHLIGHT_BORDER_COLOR
+		style.border_width_left       = 3
+		style.border_width_right      = 3
+		style.border_width_top        = 3
+		style.border_width_bottom     = 3
+		style.corner_radius_top_left     = 8
+		style.corner_radius_top_right    = 8
+		style.corner_radius_bottom_left  = 8
+		style.corner_radius_bottom_right = 8
+		panel.add_theme_stylebox_override("panel", style)
+		board.add_child(panel)
+		_zone_highlights[zone_type] = panel
+
+func _get_player_zone_for(card_type: String) -> Control:
+	if card_type == "Ritual":
+		return battle.player_ritual_zone as Control
+	if card_type == "Enchantment":
+		return battle.player_enchantment_zone as Control
+	return null
+
+func _ensure_drop_highlights() -> void:
+	if not _drop_highlights.is_empty():
+		return
+	var board: Control = battle.get_node_or_null("Board") as Control
+	if board == null:
+		# Erreur explicite si Board manque — évite un échec silencieux au premier drag
+		push_error("DropSystem: nœud 'Board' introuvable, les highlights ne seront pas créés.")
+		return
+	for row in [battle.ROW_FRONT, battle.ROW_BACK]:
+		var panel: Panel = Panel.new()
+		panel.name        = "Player%sDropHighlight" % row
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.visible     = false
+		var style := StyleBoxFlat.new()
+		style.bg_color                = DROP_HIGHLIGHT_COLOR
+		style.border_color            = DROP_HIGHLIGHT_BORDER_COLOR
+		style.border_width_left       = 3
+		style.border_width_right      = 3
+		style.border_width_top        = 3
+		style.border_width_bottom     = 3
+		style.corner_radius_top_left     = 8
+		style.corner_radius_top_right    = 8
+		style.corner_radius_bottom_left  = 8
+		style.corner_radius_bottom_right = 8
+		panel.add_theme_stylebox_override("panel", style)
+		board.add_child(panel)
+		_drop_highlights[row] = panel
+
+func _fit_drop_highlight_to(row_container: Control, panel: Control) -> void:
+	var board: Control = battle.get_node_or_null("Board") as Control
+	if board == null:
+		return
+	var rect: Rect2 = row_container.get_global_rect()
+	panel.position = rect.position - board.global_position
+	panel.size     = rect.size
+	board.move_child(panel, 0)
+
+# ─── Drop row / index ─────────────────────────────────────────────────────────
+
+func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
+	# Rituel / Enchantement : leur zone dédiée est aussi une cible de drop valide
+	# (la valeur de rangée est ignorée pour les sorts persistants)
+	if card_data != null and (card_data.card_type == "Ritual" or card_data.card_type == "Enchantment"):
+		var zone: Control = _get_player_zone_for(card_data.card_type)
+		if zone != null and zone.get_global_rect().has_point(mouse):
+			return battle.ROW_FRONT
+	var allowed_rows: Array[String] = battle.get_allowed_rows_for_card(card_data)
+	if battle.player_front_container is Control \
+			and battle.player_front_container.get_global_rect().has_point(mouse):
+		return battle.ROW_FRONT if battle.ROW_FRONT in allowed_rows else ""
+	if battle.player_back_container is Control \
+			and battle.player_back_container.get_global_rect().has_point(mouse):
+		return battle.ROW_BACK if battle.ROW_BACK in allowed_rows else ""
+	return ""
+
+func get_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	return _get_stable_player_drop_index_at(mouse, row)
+
+func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	var container: Control = _get_player_row_container(row)
+	if container == null:
+		return -1
+	var index: int = 0
+	for child in container.get_children():
+		if child == _drop_placeholder:
+			continue
+		if child is BoardMinion:
+			var rect: Rect2 = child.get_global_rect()
+			if mouse.x < rect.position.x + rect.size.x * 0.5:
+				return index
+			index += 1
+	return index
+
+func _get_stable_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	if _drop_placeholder != null \
+			and _drop_placeholder.visible \
+			and _drop_placeholder_row == row:
+		var placeholder_rect: Rect2 = _drop_placeholder.get_global_rect().grow(20.0)
+		if placeholder_rect.has_point(mouse):
+			return _drop_placeholder_index
+	return _get_raw_player_drop_index_at(mouse, row)
+
+# ─── Placeholder ──────────────────────────────────────────────────────────────
+
+func _update_drop_placeholder(row: String, insert_index: int, show_style: bool) -> void:
+	var container: Control = _get_player_row_container(row)
+	if container == null:
+		return
+	if _drop_placeholder == null:
+		_drop_placeholder = _create_drop_placeholder()
+	# Highlights désactivés : le placeholder écarte les serviteurs mais reste invisible
+	_drop_placeholder.add_theme_stylebox_override(
+		"panel", _placeholder_style if show_style else _placeholder_empty_style)
+	if _drop_placeholder.get_parent() != container:
+		if _drop_placeholder.get_parent() != null:
+			_drop_placeholder.get_parent().remove_child(_drop_placeholder)
+		container.add_child(_drop_placeholder)
+	_drop_placeholder.visible             = true
+	_drop_placeholder.custom_minimum_size = BOARD_MINION_SIZE
+	_drop_placeholder_row                 = row
+	_drop_placeholder_index               = insert_index
+	if _last_placeholder_index != insert_index or _last_placeholder_row != row:
+		var child_index: int = _get_row_child_index_for_insert(container, insert_index)
+		container.move_child(_drop_placeholder, child_index)
+		_last_placeholder_index = insert_index
+		_last_placeholder_row   = row
+
+func _create_drop_placeholder() -> Panel:
+	var placeholder: Panel = Panel.new()
+	placeholder.name               = "DropPlaceholder"
+	placeholder.mouse_filter       = Control.MOUSE_FILTER_IGNORE
+	placeholder.custom_minimum_size = BOARD_MINION_SIZE
+	var style := StyleBoxFlat.new()
+	style.bg_color                = Color(0.5, 0.85, 0.55, 0.08)
+	style.border_color            = DROP_HIGHLIGHT_BORDER_COLOR
+	style.border_width_left       = 2
+	style.border_width_right      = 2
+	style.border_width_top        = 2
+	style.border_width_bottom     = 2
+	style.corner_radius_top_left     = 6
+	style.corner_radius_top_right    = 6
+	style.corner_radius_bottom_left  = 6
+	style.corner_radius_bottom_right = 6
+	_placeholder_style = style
+	placeholder.add_theme_stylebox_override("panel", style)
+	return placeholder
+
+func _get_row_child_index_for_insert(container: Control, insert_index: int) -> int:
+	var seen_minions:  int = 0
+	var fallback_index: int = container.get_child_count()
+	for i in range(container.get_child_count()):
+		var child: Node = container.get_child(i)
+		if child == _drop_placeholder:
+			continue
+		if child is BoardMinion:
+			if seen_minions == insert_index:
+				return i
+			seen_minions += 1
+		fallback_index = i + 1
+	return fallback_index
+
+func _clear_drop_placeholder() -> void:
+	if _drop_placeholder == null:
+		return
+	_drop_placeholder.visible       = false
+	_drop_placeholder_row           = ""
+	_drop_placeholder_index         = -1
+	_last_placeholder_index         = -1
+	_last_placeholder_row           = ""
+	# [NOTE] remove_child intentionnel sans queue_free — le placeholder est réutilisé entre les drags
+	if _drop_placeholder.get_parent() != null:
+		_drop_placeholder.get_parent().remove_child(_drop_placeholder)
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+func _get_player_row_container(row: String) -> Control:
+	if row == battle.ROW_BACK:
+		return battle.player_back_container
+	return battle.player_front_container

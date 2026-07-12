@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://hp2yqg6k3t1x"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://co1iyt61656pg" path="res://assets/card_art/human/great-mobilization.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_yf6cn"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonRandom"
+count = 1
+pool_max_cost = 4
+pool_race_filter = "Human"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_awaken"]
+script = ExtResource("5_trig")
+type = "OnAwaken"
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Grande Mobilisation"
+description = "Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant."
+flavour_text = "Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois."
+texture = ExtResource("3_texture")
+cost = 8
+race = 1
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yf6cn")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

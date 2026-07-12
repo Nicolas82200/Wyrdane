@@ -1,26 +1,30 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://52a237fdec20"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://niv5k8euk2vf"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://aa919d6eaffe" path="res://assets/card_art/putrid-scavenger.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_j6y40"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://b1nblg7vufyu4" path="res://assets/card_art/undead/putrid-scavenger.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_8ca60"]
+script = ExtResource("1_cardeffect")
+effect_id = "InfectEnemy"
+target = "EnemyMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_2eh1g"]
+script = ExtResource("5_trig")
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Charognard Putride"
-description = "Aucun effet particulier. Un charognard rapide et fragile."
-texture = ExtResource("2_texture")
+description = "Dernier Souffle : inflige Infection à un serviteur ennemi ciblé."
+flavour_text = "Même en tombant, il répand ce qui l'a tué."
+texture = ExtResource("3_texture")
 cost = 2
-race = "Undead"
-card_type = "Minion"
 attack = 3
 health = 1
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
-effects = Array[ExtResource("1_cardeffect")]([])
-effect_target = "Enemy"
-rarity = "Common"
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_2eh1g")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_8ca60")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

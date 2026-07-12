@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://2acelf6jvfjho"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://bpewtrxyxvpgw" path="res://assets/card_art/demon/pact-emissary.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_nux0y"]
+script = ExtResource("4_kwd")
+keyword_type = 0
+
+[sub_resource type="Resource" id="Resource_wp5dt"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_tks7z"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Émissaire du Pacte"
+description = "PACTE. Arrivée : pioche 1 carte."
+flavour_text = "Il apporte toujours plus qu'il ne semble offrir — dans les deux sens."
+texture = ExtResource("3_texture")
+cost = 3
+race = 5
+unit_style = 14
+attack = 2
+health = 3
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_nux0y")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_wp5dt")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_tks7z")])
+rarity = "Rare"
+board_position = "Hybrid"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

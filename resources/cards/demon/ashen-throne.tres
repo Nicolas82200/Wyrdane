@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://1wrv0esg7x02c"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://cwcr7gbgx837v" path="res://assets/card_art/demon/ashen-throne.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
+
+[sub_resource type="Resource" id="Resource_2sgad"]
+script = ExtResource("4_kw")
+name_fr = "Rempart"
+
+[sub_resource type="Resource" id="Resource_ep3l0"]
+script = ExtResource("5_kwd")
+keyword_type = 3
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Trône de Cendres"
+description = "REMPART. RANG INFERNAL."
+flavour_text = "Il siège sur ce que ton héros a déjà perdu."
+texture = ExtResource("3_texture")
+cost = 5
+race = 5
+unit_style = 15
+attack = 3
+health = 8
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_2sgad")])
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_ep3l0")])
+rarity = "Epic"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

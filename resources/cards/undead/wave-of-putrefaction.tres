@@ -1,32 +1,25 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://2a0f5060454c"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cbpxgxjrp7wqa"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://0d4edf7eff36" path="res://assets/card_art/wave-of-putrefaction.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_66xms"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://ct18y57mmfhjd" path="res://assets/card_art/undead/wave-of-putrefaction.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_e8rfy"]
 script = ExtResource("1_cardeffect")
-effect_id = "DamageAllEnemies"
+target = "AllEnemiesFront"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Vague de Putréfaction"
-description = "Inflige 1 dégât à toutes les créatures ennemies."
-texture = ExtResource("2_texture")
+description = "1 dégât à tous les serviteurs ennemis en rangée Avant."
+flavour_text = "La peste ne choisit pas. Elle couvre."
+texture = ExtResource("3_texture")
 cost = 3
-race = "Undead"
 card_type = "Instant"
-attack = 0
-health = 0
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "None"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
-rarity = "Common"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_e8rfy")])
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

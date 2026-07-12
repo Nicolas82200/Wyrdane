@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dufcf1vdcsxwr"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://crm5jav6d6lj6" path="res://assets/card_art/demon/crimson-tempter.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_i9xkj"]
+script = ExtResource("4_trig")
+type = "OnAttack"
+
+[sub_resource type="Resource" id="Resource_yp1rv"]
+script = ExtResource("1_cardeffect")
+effect_id = "Corrupt"
+target = "EnemyMinion"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Séducteur Écarlate"
+description = "Ralliement : la cible perd 1 ATK de façon permanente (Corruption)."
+flavour_text = "Il ne promet rien. Il se contente de prendre, doucement."
+texture = ExtResource("3_texture")
+cost = 3
+race = 5
+unit_style = 16
+attack = 2
+health = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_i9xkj")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yp1rv")])
+rarity = "Rare"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

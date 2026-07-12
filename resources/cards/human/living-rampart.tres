@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dnved3j7oq5kg"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_gfohq"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_hkw"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_d7r1c"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_385w7"]
+[ext_resource type="Texture2D" uid="uid://d2vcd500320dl" path="res://assets/card_art/human/living-rampart.jpg" id="4_lsemj"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_gtmur"]
+[ext_resource type="Resource" uid="uid://c2sdys1ng23a5" path="res://resources/cards/human/shield-bearer.tres" id="6_summon"]
+
+[sub_resource type="Resource" id="Resource_yair7"]
+script = ExtResource("1_gfohq")
+effect_id = "SummonMinion"
+summon_card = ExtResource("6_summon")
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_cdn7p"]
+script = ExtResource("2_d7r1c")
+
+[sub_resource type="Resource" id="Resource_hkw1"]
+script = ExtResource("2_hkw")
+keyword_type = 4
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
+[sub_resource type="Resource" id="Resource_hkw2"]
+script = ExtResource("2_hkw")
+keyword_type = 2
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
+[sub_resource type="Resource" id="Resource_xqt8n"]
+script = ExtResource("5_gtmur")
+type = "OnDamaged"
+
+[resource]
+script = ExtResource("3_385w7")
+card_name = "Le Rempart Vivant"
+description = "REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART."
+flavour_text = "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore."
+texture = ExtResource("4_lsemj")
+cost = 6
+race = 1
+unit_style = 19
+attack = 4
+health = 10
+keywords = Array[ExtResource("2_d7r1c")]([SubResource("Resource_cdn7p")])
+human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1"), SubResource("Resource_hkw2")])
+trigger_types = Array[ExtResource("5_gtmur")]([SubResource("Resource_xqt8n")])
+effects = Array[ExtResource("1_gfohq")]([SubResource("Resource_yair7")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

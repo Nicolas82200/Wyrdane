@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://hetp9foub5p8y"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://c15d5x36t2gg4" path="res://assets/card_art/demon/abyssal-thrall.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+
+[sub_resource type="Resource" id="Resource_jh8hm"]
+script = ExtResource("4_kwd")
+keyword_type = 1
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Suppôt des Abysses"
+description = "CORRUPTION."
+flavour_text = "Une simple morsure, et déjà quelque chose s'effrite en toi."
+texture = ExtResource("3_texture")
+cost = 1
+race = 5
+unit_style = 14
+attack = 1
+health = 2
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_jh8hm")])
+rarity = "Common"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

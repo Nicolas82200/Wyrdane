@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://awqlxg68oflu2"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://bum30sira04k8" path="res://assets/card_art/demon/ashen-gargoyle.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
+
+[sub_resource type="Resource" id="Resource_1eece"]
+script = ExtResource("4_kw")
+name_fr = "Rempart"
+
+[sub_resource type="Resource" id="Resource_5k2y5"]
+script = ExtResource("5_kwd")
+keyword_type = 4
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Gargouille de Cendres"
+description = "REMPART. CHAIR DE SOUFRE."
+flavour_text = "Elle a regardé brûler des cathédrales entières sans ciller."
+texture = ExtResource("3_texture")
+cost = 2
+race = 5
+unit_style = 15
+attack = 1
+health = 3
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_1eece")])
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_5k2y5")])
+rarity = "Common"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

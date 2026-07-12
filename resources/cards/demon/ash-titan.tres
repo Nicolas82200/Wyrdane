@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://il0vrshyh5z5t"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://belm8254bcu16" path="res://assets/card_art/demon/ash-titan.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+
+[sub_resource type="Resource" id="Resource_7rom5"]
+script = ExtResource("4_kw")
+name_fr = "Rempart"
+
+[sub_resource type="Resource" id="Resource_83b09"]
+script = ExtResource("5_trig")
+type = "DEATHRATTLE"
+
+[sub_resource type="Resource" id="Resource_ufahl"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_ytcn7"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "EnemyHero"
+value = 3
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Titan de Cendres"
+description = "REMPART. Dernier Souffle : ton héros perd 2 HP ; inflige 3 dégâts au héros adverse."
+flavour_text = "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs."
+texture = ExtResource("3_texture")
+cost = 5
+race = 5
+unit_style = 15
+attack = 4
+health = 6
+keywords = Array[ExtResource("4_kw")]([SubResource("Resource_7rom5")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_83b09")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ufahl"), SubResource("Resource_ytcn7")])
+rarity = "Rare"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

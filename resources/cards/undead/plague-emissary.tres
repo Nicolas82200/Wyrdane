@@ -1,33 +1,28 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://eb37877866fc"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://dms2qf6b43btx"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://096ef6717f4b" path="res://assets/card_art/plague-emissary.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://bqr176760a1ut" path="res://assets/card_art/undead/plague-emissary.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://fly4qfjek3e6" path="res://scripts/card/KeywordChoiceUndead.gd" id="6_kwu"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
-script = ExtResource("1_cardeffect")
-effect_id = "BuffAlly"
-value = -2
-value_2 = 0
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+[sub_resource type="Resource" id="Resource_kwu1"]
+script = ExtResource("6_kwu")
+keyword_type = 0
+metadata/_custom_type_script = "uid://fly4qfjek3e6"
 
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Émissaire de la Peste"
-description = "Cri de guerre : réduit l'attaque d'un ennemi de 2."
-texture = ExtResource("2_texture")
+description = "PESTIFÉRÉ : ses attaques infligent Infection en plus des dégâts."
+flavour_text = "Il ne vient pas combattre. Il vient annoncer."
+texture = ExtResource("3_texture")
 cost = 4
-race = "Undead"
-card_type = "Minion"
+unit_style = 1
 attack = 3
 health = 4
-has_taunt = false
-has_charge = false
-has_protection = false
-has_lifesteal = false
-has_fury = false
-trigger_type = "Battlecry"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-effect_target = "Enemy"
+undead_keywords = Array[ExtResource("6_kwu")]([SubResource("Resource_kwu1")])
 rarity = "Rare"
+board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

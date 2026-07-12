@@ -1,23 +1,36 @@
-[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://66eb0ead07ad"]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b1uaxxqtut0mo"]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
-[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/circle-of-sacrifice.jpg" id="2_texture"]
-[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_duuku"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Texture2D" uid="uid://dbnqihqlhntp4" path="res://assets/card_art/undead/circle-of-sacrifice.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
-[sub_resource type="Resource" id="Resource_eff0"]
+[sub_resource type="Resource" id="Resource_thkse"]
 script = ExtResource("1_cardeffect")
-effect_id = "BuffAllAllies"
-value = 2
-value_2 = 2
+effect_id = "Buff"
+target = "AllAllies"
+duration = "UntilEndOfTurn"
+value = 1
+value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_nsof3"]
+script = ExtResource("5_trig")
+type = "OnSacrifice"
+
 [resource]
-script = ExtResource("3_carddata")
+script = ExtResource("4_carddata")
 card_name = "Cercle de Sacrifice"
-description = "Sacrifie 2 zombies alliés : double l'attaque et les PV de tous tes zombies restants ce tour."
-texture = ExtResource("2_texture")
+description = "Sacrifice (un serviteur allié) : tes serviteurs restants gagnent +1/+1 jusqu'à la fin du tour."
+flavour_text = "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande."
+texture = ExtResource("3_texture")
 cost = 6
 card_type = "Ritual"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff0")])
-rarity = "Epic"
+ritual_duration = 2
+sacrifice_count = 1
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_nsof3")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_thkse")])
+rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

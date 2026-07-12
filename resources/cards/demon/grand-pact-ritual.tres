@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://qocinp56gab2a"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://blkpwtmtoarrt" path="res://assets/card_art/demon/grand-pact-ritual.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_qriyt"]
+script = ExtResource("4_trig")
+type = "OnGrief"
+
+[sub_resource type="Resource" id="Resource_retad"]
+script = ExtResource("1_cardeffect")
+effect_id = "ReturnFromGrave"
+race_filter = "Demon"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_tich1"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "OwnerHero"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Grand Rituel du Pacte"
+description = "Deuil : ramène en main le Démon allié le plus récemment mort ; ton héros perd 1 HP."
+flavour_text = "Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."
+texture = ExtResource("3_texture")
+cost = 8
+race = 5
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_qriyt")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_retad"), SubResource("Resource_tich1")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

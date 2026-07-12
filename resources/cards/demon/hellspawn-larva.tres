@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://lnmfmrvaguehb"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://drslmgmf48iuv" path="res://assets/card_art/demon/hellspawn-larva.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+
+[sub_resource type="Resource" id="Resource_9mlqc"]
+script = ExtResource("4_kwd")
+keyword_type = 0
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Larve Infernale"
+description = "PACTE."
+flavour_text = "Elle ne demande rien. Elle prend juste sa part avant même d'arriver."
+texture = ExtResource("3_texture")
+cost = 1
+race = 5
+unit_style = 18
+attack = 2
+health = 1
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_9mlqc")])
+rarity = "Common"
+board_position = "Front"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://apc0j5c9hslsp"]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+[ext_resource type="Texture2D" uid="uid://cq8o0aiasnaly" path="res://assets/card_art/demon/keeper-of-the-broken-pact.jpg" id="3_texture"]
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Le Gardien du Pacte Brisé"
+description = "Tant que ce serviteur est en jeu, les dégâts que tes propres cartes infligent à ton héros sont annulés."
+flavour_text = "Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus."
+texture = ExtResource("3_texture")
+cost = 6
+race = 5
+unit_style = 15
+attack = 5
+health = 7
+blocks_self_damage = true
+rarity = "Legendary"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
