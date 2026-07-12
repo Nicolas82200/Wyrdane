@@ -3,6 +3,7 @@ class_name DeckList
 
 @onready var decks_container: VBoxContainer = %DecksContainer
 @onready var create_button: Button          = %CreateButton
+@onready var import_button: Button          = %ImportButton
 @onready var back_button: Button            = %BackButton
 @onready var title_label: Label             = $CenterContainer/Panel/Margin/VBox/Title
 @onready var subtitle_label: Label          = $CenterContainer/Panel/Margin/VBox/Subtitle
@@ -11,6 +12,7 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 func _ready() -> void:
 	create_button.pressed.connect(_on_create_deck)
+	import_button.pressed.connect(_on_import_deck)
 	back_button.pressed.connect(_on_back)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()   # appelle aussi _refresh()
@@ -21,6 +23,7 @@ func _retranslate() -> void:
 	title_label.text    = SettingsManager.t("decklist.title")
 	subtitle_label.text = SettingsManager.t("decklist.subtitle")
 	create_button.text  = SettingsManager.t("decklist.create")
+	import_button.text  = SettingsManager.t("decklist.import")
 	back_button.text    = SettingsManager.t("ui.back")
 	_refresh()
 
@@ -104,6 +107,14 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	edit_btn.pressed.connect(_on_edit_deck.bind(index))
 	row.add_child(edit_btn)
 
+	# Bouton dupliquer
+	var dup_btn := Button.new()
+	dup_btn.text = SettingsManager.t("decklist.duplicate")
+	dup_btn.custom_minimum_size = Vector2(96, 0)
+	dup_btn.add_theme_font_size_override("font_size", 15)
+	dup_btn.pressed.connect(_on_duplicate_deck.bind(index))
+	row.add_child(dup_btn)
+
 	# Bouton supprimer
 	var del_btn := Button.new()
 	del_btn.text = "✕"
@@ -150,6 +161,47 @@ func _on_create_deck() -> void:
 func _on_delete_deck(index: int) -> void:
 	DeckManager.delete_deck(index)
 	_refresh()
+
+func _on_duplicate_deck(index: int) -> void:
+	DeckManager.duplicate_deck(index)
+	_refresh()
+
+func _on_import_deck() -> void:
+	var dialog := AcceptDialog.new()
+	dialog.title = SettingsManager.t("deck.import_title")
+	dialog.min_size = Vector2(480, 220)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 8)
+
+	var hint := Label.new()
+	hint.text = SettingsManager.t("deck.import_hint")
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(hint)
+
+	var text_edit := TextEdit.new()
+	text_edit.custom_minimum_size = Vector2(0, 110)
+	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	vbox.add_child(text_edit)
+
+	dialog.add_child(vbox)
+	add_child(dialog)
+	dialog.popup_centered()
+
+	dialog.confirmed.connect(func():
+		var deck := DeckData.from_code(text_edit.text)
+		if deck == null:
+			var err := AcceptDialog.new()
+			err.dialog_text = SettingsManager.t("deck.import_error")
+			add_child(err)
+			err.popup_centered()
+			err.confirmed.connect(err.queue_free)
+		else:
+			DeckManager.add_deck(deck)
+			_refresh()
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(dialog.queue_free)
 
 func _on_back() -> void:
 	hide()
