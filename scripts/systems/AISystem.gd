@@ -118,7 +118,7 @@ func _play_cards_phase() -> void:
 			await battle.pace_actions()
 		hand.erase(card)
 		mana -= card.cost
-		battle.cost_system.on_card_played(card, false)
+		await battle.cost_system.on_card_played(card, false)
 		refresh_ui()
 		if card.card_type == "Minion":
 			var row: String = _pick_row_for(card)

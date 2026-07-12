@@ -89,6 +89,15 @@ func on_ally_minion_clicked(minion: Minion, visual: BoardMinion) -> void:
 	_snap_arrow_to(to)
 	_finish(minion)
 
+func on_enchantment_clicked(card_data: CardData, is_player: bool, visual: Control) -> void:
+	if not _active:
+		return
+	if not _is_valid_target_enchantment(card_data, is_player, _pending_card):
+		return
+	if visual and is_instance_valid(visual):
+		_snap_arrow_to(visual.global_position + visual.size * 0.5)
+	_finish(card_data)
+
 func on_enemy_hero_clicked() -> void:
 	if not _active:
 		return
@@ -163,6 +172,13 @@ func _show_valid_targets(card_data: CardData) -> void:
 			_highlight_hero(false)
 		"OwnerHero":
 			_highlight_hero(true)
+		"EnemyEnchantment":
+			_highlight_enchantment_side(false, HIGHLIGHT_ENEMY_COLOR)
+		"AllyEnchantment":
+			_highlight_enchantment_side(true, HIGHLIGHT_ALLY_COLOR)
+		"AnyEnchantment":
+			_highlight_enchantment_side(false, HIGHLIGHT_ENEMY_COLOR)
+			_highlight_enchantment_side(true, HIGHLIGHT_ALLY_COLOR)
 
 func _highlight_side(minions: Array[Minion], color: Color, card_data: CardData) -> void:
 	for minion in minions:
@@ -182,6 +198,16 @@ func _highlight_hero(is_player: bool) -> void:
 		return
 	panel.modulate = HIGHLIGHT_ENEMY_COLOR
 	_highlighted.append(panel)
+
+func _highlight_enchantment_side(is_player: bool, color: Color) -> void:
+	var cards: Array[CardData] = battle.enchantment_system.get_enchantments(is_player) \
+			+ battle.enchantment_system.get_rituals(is_player)
+	for card_data in cards:
+		var visual: Control = battle.enchantment_system.find_visual(card_data, is_player)
+		if visual == null or not is_instance_valid(visual):
+			continue
+		visual.modulate = color
+		_highlighted.append(visual)
 
 func _clear_highlights() -> void:
 	for node in _highlighted:
@@ -226,6 +252,22 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 		return false
 	return true
 
+# Un enchantement/rituel posé (côté is_player) est-il une cible valide pour
+# cet effet ? Les enchantements et rituels partagent le même pool de cibles
+# (comme pour DestroyRandomEnchantment).
+func _is_valid_target_enchantment(_card_data: CardData, is_player: bool, pending_card: CardData) -> bool:
+	if pending_card == null or pending_card.effects.is_empty():
+		return false
+	match pending_card.effects[0].target:
+		"EnemyEnchantment":
+			return not is_player
+		"AllyEnchantment":
+			return is_player
+		"AnyEnchantment":
+			return true
+		_:
+			return false
+
 # Une carte à ciblage obligatoire est-elle jouable en l'état du plateau ?
 func has_any_valid_target(card_data: CardData) -> bool:
 	if card_data == null or card_data.effects.is_empty():
@@ -236,6 +278,13 @@ func has_any_valid_target(card_data: CardData) -> bool:
 				if _is_valid_target_minion(minion, card_data):
 					return true
 			return false
+		"EnemyEnchantment":
+			return not (battle.enchantment_system.get_enchantments(false) + battle.enchantment_system.get_rituals(false)).is_empty()
+		"AllyEnchantment":
+			return not (battle.enchantment_system.get_enchantments(true) + battle.enchantment_system.get_rituals(true)).is_empty()
+		"AnyEnchantment":
+			return not (battle.enchantment_system.get_enchantments(true) + battle.enchantment_system.get_rituals(true)
+					+ battle.enchantment_system.get_enchantments(false) + battle.enchantment_system.get_rituals(false)).is_empty()
 		_:
 			# EnemyHero/OwnerHero et cibles non sélectionnées : toujours disponibles
 			return true

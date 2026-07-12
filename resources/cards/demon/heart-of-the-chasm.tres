@@ -21,6 +21,7 @@ script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
 duration = "UntilEndOfTurn"
+race_filter = "Demon"
 value = 1
 value_2 = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"

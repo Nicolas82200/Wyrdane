@@ -25,7 +25,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Faucheur des Abysses"
-description = "Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP."
+description = "Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins ; ton héros perd 2 HP."
 flavour_text = "Il choisit les plus faibles. Toi, tu paies pour son jugement."
 texture = ExtResource("3_texture")
 cost = 5
