@@ -16,6 +16,7 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 script = ExtResource("1_6rttt")
 effect_id = "Resurrect"
 count = 5
+race_filter = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_xa6ip"]
@@ -24,7 +25,7 @@ script = ExtResource("5_y783d")
 [resource]
 script = ExtResource("3_eemmb")
 card_name = "Commandant des Derniers"
-description = "COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant."
+description = "COMMANDEMENT. Dernier Souffle : ressuscite jusqu'à 5 serviteurs Humains alliés morts avec 1 HP en rangée Avant."
 flavour_text = "Sa mort n'est pas une fin. C'est un dernier ordre."
 texture = ExtResource("4_ym8rn")
 cost = 7

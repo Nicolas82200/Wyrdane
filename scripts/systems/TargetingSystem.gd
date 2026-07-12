@@ -236,6 +236,11 @@ func _is_valid_target_minion(minion: Minion, card_data: CardData) -> bool:
 			pass
 		_:
 			return false
+	# Assassin Décharné / Éclaireur Infiltré : intargetable par les sorts
+	# ennemis (pas par les effets d'invocation de serviteurs).
+	if minion.spell_immune and not minion.owner_is_player \
+			and card_data.card_type in ["Instant", "Ritual"]:
+		return false
 	return _matches_effect_conditions(minion, effect)
 
 # Conditions déclarées sur l'effet : race, rangée, seuils de HP/ATK
@@ -249,6 +254,8 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 	if effect.target_max_hp >= 0 and minion.health > effect.target_max_hp:
 		return false
 	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
+		return false
+	if effect.requires_resurrected_target and not minion.was_resurrected:
 		return false
 	return true
 

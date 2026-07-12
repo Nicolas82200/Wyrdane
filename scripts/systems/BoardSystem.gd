@@ -15,10 +15,20 @@ func init(_battle: Node) -> void:
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
 	await summon_minion_return(card_data, is_player, row, insert_index)
 
+func _has_row_overflow_ally(is_player: bool) -> bool:
+	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
+	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
+
 func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
-		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
-		return null
+		# Stratège Royal : la rangée visée est pleine, on retombe sur l'autre
+		# plutôt que d'échouer l'invocation.
+		var alt_row: String = "Back" if row == "Front" else "Front"
+		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
+			row = alt_row
+		else:
+			push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
+			return null
 	var minion := Minion.new(card_data, is_player, row)
 	battle.net_registry.register(minion)
 	battle.combat_log.card_played(card_data, is_player)

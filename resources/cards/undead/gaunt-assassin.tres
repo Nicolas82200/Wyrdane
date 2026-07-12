@@ -20,6 +20,7 @@ cost = 3
 unit_style = 1
 attack = 4
 health = 2
+spell_immune_until_attack = true
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_xnd71")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -25,7 +25,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Inquisiteur Suprême"
-description = "DISCIPLINE. Arrivée : annule tous les effets Infection sur tes serviteurs alliés. Immunise tes serviteurs à l'Infection ce tour."
+description = "DISCIPLINE. Arrivée : annule tous les effets Infection sur tes serviteurs alliés."
 flavour_text = "La corruption s'arrête là où il pose le regard."
 texture = ExtResource("3_texture")
 cost = 5
