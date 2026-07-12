@@ -1,4 +1,4 @@
-# TODO — FateBound
+# TODO — Wyrdane
 
 Liste priorisée issue d'une revue transversale du projet (voir aussi la section « Roadmap » de `README.md` pour la vue produit, et « Notes pour les agents » de `CLAUDE.md` pour les conventions).
 
