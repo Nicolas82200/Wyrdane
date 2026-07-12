@@ -31,6 +31,13 @@ class_name CardData
 # Ce serviteur ne peut jamais attaquer le héros ennemi directement, même si la
 # rangée Avant adverse est vide (Exécuteur de l'Ordre). Lu par Battle._can_attack_hero.
 @export var cannot_attack_hero: bool = false
+# Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque
+# (Assassin Décharné). Lu par Minion._init ; levé par Minion.consume_attack().
+@export var spell_immune_until_attack: bool = false
+# Tant que ce serviteur est en jeu, un allié invoqué dans une rangée pleine est
+# placé dans l'autre rangée au lieu d'échouer (Stratège Royal). Lu par
+# BoardSystem.summon_minion_return.
+@export var allows_row_overflow: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []

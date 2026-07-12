@@ -59,6 +59,8 @@ func execute_effect(
 		"PreventEnemyHeroHeal": _prevent_enemy_hero_heal(battle, source_minion, effect)
 		"SacrificeDrawPerVictim": await _sacrifice_draw_per_victim(battle, source_minion, effect, selected_target)
 		"StealMinionThenDestroy": await _steal_minion_then_destroy(battle, source_minion, effect, selected_target)
+		"GrantSpellImmunity": await _grant_spell_immunity(battle, source_minion, effect, selected_target)
+		"GroupAttackImmediate": await _group_attack_immediate(battle, source_minion, effect, selected_target)
 		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
 			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
 		"AuraBuffRow", "AuraBuffPerAllyInRow", "AuraSelfDamageReduction":
@@ -146,6 +148,8 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 		result = result.filter(func(t: Minion) -> bool:
 			return t.attack <= effect.target_max_atk
 		)
+	if effect.requires_resurrected_target:
+		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
 	return result
 
 func _resolve_targets(
@@ -229,6 +233,16 @@ func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_
 				func(m: Minion): return race == -1 or m.card_data.race == race
 			).size()
 			return _cmp(n, effect.condition_op, effect.condition_count)
+		"AlliesInRowInPlay":
+			var n: int = battle.get_owner_minions(source_minion).filter(
+				func(m: Minion): return effect.row_filter.is_empty() or m.board_row == effect.row_filter
+			).size()
+			return _cmp(n, effect.condition_op, effect.condition_count)
+		"KeywordHumanInPlay":
+			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
+			return battle.get_owner_minions(source_minion).any(
+				func(m: Minion): return kw != -1 and m.has_human_keyword(kw)
+			)
 		"LegendaryAllyInPlay":
 			var n: int = battle.get_owner_minions(source_minion).filter(
 				func(m: Minion): return m.card_data.rarity == "Legendary" and (race == -1 or m.card_data.race == race)
@@ -379,11 +393,26 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 	for target in targets:
 		if target.has_human_keyword(KeywordHuman.Type.DISCIPLINE):
 			continue
+		# Instantané "Permanent" (défaut) ; sinon les mots-clés reviennent à
+		# l'expiration (Inquisiteur de Fer, L'Éternel Gardien).
+		battle.temp_effect_system.add_temp_silence(target, effect.duration)
 		target.keywords.clear()
 		target.human_keywords.clear()
 		target.undead_keywords.clear()
 		target.demon_keywords.clear()
 		target.silenced = true
+
+# Éclaireur Infiltré : rend des cibles intargetables par les sorts ennemis.
+# Contrairement à Assassin Décharné (immunité intrinsèque levée à sa propre
+# attaque), cette immunité est accordée temporairement et expire par durée.
+func _grant_spell_immunity(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	for target in targets:
+		if target.spell_immune:
+			continue
+		target.spell_immune = true
+		battle.temp_effect_system.add_temp_spell_immunity(target, effect.duration)
 
 func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -592,6 +621,7 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 		var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 		if not minions.is_empty():
 			minions.back().health = 1
+			minions.back().was_resurrected = true
 		await battle.get_tree().create_timer(0.15).timeout
 
 func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -737,6 +767,7 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 	if not minions.is_empty():
 		minions.back().health = 1
+		minions.back().was_resurrected = true
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
 # Si le serviteur possède déjà le mot-clé, on ne l'enregistre pas en temporaire
@@ -794,6 +825,23 @@ func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> vo
 		if e.health < target.health:
 			target = e
 	await battle.combat_system.resolve_combat(source_minion, target)
+
+# Frappe Coordonnée : `effect.count` alliés (filtrés par race_filter, ex. Humain)
+# attaquent immédiatement la cible ennemie choisie par le joueur (selected_target).
+# Comme _attack_immediate, ce sont des attaques bonus : elles ne consomment pas
+# l'attaque normale du tour des alliés concernés.
+func _group_attack_immediate(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null:
+		return
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).filter(
+		func(m: Minion): return race == -1 or m.card_data.race == race
+	)
+	for attacker in allies.slice(0, effect.count):
+		if selected_target.is_dead():
+			break
+		await battle.combat_system.resolve_combat(attacker, selected_target)
 
 # Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
 func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:

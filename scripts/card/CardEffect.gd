@@ -21,7 +21,7 @@ class_name CardEffect
 	"Corrupt", "StealHealthFromHero", "BlockSelfDamage",
 	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
-	"AuraSelfDamageReduction"
+	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -48,6 +48,9 @@ class_name CardEffect
 # Vérifié au ciblage (TargetingSystem) ET à la résolution (EffectManager).
 @export var target_max_hp: int = -1
 @export var target_max_atk: int = -1
+# Ne peut cibler qu'un serviteur ramené du cimetière (Minion.was_resurrected),
+# ex. Brise-Mort.
+@export var requires_resurrected_target: bool = false
 
 # ─── Condition d'exécution ────────────────────────────────────────────────────
 # L'effet n'est appliqué que si la condition est remplie. "None" = toujours.
@@ -58,7 +61,7 @@ class_name CardEffect
 #  TriggerSourceLegendary: la cible/source de l'évènement (ex: allié mort) est
 #                          Légendaire (filtrée par condition_race si non vide)
 #  TriggerSourceRace     : la cible/source de l'évènement est de race condition_race
-@export_enum("None", "AlliesInPlay", "AlliesOfRaceInPlay", "LegendaryAllyInPlay", "EnemyFrontCount", "TriggerSourceLegendary", "TriggerSourceRace") var condition_type: String = "None"
+@export_enum("None", "AlliesInPlay", "AlliesOfRaceInPlay", "AlliesInRowInPlay", "LegendaryAllyInPlay", "EnemyFrontCount", "TriggerSourceLegendary", "TriggerSourceRace", "KeywordHumanInPlay") var condition_type: String = "None"
 @export_enum("GreaterOrEqual", "LessOrEqual", "Equal") var condition_op: String = "GreaterOrEqual"
 @export var condition_count: int = 1
 @export var condition_race: String = ""   # "Human", "Undead"... ou "" = toutes races

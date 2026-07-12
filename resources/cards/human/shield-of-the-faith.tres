@@ -10,17 +10,24 @@
 
 [sub_resource type="Resource" id="Resource_3b7ht"]
 script = ExtResource("5_trig")
-type = "OnSpell"
+type = "OnAura"
+
+[sub_resource type="Resource" id="Resource_reduction"]
+script = ExtResource("1_cardeffect")
+effect_id = "AuraDamageReduction"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bouclier de la Foi"
-description = "Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0)."
+description = "Présence : tes serviteurs alliés reçoivent 2 dégâts de moins de toute source (minimum 1)."
 flavour_text = "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner."
 texture = ExtResource("5_x4yxw")
 cost = 4
 race = 1
 card_type = "Enchantment"
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_3b7ht")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_reduction")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
