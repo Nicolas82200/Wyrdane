@@ -98,6 +98,11 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
+[node name="SortBar" type="HBoxContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000033]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
 [node name="ScrollCards" type="ScrollContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000005]
 layout_mode = 2
 size_flags_vertical = 3
@@ -165,6 +170,32 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 4
+
+[node name="StatsHSep" type="HSeparator" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000034]
+layout_mode = 2
+
+[node name="StatsPanel" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000035]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="IORow" type="HBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000036]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ExportButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/IORow" unique_id=100000037]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Exporter"
+
+[node name="ImportButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/IORow" unique_id=100000038]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Importer"
 
 [node name="SaveButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000015]
 unique_name_in_owner = true
