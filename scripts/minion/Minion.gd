@@ -32,6 +32,13 @@ var board_row: String = "Front"
 
 var formation_active: bool = false
 var silenced: bool = false
+# Intargetable par les sorts ennemis. Vrai en permanence tant que non retiré
+# (Assassin Décharné : levé à la 1ère attaque ; Éclaireur Infiltré : accordé
+# temporairement à des cibles adverses par GrantSpellImmunity/TempEffectSystem).
+var spell_immune: bool = false
+# Vrai si ce serviteur a été ramené du cimetière (Résurrection/ResurrectLast),
+# distinct de sa carte d'origine. Lu par Brise-Mort.
+var was_resurrected: bool = false
 var frozen_turns: int = 0
 # TERREUR : tours pendant lesquels ce serviteur ne peut pas attaquer. Séparé de
 # frozen_turns (Gel) pour ne pas mélanger les visuels/immunités des deux mécaniques.
@@ -70,6 +77,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	if has_demon_keyword(KeywordDemon.Type.PACTE):
 		add_keyword(Keyword.Type.CHARGE)
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
+	spell_immune = data.spell_immune_until_attack
 
 # ─── Stats calculées (lecture seule — passe par base_* pour modifier) ─────────
 var attack: int:
@@ -98,6 +106,8 @@ func refresh_attacks() -> void:
 
 func consume_attack() -> void:
 	attacks_remaining = max(attacks_remaining - 1, 0)
+	if card_data.spell_immune_until_attack:
+		spell_immune = false
 
 var damage_reduction: int:
 	get: return max(0, card_data.damage_reduction + aura_damage_reduction)
