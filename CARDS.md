@@ -1,4 +1,4 @@
-# FateBound CARDS.md
+# Wyrdane CARDS.md
 
 Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
 
@@ -195,7 +195,7 @@ Positionnement (Lane Types)
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
 
-# FateBound — CARDS_HUMAIN.md
+# Wyrdane — CARDS_HUMAIN.md
 
 Liste complète des cartes de la race **Humain**.
 
@@ -382,7 +382,7 @@ Liste complète des cartes de la race **Humain**.
 
 ---
 
-# FateBound — CARDS_DEMON.md
+# Wyrdane — CARDS_DEMON.md
 
 Liste complète des cartes de la race **Démon**.
 

@@ -8,7 +8,7 @@ extends Control
 #
 # Si l'extension GodotSteam est présente (voir SteamService), une seconde rangée
 # propose le backend Steam : « Héberger (Steam) » crée un lobby public tagué
-# FateBound, « Partie rapide (Steam) » rejoint le premier lobby trouvé.
+# Wyrdane, « Partie rapide (Steam) » rejoint le premier lobby trouvé.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
