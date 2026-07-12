@@ -3,11 +3,13 @@ class_name CombatLogPanel
 
 ## Panneau repliable affichant l'historique du CombatLogSystem : le joueur peut
 ## le consulter à tout moment pour comprendre un enchaînement d'effets ou
-## rattraper ce qui s'est passé pendant le tour adverse. Bouton et panneau
-## collés au coin supérieur gauche de l'écran (toggle en haut, panneau juste
-## en dessous) ; au clic, le panneau se déploie vers la droite (largeur
-## animée). Grand et haut (~72% de la hauteur de l'écran) pour remonter
-## presque jusqu'à la zone de mana adverse. Chaque ligne = une icône + de
+## rattraper ce qui s'est passé pendant le tour adverse. Panneau collé au bord
+## gauche de l'écran (x=0), avec une extension verticale calculée dynamiquement
+## entre le bas de l'affichage de mana adverse et le haut de la main du joueur
+## (VERTICAL_GAP de marge de chaque côté pour ne recouvrir ni l'un ni l'autre).
+## Le bouton toggle est un onglet flottant à x=0, centré verticalement sur la
+## hauteur du panneau, dessiné par-dessus son bord gauche. Au clic, le panneau
+## se déploie vers la droite (largeur animée). Chaque ligne = une icône + de
 ## courtes miniatures d'illustration de carte (bordure verte = vous, rouge =
 ## adversaire) et quelques segments texte pour les nombres/flèches — pas de
 ## phrase. Créé entièrement en code par Battle (aucun nœud dans Battle.tscn).
@@ -21,12 +23,11 @@ class_name CombatLogPanel
 
 const FONT_BOLD    := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const FONT_REGULAR := preload("res://assets/fonts/MedievalSharp-Book.ttf")
-const MARGIN        := 8.0
 const TOGGLE_SIZE   := Vector2(40, 40)
-const PANEL_WIDTH   := 220.0
-const PANEL_HEIGHT_RATIO := 0.72
+const PANEL_WIDTH   := 260.0
+const VERTICAL_GAP  := 16.0  # marge par rapport au mana adverse (haut) et à la main (bas)
 const ANIM_TIME     := 0.25
-const THUMB_SIZE    := Vector2(42, 58)
+const THUMB_SIZE    := Vector2(58, 80)
 const COLOR_PLAYER  := Color("4CE071")
 const COLOR_ENEMY   := Color("FF4D4D")
 const COLOR_NEUTRAL := Color("d8c9a3")
@@ -55,18 +56,19 @@ func init(_battle, _combat_log: CombatLogSystem) -> void:
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# La taille du viewport n'est pas fiable au tout premier frame (le layout du
-	# parent ancré en plein écran n'a pas encore propagé sa taille).
+	# La taille du viewport et la position des autres panneaux (mana adverse,
+	# main) ne sont pas fiables au tout premier frame (layout pas encore propagé).
 	await get_tree().process_frame
 
-	var viewport_size: Vector2 = get_viewport_rect().size
+	_build_panel()
 
 	_toggle_button = Button.new()
 	_toggle_button.text = "📜"
 	_toggle_button.custom_minimum_size = TOGGLE_SIZE
 	_toggle_button.size = TOGGLE_SIZE
-	_toggle_button.position = Vector2(MARGIN, MARGIN)
+	_toggle_button.position = Vector2(0.0, _panel_top_left.y + _panel_height / 2.0 - TOGGLE_SIZE.y / 2.0)
 	_toggle_button.pressed.connect(_on_toggle_pressed)
+	_toggle_button.z_index = 1  # par-dessus le bord gauche du panneau
 	add_child(_toggle_button)
 
 	_badge = Label.new()
@@ -78,13 +80,18 @@ func _ready() -> void:
 	_badge.visible = false
 	_toggle_button.add_child(_badge)
 
-	_build_panel(viewport_size)
 	_retranslate()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 
-func _build_panel(viewport_size: Vector2) -> void:
-	_panel_height = viewport_size.y * PANEL_HEIGHT_RATIO
-	_panel_top_left = Vector2(MARGIN, MARGIN + TOGGLE_SIZE.y + 6.0)
+func _build_panel() -> void:
+	var top: float = VERTICAL_GAP
+	var bottom: float = get_viewport_rect().size.y - VERTICAL_GAP
+	if battle and battle.enemy_mana_display:
+		top = battle.enemy_mana_display.get_global_rect().end.y + VERTICAL_GAP
+	if battle and battle.hand:
+		bottom = battle.hand.get_global_rect().position.y - VERTICAL_GAP
+	_panel_height = max(bottom - top, TOGGLE_SIZE.y)
+	_panel_top_left = Vector2(0.0, top)
 
 	# PanelContainer est un Container : il se redimensionne tout seul à chaque
 	# frame pour épouser la taille minimale de son contenu, écrasant toute
@@ -196,20 +203,23 @@ func _on_entry_added(entry: Dictionary) -> void:
 
 # Miniature de l'illustration de la carte, encadrée d'une bordure colorée par
 # camp (verte = vous, rouge = adversaire) — le nom reste accessible en tooltip.
+# content_margin = border_width : sans cette marge, l'image (enfant du
+# PanelContainer) recouvre entièrement la bordure et la rend invisible.
 func _make_card_thumb(segment: Dictionary) -> Control:
 	var frame := PanelContainer.new()
 	frame.tooltip_text = segment.get("name", "")
+	var color := _segment_color(segment.get("is_player"))
 	var style := StyleBoxFlat.new()
-	style.bg_color              = Color(0, 0, 0, 0)
-	style.border_width_top      = 2
-	style.border_width_bottom   = 2
-	style.border_width_left     = 2
-	style.border_width_right    = 2
-	style.border_color          = _segment_color(segment.get("is_player"))
-	style.content_margin_left   = 0
-	style.content_margin_right  = 0
-	style.content_margin_top    = 0
-	style.content_margin_bottom = 0
+	style.bg_color              = Color(color, 0.18)
+	style.border_width_top      = 3
+	style.border_width_bottom   = 3
+	style.border_width_left     = 3
+	style.border_width_right    = 3
+	style.border_color          = color
+	style.content_margin_left   = 3
+	style.content_margin_right  = 3
+	style.content_margin_top    = 3
+	style.content_margin_bottom = 3
 	frame.add_theme_stylebox_override("panel", style)
 
 	# Un serviteur mort de cette attaque : portrait dans un Control (non-Container)
