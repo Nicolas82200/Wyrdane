@@ -31,7 +31,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mémorial des Héros"
-description = "Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant."
+description = "Deuil : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant."
 flavour_text = "On grave les noms pour ne pas oublier. On continue pour la même raison."
 texture = ExtResource("3_texture")
 cost = 4
