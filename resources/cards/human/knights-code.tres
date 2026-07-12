@@ -15,12 +15,12 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_s68t0"]
 script = ExtResource("5_trig")
-type = "OnAttack"
+type = "OnResonance"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Code du Chevalier"
-description = "Assaut : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire."
+description = "Résonance : chaque fois qu'un serviteur Humain allié attaque, tous tes serviteurs alliés gagnent +1 ATK de façon permanente."
 flavour_text = "L'honneur ne protège pas. Mais il donne un tranchant supplémentaire."
 texture = ExtResource("3_texture")
 cost = 5

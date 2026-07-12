@@ -157,7 +157,7 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	# Suivi des coûts du camp distant (compteurs "premier de la race joué ce tour")
-	battle.cost_system.on_card_played(card, false)
+	await battle.cost_system.on_card_played(card, false)
 	# La carte jouée quitte la main adverse (compteur cosmétique).
 	if _hand_count > 0:
 		_hand_count -= 1

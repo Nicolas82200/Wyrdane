@@ -735,18 +735,27 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 		battle.ai_system.hand.append(card_data)
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
-func _resurrect_last(battle, source_minion: Minion, _effect: CardEffect) -> void:
+func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
 	var dead: Array[CardData] = graveyard.get_minions()
 	if dead.is_empty():
+		return
+	# Prend le dernier mort (filtré par race si demandé, ex. Rituel de Résurrection)
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var card_data: CardData = null
+	for i in range(dead.size() - 1, -1, -1):
+		if race == -1 or dead[i].race == race:
+			card_data = dead[i]
+			break
+	if card_data == null:
 		return
 	var row: String = "Front"
 	if not battle.can_summon_to_row(is_player, row):
 		row = "Back"
 	if not battle.can_summon_to_row(is_player, row):
 		return
-	await battle.summon_minion(dead.back(), is_player, row)
+	await battle.summon_minion(card_data, is_player, row)
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 	if not minions.is_empty():
 		minions.back().health = 1
