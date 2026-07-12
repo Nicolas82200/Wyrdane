@@ -50,6 +50,10 @@ func _add_card(card_data: CardData, is_player: bool, duration: int) -> void:
 	zone.add_child(visual)
 	visual.setup(card_data, is_player)
 	visual.activate_requested.connect(_on_card_activate_requested)
+	# Même clic que l'activation de rituel : TargetingSystem ignore l'appel si
+	# aucun ciblage n'est en cours (voir SacrificeSystem.can_activate, qui fait
+	# l'inverse et s'auto-désactive pendant un ciblage).
+	visual.activate_requested.connect(func(cd, ip): battle.targeting_system.on_enchantment_clicked(cd, ip, visual))
 	if duration > 0:
 		visual.set_turns_left(duration)
 	_relayout(zone)
@@ -121,3 +125,18 @@ func get_enchantments(is_player: bool) -> Array[CardData]:
 
 func get_rituals(is_player: bool) -> Array[CardData]:
 	return player_rituals if is_player else enemy_rituals
+
+# Nœud visuel posé (zone Enchantement ou Rituel) correspondant à cette carte,
+# utilisé par TargetingSystem pour la surbrillance et le point d'arrivée de
+# la flèche de ciblage.
+func find_visual(card_data: CardData, is_player: bool) -> Control:
+	for zone in [
+		battle.player_enchantment_zone if is_player else battle.enemy_enchantment_zone,
+		battle.player_ritual_zone if is_player else battle.enemy_ritual_zone,
+	]:
+		if zone == null:
+			continue
+		for child in zone.get_children():
+			if child.has_method("setup") and child.card_data == card_data:
+				return child
+	return null
