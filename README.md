@@ -1,4 +1,4 @@
-FateBound est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
+Wyrdane est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
 ---
 
@@ -221,8 +221,8 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close).
 *   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
-*   `SteamTransport` — implémentation Steam : lobby Steam public tagué FateBound pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby FateBound disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID FateBound — instructions d'installation dans l'en-tête du fichier.
+*   `SteamTransport` — implémentation Steam : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le backend demandé (ENet ou Steam).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
 

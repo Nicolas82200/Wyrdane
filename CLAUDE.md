@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Ce fichier fournit le contexte du projet à Claude Code pour travailler efficacement sur FateBound.
+Ce fichier fournit le contexte du projet à Claude Code pour travailler efficacement sur Wyrdane.
 
 ## Vue d'ensemble
 
-**FateBound** est un TCG (jeu de cartes à collectionner) dark fantasy compétitif 1v1, développé sous **Godot 4** en **GDScript**. Deux joueurs s'affrontent pour réduire le héros adverse à 0 HP, avec un système de deux rangées positionnelles (Avant/Arrière) par joueur.
+**Wyrdane** est un TCG (jeu de cartes à collectionner) dark fantasy compétitif 1v1, développé sous **Godot 4** en **GDScript**. Deux joueurs s'affrontent pour réduire le héros adverse à 0 HP, avec un système de deux rangées positionnelles (Avant/Arrière) par joueur.
 
 Documentation complète des règles : voir `README.md`.
 Liste complète des cartes : voir `CARDS.md`.
