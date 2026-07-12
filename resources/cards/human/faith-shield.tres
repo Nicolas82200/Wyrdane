@@ -8,8 +8,11 @@
 
 [sub_resource type="Resource" id="Resource_vexbl"]
 script = ExtResource("1_xm8yh")
-effect_id = "Buff"
+effect_id = "GrantKeyword"
 target = "AllyMinion"
+duration = "UntilEndOfEnemyTurn"
+race_filter = "Human"
+granted_keyword = "AEGIS"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
