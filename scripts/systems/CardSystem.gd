@@ -85,6 +85,8 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 		for effect in card_data.effects:
 			if target is Minion:
 				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
+			elif target is CardData:
+				await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
 			else:
 				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
@@ -123,11 +125,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			for effect in card_data.effects:
 				if target is Minion:
 					await battle.effect_manager.execute_effect(battle, null, effect, target)
+				elif target is CardData:
+					await battle.effect_manager.execute_enchantment_targeted_effect(battle, null, effect, target)
 				else:
 					await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
 
 	# Émission réseau : le joueur local a joué cette carte sur une cible.
+	# NOTE: NetCommand ne sait sérialiser qu'un net_id de Minion ; une cible
+	# CardData (enchantement/rituel) n'est donc PAS encore synchronisée au
+	# pair distant (nécessiterait un id stable façon NetRegistry pour les
+	# enchantements). À faire avant d'utiliser ce ciblage en multijoueur.
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.play_card(card_data, row, insert_index,

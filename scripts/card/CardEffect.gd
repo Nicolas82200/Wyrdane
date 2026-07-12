@@ -21,7 +21,7 @@ class_name CardEffect
 	"Corrupt", "StealHealthFromHero", "BlockSelfDamage",
 	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
-	"AuraSelfDamageReduction"
+	"AuraSelfDamageReduction", "DestroyEnchantment"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -29,7 +29,8 @@ class_name CardEffect
 	"EnemyMinion", "AllyMinion", "AllEnemies",
 	"AllAllies", "AllMinions", "RandomEnemy", "RandomAlly",
 	"AnyMinion", "AllEnemiesFront", "AllEnemiesBack",
-	"AllAlliesFront", "AllAlliesBack", "PerInfectedEnemy"
+	"AllAlliesFront", "AllAlliesBack", "PerInfectedEnemy",
+	"EnemyEnchantment", "AllyEnchantment", "AnyEnchantment"
 ) var target: String = "Self"
 
 @export_enum("Permanent", "UntilEndOfTurn", "UntilEndOfEnemyTurn") var duration: String = "Permanent"
