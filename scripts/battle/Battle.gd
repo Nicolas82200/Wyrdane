@@ -183,7 +183,9 @@ func _init_systems() -> void:
 	add_child(combat_log_panel)
 	turn_timer = TurnTimer.new()
 	turn_timer.timeout.connect(_on_turn_timer_timeout)
-	add_child(turn_timer)
+	# Enfant du bouton lui-même (comme le halo "ready hint" de EndTurnButton) :
+	# sa bordure suit le bouton sans logique de positionnement séparée.
+	end_turn_button.add_child(turn_timer)
 	add_child(enchantment_system)
 	add_child(trigger_system)
 	add_child(targeting_system)
