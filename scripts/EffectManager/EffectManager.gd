@@ -574,7 +574,10 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
-	var dead: Array[CardData] = graveyard.get_minions()
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var dead: Array[CardData] = graveyard.get_minions().filter(
+		func(c: CardData): return race == -1 or c.race == race
+	)
 	if dead.is_empty():
 		return
 	var count: int = mini(effect.count, dead.size())

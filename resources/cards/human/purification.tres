@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purification"
-description = "Annule tous les effets Infection et marqueurs négatifs sur un serviteur allié ciblé."
+description = "Guérit l'Infection sur un serviteur allié ciblé."
 flavour_text = "Le mal recule. Pas loin. Mais pour l'instant, ça suffit."
 texture = ExtResource("3_texture")
 cost = 2

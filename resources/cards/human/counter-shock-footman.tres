@@ -16,6 +16,14 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 script = ExtResource("5_trig")
 type = "OnDamaged"
 
+[sub_resource type="Resource" id="Resource_taunt"]
+script = ExtResource("1_cardeffect")
+effect_id = "GrantKeyword"
+target = "Self"
+duration = "UntilEndOfTurn"
+granted_keyword = "TAUNT"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fantassin de Contre-Choc"
@@ -29,5 +37,6 @@ attack = 3
 health = 4
 human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_l8yk9")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_taunt")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
