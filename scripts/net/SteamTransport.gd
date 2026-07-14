@@ -28,7 +28,7 @@ class_name SteamTransport
 # Tous les appels au singleton Steam sont dynamiques (voir SteamService).
 
 const LOBBY_GAME_KEY := "game"
-const LOBBY_GAME_VALUE := "fatebound"
+const LOBBY_GAME_VALUE := "wyrdane"
 const LOBBY_OWNER_KEY := "owner_id"
 const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 
@@ -80,7 +80,7 @@ func join(params: Dictionary) -> int:
 		_steam.addRequestLobbyListStringFilter(LOBBY_GAME_KEY, LOBBY_GAME_VALUE, 0)  # 0 = égalité
 		_steam.addRequestLobbyListDistanceFilter(LOBBY_DISTANCE_WORLDWIDE)
 		_steam.requestLobbyList()
-		status.emit("Steam : recherche d'un lobby FateBound (portée mondiale)…")
+		status.emit("Steam : recherche d'un lobby Wyrdane (portée mondiale)…")
 	return OK
 
 func send(bytes: PackedByteArray, reliable: bool = true) -> void:
@@ -185,7 +185,7 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 func _on_lobby_match_list(lobbies: Array) -> void:
 	if _is_host:
 		return
-	status.emit("Steam : %d lobby(s) FateBound trouvé(s)" % lobbies.size())
+	status.emit("Steam : %d lobby(s) Wyrdane trouvé(s)" % lobbies.size())
 	# Écarte les lobbies créés par notre propre compte (test à deux instances
 	# locales : le « rejoindre » retomberait sur le lobby de l'autre instance).
 	var own_id := str(_steam.getSteamID())

@@ -1,4 +1,3 @@
-# Hand.gd
 extends Control
 class_name Hand
 
@@ -20,24 +19,18 @@ var _base_positions:    Dictionary     = {}
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
-# Coût effectif d'une carte (remises de mana comprises), injecté par Battle.
-# Non défini hors bataille : le coût de base est alors affiché.
 var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
-# Phase de mulligan : un clic sur une carte la remplace directement (pas de
-# drag). Appliqué à chaque carte connectée, y compris celles créées après coup.
 var _mulligan_mode:     bool           = false
 
-# Référence Battle mise en cache
 var _battle: Node = null
 
 func _ready() -> void:
 	preview.hide()
 	_battle = get_tree().current_scene
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
 
 func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: Vector2 = Vector2.ZERO) -> void:
 	if not animate_last:
@@ -120,25 +113,19 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 		ghost.queue_free()
 	)
 
-# ─── Carte cliquée ────────────────────────────────────────────────────────────
 
 func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: int = -1) -> void:
 	card_played.emit(card_data, row, insert_index)
 
-# ─── Mulligan ─────────────────────────────────────────────────────────────────
 
 func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
-			# Fin du mulligan : la partie commence, les cartes échangées redeviennent
-			# normales (le grisé n'a de sens que pendant la phase de mulligan).
 			if not active:
 				card.set_mulligan_swapped(false)
 
-# Grise la carte à cet index pour indiquer qu'elle vient d'être échangée et ne
-# peut plus être re-mulligan tant que la phase de mulligan est en cours.
 func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
 	var children := container.get_children()
 	if index < 0 or index >= children.size():
@@ -147,17 +134,11 @@ func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
 	if card is Card:
 		card.set_mulligan_swapped(swapped)
 
-# L'index dans container (== index dans battle.hand_cards, même ordre) identifie
-# la carte sans ambiguïté : deux exemplaires d'une même carte partagent la même
-# ressource CardData, donc comparer par égalité de données désignerait toujours
-# le premier exemplaire au lieu de celui réellement cliqué.
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = container.get_children().find(card)
 	if index != -1:
 		mulligan_card_clicked.emit(index, card.data)
 
-# Remplace en place la carte à cet index, avec un effet de retournement (comme
-# la pioche animée), sans reconstruire toute la main.
 func flip_replace_at(index: int, new_data: CardData) -> void:
 	var children := container.get_children()
 	if index < 0 or index >= children.size():
@@ -173,7 +154,6 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 	)
 	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
 
-# ─── Hover ────────────────────────────────────────────────────────────────────
 
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
@@ -209,7 +189,6 @@ func _on_card_unhover() -> void:
 	preview.hide()
 	_hide_keyword_tooltips()
 
-# ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
 func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
 	_hide_keyword_tooltips()
@@ -236,7 +215,6 @@ func _hide_keyword_tooltips() -> void:
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
 
-# ─── Layout ───────────────────────────────────────────────────────────────────
 
 func _compute_layout(cards: Array) -> Dictionary:
 	var count := cards.size()
@@ -300,7 +278,6 @@ func _card_position(index: int, layout: Dictionary, card: Control, norm: float) 
 		layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
 	)
 
-# ─── Connexions ───────────────────────────────────────────────────────────────
 
 func _relay_drag_started() -> void:
 	drag_started.emit()
@@ -334,8 +311,6 @@ func _connect_card(card: Card) -> void:
 	if display_cost.is_valid():
 		card.set_display_cost(display_cost.call(card.data))
 
-# Réaffiche le coût effectif de chaque carte en main (appelé quand une remise
-# de mana apparaît ou expire).
 func refresh_costs() -> void:
 	if not display_cost.is_valid():
 		return
