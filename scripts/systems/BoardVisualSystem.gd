@@ -27,13 +27,13 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 	visual.set_minion(minion)
 	minion_to_visual[minion] = visual
 
-	# ← Repositionne le visual selon l'index du minion dans l'array
+
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
 	var row_visuals: Array[Node] = []
 	for child in container.get_children():
 		if child is BoardMinion:
 			row_visuals.append(child)
-	# Trouve l'index visuel du minion dans sa row
+
 	var row_index: int = 0
 	for m in minions:
 		if m.board_row != minion.board_row:
@@ -41,7 +41,7 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 		if m == minion:
 			break
 		row_index += 1
-	# Trouve la position enfant correspondante dans le container
+
 	var seen: int = 0
 	for i in range(container.get_child_count()):
 		var child := container.get_child(i)
@@ -113,10 +113,10 @@ func refresh_board() -> void:
 	and battle.selection_system.selected_attacker not in battle.player_minions:
 		battle.selection_system.clear_selection()
 
-	# Surbrillance des Rituels de Sacrifice activables (dépend du board)
+
 	battle.enchantment_system.refresh_activatable()
 
-	# Halo « Fin du tour » : l'état du board conditionne les actions restantes
+
 	battle.update_end_turn_hint()
 
 	_refreshing = false
