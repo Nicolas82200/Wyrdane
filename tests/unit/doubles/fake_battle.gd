@@ -89,6 +89,8 @@ class FakeBoardVisualSystem:
 		pass
 	func refresh_board() -> void:
 		pass
+	func reparent_minion_visual(_minion: Minion, _is_player: bool) -> void:
+		pass
 
 
 class FakeCardPopupSystem:
