@@ -131,13 +131,6 @@ grow_vertical = 2
 texture = ExtResource("2_kos6x")
 expand_mode = 2
 
-[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.0
-offset_top = 0.0
-grow_vertical = 2
-
 [node name="Board" type="Control" parent="." unique_id=465586971]
 custom_minimum_size = Vector2(1920, 1080)
 layout_mode = 1
@@ -585,6 +578,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 alignment = 1
+
+[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.0
+offset_top = 0.0
+grow_vertical = 2
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
 custom_minimum_size = Vector2(170, 48)

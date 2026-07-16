@@ -9,7 +9,6 @@ const DROP_HIGHLIGHT_BORDER_COLOR := Color(0.55, 0.85, 0.6, 0.45)
 var battle: Node
 
 var _drop_highlights:        Dictionary = {}
-var _zone_highlights:        Dictionary = {}
 var _drop_placeholder:       Control    = null
 var _placeholder_style:       StyleBoxFlat  = null
 var _placeholder_empty_style: StyleBoxEmpty = StyleBoxEmpty.new()
@@ -26,14 +25,11 @@ func init(_battle: Node) -> void:
 func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
 	var card_type: String = card_data.card_type if card_data != null else "Minion"
 
-	# Éphémère : aucun surlignage pendant le drag
-	if card_type == "Instant":
+	# Éphémère / Rituel / Enchantement : pas de zone précise à viser, sortir la
+	# carte de la main suffit à la jouer — aucun surlignage nécessaire
+	if card_type == "Instant" or card_type == "Ritual" or card_type == "Enchantment":
 		clear_player_drop_highlight()
 		return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
-
-	# Rituel / Enchantement : on surligne leur zone dédiée, pas les rangées de serviteurs
-	if card_type == "Ritual" or card_type == "Enchantment":
-		return _update_zone_drop_highlight(card_data, mouse, display_show)
 
 	_ensure_drop_highlights()
 	var allowed_rows: Array[String] = battle.get_allowed_rows_for_card(card_data)
@@ -61,64 +57,7 @@ func clear_player_drop_highlight() -> void:
 		var control: Control = panel as Control
 		if control != null:
 			control.visible = false
-	for panel in _zone_highlights.values():
-		var control: Control = panel as Control
-		if control != null:
-			control.visible = false
 	_clear_drop_placeholder()
-
-# Surlignage des zones Rituel / Enchantement (les sorts persistants s'y posent)
-func _update_zone_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
-	_ensure_zone_highlights()
-	_clear_drop_placeholder()
-	for panel in _drop_highlights.values():
-		var control: Control = panel as Control
-		if control != null:
-			control.visible = false
-	for zone_type in _zone_highlights.keys():
-		var panel: Panel   = _zone_highlights.get(zone_type) as Panel
-		var zone: Control  = _get_player_zone_for(zone_type)
-		if panel == null or zone == null:
-			continue
-		var can_show: bool = display_show and zone_type == card_data.card_type
-		panel.visible = can_show
-		if can_show:
-			_fit_drop_highlight_to(zone, panel)
-	return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
-
-func _ensure_zone_highlights() -> void:
-	if not _zone_highlights.is_empty():
-		return
-	var board: Control = battle.get_node_or_null("Board") as Control
-	if board == null:
-		push_error("DropSystem: nœud 'Board' introuvable, les highlights de zone ne seront pas créés.")
-		return
-	for zone_type in ["Ritual", "Enchantment"]:
-		var panel: Panel = Panel.new()
-		panel.name         = "Player%sZoneDropHighlight" % zone_type
-		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		panel.visible      = false
-		var style := StyleBoxFlat.new()
-		style.bg_color                = DROP_HIGHLIGHT_COLOR
-		style.border_color            = DROP_HIGHLIGHT_BORDER_COLOR
-		style.border_width_left       = 3
-		style.border_width_right      = 3
-		style.border_width_top        = 3
-		style.border_width_bottom     = 3
-		style.corner_radius_top_left     = 8
-		style.corner_radius_top_right    = 8
-		style.corner_radius_bottom_left  = 8
-		style.corner_radius_bottom_right = 8
-		panel.add_theme_stylebox_override("panel", style)
-		board.add_child(panel)
-		_zone_highlights[zone_type] = panel
-
-func _get_player_zone_for(card_type: String) -> Control:
-	if card_type == "Ritual":
-		return battle.player_ritual_zone as Control
-	if card_type == "Enchantment":
-		return battle.player_enchantment_zone as Control
-	return null
 
 func _ensure_drop_highlights() -> void:
 	if not _drop_highlights.is_empty():
@@ -160,12 +99,10 @@ func _fit_drop_highlight_to(row_container: Control, panel: Control) -> void:
 # ─── Drop row / index ─────────────────────────────────────────────────────────
 
 func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
-	# Rituel / Enchantement : leur zone dédiée est aussi une cible de drop valide
-	# (la valeur de rangée est ignorée pour les sorts persistants)
-	if card_data != null and (card_data.card_type == "Ritual" or card_data.card_type == "Enchantment"):
-		var zone: Control = _get_player_zone_for(card_data.card_type)
-		if zone != null and zone.get_global_rect().has_point(mouse):
-			return battle.ROW_FRONT
+	# Éphémère / Rituel / Enchantement : pas de lane à viser, elles n'ont pas de
+	# position sur le plateau — sortir la carte de la main suffit à la jouer
+	if card_data != null and card_data.card_type in ["Instant", "Ritual", "Enchantment"]:
+		return "" if _is_over_hand(mouse) else battle.ROW_FRONT
 	var allowed_rows: Array[String] = battle.get_allowed_rows_for_card(card_data)
 	if battle.player_front_container is Control \
 			and battle.player_front_container.get_global_rect().has_point(mouse):
@@ -174,6 +111,12 @@ func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> Strin
 			and battle.player_back_container.get_global_rect().has_point(mouse):
 		return battle.ROW_BACK if battle.ROW_BACK in allowed_rows else ""
 	return ""
+
+func _is_over_hand(mouse: Vector2) -> bool:
+	var hand: Node = battle.get("hand")
+	if hand == null or not hand.has_method("get_hand_zone_rect"):
+		return false
+	return hand.get_hand_zone_rect().has_point(mouse)
 
 func get_player_drop_index_at(mouse: Vector2, row: String) -> int:
 	return _get_stable_player_drop_index_at(mouse, row)
