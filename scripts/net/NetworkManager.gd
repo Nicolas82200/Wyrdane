@@ -2,7 +2,7 @@ extends Node
 class_name NetworkManager
 
 # Chef d'orchestre réseau. Se place AU-DESSUS du transport : il ne connaît que
-# l'interface NetTransport, jamais ENet ou Steam directement. Rôle du socle
+# l'interface NetTransport, jamais le backend concret (Steam). Rôle du socle
 # actuel : établir la connexion, sérialiser/désérialiser les commandes de jeu
 # (Dictionary <-> octets) et les router.
 #
@@ -23,11 +23,11 @@ signal connection_restored()
 var transport: NetTransport = null
 var is_host: bool = false
 
-# Raisons de coupure considérées transitoires (perte réseau, P2P Steam qui
-# lâche) : on tente une reconnexion avant d'abandonner. Toute autre raison
-# (départ volontaire du lobby, échec de recherche...) est traitée en direct
-# comme définitive — voir NetLobby et SteamTransport pour leur origine.
-const RECONNECTABLE_REASONS := ["peer_disconnected", "steam_p2p_failed"]
+# Raisons de coupure considérées transitoires (P2P Steam qui lâche) : on
+# tente une reconnexion avant d'abandonner. Toute autre raison (départ
+# volontaire du lobby, échec de recherche...) est traitée en direct comme
+# définitive — voir NetLobby et SteamTransport pour leur origine.
+const RECONNECTABLE_REASONS := ["steam_p2p_failed"]
 const RECONNECT_GRACE_SECONDS := 20.0
 const RECONNECT_RETRY_INTERVAL := 2.0
 
@@ -37,16 +37,8 @@ var _reconnect_elapsed := 0.0
 var _reconnect_retry_elapsed := 0.0
 var _pending_disconnect_reason := ""
 
-func host_game(port: int = NetTransport.DEFAULT_PORT,
-		backend: TransportFactory.Backend = TransportFactory.Backend.ENET) -> int:
-	return host_game_with(backend, {"port": port})
-
-func join_game(ip: String, port: int = NetTransport.DEFAULT_PORT,
-		backend: TransportFactory.Backend = TransportFactory.Backend.ENET) -> int:
-	return join_game_with(backend, {"ip": ip, "port": port})
-
-# Variantes génériques : params opaque interprété par le backend
-# (ENet : ip/port ; Steam : lobby_id optionnel, sinon partie rapide).
+# params opaque interprété par le backend (Steam : lobby_id optionnel, sinon
+# partie rapide).
 func host_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
 	_setup_transport(backend)
 	is_host = true

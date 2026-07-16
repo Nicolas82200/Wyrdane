@@ -18,9 +18,9 @@ class_name SteamService
 # ⚠ Le backend Steam NE PEUT PAS se tester avec deux instances locales du jeu :
 # elles partagent le même compte Steam, or les lobbies/P2P Steamworks exigent
 # deux comptes distincts (l'hôte ne voit jamais « entrer » son propre compte).
-# SteamTransport détecte ce cas et affiche NET_STEAM_SAME_ACCOUNT. Pour tester
-# en local à deux instances, utiliser le mode IP directe (127.0.0.1) ; pour
-# tester Steam, il faut deux machines/sessions avec deux comptes connectés.
+# SteamTransport détecte ce cas et affiche NET_STEAM_SAME_ACCOUNT. Le
+# multijoueur ne peut donc se tester qu'avec deux machines/sessions et deux
+# comptes Steam distincts (plus de mode IP/LAN de secours pour tester en local).
 #
 # Le singleton n'existant pas à la compilation, tous les appels sont dynamiques
 # (aucun typage Steam ici ni dans SteamTransport).
