@@ -20,7 +20,7 @@ func execute_effect(
 		"Buff":             await _buff(battle, source_minion, effect, selected_target)
 		"Debuff":           await _debuff(battle, source_minion, effect, selected_target)
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
-		"DrawCard":         _draw_cards(battle, effect.value)
+		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
 		"StealHealth":      await _steal_health(battle, source_minion, effect, selected_target)
@@ -54,7 +54,7 @@ func execute_effect(
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		"GainMana":         _gain_mana(battle, source_minion, effect)
 		"DestroyRandomEnchantment": await _destroy_random_enchantment(battle, source_minion, effect)
-		"DrawCardDiscount": _draw_card_discount(battle, effect)
+		"DrawCardDiscount": _draw_card_discount(battle, source_minion, effect)
 		"Corrupt":          await _corrupt(battle, source_minion, effect, selected_target)
 		"StealHealthFromHero": await _steal_health_from_hero(battle, source_minion, effect)
 		"BlockSelfDamage":  _block_self_damage(battle, source_minion, effect)
@@ -519,9 +519,18 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.abomination_keywords = effect.transform_card.get_abomination_keyword_values()
 		target.silenced         = false
 
-func _draw_cards(battle, count: int) -> void:
+# Pioche `count` carte(s) pour le camp propriétaire de `source_minion` (joueur
+# par défaut si absent, ex. carte piochée en main sans source). Le joueur
+# pioche dans son propre deck (battle.deck_system) ; le camp adverse pioche via
+# OpponentDriver (IA : vrai deck local ; réseau : compteurs cosmétiques, le
+# pair distant pioche réellement de son côté).
+func _draw_cards(battle, source_minion: Minion, count: int) -> void:
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	for i in range(count):
-		battle.deck_system.draw_card()
+		if is_player:
+			battle.deck_system.draw_card()
+		else:
+			battle.opponent.draw_card()
 
 func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -1020,18 +1029,33 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 		battle.update_enemy_mana_ui()
 
 # Pioche `value` carte(s) ; chaque carte piochée de la race `race_filter` (ou
-# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Décharné).
-# Comme DrawCard, ne concerne que le deck du joueur local.
-func _draw_card_discount(battle, effect: CardEffect) -> void:
+# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Décharné). Pioche
+# pour le camp propriétaire de `source_minion` : le joueur dans son deck, l'IA
+# dans le sien (remise appliquée sur sa propre copie) ; côté réseau, la carte
+# réelle du pair distant est inconnue localement donc seule la pioche
+# cosmétique a lieu, sans remise (que le pair applique de son côté).
+func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	var count: int = maxi(1, effect.value)
 	var discount: int = maxi(1, effect.value_2)
+	var ai_opponent: AISystem = battle.opponent as AISystem
 	for i in range(count):
-		if battle.deck.is_empty():
-			return
-		var drawn: CardData = battle.deck.back()
-		battle.deck_system.draw_card()
-		if effect.race_filter.is_empty() \
-				or drawn.race == Race.from_string(effect.race_filter):
+		var drawn: CardData = null
+		if is_player:
+			if battle.deck.is_empty():
+				return
+			drawn = battle.deck.back()
+			battle.deck_system.draw_card()
+		else:
+			if ai_opponent != null:
+				if ai_opponent.deck.is_empty():
+					return
+				drawn = ai_opponent.deck.back()
+			elif battle.opponent.get_deck_count() <= 0:
+				return
+			battle.opponent.draw_card()
+		if drawn != null and (effect.race_filter.is_empty() \
+				or drawn.race == Race.from_string(effect.race_filter)):
 			battle.cost_system.add_temp_discount(drawn, discount)
 
 # ─── Effets Démon ─────────────────────────────────────────────────────────────
@@ -1091,8 +1115,7 @@ func _sacrifice_draw_per_victim(battle, source_minion: Minion, effect: CardEffec
 		victim.sacrificed = true
 		victim.health = 0
 	await battle.death_system.process_deaths()
-	if is_p:
-		_draw_cards(battle, victims.size())
+	_draw_cards(battle, source_minion, victims.size())
 	await battle.hero_system.self_damage(is_p, effect.value * victims.size())
 
 # Emprise Écarlate : prend le contrôle d'un serviteur ennemi jusqu'à la fin de
