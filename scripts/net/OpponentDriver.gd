@@ -44,3 +44,10 @@ func get_deck_count() -> int:
 
 func get_hand_count() -> int:
 	return 0
+
+# Pioche 1 carte pour le camp adverse (effets déclenchés côté ennemi, ex.
+# Autel des Damnés). Surchargé par chaque implémentation : l'IA pioche
+# réellement dans son propre deck, le réseau se contente de mettre à jour ses
+# compteurs cosmétiques (le pair distant pioche la vraie carte de son côté).
+func draw_card() -> void:
+	pass

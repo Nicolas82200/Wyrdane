@@ -70,6 +70,11 @@ func refresh_ui() -> void:
 func get_deck_count() -> int:
 	return deck.size()
 
+# Pioche pour l'IA (effets déclenchés par une carte lui appartenant, ex. Autel
+# des Damnés). Simple alias public de _draw_card, exposé via OpponentDriver.
+func draw_card() -> void:
+	_draw_card()
+
 func get_hand_count() -> int:
 	return hand.size()
 
