@@ -6,6 +6,7 @@ Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
 > - Les Rituels Mort-Vivant/Humain avec une durée "Instantané" ou "Ce tour" ont été retravaillés en effets vraiment récurrents (voir IDs 54, 56, 57, 58, 60, 62, 63, 64 côté Mort-Vivant ; H55, H61, H63, H64 côté Humain). Les Rituels Démon utilisent directement le système de **charges** décrit dans `CLAUDE.md`.
 > - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
+> - **Système de Ressources par Race** (voir `README.md`) : chaque race a désormais sa propre carte-ressource (type `Resource`, coût 0, posée dans une zone dédiée du plateau — une seule par tour et par camp) : Éclat d'Âme (Mort-Vivant), Sceau du Royaume (Humain), Fragment de Pacte (Démon). Voir la section « Ressource » de chaque race ci-dessous. Anomalie (Abomination) est documentée en attendant le support moteur de cette race.
 
 ---
 
@@ -195,6 +196,16 @@ Positionnement (Lane Types)
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
 
+---
+
+## Ressource
+
+Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/Enchantements) — voir « Système de Ressources par Race » dans `README.md`.
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|:---:|---|---|
+| 77 | Éclat d'Âme | 0 | Commune | Ajoute 1 Âme à ta réserve de Mort-Vivant. Une seule carte-ressource par tour et par camp. | Ce qui reste d'une vie, cristallisé par la nécromancie. |
+
 # Wyrdane — CARDS_HUMAIN.md
 
 Liste complète des cartes de la race **Humain**.
@@ -379,6 +390,16 @@ Liste complète des cartes de la race **Humain**.
 | H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 6 | Légendaire | Éveil : tous tes serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : tous tes serviteurs alliés sont immunisés à tous les effets néfastes ennemis (Infection, poison, peur, silence, contrôle mental, et toute réduction de stats ou débuff). Les effets néfastes déjà présents sont retirés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
+
+---
+
+## Ressource
+
+Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/Enchantements) — voir « Système de Ressources par Race » dans `README.md`.
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|:---:|---|---|
+| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à ta réserve Humaine. Une seule carte-ressource par tour et par camp. | *Frappé au nom du roi, il lie chaque soldat à son serment.* |
 
 ---
 
@@ -579,6 +600,16 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 ---
 
+## Ressource
+
+Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/Enchantements) — voir « Système de Ressources par Race » dans `README.md`.
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|:---:|---|---|
+| D76 | Fragment de Pacte | 0 | Commune | Ajoute 1 Pacte à ta réserve Démoniaque. Une seule carte-ressource par tour et par camp. | *Une clause parmi tant d'autres. Elle aussi se paiera.* |
+
+---
+
 ## ✅ Points d'intégration tranchés (Démon)
 
 Le support moteur est en place (voir « Mécaniques Démon » dans `README.md`) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
@@ -765,6 +796,12 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | A73 | Puits Qui Avale Tout | 6 | Légendaire | Dévoration : gagne 1 mana temporaire ce tour (une seule fois par tour). | *Tout ce qui meurt ici finit par nourrir autre chose.* |
 | A74 | Ce Qu'on a Laissé Pousser | 5 | Épique | Deuil : invoque 2 Abominations aléatoires de coût ≤3 ; elles mutent immédiatement. | *On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.* |
 | A75 | Chuchotement Qui Change la Forme | 1 | Rare | Présence : la première Abomination jouée chaque tour coûte 1 de moins (min 1) et mute dès son entrée en jeu. | *On ne l'entend pas. On sent juste que quelque chose a déjà commencé à changer.* |
+
+## Ressource (design uniquement — pas encore de support moteur, voir points ci-dessous)
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|:---:|---|---|
+| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Anomalie à ta réserve Abomination. Une seule carte-ressource par tour et par camp. | *Ça ne devrait pas exister. Ça existe quand même.* |
 
 ## ⚠️ Points d'intégration à trancher (Abomination)
 

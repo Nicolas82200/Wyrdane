@@ -10,7 +10,7 @@ class_name CardData
 
 @export var race: Race.Type = Race.Type.UNDEAD
 @export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  
-@export_enum("Minion", "Instant", "Ritual", "Enchantment") var card_type: String = "Minion"
+@export_enum("Minion", "Instant", "Ritual", "Enchantment", "Resource") var card_type: String = "Minion"
 # Rituels uniquement : nombre de tours actifs (0 = instantané, -1 = permanent)
 @export var ritual_duration: int = 0
 
@@ -63,6 +63,13 @@ class_name CardData
 
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity: String = "Common"
 @export_enum("Front", "Back", "Hybrid") var board_position: String = "Front"
+
+# ─── Ressource de race ─────────────────────────────────────────────────────────
+# Pourcentage du coût verrouillé sur le pool de race de la carte (voir CostSystem
+# et « Système de Ressources par Race » dans README.md). -1 = utiliser la formule
+# par défaut basée sur `rarity`. Permet de déroger au calcul automatique sur une
+# carte précise.
+@export var race_cost_override: int = -1
 
 # ─── Textes localisés ─────────────────────────────────────────────────────────
 # Le texte français (nom/description/ambiance) sert de clé de traduction : il est

@@ -7,6 +7,16 @@ func init(_battle: Node) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	if card_data.card_type == "Resource":
+		if not battle.can_afford_card(card_data):
+			return
+		battle.play_resource_card(card_data, true)
+		_remove_from_hand(card_data)
+		await battle.get_tree().process_frame
+		battle.hand._update_hand_layout(true)
+		if battle.net_emitter != null:
+			battle.net_emitter.play_card(card_data, "Resource", -1)
+		return
 	if card_data.card_type == "Minion" and not battle.can_play_card_on_row(card_data, row):
 		return
 	if card_data.card_type == "Minion" and not battle.can_summon_to_row(true, row):
@@ -61,7 +71,8 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 		await battle.card_popup_system.show_targeting_popup(card_data)
 		await battle.get_tree().create_timer(0.4).timeout
 		battle.card_popup_system.hide_targeting_popup()
-	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.pay(card_data, true)
+	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -69,7 +80,8 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await _resolve(card_data, row, insert_index)
 
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
-	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.pay(card_data, true)
+	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame

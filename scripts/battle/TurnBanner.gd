@@ -17,8 +17,6 @@ var _tween: Tween
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# L'ordre dans l'arbre (juste sous TurnChoicePanel, voir Battle._init_systems)
-	# place la bannière au-dessus du plateau mais sous les panneaux de décision.
 
 	_panel = PanelContainer.new()
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE

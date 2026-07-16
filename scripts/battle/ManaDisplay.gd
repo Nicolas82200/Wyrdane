@@ -102,8 +102,8 @@ func _pulse() -> void:
 	_pulse_tween.tween_property(self, "scale", Vector2(1.08, 1.08), 0.08)
 	_pulse_tween.tween_property(self, "scale", Vector2.ONE, 0.15)
 
-## Animation plus marquée lorsqu'on choisit d'augmenter le mana max en début
-## de tour : le joueur repère l'info directement sur le terrain.
+## Animation plus marquée lorsqu'une carte-ressource pose une nouvelle unité
+## de mana max : le joueur repère l'info directement sur le terrain.
 func pulse_max() -> void:
 	pivot_offset = size / 2.0
 	if _pulse_tween:
