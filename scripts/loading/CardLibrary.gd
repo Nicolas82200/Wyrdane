@@ -28,7 +28,7 @@ func _scan_recursive(path: String) -> void:
 			_scan_recursive(full_path)
 		elif file_name.ends_with(".tres"):
 			var res := load(full_path)
-			if res is CardData:
+			if res is CardData and not (res as CardData).is_token:
 				all_cards.append(res as CardData)
 		file_name = dir.get_next()
 	dir.list_dir_end()

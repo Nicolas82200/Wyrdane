@@ -195,6 +195,9 @@ Positionnement (Lane Types)
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
+| 78 | Rampant | ⚔️ | — | 1 | 1 | — (jeton vanille, invoqué par : Éclat de Putréfaction, Architecte de la Horde, Fosse Commune, Tombeau Ambulant, Horde Mineure). | Encore un, sans nom cette fois. |
+| 79 | Zombie Mineur (jeton) | ⚔️ | — | 2 | 2 | HORDE. (jeton, invoqué par : Pacte Sanglant). | Il était enfant. C'était avant. |
+| 80 | Cadavre Errant (jeton) | ↕️ | — | 1 | 3 | REMPART. CHAIR MORTE. (jeton, invoqué par : Cultiste Zombifié). | Personne ne se souvient de son nom. Lui non plus. |
 
 ---
 
@@ -400,6 +403,18 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à ta réserve Humaine. Une seule carte-ressource par tour et par camp. | *Frappé au nom du roi, il lie chaque soldat à son serment.* |
+
+---
+
+### Jetons
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
+| H78 | Éclaireur Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT. (jeton, invoqué par : Marche Forcée, Prêtre de Guerre, Porte-Étendard, Paladin de l'Aube, Milicien du Bourg). | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
+| H79 | Porteur de Bouclier (jeton) | ⚔️ | — | 1 | 4 | REMPART. (jeton, invoqué par : Le Rempart Vivant). | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
+| H80 | Milicien du Bourg (jeton) | ⚔️ | — | 2 | 1 | — (jeton vanille, invoqué par : Mémorial des Héros, Appel aux Armes, Capitaine de Milice, Soldat de la Foi). | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
+| H81 | Capitaine de Milice (jeton) | ↕️ | — | 3 | 3 | COMMANDEMENT. (jeton, invoqué par : Ordre des Anciens). | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 
 ---
 
@@ -610,6 +625,14 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 ---
 
+### Jetons
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| D77 | Larve Infernale (jeton) | ⚔️ | — | 2 | 1 | PACTE. (jeton, invoqué par : Rituel du Pacte Éternel, Architecte du Pacte, Garde Infernal, Fosse Écarlate, Marché de Sang). | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
+
+---
+
 ## ✅ Points d'intégration tranchés (Démon)
 
 Le support moteur est en place (voir « Mécaniques Démon » dans `README.md`) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
@@ -802,6 +825,12 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Anomalie à ta réserve Abomination. Une seule carte-ressource par tour et par camp. | *Ça ne devrait pas exister. Ça existe quand même.* |
+
+### Jetons
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| A77 | Amas Informe (jeton) | ⚔️ | — | 1 | 2 | MUTATION. (jeton, invoqué par : Ce-Qui-A-Cessé-de-S'arrêter, Un-Devenu-Plusieurs, Nid Débordant, Semeur de Nœuds). Distinct d'« Amas Informe Reformé »/« Amas Informe Mutant » (jetons dédiés de Vase Brisé/Accord de la Chair Neuve). | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
 
 ## ✅ Points d'intégration tranchés (Abomination)
 
