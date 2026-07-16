@@ -26,12 +26,14 @@ func execute_effect(
 		"StealHealth":      await _steal_health(battle, source_minion, effect, selected_target)
 		"HealHero":         _heal_hero(battle, source_minion, effect)
 		"ReturnToHand":     await _return_to_hand(battle, source_minion, effect, selected_target)
+		"ResurrectSelf":    await _resurrect_self(battle, source_minion, effect, selected_target)
 		"InfectEnemy":      await _infect(battle, source_minion, effect, selected_target)
 		"InfectAdjacent":   await _infect_adjacent(battle, source_minion, effect)
 		"Freeze":           await _freeze(battle, source_minion, effect, selected_target)
 		"Resurrect":        await _resurrect(battle, source_minion, effect)
 		"ResurrectLast":    await _resurrect_last(battle, source_minion, effect)
 		"StealMinion":      await _steal_minion(battle, source_minion, effect, selected_target)
+		"DestroyAndResurrect": await _destroy_and_resurrect(battle, source_minion, effect, selected_target)
 		"Silence":          await _silence(battle, source_minion, effect, selected_target)
 		"Transform":        await _transform(battle, source_minion, effect, selected_target)
 		"SummonSelf":       await _summon_self(battle, source_minion, effect)
@@ -404,8 +406,14 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets)
 	for target in targets:
-		target.base_attack = max(0, target.base_attack - effect.value)
-		target.health       = max(1, target.health - effect.value_2)
+		var old_health: int = target.health
+		target.base_attack     = max(0, target.base_attack - effect.value)
+		# Réduction PERMANENTE des HP max (symétrique de _buff) — plus de
+		# Heal ultérieur ne doit pouvoir restaurer les HP perdus ici.
+		target.base_max_health = max(0, target.base_max_health - effect.value_2)
+		# Applique aussi la perte aux HP actuels, sans plafonner à 1 : un
+		# "-X/-X" doit pouvoir tuer un serviteur déjà bas en vie (Épidémie...)
+		target.health = max(0, old_health - effect.value_2)
 
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
@@ -523,23 +531,52 @@ func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_t
 		if target.is_mind_control_immune():
 			continue
 		var from_player: bool = target.owner_is_player
-		target.owner_is_player = not from_player
+		var to_player: bool = not from_player
+		# Si la rangée d'origine est pleine côté nouveau propriétaire, bascule
+		# dans l'autre rangée plutôt que de dépasser MAX_MINIONS_PER_ROW
+		if not battle.can_summon_to_row(to_player, target.board_row):
+			var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
+			if battle.can_summon_to_row(to_player, other_row):
+				target.board_row = other_row
+		target.owner_is_player = to_player
 		if from_player:
-			battle.enemy_minions.erase(target)
-			battle.player_minions.append(target)
-		else:
 			battle.player_minions.erase(target)
 			battle.enemy_minions.append(target)
-		var visual: BoardMinion = battle.board_visual_system.find_visual(target)
-		if visual:
-			if from_player:
-				if visual.minion_clicked.is_connected(battle.selection_system.on_player_minion_clicked):
-					visual.minion_clicked.disconnect(battle.selection_system.on_player_minion_clicked)
-				visual.minion_clicked.connect(battle.selection_system.on_enemy_minion_clicked)
-			else:
-				if visual.minion_clicked.is_connected(battle.selection_system.on_enemy_minion_clicked):
-					visual.minion_clicked.disconnect(battle.selection_system.on_enemy_minion_clicked)
-				visual.minion_clicked.connect(battle.selection_system.on_player_minion_clicked)
+		else:
+			battle.enemy_minions.erase(target)
+			battle.player_minions.append(target)
+		battle.board_visual_system.reparent_minion_visual(target, to_player)
+
+# Détruit un serviteur ennemi ciblé puis le ressuscite sous le contrôle du
+# lanceur, sans ses effets (La Faucheuse). Contrairement à un simple
+# Destroy + StealMinion (l'ancienne implémentation, qui volait un cadavre déjà
+# retiré des tableaux/cimetière), on invoque une COPIE FRAÎCHE de sa
+# card_data via summon_minion — même pattern que _resurrect/_resurrect_last —
+# puis on la silencie pour retirer ses triggers ("sans ses effets").
+func _destroy_and_resurrect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null or selected_target.card_data == null:
+		return
+	var card_data: CardData = selected_target.card_data
+	await _point_arrows_to(battle, [selected_target])
+	selected_target.health = 0
+	await battle.death_system.process_deaths()
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	var row: String = "Front"
+	if not battle.can_summon_to_row(is_player, row):
+		row = "Back"
+	if not battle.can_summon_to_row(is_player, row):
+		return
+	await battle.summon_minion(card_data, is_player, row, -1, true)
+	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
+	if minions.is_empty():
+		return
+	var revived: Minion = minions.back()
+	revived.was_resurrected = true
+	revived.keywords.clear()
+	revived.human_keywords.clear()
+	revived.undead_keywords.clear()
+	revived.demon_keywords.clear()
+	revived.silenced = true
 
 func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var targets: Array[Minion] = []
@@ -776,6 +813,27 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 		battle.hand.set_hand(battle.hand_cards)
 	else:
 		battle.ai_system.hand.append(card_data)
+
+# Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
+# 1 HP (Cimetière Vivant : "ce Mort-Vivant revient en jeu à la fin du tour").
+# Contrairement à _resurrect_last (qui pioche le dernier mort du cimetière),
+# vise précisément selected_target = le serviteur mort ayant déclenché OnGrief.
+# "Une seule fois par serviteur" : ignore les serviteurs déjà ressuscités
+# (was_resurrected), pour ne pas boucler indéfiniment sur le même serviteur.
+func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null or selected_target.card_data == null or selected_target.was_resurrected:
+		return
+	var is_player: bool = selected_target.owner_is_player
+	var row: String = "Front"
+	if not battle.can_summon_to_row(is_player, row):
+		row = "Back"
+	if not battle.can_summon_to_row(is_player, row):
+		return
+	await battle.summon_minion(selected_target.card_data, is_player, row)
+	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
+	if not minions.is_empty():
+		minions.back().health = 1
+		minions.back().was_resurrected = true
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
 func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
