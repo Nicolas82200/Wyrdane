@@ -3,10 +3,7 @@ class_name BoardSystem
 
 var battle: Node
 
-# True pendant la diffusion d'un évènement OnSummon. Empêche qu'un serviteur
-# invoqué EN RÉACTION à une arrivée (ex: Fosse Commune, Architecte de la Horde)
-# ne redéclenche une nouvelle vague OnSummon → sinon le plateau se remplirait
-# en boucle. Le serviteur invoqué garde tout de même son propre effet ONPLAY.
+
 var _firing_on_summon: bool = false
 
 func init(_battle: Node) -> void:
@@ -21,8 +18,6 @@ func _has_row_overflow_ally(is_player: bool) -> bool:
 
 func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
-		# Stratège Royal : la rangée visée est pleine, on retombe sur l'autre
-		# plutôt que d'échouer l'invocation.
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
 			row = alt_row
@@ -38,23 +33,21 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)
 	await battle.get_tree().create_timer(0.2).timeout
 
-	# PACTE : à l'arrivée en jeu, le héros du propriétaire perd des HP égaux au
-	# coût en mana du serviteur (l'ASSAUT est accordé dans Minion._init).
+
 	if minion.has_demon_keyword(KeywordDemon.Type.PACTE):
 		await battle.hero_system.self_damage(is_player, card_data.cost)
 
-	# Effet d'invocation du minion lui-même
+
 	await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
 
-	# OnSummon sur les alliés déjà en jeu + enchantements (pas le minion lui-même).
-	# Supprimé si l'on est déjà en train de traiter une arrivée (anti-boucle).
+
 	if not _firing_on_summon:
 		_firing_on_summon = true
 		var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).duplicate()
 		for ally in allies:
 			if ally != minion:
 				await battle.effect_manager.trigger_effects(battle, ally, "OnSummon")
-		# Appel — enchantements réagissent à l'invocation
+
 		await battle.trigger_system.fire("OnSummon", minion, is_player)
 		_firing_on_summon = false
 	battle.aura_system.recompute_all()

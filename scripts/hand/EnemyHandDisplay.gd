@@ -1,15 +1,13 @@
 extends Control
 class_name EnemyHandDisplay
 
-# Main de l'adversaire affichée en éventail (dos de cartes uniquement — info cachée).
-# Miroir de la main du joueur : les cartes pendent vers le bas et s'ouvrent en
-# éventail, resserrées dynamiquement pour ne jamais déborder.
+
 
 const CARD_BACK := preload("res://assets/card_back/card-back.png")
 const CARD_SIZE := Vector2(110, 165)
-const MAX_SPACING := 78.0        # écart horizontal max entre deux cartes
-const MAX_ANGLE := 0.14          # inclinaison max des cartes de bord (radians)
-const ARC_STRENGTH := 26.0       # profondeur de l'arc vertical
+const MAX_SPACING := 78.0        
+const MAX_ANGLE := 0.14          
+const ARC_STRENGTH := 26.0       
 
 var _count: int = -1
 
@@ -36,7 +34,6 @@ func set_count(count: int) -> void:
 		back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		back.custom_minimum_size = CARD_SIZE
 		back.size = CARD_SIZE
-		# Pivot en haut-centre : l'éventail s'ouvre vers le bas (miroir de la main joueur)
 		back.pivot_offset = Vector2(CARD_SIZE.x / 2.0, 0.0)
 		back.rotation = norm * MAX_ANGLE
 		back.position = Vector2(
