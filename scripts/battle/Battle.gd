@@ -486,6 +486,8 @@ func refill_mana_pool(is_player: bool = true) -> void:
 func update_mana_ui() -> void:
 	mana_display.set_mana(total_mana(true), total_max_mana(true))
 	update_end_turn_hint()
+	if hand != null:
+		hand.refresh_playable_highlights()
 
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(total_mana(false), total_max_mana(false))
@@ -628,6 +630,8 @@ func set_enemy_turn(active: bool) -> void:
 	end_turn_button.disabled = active
 	_retranslate_battle()
 	update_hero_turn_halo()
+	if hand != null:
+		hand.refresh_playable_highlights()
 	if active:
 		turn_timer.stop()
 	if game_over:

@@ -41,7 +41,7 @@ var _ready_glow: Panel = null
 var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
 
-const READY_GLOW_COLOR := Color(0.35, 1.0, 0.45)
+const READY_GLOW_COLOR := Color(1.0, 0.85, 0.2)
 const EXHAUSTED_TINT   := Color(0.5, 0.5, 0.5)
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
@@ -75,7 +75,7 @@ func _ready() -> void:
 	if border_color:
 		border_color.add_theme_stylebox_override("panel", _race_style)
 
-	# Halo « prêt à attaquer » — bordure verte pulsante autour du serviteur
+	# Halo « prêt à attaquer » — bordure dorée pulsante autour du serviteur
 	_ready_style = StyleBoxFlat.new()
 	_ready_style.bg_color            = Color.TRANSPARENT
 	_ready_style.border_width_left   = 4
