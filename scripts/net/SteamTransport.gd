@@ -23,8 +23,8 @@ class_name SteamTransport
 #   le premier lobby Wyrdane ouvert (partie rapide), puis ouvre la connexion
 #   P2P vers l'hôte.
 #
-# Comme pour ENet, aucun identifiant Steam (SteamID64, lobby id) ne fuit hors
-# de cette classe : le reste du jeu ne voit que l'interface NetTransport.
+# Aucun identifiant Steam (SteamID64, lobby id) ne fuit hors de cette classe :
+# le reste du jeu ne voit que l'interface NetTransport.
 # Tous les appels au singleton Steam sont dynamiques (voir SteamService).
 
 const LOBBY_GAME_KEY := "game"
