@@ -65,6 +65,7 @@ const TYPE_ICONS := {
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
+@onready var generic_cost_label: Label = $GenericCostLabel
 @onready var attack_label: Label       = $AttackLabel
 @onready var health_label: Label       = $HealthLabel
 @onready var desc_label: RichTextLabel = $DescLabel
@@ -101,6 +102,7 @@ var create_drag_preview: Callable = Callable()
 
 var _name_bg_style: StyleBoxFlat
 var _desc_bg_style: StyleBoxFlat
+var _cost_bg_style: StyleBoxFlat
 var _type_style    := StyleBoxFlat.new()
 
 var _playable_glow: Panel = null
@@ -114,6 +116,8 @@ func _ready() -> void:
 	name_label.add_theme_stylebox_override("normal", _name_bg_style)
 	_desc_bg_style = (desc_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
 	desc_label.add_theme_stylebox_override("normal", _desc_bg_style)
+	_cost_bg_style = (cost_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
+	cost_label.add_theme_stylebox_override("normal", _cost_bg_style)
 	_type_style.set_corner_radius_all(8)
 	_type_style.set_border_width_all(1)
 	_type_style.content_margin_left = 8.0
@@ -149,17 +153,30 @@ func set_data(new_data: CardData) -> void:
 	data = new_data
 	update_display()
 
-# Coût effectif affiché (remises de mana comprises) : vert si réduit.
+# Coût effectif affiché (remises de mana comprises), en badge de race (icône
+# colorée par race, ex. "Âme" Mort-Vivant) et badge générique (surplus payable
+# depuis n'importe quel pool) : vert si le total est réduit par une remise.
 # Utilisé par la main en bataille ; ailleurs le coût de base reste affiché.
-func set_display_cost(cost: int) -> void:
+func set_display_cost(cost_split: Dictionary) -> void:
 	if data == null:
 		return
-	cost_label.text = str(cost)
-	cost_label.add_theme_color_override("font_color",
-		Color(0.45, 1.0, 0.45) if cost < data.cost else Color.WHITE)
+	var race_cost: int = cost_split.get("race", 0)
+	var generic_cost: int = cost_split.get("generic", 0)
+	var reduced: bool = race_cost + generic_cost < data.cost
+	var color := Color(0.45, 1.0, 0.45) if reduced else Color.WHITE
+	cost_label.text = str(race_cost)
+	cost_label.add_theme_color_override("font_color", color)
+	generic_cost_label.visible = generic_cost > 0
+	generic_cost_label.text = str(generic_cost)
+	generic_cost_label.add_theme_color_override("font_color", color)
+
 func update_display() -> void:
 	name_label.text   = data.display_name()
-	cost_label.text   = str(data.cost)
+	var base_race_cost: int = CostSystem.compute_race_cost(
+		data.cost, data.race, data.rarity, data.race_cost_override)
+	cost_label.text = str(base_race_cost)
+	generic_cost_label.visible = data.cost - base_race_cost > 0
+	generic_cost_label.text = str(data.cost - base_race_cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
 
@@ -238,6 +255,12 @@ func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
 	_name_bg_style.bg_color = race_color
 	_desc_bg_style.bg_color = race_color
+	# Badge de coût "race" teinté par la race de la carte : distingue au premier
+	# coup d'œil le mana verrouillé (icône/couleur) du mana générique à côté.
+	var cost_color := race_color
+	cost_color.a = 0.9
+	_cost_bg_style.bg_color = cost_color
+	_cost_bg_style.border_color = cost_color
 
 # ─── Mulligan ─────────────────────────────────────────────────────────────────
 
@@ -394,6 +417,7 @@ func show_back(show_card_back: bool) -> void:
 		art.texture = CARD_BACK_TEX
 		name_label.hide()
 		cost_label.hide()
+		generic_cost_label.hide()
 		attack_label.hide()
 		health_label.hide()
 		desc_label.hide()
