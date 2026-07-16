@@ -521,13 +521,13 @@ func refill_mana_pool(is_player: bool = true) -> void:
 		pool[r] = max_pool[r]
 
 func update_mana_ui() -> void:
-	mana_display.set_mana(total_mana(true), total_max_mana(true))
+	mana_display.set_mana_pools(race_mana_pool(true), race_max_mana_pool(true))
 	update_end_turn_hint()
 	if hand != null:
 		hand.refresh_playable_highlights()
 
 func update_enemy_mana_ui() -> void:
-	enemy_mana_display.set_mana(total_mana(false), total_max_mana(false))
+	enemy_mana_display.set_mana_pools(race_mana_pool(false), race_max_mana_pool(false))
 
 func update_enemy_hand_ui() -> void:
 	enemy_hand_display.set_count(opponent.get_hand_count())
