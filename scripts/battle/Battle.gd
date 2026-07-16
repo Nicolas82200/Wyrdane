@@ -583,8 +583,8 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
-	await board_system.summon_minion(card_data, is_player, row, insert_index)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await board_system.summon_minion(card_data, is_player, row, insert_index, skip_onplay)
 
 func _on_targeting_cancelled() -> void:
 	waiting_for_target   = false
