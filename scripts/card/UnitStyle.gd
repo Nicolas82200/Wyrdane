@@ -30,4 +30,7 @@ enum Type {
 	# Human (ajouté en fin d'enum pour ne pas décaler les valeurs
 	# déjà sérialisées dans les .tres existants)
 	SOLDIER,
+	# Abomination (race à part entière, distincte du style ABOMINATION
+	# utilisé par les serviteurs "abomination" Mort-Vivant existants)
+	ABOMINATION_MASS,
 }
