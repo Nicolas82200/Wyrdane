@@ -5,18 +5,21 @@
 [ext_resource type="PackedScene" uid="uid://b5qjptm65gu8e" path="res://scenes/settings/GraphismSettingsMenu.tscn" id="3_graph"]
 [ext_resource type="PackedScene" uid="uid://bt0vohrgfxbke" path="res://scenes/settings/ControlSettingsMenu.tscn" id="4_ctrl"]
 [ext_resource type="Script" uid="uid://c4blxcxvigghk" path="res://scripts/settings/SettingsMenu.gd" id="5_script"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="6_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.06, 0.05, 0.04, 0.95)
+bg_color = Color(0.06, 0.05, 0.04, 0.97)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.55, 0.41, 0.08, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm"]
 bg_color = Color(0.06, 0.03, 0.03, 0.97)
@@ -25,10 +28,12 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.55, 0.1, 0.1, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 12
 
 [node name="SettingsMenu" type="Control" unique_id=2017956977]
 visible = false
@@ -38,6 +43,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("6_theme")
 script = ExtResource("5_script")
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=100000001]
@@ -83,7 +89,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 32
 text = "Paramètres"
 horizontal_alignment = 1
 
