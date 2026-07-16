@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="1_kw"]
+[ext_resource type="Script" uid="uid://c85woqh2ck2sx" path="res://scripts/card/KeywordChoiceAbomination.gd" id="2_akw"]
+[ext_resource type="Texture2D" uid="uid://bx4c6mfq3vvnc" path="res://assets/card_art/abomination/edgeless.jpg" id="3_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
+
+[sub_resource type="Resource" id="Resource_a050"]
+script = ExtResource("1_kw")
+keyword_type = 0
+
+[sub_resource type="Resource" id="Resource_a051"]
+script = ExtResource("2_akw")
+keyword_type = 5
+
+[sub_resource type="Resource" id="Resource_a052"]
+script = ExtResource("2_akw")
+keyword_type = 0
+
+[resource]
+script = ExtResource("4_carddata")
+card_name = "Ce-Qui-N'a-Plus-de-Bords"
+description = "REMPART. INSTABLE. MUTATION."
+flavour_text = "On ne sait plus où il s'arrête, ni s'il s'arrête vraiment."
+texture = ExtResource("3_texture")
+cost = 6
+race = 6
+unit_style = 2
+attack = 7
+health = 7
+keywords = Array[ExtResource("1_kw")]([SubResource("Resource_a050")])
+abomination_keywords = Array[ExtResource("2_akw")]([SubResource("Resource_a051"), SubResource("Resource_a052")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

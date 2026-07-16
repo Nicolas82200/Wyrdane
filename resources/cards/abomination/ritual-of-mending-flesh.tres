@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://tc641vj4hlct" path="res://assets/card_art/abomination/ritual-of-mending-flesh.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a109"]
+script = ExtResource("4_trig")
+type = "OnAwaken"
+
+[sub_resource type="Resource" id="Resource_a110"]
+script = ExtResource("1_cardeffect")
+effect_id = "Heal"
+target = "RandomAlly"
+race_filter = "Abomination"
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Rituel de la Chair Qui Recoud"
+description = "Éveil : un serviteur Abomination allié aléatoire restaure 2 HP."
+flavour_text = "La chair se répare mal. Elle se répare quand même."
+texture = ExtResource("2_texture")
+cost = 4
+race = 6
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a109")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a110")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

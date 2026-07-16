@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://dhoujwsx6ao78" path="res://assets/card_art/abomination/all-changing-breath.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_a094"]
+script = ExtResource("1_cardeffect")
+effect_id = "DamageAllMinions"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_a095"]
+script = ExtResource("1_cardeffect")
+effect_id = "ApplyMutation"
+target = "AllAllies"
+race_filter = "Abomination"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Respir Qui Change Tout"
+description = "1 dégât à tous les serviteurs en jeu ; les Abominations alliées touchées mutent à la place de perdre des HP."
+flavour_text = "Même tes alliés changent, un peu, à chaque respiration."
+texture = ExtResource("2_texture")
+cost = 1
+race = 6
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a094"), SubResource("Resource_a095")])
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

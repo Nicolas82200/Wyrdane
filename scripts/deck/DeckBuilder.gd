@@ -163,6 +163,7 @@ func _card_has_keyword(c: CardData, keyword_id: String) -> bool:
 		"H": return value in c.get_human_keyword_values()
 		"U": return value in c.get_undead_keyword_values()
 		"D": return value in c.get_demon_keyword_values()
+		"A": return value in c.get_abomination_keyword_values()
 		_:   return false
 
 func _sort_cards(cards: Array[CardData]) -> void:
@@ -854,6 +855,9 @@ func _all_keyword_entries() -> Array[Dictionary]:
 	for key in KeywordDemon.Type.keys():
 		var v: int = KeywordDemon.Type[key]
 		entries.append({"id": "D:%d" % v, "label": KeywordDemon.get_keyword_name(v)})
+	for key in KeywordAbomination.Type.keys():
+		var v: int = KeywordAbomination.Type[key]
+		entries.append({"id": "A:%d" % v, "label": KeywordAbomination.get_keyword_name(v)})
 	return entries
 
 func _make_keyword_dropdown(values: Array[String], labels: Array[String]) -> OptionButton:

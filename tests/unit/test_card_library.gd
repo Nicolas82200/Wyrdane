@@ -43,6 +43,7 @@ func test_card_race_matches_resource_folder() -> void:
 			Race.Type.UNDEAD: expected_folder = "/undead/"
 			Race.Type.HUMAN:  expected_folder = "/human/"
 			Race.Type.DEMON:  expected_folder = "/demon/"
+			Race.Type.ABOMINATION: expected_folder = "/abomination/"
 			_: continue
 		assert_true(path.contains(expected_folder), "%s : race %s ne correspond pas au dossier %s" % [path, card.race, path])
 

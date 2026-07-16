@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://815jv715je18" path="res://assets/card_art/abomination/answering-sign.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_a100"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCardDiscount"
+value = 1
+value_2 = 1
+race_filter = "Abomination"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Signe Qui Répond"
+description = "Pioche 1 carte. Si c'est une Abomination, elle coûte 1 de moins ce tour."
+flavour_text = "Il désigne. Quelque chose répond, déjà changé."
+texture = ExtResource("2_texture")
+cost = 1
+race = 6
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a100")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -21,7 +21,8 @@ class_name CardEffect
 	"Corrupt", "StealHealthFromHero", "BlockSelfDamage",
 	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
-	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment"
+	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
+	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -90,11 +91,16 @@ class_name CardEffect
 @export var pool_race_filter: String = ""  # "" = toutes races. Ex: "UNDEAD", "HUMAN"
 											# Séparé de race_filter, qui sert au CIBLAGE
 											# (éviter toute collision si un effet a besoin des deux).
+# Abomination (SummonRandom) : nombre de mutations immédiates à appliquer au
+# serviteur invoqué (0 = aucune). Ex. L'Éternel Recommencement (1), Éclosion
+# Sans Fin (2).
+@export var mutate_on_summon_count: int = 0
 
 # ─── Octroi de mot-clé temporaire ou permanent (GrantKeyword) ────────────────
 @export var granted_keyword: String = ""          # "TAUNT", "AEGIS", "CHARGE", "DISCIPLINE"...
 @export var granted_keyword_is_human: bool = false # true si le nom ci-dessus vient de KeywordHuman.Type
 @export var granted_keyword_is_demon: bool = false # true si le nom ci-dessus vient de KeywordDemon.Type
+@export var granted_keyword_is_abomination: bool = false # true si le nom ci-dessus vient de KeywordAbomination.Type
 # Durée gérée par le champ `duration` déjà présent plus haut ;
 # le retrait en fin de tour est assuré par TempEffectSystem.
 
