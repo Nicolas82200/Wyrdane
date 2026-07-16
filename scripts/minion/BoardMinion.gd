@@ -41,7 +41,7 @@ var _ready_glow: Panel = null
 var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
 
-const READY_GLOW_COLOR := Color(0.35, 1.0, 0.45)
+const READY_GLOW_COLOR := Color(1.0, 0.85, 0.2)
 const EXHAUSTED_TINT   := Color(0.5, 0.5, 0.5)
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
@@ -75,7 +75,7 @@ func _ready() -> void:
 	if border_color:
 		border_color.add_theme_stylebox_override("panel", _race_style)
 
-	# Halo « prêt à attaquer » — bordure verte pulsante autour du serviteur
+	# Halo « prêt à attaquer » — bordure dorée pulsante autour du serviteur
 	_ready_style = StyleBoxFlat.new()
 	_ready_style.bg_color            = Color.TRANSPARENT
 	_ready_style.border_width_left   = 4
@@ -113,6 +113,12 @@ func _process(delta: float) -> void:
 		_on_mouse_entered()
 	elif not over and _mouse_is_over:
 		_on_mouse_exited()
+	elif over and _mouse_is_over and _hover_preview == null and not _is_dragging_card():
+		# La souris est restée sur le serviteur pendant qu'une carte était en
+		# train d'être glissée (preview alors bloquée) : une fois le drag
+		# terminé, aucune transition over/exit ne se reproduit tant que la
+		# souris ne bouge pas, donc on retente ici plutôt que de rester coincé.
+		_on_mouse_entered()
 	if _ready_glow != null and _ready_glow.visible:
 		_ready_pulse += delta * 2.5
 		_ready_style.border_color.a = 0.55 + sin(_ready_pulse) * 0.35
@@ -212,13 +218,16 @@ func _gui_input(event: InputEvent) -> void:
 
 # ─── Hover & Preview ──────────────────────────────────────────────────────────
 
+func _is_dragging_card() -> bool:
+	return _battle != null and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card")
+
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
 	if _targetable:
 		var t := create_tween()
 		t.tween_property(self, "scale", Vector2(1.08, 1.08), 0.1)\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
+	if _is_dragging_card():
 		return
 	if _hover_preview != null:
 		return

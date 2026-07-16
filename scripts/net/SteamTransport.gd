@@ -83,6 +83,16 @@ func join(params: Dictionary) -> int:
 		status.emit("Steam : recherche d'un lobby Wyrdane (portée mondiale)…")
 	return OK
 
+# Reconnexion directe au pair déjà connu (lobby/SteamID conservés après une
+# coupure P2P transitoire) : évite de relancer une recherche/entrée de lobby.
+# Sans contexte de lobby connu (ex. lobby lui-même quitté), retombe sur join().
+func try_reconnect(params: Dictionary) -> int:
+	if _steam == null or _lobby_id == 0 or _remote_id == 0:
+		return join(params)
+	status.emit("Steam : nouvelle tentative de connexion P2P…")
+	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
+	return OK
+
 func send(bytes: PackedByteArray, reliable: bool = true) -> void:
 	if _steam == null or _connection_handle == 0:
 		return

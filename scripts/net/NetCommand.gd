@@ -22,6 +22,7 @@ const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrific
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
+const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -91,6 +92,13 @@ static func hello_ack() -> Dictionary:
 # de la décision est communiquée, pour synchroniser le début du tour 1.
 static func mulligan_done() -> Dictionary:
 	return {"type": MULLIGAN_DONE}
+
+# Envoyé juste avant de fermer volontairement la connexion (concède/retour au
+# menu) : permet au pair de distinguer un départ délibéré d'une coupure réseau
+# transitoire, et donc de ne pas attendre inutilement une reconnexion qui ne
+# viendra jamais (voir NetworkManager._on_packet_received).
+static func leave_match() -> Dictionary:
+	return {"type": LEAVE_MATCH}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 
