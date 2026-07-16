@@ -101,6 +101,14 @@ func poll() -> void:
 		if not bytes.is_empty():
 			packet_received.emit(bytes)
 
+# Ouvre l'overlay Steam d'invitation d'amis pour le lobby en cours (hôte
+# uniquement — un client n'a pas de lobby à proposer). No-op si aucun lobby
+# n'est encore créé (host() pas encore confirmé par lobby_created).
+func invite_friends() -> void:
+	if _steam == null or _lobby_id == 0:
+		return
+	_steam.activateGameOverlayInviteDialog(_lobby_id)
+
 func close() -> void:
 	if _steam == null:
 		return
