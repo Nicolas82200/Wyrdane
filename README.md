@@ -1,4 +1,4 @@
-FateBound est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
+Wyrdane est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
 ---
 
@@ -200,12 +200,12 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana.
+L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
-1.  **Ressource** — mana ou pioche (symétrique du choix joueur du `TurnChoicePanel`).
-2.  **Pose** — joue tous les types de cartes (Serviteur, Éphémère, Rituel, Enchantement) ; serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière) ; choisit ses cibles de sort (menace la plus forte côté joueur, allié le plus faible à soutenir).
+1.  **Début de tour** — recharge ses pools de ressource à leur maximum et pioche une carte automatiquement (plus de choix Mana/Pioche, symétrique du tour joueur).
+2.  **Pose** — pose d'abord une carte-ressource de sa main si elle en a une (une par tour), puis joue tous les autres types de cartes (Serviteur, Éphémère, Rituel, Enchantement) ; serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière) ; choisit ses cibles de sort (menace la plus forte côté joueur, allié le plus faible à soutenir).
 3.  **Attaque** — priorité : Provocation > létal sur le héros > trade favorable (tuer sans mourir) > héros.
 
 Trois niveaux de difficulté (réglage `SettingsManager.ai_difficulty` : `easy`/`normal`/`hard`) :
@@ -221,8 +221,8 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close).
 *   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
-*   `SteamTransport` — implémentation Steam : lobby Steam public tagué FateBound pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby FateBound disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID FateBound — instructions d'installation dans l'en-tête du fichier.
+*   `SteamTransport` — implémentation Steam : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le backend demandé (ENet ou Steam).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
 
@@ -234,7 +234,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Protocole (`NetCommand.gd`)
 
-Commandes échangées : `PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE` (mana/pioche), `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
+Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
 
 *   `NetEmitter` — émet les actions du joueur local sous forme de commandes.
 *   `NetworkOpponent` — met en file les commandes distantes et les rejoue dans l'ordre jusqu'à `END_TURN`.
@@ -360,11 +360,11 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `TargetingSystem.gd`: Gestion du ciblage d'entités pour les effets de cartes.
 *   `EnchantmentSystem.gd`: Gestion des enchantements et modifications de statistiques des serviteurs.
 *   `TempEffectSystem.gd`: Effets temporaires (buffs/debuffs et mots-clés à durée limitée), retirés automatiquement en fin de tour (`UntilEndOfTurn` / `UntilEndOfEnemyTurn`).
-*   `AISystem.gd`: Adversaire — deck, main, mana et déroulé automatique de son tour.
+*   `AISystem.gd`: Adversaire — deck, main, pools de mana par race et déroulé automatique de son tour.
 *   `AuraSystem.gd`: Recalcul des bonus d'aura (Présence) des serviteurs.
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
 *   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
-*   `TurnChoicePanel.gd`: Panneau du choix Mana/Pioche en début de tour.
+*   `CostSystem.gd`: Coût effectif d'une carte (remises) et paiement race verrouillée/générique des pools de ressource (voir « Système de Ressources par Race »).
 *   `TooltipData.gd`: Tooltips des mots-clés (autoload).
 
 ### Scripts Réseau (`scripts/net/`)
@@ -766,53 +766,50 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
 ---
 
-## 💠 Système de Ressources par Race — Design (v1)
-*Document de design — en cours de discussion*
+## 💠 Système de Ressources par Race
 
-### 🎯 Concept général
-
-Chaque race dispose de sa propre **carte-ressource**, incluse dans le deck principal (comme une carte normale) et piochée/posée au même titre que les autres cartes. Elle remplace la logique de mana générique unique par des **pools de ressource séparés par race**, donnant du poids stratégique au choix mono-race vs multi-race.
+Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) par des **pools de ressource séparés par race**, alimentés par une carte-ressource dédiée à chaque race, posée dans une **zone du plateau qui lui est propre** — distincte des rangées Avant/Arrière et des zones Rituel/Enchantement. Donne du poids stratégique au choix mono-race vs multi-race.
 
 ### 🏷️ Nommage par race
 
-| Race | Ressource |
-|---|---|
-| Mort-Vivant | **Âme** |
-| Humain | **Sceau** |
-| Démon | **Pacte** |
-| Abomination | **Anomalie** |
+| Race | Ressource | Carte |
+|---|---|---|
+| Mort-Vivant | **Âme** | Éclat d'Âme (`resources/cards/undead/soul-shard.tres`) |
+| Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
+| Démon | **Pacte** | Fragment de Pacte (`resources/cards/demon/pact-fragment.tres`) |
+| Abomination | **Anomalie** | Éclat d'Anomalie — documentée dans `CARDS.md`, pas encore de support moteur (race non commencée) |
 
-*(Abomination : race en cours de conception, identité mécanique orientée mutation/instabilité — nom choisi en écho à cette identité.)*
+### 🃏 Zone de ressource et pose
 
-### 🃏 Fonctionnement de la carte-ressource
+- Chaque camp a sa **propre zone de ressource** sur le plateau (`PlayerResourceZone`/`EnemyResourceZone` dans `Battle.tscn`, symétrique aux zones Rituel/Enchantement mais sur le côté opposé du plateau) : les cartes-ressource posées y restent visibles individuellement, la zone se resserre pour en accumuler plusieurs sans jamais déborder (même logique de compression que les zones Rituel/Enchantement, voir `EnchantmentSystem._relayout`).
+- Poser une carte-ressource est une **action à part** : elle ne consomme pas le droit de jouer une carte normale ce tour-ci, mais est limitée à **une carte-ressource par tour et par camp** (`Battle.resource_played_this_turn`), remis à zéro à chaque début de tour.
+- Carte-ressource : coût 0, aucun effet propre autre que **+1 (actuel et maximum) au pool de sa race** à la pose (`Battle.play_resource_card`) — purement visuelle et comptable côté `EnchantmentSystem` (zones/listes `player_resources`/`enemy_resources`), sans trigger ni activation.
+- Comme pour les Rituels/Enchantements, la carte reste ciblable/comptable dès la base technique pour de futures interactions (compter le nombre en jeu, cibler/détruire une ressource adverse, convertir une ressource d'une race à l'autre) même si aucune carte normale n'exploite encore ces effets.
 
-- Carte incluse dans le **deck principal**, au choix du joueur à la création du deck (pas de zone séparée, pas de pioche annexe).
-- Posée manuellement comme une carte classique (drag & drop existant, `DropSystem` inchangé).
-- Effet de base : **+1 au pool de sa race** à la pose.
-- **Pas d'effet supplémentaire sur la carte-ressource elle-même pour l'instant** — la richesse thématique par race est reportée sur les cartes normales, qui pourront à terme interagir avec les ressources en jeu (compter le nombre en jeu, cibler/détruire une ressource adverse, convertir une ressource d'une race à l'autre). Nécessite que les cartes-ressource soient ciblables/comptables dès la base technique, même sans effet actif au départ.
+### 🔄 Début de tour : plus de choix Mana/Pioche
 
-### ⚖️ Nombre de cartes-ressource dans le deck
+Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSystem._begin_player_turn` recharge automatiquement les pools de ressource du camp à leur maximum (`Battle.refill_mana_pool`) puis pioche une carte, sans décision du joueur. Le mana temporaire hors-race (effet `GainMana`, ex. Vortex des Âmes) reste possible via un bucket générique qui n'est jamais rechargé au tour suivant — donc bien perdu comme avant. Symétrique côté IA (`AISystem._start_of_turn_phase`) et côté réseau (mirroring via `TURN_START`, plus besoin de la commande `TURN_CHOICE` supprimée du protocole).
 
-- **Minimum : 10 cartes-ressource** par deck, obligatoire.
-- **Pas de maximum.**
-- Le deckbuilder **suggère** un nombre basé sur le coût moyen des cartes du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+### ⚖️ Composition du deck
+
+- **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
+- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
+- Les cartes-ressource sont **exemptées de la limite de 4 copies** (`MAX_COPIES_PER_CARD`) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum.
+- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
 ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Formule de départ à calibrer en playtest — dépend de la taille réelle du deck, à confirmer dans `CLAUDE.md`.)*
-
-- La suggestion totale se **répartit par race proportionnellement** au nombre de cartes de chaque race dans le deck (ex: deck 15 Mort-Vivant / 5 Démon → répartition Âme/Pacte environ 3:1).
-- Le joueur peut ajuster manuellement au-dessus du minimum de 10, sans plafond.
+*(Non encore implémenté dans l'UI — seule la validation des deux minimums l'est.)*
 
 ### 💰 Coût des cartes : race-locked + générique
 
-Chaque carte de race a un coût scindé en deux parts, calculées à la volée depuis `CardData.cost` + `CardData.rarity` (aucune migration des ressources `.tres` existantes) :
+Chaque carte de race a un coût scindé en deux parts, calculées à la volée par `CostSystem` depuis `CardData.cost` + `CardData.rarity` (aucune migration des ressources `.tres` existantes) :
 
-- **`race_cost`** : payé uniquement depuis le pool de la race de la carte.
-- **`generic_cost`** : payable depuis n'importe quel pool ayant du surplus.
+- **`race_cost`** (`CostSystem.get_race_cost`) : payé uniquement depuis le pool de la race de la carte.
+- **`generic_cost`** (`CostSystem.get_generic_cost`) : payable depuis n'importe quel pool ayant du surplus, race de la carte comprise.
 
 | Rareté | % du coût verrouillé en ressource de race |
 |---|---|
@@ -821,23 +818,23 @@ Chaque carte de race a un coût scindé en deux parts, calculées à la volée d
 | Épique | 70% |
 | Légendaire | 85% |
 
-Formule : `race_cost = max(1, arrondi(coût × %))` — garantit qu'aucune carte de race n'est jouable "gratuitement" hors de sa race, même à 1⬡.
+Formule : `race_cost = clamp(arrondi(coût effectif × %), 1, coût effectif)` — garantit qu'aucune carte de race n'est jouable "gratuitement" hors de sa race, même à 1⬡ (sauf coût déjà réduit à 0 par une remise).
 
-Override possible via un champ optionnel `CardData.race_cost_override` pour déroger à la formule automatique sur une carte précise.
+Override possible via le champ `CardData.race_cost_override` (-1 = formule automatique) pour déroger à la formule sur une carte précise.
 
-### 🧩 Impact technique (résumé)
+### 🧩 Impact technique (implémenté)
 
-- Nouveau type `CardData` : **Ressource**.
-- Mana `int` unique → `Dictionary` par race (pools séparés) côté tracking du héros.
-- `CostSystem`/`Battle.get_card_cost` : calcul `race_cost`/`generic_cost` à la volée, vérification des deux conditions de paiement.
-- `DeckManager` : calcul et affichage de la suggestion de nombre de ressources, validation du minimum de 10.
-- `AISystem` : deck IA à construire avec le même ratio (actuellement 20 Mort-Vivants aléatoires sans ressource).
-- Aucun nouveau flux réseau majeur : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant.
+- Nouveau type `CardData` : **Resource** (`card_type`), coût 0, sans stats.
+- Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
+- `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
+- `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
+- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Éclat d'Âme), pose d'une ressource par tour avant sa phase de jeu normale.
+- Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
-### 📋 Points encore à trancher
+### 📋 Points encore ouverts
 
-1. Taille réelle du deck (nécessaire pour calibrer précisément la formule de suggestion).
+1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
-4. Calibrage fin de la formule de suggestion en playtest (coefficients 15%/45%/6% à ajuster).
-5. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée.
+4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

@@ -20,7 +20,7 @@ class_name SteamTransport
 #   La partie démarre quand un second membre entre dans le lobby ET que sa
 #   connexion P2P entrante est acceptée.
 # - join() : rejoint un lobby précis ({"lobby_id": int}) ou, sans id, cherche
-#   le premier lobby FateBound ouvert (partie rapide), puis ouvre la connexion
+#   le premier lobby Wyrdane ouvert (partie rapide), puis ouvre la connexion
 #   P2P vers l'hôte.
 #
 # Comme pour ENet, aucun identifiant Steam (SteamID64, lobby id) ne fuit hors
@@ -74,7 +74,7 @@ func join(params: Dictionary) -> int:
 		_steam.joinLobby(lobby_id)
 		status.emit("Steam : rejoint le lobby %d…" % lobby_id)
 	else:
-		# Partie rapide : premier lobby FateBound disponible. Sans filtre de
+		# Partie rapide : premier lobby Wyrdane disponible. Sans filtre de
 		# distance, Steam ne renvoie que les lobbies « proches » — deux joueurs
 		# éloignés ne se trouvaient pas. On force la portée mondiale.
 		_steam.addRequestLobbyListStringFilter(LOBBY_GAME_KEY, LOBBY_GAME_VALUE, 0)  # 0 = égalité

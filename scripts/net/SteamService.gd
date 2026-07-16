@@ -13,7 +13,7 @@ class_name SteamService
 # 2. Extraire le dossier `addons/godotsteam/` à la racine du projet
 # 3. Lancer le client Steam et être connecté
 # 4. L'AppID de test 480 (Spacewar) est utilisé par défaut ci-dessous —
-#    à remplacer par le vrai AppID FateBound une fois la page Steam créée
+#    à remplacer par le vrai AppID Wyrdane une fois la page Steam créée
 #
 # ⚠ Le backend Steam NE PEUT PAS se tester avec deux instances locales du jeu :
 # elles partagent le même compte Steam, or les lobbies/P2P Steamworks exigent

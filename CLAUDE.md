@@ -1,10 +1,10 @@
 # CLAUDE.md
 
-Ce fichier fournit le contexte du projet à Claude Code pour travailler efficacement sur FateBound.
+Ce fichier fournit le contexte du projet à Claude Code pour travailler efficacement sur Wyrdane.
 
 ## Vue d'ensemble
 
-**FateBound** est un TCG (jeu de cartes à collectionner) dark fantasy compétitif 1v1, développé sous **Godot 4** en **GDScript**. Deux joueurs s'affrontent pour réduire le héros adverse à 0 HP, avec un système de deux rangées positionnelles (Avant/Arrière) par joueur.
+**Wyrdane** est un TCG (jeu de cartes à collectionner) dark fantasy compétitif 1v1, développé sous **Godot 4** en **GDScript**. Deux joueurs s'affrontent pour réduire le héros adverse à 0 HP, avec un système de deux rangées positionnelles (Avant/Arrière) par joueur.
 
 Documentation complète des règles : voir `README.md`.
 Liste complète des cartes : voir `CARDS.md`.
@@ -31,7 +31,7 @@ Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. T
 
 ```
 scenes/
-├── battle/          # Scène de bataille + panneau choix Mana/Pioche
+├── battle/          # Scène de bataille
 ├── card/            # Affichage d'une carte (+ cartes enchantement)
 ├── deck/            # Deck builder et liste des decks
 ├── graveyard/       # Vue du cimetière
@@ -76,6 +76,10 @@ Autoloads globaux (voir `project.godot`) :
 - **Éphémère** — sort à effet immédiat, jeté et défaussé
 - **Rituel** — sort persistant doté de X charges ; chaque charge est consommée uniquement lorsque son trigger se déclenche réellement (et non passivement à chaque tour). Détruit quand ses charges sont épuisées. Décrément géré par `TriggerSystem._consume_ritual_charge`
 - **Enchantement** — effet passif permanent jusqu'à destruction
+- **Ressource** — carte de race (coût 0), posée dans une zone dédiée du plateau (hors rangées/Rituels/Enchantements) ; +1 (actuel et max) au pool de mana de sa race. Une seule par tour et par camp. Voir « Système de Ressources par Race » ci-dessous.
+
+### Système de Ressources par Race
+Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Éclat d'Âme / Sceau du Royaume / Fragment de Pacte) dans la zone dédiée du camp (`PlayerResourceZone`/`EnemyResourceZone`). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
 
 ### Positionnement (lane types)
 - ⚔️ Avant / 🛡️ Arrière / ↕️ Hybride (au choix du joueur)
@@ -100,7 +104,7 @@ Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`u
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
-- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), main et mana. Tour automatique en 3 phases : ressource (mana ou pioche), pose de cartes (serviteurs, sorts, rituels, enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
+- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`), main et pools de mana par race. Tour automatique en 3 phases : début de tour (recharge des pools + pioche automatique), pose de cartes (une ressource par tour puis serviteurs/sorts/rituels/enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
 - **`NetworkOpponent`** (`scripts/net/NetworkOpponent.gd`, mode réseau) — ne décide rien : rejoue localement, dans l'ordre, les commandes reçues du joueur distant jusqu'à `END_TURN`.
 
 Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendant le tour adverse.
@@ -109,7 +113,7 @@ Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendan
 Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque client émet ses actions (`NetEmitter`) et rejoue celles du pair distant — pas de serveur d'autorité.
 - **Transport** : interface `NetTransport`, deux implémentations créées par `TransportFactory` : `ENetTransport` (P2P hôte/client, IP directe ou LAN) et `SteamTransport` (lobby Steam + P2P Steamworks via l'extension GodotSteam — optionnelle, détectée à l'exécution par `SteamService`, instructions d'installation dans son en-tête). `NetworkManager` orchestre : connexion, sérialisation `var_to_bytes` (types de base uniquement, jamais d'objets arbitraires), routage des commandes.
 - **Entrée en jeu** : `scenes/net/NetLobby.tscn` (Héberger / Rejoindre par IP) → handshake `NetHandshake` (échange des decks, graine RNG partagée, premier joueur) → les deux clients basculent sur `Battle.tscn` ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
-- **Protocole** : vocabulaire dans `NetCommand.gd` (`PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE`, `END_TURN`, `TURN_START`, `HELLO`). Une carte est désignée par son `resource_path`, un serviteur par un `net_id` stable attribué par `NetRegistry`.
+- **Protocole** : vocabulaire dans `NetCommand.gd` (`PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO`). `PLAY_CARD` sert aussi à poser une carte-ressource (`row = "Resource"`). Une carte est désignée par son `resource_path`, un serviteur par un `net_id` stable attribué par `NetRegistry`.
 - **Déterminisme** : RNG de jeu partagée (seed du handshake) pour que les effets aléatoires donnent le même résultat des deux côtés ; les triggers de début/fin de tour (Éveil/Déclin, infection) sont synchronisés.
 - La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
 
@@ -121,11 +125,10 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Lorsqu'une décision est demandée au joueur, celui-ci doit conserver l'accès aux informations nécessaires pour prendre cette décision.
 - Éviter les fenêtres qui masquent complètement le plateau ou la main lorsque ces éléments sont utiles à la décision.
 
-### Choix Mana ou Pioche
+### Zone de ressource
 
-- Lorsqu'un choix Mana/Pioche est affiché, le plateau est légèrement assombri.
-- La main reste visible afin que le joueur puisse consulter ses cartes avant de choisir.
-- Les cartes de la main restent non interactives pendant ce choix.
+- Chaque camp a sa propre zone de ressource sur le plateau (hors rangées/Rituels/Enchantements), symétrique aux zones Rituel/Enchantement mais du côté opposé.
+- Les cartes-ressource posées y restent visibles individuellement ; la zone se resserre pour en accumuler plusieurs sans jamais déborder du cadre (même logique que les zones Rituel/Enchantement).
 
 ## Internationalisation (i18n)
 
@@ -176,7 +179,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 3 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
 - ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents

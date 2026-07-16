@@ -31,8 +31,8 @@ func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_s
 		clear_player_drop_highlight()
 		return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
 
-	# Rituel / Enchantement : on surligne leur zone dédiée, pas les rangées de serviteurs
-	if card_type == "Ritual" or card_type == "Enchantment":
+	# Rituel / Enchantement / Ressource : on surligne leur zone dédiée, pas les rangées de serviteurs
+	if card_type == "Ritual" or card_type == "Enchantment" or card_type == "Resource":
 		return _update_zone_drop_highlight(card_data, mouse, display_show)
 
 	_ensure_drop_highlights()
@@ -93,7 +93,7 @@ func _ensure_zone_highlights() -> void:
 	if board == null:
 		push_error("DropSystem: nœud 'Board' introuvable, les highlights de zone ne seront pas créés.")
 		return
-	for zone_type in ["Ritual", "Enchantment"]:
+	for zone_type in ["Ritual", "Enchantment", "Resource"]:
 		var panel: Panel = Panel.new()
 		panel.name         = "Player%sZoneDropHighlight" % zone_type
 		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -118,6 +118,8 @@ func _get_player_zone_for(card_type: String) -> Control:
 		return battle.player_ritual_zone as Control
 	if card_type == "Enchantment":
 		return battle.player_enchantment_zone as Control
+	if card_type == "Resource":
+		return battle.player_resource_zone as Control
 	return null
 
 func _ensure_drop_highlights() -> void:
@@ -160,9 +162,9 @@ func _fit_drop_highlight_to(row_container: Control, panel: Control) -> void:
 # ─── Drop row / index ─────────────────────────────────────────────────────────
 
 func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
-	# Rituel / Enchantement : leur zone dédiée est aussi une cible de drop valide
-	# (la valeur de rangée est ignorée pour les sorts persistants)
-	if card_data != null and (card_data.card_type == "Ritual" or card_data.card_type == "Enchantment"):
+	# Rituel / Enchantement / Ressource : leur zone dédiée est aussi une cible de
+	# drop valide (la valeur de rangée est ignorée pour ces types)
+	if card_data != null and card_data.card_type in ["Ritual", "Enchantment", "Resource"]:
 		var zone: Control = _get_player_zone_for(card_data.card_type)
 		if zone != null and zone.get_global_rect().has_point(mouse):
 			return battle.ROW_FRONT
