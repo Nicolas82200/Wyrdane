@@ -8,7 +8,9 @@ extends Control
 #
 # Si l'extension GodotSteam est présente (voir SteamService), une seconde rangée
 # propose le backend Steam : « Héberger (Steam) » crée un lobby public tagué
-# Wyrdane, « Partie rapide (Steam) » rejoint le premier lobby trouvé.
+# Wyrdane, « Partie rapide (Steam) » est un vrai matchmaking : elle cherche un
+# lobby existant et, si aucun n'est trouvé, héberge automatiquement à la place
+# (le joueur n'a qu'un bouton à presser, pas besoin de coordonner qui héberge).
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
@@ -17,6 +19,7 @@ var _net: NetworkManager
 var _handshake: NetHandshake
 var _log: RichTextLabel
 var _ip_field: LineEdit
+var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -79,14 +82,17 @@ func _log_line(text: String) -> void:
 # ─── Actions UI ───────────────────────────────────────────────────────────────
 
 func _on_host_pressed() -> void:
+	_quick_matching = false
 	var err := _net.host_game()
 	_log_line("Héberge sur le port %d (err=%d)" % [NetTransport.DEFAULT_PORT, err])
 
 func _on_join_pressed() -> void:
+	_quick_matching = false
 	var err := _net.join_game(_ip_field.text)
 	_log_line("Rejoint %s (err=%d)" % [_ip_field.text, err])
 
 func _on_steam_host_pressed() -> void:
+	_quick_matching = false
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
@@ -94,10 +100,12 @@ func _on_steam_host_pressed() -> void:
 		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 
 func _on_steam_quick_pressed() -> void:
+	_quick_matching = true
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_log_line(SettingsManager.t("NET_STEAM_SEARCHING"))
 	else:
+		_quick_matching = false
 		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 
 func _on_back_pressed() -> void:
@@ -109,6 +117,7 @@ func _on_back_pressed() -> void:
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
 func _on_peer_connected() -> void:
+	_quick_matching = false
 	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
 	_log_line("✓ Pair connecté — handshake…")
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
@@ -120,11 +129,27 @@ func _on_peer_connected() -> void:
 func _on_peer_disconnected(reason: String) -> void:
 	match reason:
 		"steam_same_account":
+			_quick_matching = false
 			_log_line(SettingsManager.t("NET_STEAM_SAME_ACCOUNT"))
 		"steam_no_lobby_found":
-			_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY"))
+			if _quick_matching:
+				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY_HOSTING"))
+				_start_quick_match_host()
+			else:
+				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY"))
 		_:
+			_quick_matching = false
 			_log_line("✗ Pair déconnecté (%s)" % [reason])
+
+# Partie rapide sans adversaire trouvé : on héberge à la place plutôt que de
+# laisser le joueur relancer manuellement (voir _on_steam_quick_pressed).
+func _start_quick_match_host() -> void:
+	_quick_matching = false
+	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
+	if err == OK:
+		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+	else:
+		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 
 # Deck local mélangé, sous forme de resource_path (identifiant partagé).
 func _local_deck_paths() -> Array:

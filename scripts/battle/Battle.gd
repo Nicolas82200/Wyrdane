@@ -42,6 +42,8 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_enchantment_zone: HBoxContainer     = $Board/EnemyEnchantmentZone
 @onready var player_ritual_zone: HBoxContainer         = $Board/PlayerRitualZone
 @onready var enemy_ritual_zone: HBoxContainer          = $Board/EnemyRitualZone
+@onready var player_resource_zone: HBoxContainer       = $Board/PlayerResourceZone
+@onready var enemy_resource_zone: HBoxContainer        = $Board/EnemyResourceZone
 @onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
 @onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
 @onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
@@ -54,7 +56,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
-@onready var turn_choice_panel                         = $TurnChoicePanel
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -115,8 +116,13 @@ var pending_insert_index: int    = -1
 var waiting_for_target: bool     = false
 var deck: Array[CardData]        = []
 var hand_cards: Array[CardData]  = []
-var mana: int                    = 1
-var max_mana: int                = 1
+# Pools de ressource par race (clé = Race.Type). Alimentés uniquement en jouant
+# une carte-ressource (Âme/Sceau/Pacte...) dans sa zone dédiée — voir
+# `play_resource_card` et README « Système de Ressources par Race ».
+var race_mana: Dictionary        = {}
+var race_max_mana: Dictionary    = {}
+# Une seule carte-ressource jouable par tour et par camp (comme un "land drop").
+var resource_played_this_turn: Dictionary = {true: false, false: false}
 var player_hero: Hero
 var enemy_hero: Hero
 var game_over: bool              = false
@@ -180,8 +186,6 @@ func _init_systems() -> void:
 	sacrifice_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
-	# Sous TurnChoicePanel : la bannière ne masque jamais un panneau de décision.
-	move_child(turn_banner, turn_choice_panel.get_index())
 	combat_log.init(self)
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
@@ -235,8 +239,6 @@ func _connect_signals() -> void:
 	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
-	turn_choice_panel.draw_selected.connect(_on_draw_selected)
-	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
 	settings_menu.concede_requested.connect(_on_quit_match)
@@ -358,7 +360,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	# Raccourcis clavier (fin de tour, choix mana/pioche, cimetières, Échap)
+	# Raccourcis clavier (fin de tour, cimetières, Échap)
 	if _handle_shortcut(event):
 		get_viewport().set_input_as_handled()
 		return
@@ -378,20 +380,9 @@ func _handle_shortcut(event: InputEvent) -> bool:
 	if event.is_action_pressed("ui_cancel"):
 		return _handle_cancel()
 
-	# Choix mana/pioche : uniquement quand le panneau attend une décision
-	if event.is_action_pressed("choose_mana"):
-		if turn_choice_panel.is_active():
-			turn_choice_panel.select_mana()
-		return true
-	if event.is_action_pressed("choose_draw"):
-		if turn_choice_panel.is_active():
-			turn_choice_panel.select_draw()
-		return true
-
-	# Fin de tour : neutralisée tant qu'un choix de début de tour est en attente
+	# Fin de tour
 	if event.is_action_pressed("end_turn"):
-		if not turn_choice_panel.is_active():
-			_on_end_turn_pressed()
+		_on_end_turn_pressed()
 		return true
 
 	if event.is_action_pressed("toggle_graveyard"):
@@ -460,20 +451,67 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 	await get_tree().create_timer(delay).timeout
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
+# Un pool par race (voir README « Système de Ressources par Race ») : plus de
+# mana générique unique. `race_mana`/`race_max_mana` appartiennent au joueur ;
+# `opponent.race_mana`/`opponent.race_max_mana` au camp adverse (IA ou réseau).
+
+func race_mana_pool(is_player: bool) -> Dictionary:
+	return race_mana if is_player else opponent.race_mana
+
+func race_max_mana_pool(is_player: bool) -> Dictionary:
+	return race_max_mana if is_player else opponent.race_max_mana
+
+func total_mana(is_player: bool = true) -> int:
+	var total := 0
+	for v in race_mana_pool(is_player).values():
+		total += int(v)
+	return total
+
+func total_max_mana(is_player: bool = true) -> int:
+	var total := 0
+	for v in race_max_mana_pool(is_player).values():
+		total += int(v)
+	return total
+
+# Recharge le pool courant de chaque race à son maximum (début de tour) et
+# efface tout mana temporaire hors-race (GainMana) : "le surplus non dépensé
+# est perdu au tour suivant" (Vortex des Âmes).
+func refill_mana_pool(is_player: bool = true) -> void:
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	pool.clear()
+	for r in max_pool:
+		pool[r] = max_pool[r]
 
 func update_mana_ui() -> void:
-	mana_display.set_mana(mana, max_mana)
+	mana_display.set_mana(total_mana(true), total_max_mana(true))
 	update_end_turn_hint()
 
 func update_enemy_mana_ui() -> void:
-	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
+	enemy_mana_display.set_mana(total_mana(false), total_max_mana(false))
 
 func update_enemy_hand_ui() -> void:
 	enemy_hand_display.set_count(opponent.get_hand_count())
 
-func _pay_mana(cost: int) -> void:
-	mana -= cost
-	update_mana_ui()
+# Pose d'une carte-ressource dans sa zone dédiée : +1 (actuel et max) au pool de
+# sa race, action à part qui ne consomme pas le droit de jouer une carte
+# normale mais limitée à une par tour et par camp.
+func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
+	if resource_played_this_turn.get(is_player, false):
+		return
+	resource_played_this_turn[is_player] = true
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	max_pool[card_data.race] = int(max_pool.get(card_data.race, 0)) + 1
+	pool[card_data.race]     = int(pool.get(card_data.race, 0)) + 1
+	enchantment_system.add_resource(card_data, is_player)
+	combat_log.card_played(card_data, is_player)
+	if is_player:
+		update_mana_ui()
+		mana_display.pulse_max()
+	else:
+		update_enemy_mana_ui()
+		enemy_mana_display.pulse_max()
 
 # ─── Serviteurs ───────────────────────────────────────────────────────────────
 
@@ -537,7 +575,7 @@ func destroy_minion(target: Minion) -> void:
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or enemy_turn_active or get_card_cost(card_data) > mana:
+	if game_over or enemy_turn_active or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
 	if sacrifice_system.is_active():
@@ -571,10 +609,8 @@ func _on_end_turn_pressed() -> void:
 	turn_system.end_turn()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
-# quelle (comme un clic sur "Commencer"). En tour normal, résout le choix
-# Mana/Pioche s'il est encore en attente (la Mana est le choix par défaut,
-# sans perte d'information contrairement à la Pioche qui révèle une carte),
-# puis termine le tour comme un clic normal.
+# quelle (comme un clic sur "Commencer"). En tour normal, termine le tour
+# comme un clic normal sur Fin du tour.
 func _on_turn_timer_timeout() -> void:
 	if game_over:
 		return
@@ -583,10 +619,7 @@ func _on_turn_timer_timeout() -> void:
 		return
 	if enemy_turn_active:
 		return
-	if turn_choice_panel.is_active():
-		turn_choice_panel.select_mana()
-	else:
-		turn_system.end_turn()
+	turn_system.end_turn()
 
 # Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
 # Fin de tour et bannière de transition. Appelé par AISystem / NetworkOpponent.
@@ -648,7 +681,7 @@ func update_end_turn_hint() -> void:
 	end_turn_button.set_ready_hint(_player_has_no_actions())
 
 func _player_has_no_actions() -> bool:
-	if game_over or enemy_turn_active or turn_choice_panel.is_active():
+	if game_over or enemy_turn_active:
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -665,15 +698,6 @@ func _retranslate_battle() -> void:
 		return
 	var key := "battle.enemy_turn" if enemy_turn_active else "battle.end_turn"
 	end_turn_button.text = SettingsManager.t(key)
-
-func draw_card() -> void:
-	turn_system.draw_card()
-
-func _on_draw_selected() -> void:
-	turn_system.choose_draw()
-
-func _on_mana_selected() -> void:
-	turn_system.choose_mana()
 
 # ─── Cimetière ────────────────────────────────────────────────────────────────
 
@@ -724,7 +748,11 @@ func get_card_cost(card_data: CardData) -> int:
 	return cost_system.get_cost(card_data, true)
 
 func can_afford_card(card_data: CardData) -> bool:
-	return card_data != null and mana >= get_card_cost(card_data)
+	if card_data == null:
+		return false
+	if card_data.card_type == "Resource":
+		return not resource_played_this_turn.get(true, false)
+	return cost_system.can_afford(card_data, true)
 
 # Jouabilité complète : mana + conditions du sort (cibles valides, cimetière...)
 func can_play_card(card_data: CardData) -> bool:
