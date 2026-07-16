@@ -18,7 +18,7 @@ const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
 # Preview agrandie affichée au survol (façon board/main), à la place du léger
 # zoom en place — évite le chevauchement des cartes voisines de la grille.
-const PREVIEW_SCALE := Vector2(1.35, 1.35)
+const PREVIEW_SCALE := Vector2(1.15, 1.15)
 
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
@@ -710,22 +710,23 @@ func _position_hover_tooltips() -> void:
 	var wrapper := _hovered_wrapper
 	if wrapper == null or not is_instance_valid(wrapper):
 		return
-
 	var vp := get_viewport_rect().size
 	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
 	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
 
-	# Preview centrée sur la carte survolée, au-dessus si la place le permet
-	# (sinon en dessous), pour ne jamais masquer le curseur du joueur.
-	var preview_x: float = clampf(
-		wrapper_center.x - preview_size.x / 2.0, 4.0, vp.x - preview_size.x - 4.0)
-	var preview_y: float = wrapper.global_position.y - preview_size.y - 12.0
-	if preview_y < 4.0:
-		preview_y = wrapper.global_position.y + wrapper.size.y + 12.0
-	card_preview.global_position = Vector2(preview_x, preview_y)
+	# Preview centrée verticalement sur la carte survolée, à droite si la
+	# place le permet (sinon à gauche), pour ne jamais masquer le curseur.
+	var preview_y: float = clampf(
+		wrapper_center.y - preview_size.y / 2.0, 4.0, vp.y - preview_size.y - 4.0)
+	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
+	if preview_x + preview_size.x > vp.x - 4.0:
+		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
+	card_preview.global_position = Vector2(preview_x, preview_y)
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
+
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
@@ -734,7 +735,6 @@ func _position_hover_tooltips() -> void:
 			px = card_preview.global_position.x - panel.size.x - 12.0
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
-
 	if _race_tooltip != null and is_instance_valid(_race_tooltip):
 		var rx: float = clampf(
 			card_center.x - _race_tooltip.size.x / 2.0,
@@ -743,7 +743,6 @@ func _position_hover_tooltips() -> void:
 		if ry + _race_tooltip.size.y > vp.y:
 			ry = card_preview.global_position.y - _race_tooltip.size.y - 4.0
 		_race_tooltip.global_position = Vector2(rx, ry)
-
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):
 		_max_tooltip.global_position = \
 			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
