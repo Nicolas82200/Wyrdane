@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://cfxvpnioqnwb7"
+=======
+uid="uid://csq7gq8ddmuf7"
+>>>>>>> dev
 path="res://.godot/imported/borrowed-skin.jpg-80bb6828ae2ccdd9d0b42f851e7c7c07.ctex"
 metadata={
 "vram_texture": false

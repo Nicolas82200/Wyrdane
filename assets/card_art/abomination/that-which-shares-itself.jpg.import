@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://ddj7ve4nayodm"
+=======
+uid="uid://rsm0x8y3dhgv"
+>>>>>>> dev
 path="res://.godot/imported/that-which-shares-itself.jpg-03a5c41e2248c89494b17ad8866562bc.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://dm77hdoqru1d0"
+=======
+uid="uid://djoscbw56iqhl"
+>>>>>>> dev
 path="res://.godot/imported/mount-and-rider-as-one.jpg-1edf89c620939253cca3024c356c50ea.ctex"
 metadata={
 "vram_texture": false

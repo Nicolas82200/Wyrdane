@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://bqvivl5jeqjkk"
+=======
+uid="uid://5u1m4s0beffa"
+>>>>>>> dev
 path="res://.godot/imported/bottomless-hunger.jpg-66afe2b8efc4d8587ba8344fb830a2c1.ctex"
 metadata={
 "vram_texture": false

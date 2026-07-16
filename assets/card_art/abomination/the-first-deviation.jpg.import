@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://d0s3ypfu16ju5"
+=======
+uid="uid://dg4dwgbmo471f"
+>>>>>>> dev
 path="res://.godot/imported/the-first-deviation.jpg-55b7c46b6b7b19f58313e139740b67dd.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://cthljsqg32iev"
+=======
+uid="uid://4jc45c5d5iao"
+>>>>>>> dev
 path="res://.godot/imported/shadow-of-many-bodies.jpg-37c2fa330e01528ea131fa2c6da232a2.ctex"
 metadata={
 "vram_texture": false

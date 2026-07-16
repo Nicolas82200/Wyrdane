@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://jls8f40xv1d6"
+=======
+uid="uid://ce4sy2040buxp"
+>>>>>>> dev
 path="res://.godot/imported/great-return-in-another-form.jpg-aef7a37af66e11f189a6b15c9dd48b34.ctex"
 metadata={
 "vram_texture": false

@@ -16,7 +16,7 @@ class_name SteamTransport
 # n'est émis qu'une fois la connexion P2P RÉELLEMENT établie — plus une
 # simple présomption basée sur la présence dans le lobby.
 #
-# - host() : crée un lobby public tagué "fatebound" ET un socket d'écoute P2P.
+# - host() : crée un lobby public tagué "wyrdane" ET un socket d'écoute P2P.
 #   La partie démarre quand un second membre entre dans le lobby ET que sa
 #   connexion P2P entrante est acceptée.
 # - join() : rejoint un lobby précis ({"lobby_id": int}) ou, sans id, cherche

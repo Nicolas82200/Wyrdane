@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://dtjd5jgfrx0v0"
+=======
+uid="uid://rvhic1dpns5"
+>>>>>>> dev
 path="res://.godot/imported/molten-armor.jpg-5b302fb5db25061fa570fa6ec6e41be9.ctex"
 metadata={
 "vram_texture": false

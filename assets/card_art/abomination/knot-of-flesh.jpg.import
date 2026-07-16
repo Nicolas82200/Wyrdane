@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://oj0bigjwfep6"
+=======
+uid="uid://cwmhynbm1ts1r"
+>>>>>>> dev
 path="res://.godot/imported/knot-of-flesh.jpg-ddd573d232272c7935c8bf99b8d37f2b.ctex"
 metadata={
 "vram_texture": false

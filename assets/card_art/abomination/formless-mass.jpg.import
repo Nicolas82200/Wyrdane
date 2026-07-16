@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://cfw8w1jiipkb8"
+=======
+uid="uid://uuy7jmvg6uhm"
+>>>>>>> dev
 path="res://.godot/imported/formless-mass.jpg-a3841c19ce08714b88ef7c256dff74c3.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://ctqy4wt5etlcu"
+=======
+uid="uid://caljm7eak1dfc"
+>>>>>>> dev
 path="res://.godot/imported/detached-gaze.jpg-e9937c4418ed4d0a1708607aa4da1433.ctex"
 metadata={
 "vram_texture": false
