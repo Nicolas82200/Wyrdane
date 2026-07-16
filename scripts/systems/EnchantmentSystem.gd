@@ -5,6 +5,8 @@ var player_enchantments: Array[CardData] = []
 var enemy_enchantments:  Array[CardData] = []
 var player_rituals: Array[CardData] = []
 var enemy_rituals:  Array[CardData] = []
+var player_resources: Array[CardData] = []
+var enemy_resources:  Array[CardData] = []
 
 const ENCHANTMENT_CARD_SCENE = preload("res://scenes/card/enchantment/EnchantmentCard.tscn")
 
@@ -22,11 +24,15 @@ func init(_battle) -> void:
 # chacun sa bande (colonne de droite du board, façon lignes de serviteurs).
 
 func _zone_for(card_data: CardData, is_player: bool) -> HBoxContainer:
+	if card_data.card_type == "Resource":
+		return battle.player_resource_zone if is_player else battle.enemy_resource_zone
 	if card_data.card_type == "Ritual":
 		return battle.player_ritual_zone if is_player else battle.enemy_ritual_zone
 	return battle.player_enchantment_zone if is_player else battle.enemy_enchantment_zone
 
 func _list_for(card_data: CardData, is_player: bool) -> Array[CardData]:
+	if card_data.card_type == "Resource":
+		return player_resources if is_player else enemy_resources
 	if card_data.card_type == "Ritual":
 		return player_rituals if is_player else enemy_rituals
 	return player_enchantments if is_player else enemy_enchantments
@@ -39,6 +45,11 @@ func add_enchantment(card_data: CardData, is_player: bool) -> void:
 
 func add_ritual(card_data: CardData, is_player: bool, duration: int) -> void:
 	_add_card(card_data, is_player, duration)
+
+# Carte-ressource posée dans sa zone dédiée : purement visuelle, aucun trigger
+# ni activation (voir Battle.play_resource_card pour l'effet réel sur les pools).
+func add_resource(card_data: CardData, is_player: bool) -> void:
+	_add_card(card_data, is_player, 0)
 
 func _add_card(card_data: CardData, is_player: bool, duration: int) -> void:
 	var zone: HBoxContainer = _zone_for(card_data, is_player)

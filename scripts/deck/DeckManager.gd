@@ -3,9 +3,10 @@ extends Node
 
 const SAVE_PATH := "user://decks.cfg"
 
-# [NOTE] Vérifier laquelle est la bonne limite — DeckBuilder avait MAX_CARDS = 60
-# Ces constantes doivent être cohérentes entre DeckManager et DeckBuilder
-const MAX_CARDS_PER_DECK   := 60
+# Plus de plafond de taille de deck (voir README « Système de Ressources par
+# Race ») : seuls des MINIMUMS sont imposés (40 cartes jouables + 10 ressources,
+# validés par DeckBuilder). MAX_COPIES_PER_CARD ne s'applique pas aux cartes-
+# ressource : un deck a besoin de nombreux exemplaires de la même carte-ressource.
 const MAX_COPIES_PER_CARD  := 4
 
 var decks: Array[DeckData] = []
@@ -61,8 +62,8 @@ func add_deck(deck: DeckData) -> void:
 	save_decks()
 
 func can_add_card(deck: DeckData, card_data: CardData) -> bool:
-	if deck.size() >= MAX_CARDS_PER_DECK:
-		return false
+	if card_data.card_type == "Resource":
+		return true
 	var count := 0
 	for path in deck.card_paths:
 		if path == card_data.resource_path:

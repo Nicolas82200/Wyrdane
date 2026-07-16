@@ -100,10 +100,19 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
 
 func _process(delta: float) -> void:
+	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de
+	# serviteurs (HBoxContainer) se réorganise souvent (mort, invocation,
+	# placeholder de drop) sans que la souris ne bouge, ce qui ne redéclenche
+	# pas les signaux natifs de survol et laissait parfois le hover coincé.
+	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
+		and is_visible_in_tree() \
+		and get_global_rect().has_point(get_global_mouse_position())
+	if over and not _mouse_is_over:
+		_on_mouse_entered()
+	elif not over and _mouse_is_over:
+		_on_mouse_exited()
 	if _ready_glow != null and _ready_glow.visible:
 		_ready_pulse += delta * 2.5
 		_ready_style.border_color.a = 0.55 + sin(_ready_pulse) * 0.35

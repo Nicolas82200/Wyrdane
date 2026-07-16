@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://c1oul4rd003"]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" uid="uid://bhey3g5s4pddh" path="res://assets/card_art/resource/demon-resource.jpg" id="2_texture"]
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Fragment de Pacte"
+description = "Ajoute 1 Pacte à ta réserve Démoniaque. Une seule carte-ressource peut être posée par tour."
+flavour_text = "Une clause parmi tant d'autres. Elle aussi se paiera."
+texture = ExtResource("2_texture")
+cost = 0
+race = 5
+card_type = "Resource"
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
