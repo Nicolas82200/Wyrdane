@@ -20,6 +20,9 @@ func process_deaths(silent: Array = []) -> void:
 	if dead_all.is_empty():
 		processing_deaths = false
 		return
+	# VIRULENT (Abomination) : capture les cibles AVANT retrait du plateau, la
+	# recherche d'adjacence se fait sur les listes de serviteurs encore en jeu.
+	var virulent_adjacent: Array[Minion] = _collect_virulent_adjacent(dead_all)
 	await _animate_deaths(dead_all, silent)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
@@ -28,8 +31,12 @@ func process_deaths(silent: Array = []) -> void:
 	_send_to_graveyards(dead_player, dead_enemy)
 	await _trigger_deathrattle(dead_player)
 	await _trigger_deathrattle(dead_enemy)
+	for adjacent in virulent_adjacent:
+		if not adjacent.is_dead():
+			await battle.effect_manager.roll_mutation(battle, adjacent)
 	await _trigger_death_reactions(dead_player, true)
 	await _trigger_death_reactions(dead_enemy, false)
+	await _trigger_devoration(dead_all)
 	await _trigger_sacrifice(dead_player, true)
 	await _trigger_sacrifice(dead_enemy, false)
 	processing_deaths = false
@@ -109,6 +116,36 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 	for dead in dead_minions:
 		await battle.trigger_system.fire("OnGrief", dead, dead_were_player)
 	await battle.trigger_system.fire("OnCarnage", null, not dead_were_player)
+
+# VIRULENT (Abomination) : Dernier Souffle — le serviteur allié adjacent
+# déclenche immédiatement une mutation. Doit être calculé AVANT que les morts
+# ne soient retirées du plateau (l'adjacence se lit sur les listes en jeu).
+func _collect_virulent_adjacent(dead_minions: Array[Minion]) -> Array[Minion]:
+	var result: Array[Minion] = []
+	for dead in dead_minions:
+		if not dead.has_abomination_keyword(KeywordAbomination.Type.VIRULENT):
+			continue
+		for adjacent in battle.effect_manager._get_adjacent_minions(battle, dead):
+			result.append(adjacent)
+	return result
+
+# Dévoration (Abomination) : se déclenche quand N'IMPORTE QUEL serviteur meurt,
+# allié ou ennemi — contrairement à Deuil/Carnage qui sont scindés par camp.
+# ASSIMILATION (mot-clé) est traité ici en dur, sur le même modèle que
+# NÉCROPHAGE ci-dessus : +1/+1 permanent par vague de morts (pas par mort
+# individuelle, pour éviter qu'une mort groupée ne cumule démesurément).
+func _trigger_devoration(dead_minions: Array[Minion]) -> void:
+	if dead_minions.is_empty():
+		return
+	var survivors: Array[Minion] = battle.player_minions + battle.enemy_minions
+	for minion in survivors:
+		if minion.has_abomination_keyword(KeywordAbomination.Type.ASSIMILATION):
+			minion.base_attack     += 1
+			minion.base_max_health += 1
+	for minion in survivors:
+		await battle.effect_manager.trigger_effects(battle, minion, "OnDevoration")
+	await battle.trigger_system.fire("OnDevoration", null, true)
+	await battle.trigger_system.fire("OnDevoration", null, false)
 
 func _trigger_sacrifice(dead_minions: Array[Minion], dead_were_player: bool) -> void:
 	var sacrificed_ones: Array[Minion] = dead_minions.filter(func(m: Minion): return m.sacrificed)

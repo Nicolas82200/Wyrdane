@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://0qhheu5kw5xw" path="res://assets/card_art/abomination/song-of-distortion.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_a091"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+race_filter = "Abomination"
+value = 1
+duration = "UntilEndOfTurn"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_a092"]
+script = ExtResource("1_cardeffect")
+effect_id = "ApplyMutation"
+target = "AllAllies"
+race_filter = "Abomination"
+condition_type = "AlliesOfRaceInPlay"
+condition_race = "Abomination"
+condition_op = "GreaterOrEqual"
+condition_count = 5
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Chant Qui Déforme"
+description = "Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : elles mutent aussi immédiatement."
+flavour_text = "Un seul chant, mille chairs qui répondent en changeant de forme."
+texture = ExtResource("2_texture")
+cost = 3
+race = 6
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a091"), SubResource("Resource_a092")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

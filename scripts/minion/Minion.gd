@@ -28,6 +28,7 @@ var keywords: Array[int] = []
 var human_keywords: Array[int] = []
 var undead_keywords: Array[int] = []
 var demon_keywords: Array[int] = []
+var abomination_keywords: Array[int] = []
 var board_row: String = "Front"
 
 var formation_active: bool = false
@@ -46,6 +47,11 @@ var terror_turns: int = 0
 # Corruption (Démon) : marqueurs cumulables, chaque marqueur = -1 ATK permanent.
 # La perte d'ATK est appliquée sur base_attack au moment de la pose (apply_corruption).
 var corruption_stacks: int = 0
+# Mutation (Abomination) : nombre de mutations gagnées par ce serviteur, pour
+# l'affichage. Les effets des mutations (Croissance/Renforcement/Dégénérescence)
+# sont appliqués directement sur base_attack/base_max_health par roll_mutation.
+var mutation_stacks: int = 0
+var mutations: Array[String] = []
 # CHAIR MORTE, ou une immunité d'aura (Aegis de l'Empire), bloque toute pose
 # d'Infection quelle que soit la source
 var infected: bool = false:
@@ -73,6 +79,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	human_keywords    = data.get_human_keyword_values()
 	undead_keywords   = data.get_undead_keyword_values()
 	demon_keywords    = data.get_demon_keyword_values()
+	abomination_keywords = data.get_abomination_keyword_values()
 	# PACTE accorde ASSAUT (le coût en HP du héros est appliqué par BoardSystem à l'arrivée)
 	if has_demon_keyword(KeywordDemon.Type.PACTE):
 		add_keyword(Keyword.Type.CHARGE)
@@ -124,6 +131,8 @@ func take_damage(amount: int) -> int:
 	return before - health
 
 func heal(amount: int) -> void:
+	if is_heal_immune():
+		return
 	health = min(health + amount, max_health)
 
 func is_dead() -> bool:
@@ -163,6 +172,20 @@ func add_demon_keyword(keyword: int) -> void:
 
 func remove_demon_keyword(keyword: int) -> void:
 	demon_keywords.erase(keyword)
+
+func has_abomination_keyword(keyword: int) -> bool:
+	return keyword in abomination_keywords
+
+func add_abomination_keyword(keyword: int) -> void:
+	if keyword not in abomination_keywords:
+		abomination_keywords.append(keyword)
+
+func remove_abomination_keyword(keyword: int) -> void:
+	abomination_keywords.erase(keyword)
+
+# INSTABLE : ne peut pas être ciblé par des effets de soin, alliés ou ennemis.
+func is_heal_immune() -> bool:
+	return has_abomination_keyword(KeywordAbomination.Type.INSTABLE)
 
 # ─── Corruption / immunités Démon ─────────────────────────────────────────────
 

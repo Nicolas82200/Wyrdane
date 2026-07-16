@@ -43,6 +43,15 @@ const KEYWORD_DEMON_DESCRIPTIONS := {
 	KeywordDemon.Type.SANG_NOIR:       { "title": "KW_SANG_NOIR_NAME",       "desc": "KW_SANG_NOIR_DESC" },
 }
 
+const KEYWORD_ABOMINATION_DESCRIPTIONS := {
+	KeywordAbomination.Type.MUTATION:        { "title": "KW_MUTATION_NAME",        "desc": "KW_MUTATION_DESC" },
+	KeywordAbomination.Type.FUSION:          { "title": "KW_FUSION_NAME",          "desc": "KW_FUSION_DESC" },
+	KeywordAbomination.Type.VIRULENT:        { "title": "KW_VIRULENT_NAME",        "desc": "KW_VIRULENT_DESC" },
+	KeywordAbomination.Type.CHAIR_ADAPTATIVE:{ "title": "KW_CHAIR_ADAPTATIVE_NAME","desc": "KW_CHAIR_ADAPTATIVE_DESC" },
+	KeywordAbomination.Type.ASSIMILATION:    { "title": "KW_ASSIMILATION_NAME",    "desc": "KW_ASSIMILATION_DESC" },
+	KeywordAbomination.Type.INSTABLE:        { "title": "KW_INSTABLE_NAME",        "desc": "KW_INSTABLE_DESC" },
+}
+
 # Les clés de ce dict (String) doivent correspondre EXACTEMENT au champ
 # trigger.type de CardData ; les valeurs pointent vers game.csv.
 const TRIGGER_DESCRIPTIONS := {
@@ -66,6 +75,8 @@ const TRIGGER_DESCRIPTIONS := {
 	"OnSummon":     { "title": "TRIG_ONSUMMON_NAME",    "desc": "TRIG_ONSUMMON_DESC" },
 	"OnResonance":  { "title": "TRIG_ONRESONANCE_NAME", "desc": "TRIG_ONRESONANCE_DESC" },
 	"OnSelfDamage": { "title": "TRIG_ONSELFDAMAGE_NAME", "desc": "TRIG_ONSELFDAMAGE_DESC" },
+	"OnMutation":   { "title": "TRIG_ONMUTATION_NAME",   "desc": "TRIG_ONMUTATION_DESC" },
+	"OnDevoration": { "title": "TRIG_ONDEVORATION_NAME", "desc": "TRIG_ONDEVORATION_DESC" },
 }
 
 const RACE_DESCRIPTIONS := {
@@ -74,6 +85,7 @@ const RACE_DESCRIPTIONS := {
 	Race.Type.ELF:    "RACE_ELF",
 	Race.Type.DWARF:  "RACE_DWARF",
 	Race.Type.DEMON:  "RACE_DEMON",
+	Race.Type.ABOMINATION: "RACE_ABOMINATION",
 }
 
 # Résout une clé de traduction dans la langue courante.
@@ -84,6 +96,7 @@ const COLOR_KEYWORD        := Color(0.15, 0.28, 0.48, 1.0)  # Mots-clés partag�
 const COLOR_KEYWORD_HUMAN  := Color(0.55, 0.42, 0.10, 1.0)  # Humain
 const COLOR_KEYWORD_UNDEAD := Color(0.25, 0.36, 0.16, 1.0)  # Mort-Vivant (vert putride)
 const COLOR_KEYWORD_DEMON  := Color(0.42, 0.12, 0.12, 1.0)  # Démon (rouge écarlate)
+const COLOR_KEYWORD_ABOMINATION := Color(0.30, 0.40, 0.10, 1.0)  # Abomination (vert bilieux)
 const COLOR_TRIGGER       := Color(0.38, 0.22, 0.06, 1.0)
 const COLOR_EFFECT        := Color(0.18, 0.32, 0.18, 1.0)
 
@@ -229,6 +242,16 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 			continue
 		var info: Dictionary = KEYWORD_DEMON_DESCRIPTIONS[keyword]
 		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_DEMON)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	# 1e. Mots-clés Abomination (enum KeywordAbomination.Type)
+	for keyword in card_data.get_abomination_keyword_values():
+		if not KEYWORD_ABOMINATION_DESCRIPTIONS.has(keyword):
+			continue
+		var info: Dictionary = KEYWORD_ABOMINATION_DESCRIPTIONS[keyword]
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_ABOMINATION)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)

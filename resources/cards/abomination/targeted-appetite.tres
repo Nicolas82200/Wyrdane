@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://qwf5pr88l5c3" path="res://assets/card_art/abomination/targeted-appetite.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_a089"]
+script = ExtResource("1_cardeffect")
+effect_id = "Destroy"
+target = "EnemyMinion"
+target_max_hp = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_a090"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "RandomAlly"
+race_filter = "Abomination"
+value = 1
+value_2 = 1
+duration = "Permanent"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Appétit Ciblé"
+description = "Détruit un serviteur ennemi ayant 2 HP ou moins ; un serviteur Abomination allié aléatoire gagne +1/+1 permanent."
+flavour_text = "Rien ne se jette. Tout se digère."
+texture = ExtResource("2_texture")
+cost = 3
+race = 6
+card_type = "Instant"
+requires_target = true
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a089"), SubResource("Resource_a090")])
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

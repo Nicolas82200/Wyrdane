@@ -22,6 +22,8 @@ enum Type {
 	ON_SUMMON     = 18, # Appel
 	ON_RESONANCE  = 19, # Résonance (Mort-Vivant ou Humain attaque)
 	ON_SELF_DAMAGE = 20, # Le héros du camp perd des HP à cause d'une de ses propres cartes (Démon)
+	ON_MUTATION   = 21, # Résonance (Abomination) : un serviteur allié Abomination gagne une mutation
+	ON_DEVORATION = 22, # Dévoration : n'importe quel serviteur (allié ou ennemi) meurt en jeu
 }
 static func get_name(trigger_type: int) -> String:
 	match trigger_type:
@@ -46,6 +48,8 @@ static func get_name(trigger_type: int) -> String:
 		Type.ON_SUMMON:     return "OnSummon"
 		Type.ON_RESONANCE:  return "OnResonance"
 		Type.ON_SELF_DAMAGE: return "OnSelfDamage"
+		Type.ON_MUTATION:   return "OnMutation"
+		Type.ON_DEVORATION: return "OnDevoration"
 		_:                  return "Unknown"
 static func from_name(trigger_name: String) -> int:
 	match trigger_name:
@@ -70,4 +74,6 @@ static func from_name(trigger_name: String) -> int:
 		"OnSummon":     return Type.ON_SUMMON
 		"OnResonance":  return Type.ON_RESONANCE
 		"OnSelfDamage": return Type.ON_SELF_DAMAGE
+		"OnMutation":   return Type.ON_MUTATION
+		"OnDevoration": return Type.ON_DEVORATION
 		_:              return Type.ONPLAY

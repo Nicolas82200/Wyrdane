@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://da0y06v0q2xvd" path="res://assets/card_art/abomination/first-deviation.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a043"]
+script = ExtResource("4_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_a044"]
+script = ExtResource("1_cardeffect")
+effect_id = "ApplyMutation"
+target = "AllAllies"
+race_filter = "Abomination"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Le Premier Écart"
+description = "Arrivée : tous tes serviteurs Abomination alliés mutent immédiatement."
+flavour_text = "Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis."
+texture = ExtResource("2_texture")
+cost = 4
+race = 6
+unit_style = 2
+attack = 3
+health = 3
+board_position = "Hybrid"
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a043")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a044")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
