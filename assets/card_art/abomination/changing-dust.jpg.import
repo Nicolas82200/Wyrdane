@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://b1r2l1tmdfh2a"
+=======
+uid="uid://cpv2acwal34u6"
+>>>>>>> dev
 path="res://.godot/imported/changing-dust.jpg-019d5205a0cd568a84fd7a95890e203b.ctex"
 metadata={
 "vram_texture": false

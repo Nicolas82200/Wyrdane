@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://xqo1h6hmiix5"
+=======
+uid="uid://b8v5wxpbcdst"
+>>>>>>> dev
 path="res://.godot/imported/that-which-never-stopped.jpg-4c8c290498f9bf8f41bf6ed3300fdafa.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://my2sxyynaisr"
+=======
+uid="uid://drfycym7dy5md"
+>>>>>>> dev
 path="res://.godot/imported/finger-in-the-nerves.jpg-0c7cd094e897c1763bb3a1759044b501.ctex"
 metadata={
 "vram_texture": false

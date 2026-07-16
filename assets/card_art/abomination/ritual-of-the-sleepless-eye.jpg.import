@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://cw5he5uoma257"
+=======
+uid="uid://82hhi5se521h"
+>>>>>>> dev
 path="res://.godot/imported/ritual-of-the-sleepless-eye.jpg-3f6cbfff033c485fed0ada830a875012.ctex"
 metadata={
 "vram_texture": false

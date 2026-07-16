@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://diq01r5vdblej"
+=======
+uid="uid://dgtwjypgtupay"
+>>>>>>> dev
 path="res://.godot/imported/forced-sharing.jpg-085acf58699af3e254d1a199cbcb9597.ctex"
 metadata={
 "vram_texture": false

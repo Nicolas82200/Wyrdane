@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://gmq82kdd3bky"
+=======
+uid="uid://cnup4uc3qki0a"
+>>>>>>> dev
 path="res://.godot/imported/pact-of-fresh-flesh.jpg-c3eec15ec9a6c8cef2e78feb9dad218f.ctex"
 metadata={
 "vram_texture": false

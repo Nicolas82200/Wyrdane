@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
 uid="uid://8lxdcp0mj2qk"
+=======
+uid="uid://d35dk8ox1470d"
+>>>>>>> dev
 path="res://.godot/imported/self-born-effigy.jpg-c2d2d9ee34ab092361b70948e803edf3.ctex"
 metadata={
 "vram_texture": false
