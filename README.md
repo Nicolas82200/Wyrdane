@@ -764,3 +764,80 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Mode campagne et collection de cartes
 *   Animations shaders
 *   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
+---
+
+## 💠 Système de Ressources par Race — Design (v1)
+*Document de design — en cours de discussion*
+
+### 🎯 Concept général
+
+Chaque race dispose de sa propre **carte-ressource**, incluse dans le deck principal (comme une carte normale) et piochée/posée au même titre que les autres cartes. Elle remplace la logique de mana générique unique par des **pools de ressource séparés par race**, donnant du poids stratégique au choix mono-race vs multi-race.
+
+### 🏷️ Nommage par race
+
+| Race | Ressource |
+|---|---|
+| Mort-Vivant | **Âme** |
+| Humain | **Sceau** |
+| Démon | **Pacte** |
+| Abomination | **Anomalie** |
+
+*(Abomination : race en cours de conception, identité mécanique orientée mutation/instabilité — nom choisi en écho à cette identité.)*
+
+### 🃏 Fonctionnement de la carte-ressource
+
+- Carte incluse dans le **deck principal**, au choix du joueur à la création du deck (pas de zone séparée, pas de pioche annexe).
+- Posée manuellement comme une carte classique (drag & drop existant, `DropSystem` inchangé).
+- Effet de base : **+1 au pool de sa race** à la pose.
+- **Pas d'effet supplémentaire sur la carte-ressource elle-même pour l'instant** — la richesse thématique par race est reportée sur les cartes normales, qui pourront à terme interagir avec les ressources en jeu (compter le nombre en jeu, cibler/détruire une ressource adverse, convertir une ressource d'une race à l'autre). Nécessite que les cartes-ressource soient ciblables/comptables dès la base technique, même sans effet actif au départ.
+
+### ⚖️ Nombre de cartes-ressource dans le deck
+
+- **Minimum : 10 cartes-ressource** par deck, obligatoire.
+- **Pas de maximum.**
+- Le deckbuilder **suggère** un nombre basé sur le coût moyen des cartes du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+
+```
+ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
+nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
+```
+
+*(Formule de départ à calibrer en playtest — dépend de la taille réelle du deck, à confirmer dans `CLAUDE.md`.)*
+
+- La suggestion totale se **répartit par race proportionnellement** au nombre de cartes de chaque race dans le deck (ex: deck 15 Mort-Vivant / 5 Démon → répartition Âme/Pacte environ 3:1).
+- Le joueur peut ajuster manuellement au-dessus du minimum de 10, sans plafond.
+
+### 💰 Coût des cartes : race-locked + générique
+
+Chaque carte de race a un coût scindé en deux parts, calculées à la volée depuis `CardData.cost` + `CardData.rarity` (aucune migration des ressources `.tres` existantes) :
+
+- **`race_cost`** : payé uniquement depuis le pool de la race de la carte.
+- **`generic_cost`** : payable depuis n'importe quel pool ayant du surplus.
+
+| Rareté | % du coût verrouillé en ressource de race |
+|---|---|
+| Commune | 40% |
+| Rare | 55% |
+| Épique | 70% |
+| Légendaire | 85% |
+
+Formule : `race_cost = max(1, arrondi(coût × %))` — garantit qu'aucune carte de race n'est jouable "gratuitement" hors de sa race, même à 1⬡.
+
+Override possible via un champ optionnel `CardData.race_cost_override` pour déroger à la formule automatique sur une carte précise.
+
+### 🧩 Impact technique (résumé)
+
+- Nouveau type `CardData` : **Ressource**.
+- Mana `int` unique → `Dictionary` par race (pools séparés) côté tracking du héros.
+- `CostSystem`/`Battle.get_card_cost` : calcul `race_cost`/`generic_cost` à la volée, vérification des deux conditions de paiement.
+- `DeckManager` : calcul et affichage de la suggestion de nombre de ressources, validation du minimum de 10.
+- `AISystem` : deck IA à construire avec le même ratio (actuellement 20 Mort-Vivants aléatoires sans ressource).
+- Aucun nouveau flux réseau majeur : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant.
+
+### 📋 Points encore à trancher
+
+1. Taille réelle du deck (nécessaire pour calibrer précisément la formule de suggestion).
+2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
+3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
+4. Calibrage fin de la formule de suggestion en playtest (coefficients 15%/45%/6% à ajuster).
+5. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée.

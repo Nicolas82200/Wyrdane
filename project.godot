@@ -10,12 +10,14 @@ config_version=5
 
 [application]
 
-config/name="Card Game"
+config/name="Wyrdane"
+config/description="Wyrdane is a fantasy trading card game set in a world where ancient civilizations, powerful factions, and forgotten magic collide. Players build decks around unique races and strategic mechanics, commanding heroes, creatures, and spells in tactical battles. The project emphasizes rich world-building, meaningful gameplay, and a distinctive visual identity inspired by dark and high fantasy."
 run/main_scene="uid://byp8qcya3aete"
+config/quit_on_go_back=false
 config/features=PackedStringArray("4.6", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 boot_splash/image="res://assets/splash/boot_splash.png"
-config/icon="res://icon.svg"
+config/icon="uid://bg63blxvj7mod"
 run/autoload_on_startup=false
 
 [autoload]

@@ -28,7 +28,7 @@ class_name SteamTransport
 # Tous les appels au singleton Steam sont dynamiques (voir SteamService).
 
 const LOBBY_GAME_KEY := "game"
-const LOBBY_GAME_VALUE := "fatebound"
+const LOBBY_GAME_VALUE := "wyrdane"
 const LOBBY_OWNER_KEY := "owner_id"
 const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 
