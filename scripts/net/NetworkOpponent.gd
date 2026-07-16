@@ -48,6 +48,16 @@ func get_deck_count() -> int:
 func get_hand_count() -> int:
 	return _hand_count
 
+# Effet local (ex. Autel des Damnés côté ennemi) déclenché en miroir sur les
+# deux clients : le pair distant pioche déjà sa vraie carte de son côté, on se
+# contente ici de refléter le changement dans les compteurs cosmétiques.
+func draw_card() -> void:
+	if _deck_count > 0:
+		_deck_count -= 1
+		_hand_count += 1
+	battle.update_enemy_hand_ui()
+	battle.deck_system.update_enemy_deck_ui()
+
 # Attend le MULLIGAN_DONE du pair distant (déjà reçu, ou à recevoir).
 func await_mulligan() -> void:
 	while not _remote_mulligan_done:
