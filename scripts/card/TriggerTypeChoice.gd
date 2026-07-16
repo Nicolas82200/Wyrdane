@@ -7,7 +7,7 @@ class_name TriggerTypeChoice
 	"ONPLAY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
 	"OnRally", "OnGrief", "OnSpell", "OnSacrifice", "OnExecution", "OnCarnage",
 	"OnAttack", "OnTurnStart", "OnTurnEnd", "OnMourning", "OnDeathRage",
-	"OnAura", "OnSummon", "OnResonance", "OnSelfDamage"
+	"OnAura", "OnSummon", "OnResonance", "OnSelfDamage", "OnMutation", "OnDevoration"
 ) var type: String = "DEATHRATTLE"
 
 func _to_string() -> String:

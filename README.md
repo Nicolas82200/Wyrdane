@@ -91,6 +91,26 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 - **Vol temporaire** (effet `StealMinionThenDestroy` + `TempEffectSystem.add_destroy_at_expiry`) : prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit (Emprise Écarlate). Immunités au contrôle mental respectées.
 - **Drain de héros** (effet `StealHealthFromHero`) : vole X HP au héros ennemi et en soigne le héros allié d'autant (Suceur d'Âmes).
 
+### 🧬 Mécaniques Abomination
+
+Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CARDS.md`) :
+
+| Mot-clé | Effet | Implémentation |
+|---|---|---|
+| `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
+| `FUSION` | Sacrifice un allié adjacent : absorbe ses stats restantes ET un mot-clé au choix. | Mot-clé affiché ; **aucune UI d'activation n'est câblée** (voir limitation ci-dessous) |
+| `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
+| `ASSIMILATION` | Dévoration : gagne +1/+1 permanent (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
+| `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
+
+- **Table de Mutation** (`EffectManager.roll_mutation`) : tirage sur le RNG de jeu partagé (déterministe/synchronisé réseau) — 40 % Croissance (+2/+0 permanent), 40 % Renforcement (+0/+2 permanent), 20 % Dégénérescence (-1/-1 permanent, peut tuer si les dégâts déjà subis dépassent le nouveau maximum). `Minion.mutation_stacks` / `Minion.mutations` gardent une trace pour l'affichage.
+- **Trigger `OnMutation`** (« Résonance » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
+- **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
+- **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
+
+**⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -745,7 +765,7 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
-*   Trois races jouables : Mort-Vivant, Humain et Démon (226 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`)
+*   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (303 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
 *   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
 *   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
@@ -777,7 +797,7 @@ Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) 
 | Mort-Vivant | **Âme** | Éclat d'Âme (`resources/cards/undead/soul-shard.tres`) |
 | Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
 | Démon | **Pacte** | Fragment de Pacte (`resources/cards/demon/pact-fragment.tres`) |
-| Abomination | **Anomalie** | Éclat d'Anomalie — documentée dans `CARDS.md`, pas encore de support moteur (race non commencée) |
+| Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
 
 ### 🃏 Zone de ressource et pose
 

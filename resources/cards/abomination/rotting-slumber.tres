@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://cuic4quobfuj2" path="res://assets/card_art/abomination/rotting-slumber.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_a087"]
+script = ExtResource("1_cardeffect")
+effect_id = "Freeze"
+target = "EnemyMinion"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_a088"]
+script = ExtResource("1_cardeffect")
+effect_id = "Debuff"
+target = "EnemyMinion"
+value = 1
+value_2 = 1
+duration = "Permanent"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Sommeil Qui Ronge"
+description = "Gèle un serviteur ennemi ciblé un tour ; à la fin du gel, il subit une mutation forcée : Dégénérescence."
+flavour_text = "Le froid ne le tue pas. Il le laisse simplement pourrir sur place."
+texture = ExtResource("2_texture")
+cost = 2
+race = 6
+card_type = "Instant"
+requires_target = true
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a087"), SubResource("Resource_a088")])
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
