@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://uuy7jmvg6uhm" path="res://assets/card_art/abomination/formless-mass.jpg" id="1_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Amas Informe Reformé"
+description = ""
+flavour_text = "Il se réarrange, tout simplement."
+texture = ExtResource("1_texture")
+cost = 1
+race = 6
+unit_style = 2
+attack = 2
+health = 2
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

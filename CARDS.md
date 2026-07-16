@@ -797,20 +797,38 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | A74 | Ce Qu'on a Laissé Pousser | 5 | Épique | Deuil : invoque 2 Abominations aléatoires de coût ≤3 ; elles mutent immédiatement. | *On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.* |
 | A75 | Chuchotement Qui Change la Forme | 1 | Rare | Présence : la première Abomination jouée chaque tour coûte 1 de moins (min 1) et mute dès son entrée en jeu. | *On ne l'entend pas. On sent juste que quelque chose a déjà commencé à changer.* |
 
-## Ressource (design uniquement — pas encore de support moteur, voir points ci-dessous)
+## Ressource
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Anomalie à ta réserve Abomination. Une seule carte-ressource par tour et par camp. | *Ça ne devrait pas exister. Ça existe quand même.* |
 
-## ⚠️ Points d'intégration à trancher (Abomination)
+## ✅ Points d'intégration tranchés (Abomination)
 
-Contrairement au Démon, le support moteur n'est pas encore en place. À ajouter dans `CLAUDE.md` et `README.md` avant de créer les 75 ressources `.tres` dans `resources/cards/abomination/` :
+Le support moteur est en place (voir « Mécaniques Abomination » dans `README.md`) ; les 75 ressources `.tres` des cartes (+ 2 jetons + la carte-ressource) sont créées dans `resources/cards/abomination/`.
 
-1. **`MUTATION`** : nécessite un système de jet pondéré (40/40/20) déclenché sur survie à une Blessure. Prévoir `Minion.mutation_stacks` (liste des mutations gagnées, pour l'affichage) et une fonction `roll_mutation()` centralisée — à appeler aussi par VIRULENT, les cartes qui déclenchent une mutation immédiate, et les rituels/enchantements qui en dépendent, pour éviter de dupliquer la logique de jet.
-2. **`FUSION`** : nécessite de définir précisément ce que « absorber les stats restantes » signifie (ATK/HP actuels du sacrifié, pas ses valeurs de base) et comment choisir le mot-clé à copier (choix manuel du joueur, UI à prévoir).
-3. **Dévoration** (nouveau trigger) : contrairement à Deuil/Carnage qui sont scindés par camp, Dévoration s'applique à toute mort en jeu, y compris entre deux serviteurs ennemis. Vérifier que le pipeline d'événements de mort notifie bien tous les triggers Dévoration actifs, quel que soit le camp du serviteur mort.
-4. **`CHAIR ADAPTATIVE`** : copie de mot-clé « au choix » → nécessite une UI de sélection similaire à celle de FUSION, du Sculpteur Sans Mains (A31) et d'Emprunt Instantané (A51).
-5. **Garde-fou à adopter** (sur le modèle de `HeroSystem.self_damage` pour le Démon) : la Dégénérescence ne doit jamais réduire un serviteur sous 1 HP de façon à le tuer avant que Dernier Souffle ne se résolve correctement — clarifier l'ordre mutation → check de mort dans le pipeline de combat.
+1. **`MUTATION`** : jet pondéré (40/40/20) centralisé dans `EffectManager.roll_mutation`, déclenché automatiquement par `EffectManager.notify_damaged` (survie à une Blessure). `Minion.mutation_stacks` / `Minion.mutations` gardent l'historique pour l'affichage. Effets permanents et cumulables, appliqués directement sur `base_attack`/`base_max_health`.
+2. **`FUSION`** : le mot-clé est défini et affiché (tooltip), mais **aucune UI d'activation n'a été câblée** — contrairement aux rituels à `sacrifice_count`, il n'existe pas encore d'« capacité activable » pour un mot-clé de serviteur en jeu. Les cartes qui portent uniquement FUSION (sans autre texte) sont donc, pour l'instant, cosmétiques. À trancher dans une itération suivante : soit ajouter une UI générique d'activation de mot-clé, soit retirer FUSION du texte tant qu'elle n'est pas jouable.
+3. **Dévoration** (`OnDevoration`, `TriggerType.ON_DEVORATION`) : se déclenche sur toute mort, tout camp confondu, via `DeathSystem._trigger_devoration` — appelé une fois par vague de morts (après Deuil/Carnage), fire deux fois (`TriggerSystem.fire` par camp) pour que les enchantements des deux joueurs réagissent.
+4. **`CHAIR ADAPTATIVE`** : copie automatique et déterministe (premier mot-clé trouvé) d'un serviteur **allié** adjacent, dans `BoardSystem._apply_chair_adaptative`. Simplification : le texte d'origine autorise aussi la copie depuis un ennemi adjacent, mais le plateau n'a pas de notion de position géométrique inter-camp (rangées adverses non indexées en miroir) — seule l'adjacence alliée est résolue.
+5. **Garde-fou** : la Dégénérescence ne peut réduire `Minion.max_health` (qui plancherait déjà à 1, comme les autres debuffs du moteur) ; elle ne tue donc que si les dégâts déjà subis dépassent le nouveau maximum, jamais un serviteur encore intact — même logique que `_debuff` pour les autres races, pas de garde-fou dédié nécessaire.
 
-Cette section est à retirer une fois ces points tranchés et le support moteur effectivement implémenté (cf. traitement final de la section Démon).
+### ⚠️ Simplifications connues (texte affiché ≠ texte de conception d'origine)
+
+Plusieurs cartes ont un comportement simplifié faute de plomberie dédiée (choix multi-cible, historique des HP restants d'un serviteur déjà mort, réaction au tour adverse plutôt qu'au sien, mutation « forcée » sur un résultat précis plutôt qu'aléatoire). Dans tous les cas, le champ `description` du `.tres` a été réécrit pour refléter fidèlement le comportement **réellement implémenté** — jamais le texte d'origine ci-dessus, pour ne pas induire le joueur en erreur :
+
+- **A06 Regard Détaché** : l'effet « regarde le dessus du deck, remets-le au fond si tu veux » n'existe pas dans le moteur (pas de mécanique de scry) — carte vanilla (2/1/2, sans texte).
+- **A31 Le Sculpteur Sans Mains**, **A45 Appétit Ciblé**, **A51 Emprunt Instantané** : « mot-clé/cible de ton choix » devient un choix automatique et déterministe (MUTATION pour A31 ; cible aléatoire au lieu de ciblée pour A45 ; mot-clé copié depuis un serviteur en jeu tiré au hasard pour A51), faute d'UI de sélection secondaire sur une carte déjà ciblée.
+- **A36 Ce-Qui-Se-Souvient-Par-le-Corps** : le cimetière ne conserve pas les stats restantes d'un serviteur mort (seulement sa `CardData` d'origine) → simplifié en +3/+3 permanent à l'arrivée.
+- **A37 La Grande Contamination** : le vol de contrôle + transformation groupée n'est pas composable proprement (le nouvel allié serait lui-même retransformé) → simplifié en destruction de tous les serviteurs ennemis.
+- **A38 Ce-Qui-Ne-Finit-Jamais-de-Grandir** : la clause « chaque mutation qu'il déclenche s'applique deux fois » n'est pas câblée (cette carte n'a elle-même aucun effet qui déclenche une mutation) → REMPART vanilla.
+- **A44 Sommeil Qui Ronge**, **A58 Cercle de Dégénérescence** : « mutation forcée : Dégénérescence » est implémentée comme un `Debuff` -1/-1 permanent garanti (résultat identique à une Dégénérescence, sans passer par le jet aléatoire de `roll_mutation`).
+- **A43 Partage Forcé**, **A62 Rituel du Ventre Qui Prend Tout** : « stats/HP restants du sacrifié » sont capturés juste avant le sacrifice (nouvel effet `AbsorbAdjacentStats`) ; pour A62, le soin au héros est une valeur fixe (3) plutôt que dynamique, l'effet `HealHero` ne prenant pas de valeur calculée en entrée.
+- **A47 Étau de Chair Neuve** : le renvoi en main fonctionne, mais la cible n'est pas réduite à une copie 1/1 sans mots-clés (pas de mécanique de « carte dégradée dynamique »).
+- **A49 Sursaut Final** : au lieu d'attendre une mort Abomination plus tard dans le tour (délai non supporté pour un Éphémère), ressuscite immédiatement le dernier serviteur Abomination allié mort (`ResurrectLast`).
+- **A52 Signe Qui Répond** : la remise de coût + mutation automatique du serviteur pioché est abandonnée (le moteur ne peut pas encore inspecter la carte piochée pour lui appliquer un effet conditionnel) → simple pioche de 1.
+- **A59 Rituel du Fil Sous la Peau** : l'adjacence « au serviteur mort » ne peut pas être résolue après son retrait du plateau (même limite que VIRULENT, non résolue ici faute d'accrocher ce cas précis dans `DeathSystem`) → mute un allié Abomination aléatoire à la place.
+- **A63 Lente Altération**, **A69 Vapeur Qui S'Accroche** : « à chaque tour ADVERSE » n'a pas de point d'accroche dédié (le moteur ne fait réagir un enchantement qu'au tour de son propriétaire) → déclenché à `OnAwaken` (son propre tour) à la place ; A69 perd aussi la condition « ennemis affaiblis » (pas d'état générique « est debuffé » sur `Minion`).
+- **A64 Grand Retour Sous une Autre Forme** : la remise de coût et la mutation automatique au rejeu ne sont pas câblées (`ReturnFromGrave` ramène la carte telle quelle).
+- **A68 La Terre Qui Refuse de Garder** : pas de délai « à la fin du tour », pas de transformation de race, pas de garde-fou « une fois par serviteur » → résurrection immédiate et complète (`ResurrectLast`, toute race).
+- **A71 Effigie Née d'Elle-Même** : la mutation forcée en Dégénérescence sur les cibles du splash n'est pas appliquée (seuls les dégâts splash le sont).

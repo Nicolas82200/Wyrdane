@@ -63,6 +63,10 @@ func execute_effect(
 		"StealMinionThenDestroy": await _steal_minion_then_destroy(battle, source_minion, effect, selected_target)
 		"GrantSpellImmunity": await _grant_spell_immunity(battle, source_minion, effect, selected_target)
 		"GroupAttackImmediate": await _group_attack_immediate(battle, source_minion, effect, selected_target)
+		"ApplyMutation":    await _apply_mutation(battle, source_minion, effect, selected_target)
+		"GrantKeywordAdjacent": await _grant_keyword_adjacent(battle, source_minion, effect)
+		"AbsorbAdjacentStats": await _absorb_adjacent_stats(battle, source_minion, effect, selected_target)
+		"CopyAdjacentKeyword": await _copy_adjacent_keyword_effect(battle, source_minion, effect, selected_target)
 		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
 			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
 		"AuraBuffRow", "AuraBuffPerAllyInRow", "AuraSelfDamageReduction":
@@ -433,6 +437,7 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 		target.human_keywords.clear()
 		target.undead_keywords.clear()
 		target.demon_keywords.clear()
+		target.abomination_keywords.clear()
 		target.silenced = true
 
 # Éclaireur Infiltré : rend des cibles intargetables par les sorts ennemis.
@@ -511,6 +516,7 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.human_keywords   = effect.transform_card.get_human_keyword_values()
 		target.undead_keywords  = effect.transform_card.get_undead_keyword_values()
 		target.demon_keywords   = effect.transform_card.get_demon_keyword_values()
+		target.abomination_keywords = effect.transform_card.get_abomination_keyword_values()
 		target.silenced         = false
 
 func _draw_cards(battle, count: int) -> void:
@@ -659,7 +665,11 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 			row = "Back" if row == "Front" else "Front"
 		if not battle.can_summon_to_row(is_player, row):
 			break
-		await battle.summon_minion(_rng_pick(battle, pool), is_player, row)
+		var summoned: Minion = await battle.board_system.summon_minion_return(_rng_pick(battle, pool), is_player, row)
+		for m in range(effect.mutate_on_summon_count):
+			if summoned == null or summoned.is_dead():
+				break
+			await roll_mutation(battle, summoned)
 		await battle.get_tree().create_timer(0.15).timeout
 
 func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -861,7 +871,16 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets)
 	for target in targets:
-		if effect.granted_keyword_is_human:
+		if effect.granted_keyword_is_abomination:
+			var kw: int = KeywordAbomination.from_name(effect.granted_keyword)
+			if kw == -1:
+				push_warning("GrantKeyword : mot-clé Abomination inconnu '%s'" % effect.granted_keyword)
+				continue
+			if target.has_abomination_keyword(kw):
+				continue
+			target.add_abomination_keyword(kw)
+			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
+		elif effect.granted_keyword_is_human:
 			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
 			if target.has_human_keyword(kw):
 				continue
@@ -1119,11 +1138,116 @@ func notify_damaged(battle, minion: Minion) -> void:
 	if minion == null or minion.is_dead():
 		return
 	await trigger_effects(battle, minion, "OnDamaged")
+	# MUTATION (Abomination) : mute chaque fois qu'il survit à une blessure.
+	if minion.has_abomination_keyword(KeywordAbomination.Type.MUTATION):
+		await roll_mutation(battle, minion)
 	if minion.death_rage_triggered:
 		return
 	if minion.health * 2 < minion.max_health:
 		minion.death_rage_triggered = true
 		await trigger_effects(battle, minion, "OnDeathRage")
+
+# ─── Mutation (Abomination) ────────────────────────────────────────────────────
+# Table de Mutation : 40% Croissance (+2/+0), 40% Renforcement (+0/+2),
+# 20% Dégénérescence (-1/-1, cumulable, peut tuer). Tirage via le RNG de jeu
+# partagé (déterministe/synchronisé en réseau). Effets permanents et cumulables.
+func roll_mutation(battle, minion: Minion) -> void:
+	if minion == null or minion.is_dead():
+		return
+	var roll: int = battle.game_rng.randi() % 100
+	if roll < 40:
+		minion.base_attack += 2
+		minion.mutations.append("Croissance")
+	elif roll < 80:
+		minion.base_max_health += 2
+		minion.mutations.append("Renforcement")
+	else:
+		minion.base_attack = max(0, minion.base_attack - 1)
+		minion.base_max_health -= 1
+		minion.mutations.append("Dégénérescence")
+	minion.mutation_stacks += 1
+	battle.aura_system.recompute_all()
+	# Résonance (Abomination) : un allié Abomination vient de muter.
+	await trigger_effects(battle, minion, "OnMutation")
+	await battle.trigger_system.fire("OnMutation", minion, minion.owner_is_player)
+
+# Déclenche une (ou plusieurs, via effect.count) mutation(s) immédiate(s) sur
+# la/les cible(s) résolue(s) (Premier Tressaut, Le Trieur de Chairs...).
+func _apply_mutation(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets)
+	var rolls: int = max(1, effect.count)
+	for target in targets:
+		for i in range(rolls):
+			if target.is_dead():
+				break
+			await roll_mutation(battle, target)
+
+# Octroie effect.granted_keyword au serviteur allié adjacent à la source, de
+# façon permanente ou temporaire selon effect.duration (Voix-Sous-la-Peau).
+func _grant_keyword_adjacent(battle, source_minion: Minion, effect: CardEffect) -> void:
+	if source_minion == null or effect.granted_keyword.is_empty():
+		return
+	var adjacents: Array[Minion] = _get_adjacent_minions(battle, source_minion)
+	await _point_arrows_to(battle, adjacents)
+	for target in adjacents:
+		if effect.granted_keyword_is_abomination:
+			var kw: int = KeywordAbomination.from_name(effect.granted_keyword)
+			if kw == -1 or target.has_abomination_keyword(kw):
+				continue
+			target.add_abomination_keyword(kw)
+			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
+		else:
+			var kw: int = Keyword.from_name(effect.granted_keyword)
+			if kw == -1 or target.has_keyword(kw):
+				continue
+			target.add_keyword(kw)
+			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+
+# Partage Forcé : sacrifie selected_target, le serviteur allié adjacent à la
+# victime (capturé AVANT sa mort) absorbe ses stats restantes (ATK/HP actuels,
+# pas ses valeurs de base) de façon permanente.
+func _absorb_adjacent_stats(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null or selected_target.is_dead():
+		return
+	await _point_arrows_to(battle, [selected_target])
+	var adjacents: Array[Minion] = _get_adjacent_minions(battle, selected_target)
+	var remaining_attack: int = selected_target.attack
+	var remaining_health: int = selected_target.health
+	selected_target.sacrificed = true
+	selected_target.health = 0
+	await battle.death_system.process_deaths()
+	for adjacent in adjacents:
+		if adjacent.is_dead():
+			continue
+		adjacent.base_attack     += remaining_attack
+		adjacent.base_max_health += remaining_health
+
+# Emprunt Instantané : la cible copie un mot-clé présent sur un AUTRE
+# serviteur en jeu tiré au hasard (allié ou ennemi). Simplification par
+# rapport au texte (« n'importe quel autre serviteur », choix libre) : le
+# serviteur source est tiré au sort faute d'UI de sélection double cible.
+func _copy_adjacent_keyword_effect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if selected_target == null:
+		return
+	await _point_arrows_to(battle, [selected_target])
+	var pool: Array[Minion] = (battle.player_minions + battle.enemy_minions).filter(
+		func(m: Minion) -> bool: return m != selected_target)
+	if pool.is_empty():
+		return
+	var source: Minion = _rng_pick(battle, pool)
+	if not source.keywords.is_empty():
+		selected_target.add_keyword(_rng_pick(battle, source.keywords))
+	elif not source.human_keywords.is_empty():
+		selected_target.add_human_keyword(_rng_pick(battle, source.human_keywords))
+	elif not source.undead_keywords.is_empty():
+		var kw: int = _rng_pick(battle, source.undead_keywords)
+		if kw not in selected_target.undead_keywords:
+			selected_target.undead_keywords.append(kw)
+	elif not source.demon_keywords.is_empty():
+		selected_target.add_demon_keyword(_rng_pick(battle, source.demon_keywords))
+	elif not source.abomination_keywords.is_empty():
+		selected_target.add_abomination_keyword(_rng_pick(battle, source.abomination_keywords))
 
 func has_trigger(minion: Minion, trigger_name: String) -> bool:
 	if minion == null:

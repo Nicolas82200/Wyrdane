@@ -22,6 +22,7 @@ var hand = null
 var game_over: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+var game_rng := RandomNumberGenerator.new()
 
 func get_owner_minions(minion: Minion) -> Array[Minion]:
 	if minion == null:

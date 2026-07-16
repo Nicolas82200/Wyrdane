@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://dk468y3jc86om" path="res://assets/card_art/abomination/great-contamination.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a076"]
+script = ExtResource("4_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_a077"]
+script = ExtResource("1_cardeffect")
+effect_id = "Destroy"
+target = "AllEnemies"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "La Grande Contamination"
+description = "Arrivée : détruit tous les serviteurs ennemis en jeu."
+flavour_text = "Ce n'était pas une invasion. C'était une contamination."
+texture = ExtResource("2_texture")
+cost = 8
+race = 6
+unit_style = 2
+attack = 9
+health = 9
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a076")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a077")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
