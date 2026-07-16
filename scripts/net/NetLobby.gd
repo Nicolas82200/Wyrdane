@@ -16,13 +16,24 @@ extends Control
 # « Rejoindre la partie ») : le jeu doit déjà tourner et être sur cet écran —
 # le cas « jeu pas encore lancé » (+connect_lobby en ligne de commande) n'est
 # pas géré ici.
+#
+# UI reprise du même habillage que MainMenu (fond vidéo, vignette, panneau
+# doré) : voir scenes/net/NetLobby.tscn.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
+@onready var host_button:        Button = $NavPanel/NavMargin/VBoxContainer/HostButton
+@onready var quick_match_button: Button = $NavPanel/NavMargin/VBoxContainer/QuickMatchButton
+@onready var invite_button:      Button = $NavPanel/NavMargin/VBoxContainer/InviteButton
+@onready var back_button:        Button = $NavPanel/NavMargin/VBoxContainer/BackButton
+@onready var title_label:        Label  = $TitleLabel
+@onready var subtitle_label:     Label  = $SubtitleLabel
+@onready var status_title_label: Label  = $StatusPanel/StatusMargin/StatusVBox/StatusTitleLabel
+@onready var _log:               RichTextLabel = $StatusPanel/StatusMargin/StatusVBox/LogPanel/Log
+
 var _net: NetworkManager
 var _handshake: NetHandshake
-var _log: RichTextLabel
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 
 func _ready() -> void:
@@ -31,7 +42,12 @@ func _ready() -> void:
 	_net.peer_connected.connect(_on_peer_connected)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
 	_net.status.connect(_log_line)
-	_build_ui()
+	host_button.pressed.connect(_on_steam_host_pressed)
+	quick_match_button.pressed.connect(_on_steam_quick_pressed)
+	invite_button.pressed.connect(_on_steam_invite_pressed)
+	back_button.pressed.connect(_on_back_pressed)
+	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	_retranslate()
 	if SteamService.is_available():
 		SteamService.watch_join_requests(_on_steam_join_requested)
 
@@ -42,41 +58,17 @@ func _process(_delta: float) -> void:
 	if SteamService.is_available():
 		SteamService.run_callbacks()
 
-func _build_ui() -> void:
-	var root := VBoxContainer.new()
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_theme_constant_override("separation", 8)
-	add_child(root)
-
-	var steam_buttons := HBoxContainer.new()
-	root.add_child(steam_buttons)
-
-	var steam_host_btn := Button.new()
-	steam_host_btn.text = SettingsManager.t("NET_STEAM_HOST")
-	steam_host_btn.pressed.connect(_on_steam_host_pressed)
-	steam_buttons.add_child(steam_host_btn)
-
-	var steam_quick_btn := Button.new()
-	steam_quick_btn.text = SettingsManager.t("NET_STEAM_QUICK")
-	steam_quick_btn.pressed.connect(_on_steam_quick_pressed)
-	steam_buttons.add_child(steam_quick_btn)
-
-	var steam_invite_btn := Button.new()
-	steam_invite_btn.text = SettingsManager.t("NET_STEAM_INVITE")
-	steam_invite_btn.pressed.connect(_on_steam_invite_pressed)
-	steam_buttons.add_child(steam_invite_btn)
-
-	var back_btn := Button.new()
-	back_btn.text = SettingsManager.t("NET_BACK")
-	back_btn.pressed.connect(_on_back_pressed)
-	steam_buttons.add_child(back_btn)
-
-	_log = RichTextLabel.new()
-	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(_log)
-
 func _log_line(text: String) -> void:
 	_log.append_text(text + "\n")
+
+func _retranslate() -> void:
+	title_label.text        = SettingsManager.t("MENU_MULTIPLAYER")
+	subtitle_label.text     = SettingsManager.t("NET_LOBBY_SUBTITLE")
+	status_title_label.text = SettingsManager.t("NET_STATUS_TITLE")
+	host_button.text        = SettingsManager.t("NET_STEAM_HOST")
+	quick_match_button.text = SettingsManager.t("NET_STEAM_QUICK")
+	invite_button.text      = SettingsManager.t("NET_STEAM_INVITE")
+	back_button.text        = SettingsManager.t("NET_BACK")
 
 # ─── Actions UI ───────────────────────────────────────────────────────────────
 
