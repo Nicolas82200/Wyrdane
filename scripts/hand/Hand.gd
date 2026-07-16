@@ -14,6 +14,13 @@ const NORMAL_SCALE    := Vector2(0.75, 0.75)
 const SPACING         := 100.0
 const COMPACT_SPACING := 20.0
 const ARC_STRENGTH    := 20.0
+# Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
+# main est repliée — le reste dépasse sous le bas de l'écran
+const COLLAPSED_PEEK_RATIO := 0.22
+# Bande basse de l'écran qui déclenche le déploiement quand la main est repliée
+const EXPAND_ZONE_HEIGHT   := 90.0
+# Bande basse qui garde la main déployée une fois ouverte (hystérésis anti-flicker)
+const COLLAPSE_ZONE_HEIGHT := 340.0
 
 var _base_positions:    Dictionary     = {}
 var _is_compact:        bool           = false
@@ -24,12 +31,39 @@ var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
 var _mulligan_mode:     bool           = false
+# Repli/déploiement façon TCG : la main se range vers le bas hors hover
+var _hand_expanded:     bool           = false
+# Vrai pendant un drag issu de la main : reste déployée quelle que soit la souris
+var _force_expanded:    bool           = false
 
 var _battle: Node = null
 
 func _ready() -> void:
 	preview.hide()
 	_battle = get_tree().current_scene
+
+func _process(_delta: float) -> void:
+	if _mulligan_mode:
+		return
+	var should_expand: bool = _force_expanded or _is_mouse_in_hand_zone()
+	if should_expand != _hand_expanded:
+		_hand_expanded = should_expand
+		_update_hand_layout(true)
+
+func _is_mouse_in_hand_zone() -> bool:
+	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
+	var mouse_y: float = get_viewport().get_mouse_position().y
+	return mouse_y >= size.y - zone_height
+
+# Zone basse de l'écran considérée comme « dans la main » : lâcher une carte
+# éphémère/rituel/enchantement au-delà de cette zone suffit à la jouer
+func get_hand_zone_rect() -> Rect2:
+	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
+	var full: Rect2 = get_global_rect()
+	return Rect2(
+		Vector2(full.position.x, full.position.y + full.size.y - zone_height),
+		Vector2(full.size.x, zone_height)
+	)
 
 
 func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: Vector2 = Vector2.ZERO) -> void:
@@ -120,6 +154,9 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 
 func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
+	if active and not _hand_expanded:
+		_hand_expanded = true
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
@@ -273,16 +310,18 @@ func _card_norm(index: int, count: int) -> float:
 	return offset / max(float(count - 1) / 2.0, 1.0)
 
 func _card_position(index: int, layout: Dictionary, card: Control, norm: float) -> Vector2:
-	return Vector2(
-		80.0 + index * layout["spacing"],
-		layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
-	)
+	var y: float = layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
+	if not _hand_expanded:
+		y += card.size.y * layout["scale"].y * (1.0 - COLLAPSED_PEEK_RATIO)
+	return Vector2(80.0 + index * layout["spacing"], y)
 
 
 func _relay_drag_started() -> void:
+	_force_expanded = true
 	drag_started.emit()
 
 func _relay_drag_ended() -> void:
+	_force_expanded = false
 	drag_ended.emit()
 
 func _connect_card(card: Card) -> void:
