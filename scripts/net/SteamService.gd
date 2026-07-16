@@ -28,6 +28,8 @@ class_name SteamService
 const APP_ID := 480  # Spacewar (AppID de test public Steam)
 
 static var _initialized := false
+static var _join_requested_callback := Callable()
+static var _join_signal_connected := false
 
 static func is_available() -> bool:
 	return Engine.has_singleton("Steam")
@@ -76,3 +78,24 @@ static func run_callbacks() -> void:
 static func local_persona_name() -> String:
 	var s := steam()
 	return s.getPersonaName() if _initialized and s != null else ""
+
+# Écoute les demandes de rejoindre un lobby via ami Steam (overlay « Rejoindre
+# la partie », invitation acceptée) — indépendamment de tout host()/join() déjà
+# en cours côté SteamTransport. À appeler dès l'arrivée sur l'écran multijoueur
+# pour capter une invitation même avant que le joueur ait cliqué un bouton :
+# initialise Steam si besoin (idempotent) et pompe les callbacks à chaque appel
+# de run_callbacks(), qu'une session de jeu soit active ou non.
+# Callback appelé avec (lobby_id: int) quand une demande arrive.
+static func watch_join_requests(on_join_requested: Callable) -> bool:
+	if not ensure_init():
+		return false
+	_join_requested_callback = on_join_requested
+	var s := steam()
+	if not _join_signal_connected:
+		s.connect("join_requested", _on_join_requested)
+		_join_signal_connected = true
+	return true
+
+static func _on_join_requested(lobby_id: int, _friend_id: int = 0) -> void:
+	if _join_requested_callback.is_valid():
+		_join_requested_callback.call(lobby_id)
