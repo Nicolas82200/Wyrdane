@@ -743,9 +743,13 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
-# Coût effectif d'une carte de la main du joueur (remises comprises).
-func get_card_cost(card_data: CardData) -> int:
-	return cost_system.get_cost(card_data, true)
+# Répartition race/générique du coût effectif d'une carte de la main du joueur
+# (remises comprises) : {"race": int, "generic": int}. Voir CostSystem pour le
+# détail du calcul (Système de Ressources par Race).
+func get_card_cost(card_data: CardData) -> Dictionary:
+	var total: int = cost_system.get_cost(card_data, true)
+	var race_cost: int = cost_system.get_race_cost(card_data, true)
+	return {"race": race_cost, "generic": total - race_cost}
 
 func can_afford_card(card_data: CardData) -> bool:
 	if card_data == null:
