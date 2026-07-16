@@ -6,6 +6,11 @@ class_name CardData
 @export_multiline var flavour_text: String
 @export var texture: Texture2D
 @export var cost: int = 1
+# Jeton non collectible : exclu du deckbuilder et du pool IA/aléatoire
+# (CardLibrary), utilisé uniquement comme cible d'invocation fixe
+# (CardEffect.summon_card) pour éviter d'invoquer une vraie carte du deck
+# et les réactions en chaîne que ses propres triggers pourraient déclencher.
+@export var is_token: bool = false
 
 
 @export var race: Race.Type = Race.Type.UNDEAD
