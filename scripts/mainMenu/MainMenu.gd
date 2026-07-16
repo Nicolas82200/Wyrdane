@@ -19,7 +19,7 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var settings_menu = $SettingsMenu
 
 func _ready() -> void:
-	AudioManager.play_battle_music()
+	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	play_button.pressed.connect(_on_play)
