@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://60yudhwmayno" path="res://assets/card_art/demon/blood-offering.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
-[ext_resource type="Resource" uid="uid://lnmfmrvaguehb" path="res://resources/cards/demon/hellspawn-larva.tres" id="5_summon"]
+[ext_resource type="Resource" path="res://resources/cards/demon/hellspawn-larva-token.tres" id="5_summon"]
 
 [sub_resource type="Resource" id="Resource_0y8m3"]
 script = ExtResource("4_trig")

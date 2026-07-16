@@ -91,6 +91,9 @@ Plus de mana générique unique : chaque race a son propre pool (`Battle.race_ma
 
 Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/data/TriggerType.gd`) et sont déclenchés par nom via `EffectManager.trigger_effects(battle, minion, "OnAwaken")` ou `TriggerSystem.fire("OnSummon", minion, is_player)`. Les effets eux-mêmes sont **data-driven** : chaque carte (`CardData.effects`) porte des ressources `CardEffect` (effect_id, cible, valeur) exécutées par `EffectManager.execute_effect()` — rien n'est codé en dur dans les serviteurs. **Avant d'ajouter un effet, vérifier si son `effect_id` existe déjà dans le `match` de `EffectManager.gd`.**
 
+### Jetons d'invocation
+Un effet `SummonMinion` (cible fixe via `CardEffect.summon_card`) ne doit **jamais** cibler une vraie carte collectionnable du deck — cela invoquerait ses propres triggers/effets et créerait des réactions en chaîne (ex. serviteur A invoque B qui invoque C...). À la place, créer une ressource `.tres` dédiée avec `CardData.is_token = true` : copie des stats/mots-clés passifs de la carte visée mais **sans aucun `trigger_types`/`effects`** (les mots-clés purement passifs comme REMPART/PACTE/HORDE peuvent rester, ils ne déclenchent jamais l'EffectManager). `CardLibrary._scan_recursive` exclut automatiquement les cartes `is_token` du pool (deckbuilder, deck IA, pool `SummonRandom`) ; seule une référence directe via `summon_card` peut y accéder. Convention de nommage : `<carte-source>-token.tres`, documentée dans la section « Jetons » de `CARDS.md` de la race concernée. Exception : `SummonRandom` (« invoque un serviteur de coût ≤X ») pioche légitimement dans le pool de vraies cartes — c'est le comportement voulu, pas un cas à convertir en jeton.
+
 ### Mots-clés
 `REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `INFILTRATION`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
 
