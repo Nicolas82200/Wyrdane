@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://b5x1ff0bko5km" path="res://scenes/graveyard/GraveyardView.tscn" id="7_nyp61"]
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="10_q5nyf"]
-[ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 [ext_resource type="Script" uid="uid://c6bscpyi2ynfo" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
@@ -64,6 +63,18 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.5, 0.5, 0.55, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_resourcezone"]
+bg_color = Color(0.1, 0.1, 0.12, 0.3)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.72, 0.6, 0.3, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -579,6 +590,74 @@ grow_vertical = 2
 mouse_filter = 2
 alignment = 1
 
+[node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = -330.0
+offset_right = -620.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
+
+[node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
+custom_minimum_size = Vector2(330, 320)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = -330.0
+offset_right = -620.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = 10.0
+offset_right = -620.0
+offset_bottom = 330.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
+
+[node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
+custom_minimum_size = Vector2(330, 320)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = 10.0
+offset_right = -620.0
+offset_bottom = 330.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
 [node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
 layout_mode = 1
 anchors_preset = -1
@@ -876,9 +955,6 @@ text = "⚙️"
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 1
 show_quit = true
-
-[node name="TurnChoicePanel" parent="." unique_id=1856936643 instance=ExtResource("12_pk84k")]
-layout_mode = 1
 
 [node name="GameOverScreen" parent="." unique_id=1455444611 instance=ExtResource("19_gameover")]
 layout_mode = 1

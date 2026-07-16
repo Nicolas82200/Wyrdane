@@ -22,7 +22,6 @@ func _init(network_manager: NetworkManager) -> void:
 
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
-const MANA_CAP := 10
 const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
 
 # Compteurs cosmétiques du camp distant (dos de deck / main), suivis via les
@@ -31,9 +30,10 @@ var _deck_count: int = 0
 var _hand_count: int = 0
 
 func setup() -> void:
-	# Mana initial du camp adverse, miroir du 1er tour du joueur local.
-	mana = 1
-	max_mana = 1
+	# Pools de ressource initiaux du camp adverse : vides tant qu'aucune carte-
+	# ressource n'a été posée (plus de mana de départ, voir README).
+	race_mana = {}
+	race_max_mana = {}
 	# Compteurs initiaux d'après le deck reçu au handshake, moins la main de départ.
 	var deck_size: int = NetContext.setup.get("opponent_deck", []).size()
 	_hand_count = min(STARTING_HAND, deck_size)
@@ -111,25 +111,19 @@ func _on_command_received(command: Dictionary) -> void:
 func _apply(cmd: Dictionary) -> void:
 	match NetCommand.type_of(cmd):
 		NetCommand.TURN_START:
-			# Rejoue la phase de début du tour distant (is_local_turn = false).
+			# Rejoue la phase de début du tour distant (is_local_turn = false) :
+			# recharge les pools de ressource à leur maximum et pioche une carte
+			# automatiquement, comme le tour local (plus de choix Mana/Pioche).
 			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 			await battle.turn_system.run_turn_start_triggers(false)
 			battle.net_registry.set_imposed_ids([])
-		NetCommand.TURN_CHOICE:
-			# Choix de début de tour distant : mana augmente la réserve, pioche non.
-			# Affichage cosmétique côté joueur local (les plays sont déjà validés
-			# chez l'émetteur).
-			if cmd.get("choice", "mana") == "mana":
-				max_mana = min(max_mana + 1, MANA_CAP)
-			else:
-				# Pioche : une carte quitte le deck pour la main adverse.
-				if _deck_count > 0:
-					_deck_count -= 1
-					_hand_count += 1
-				battle.update_enemy_hand_ui()
-				battle.deck_system.update_enemy_deck_ui()
-			mana = max_mana
+			battle.refill_mana_pool(false)
 			battle.update_enemy_mana_ui()
+			if _deck_count > 0:
+				_deck_count -= 1
+				_hand_count += 1
+			battle.update_enemy_hand_ui()
+			battle.deck_system.update_enemy_deck_ui()
 		NetCommand.PLAY_CARD:
 			await _apply_play_card(cmd)
 		NetCommand.ATTACK:
@@ -155,8 +149,17 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if card == null:
 		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
 		return
+	if card.card_type == "Resource":
+		# Carte-ressource : pas de coût, +1 au pool de sa race (voir Battle.play_resource_card).
+		if _hand_count > 0:
+			_hand_count -= 1
+			battle.update_enemy_hand_ui()
+		battle.play_resource_card(card, false)
+		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-	# Suivi des coûts du camp distant (compteurs "premier de la race joué ce tour")
+	# Coût réel du camp distant : déduit ses pools (affichage) + suivi "premier de la race joué ce tour"
+	battle.cost_system.pay(card, false)
+	battle.update_enemy_mana_ui()
 	await battle.cost_system.on_card_played(card, false)
 	# La carte jouée quitte la main adverse (compteur cosmétique).
 	if _hand_count > 0:

@@ -25,9 +25,9 @@ func init(_battle: Node) -> void:
 func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
 	var card_type: String = card_data.card_type if card_data != null else "Minion"
 
-	# Éphémère / Rituel / Enchantement : pas de zone précise à viser, sortir la
+	# Éphémère / Rituel / Enchantement / Ressource : pas de zone précise à viser, sortir la
 	# carte de la main suffit à la jouer — aucun surlignage nécessaire
-	if card_type == "Instant" or card_type == "Ritual" or card_type == "Enchantment":
+	if card_type == "Instant" or card_type == "Ritual" or card_type == "Enchantment" or card_type == "Resource":
 		clear_player_drop_highlight()
 		return display_show and not get_player_drop_row_at(mouse, card_data).is_empty()
 
@@ -99,9 +99,9 @@ func _fit_drop_highlight_to(row_container: Control, panel: Control) -> void:
 # ─── Drop row / index ─────────────────────────────────────────────────────────
 
 func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> String:
-	# Éphémère / Rituel / Enchantement : pas de lane à viser, elles n'ont pas de
+	# Éphémère / Rituel / Enchantement / Ressource : pas de lane à viser, elles n'ont pas de
 	# position sur le plateau — sortir la carte de la main suffit à la jouer
-	if card_data != null and card_data.card_type in ["Instant", "Ritual", "Enchantment"]:
+	if card_data != null and card_data.card_type in ["Instant", "Ritual", "Enchantment", "Resource"]:
 		return "" if _is_over_hand(mouse) else battle.ROW_FRONT
 	var allowed_rows: Array[String] = battle.get_allowed_rows_for_card(card_data)
 	if battle.player_front_container is Control \

@@ -16,7 +16,6 @@ class_name NetCommand
 const PLAY_CARD   := "PLAY_CARD"    # invoquer un serviteur / lancer un sort
 const ATTACK      := "ATTACK"       # un serviteur en attaque un autre
 const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
-const TURN_CHOICE := "TURN_CHOICE"  # choix de début de tour : "mana" ou "draw"
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
@@ -49,9 +48,6 @@ static func attack(attacker_net_id: int, defender_net_id: int) -> Dictionary:
 
 static func attack_hero(attacker_net_id: int) -> Dictionary:
 	return {"type": ATTACK_HERO, "attacker": attacker_net_id}
-
-static func turn_choice(choice: String) -> Dictionary:
-	return {"type": TURN_CHOICE, "choice": choice}
 
 # ids : net_id des serviteurs créés par les déclencheurs de fin de tour, à imposer
 # lors du rejeu de cette phase sur le pair.
