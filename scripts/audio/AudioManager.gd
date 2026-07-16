@@ -30,11 +30,13 @@ const CLOSE_MENU := "close_menu"
 const SHUFFLE := "shuffle"
 
 # Musique
-const BATTLE_MUSIC := [preload(
-	"res://assets/audio/music/tavern-at-oakhaven-01.mp3",
-),
-preload(
-	"res://assets/audio/music/tavern-at-oakhaven-02.mp3")
+const MENU_MUSIC := [
+	preload("res://assets/audio/music/tavern-at-oakhaven-01.mp3"),
+	preload("res://assets/audio/music/tavern-at-oakhaven-02.mp3"),
+]
+const BATTLE_MUSIC := [
+	preload("res://assets/audio/music/The Veil of Forgotten Kings.mp3"),
+	preload("res://assets/audio/music/The Veil of Forgotten Kings_1.mp3"),
 ]
 
 
@@ -68,11 +70,16 @@ func _on_button_pressed(button: BaseButton) -> void:
 		return
 	play(BUTTON)
 
-func play_battle_music() -> void:
-	var music: AudioStream = BATTLE_MUSIC.pick_random()
-	if music_player.stream == music and music_player.playing:
+func play_menu_music() -> void:
+	if music_player.playing and music_player.stream in MENU_MUSIC:
 		return
-	music_player.stream = music
+	music_player.stream = MENU_MUSIC.pick_random()
+	music_player.play()
+
+func play_battle_music() -> void:
+	if music_player.playing and music_player.stream in BATTLE_MUSIC:
+		return
+	music_player.stream = BATTLE_MUSIC.pick_random()
 	music_player.play()
 
 func _spawn_player(sound: AudioStream, pitch_variation: bool, min_pitch := 0.92, max_pitch := 1.08) -> void:
@@ -197,11 +204,45 @@ func load_sounds() -> void:
 			UnitStyle.Type.BLADE_DANCER:  [],
 			UnitStyle.Type.BERSERKER:     [],
 			UnitStyle.Type.RUNESMITH:     [],
-			UnitStyle.Type.IMP:           [],
-			UnitStyle.Type.DEMON_WARRIOR: [],
-			UnitStyle.Type.SUCCUBUS:      [],
+			UnitStyle.Type.IMP:           [
+			preload("res://assets/audio/sound-effect/demon/demon_01.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_02.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_03.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_04.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_05.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_06.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_07.wav"),
+			],
+			UnitStyle.Type.DEMON_WARRIOR: [
+			preload("res://assets/audio/sound-effect/demon/demon_01.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_02.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_03.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_04.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_05.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_06.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_07.wav"),
+			],
+			UnitStyle.Type.SUCCUBUS:      [
+			preload("res://assets/audio/sound-effect/demon/demon_01.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_02.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_03.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_04.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_05.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_06.wav"),
+			preload("res://assets/audio/sound-effect/demon/demon_07.wav"),
+			],
 			UnitStyle.Type.INSECT:        [preload("res://assets/audio/sound-effect/global/swarm-insect.wav")],
 			UnitStyle.Type.LARVA:         [preload("res://assets/audio/sound-effect/global/larva.wav")],
+			UnitStyle.Type.ABOMINATION_MASS: [
+			preload("res://assets/audio/sound-effect/abomination/abomination_01.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_02.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_03.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_04.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_05.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_06.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_07.wav"),
+			preload("res://assets/audio/sound-effect/abomination/abomination_08.wav"),
+			],
 		}
 	}
 

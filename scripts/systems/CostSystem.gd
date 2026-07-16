@@ -21,10 +21,10 @@ var _race_played_this_turn: Dictionary = {true: {}, false: {}}
 # ─── Ressources de race (voir README « Système de Ressources par Race ») ──────
 # % du coût verrouillé sur le pool de race de la carte, selon sa rareté.
 const RACE_LOCK_PCT := {
-	"Common":    0.40,
-	"Rare":      0.55,
-	"Epic":      0.70,
-	"Legendary": 0.85,
+	"Common":    0.25,
+	"Rare":      0.40,
+	"Epic":      0.55,
+	"Legendary": 0.65,
 }
 
 func init(_battle) -> void:

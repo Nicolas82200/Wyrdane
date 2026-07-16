@@ -831,10 +831,10 @@ Chaque carte de race a un coût scindé en deux parts, calculées à la volée p
 
 | Rareté | % du coût verrouillé en ressource de race |
 |---|---|
-| Commune | 40% |
-| Rare | 55% |
-| Épique | 70% |
-| Légendaire | 85% |
+| Commune | 25% |
+| Rare | 40% |
+| Épique | 55% |
+| Légendaire | 65% |
 
 Formule : `race_cost = clamp(arrondi(coût effectif × %), 1, coût effectif)` — garantit qu'aucune carte de race n'est jouable "gratuitement" hors de sa race, même à 1⬡ (sauf coût déjà réduit à 0 par une remise).
 
