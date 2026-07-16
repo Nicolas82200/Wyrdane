@@ -219,16 +219,15 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Couche transport
 
-*   `NetTransport` — interface abstraite (host/join/send/close).
-*   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
-*   `SteamTransport` — implémentation Steam : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
-*   `TransportFactory` — crée le backend demandé (ENet ou Steam).
-*   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
+*   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
+*   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
+*   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
+*   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).
 
 #### Entrée en partie
 
-1.  `scenes/net/NetLobby.tscn` — un joueur clique « Héberger », l'autre saisit l'IP et « Rejoindre ». Si GodotSteam est présent, une seconde rangée propose « Héberger (Steam) » et « Partie rapide (Steam) ».
+1.  `scenes/net/NetLobby.tscn` — « Héberger », « Partie rapide » ou « Inviter un ami » (backend Steam uniquement).
 2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
 3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 
@@ -244,7 +243,7 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   **RNG de jeu partagée** (graine échangée au handshake) : les effets aléatoires produisent le même résultat sur les deux clients.
 *   Triggers de début/fin de tour (Éveil/Déclin) et infection synchronisés entre clients ; les effets d'invocation ciblés sont rejoués côté distant.
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
-*   Déconnexion du pair en cours de partie gérée (message + sortie propre) ; quitter la partie déconnecte proprement.
+*   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
 ### 🌍 Internationalisation (i18n)
 
@@ -371,7 +370,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 
 Couche multijoueur 1v1 (voir la section « Multijoueur 1v1 » plus haut pour l'architecture) :
 
-*   `NetTransport.gd` / `ENetTransport.gd` / `SteamTransport.gd` / `SteamService.gd` / `TransportFactory.gd`: Abstraction du transport et ses implémentations ENet et Steam (GodotSteam optionnel).
+*   `NetTransport.gd` / `SteamTransport.gd` / `SteamService.gd` / `TransportFactory.gd`: Abstraction du transport et son implémentation Steam (GodotSteam optionnel).
 *   `NetworkManager.gd`: Connexion, sérialisation et routage des commandes de jeu.
 *   `NetCommand.gd`: Vocabulaire partagé des commandes (`PLAY_CARD`, `ATTACK`, `END_TURN`...).
 *   `NetHandshake.gd`: Échange d'ouverture (decks, graine RNG, premier joueur).
@@ -725,9 +724,9 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 ### 🌐 Réseau & Visibilité
 
 #### Hébergement (non tranché)
-Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hôte** (`ENetMultiplayerPeer`, API haut-niveau Godot) pour une v1 jouable entre amis via code de partie, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
+Décision reportée. Recommandation actuelle : réutiliser le backend Steam existant (**P2P, un joueur hôte**, lobby Steam) pour une v1 jouable entre amis, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
 
-👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport ENet P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
+👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport Steam P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
 
 #### Visibilité entre joueurs (validé)
 - **Le plateau (board)** de chaque joueur est **visible par tous les autres joueurs** à tout moment (permet de scouter les adversaires, anticiper les fusions/synergies en cours, décision stratégique classique d'autobattler).
@@ -747,8 +746,7 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Trois races jouables : Mort-Vivant, Humain et Démon (226 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
-*   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
 *   **Internationalisation FR/EN** — toute l'UI et les 226 cartes, via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion` (combat, mots-clés) et tests d'intégrité sur l'ensemble des ressources `.tres` de cartes (voir « Tests automatisés » dans `CLAUDE.md`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
