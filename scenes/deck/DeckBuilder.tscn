@@ -4,6 +4,16 @@
 [ext_resource type="Theme" path="res://resources/themes/ui_theme.tres" id="2_theme"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_font"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.05, 0.042, 0.03, 1)
+border_width_bottom = 2
+border_color = Color(0.55, 0.41, 0.08, 0.9)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidepanel"]
+bg_color = Color(0.055, 0.047, 0.035, 1)
+border_width_left = 2
+border_color = Color(0.55, 0.41, 0.08, 0.7)
+
 [node name="DeckBuilder" type="Control" unique_id=413371395]
 layout_mode = 3
 anchors_preset = 15
@@ -34,6 +44,7 @@ theme_override_constants/separation = 0
 
 [node name="HeaderBar" type="PanelContainer" parent="MainVBox" unique_id=100000021]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
 [node name="HeaderMargin" type="MarginContainer" parent="MainVBox/HeaderBar" unique_id=100000022]
 layout_mode = 2
@@ -128,6 +139,7 @@ layout_mode = 2
 [node name="RightPanel" type="PanelContainer" parent="MainVBox/HBox" unique_id=100000007]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidepanel")
 
 [node name="RightMargin" type="MarginContainer" parent="MainVBox/HBox/RightPanel" unique_id=100000026]
 layout_mode = 2
