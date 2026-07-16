@@ -74,6 +74,31 @@ func test_buff_increases_attack_and_max_health() -> void:
 	assert_eq(target.attack, 5)
 	assert_eq(target.max_health, 6)
 
+func test_debuff_permanently_reduces_max_health() -> void:
+	var source := _minion()
+	var target := _minion(3, 4, false)
+	var effect := _effect("Debuff", "EnemyMinion", 1, 2)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.attack, 2)
+	assert_eq(target.max_health, 2, "la réduction de HP max doit être permanente (symétrique de Buff)")
+	assert_eq(target.health, 2)
+
+func test_debuff_can_kill_low_health_target() -> void:
+	var source := _minion()
+	var target := _minion(2, 2, false)
+	var effect := _effect("Debuff", "EnemyMinion", 0, 2)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_true(target.is_dead(), "-2/-2 doit pouvoir tuer un serviteur à 2 HP")
+
+func test_steal_minion_moves_target_between_camps() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(3, 5, false)
+	var effect := _effect("StealMinion", "EnemyMinion")
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_true(target.owner_is_player, "le serviteur volé doit changer de camp")
+	assert_true(target in battle.player_minions, "doit rejoindre les serviteurs du voleur")
+	assert_false(target in battle.enemy_minions, "ne doit plus figurer côté ancien propriétaire")
+
 func test_destroy_ally_marks_sacrificed_and_kills() -> void:
 	var source := _minion()
 	var target := _minion(2, 4, true)
