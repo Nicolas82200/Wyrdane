@@ -349,6 +349,7 @@ func _connect_card(card: Card) -> void:
 		card.create_drag_preview = create_drag_preview
 	if display_cost.is_valid():
 		card.set_display_cost(display_cost.call(card.data))
+	card.update_playable_highlight()
 
 func refresh_costs() -> void:
 	if not display_cost.is_valid():
@@ -356,3 +357,10 @@ func refresh_costs() -> void:
 	for card in container.get_children():
 		if card is Card and card.data != null and not card.is_queued_for_deletion():
 			card.set_display_cost(display_cost.call(card.data))
+
+# À appeler chaque fois que la jouabilité des cartes en main peut changer
+# (mana gagné/dépensé, ressource posée, tour qui commence...).
+func refresh_playable_highlights() -> void:
+	for card in container.get_children():
+		if card is Card and card.data != null and not card.is_queued_for_deletion():
+			card.update_playable_highlight()

@@ -15,6 +15,8 @@ const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
 # DeckBuilder.MAXED_TINT).
 const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
+# Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
+const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -101,7 +103,13 @@ var _name_bg_style: StyleBoxFlat
 var _desc_bg_style: StyleBoxFlat
 var _type_style    := StyleBoxFlat.new()
 
+var _playable_glow: Panel = null
+var _playable_style: StyleBoxFlat = null
+var _playable_pulse: float = 0.0
+var _is_playable: bool = false
+
 func _ready() -> void:
+	_battle = get_tree().current_scene
 	_name_bg_style = (name_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
 	name_label.add_theme_stylebox_override("normal", _name_bg_style)
 	_desc_bg_style = (desc_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
@@ -114,6 +122,23 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	_playable_style = StyleBoxFlat.new()
+	_playable_style.bg_color            = Color.TRANSPARENT
+	_playable_style.border_width_left   = 3
+	_playable_style.border_width_right  = 3
+	_playable_style.border_width_top    = 3
+	_playable_style.border_width_bottom = 3
+	_playable_style.border_color        = PLAYABLE_GLOW_COLOR
+	_playable_style.set_corner_radius_all(10)
+	_playable_glow = Panel.new()
+	_playable_glow.name = "PlayableGlow"
+	_playable_glow.position = Vector2(-9, -10)
+	_playable_glow.size = Vector2(268, 393)
+	_playable_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_playable_glow.add_theme_stylebox_override("panel", _playable_style)
+	_playable_glow.visible = false
+	add_child(_playable_glow)
 
 # ─── Données ──────────────────────────────────────────────────────────────────
 
@@ -169,6 +194,29 @@ func update_display() -> void:
 
 	_apply_race_style()
 	_apply_type_style()
+	update_playable_highlight()
+
+# Recalcule si la carte est jouable (mana + conditions) et bascule le halo vert.
+# À appeler chaque fois qu'un état pouvant changer la jouabilité évolue (mana,
+# tour, cimetière...) — voir Hand.refresh_playable_highlights().
+func update_playable_highlight() -> void:
+	if _playable_glow == null:
+		return
+	var should_show: bool = data != null and not mulligan_mode and not dragging \
+		and _is_players_turn() \
+		and can_drag_check.is_valid() and can_drag_check.call(data)
+	if should_show != _is_playable:
+		_is_playable = should_show
+		_playable_pulse = 0.0
+		_playable_style.border_color = PLAYABLE_GLOW_COLOR
+		_playable_glow.visible = should_show
+
+func _is_players_turn() -> bool:
+	if _battle == null or not ("enemy_turn_active" in _battle):
+		return true
+	if "game_over" in _battle and _battle.game_over:
+		return false
+	return not _battle.enemy_turn_active
 
 # Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
 func _apply_type_style() -> void:
@@ -242,6 +290,7 @@ func _gui_input(event: InputEvent) -> void:
 	drag_rotation     = 0.0
 	dragging          = true
 	_drag_released    = false
+	update_playable_highlight()
 	z_index           = 100
 	visible           = false
 
@@ -254,7 +303,12 @@ func _gui_input(event: InputEvent) -> void:
 	drag_started.emit()
 	get_viewport().set_input_as_handled()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _playable_glow != null and _playable_glow.visible:
+		_playable_pulse += delta * 2.0
+		_playable_style.border_color.a = 0.5 + sin(_playable_pulse) * 0.3
+		_playable_glow.queue_redraw()
+
 	if not dragging:
 		return
 
@@ -318,6 +372,7 @@ func _restore_in_hand() -> void:
 	visible = true
 	rotation_degrees = 0.0
 	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
+	update_playable_highlight()
 	if hand_ref and hand_ref.has_method("_update_hand_layout"):
 		hand_ref._update_hand_layout()
 
