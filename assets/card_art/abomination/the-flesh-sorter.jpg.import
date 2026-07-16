@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://c3xvs216isoa7"
+=======
 uid="uid://vok002thutjf"
+>>>>>>> dev
 path="res://.godot/imported/the-flesh-sorter.jpg-aaea18ac90c78615c9cb62514ee6d824.ctex"
 metadata={
 "vram_texture": false

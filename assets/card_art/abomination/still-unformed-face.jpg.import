@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://druu2q8bpbmon"
+=======
 uid="uid://7dlcca13oris"
+>>>>>>> dev
 path="res://.godot/imported/still-unformed-face.jpg-ab2d2187a5887cb40ee8118b8527e073.ctex"
 metadata={
 "vram_texture": false

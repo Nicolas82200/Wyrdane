@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://bo0aov77axoud"
+=======
 uid="uid://bxmdqsk775vmg"
+>>>>>>> dev
 path="res://.godot/imported/ritual-of-the-thread-beneath-the-skin.jpg-0b89270fc234287a2abbeb6a54c5c8fb.ctex"
 metadata={
 "vram_texture": false

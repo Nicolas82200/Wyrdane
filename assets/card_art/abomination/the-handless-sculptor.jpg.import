@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://c0yojd66h0qer"
+=======
 uid="uid://bgtmsifs7jvnr"
+>>>>>>> dev
 path="res://.godot/imported/the-handless-sculptor.jpg-951fd00998fb4a1c69afffa42bb06f57.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://itlsbk65n23a"
+=======
 uid="uid://msay0ou8a6ny"
+>>>>>>> dev
 path="res://.godot/imported/bond-without-membrane.jpg-04a250cf46210963c00cbbd86be6082b.ctex"
 metadata={
 "vram_texture": false

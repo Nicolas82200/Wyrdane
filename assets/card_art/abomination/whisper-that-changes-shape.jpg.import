@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://vpnwsr2tc63f"
+=======
 uid="uid://buoy581dinp6"
+>>>>>>> dev
 path="res://.godot/imported/whisper-that-changes-shape.jpg-23cb7d8126aac882841ee78f1d1fbb2e.ctex"
 metadata={
 "vram_texture": false
