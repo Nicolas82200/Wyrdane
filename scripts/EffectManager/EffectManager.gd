@@ -932,11 +932,14 @@ func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEff
 func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var amount: int = maxi(1, effect.value)
+	# Bucket hors-race (Race.Type.NONE) : compte comme surplus générique dans
+	# CostSystem, mais n'est jamais rechargé par refill_mana_pool -> perdu au
+	# tour suivant, sans jamais toucher au maximum d'une race.
+	var pool: Dictionary = battle.race_mana_pool(is_player)
+	pool[Race.Type.NONE] = int(pool.get(Race.Type.NONE, 0)) + amount
 	if is_player:
-		battle.mana += amount
 		battle.update_mana_ui()
 	else:
-		battle.opponent.mana += amount
 		battle.update_enemy_mana_ui()
 
 # Pioche `value` carte(s) ; chaque carte piochée de la race `race_filter` (ou
