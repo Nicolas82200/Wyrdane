@@ -11,6 +11,12 @@ extends Control
 # Wyrdane, « Partie rapide (Steam) » est un vrai matchmaking : elle cherche un
 # lobby existant et, si aucun n'est trouvé, héberge automatiquement à la place
 # (le joueur n'a qu'un bouton à presser, pas besoin de coordonner qui héberge).
+# « Inviter un ami » ouvre l'overlay Steam pour le lobby en cours (hôte
+# uniquement). Dès l'arrivée sur cet écran, on écoute aussi les demandes de
+# rejoindre reçues via une invitation Steam acceptée (overlay ami, lien
+# « Rejoindre la partie ») : le jeu doit déjà tourner et être sur cet écran —
+# le cas « jeu pas encore lancé » (+connect_lobby en ligne de commande) n'est
+# pas géré ici.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
@@ -28,6 +34,15 @@ func _ready() -> void:
 	_net.peer_disconnected.connect(_on_peer_disconnected)
 	_net.status.connect(_log_line)
 	_build_ui()
+	if SteamService.is_available():
+		SteamService.watch_join_requests(_on_steam_join_requested)
+
+func _process(_delta: float) -> void:
+	# Pompe les callbacks Steam même hors session active, pour capter une
+	# invitation reçue pendant qu'on est simplement sur cet écran (voir
+	# SteamService.watch_join_requests). Sans effet si Steam pas initialisé.
+	if SteamService.is_available():
+		SteamService.run_callbacks()
 
 func _build_ui() -> void:
 	var root := VBoxContainer.new()
@@ -72,6 +87,11 @@ func _build_ui() -> void:
 		steam_quick_btn.pressed.connect(_on_steam_quick_pressed)
 		steam_buttons.add_child(steam_quick_btn)
 
+		var steam_invite_btn := Button.new()
+		steam_invite_btn.text = SettingsManager.t("NET_STEAM_INVITE")
+		steam_invite_btn.pressed.connect(_on_steam_invite_pressed)
+		steam_buttons.add_child(steam_invite_btn)
+
 	_log = RichTextLabel.new()
 	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(_log)
@@ -107,6 +127,9 @@ func _on_steam_quick_pressed() -> void:
 	else:
 		_quick_matching = false
 		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+
+func _on_steam_invite_pressed() -> void:
+	_net.invite_friends()
 
 func _on_back_pressed() -> void:
 	# Coupe une éventuelle connexion en cours avant de revenir au menu.
@@ -148,6 +171,17 @@ func _start_quick_match_host() -> void:
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+	else:
+		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+
+# Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») alors
+# que le joueur est déjà sur cet écran : on rejoint directement ce lobby.
+func _on_steam_join_requested(lobby_id: int) -> void:
+	_quick_matching = false
+	_log_line(SettingsManager.t("NET_STEAM_INVITE_RECEIVED"))
+	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
+	if err == OK:
+		_log_line(SettingsManager.t("NET_STEAM_SEARCHING"))
 	else:
 		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 

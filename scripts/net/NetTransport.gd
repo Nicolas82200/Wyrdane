@@ -43,3 +43,8 @@ func poll() -> void:
 # Ferme proprement la session.
 func close() -> void:
 	pass
+
+# Ouvre l'UI d'invitation d'amis du backend, si applicable (no-op sinon —
+# seul SteamTransport l'implémente, via l'overlay Steam).
+func invite_friends() -> void:
+	pass
