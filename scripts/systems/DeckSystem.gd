@@ -19,7 +19,7 @@ func load_deck() -> void:
 		for i in range(20):
 			battle.deck.append(card)
 
-const STARTING_HAND := 5
+const STARTING_HAND := 7
 
 # Mélange le deck local et pioche la main de départ (dans battle.hand_cards),
 # sans encore l'afficher : le mulligan peut la modifier avant que Battle
