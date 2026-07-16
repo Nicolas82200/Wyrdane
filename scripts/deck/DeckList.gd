@@ -10,6 +10,17 @@ class_name DeckList
 
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
+# Couleur d'accent affichée en bandeau à gauche de chaque ligne, selon la race
+# dominante du deck (repère visuel rapide dans la liste).
+const RACE_ACCENTS := {
+	Race.Type.UNDEAD: Color(0.35, 0.62, 0.32, 1),
+	Race.Type.HUMAN:  Color(0.85, 0.68, 0.30, 1),
+	Race.Type.DEMON:  Color(0.78, 0.22, 0.25, 1),
+	Race.Type.ELF:    Color(0.30, 0.65, 0.55, 1),
+	Race.Type.DWARF:  Color(0.62, 0.42, 0.24, 1),
+}
+const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
+
 func _ready() -> void:
 	create_button.pressed.connect(_on_create_deck)
 	import_button.pressed.connect(_on_import_deck)
@@ -30,10 +41,33 @@ func _retranslate() -> void:
 func _refresh() -> void:
 	for child in decks_container.get_children():
 		child.queue_free()
+	if DeckManager.decks.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = SettingsManager.t("decklist.empty")
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		empty_lbl.custom_minimum_size = Vector2(0, 120)
+		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 18)
+		decks_container.add_child(empty_lbl)
+		return
 	for i in range(DeckManager.decks.size()):
 		var deck: DeckData = DeckManager.decks[i]
 		var row := _make_deck_row(deck, i)
 		decks_container.add_child(row)
+
+## Couleur de la race la plus représentée dans le deck.
+func _dominant_race_color(deck: DeckData) -> Color:
+	var counts: Dictionary = {}
+	for card in deck.get_cards():
+		counts[card.race] = counts.get(card.race, 0) + 1
+	var best_race := -1
+	var best_count := 0
+	for race in counts:
+		if counts[race] > best_count:
+			best_race = race
+			best_count = counts[race]
+	return RACE_ACCENTS.get(best_race, NEUTRAL_ACCENT)
 
 func _make_deck_row(deck: DeckData, index: int) -> Control:
 	var is_active := index == DeckManager.active_deck_index
@@ -61,6 +95,12 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	panel.add_child(row)
+
+	# Bandeau coloré : race dominante du deck
+	var race_strip := ColorRect.new()
+	race_strip.color = _dominant_race_color(deck)
+	race_strip.custom_minimum_size = Vector2(5, 0)
+	row.add_child(race_strip)
 
 	# Indicateur deck actif
 	var active_indicator := Label.new()
