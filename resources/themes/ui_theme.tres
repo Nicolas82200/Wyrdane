@@ -172,9 +172,12 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0, 0, 0, 0.35)
 shadow_size = 10
 
-[sub_resource type="StyleBoxLine" id="StyleBoxLine_v"]
-color = Color(0.55, 0.41, 0.08, 0.5)
-vertical = true
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup_hover"]
+bg_color = Color(0.35, 0.26, 0.06, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup_panel"]
 content_margin_left = 4.0
@@ -194,12 +197,9 @@ corner_radius_bottom_left = 6
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_popup_hover"]
-bg_color = Color(0.35, 0.26, 0.06, 0.9)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_v"]
+color = Color(0.55, 0.41, 0.08, 0.5)
+vertical = true
 
 [resource]
 default_font = ExtResource("1_body")
@@ -216,6 +216,10 @@ Button/styles/focus = SubResource("StyleBoxFlat_btn_focus")
 Button/styles/hover = SubResource("StyleBoxFlat_btn_hover")
 Button/styles/normal = SubResource("StyleBoxFlat_btn_normal")
 Button/styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+CheckBox/colors/font_color = Color(0.91, 0.835, 0.639, 1)
+CheckButton/colors/font_color = Color(0.91, 0.835, 0.639, 1)
+CheckButton/colors/font_hover_color = Color(1, 0.961, 0.839, 1)
+CheckButton/colors/font_pressed_color = Color(0.941, 0.753, 0.251, 1)
 HScrollBar/styles/grabber = SubResource("StyleBoxFlat_scrollbar_grabber")
 HScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scrollbar_grabber_hi")
 HScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scrollbar_grabber_hi")
@@ -242,10 +246,8 @@ OptionButton/styles/focus = SubResource("StyleBoxFlat_btn_focus")
 OptionButton/styles/hover = SubResource("StyleBoxFlat_btn_hover")
 OptionButton/styles/normal = SubResource("StyleBoxFlat_btn_normal")
 OptionButton/styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
-CheckButton/colors/font_color = Color(0.91, 0.835, 0.639, 1)
-CheckButton/colors/font_hover_color = Color(1, 0.961, 0.839, 1)
-CheckButton/colors/font_pressed_color = Color(0.941, 0.753, 0.251, 1)
-CheckBox/colors/font_color = Color(0.91, 0.835, 0.639, 1)
+Panel/styles/panel = SubResource("StyleBoxFlat_panel_bg")
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_panel_bg")
 PopupMenu/colors/font_color = Color(0.91, 0.835, 0.639, 1)
 PopupMenu/colors/font_hover_color = Color(1, 0.961, 0.839, 1)
 PopupMenu/styles/hover = SubResource("StyleBoxFlat_popup_hover")
@@ -255,8 +257,6 @@ TextEdit/colors/font_color = Color(0.91, 0.835, 0.639, 1)
 TextEdit/colors/font_placeholder_color = Color(0.91, 0.835, 0.639, 0.45)
 TextEdit/styles/focus = SubResource("StyleBoxFlat_lineedit_focus")
 TextEdit/styles/normal = SubResource("StyleBoxFlat_lineedit_normal")
-Panel/styles/panel = SubResource("StyleBoxFlat_panel_bg")
-PanelContainer/styles/panel = SubResource("StyleBoxFlat_panel_bg")
 VScrollBar/styles/grabber = SubResource("StyleBoxFlat_scrollbar_grabber")
 VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_scrollbar_grabber_hi")
 VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_scrollbar_grabber_hi")
