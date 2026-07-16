@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://c1oul4rd001"]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" uid="uid://b8k33aniry7n4" path="res://assets/card_art/resource/undead-resource.jpg" id="2_texture"]
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Éclat d'Âme"
+description = "Ajoute 1 Âme à ta réserve de Mort-Vivant. Une seule carte-ressource peut être posée par tour."
+flavour_text = "Ce qui reste d'une vie, cristallisé par la nécromancie."
+texture = ExtResource("2_texture")
+cost = 0
+race = 4
+card_type = "Resource"
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

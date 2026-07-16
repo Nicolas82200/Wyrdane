@@ -2,8 +2,11 @@
 extends Control
 
 const ALL_CARDS_PATH := "res://resources/cards"
+# Plus de plafond de taille de deck (voir README « Système de Ressources par
+# Race ») : seuls des minimums sont imposés, cartes jouables et ressources
+# comptées séparément bien que mélangées dans le même paquet.
 const MIN_CARDS := 40
-const MAX_CARDS := 60
+const MIN_RESOURCE_CARDS := 10
 const MAX_COPIES := 4
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
@@ -343,10 +346,33 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 
 	return panel
 
+func _playable_count() -> int:
+	if current_deck == null:
+		return 0
+	var n := 0
+	for card in current_deck.get_cards():
+		if card.card_type != "Resource":
+			n += 1
+	return n
+
+func _resource_count() -> int:
+	if current_deck == null:
+		return 0
+	var n := 0
+	for card in current_deck.get_cards():
+		if card.card_type == "Resource":
+			n += 1
+	return n
+
 func _update_count_label() -> void:
-	var count := current_deck.size() if current_deck else 0
-	card_count_label.text     = SettingsManager.t("deck.count_format") % [count, MAX_CARDS, MIN_CARDS]
-	card_count_label.modulate = Color(1, 0.4, 0.4) if count < MIN_CARDS else Color(0.5, 0.9, 0.5)
+	var playable := _playable_count()
+	var resources := _resource_count()
+	card_count_label.text = "%s\n%s" % [
+		SettingsManager.t("deck.count_format") % [playable, MIN_CARDS],
+		SettingsManager.t("deck.resource_count_format") % [resources, MIN_RESOURCE_CARDS],
+	]
+	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
+	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
 
 # ─── Statistiques du deck (courbe de mana + répartition) ──────────────────────
 
@@ -404,7 +430,7 @@ func _update_stats_panel() -> void:
 	var type_row := HBoxContainer.new()
 	type_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	type_row.add_theme_constant_override("separation", 10)
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment"]:
+	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
 		if type_counts.has(type_name):
 			type_row.add_child(_make_chip(
 				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
@@ -516,7 +542,7 @@ func _on_search_changed(text: String) -> void:
 	_refresh_card_grid()
 
 func _on_save() -> void:
-	if current_deck == null or current_deck.size() < MIN_CARDS:
+	if current_deck == null or _playable_count() < MIN_CARDS or _resource_count() < MIN_RESOURCE_CARDS:
 		return
 	DeckManager.save_decks()
 
@@ -610,15 +636,22 @@ func _count_in_deck(path: String) -> int:
 	return count
 
 func _is_card_maxed(card_data: CardData) -> bool:
+	if card_data.card_type == "Resource":
+		return false
 	return _count_in_deck(card_data.resource_path) >= MAX_COPIES
 
 ## Grise les cartes de la grille dont le deck contient déjà le max de copies.
+## Les cartes-ressource n'ont pas de plafond (un deck en a besoin de nombreux
+## exemplaires — voir README « Système de Ressources par Race »).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
 		if not is_instance_valid(visual):
 			continue
-		visual.modulate = MAXED_TINT if _count_in_deck(path) >= MAX_COPIES else Color.WHITE
+		var card_data: CardData = visual.data
+		var maxed: bool = card_data != null and card_data.card_type != "Resource" \
+			and _count_in_deck(path) >= MAX_COPIES
+		visual.modulate = MAXED_TINT if maxed else Color.WHITE
 
 ## Tooltip centré sur la carte grisée : max de copies atteint.
 func _show_max_copies_tooltip(anchor: Control) -> void:
@@ -757,11 +790,12 @@ func _build_filter_bar() -> void:
 
 	# Type de carte
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
-	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment"],
+	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment", "Resource"],
 		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
 		func() -> String: return _filter_type,
 		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
-			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment")])
+			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment"),
+			SettingsManager.t("cardtype.resource")])
 
 	# Rareté
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))

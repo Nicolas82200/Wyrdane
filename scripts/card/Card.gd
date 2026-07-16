@@ -43,6 +43,7 @@ const TYPE_LABELS := {
 	"Instant":     "Éphémère",
 	"Ritual":      "Rituel",
 	"Enchantment": "Enchantement",
+	"Resource":    "Ressource",
 }
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)

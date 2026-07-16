@@ -55,9 +55,10 @@ static func from_code(code: String) -> DeckData:
 		var path := lines[i]
 		if path == "" or not ResourceLoader.exists(path, "CardData"):
 			continue
-		if paths.size() >= DeckManager.MAX_CARDS_PER_DECK:
-			break
-		if copies.get(path, 0) >= DeckManager.MAX_COPIES_PER_CARD:
+		var card := load(path) as CardData
+		if card == null:
+			continue
+		if card.card_type != "Resource" and copies.get(path, 0) >= DeckManager.MAX_COPIES_PER_CARD:
 			continue
 		copies[path] = copies.get(path, 0) + 1
 		paths.append(path)
