@@ -21,6 +21,7 @@ const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
 	Race.Type.UNDEAD: preload("res://assets/borders/undead-border-card.png"),
+	Race.Type.ABOMINATION: preload("res://assets/borders/abomination-border-card.png"),
 	Race.Type.HUMAN:  preload("res://assets/borders/human-border-card.png")
 }
 
@@ -33,6 +34,7 @@ const RARITY_COLORS := {
 
 const RACE_COLORS := {
 	Race.Type.UNDEAD: Color("#0d0b09b5"),
+	Race.Type.ABOMINATION: Color("040f00b5"),
 	Race.Type.HUMAN:  Color("#3a2c12c0"),
 	Race.Type.ELF:    Color("#2f5d5096"),
 	Race.Type.DWARF:  Color("#5a3a2296"),

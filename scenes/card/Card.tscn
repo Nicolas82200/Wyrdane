@@ -34,7 +34,7 @@ border_width_left = 5
 border_width_top = 5
 border_width_right = 5
 border_width_bottom = 5
-border_color = Color(0.33333334, 0.41960785, 0.57254905, 0.78431374)
+border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.39215687)
 border_blend = true
 corner_radius_top_left = 20
 corner_radius_top_right = 20
@@ -159,10 +159,10 @@ vertical_alignment = 1
 
 [node name="GenericCostLabel" type="Label" parent="." unique_id=707796708]
 layout_mode = 0
-offset_left = 146.0
-offset_top = 24.0
-offset_right = 182.0
-offset_bottom = 60.0
+offset_left = 160.0
+offset_top = 30.0
+offset_right = 194.0
+offset_bottom = 64.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
 theme_override_fonts/font = ExtResource("3_wcykg")
 theme_override_font_sizes/font_size = 20
