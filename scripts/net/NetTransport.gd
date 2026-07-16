@@ -32,6 +32,15 @@ func join(_params: Dictionary) -> int:
 	push_error("NetTransport.join() non implémenté")
 	return ERR_UNCONFIGURED
 
+# Tentative de reconnexion après une coupure transitoire (même pair visé) —
+# appelée uniquement côté rejoignant (l'hôte reste passif : son socket
+# d'écoute accepte déjà une nouvelle connexion entrante sans action requise).
+# Par défaut, retente join() avec les mêmes params ; un backend peut
+# spécialiser pour cibler directement le pair déjà identifié (voir
+# SteamTransport, qui évite de relancer une recherche de lobby).
+func try_reconnect(params: Dictionary) -> int:
+	return join(params)
+
 # Envoie des octets au pair distant. reliable = livraison garantie + ordonnée.
 func send(_bytes: PackedByteArray, _reliable: bool = true) -> void:
 	push_error("NetTransport.send() non implémenté")
