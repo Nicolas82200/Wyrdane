@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://52cmcqu1afyj"
+=======
 uid="uid://dgagnmtyu806n"
+>>>>>>> dev
 path="res://.godot/imported/the-earth-that-refuses-to-keep.jpg-f7e19aa272bbe3adfc8d69d7e39ba34e.ctex"
 metadata={
 "vram_texture": false

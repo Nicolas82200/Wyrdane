@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://ceb0nc7n2c38h"
+=======
 uid="uid://ccx75yfpv23iq"
+>>>>>>> dev
 path="res://.godot/imported/one-become-many.jpg-dc0b588eb8653fdacba02a4b318ccc37.ctex"
 metadata={
 "vram_texture": false

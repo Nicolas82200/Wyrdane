@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://cqjpmyy0dqsa2"
+=======
 uid="uid://cimerps27jjfo"
+>>>>>>> dev
 path="res://.godot/imported/the-great-contamination.jpg-6aee33705ff0b3c154a5e63a2ea5c7ad.ctex"
 metadata={
 "vram_texture": false

@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://b3h2238vml6oo"
+=======
 uid="uid://cgopixbliyobx"
+>>>>>>> dev
 path="res://.godot/imported/uninvited-tenant.jpg-c03c1b173551b582346716eef827f9c4.ctex"
 metadata={
 "vram_texture": false

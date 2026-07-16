@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://beo7cfnf4h6a8"
+=======
 uid="uid://bp58vs8tkkawf"
+>>>>>>> dev
 path="res://.godot/imported/skin-too-large.jpg-a1e36181fbf8cea2aafa3978f7e4e2ea.ctex"
 metadata={
 "vram_texture": false

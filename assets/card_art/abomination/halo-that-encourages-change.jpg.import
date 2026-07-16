@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://c16otutuqeoqq"
+=======
 uid="uid://dai0pndx6p26d"
+>>>>>>> dev
 path="res://.godot/imported/halo-that-encourages-change.jpg-db7c72d41cce1ca846961d76227093c3.ctex"
 metadata={
 "vram_texture": false

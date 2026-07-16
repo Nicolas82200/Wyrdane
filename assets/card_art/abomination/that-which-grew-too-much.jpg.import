@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://cx7hh8r7gj0uo"
+=======
 uid="uid://djq3i7rmfwmjb"
+>>>>>>> dev
 path="res://.godot/imported/that-which-grew-too-much.jpg-abf45de9993de29107e4066d7c40719e.ctex"
 metadata={
 "vram_texture": false

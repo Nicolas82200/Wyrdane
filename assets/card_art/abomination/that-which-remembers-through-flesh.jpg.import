@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://c2ipf8tpthbfk"
+=======
 uid="uid://ccpso3qd6b4is"
+>>>>>>> dev
 path="res://.godot/imported/that-which-remembers-through-flesh.jpg-341a1ed8b8c1073853cfa314299b696d.ctex"
 metadata={
 "vram_texture": false

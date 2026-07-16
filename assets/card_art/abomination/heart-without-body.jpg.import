@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://c8gtj61dlygll"
+=======
 uid="uid://m1p3gmdjnnr6"
+>>>>>>> dev
 path="res://.godot/imported/heart-without-body.jpg-31e28483889cef0e3548b907b111064d.ctex"
 metadata={
 "vram_texture": false

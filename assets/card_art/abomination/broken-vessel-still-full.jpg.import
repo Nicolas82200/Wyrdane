@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://d4llc12rruenm"
+=======
 uid="uid://chkatqj7gpa5j"
+>>>>>>> dev
 path="res://.godot/imported/broken-vessel-still-full.jpg-634ea4f5bd214d116190a8222b4ed0b9.ctex"
 metadata={
 "vram_texture": false

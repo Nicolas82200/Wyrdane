@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://wetonwrx8iqv"
+=======
 uid="uid://pje13j5qwrue"
+>>>>>>> dev
 path="res://.godot/imported/slow-alteration.jpg-c271475d1a42588bf32f1defea86af0f.ctex"
 metadata={
 "vram_texture": false

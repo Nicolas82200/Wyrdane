@@ -2,7 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
+<<<<<<< HEAD
+uid="uid://dfbft2i4osbu5"
+=======
 uid="uid://heo6l3q1e846"
+>>>>>>> dev
 path="res://.godot/imported/that-which-has-no-edges.jpg-14ba494af7b3a7c61538258de6d432f2.ctex"
 metadata={
 "vram_texture": false
