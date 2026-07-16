@@ -14,7 +14,7 @@ Liste complète des cartes : voir `CARDS.md`.
 - Ouvrir dans Godot 4 (moteur "Forward Plus")
 - Scène principale (F5) : `scenes/loading/LoadingScreen.tscn` — charge toutes les cartes via `CardLibrary` puis ouvre le menu principal
 - Pour tester directement une bataille : lancer `scenes/battle/Battle.tscn` (F6). Attention : `CardLibrary` n'est alors pas pré-chargé, certains systèmes (deck IA notamment) utilisent un fallback
-- Pour tester le multijoueur en local : lancer deux instances du jeu sur `scenes/net/NetLobby.tscn` — l'une clique « Héberger », l'autre saisit `127.0.0.1` puis « Rejoindre »
+- Le multijoueur est backend Steam uniquement (plus de mode IP/LAN) : le tester nécessite deux machines/sessions avec deux comptes Steam distincts (deux instances locales sur le même compte échouent avec `NET_STEAM_SAME_ACCOUNT` — voir `SteamService.gd`)
 - Vérification syntaxique possible en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit`
 - Tests automatisés (GUT) : voir section « Tests automatisés » plus bas
 
@@ -111,8 +111,8 @@ Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendan
 
 ### Multijoueur (1v1 réseau)
 Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque client émet ses actions (`NetEmitter`) et rejoue celles du pair distant — pas de serveur d'autorité.
-- **Transport** : interface `NetTransport`, deux implémentations créées par `TransportFactory` : `ENetTransport` (P2P hôte/client, IP directe ou LAN) et `SteamTransport` (lobby Steam + P2P Steamworks via l'extension GodotSteam — optionnelle, détectée à l'exécution par `SteamService`, instructions d'installation dans son en-tête). `NetworkManager` orchestre : connexion, sérialisation `var_to_bytes` (types de base uniquement, jamais d'objets arbitraires), routage des commandes.
-- **Entrée en jeu** : `scenes/net/NetLobby.tscn` (Héberger / Rejoindre par IP) → handshake `NetHandshake` (échange des decks, graine RNG partagée, premier joueur) → les deux clients basculent sur `Battle.tscn` ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
+- **Transport** : interface `NetTransport`, une seule implémentation créée par `TransportFactory` : `SteamTransport` (lobby Steam + P2P Steamworks via l'extension GodotSteam — optionnelle, détectée à l'exécution par `SteamService`, instructions d'installation dans son en-tête). `NetworkManager` orchestre : connexion, sérialisation `var_to_bytes` (types de base uniquement, jamais d'objets arbitraires), routage des commandes, et tentative de reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir `NetworkManager.RECONNECT_GRACE_SECONDS`).
+- **Entrée en jeu** : `scenes/net/NetLobby.tscn` (Héberger Steam / Partie rapide / Inviter un ami) → handshake `NetHandshake` (échange des decks, graine RNG partagée, premier joueur) → les deux clients basculent sur `Battle.tscn` ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 - **Protocole** : vocabulaire dans `NetCommand.gd` (`PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO`). `PLAY_CARD` sert aussi à poser une carte-ressource (`row = "Resource"`). Une carte est désignée par son `resource_path`, un serviteur par un `net_id` stable attribué par `NetRegistry`.
 - **Déterminisme** : RNG de jeu partagée (seed du handshake) pour que les effets aléatoires donnent le même résultat des deux côtés ; les triggers de début/fin de tour (Éveil/Déclin, infection) sont synchronisés.
 - La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
@@ -179,7 +179,11 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
+<<<<<<< HEAD
 - ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 303 cartes au total) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau (P2P ENet, lobby IP/LAN), backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+=======
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 3 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+>>>>>>> dev
 - ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents

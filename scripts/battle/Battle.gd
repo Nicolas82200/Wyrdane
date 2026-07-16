@@ -99,6 +99,9 @@ var turn_banner: TurnBanner
 var combat_log_panel: CombatLogPanel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
 var turn_timer: TurnTimer
+# Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
+# (voir ReconnectOverlay). Reste inutilisé/masqué en solo.
+var reconnect_overlay: ReconnectOverlay
 
 var effect_manager := EffectManager.new()
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
@@ -127,6 +130,10 @@ var player_hero: Hero
 var enemy_hero: Hero
 var game_over: bool              = false
 var enemy_turn_active: bool      = false
+# Coupure réseau transitoire en cours (voir NetworkManager.connection_lost) :
+# le match est mis en pause, les inputs sont bloqués, en attendant une
+# reconnexion ou l'expiration du délai de grâce.
+var reconnecting: bool           = false
 var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
@@ -190,6 +197,8 @@ func _init_systems() -> void:
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
 	add_child(combat_log_panel)
+	reconnect_overlay = ReconnectOverlay.new()
+	add_child(reconnect_overlay)
 	turn_timer = TurnTimer.new()
 	turn_timer.timeout.connect(_on_turn_timer_timeout)
 	# Enfant du bouton lui-même (comme le halo "ready hint" de EndTurnButton) :
@@ -213,19 +222,43 @@ func _setup_network() -> void:
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
+	net.connection_lost.connect(_on_net_connection_lost)
+	net.connection_restored.connect(_on_net_connection_restored)
 	net.peer_disconnected.connect(_on_net_peer_disconnected)
 	var netopp := NetworkOpponent.new(net)
 	add_child(netopp)
 	netopp.init(self)
 	opponent = netopp
 
-# Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
-# tour distant et fige les inputs) et on affiche l'écran de fin en mode
+# Coupure réseau transitoire détectée (Wifi, P2P Steam) : on met le match en
+# pause (fige le décompte de tour et bloque les inputs) sans l'arrêter — une
+# reconnexion est tentée en arrière-plan par NetworkManager pendant son délai
+# de grâce. Si elle échoue, _on_net_peer_disconnected prend le relais.
+func _on_net_connection_lost(_reason: String) -> void:
+	if game_over:
+		return
+	reconnecting = true
+	turn_timer.stop()
+	reconnect_overlay.show_overlay(NetworkManager.RECONNECT_GRACE_SECONDS)
+
+# Reconnexion réussie dans le délai de grâce : le match reprend là où il en était.
+func _on_net_connection_restored() -> void:
+	if game_over:
+		return
+	reconnecting = false
+	reconnect_overlay.hide_overlay()
+	if not enemy_turn_active and not _mulligan_active:
+		turn_timer.start()
+
+# Pair définitivement perdu (délai de grâce de reconnexion expiré, ou coupure
+# non transitoire) : on stoppe le match et on affiche l'écran de fin en mode
 # déconnexion (retour au menu uniquement, rejouer n'a pas de sens sans le pair).
 func _on_net_peer_disconnected(_reason: String) -> void:
 	if game_over:
 		return
 	game_over = true
+	reconnecting = false
+	reconnect_overlay.hide_overlay()
 	enemy_turn_active = false
 	turn_timer.stop()
 	_show_game_over("disconnect")
@@ -413,6 +446,9 @@ func _on_quit_match() -> void:
 	settings_menu.close()
 	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
 	if network_manager != null:
+		# Départ délibéré : prévient le pair pour qu'il ne poursuive pas
+		# inutilement le délai de grâce de reconnexion (voir NetCommand.leave_match).
+		network_manager.send_command(NetCommand.leave_match())
 		network_manager.close()
 		network_manager.queue_free()
 		network_manager = null
@@ -423,6 +459,7 @@ func _on_quit_match() -> void:
 # Rejouer est masqué en réseau, mais on nettoie le transport par sécurité).
 func _on_replay_match() -> void:
 	if network_manager != null:
+		network_manager.send_command(NetCommand.leave_match())
 		network_manager.close()
 		network_manager.queue_free()
 		network_manager = null
@@ -486,6 +523,8 @@ func refill_mana_pool(is_player: bool = true) -> void:
 func update_mana_ui() -> void:
 	mana_display.set_mana(total_mana(true), total_max_mana(true))
 	update_end_turn_hint()
+	if hand != null:
+		hand.refresh_playable_highlights()
 
 func update_enemy_mana_ui() -> void:
 	enemy_mana_display.set_mana(total_mana(false), total_max_mana(false))
@@ -575,7 +614,7 @@ func destroy_minion(target: Minion) -> void:
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or enemy_turn_active or not can_afford_card(card_data):
+	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
 	if sacrifice_system.is_active():
@@ -583,8 +622,8 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
-	await board_system.summon_minion(card_data, is_player, row, insert_index)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await board_system.summon_minion(card_data, is_player, row, insert_index, skip_onplay)
 
 func _on_targeting_cancelled() -> void:
 	waiting_for_target   = false
@@ -601,7 +640,7 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active:
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
@@ -612,7 +651,7 @@ func _on_end_turn_pressed() -> void:
 # quelle (comme un clic sur "Commencer"). En tour normal, termine le tour
 # comme un clic normal sur Fin du tour.
 func _on_turn_timer_timeout() -> void:
-	if game_over:
+	if game_over or reconnecting:
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
@@ -628,6 +667,8 @@ func set_enemy_turn(active: bool) -> void:
 	end_turn_button.disabled = active
 	_retranslate_battle()
 	update_hero_turn_halo()
+	if hand != null:
+		hand.refresh_playable_highlights()
 	if active:
 		turn_timer.stop()
 	if game_over:
@@ -681,7 +722,7 @@ func update_end_turn_hint() -> void:
 	end_turn_button.set_ready_hint(_player_has_no_actions())
 
 func _player_has_no_actions() -> bool:
-	if game_over or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active:
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -743,9 +784,13 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
-# Coût effectif d'une carte de la main du joueur (remises comprises).
-func get_card_cost(card_data: CardData) -> int:
-	return cost_system.get_cost(card_data, true)
+# Répartition race/générique du coût effectif d'une carte de la main du joueur
+# (remises comprises) : {"race": int, "generic": int}. Voir CostSystem pour le
+# détail du calcul (Système de Ressources par Race).
+func get_card_cost(card_data: CardData) -> Dictionary:
+	var total: int = cost_system.get_cost(card_data, true)
+	var race_cost: int = cost_system.get_race_cost(card_data, true)
+	return {"race": race_cost, "generic": total - race_cost}
 
 func can_afford_card(card_data: CardData) -> bool:
 	if card_data == null:

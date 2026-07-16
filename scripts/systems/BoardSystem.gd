@@ -9,14 +9,14 @@ var _firing_on_summon: bool = false
 func init(_battle: Node) -> void:
 	battle = _battle
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
-	await summon_minion_return(card_data, is_player, row, insert_index)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
 func _has_row_overflow_ally(is_player: bool) -> bool:
 	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
 	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
 
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> Minion:
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
@@ -39,7 +39,8 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		await battle.hero_system.self_damage(is_player, card_data.cost)
 
 
-	await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
+	if not skip_onplay:
+		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
 
 
 	if not _firing_on_summon:

@@ -15,6 +15,8 @@ const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
 # DeckBuilder.MAXED_TINT).
 const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
+# Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
+const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -63,6 +65,7 @@ const TYPE_ICONS := {
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
+@onready var generic_cost_label: Label = $GenericCostLabel
 @onready var attack_label: Label       = $AttackLabel
 @onready var health_label: Label       = $HealthLabel
 @onready var desc_label: RichTextLabel = $DescLabel
@@ -99,13 +102,22 @@ var create_drag_preview: Callable = Callable()
 
 var _name_bg_style: StyleBoxFlat
 var _desc_bg_style: StyleBoxFlat
+var _cost_bg_style: StyleBoxFlat
 var _type_style    := StyleBoxFlat.new()
 
+var _playable_glow: Panel = null
+var _playable_style: StyleBoxFlat = null
+var _playable_pulse: float = 0.0
+var _is_playable: bool = false
+
 func _ready() -> void:
+	_battle = get_tree().current_scene
 	_name_bg_style = (name_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
 	name_label.add_theme_stylebox_override("normal", _name_bg_style)
 	_desc_bg_style = (desc_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
 	desc_label.add_theme_stylebox_override("normal", _desc_bg_style)
+	_cost_bg_style = (cost_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
+	cost_label.add_theme_stylebox_override("normal", _cost_bg_style)
 	_type_style.set_corner_radius_all(8)
 	_type_style.set_border_width_all(1)
 	_type_style.content_margin_left = 8.0
@@ -114,6 +126,23 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
+
+	_playable_style = StyleBoxFlat.new()
+	_playable_style.bg_color            = Color.TRANSPARENT
+	_playable_style.border_width_left   = 3
+	_playable_style.border_width_right  = 3
+	_playable_style.border_width_top    = 3
+	_playable_style.border_width_bottom = 3
+	_playable_style.border_color        = PLAYABLE_GLOW_COLOR
+	_playable_style.set_corner_radius_all(10)
+	_playable_glow = Panel.new()
+	_playable_glow.name = "PlayableGlow"
+	_playable_glow.position = Vector2(-9, -10)
+	_playable_glow.size = Vector2(268, 393)
+	_playable_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_playable_glow.add_theme_stylebox_override("panel", _playable_style)
+	_playable_glow.visible = false
+	add_child(_playable_glow)
 
 # ─── Données ──────────────────────────────────────────────────────────────────
 
@@ -124,17 +153,30 @@ func set_data(new_data: CardData) -> void:
 	data = new_data
 	update_display()
 
-# Coût effectif affiché (remises de mana comprises) : vert si réduit.
+# Coût effectif affiché (remises de mana comprises), en badge de race (icône
+# colorée par race, ex. "Âme" Mort-Vivant) et badge générique (surplus payable
+# depuis n'importe quel pool) : vert si le total est réduit par une remise.
 # Utilisé par la main en bataille ; ailleurs le coût de base reste affiché.
-func set_display_cost(cost: int) -> void:
+func set_display_cost(cost_split: Dictionary) -> void:
 	if data == null:
 		return
-	cost_label.text = str(cost)
-	cost_label.add_theme_color_override("font_color",
-		Color(0.45, 1.0, 0.45) if cost < data.cost else Color.WHITE)
+	var race_cost: int = cost_split.get("race", 0)
+	var generic_cost: int = cost_split.get("generic", 0)
+	var reduced: bool = race_cost + generic_cost < data.cost
+	var color := Color(0.45, 1.0, 0.45) if reduced else Color.WHITE
+	cost_label.text = str(race_cost)
+	cost_label.add_theme_color_override("font_color", color)
+	generic_cost_label.visible = generic_cost > 0
+	generic_cost_label.text = str(generic_cost)
+	generic_cost_label.add_theme_color_override("font_color", color)
+
 func update_display() -> void:
 	name_label.text   = data.display_name()
-	cost_label.text   = str(data.cost)
+	var base_race_cost: int = CostSystem.compute_race_cost(
+		data.cost, data.race, data.rarity, data.race_cost_override)
+	cost_label.text = str(base_race_cost)
+	generic_cost_label.visible = data.cost - base_race_cost > 0
+	generic_cost_label.text = str(data.cost - base_race_cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
 
@@ -169,6 +211,29 @@ func update_display() -> void:
 
 	_apply_race_style()
 	_apply_type_style()
+	update_playable_highlight()
+
+# Recalcule si la carte est jouable (mana + conditions) et bascule le halo vert.
+# À appeler chaque fois qu'un état pouvant changer la jouabilité évolue (mana,
+# tour, cimetière...) — voir Hand.refresh_playable_highlights().
+func update_playable_highlight() -> void:
+	if _playable_glow == null:
+		return
+	var should_show: bool = data != null and not mulligan_mode and not dragging \
+		and _is_players_turn() \
+		and can_drag_check.is_valid() and can_drag_check.call(data)
+	if should_show != _is_playable:
+		_is_playable = should_show
+		_playable_pulse = 0.0
+		_playable_style.border_color = PLAYABLE_GLOW_COLOR
+		_playable_glow.visible = should_show
+
+func _is_players_turn() -> bool:
+	if _battle == null or not ("enemy_turn_active" in _battle):
+		return true
+	if "game_over" in _battle and _battle.game_over:
+		return false
+	return not _battle.enemy_turn_active
 
 # Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
 func _apply_type_style() -> void:
@@ -190,6 +255,12 @@ func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
 	_name_bg_style.bg_color = race_color
 	_desc_bg_style.bg_color = race_color
+	# Badge de coût "race" teinté par la race de la carte : distingue au premier
+	# coup d'œil le mana verrouillé (icône/couleur) du mana générique à côté.
+	var cost_color := race_color
+	cost_color.a = 0.9
+	_cost_bg_style.bg_color = cost_color
+	_cost_bg_style.border_color = cost_color
 
 # ─── Mulligan ─────────────────────────────────────────────────────────────────
 
@@ -242,6 +313,7 @@ func _gui_input(event: InputEvent) -> void:
 	drag_rotation     = 0.0
 	dragging          = true
 	_drag_released    = false
+	update_playable_highlight()
 	z_index           = 100
 	visible           = false
 
@@ -254,7 +326,12 @@ func _gui_input(event: InputEvent) -> void:
 	drag_started.emit()
 	get_viewport().set_input_as_handled()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if _playable_glow != null and _playable_glow.visible:
+		_playable_pulse += delta * 2.0
+		_playable_style.border_color.a = 0.5 + sin(_playable_pulse) * 0.3
+		_playable_glow.queue_redraw()
+
 	if not dragging:
 		return
 
@@ -318,6 +395,7 @@ func _restore_in_hand() -> void:
 	visible = true
 	rotation_degrees = 0.0
 	_set_children_mouse_filter(Control.MOUSE_FILTER_PASS)
+	update_playable_highlight()
 	if hand_ref and hand_ref.has_method("_update_hand_layout"):
 		hand_ref._update_hand_layout()
 
@@ -339,6 +417,7 @@ func show_back(show_card_back: bool) -> void:
 		art.texture = CARD_BACK_TEX
 		name_label.hide()
 		cost_label.hide()
+		generic_cost_label.hide()
 		attack_label.hide()
 		health_label.hide()
 		desc_label.hide()

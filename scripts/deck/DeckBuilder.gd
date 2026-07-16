@@ -30,8 +30,8 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
-@onready var filter_bar:       HBoxContainer = %FilterBar
-@onready var sort_bar:         HBoxContainer = %SortBar
+@onready var filter_bar:       HFlowContainer = %FilterBar
+@onready var sort_bar:         HFlowContainer = %SortBar
 @onready var stats_panel:      VBoxContainer = %StatsPanel
 @onready var export_button:    Button        = %ExportButton
 @onready var import_button:    Button        = %ImportButton
@@ -830,7 +830,7 @@ func _build_sort_bar() -> void:
 	sort_bar.add_child(_make_keyword_dropdown(kw_values, kw_labels))
 
 	var sort_spacer := Control.new()
-	sort_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sort_spacer.custom_minimum_size = Vector2(20, 0)
 	sort_bar.add_child(sort_spacer)
 
 	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.sort_label")))
