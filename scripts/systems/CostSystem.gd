@@ -33,11 +33,17 @@ func init(_battle) -> void:
 # Part du coût payable UNIQUEMENT depuis le pool de la race de la carte.
 func get_race_cost(card_data: CardData, is_player: bool) -> int:
 	var total: int = get_cost(card_data, is_player)
-	if total <= 0 or card_data.race == Race.Type.NONE:
+	return compute_race_cost(total, card_data.race, card_data.rarity, card_data.race_cost_override)
+
+# Version statique de la répartition race/générique, utilisable sans instance de
+# bataille (aperçus en main-hors-partie, deck builder, cimetière...) : n'a besoin
+# que du coût total déjà connu (typiquement card_data.cost, sans remises).
+static func compute_race_cost(total: int, race: int, rarity: String, override: int) -> int:
+	if total <= 0 or race == Race.Type.NONE:
 		return 0
-	if card_data.race_cost_override >= 0:
-		return clampi(card_data.race_cost_override, 0, total)
-	var pct: float = RACE_LOCK_PCT.get(card_data.rarity, 0.40)
+	if override >= 0:
+		return clampi(override, 0, total)
+	var pct: float = RACE_LOCK_PCT.get(rarity, 0.40)
 	return clampi(int(round(total * pct)), 1, total)
 
 # Part du coût payable depuis n'importe quel pool en surplus.
