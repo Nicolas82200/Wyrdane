@@ -27,6 +27,10 @@ const AI_DIFFICULTIES := ["easy", "normal", "hard"]
 var show_play_highlights: bool = true
 var language: String = DEFAULT_LANGUAGE
 var ai_difficulty: String = DEFAULT_AI_DIFFICULTY
+# Tant que false : le nouveau joueur n'a pas encore terminé le tutoriel
+# obligatoire (voir TutorialManager). Multijoueur et deckbuilder restent
+# verrouillés dans MainMenu jusqu'à ce que ce flag passe à true.
+var tutorial_completed: bool = false
 
 func _ready() -> void:
 	_load()
@@ -62,6 +66,12 @@ func set_ai_difficulty(level: String) -> void:
 	_save()
 	ai_difficulty_changed.emit(level)
 
+func set_tutorial_completed() -> void:
+	if tutorial_completed:
+		return
+	tutorial_completed = true
+	_save()
+
 func _apply_language() -> void:
 	# Aligne aussi le TranslationServer de Godot pour préparer une future
 	# migration vers des fichiers de traduction natifs.
@@ -74,6 +84,7 @@ func _save() -> void:
 	cfg.set_value("display", "show_play_highlights", show_play_highlights)
 	cfg.set_value("display", "language", language)
 	cfg.set_value("display", "ai_difficulty", ai_difficulty)
+	cfg.set_value("display", "tutorial_completed", tutorial_completed)
 	cfg.save(CONFIG_PATH)
 
 func _load() -> void:
@@ -87,3 +98,4 @@ func _load() -> void:
 	ai_difficulty = cfg.get_value("display", "ai_difficulty", DEFAULT_AI_DIFFICULTY) as String
 	if not AI_DIFFICULTIES.has(ai_difficulty):
 		ai_difficulty = DEFAULT_AI_DIFFICULTY
+	tutorial_completed = cfg.get_value("display", "tutorial_completed", false) as bool
