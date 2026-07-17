@@ -10,6 +10,14 @@ extends Node
 # À changer pour l'URL de prod une fois le backend déployé.
 const API_URL := "http://localhost:3000"
 
+# Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : tant qu'on
+# n'a pas d'accès Steamworks Partner, AuthenticateUserTicket refuse notre clé
+# Web API personnelle (403 Forbidden côté Steam). Envoie le steamid local
+# directement au lieu d'un vrai ticket. Le backend doit avoir
+# DEV_SKIP_STEAM_VERIFY=true, sinon ce ticket est simplement rejeté (401) et
+# on retombe sur le vrai flow. À retirer une fois l'accès Partner obtenu.
+const DEV_SKIP_STEAM_VERIFY := true
+
 signal login_succeeded(user: Dictionary)
 signal login_failed(reason: String)
 
@@ -32,6 +40,14 @@ func is_authenticated() -> bool:
 func login_with_steam() -> void:
 	if not SteamService.ensure_init():
 		login_failed.emit("Steam indisponible")
+		return
+
+	if DEV_SKIP_STEAM_VERIFY:
+		var steam_id := SteamService.local_steam_id()
+		if steam_id == "":
+			login_failed.emit("Steam id indisponible")
+			return
+		_send_ticket_to_backend("DEV:%s" % steam_id)
 		return
 
 	var s := SteamService.steam()
