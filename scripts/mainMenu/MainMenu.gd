@@ -15,6 +15,9 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
 @onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
+@onready var steam_profile:   Control = $SteamProfile
+@onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
+@onready var steam_name_label: Label = $SteamProfile/NameLabel
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -39,6 +42,26 @@ func _ready() -> void:
 	else:
 		push_error("SettingsMenu introuvable !")
 	credits_panel.hide()
+	_update_steam_profile()
+
+# Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
+# Masqué entièrement si Steam est indisponible (même logique que le reste du
+# jeu : pas de dépendance dure à GodotSteam).
+func _update_steam_profile() -> void:
+	if not SteamService.ensure_init():
+		steam_profile.visible = false
+		return
+
+	var persona := SteamService.local_persona_name()
+	if persona == "":
+		steam_profile.visible = false
+		return
+
+	steam_name_label.text = persona
+	var avatar := SteamService.local_avatar_texture()
+	if avatar:
+		steam_avatar.texture = avatar
+	steam_profile.visible = true
 
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
