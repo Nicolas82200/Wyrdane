@@ -21,8 +21,15 @@ const COLLAPSED_PEEK_RATIO := 0.22
 const EXPAND_ZONE_HEIGHT   := 90.0
 # Bande basse qui garde la main déployée une fois ouverte (hystérésis anti-flicker)
 const COLLAPSE_ZONE_HEIGHT := 340.0
+# Décalage vertical de la carte survolée (se soulève pour se démarquer)
+const HOVER_LIFT       := 40.0
+# Décalage horizontal maximal appliqué aux cartes voisines pour dégager la carte survolée
+const HOVER_PUSH_MAX   := 28.0
+# Atténuation du décalage horizontal par carte d'écart supplémentaire
+const HOVER_PUSH_DECAY := 0.55
 
 var _base_positions:    Dictionary     = {}
+var _hovered_card:      Card           = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
@@ -76,6 +83,7 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 	for c in container.get_children():
 		c.queue_free()
 	_base_positions.clear()
+	_hovered_card = null
 	await get_tree().process_frame
 
 	for card_data in cards:
@@ -201,6 +209,9 @@ func _on_card_hover(card: Card) -> void:
 			return
 	if card.dragging:
 		return
+	if _hovered_card != card:
+		_hovered_card = card
+		_update_hand_layout(true)
 	preview.set_data(card.data)
 	if display_cost.is_valid():
 		preview.set_display_cost(display_cost.call(card.data))
@@ -225,6 +236,9 @@ func _on_card_unhover() -> void:
 	_hovering = false
 	preview.hide()
 	_hide_keyword_tooltips()
+	if _hovered_card != null:
+		_hovered_card = null
+		_update_hand_layout(true)
 
 
 func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
@@ -276,10 +290,11 @@ func set_compact(compact: bool) -> void:
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
 	for i in range(cards.size()):
 		var card   = cards[i]
 		var norm   := _card_norm(i, cards.size())
-		var pos    := _card_position(i, layout, card, norm)
+		var pos    := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
 		var tween := create_tween()
 		tween.set_parallel(true)
@@ -290,18 +305,19 @@ func _update_hand_layout(animated: bool = false) -> void:
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
 	for i in range(cards.size()):
 		var card = cards[i]
 		var norm := _card_norm(i, cards.size())
-		var pos  := _card_position(i, layout, card, norm)
+		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = i
+		card.z_index = 100 if i == hovered_index else i
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
 			tween.set_parallel(true)
-			tween.tween_property(card, "position", pos,             0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tween.tween_property(card, "scale",    layout["scale"], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "position", pos,             0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "scale",    layout["scale"], 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
 
@@ -309,15 +325,27 @@ func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
 	return offset / max(float(count - 1) / 2.0, 1.0)
 
-func _card_position(index: int, layout: Dictionary, card: Control, norm: float) -> Vector2:
+func _card_position(index: int, layout: Dictionary, card: Control, norm: float, hovered_index: int = -1) -> Vector2:
 	var y: float = layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
 	if not _hand_expanded:
 		y += card.size.y * layout["scale"].y * (1.0 - COLLAPSED_PEEK_RATIO)
-	return Vector2(80.0 + index * layout["spacing"], y)
+	var x: float = 80.0 + index * layout["spacing"]
+	if hovered_index != -1:
+		if index == hovered_index:
+			y -= HOVER_LIFT
+		else:
+			var dist   := index - hovered_index
+			var steps  := absi(dist) - 1
+			var push   := HOVER_PUSH_MAX * pow(HOVER_PUSH_DECAY, steps)
+			x += signf(dist) * push
+	return Vector2(x, y)
 
 
 func _relay_drag_started() -> void:
 	_force_expanded = true
+	if _hovered_card != null:
+		_hovered_card = null
+		_update_hand_layout(true)
 	drag_started.emit()
 
 func _relay_drag_ended() -> void:
