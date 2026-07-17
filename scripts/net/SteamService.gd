@@ -79,6 +79,26 @@ static func local_persona_name() -> String:
 	var s := steam()
 	return s.getPersonaName() if _initialized and s != null else ""
 
+# Avatar Steam du joueur local (résolution moyenne, 64×64), ou null si
+# indisponible (Steam absent, ou avatar pas encore mis en cache par le
+# client Steam — dans ce cas on ne l'attend pas, on affiche juste sans).
+static func local_avatar_texture() -> ImageTexture:
+	var s := steam()
+	if not _initialized or s == null:
+		return null
+	var steam_id: int = s.getSteamID()
+	var handle: int = s.getMediumFriendAvatar(steam_id)
+	if handle <= 0:
+		return null
+	var size: Dictionary = s.getImageSize(handle)
+	if not size.get("success", false):
+		return null
+	var rgba: Dictionary = s.getImageRGBA(handle)
+	if not rgba.get("success", false):
+		return null
+	var image := Image.create_from_data(size["width"], size["height"], false, Image.FORMAT_RGBA8, rgba["buffer"])
+	return ImageTexture.create_from_image(image)
+
 # Écoute les demandes de rejoindre un lobby via ami Steam (overlay « Rejoindre
 # la partie », invitation acceptée) — indépendamment de tout host()/join() déjà
 # en cours côté SteamTransport. À appeler dès l'arrivée sur l'écran multijoueur
