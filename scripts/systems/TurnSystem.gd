@@ -66,6 +66,7 @@ func _begin_player_turn() -> void:
 # c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
+	await battle.death_system.process_deaths()
 	battle.cost_system.on_turn_started(is_local_turn)
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	battle.resource_played_this_turn[is_local_turn] = false

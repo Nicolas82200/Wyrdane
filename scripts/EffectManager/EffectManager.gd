@@ -69,7 +69,7 @@ func execute_effect(
 		"CopyAdjacentKeyword": await _copy_adjacent_keyword_effect(battle, source_minion, effect, selected_target)
 		"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction":
 			pass  # Auras de coût : lues à la volée par CostSystem, rien à exécuter
-		"AuraBuffRow", "AuraBuffPerAllyInRow", "AuraSelfDamageReduction":
+		"AuraBuffRow", "AuraBuffPerAllyInRow", "AuraSelfDamageReduction", "AuraDebuffEnemiesExceptRace":
 			pass  # Auras d'enchantement : recalculées par AuraSystem, rien à exécuter
 		"CancelSpellOnRaceTarget":
 			pass  # Annulation de sort : résolue en amont par TriggerSystem.try_cancel_spell

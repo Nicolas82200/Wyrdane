@@ -38,6 +38,10 @@ func damage(hero: Hero, amount: int) -> void:
 	hero.take_damage(amount)
 	# RANG INFERNAL dépend des HP manquants du héros : recalcul immédiat
 	battle.aura_system.recompute_all()
+	# Une aura peut faire chuter des HP (perte d'un bonus de rangée...) : vérifier
+	# les morts avant de mettre à jour l'UI, sinon un serviteur à 0 HP resterait
+	# affiché en jeu jusqu'à une prochaine action sans rapport.
+	await battle.death_system.process_deaths()
 	update_ui()
 	battle.check_game_end()
 
@@ -83,6 +87,7 @@ func _on_self_damage_dealt(is_player: bool) -> void:
 		await battle.trigger_system.fire("OnSelfDamage", null, is_player)
 		_firing_self_damage = false
 	battle.aura_system.recompute_all()
+	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 
 func update_ui() -> void:

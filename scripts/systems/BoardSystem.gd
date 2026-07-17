@@ -53,6 +53,7 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		await battle.trigger_system.fire("OnSummon", minion, is_player)
 		_firing_on_summon = false
 	battle.aura_system.recompute_all()
+	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 	return minion
 
