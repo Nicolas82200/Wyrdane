@@ -79,6 +79,13 @@ static func local_persona_name() -> String:
 	var s := steam()
 	return s.getPersonaName() if _initialized and s != null else ""
 
+# SteamID64 du joueur local sous forme de chaîne (vide si indisponible).
+static func local_steam_id() -> String:
+	var s := steam()
+	if not _initialized or s == null:
+		return ""
+	return str(s.getSteamID())
+
 # Avatar Steam du joueur local (résolution moyenne, 64×64), ou null si
 # indisponible (Steam absent, ou avatar pas encore mis en cache par le
 # client Steam — dans ce cas on ne l'attend pas, on affiche juste sans).
