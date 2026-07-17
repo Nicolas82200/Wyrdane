@@ -69,6 +69,8 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 		return
 	await battle.combat_system.resolve_combat(selected_attacker, target)
 	clear_selection()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
 
 func on_enemy_hero_clicked() -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
@@ -84,6 +86,8 @@ func on_enemy_hero_clicked() -> void:
 	clear_selection()
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
 
 # ─── Multi-attaque ────────────────────────────────────────────────────────────
 
@@ -98,6 +102,8 @@ func _resolve_multi_attack(target: Minion) -> void:
 		if not battle._can_attack_minion_target(attacker, target):
 			continue
 		await battle.combat_system.resolve_combat(attacker, target)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.4).timeout
 
 func _resolve_multi_attack_hero() -> void:
@@ -109,6 +115,8 @@ func _resolve_multi_attack_hero() -> void:
 		if not battle._can_attack_hero(attacker):
 			continue
 		await battle.combat_system.perform_hero_attack(attacker)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.2).timeout
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()

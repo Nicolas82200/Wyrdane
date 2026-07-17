@@ -301,6 +301,35 @@ text = "v0.1 — prototype"
 horizontal_alignment = 2
 vertical_alignment = 2
 
+[node name="SteamProfile" type="HBoxContainer" parent="." unique_id=300000020]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -64.0
+offset_right = 240.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_constants/separation = 10
+
+[node name="Avatar" type="TextureRect" parent="SteamProfile" unique_id=300000021]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="SteamProfile" unique_id=300000022]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 18
+text = "Pseudo Steam"
+vertical_alignment = 1
+
 [node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
 visible = false
 layout_mode = 1
