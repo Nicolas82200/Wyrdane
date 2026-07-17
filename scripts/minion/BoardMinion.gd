@@ -240,6 +240,7 @@ func _on_mouse_entered() -> void:
 		return
 	_hover_preview.drag_enabled = false
 	_hover_preview.z_index = 1000
+	_hover_preview.visible = false
 	_battle.add_child(_hover_preview)
 	_hover_preview.set_data(minion.card_data)
 	_hover_preview.scale = Vector2(0.9, 0.9)
@@ -254,6 +255,7 @@ func _on_mouse_entered() -> void:
 		size.x + 15,
 		(size.y - _hover_preview.size.y * 0.9) / 2.0
 	)
+	_hover_preview.visible = true
 	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * 0.9 + 15
 	var tooltip_y := _hover_preview.global_position.y
 	await _show_keyword_tooltips(tooltip_x, tooltip_y)
