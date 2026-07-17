@@ -119,6 +119,7 @@ func destroy_enchantment(card_data: CardData, is_player: bool) -> void:
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
 	graveyard.add_spell(card_data)
 	battle.aura_system.recompute_all()
+	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 
 # Met à jour le compteur "X tours" affiché sur un rituel à durée limitée
