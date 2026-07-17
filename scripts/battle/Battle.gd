@@ -104,6 +104,12 @@ var turn_timer: TurnTimer
 var reconnect_overlay: ReconnectOverlay
 
 var effect_manager := EffectManager.new()
+# Tutoriel obligatoire du nouveau joueur (voir TutorialContext/TutorialManager) :
+# adversaire scripté, deck fixe, popups pédagogiques. tutorial_manager reste
+# nul en partie normale — tous les points d'accroche le vérifient avant
+# d'appeler quoi que ce soit.
+var tutorial_active: bool = false
+var tutorial_manager: TutorialManager = null
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
 # seedé par le handshake pour que les deux clients tirent la même séquence ;
 # en solo il est simplement aléatoire.
@@ -158,8 +164,11 @@ func _ready() -> void:
 	_start_game()
 
 func _init_data() -> void:
+	tutorial_active = TutorialContext.active
 	player_hero = Hero.new(30)
-	enemy_hero  = Hero.new(30)
+	# HP réduits en tutoriel : l'adversaire scripté ne joue que 2 serviteurs et
+	# n'attaque jamais, la victoire doit rester atteignable en quelques tours.
+	enemy_hero  = Hero.new(8 if tutorial_active else 30)
 	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
@@ -182,7 +191,15 @@ func _init_systems() -> void:
 	targeting_system.init(self)
 	ai_system.init(self)
 	opponent = ai_system
-	if NetContext.active:
+	if tutorial_active:
+		var tut_opponent := TutorialOpponent.new()
+		add_child(tut_opponent)
+		tut_opponent.init(self)
+		opponent = tut_opponent
+		tutorial_manager = TutorialManager.new()
+		add_child(tutorial_manager)
+		tutorial_manager.init(self)
+	elif NetContext.active:
 		_setup_network()
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
@@ -284,7 +301,11 @@ func _connect_signals() -> void:
 func _start_game() -> void:
 	update_mana_ui()
 	hero_system.update_ui()
-	deck_system.load_deck()
+	if tutorial_active:
+		deck.clear()
+		deck.append_array(TutorialDeck.player_deck_padding())
+	else:
+		deck_system.load_deck()
 	deck_system.update_deck_ui()
 	board_visual_system.refresh_board()
 	update_hero_turn_halo()
@@ -292,13 +313,17 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
-	if NetContext.active:
+	if tutorial_active or NetContext.active:
 		opponent.setup()
 	else:
 		ai_system.setup()
-	deck_system.deal_opening_hand()
+	if tutorial_active:
+		hand_cards = TutorialDeck.player_hand()
+	else:
+		deck_system.deal_opening_hand()
 	hand.set_hand(hand_cards, false)
-	await _run_mulligan()
+	if not tutorial_active:
+		await _run_mulligan()
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
@@ -306,10 +331,17 @@ func _start_game() -> void:
 		if not local_first:
 			await _run_remote_first_turn()
 			return
-	# Le joueur local ouvre la partie : annonce de son premier tour.
-	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+	# Le joueur local ouvre la partie : annonce de son premier tour (sauf en
+	# tutoriel, où les popups pédagogiques s'en chargent déjà).
+	if not tutorial_active:
+		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 	update_end_turn_hint()
-	turn_timer.start()
+	if tutorial_active:
+		# Pas de pression du temps pendant le tutoriel obligatoire.
+		TutorialContext.clear()
+		tutorial_manager.start()
+	else:
+		turn_timer.start()
 
 # Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
 # normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
@@ -645,6 +677,8 @@ func _on_end_turn_pressed() -> void:
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
+	if tutorial_manager:
+		await tutorial_manager.notify_end_turn_pressed()
 	turn_system.end_turn()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
@@ -675,11 +709,15 @@ func set_enemy_turn(active: bool) -> void:
 		# Partie terminée pendant le tour adverse : pas d'annonce de tour
 		end_turn_button.set_ready_hint(false)
 		return
+	# En tutoriel, les popups pédagogiques narrent déjà les transitions de
+	# tour : la bannière ferait doublon et se superposerait à la popup.
 	if active:
 		end_turn_button.set_ready_hint(false)
-		turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
+		if not tutorial_active:
+			turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
 	else:
-		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+		if not tutorial_active:
+			turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 		update_end_turn_hint()
 
 # Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros
@@ -772,6 +810,9 @@ func check_game_end() -> void:
 # l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
 func _show_game_over(result: String) -> void:
 	await get_tree().create_timer(1.0).timeout
+	if tutorial_active and result == "victory":
+		await tutorial_manager.notify_victory()
+		return
 	game_over_screen.show_result(result, network_manager == null)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
