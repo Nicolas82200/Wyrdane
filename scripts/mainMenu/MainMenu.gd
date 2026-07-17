@@ -44,6 +44,7 @@ func _ready() -> void:
 		push_error("SettingsMenu introuvable !")
 	credits_panel.hide()
 	_update_steam_profile()
+	_start_backend_sync()
 
 # Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
 # Masqué entièrement si Steam est indisponible (même logique que le reste du
@@ -73,6 +74,24 @@ func _apply_tutorial_lock() -> void:
 	decks_button.disabled = locked
 	multiplayer_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+
+# Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
+# en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
+# (Steam ou backend indisponible), les decks restent simplement vides — pas
+# de mode hors-ligne (voir DeckManager).
+func _start_backend_sync() -> void:
+	if not SteamService.ensure_init():
+		return
+	BackendClient.login_succeeded.connect(func(_user):
+		CardLibrary.sync_backend_catalog(func(success: bool):
+			if success:
+				DeckManager.sync_from_backend()
+		)
+	, CONNECT_ONE_SHOT)
+	BackendClient.login_failed.connect(func(reason: String):
+		push_warning("Connexion backend échouée : %s" % reason)
+	, CONNECT_ONE_SHOT)
+	BackendClient.login_with_steam()
 
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:

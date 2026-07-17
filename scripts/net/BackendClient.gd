@@ -17,6 +17,13 @@ var _session_cookie: String = ""
 var _pending_ticket_id: int = 0
 var _pending_ticket_buffer: PackedByteArray = PackedByteArray()
 
+# Les callbacks Steamworks (dont get_auth_session_ticket_response) ne sont
+# livrés que si Steam.run_callbacks() est pompé régulièrement. SteamTransport
+# le fait déjà pendant le multijoueur, mais l'auth doit marcher dès le menu
+# principal — donc on pompe nous-mêmes tant qu'une session Steam est active.
+func _process(_delta: float) -> void:
+	SteamService.run_callbacks()
+
 func is_authenticated() -> bool:
 	return _session_cookie != ""
 
