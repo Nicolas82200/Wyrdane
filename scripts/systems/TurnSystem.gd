@@ -59,7 +59,11 @@ func _begin_player_turn() -> void:
 		battle.net_emitter.turn_start(ids)
 	_finish_turn_start()
 	draw_card()
-	battle.turn_timer.start()
+	if battle.tutorial_active:
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_player_turn_began()
+	else:
+		battle.turn_timer.start()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
