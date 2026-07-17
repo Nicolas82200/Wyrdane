@@ -218,10 +218,12 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
 		var target: Minion = null

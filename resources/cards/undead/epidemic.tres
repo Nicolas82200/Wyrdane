@@ -8,26 +8,31 @@
 
 [sub_resource type="Resource" id="Resource_yhhce"]
 script = ExtResource("1_cardeffect")
-effect_id = "Debuff"
+effect_id = "AuraDebuffEnemiesExceptRace"
 target = "AllEnemies"
-value = 2
-value_2 = 2
+value = 1
+value_2 = 1
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_onplay"]
+[sub_resource type="Resource" id="Resource_onaura"]
 script = ExtResource("5_trig")
-type = "ONPLAY"
+type = "OnAura"
+
+[sub_resource type="Resource" id="Resource_onturnend"]
+script = ExtResource("5_trig")
+type = "OnTurnEnd"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Épidémie"
-description = "Serviteurs ennemis -2/-2."
-flavour_text = "Elle ne tue pas. Elle prépare."
+description = "Présence : serviteurs non Mort-Vivants ennemis -1/-1."
+flavour_text = "Elle ne tue pas. Elle prépare, jour après jour."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
-ritual_duration = 1
-trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_onplay")])
+ritual_duration = 2
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_onaura"), SubResource("Resource_onturnend")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_yhhce")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
