@@ -15,6 +15,9 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
 @onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
+@onready var steam_profile:   Control = $SteamProfile
+@onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
+@onready var steam_name_label: Label = $SteamProfile/NameLabel
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -22,6 +25,7 @@ func _ready() -> void:
 	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
+	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
 	multiplayer_button.pressed.connect(_on_multiplayer)
 	credits_button.pressed.connect(_on_credits)
@@ -39,6 +43,36 @@ func _ready() -> void:
 	else:
 		push_error("SettingsMenu introuvable !")
 	credits_panel.hide()
+	_update_steam_profile()
+
+# Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
+# Masqué entièrement si Steam est indisponible (même logique que le reste du
+# jeu : pas de dépendance dure à GodotSteam).
+func _update_steam_profile() -> void:
+	if not SteamService.ensure_init():
+		steam_profile.visible = false
+		return
+
+	var persona := SteamService.local_persona_name()
+	if persona == "":
+		steam_profile.visible = false
+		return
+
+	steam_name_label.text = persona
+	var avatar := SteamService.local_avatar_texture()
+	if avatar:
+		steam_avatar.texture = avatar
+	steam_profile.visible = true
+
+# Tant que le tutoriel obligatoire n'est pas terminé (nouveau joueur) :
+# multijoueur et deckbuilder restent verrouillés, un deck lui est fourni
+# automatiquement à la place (voir Battle._start_tutorial).
+func _apply_tutorial_lock() -> void:
+	var locked: bool = not SettingsManager.tutorial_completed
+	multiplayer_button.disabled = locked
+	decks_button.disabled = locked
+	multiplayer_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
@@ -50,6 +84,7 @@ func _on_decks_button_pressed() -> void:
 		deck_list._refresh()
 
 func _on_play() -> void:
+	TutorialContext.active = not SettingsManager.tutorial_completed
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
 func _on_multiplayer() -> void:

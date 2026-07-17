@@ -37,6 +37,7 @@ shadow_size = 12
 
 [node name="SettingsMenu" type="Control" unique_id=2017956977]
 visible = false
+z_index = 2000
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
