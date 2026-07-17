@@ -73,6 +73,8 @@ func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> voi
 				_aura_infection_immunity(effect, is_player)
 			"AuraSelfDamageReduction":
 				_aura_self_damage_reduction(effect, is_player)
+			"AuraDebuffEnemiesExceptRace":
+				_aura_debuff_enemies_except_race(effect, is_player)
 			_:
 				pass  # à étendre carte par carte
 
@@ -121,3 +123,15 @@ func _aura_infection_immunity(effect: CardEffect, is_player: bool) -> void:
 # Préservation). Consommée par HeroSystem.self_damage.
 func _aura_self_damage_reduction(effect: CardEffect, is_player: bool) -> void:
 	battle.hero_system.self_damage_reduction[is_player] += max(0, effect.value)
+
+# Débuff d'aura sur les serviteurs ennemis, à l'exception d'une race (Épidémie :
+# -1/-1 aux serviteurs ennemis non Mort-Vivants). Recalculé en continu tant que
+# le rituel est en jeu, redevient nul dès sa destruction (charges épuisées).
+func _aura_debuff_enemies_except_race(effect: CardEffect, is_player: bool) -> void:
+	var excluded_race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var enemies: Array[Minion] = battle.enemy_minions if is_player else battle.player_minions
+	for t in enemies:
+		if excluded_race != -1 and t.card_data.race == excluded_race:
+			continue
+		t.aura_attack_bonus -= effect.value
+		t.aura_health_bonus -= effect.value_2
