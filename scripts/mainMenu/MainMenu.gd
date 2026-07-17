@@ -25,6 +25,7 @@ func _ready() -> void:
 	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
+	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
 	multiplayer_button.pressed.connect(_on_multiplayer)
 	credits_button.pressed.connect(_on_credits)
@@ -63,6 +64,16 @@ func _update_steam_profile() -> void:
 		steam_avatar.texture = avatar
 	steam_profile.visible = true
 
+# Tant que le tutoriel obligatoire n'est pas terminé (nouveau joueur) :
+# multijoueur et deckbuilder restent verrouillés, un deck lui est fourni
+# automatiquement à la place (voir Battle._start_tutorial).
+func _apply_tutorial_lock() -> void:
+	var locked: bool = not SettingsManager.tutorial_completed
+	multiplayer_button.disabled = locked
+	decks_button.disabled = locked
+	multiplayer_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
 		push_warning("CardLibrary pas encore chargé !")
@@ -73,6 +84,7 @@ func _on_decks_button_pressed() -> void:
 		deck_list._refresh()
 
 func _on_play() -> void:
+	TutorialContext.active = not SettingsManager.tutorial_completed
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
 func _on_multiplayer() -> void:
