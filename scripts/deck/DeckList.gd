@@ -26,6 +26,9 @@ func _ready() -> void:
 	import_button.pressed.connect(_on_import_deck)
 	back_button.pressed.connect(_on_back)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	# Les decks arrivent de façon asynchrone (sync backend lancée par MainMenu) :
+	# si elle n'a pas encore fini, on se met simplement à jour quand elle finit.
+	DeckManager.decks_loaded.connect(_refresh)
 	_retranslate()   # appelle aussi _refresh()
 
 # Met à jour les libellés fixes dans la langue courante (les lignes de deck sont
