@@ -73,7 +73,7 @@ locale/translations=PackedStringArray("res://translations/game.fr.translation", 
 
 [rendering]
 
-rendering_device/driver.windows="d3d12"
+rendering_device/driver.windows="vulkan"
 
 [steam]
 
