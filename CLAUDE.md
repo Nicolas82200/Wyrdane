@@ -76,13 +76,12 @@ Autoloads globaux (voir `project.godot`) :
 - **Éphémère** — sort à effet immédiat, jeté et défaussé
 - **Rituel** — sort persistant doté de X charges ; chaque charge est consommée uniquement lorsque son trigger se déclenche réellement (et non passivement à chaque tour). Détruit quand ses charges sont épuisées. Décrément géré par `TriggerSystem._consume_ritual_charge`
 - **Enchantement** — effet passif permanent jusqu'à destruction
-- **Ressource** — carte de race (coût 0) ; +1 (actuel et max) au pool de mana de sa race, puis exilée (`Battle.player_exile`/`enemy_exile`, zone sans retour — voir « Exil » ci-dessous). Une seule par tour et par camp. Voir « Système de Ressources par Race » ci-dessous.
+- **Ressource** — carte de race (coût 0) ; +1 (actuel et max) au pool de mana de sa race, puis retirée de la partie (aucune zone ne la garde — non récupérable). Une seule par tour et par camp. Voir « Système de Ressources par Race » ci-dessous.
 
 ### Système de Ressources par Race
 Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Éclat d'Âme / Sceau du Royaume / Fragment de Pacte). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
 
-### Exil
-Zone sans retour (`scripts/exile/Exile.gd`, mirroir minimal du Cimetière) : contrairement au Cimetière, aucun effet (`Resurrect`, `ReturnFromGrave`...) ne doit jamais lire ses `entries` pour ramener une carte en jeu. Utilisée pour l'instant uniquement par les cartes-ressource consommées (`Battle.play_resource_card`). La pose visuelle en zone dédiée du plateau (`PlayerResourceZone`/`EnemyResourceZone`, `EnchantmentSystem.add_resource`) est **désactivée** (`Battle.RESOURCE_ZONE_ENABLED = false`) mais conservée telle quelle en vue d'une réactivation future.
+Une fois jouée, la carte-ressource n'est posée dans aucune zone du plateau ni conservée dans une structure de données (cimetière ou autre) : elle disparaît simplement de la partie (`Battle.play_resource_card`), donc aucun effet ne peut jamais la récupérer. La pose visuelle en zone dédiée du plateau (`PlayerResourceZone`/`EnemyResourceZone`, `EnchantmentSystem.add_resource`) est **désactivée** (`Battle.RESOURCE_ZONE_ENABLED = false`) mais conservée telle quelle en vue d'une réactivation future.
 
 ### Positionnement (lane types)
 - ⚔️ Avant / 🛡️ Arrière / ↕️ Hybride (au choix du joueur)
@@ -131,11 +130,11 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Lorsqu'une décision est demandée au joueur, celui-ci doit conserver l'accès aux informations nécessaires pour prendre cette décision.
 - Éviter les fenêtres qui masquent complètement le plateau ou la main lorsque ces éléments sont utiles à la décision.
 
-### Zone de ressource (désactivée — voir « Exil »)
+### Zone de ressource (désactivée)
 
 - Chaque camp a sa propre zone de ressource sur le plateau (hors rangées/Rituels/Enchantements), symétrique aux zones Rituel/Enchantement mais du côté opposé.
 - Les cartes-ressource posées y restent visibles individuellement ; la zone se resserre pour en accumuler plusieurs sans jamais déborder du cadre (même logique que les zones Rituel/Enchantement).
-- Actuellement désactivée (`Battle.RESOURCE_ZONE_ENABLED = false`) : les cartes-ressource sont exilées au lieu d'être posées. Conservée pour une réactivation future.
+- Actuellement désactivée (`Battle.RESOURCE_ZONE_ENABLED = false`) : une carte-ressource jouée disparaît simplement de la partie au lieu d'être posée. Conservée pour une réactivation future.
 
 ## Internationalisation (i18n)
 
