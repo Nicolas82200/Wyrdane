@@ -27,6 +27,12 @@ const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
 const ATTACK_PACE                 := 0.5
+# Pose visuelle des cartes-ressource dans leur zone dédiée (bande de droite) :
+# désactivée pour l'instant (feature repoussée). Le système est conservé tel
+# quel (EnchantmentSystem.add_resource, zones Player/EnemyResourceZone) pour
+# être réactivé plus tard ; en attendant, une carte-ressource jouée est
+# exilée (voir play_resource_card) au lieu d'être posée.
+const RESOURCE_ZONE_ENABLED       := false
 const MULLIGAN_DURATION           := 30.0
 
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
@@ -118,6 +124,9 @@ var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
 var enemy_graveyard: Graveyard    = Graveyard.new()
+# Zone sans retour pour les cartes-ressource consommées (voir play_resource_card).
+var player_exile: Exile          = Exile.new()
+var enemy_exile: Exile           = Exile.new()
 
 var pending_card: CardData       = null
 var pending_row: String          = ROW_FRONT
@@ -564,9 +573,13 @@ func update_enemy_mana_ui() -> void:
 func update_enemy_hand_ui() -> void:
 	enemy_hand_display.set_count(opponent.get_hand_count())
 
-# Pose d'une carte-ressource dans sa zone dédiée : +1 (actuel et max) au pool de
-# sa race, action à part qui ne consomme pas le droit de jouer une carte
-# normale mais limitée à une par tour et par camp.
+# Une carte-ressource jouée est consommée : +1 (actuel et max) au pool de sa
+# race, action à part qui ne consomme pas le droit de jouer une carte normale
+# mais limitée à une par tour et par camp. La carte part ensuite en exil
+# (Battle.player_exile / enemy_exile) : contrairement au cimetière, aucun
+# effet ne doit la ramener en jeu. La pose visuelle en zone dédiée
+# (EnchantmentSystem.add_resource) est conservée mais désactivée pour
+# l'instant — voir RESOURCE_ZONE_ENABLED.
 func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	if resource_played_this_turn.get(is_player, false):
 		return
@@ -575,7 +588,10 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	var max_pool: Dictionary = race_max_mana_pool(is_player)
 	max_pool[card_data.race] = int(max_pool.get(card_data.race, 0)) + 1
 	pool[card_data.race]     = int(pool.get(card_data.race, 0)) + 1
-	enchantment_system.add_resource(card_data, is_player)
+	if RESOURCE_ZONE_ENABLED:
+		enchantment_system.add_resource(card_data, is_player)
+	var exile: Exile = player_exile if is_player else enemy_exile
+	exile.add_resource(card_data)
 	combat_log.card_played(card_data, is_player)
 	if is_player:
 		update_mana_ui()
