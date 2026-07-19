@@ -228,10 +228,6 @@ func play_counter_attack(defender_visual: BoardMinion, attacker_visual: BoardMin
 
 # ─── Mots-clés Mort-Vivant ──────────────────────────────────────────────────
 
-## PESTIFÉRÉ : marque toxique verte sur la cible infectée.
-func play_infection(target_visual: Control) -> void:
-	_flash(target_visual, Color(0.4, 0.9, 0.55), 0.3)
-
 ## NÉCROPHAGE : absorption verte + texte de buff quand un allié meurt.
 func play_necrophage(visual: Control, amount: int) -> void:
 	if amount <= 0:
