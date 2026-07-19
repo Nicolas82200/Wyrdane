@@ -1,0 +1,143 @@
+extends GutTest
+
+# Couvre DeathSystem (scripts/systems/DeathSystem.gd) : retrait du plateau,
+# routage au cimetière (avec exile_on_death), REVENANT, NÉCROPHAGE,
+# ASSIMILATION (une fois par vague de morts, pas par mort individuelle) et
+# les hooks Deuil (OnGrief) / Sacrifice (OnSacrifice). Utilise FakeBattle
+# (tests/unit/doubles/fake_battle.gd), conformément à la convention GUT du
+# projet (voir CLAUDE.md).
+
+var death_system: DeathSystem
+var battle: FakeBattle
+
+func before_each() -> void:
+	death_system = load("res://scripts/systems/DeathSystem.gd").new()
+	battle = load("res://tests/unit/doubles/fake_battle.gd").new()
+	death_system.init(battle)
+
+func _minion(attack: int = 2, health: int = 4, is_player: bool = true, race: int = Race.Type.UNDEAD, undead_kw: int = -1, abomination_kw: int = -1) -> Minion:
+	var data := CardData.new()
+	data.card_name = "TEST_CARD"
+	data.race = race
+	data.attack = attack
+	data.health = health
+	if undead_kw != -1:
+		var kw := KeywordChoiceUndead.new()
+		kw.keyword_type = undead_kw
+		data.undead_keywords = [kw]
+	if abomination_kw != -1:
+		var kw2 := KeywordChoiceAbomination.new()
+		kw2.keyword_type = abomination_kw
+		data.abomination_keywords = [kw2]
+	var minion := Minion.new(data, is_player)
+	if is_player:
+		battle.player_minions.append(minion)
+	else:
+		battle.enemy_minions.append(minion)
+	return minion
+
+# Serviteur survivant portant un trigger + Buff(Self, +1/+1), pour vérifier
+# concrètement qu'un hook de DeathSystem (OnGrief/OnSacrifice) s'est déclenché.
+func _survivor_with_trigger(trigger_name: String) -> Minion:
+	var data := CardData.new()
+	data.card_name = "SURVIVOR"
+	data.race = Race.Type.UNDEAD
+	data.attack = 2
+	data.health = 4
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = trigger_name
+	data.trigger_types = [trigger]
+	var effect := CardEffect.new()
+	effect.effect_id = "Buff"
+	effect.target = "Self"
+	effect.value = 1
+	effect.value_2 = 1
+	data.effects = [effect]
+	var minion := Minion.new(data, true)
+	battle.player_minions.append(minion)
+	return minion
+
+func test_process_deaths_sends_dead_minion_to_graveyard() -> void:
+	var dying := _minion()
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_graveyard.get_minions().size(), 1)
+	assert_eq(battle.player_graveyard.get_minions()[0], dying.card_data)
+
+func test_process_deaths_respects_exile_on_death() -> void:
+	var dying := _minion()
+	dying.card_data.exile_on_death = true
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_graveyard.get_minions().size(), 0, "un serviteur exile_on_death ne doit pas rejoindre le cimetière")
+
+func test_dead_minion_removed_from_battle_lists() -> void:
+	var dying := _minion()
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_false(dying in battle.player_minions)
+
+func test_revenant_revives_once() -> void:
+	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
+	minion.health = 0
+	await death_system.process_deaths()
+	assert_eq(minion.health, 1, "REVENANT doit relever le serviteur à 1 HP")
+	assert_true(minion.revenant_triggered)
+	assert_true(minion in battle.player_minions, "le serviteur relevé doit rester en jeu")
+
+func test_revenant_does_not_apply_when_sacrificed() -> void:
+	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
+	minion.sacrificed = true
+	minion.health = 0
+	await death_system.process_deaths()
+	assert_false(minion in battle.player_minions, "un Sacrifice volontaire n'est pas relevé par REVENANT")
+
+func test_revenant_only_once_per_game() -> void:
+	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
+	minion.revenant_triggered = true
+	minion.health = 0
+	await death_system.process_deaths()
+	assert_false(minion in battle.player_minions, "REVENANT déjà consommé : le serviteur doit mourir normalement")
+
+func test_necrophage_gains_stats_per_ally_death() -> void:
+	var survivor := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.NECROPHAGE)
+	var dying_a := _minion(1, 1, true)
+	var dying_b := _minion(1, 1, true)
+	dying_a.health = 0
+	dying_b.health = 0
+	await death_system.process_deaths()
+	assert_eq(survivor.base_attack, 4, "NÉCROPHAGE : +1/+1 par allié mort (2 ici)")
+	assert_eq(survivor.base_max_health, 6)
+
+func test_assimilation_gains_stats_once_per_wave_not_per_kill() -> void:
+	var survivor := _minion(2, 4, true, Race.Type.ABOMINATION, -1, KeywordAbomination.Type.ASSIMILATION)
+	var dying_a := _minion(1, 1, true)
+	var dying_b := _minion(1, 1, true)
+	dying_a.health = 0
+	dying_b.health = 0
+	await death_system.process_deaths()
+	assert_eq(survivor.base_attack, 3, "ASSIMILATION : +1/+1 par VAGUE de morts, pas par mort individuelle")
+	assert_eq(survivor.base_max_health, 5)
+
+func test_on_grief_fires_for_surviving_allies_when_ally_dies() -> void:
+	var survivor := _survivor_with_trigger("OnGrief")
+	var dying := _minion(1, 1, true)
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(survivor.base_attack, 3, "OnGrief doit se déclencher pour chaque survivant à la mort d'un allié")
+	assert_eq(survivor.base_max_health, 5)
+
+func test_on_sacrifice_fires_only_when_a_sacrificed_minion_died() -> void:
+	var survivor := _survivor_with_trigger("OnSacrifice")
+	var dying := _minion(1, 1, true)
+	dying.sacrificed = true
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(survivor.base_attack, 3)
+
+func test_on_sacrifice_does_not_fire_for_a_normal_death() -> void:
+	var survivor := _survivor_with_trigger("OnSacrifice")
+	var dying := _minion(1, 1, true)
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(survivor.base_attack, 2, "sans victime marquée sacrifiée, OnSacrifice ne doit pas se déclencher")

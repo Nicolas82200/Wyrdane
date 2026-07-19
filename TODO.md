@@ -4,14 +4,14 @@ Liste priorisée issue d'une revue transversale du projet (voir aussi la section
 
 ## P1 — Couverture de tests quasi nulle en dehors des cartes
 
-Seuls `tests/unit/test_minion.gd` et `tests/unit/test_card_library.gd` existent. Aucun test sur :
+**Mis à jour dans cette branche.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem` (`TriggersSystem.gd`), `DeathSystem`, la mutation Abomination et le timer de tour, en plus des tests `Minion`/`CardLibrary` d'origine (121 tests, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
 
-- `EffectManager` (1005 lignes, cœur du moteur data-driven — le plus gros risque de régression silencieuse)
-- `CombatSystem`, `TurnSystem`, `TriggerSystem`, `DeathSystem`
-- `AuraSystem`, `SacrificeSystem`, `CostSystem`
+Restent non couverts :
+- `CombatSystem` (`scripts/systems/CombatSystem.gd`) — `resolve_combat`/`_execute_damage` appellent directement `AudioManager.play(...)` (autoload non fiable en runner `-s`, voir convention ci-dessous) et `battle.get_tree().create_timer(...)` (nécessite un arbre de scène réel). Untestable en l'état sans un double `SceneTree` déjà utilisé pour `DeathSystem`/`TriggersSystem`, *et* un contournement de l'appel `AudioManager` — soit en l'extrayant derrière une interface injectable, soit en acceptant de tester uniquement la logique privée (`_execute_damage`) en species-casing l'appel audio. À trancher avant de s'y attaquer.
+- `TurnSystem` (`scripts/systems/TurnSystem.gd`) — orchestration de tour complète (`end_turn`/`_begin_player_turn`) trop couplée à la scène (`battle.opponent`, `turn_timer`, `tutorial_manager`, `hand`, `deck_button`, `AudioManager.play` dans `draw_card`) pour un test unitaire direct ; seule la sous-logique pure (`_apply_infection_damage`, `run_turn_start_triggers` hors phases UI) serait raisonnablement testable avec un double étendu.
 - Le protocole réseau (`scripts/net/`) — sérialisation des commandes, rejeu côté `NetworkOpponent`
 
-Prioriser `EffectManager` et `CombatSystem` en premier (logique la plus dense et la plus souvent modifiée à chaque nouvelle carte). Suivre la convention déjà en place : charger le script cible directement (`load(...).new()`), éviter la dépendance aux autoloads dans le runner GUT `-s`.
+Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le script cible directement (`load(...).new()`), éviter la dépendance aux autoloads globaux dans le runner GUT `-s`, et étendre `FakeBattle` plutôt que d'en créer un nouveau par système quand c'est raisonnable (RefCounted réels comme `Graveyard`/`NetRegistry` réutilisés tels quels ; `Node`-based comme `SacrificeSystem`/`TriggerSystem` libérés explicitement via `free()` en `after_each()` pour éviter les nœuds orphelins).
 
 ## P2 — Fichiers Steam parasites non ignorés par git
 
