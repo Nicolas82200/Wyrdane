@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ch5np2c05errp"
-path="res://.godot/imported/pact-berserker.jpg-35d4f310f2bb2df30e4c86261689bffe.ctex"
+path.s3tc="res://.godot/imported/pact-berserker.jpg-35d4f310f2bb2df30e4c86261689bffe.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/pact-berserker.jpg"
-dest_files=["res://.godot/imported/pact-berserker.jpg-35d4f310f2bb2df30e4c86261689bffe.ctex"]
+dest_files=["res://.godot/imported/pact-berserker.jpg-35d4f310f2bb2df30e4c86261689bffe.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

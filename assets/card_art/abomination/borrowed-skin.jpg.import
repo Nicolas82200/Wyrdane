@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csq7gq8ddmuf7"
-path="res://.godot/imported/borrowed-skin.jpg-80bb6828ae2ccdd9d0b42f851e7c7c07.ctex"
+path.s3tc="res://.godot/imported/borrowed-skin.jpg-80bb6828ae2ccdd9d0b42f851e7c7c07.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/borrowed-skin.jpg"
-dest_files=["res://.godot/imported/borrowed-skin.jpg-80bb6828ae2ccdd9d0b42f851e7c7c07.ctex"]
+dest_files=["res://.godot/imported/borrowed-skin.jpg-80bb6828ae2ccdd9d0b42f851e7c7c07.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

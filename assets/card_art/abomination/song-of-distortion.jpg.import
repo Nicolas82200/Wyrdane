@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0qhheu5kw5xw"
-path="res://.godot/imported/song-of-distortion.jpg-fd4a24291db7e14457d3a722d4c2c316.ctex"
+path.s3tc="res://.godot/imported/song-of-distortion.jpg-fd4a24291db7e14457d3a722d4c2c316.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/song-of-distortion.jpg"
-dest_files=["res://.godot/imported/song-of-distortion.jpg-fd4a24291db7e14457d3a722d4c2c316.ctex"]
+dest_files=["res://.godot/imported/song-of-distortion.jpg-fd4a24291db7e14457d3a722d4c2c316.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
