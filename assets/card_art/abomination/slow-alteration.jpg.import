@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://pje13j5qwrue"
-path="res://.godot/imported/slow-alteration.jpg-c271475d1a42588bf32f1defea86af0f.ctex"
+path.s3tc="res://.godot/imported/slow-alteration.jpg-c271475d1a42588bf32f1defea86af0f.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/slow-alteration.jpg"
-dest_files=["res://.godot/imported/slow-alteration.jpg-c271475d1a42588bf32f1defea86af0f.ctex"]
+dest_files=["res://.godot/imported/slow-alteration.jpg-c271475d1a42588bf32f1defea86af0f.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

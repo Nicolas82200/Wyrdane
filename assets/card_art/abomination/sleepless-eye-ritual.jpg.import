@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgyqt6b31pwra"
-path="res://.godot/imported/sleepless-eye-ritual.jpg-61de24152bb2cd7721360f2d749002a8.ctex"
+path.s3tc="res://.godot/imported/sleepless-eye-ritual.jpg-61de24152bb2cd7721360f2d749002a8.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/sleepless-eye-ritual.jpg"
-dest_files=["res://.godot/imported/sleepless-eye-ritual.jpg-61de24152bb2cd7721360f2d749002a8.ctex"]
+dest_files=["res://.godot/imported/sleepless-eye-ritual.jpg-61de24152bb2cd7721360f2d749002a8.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

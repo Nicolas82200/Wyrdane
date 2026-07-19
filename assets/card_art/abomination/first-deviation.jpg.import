@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://da0y06v0q2xvd"
-path="res://.godot/imported/first-deviation.jpg-a21a0f1b1e91675012f6b83cb08da0f2.ctex"
+path.s3tc="res://.godot/imported/first-deviation.jpg-a21a0f1b1e91675012f6b83cb08da0f2.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/first-deviation.jpg"
-dest_files=["res://.godot/imported/first-deviation.jpg-a21a0f1b1e91675012f6b83cb08da0f2.ctex"]
+dest_files=["res://.godot/imported/first-deviation.jpg-a21a0f1b1e91675012f6b83cb08da0f2.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

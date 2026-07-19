@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bycdru3mvph0l"
-path="res://.godot/imported/watching-remnant.jpg-b3af11b504c35fb2f0b37e43251ae88b.ctex"
+path.s3tc="res://.godot/imported/watching-remnant.jpg-b3af11b504c35fb2f0b37e43251ae88b.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/watching-remnant.jpg"
-dest_files=["res://.godot/imported/watching-remnant.jpg-b3af11b504c35fb2f0b37e43251ae88b.ctex"]
+dest_files=["res://.godot/imported/watching-remnant.jpg-b3af11b504c35fb2f0b37e43251ae88b.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

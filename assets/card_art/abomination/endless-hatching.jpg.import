@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnuluc0efbu7m"
-path="res://.godot/imported/endless-hatching.jpg-6126c6f83bd22906dc8fb5f5d7a6541b.ctex"
+path.s3tc="res://.godot/imported/endless-hatching.jpg-6126c6f83bd22906dc8fb5f5d7a6541b.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/endless-hatching.jpg"
-dest_files=["res://.godot/imported/endless-hatching.jpg-6126c6f83bd22906dc8fb5f5d7a6541b.ctex"]
+dest_files=["res://.godot/imported/endless-hatching.jpg-6126c6f83bd22906dc8fb5f5d7a6541b.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
