@@ -351,6 +351,11 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
 
+	# Preview agrandie au survol d'une carte déjà dans le deck, même mécanisme
+	# que pour la grille de collection (voir _on_card_wrapper_entered/_exited).
+	panel.mouse_entered.connect(_on_card_wrapper_entered.bind(card, null, panel))
+	panel.mouse_exited.connect(_on_card_wrapper_exited.bind(null))
+
 	return panel
 
 func _playable_count() -> int:
