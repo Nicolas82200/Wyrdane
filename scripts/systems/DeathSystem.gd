@@ -56,6 +56,9 @@ func _apply_revenant(minions: Array[Minion]) -> void:
 			continue
 		minion.revenant_triggered = true
 		minion.health = 1
+		var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+		if visual:
+			battle.animation_system.play_revenant(visual)
 
 func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:
@@ -99,6 +102,9 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 		if minion.has_undead_keyword(KeywordUndead.Type.NECROPHAGE):
 			minion.base_attack     += dead_minions.size()
 			minion.base_max_health += dead_minions.size()
+			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+			if visual:
+				battle.animation_system.play_necrophage(visual, dead_minions.size())
 
 	# Deuil (OnGrief) : un ALLIÉ vient de mourir → survivants du même camp réagissent
 	for minion in same_camp:
@@ -142,6 +148,9 @@ func _trigger_devoration(dead_minions: Array[Minion]) -> void:
 		if minion.has_abomination_keyword(KeywordAbomination.Type.ASSIMILATION):
 			minion.base_attack     += 1
 			minion.base_max_health += 1
+			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+			if visual:
+				battle.animation_system.play_assimilation_buff(visual)
 	for minion in survivors:
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDevoration")
 	await battle.trigger_system.fire("OnDevoration", null, true)

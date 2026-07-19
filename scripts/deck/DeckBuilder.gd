@@ -66,6 +66,10 @@ var _filter_type:       String = ""
 var _filter_cost:       int    = -1
 var _filter_keyword:    String = ""  # "" = tous, sinon "pool:value" (voir _card_has_keyword)
 var _sort_mode:         String = ""  # "" = par défaut, "cost", "name", "rarity"
+# Par défaut, la grille ne montre que les cartes débloquées (voir
+# CollectionManager) — permet aux nouveaux joueurs de ne voir que ce qu'ils
+# possèdent réellement (decks de départ), le reste restant accessible via ce filtre.
+var _filter_hide_locked: bool = true
 
 const RARITY_ORDER := ["Common", "Rare", "Epic", "Legendary"]
 
@@ -148,6 +152,8 @@ func _match_filters(c: CardData) -> bool:
 	elif _filter_cost >= 0 and _filter_cost < 7 and c.cost != _filter_cost:
 		return false
 	if _filter_keyword != "" and not _card_has_keyword(c, _filter_keyword):
+		return false
+	if _filter_hide_locked and _is_card_locked(c):
 		return false
 	return true
 
@@ -819,6 +825,20 @@ func _build_filter_bar() -> void:
 		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
 		func() -> int: return _filter_cost,
 		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
+
+	# Cacher/montrer les cartes non débloquées (bouton à bascule seul, pas un groupe radio)
+	var lock_btn := Button.new()
+	lock_btn.text            = SettingsManager.t("deck.filter_hide_locked")
+	lock_btn.toggle_mode     = true
+	lock_btn.button_pressed  = _filter_hide_locked
+	lock_btn.custom_minimum_size = Vector2(0, 26)
+	lock_btn.add_theme_font_size_override("font_size", 12)
+	_style_filter_button(lock_btn, _filter_hide_locked)
+	lock_btn.toggled.connect(func(pressed: bool) -> void:
+		_filter_hide_locked = pressed
+		_style_filter_button(lock_btn, pressed)
+		_refresh_card_grid())
+	filter_bar.add_child(lock_btn)
 
 
 ## Barre secondaire : filtre par mot-clé (dropdown, trop de valeurs pour des
