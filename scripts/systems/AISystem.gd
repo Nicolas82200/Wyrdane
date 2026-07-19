@@ -362,8 +362,9 @@ func _pick_spell_target(card: CardData) -> Minion:
 
 # Filtres de l'effet (race/rangée/seuils HP-ATK), miroir d'EffectManager._filter_targets.
 func _filter_spell_targets(minions: Array[Minion], effect: CardEffect) -> Array[Minion]:
+	var race_id: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
 	return minions.filter(func(m: Minion) -> bool:
-		if not effect.race_filter.is_empty() and m.card_data.race != Race.from_string(effect.race_filter):
+		if not effect.race_filter.is_empty() and m.card_data.race != race_id:
 			return false
 		if not effect.row_filter.is_empty() and m.board_row != effect.row_filter:
 			return false
