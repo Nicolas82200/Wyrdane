@@ -139,12 +139,20 @@ func _apply(cmd: Dictionary) -> void:
 		NetCommand.ATTACK:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
 			var defender: Minion = battle.net_registry.resolve(cmd.get("defender", 0))
-			if attacker != null and defender != null:
+			# L'attaquant rejoué doit appartenir au camp distant et la cible au
+			# camp local : sans ce contrôle, un pair pourrait désigner un net_id
+			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
+			if attacker != null and defender != null \
+					and not attacker.owner_is_player and defender.owner_is_player:
 				await battle.combat_system.resolve_combat(attacker, defender)
+			else:
+				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			if attacker != null:
+			if attacker != null and not attacker.owner_is_player:
 				await battle.combat_system.perform_hero_attack(attacker)
+			elif attacker != null:
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		_:
@@ -159,15 +167,24 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if card == null:
 		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
 		return
+	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
+	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
+	if _hand_count <= 0:
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (main distante vide)")
+		return
 	if card.card_type == "Resource":
 		# Carte-ressource : pas de coût, +1 au pool de sa race (voir Battle.play_resource_card).
-		if _hand_count > 0:
-			_hand_count -= 1
-			battle.update_enemy_hand_ui()
+		_hand_count -= 1
+		battle.update_enemy_hand_ui()
 		battle.play_resource_card(card, false)
 		return
+	# Coût réel du camp distant : refuse si le pair n'a pas les ressources
+	# affichées pour cette carte (sinon un client modifié pourrait poser
+	# n'importe quoi gratuitement et faire passer les pools en négatif).
+	if not battle.cost_system.can_afford(card, false):
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (coût non couvert) '%s'" % card.card_name)
+		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-	# Coût réel du camp distant : déduit ses pools (affichage) + suivi "premier de la race joué ce tour"
 	battle.cost_system.pay(card, false)
 	battle.update_enemy_mana_ui()
 	await battle.cost_system.on_card_played(card, false)
