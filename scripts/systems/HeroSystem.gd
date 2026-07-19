@@ -82,6 +82,9 @@ func _on_self_damage_dealt(is_player: bool) -> void:
 	for minion in camp:
 		if minion.has_demon_keyword(KeywordDemon.Type.SANG_NOIR):
 			minion.base_attack += 1
+			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+			if visual:
+				battle.animation_system.play_sang_noir_buff(visual)
 	if not _firing_self_damage:
 		_firing_self_damage = true
 		await battle.trigger_system.fire("OnSelfDamage", null, is_player)

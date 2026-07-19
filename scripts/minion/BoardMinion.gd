@@ -43,6 +43,9 @@ var _ready_pulse: float = 0.0
 
 const READY_GLOW_COLOR := Color(1.0, 0.85, 0.2)
 const EXHAUSTED_TINT   := Color(0.5, 0.5, 0.5)
+# GEL : teinte persistante tant que frozen_turns > 0, visible des deux joueurs
+# (contrairement à EXHAUSTED_TINT, qui ne s'affiche que côté propriétaire).
+const FROZEN_TINT      := Color(0.55, 0.75, 1.0)
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
@@ -144,7 +147,13 @@ func update_display() -> void:
 	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
 	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
 	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
-	var c := EXHAUSTED_TINT if (owners_turn and not minion.can_attack()) else Color.WHITE
+	var c: Color
+	if minion.frozen_turns > 0:
+		c = FROZEN_TINT
+	elif owners_turn and not minion.can_attack():
+		c = EXHAUSTED_TINT
+	else:
+		c = Color.WHITE
 	modulate.r = c.r
 	modulate.g = c.g
 	modulate.b = c.b
