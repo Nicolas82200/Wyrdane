@@ -12,6 +12,7 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var credits_panel:   Panel  = $CreditsPanel
 @onready var close_credits:   Button = $CreditsPanel/CloseCreditsButton
 @onready var decks_button:    Button = $NavPanel/NavMargin/VBoxContainer/DecksButton
+@onready var replay_tutorial_button: Button = $NavPanel/NavMargin/VBoxContainer/ReplayTutorialButton
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
 @onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
@@ -31,6 +32,7 @@ func _ready() -> void:
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
+	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	# Le son de fermeture remplace le clic générique
 	close_credits.set_meta("no_click_sound", true)
 	close_credits.pressed.connect(func():
@@ -107,6 +109,16 @@ func _on_play() -> void:
 	TutorialContext.active = not SettingsManager.tutorial_completed
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
+# Bouton temporaire de debug/test : force le rejeu du tutoriel obligatoire
+# sans avoir à éditer le fichier de config à la main (voir
+# SettingsManager.reset_tutorial_completed). À retirer une fois le tutoriel
+# validé.
+func _on_replay_tutorial_pressed() -> void:
+	SettingsManager.reset_tutorial_completed()
+	_apply_tutorial_lock()
+	TutorialContext.active = true
+	get_tree().change_scene_to_file(BATTLE_SCENE)
+
 func _on_multiplayer() -> void:
 	if DeckManager.get_active_deck() == null:
 		push_warning("Aucun deck actif : crée/sélectionne un deck avant de jouer en ligne.")
@@ -126,6 +138,7 @@ func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
+	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	multiplayer_button.text = SettingsManager.t("MENU_MULTIPLAYER")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")

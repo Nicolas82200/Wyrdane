@@ -72,6 +72,15 @@ func set_tutorial_completed() -> void:
 	tutorial_completed = true
 	_save()
 
+# Debug/test uniquement (bouton temporaire de MainMenu) : repasse le flag à
+# false pour pouvoir rejouer le tutoriel obligatoire sans éditer le fichier
+# de config à la main.
+func reset_tutorial_completed() -> void:
+	if not tutorial_completed:
+		return
+	tutorial_completed = false
+	_save()
+
 func _apply_language() -> void:
 	# Aligne aussi le TranslationServer de Godot pour préparer une future
 	# migration vers des fichiers de traduction natifs.
