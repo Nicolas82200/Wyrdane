@@ -164,8 +164,9 @@ func _get_targets(
 func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion]:
 	var result: Array[Minion] = targets
 	if not effect.race_filter.is_empty():
+		var race_id: int = Race.from_string(effect.race_filter)
 		result = result.filter(func(t: Minion) -> bool:
-			return t.card_data.race == Race.from_string(effect.race_filter)
+			return t.card_data.race == race_id
 		)
 	if not effect.row_filter.is_empty():
 		result = result.filter(func(t: Minion) -> bool:
