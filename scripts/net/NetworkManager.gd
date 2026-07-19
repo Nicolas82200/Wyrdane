@@ -99,7 +99,15 @@ func _on_transport_disconnected(reason: String) -> void:
 	_pending_disconnect_reason = reason
 	connection_lost.emit(reason)
 
+# Généreuse par rapport à toute commande légitime (le plus gros paquet, un
+# deck complet mélangé, tient sur quelques Ko) : sert seulement à rejeter un
+# paquet malformé/excessif avant de le désérialiser.
+const MAX_PACKET_BYTES := 262144  # 256 Ko
+
 func _on_packet_received(bytes: PackedByteArray) -> void:
+	if bytes.size() > MAX_PACKET_BYTES:
+		push_warning("NetworkManager : paquet ignoré (%d octets > limite)" % bytes.size())
+		return
 	# allow_objects reste false (défaut) : on ne désérialise jamais d'objets
 	# arbitraires venant du réseau — uniquement des types de base (sécurité).
 	var command: Variant = bytes_to_var(bytes)

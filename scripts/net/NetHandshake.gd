@@ -35,6 +35,12 @@ var _remote_deck: Array = []
 var _remote_received: bool = false
 var _acked: bool = false
 var _finished: bool = false
+# Contribution locale à la graine partagée, générée avant tout échange avec le
+# pair : chaque client l'envoie dans son propre HELLO sans connaître celle de
+# l'autre, donc ni l'hôte ni l'invité ne peut choisir la graine finale
+# unilatéralement (l'ancien schéma laissait l'hôte l'imposer seul).
+var _local_seed_contribution: int = randi()
+var _remote_seed_contribution: int = 0
 var _seed: int = 0
 var _first_player_is_host: bool = true
 var _resend_clock: float = 0.0
@@ -44,12 +50,9 @@ func _init(net: NetworkManager, local_deck_paths: Array, is_host: bool) -> void:
 	_net = net
 	_local_deck = local_deck_paths
 	_is_host = is_host
-	if _is_host:
-		_seed = randi()
-		_first_player_is_host = randi() % 2 == 0
 	_net.command_received.connect(_on_command_received)
 
-# Lance l'échange : envoie le HELLO local. L'hôte y joint seed + premier joueur.
+# Lance l'échange : envoie le HELLO local, avec notre contribution de graine.
 func start() -> void:
 	if _sent:
 		return
@@ -69,9 +72,7 @@ func _process(delta: float) -> void:
 	progress.emit("Handshake : HELLO renvoyé (%d) — en attente du pair…" % _resend_count)
 
 func _send_hello() -> void:
-	var hello := NetCommand.hello(_local_deck, _local_start_id(), _local_stride(), _seed)
-	if _is_host:
-		hello["first_player_is_host"] = _first_player_is_host
+	var hello := NetCommand.hello(_local_deck, _local_start_id(), _local_stride(), _local_seed_contribution)
 	_net.send_command(hello)
 
 # ─── Réception ────────────────────────────────────────────────────────────────
@@ -82,10 +83,15 @@ func _on_command_received(command: Dictionary) -> void:
 			print("[NetHandshake] HELLO reçu  self=%s  sent=%s  remote_received_avant=%s" % [self, _sent, _remote_received])
 			_remote_deck = _sanitize_deck(command.get("deck", []))
 			_remote_received = true
-			# L'invité adopte les paramètres partagés décidés par l'hôte.
-			if not _is_host:
-				_seed = command.get("seed", 0)
-				_first_player_is_host = command.get("first_player_is_host", true)
+			# Combine notre contribution avec celle du pair (déjà envoyée avant
+			# réception de la sienne, donc ni l'un ni l'autre n'a pu l'ajuster
+			# après coup) : les deux clients obtiennent la même graine et le même
+			# premier joueur sans qu'aucun des deux ne les impose seul.
+			_remote_seed_contribution = int(command.get("seed", 0))
+			_seed = _local_seed_contribution ^ _remote_seed_contribution
+			# Fait global (pas relatif à "moi") : les deux clients calculent la
+			# même graine combinée, donc la même valeur ici.
+			_first_player_is_host = (_seed % 2) == 0
 			# Confirme la réception — renvoyé aussi sur les HELLO doublons, au
 			# cas où un ACK précédent se serait perdu avant la session P2P.
 			_net.send_command(NetCommand.hello_ack())
