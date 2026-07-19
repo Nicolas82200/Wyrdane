@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bc3gooteqp44e"
-path="res://.godot/imported/claw.png-1fb25e7e468c52623814bf51bfb7b122.ctex"
+path.s3tc="res://.godot/imported/claw.png-1fb25e7e468c52623814bf51bfb7b122.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/media-effect/image-effect/claw.png"
-dest_files=["res://.godot/imported/claw.png-1fb25e7e468c52623814bf51bfb7b122.ctex"]
+dest_files=["res://.godot/imported/claw.png-1fb25e7e468c52623814bf51bfb7b122.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

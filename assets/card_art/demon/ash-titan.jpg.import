@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://belm8254bcu16"
-path="res://.godot/imported/ash-titan.jpg-753b24d806639ac506b6eddd53f67700.ctex"
+path.s3tc="res://.godot/imported/ash-titan.jpg-753b24d806639ac506b6eddd53f67700.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/ash-titan.jpg"
-dest_files=["res://.godot/imported/ash-titan.jpg-753b24d806639ac506b6eddd53f67700.ctex"]
+dest_files=["res://.godot/imported/ash-titan.jpg-753b24d806639ac506b6eddd53f67700.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

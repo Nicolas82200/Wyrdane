@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwcr7gbgx837v"
-path="res://.godot/imported/ashen-throne.jpg-df14e08d07e3447a321469db63683e67.ctex"
+path.s3tc="res://.godot/imported/ashen-throne.jpg-df14e08d07e3447a321469db63683e67.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/ashen-throne.jpg"
-dest_files=["res://.godot/imported/ashen-throne.jpg-df14e08d07e3447a321469db63683e67.ctex"]
+dest_files=["res://.godot/imported/ashen-throne.jpg-df14e08d07e3447a321469db63683e67.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

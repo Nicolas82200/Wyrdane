@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r2gcqsnm1p1d"
-path="res://.godot/imported/advance-order.jpg-92b24eac40de0263314bd08269fc6f2e.ctex"
+path.s3tc="res://.godot/imported/advance-order.jpg-92b24eac40de0263314bd08269fc6f2e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/advance-order.jpg"
-dest_files=["res://.godot/imported/advance-order.jpg-92b24eac40de0263314bd08269fc6f2e.ctex"]
+dest_files=["res://.godot/imported/advance-order.jpg-92b24eac40de0263314bd08269fc6f2e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

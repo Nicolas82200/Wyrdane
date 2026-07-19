@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dgpbm38y70wbe"
-path="res://.godot/imported/knight-code.jpg-4c689c9b07e7b3a1b13f20546eb6ff58.ctex"
+path.s3tc="res://.godot/imported/knight-code.jpg-4c689c9b07e7b3a1b13f20546eb6ff58.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/knight-code.jpg"
-dest_files=["res://.godot/imported/knight-code.jpg-4c689c9b07e7b3a1b13f20546eb6ff58.ctex"]
+dest_files=["res://.godot/imported/knight-code.jpg-4c689c9b07e7b3a1b13f20546eb6ff58.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

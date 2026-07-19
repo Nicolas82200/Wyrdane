@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dypdopuwgal1s"
-path="res://.godot/imported/azhar-the-fallen.jpg-ea4e82d94b488d5b32e410c6856777bd.ctex"
+path.s3tc="res://.godot/imported/azhar-the-fallen.jpg-ea4e82d94b488d5b32e410c6856777bd.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/heros_art/azhar-the-fallen.jpg"
-dest_files=["res://.godot/imported/azhar-the-fallen.jpg-ea4e82d94b488d5b32e410c6856777bd.ctex"]
+dest_files=["res://.godot/imported/azhar-the-fallen.jpg-ea4e82d94b488d5b32e410c6856777bd.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

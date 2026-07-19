@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://w0efn1522fy5"
-path="res://.godot/imported/troop-sergeant.jpg-4281a82c5a2de111abb7da85e913ecdb.ctex"
+path.s3tc="res://.godot/imported/troop-sergeant.jpg-4281a82c5a2de111abb7da85e913ecdb.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/troop-sergeant.jpg"
-dest_files=["res://.godot/imported/troop-sergeant.jpg-4281a82c5a2de111abb7da85e913ecdb.ctex"]
+dest_files=["res://.godot/imported/troop-sergeant.jpg-4281a82c5a2de111abb7da85e913ecdb.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
