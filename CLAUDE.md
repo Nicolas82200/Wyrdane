@@ -135,6 +135,7 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Chaque camp a sa propre zone de ressource sur le plateau (hors rangées/Rituels/Enchantements), symétrique aux zones Rituel/Enchantement mais du côté opposé.
 - Les cartes-ressource posées y restent visibles individuellement ; la zone se resserre pour en accumuler plusieurs sans jamais déborder du cadre (même logique que les zones Rituel/Enchantement).
 - Actuellement désactivée (`Battle.RESOURCE_ZONE_ENABLED = false`) : une carte-ressource jouée disparaît simplement de la partie au lieu d'être posée. Conservée pour une réactivation future.
+- Les panneaux `Player/EnemyResourcePanel` et `Player/EnemyResourceZone` sont masqués (`visible = false`) dans `Battle.tscn` (nœuds conservés pour la réactivation). Le deck (`Deck/EnemyDeckButton`, affiché en long, tourné à 90°) et le cimetière (`Player/EnemyGraveyardButton`, juste en dessous) occupent désormais cet espace.
 
 ## Internationalisation (i18n)
 
