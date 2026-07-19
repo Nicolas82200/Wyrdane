@@ -85,7 +85,7 @@ Positionnement (Lane Types)
 | 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : inflige Infection à un serviteur ennemi ciblé. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
 | 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Assaut : tes serviteurs en rangée Avant ont +0/+1 HP jusqu'à fin de tour. | Il ne commande pas. Il pousse. Et ça suffit. |
-| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Ralliement : inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
+| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Attaque : inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
 | 09 | Horde Mineure | ⚔️ | 3 | 1 | 1 | Arrivée : invoque 2 Rampants 1/1 en rangée Avant. | Un seul ne fait pas peur. Mais il n'est jamais seul. |
 | 10 | Mort-Vivant Enchaîné | ⚔️ | 3 | 3 | 3 | HORDE. | Les chaînes ne le retiennent plus. Elles font partie de lui. |
 | 11 | Larve Cadavérique | ↕️ | 1 | 1 | 1 | NÉCROPHAGE. | Elle n'est pas née de la vie. Elle est née de ce qui reste. |
@@ -364,7 +364,7 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
 | H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
-| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Ralliement : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
+| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Appel : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
 | H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
 | H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
@@ -505,7 +505,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | PACTE. | *Chaque morsure lui coûte, à toi aussi.* |
 | D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Arrivée : ton héros perd 1 HP ; pioche 1 carte. | *Il murmure une vérité. Elle a toujours un prix.* |
 | D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Arrivée : ton héros regagne 2 HP. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
-| D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Ralliement : la cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
+| D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Attaque : la cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
 | D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR. | *Son cri ne blesse pas. Il paralyse.* |
 | D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Exécution : ton héros perd 1 HP ; ce serviteur gagne +1/+1 de façon permanente. | *Chaque exécution le nourrit — et te vide un peu.* |
 | D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART. Blessure : ton héros perd 1 HP ; ce serviteur regagne 1 HP. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
@@ -604,13 +604,13 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | D65 | Autel des Sacrifices | 3 | Rare | Deuil : ton héros perd 1 HP ; pioche 1 carte. | *L'autel ne demande jamais deux fois. Il attend, c'est tout.* |
 | D66 | Fosse Écarlate | 4 | Rare | Appel : si 3 Démons alliés ou plus sont en jeu, invoque une Larve Infernale 2/1. | *Plus elle se remplit, plus elle déborde de quelque chose d'affamé.* |
 | D67 | Aura de Corruption | 3 | Rare | Résonance : ce Démon attaquant inflige Corruption supplémentaire à sa cible. | *La corruption ne recule jamais. Elle s'accumule, discrètement.* |
-| D68 | Cœur du Gouffre | 5 | Épique | Présence : au début de ton tour, ton héros perd 1 HP ; tous tes serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour. | *Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.* |
-| D69 | Sceau du Répit | 3 | Rare | Présence : quand un serviteur Démon allié meurt, ton héros regagne 1 HP. | *Chaque perte laisse une trace. Celle-ci, au moins, te profite.* |
+| D68 | Cœur du Gouffre | 5 | Épique | Début de tour : ton héros perd 1 HP ; tous tes serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour. | *Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.* |
+| D69 | Sceau du Répit | 3 | Rare | Deuil : quand un serviteur Démon allié meurt, ton héros regagne 1 HP. | *Chaque perte laisse une trace. Celle-ci, au moins, te profite.* |
 | D70 | Symbiose Infernale | 5 | Épique | Présence : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur Démon allié en rangée Avant. | *Ceux de devant brûlent. Ceux de derrière se nourrissent de la chaleur.* |
 | D71 | Idole du Grand Pacte | 6 | Légendaire | Résonance : le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible ; ton héros perd 1 HP. | *On ne l'a pas sculptée. Elle a simplement accepté de rester.* |
 | D72 | Sanctuaire Écarlate | 4 | Épique | Présence : les sorts alliés coûtent 1 de moins (min 1). Ton héros perd 1 HP la première fois que ce rabais s'applique chaque tour. | *Dans ses murs, la magie coule librement. Rien n'est jamais vraiment gratuit.* |
 | D73 | Vortex des Damnés | 6 | Légendaire | Carnage : gagne 1 mana temporaire ce tour ; ton héros perd 1 HP. | *Les âmes qui s'y perdent paient toujours un peu plus que prévu.* |
-| D74 | Autel de la Souffrance | 4 | Épique | Présence : chaque fois que ton héros perd des HP à cause d'une de tes cartes, tes serviteurs Démons en jeu gagnent +0/+1 jusqu'à la fin du tour. | *L'autel ne juge pas ce que tu sacrifies. Il se contente d'en redistribuer la force.* |
+| D74 | Autel de la Souffrance | 4 | Épique | Sacrifice du sang : chaque fois que ton héros perd des HP à cause d'une de tes cartes, tes serviteurs Démons en jeu gagnent +0/+1 jusqu'à la fin du tour. | *L'autel ne juge pas ce que tu sacrifies. Il se contente d'en redistribuer la force.* |
 | D75 | Sceau de Préservation | 3 | Rare | Présence : réduit de 1 (minimum 0) les dégâts que tes propres cartes infligent à ton héros, à chaque occurrence. | *Une clause discrète, glissée dans les petits caractères — en ta faveur, pour une fois.* |
 
 ---

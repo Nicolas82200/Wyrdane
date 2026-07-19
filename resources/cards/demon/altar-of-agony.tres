@@ -22,7 +22,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Autel de la Souffrance"
-description = "Présence : chaque fois que ton héros perd des HP à cause d'une de tes cartes, tes serviteurs Démons en jeu gagnent +0/+1 jusqu'à la fin du tour."
+description = "Sacrifice du sang : chaque fois que ton héros perd des HP à cause d'une de tes cartes, tes serviteurs Démons en jeu gagnent +0/+1 jusqu'à la fin du tour."
 flavour_text = "L'autel ne juge pas ce que tu sacrifies. Il se contente d'en redistribuer la force."
 texture = ExtResource("3_texture")
 cost = 4
