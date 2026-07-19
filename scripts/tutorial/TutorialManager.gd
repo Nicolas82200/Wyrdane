@@ -561,11 +561,24 @@ func notify_player_turn_began() -> void:
 		await _dismissed
 
 # Appelé par Battle quand le héros ennemi meurt en mode tutoriel : dernière
-# popup de félicitations, puis déblocage définitif (multijoueur/deckbuilder).
+# popup de félicitations, déblocage définitif (multijoueur/deckbuilder), puis
+# réclamation des 4 decks préfaits (un par race) et des cartes qu'ils
+# contiennent (voir wyrdane-backend POST /api/collection/claim-starter).
 func notify_victory() -> void:
 	await _popup("tutorial.complete", [])
 	SettingsManager.set_tutorial_completed()
-	battle.get_tree().change_scene_to_file(battle.MAIN_MENU_SCENE)
+	# Attend la réponse du backend avant de changer de scène : MainMenu relance
+	# aussitôt son propre login+sync (voir MainMenu._start_backend_sync) et
+	# doit trouver les decks déjà créés côté serveur, pas une réponse encore
+	# en vol. Si l'appel échoue (backend down...), on continue quand même —
+	# même philosophie de dégradation que le reste de la sync backend
+	# (DeckManager/CardLibrary), pas de blocage du joueur pour autant.
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/collection/claim-starter", {},
+		func(code: int, _parsed) -> void:
+			if code != 200:
+				push_warning("Échec de la réclamation des decks de départ (HTTP %d)" % code)
+			battle.get_tree().change_scene_to_file(battle.MAIN_MENU_SCENE)
+	)
 
 # ─── Attentes ─────────────────────────────────────────────────────────────────
 
