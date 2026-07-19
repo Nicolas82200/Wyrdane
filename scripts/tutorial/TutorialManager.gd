@@ -594,6 +594,13 @@ func _wait_card(card: CardData) -> void:
 func _wait_minion() -> void:
 	await _wait_for("card_played", func(p): return p != null and p.card_type == "Minion")
 
+# Appelé par Battle AVANT _run_mulligan() (donc avant run()) : narration pure,
+# fermée au clic, pour présenter la phase de mulligan qui va suivre juste
+# après — elle utilise la vraie mécanique de jeu (Hand/Battle._run_mulligan),
+# pas une popup d'action de ce script.
+func intro_mulligan() -> void:
+	await _popup("tutorial.mulligan_intro", [battle.hand, battle.end_turn_button])
+
 # ─── Script du tutoriel ───────────────────────────────────────────────────────
 
 func run() -> void:

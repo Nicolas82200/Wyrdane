@@ -328,8 +328,9 @@ func _start_game() -> void:
 	else:
 		deck_system.deal_opening_hand()
 	hand.set_hand(hand_cards, false)
-	if not tutorial_active:
-		await _run_mulligan()
+	if tutorial_active:
+		await tutorial_manager.intro_mulligan()
+	await _run_mulligan()
 	if NetContext.active:
 		var local_first: bool = net_local_first
 		NetContext.clear()
@@ -364,7 +365,10 @@ func _run_mulligan() -> void:
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
-	turn_timer.start(MULLIGAN_DURATION)
+	# Pas de pression du temps pendant le tutoriel obligatoire (voir _start_game) :
+	# le joueur lit la popup d'introduction avant de pouvoir même cliquer.
+	if not tutorial_active:
+		turn_timer.start(MULLIGAN_DURATION)
 	await mulligan_confirmed
 	turn_timer.stop()
 	end_turn_button.disabled = true
@@ -381,6 +385,8 @@ func _run_mulligan() -> void:
 
 func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	if index in _mulligan_swapped_indices or _mulligan_swap_count >= MULLIGAN_MAX_SWAPS:
+		return
+	if tutorial_active and not TutorialDeck.is_swappable_during_tutorial(_card_data):
 		return
 	var new_data: CardData = deck_system.mulligan_replace_one(index)
 	if new_data == null:
