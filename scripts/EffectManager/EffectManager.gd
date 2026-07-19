@@ -440,6 +440,9 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 		target.demon_keywords.clear()
 		target.abomination_keywords.clear()
 		target.silenced = true
+		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
+		if visual:
+			battle.animation_system.play_silence(visual)
 
 # Éclaireur Infiltré : rend des cibles intargetables par les sorts ennemis.
 # Contrairement à Assassin Décharné (immunité intrinsèque levée à sa propre
@@ -459,12 +462,18 @@ func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target:
 	for target in targets:
 		var turns: int = effect.value if effect.value > 0 else 1
 		target.frozen_turns = max(target.frozen_turns, turns)
+		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
+		if visual:
+			battle.animation_system.play_freeze(visual)
 
 func _infect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets)
 	for target in targets:
 		target.infected = true
+		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
+		if visual:
+			battle.animation_system.play_infection(visual)
 
 func _steal_health(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -738,6 +747,9 @@ func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> voi
 	await _point_arrows_to(battle, hit)
 	for m in hit:
 		m.infected = true
+		var visual: BoardMinion = battle.board_visual_system.get_visual(m)
+		if visual:
+			battle.animation_system.play_infection(visual)
 
 # Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...)
 func _buff_adjacent(battle, source_minion, effect) -> void:
@@ -1169,6 +1181,9 @@ func notify_damaged(battle, minion: Minion) -> void:
 		return
 	if minion.health * 2 < minion.max_health:
 		minion.death_rage_triggered = true
+		var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+		if visual:
+			battle.animation_system.play_death_rage(visual)
 		await trigger_effects(battle, minion, "OnDeathRage")
 
 # ─── Mutation (Abomination) ────────────────────────────────────────────────────
@@ -1179,17 +1194,22 @@ func roll_mutation(battle, minion: Minion) -> void:
 	if minion == null or minion.is_dead():
 		return
 	var roll: int = battle.game_rng.randi() % 100
+	var outcome: String
 	if roll < 40:
 		minion.base_attack += 2
-		minion.mutations.append("Croissance")
+		outcome = "Croissance"
 	elif roll < 80:
 		minion.base_max_health += 2
-		minion.mutations.append("Renforcement")
+		outcome = "Renforcement"
 	else:
 		minion.base_attack = max(0, minion.base_attack - 1)
 		minion.base_max_health -= 1
-		minion.mutations.append("Dégénérescence")
+		outcome = "Dégénérescence"
+	minion.mutations.append(outcome)
 	minion.mutation_stacks += 1
+	var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+	if visual and not minion.is_dead():
+		battle.animation_system.play_mutation(visual, outcome)
 	battle.aura_system.recompute_all()
 	# Résonance (Abomination) : un allié Abomination vient de muter.
 	await trigger_effects(battle, minion, "OnMutation")
