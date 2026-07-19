@@ -398,8 +398,8 @@ func _on_drag_released() -> void:
 	drag_ended.emit()
 
 # Sort la carte de la main (reparentée en top-level pour ne plus être affectée
-# par le layout de Hand) puis la fait spiraler vers le pool de mana de sa race
-# via AnimationSystem, qui se charge de la libérer (queue_free) à la fin.
+# par le layout de Hand) puis la fait désintégrer vers le pool de mana de sa
+# race via AnimationSystem, qui se charge de la libérer (queue_free) à la fin.
 func _play_resource_absorb(battle_ref: Node) -> void:
 	var global_pos_before := global_position
 	var parent := get_parent()
