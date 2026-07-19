@@ -158,14 +158,32 @@ func _apply(cmd: Dictionary) -> void:
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
+# Charge une carte désignée par son resource_path reçu du réseau. Restreint au
+# dossier des ressources de carte et exclut les jetons d'invocation (jamais
+# censés être joués depuis une main) pour empêcher un pair de faire charger un
+# chemin arbitraire du projet.
+const CARDS_RESOURCE_PREFIX := "res://resources/cards/"
+
+func _load_remote_card(path: String) -> CardData:
+	if not path.begins_with(CARDS_RESOURCE_PREFIX) or not path.ends_with(".tres"):
+		push_warning("NetworkOpponent : chemin de carte refusé '%s'" % path)
+		return null
+	var card: CardData = load(path) as CardData
+	if card == null:
+		push_warning("NetworkOpponent : carte introuvable '%s'" % path)
+		return null
+	if card.is_token:
+		push_warning("NetworkOpponent : jeton refusé '%s'" % path)
+		return null
+	return card
+
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
 # Limité aux serviteurs pour l'instant : les sorts distants demandent un
 # EffectManager conscient du propriétaire (brique suivante).
 func _apply_play_card(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
 		return
 	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
 	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
@@ -213,9 +231,8 @@ func _apply_play_card(cmd: Dictionary) -> void:
 # est retrouvé par resource_path parmi les rituels adverses en jeu, les victimes
 # par net_id ; l'exécution passe par le même chemin que côté émetteur.
 func _apply_activate_ritual(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : rituel introuvable '%s'" % cmd.get("card", ""))
 		return
 	var victims: Array = []
 	for victim_id in cmd.get("victims", []):

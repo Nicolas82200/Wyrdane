@@ -80,7 +80,7 @@ func _on_command_received(command: Dictionary) -> void:
 	match NetCommand.type_of(command):
 		NetCommand.HELLO:
 			print("[NetHandshake] HELLO reçu  self=%s  sent=%s  remote_received_avant=%s" % [self, _sent, _remote_received])
-			_remote_deck = command.get("deck", [])
+			_remote_deck = _sanitize_deck(command.get("deck", []))
 			_remote_received = true
 			# L'invité adopte les paramètres partagés décidés par l'hôte.
 			if not _is_host:
@@ -93,6 +93,22 @@ func _on_command_received(command: Dictionary) -> void:
 		NetCommand.HELLO_ACK:
 			_acked = true
 			_try_finish()
+
+# Le deck reçu ne sert qu'à afficher des compteurs cosmétiques (voir
+# NetworkOpponent), mais reste stocké tel quel : on filtre les entrées non-
+# String et on borne sa taille pour éviter qu'un pair n'envoie un tableau
+# démesuré (déni de service local mémoire/CPU), sans chercher à valider ici
+# la légalité complète du deck (copies/race), qui n'a pas d'impact sécurité.
+const MAX_DECK_ENTRIES := 200
+
+func _sanitize_deck(deck: Array) -> Array:
+	var clean: Array = []
+	for entry in deck:
+		if entry is String:
+			clean.append(entry)
+		if clean.size() >= MAX_DECK_ENTRIES:
+			break
+	return clean
 
 func _try_finish() -> void:
 	# On ne termine que lorsque le pair a REÇU notre deck (_acked) et que nous
