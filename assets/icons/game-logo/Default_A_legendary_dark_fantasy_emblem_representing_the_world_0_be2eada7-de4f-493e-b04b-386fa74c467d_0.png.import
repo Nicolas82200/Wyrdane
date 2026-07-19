@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bg63blxvj7mod"
-path="res://.godot/imported/Default_A_legendary_dark_fantasy_emblem_representing_the_world_0_be2eada7-de4f-493e-b04b-386fa74c467d_0.png-f050660a973e3dd27a2c4ce65cbdd0e0.ctex"
+path.s3tc="res://.godot/imported/Default_A_legendary_dark_fantasy_emblem_representing_the_world_0_be2eada7-de4f-493e-b04b-386fa74c467d_0.png-f050660a973e3dd27a2c4ce65cbdd0e0.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/icons/game-logo/Default_A_legendary_dark_fantasy_emblem_representing_the_world_0_be2eada7-de4f-493e-b04b-386fa74c467d_0.png"
-dest_files=["res://.godot/imported/Default_A_legendary_dark_fantasy_emblem_representing_the_world_0_be2eada7-de4f-493e-b04b-386fa74c467d_0.png-f050660a973e3dd27a2c4ce65cbdd0e0.ctex"]
+dest_files=["res://.godot/imported/Default_A_legendary_dark_fantasy_emblem_representing_the_world_0_be2eada7-de4f-493e-b04b-386fa74c467d_0.png-f050660a973e3dd27a2c4ce65cbdd0e0.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

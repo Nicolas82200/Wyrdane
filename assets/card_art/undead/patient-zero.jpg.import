@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bsu02s3vqg63h"
-path="res://.godot/imported/patient-zero.jpg-af2c37d2e264b65345c1432624a83f77.ctex"
+path.s3tc="res://.godot/imported/patient-zero.jpg-af2c37d2e264b65345c1432624a83f77.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/patient-zero.jpg"
-dest_files=["res://.godot/imported/patient-zero.jpg-af2c37d2e264b65345c1432624a83f77.ctex"]
+dest_files=["res://.godot/imported/patient-zero.jpg-af2c37d2e264b65345c1432624a83f77.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

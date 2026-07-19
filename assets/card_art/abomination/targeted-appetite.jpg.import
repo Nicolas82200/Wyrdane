@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qwf5pr88l5c3"
-path="res://.godot/imported/targeted-appetite.jpg-f9a6f11a7a6c04d3c1003d18e8a8c9f3.ctex"
+path.s3tc="res://.godot/imported/targeted-appetite.jpg-f9a6f11a7a6c04d3c1003d18e8a8c9f3.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/targeted-appetite.jpg"
-dest_files=["res://.godot/imported/targeted-appetite.jpg-f9a6f11a7a6c04d3c1003d18e8a8c9f3.ctex"]
+dest_files=["res://.godot/imported/targeted-appetite.jpg-f9a6f11a7a6c04d3c1003d18e8a8c9f3.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

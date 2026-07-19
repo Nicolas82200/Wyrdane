@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cud36mdqfqmyu"
-path="res://.godot/imported/endless-growth.jpg-e8c4eda1a1236ed34bb69633c0df432d.ctex"
+path.s3tc="res://.godot/imported/endless-growth.jpg-e8c4eda1a1236ed34bb69633c0df432d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/endless-growth.jpg"
-dest_files=["res://.godot/imported/endless-growth.jpg-e8c4eda1a1236ed34bb69633c0df432d.ctex"]
+dest_files=["res://.godot/imported/endless-growth.jpg-e8c4eda1a1236ed34bb69633c0df432d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
