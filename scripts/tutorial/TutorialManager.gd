@@ -606,7 +606,6 @@ func run() -> void:
 	# Petit tour des zones du plateau avant d'entrer dans le vif du sujet :
 	# chacune n'accueille qu'un type de carte précis.
 	await _popup("tutorial.zone_rows", [b.player_front_container, b.player_back_container])
-	await _popup("tutorial.zone_resource", [b.player_resource_zone])
 	await _popup("tutorial.zone_ritual", [b.player_ritual_zone])
 	await _popup("tutorial.zone_enchantment", [b.player_enchantment_zone])
 	await _popup("tutorial.zone_graveyard", [b.player_graveyard_btn, b.enemy_graveyard_btn])

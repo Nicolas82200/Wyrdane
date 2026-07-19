@@ -30,8 +30,8 @@ const ATTACK_PACE                 := 0.5
 # Pose visuelle des cartes-ressource dans leur zone dédiée (bande de droite) :
 # désactivée pour l'instant (feature repoussée). Le système est conservé tel
 # quel (EnchantmentSystem.add_resource, zones Player/EnemyResourceZone) pour
-# être réactivé plus tard ; en attendant, une carte-ressource jouée est
-# exilée (voir play_resource_card) au lieu d'être posée.
+# être réactivé plus tard ; en attendant, une carte-ressource jouée disparaît
+# simplement de la partie (voir play_resource_card) au lieu d'être posée.
 const RESOURCE_ZONE_ENABLED       := false
 const MULLIGAN_DURATION           := 30.0
 
@@ -124,9 +124,6 @@ var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion]  = []
 var player_graveyard: Graveyard   = Graveyard.new()
 var enemy_graveyard: Graveyard    = Graveyard.new()
-# Zone sans retour pour les cartes-ressource consommées (voir play_resource_card).
-var player_exile: Exile          = Exile.new()
-var enemy_exile: Exile           = Exile.new()
 
 var pending_card: CardData       = null
 var pending_row: String          = ROW_FRONT
@@ -575,11 +572,11 @@ func update_enemy_hand_ui() -> void:
 
 # Une carte-ressource jouée est consommée : +1 (actuel et max) au pool de sa
 # race, action à part qui ne consomme pas le droit de jouer une carte normale
-# mais limitée à une par tour et par camp. La carte part ensuite en exil
-# (Battle.player_exile / enemy_exile) : contrairement au cimetière, aucun
-# effet ne doit la ramener en jeu. La pose visuelle en zone dédiée
-# (EnchantmentSystem.add_resource) est conservée mais désactivée pour
-# l'instant — voir RESOURCE_ZONE_ENABLED.
+# mais limitée à une par tour et par camp. La carte est ensuite simplement
+# retirée de la partie (déjà sortie de la main par l'appelant) : aucune zone
+# ne la garde, elle n'est donc récupérable par aucun effet. La pose visuelle
+# en zone dédiée (EnchantmentSystem.add_resource) est conservée mais
+# désactivée pour l'instant — voir RESOURCE_ZONE_ENABLED.
 func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	if resource_played_this_turn.get(is_player, false):
 		return
@@ -590,8 +587,6 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	pool[card_data.race]     = int(pool.get(card_data.race, 0)) + 1
 	if RESOURCE_ZONE_ENABLED:
 		enchantment_system.add_resource(card_data, is_player)
-	var exile: Exile = player_exile if is_player else enemy_exile
-	exile.add_resource(card_data)
 	combat_log.card_played(card_data, is_player)
 	if is_player:
 		update_mana_ui()
