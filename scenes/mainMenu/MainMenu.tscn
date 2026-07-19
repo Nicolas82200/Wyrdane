@@ -220,6 +220,12 @@ text = "Credits"
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000011]
 layout_mode = 2
 
+[node name="ReplayTutorialButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000012]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Refaire le tutoriel (debug)"
+
 [node name="QuitButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
