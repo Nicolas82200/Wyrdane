@@ -43,6 +43,10 @@ const BATTLE_MUSIC := [
 func _ready() -> void:
 	music_player = AudioStreamPlayer.new()
 	music_player.bus = "Music"
+	# Sinon Godot met sa lecture en pause en même temps que l'arbre (ex. popups
+	# du tutoriel, futurs menus de pause) — cassant l'immersion pour rien : la
+	# musique doit continuer même quand get_tree().paused est vrai.
+	music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(music_player)
 	_apply_saved_settings()
 	load_sounds()
