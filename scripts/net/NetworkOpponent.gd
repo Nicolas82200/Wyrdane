@@ -139,35 +139,70 @@ func _apply(cmd: Dictionary) -> void:
 		NetCommand.ATTACK:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
 			var defender: Minion = battle.net_registry.resolve(cmd.get("defender", 0))
-			if attacker != null and defender != null:
+			# L'attaquant rejoué doit appartenir au camp distant et la cible au
+			# camp local : sans ce contrôle, un pair pourrait désigner un net_id
+			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
+			if attacker != null and defender != null \
+					and not attacker.owner_is_player and defender.owner_is_player:
 				await battle.combat_system.resolve_combat(attacker, defender)
+			else:
+				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			if attacker != null:
+			if attacker != null and not attacker.owner_is_player:
 				await battle.combat_system.perform_hero_attack(attacker)
+			elif attacker != null:
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
+
+# Charge une carte désignée par son resource_path reçu du réseau. Restreint au
+# dossier des ressources de carte et exclut les jetons d'invocation (jamais
+# censés être joués depuis une main) pour empêcher un pair de faire charger un
+# chemin arbitraire du projet.
+const CARDS_RESOURCE_PREFIX := "res://resources/cards/"
+
+func _load_remote_card(path: String) -> CardData:
+	if not path.begins_with(CARDS_RESOURCE_PREFIX) or not path.ends_with(".tres"):
+		push_warning("NetworkOpponent : chemin de carte refusé '%s'" % path)
+		return null
+	var card: CardData = load(path) as CardData
+	if card == null:
+		push_warning("NetworkOpponent : carte introuvable '%s'" % path)
+		return null
+	if card.is_token:
+		push_warning("NetworkOpponent : jeton refusé '%s'" % path)
+		return null
+	return card
 
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
 # Limité aux serviteurs pour l'instant : les sorts distants demandent un
 # EffectManager conscient du propriétaire (brique suivante).
 func _apply_play_card(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
+		return
+	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
+	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
+	if _hand_count <= 0:
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (main distante vide)")
 		return
 	if card.card_type == "Resource":
 		# Carte-ressource : pas de coût, +1 au pool de sa race (voir Battle.play_resource_card).
-		if _hand_count > 0:
-			_hand_count -= 1
-			battle.update_enemy_hand_ui()
+		_hand_count -= 1
+		battle.update_enemy_hand_ui()
 		battle.play_resource_card(card, false)
 		return
+	# Coût réel du camp distant : refuse si le pair n'a pas les ressources
+	# affichées pour cette carte (sinon un client modifié pourrait poser
+	# n'importe quoi gratuitement et faire passer les pools en négatif).
+	if not battle.cost_system.can_afford(card, false):
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (coût non couvert) '%s'" % card.card_name)
+		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-	# Coût réel du camp distant : déduit ses pools (affichage) + suivi "premier de la race joué ce tour"
 	battle.cost_system.pay(card, false)
 	battle.update_enemy_mana_ui()
 	await battle.cost_system.on_card_played(card, false)
@@ -196,9 +231,8 @@ func _apply_play_card(cmd: Dictionary) -> void:
 # est retrouvé par resource_path parmi les rituels adverses en jeu, les victimes
 # par net_id ; l'exécution passe par le même chemin que côté émetteur.
 func _apply_activate_ritual(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : rituel introuvable '%s'" % cmd.get("card", ""))
 		return
 	var victims: Array = []
 	for victim_id in cmd.get("victims", []):
