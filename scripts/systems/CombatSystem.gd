@@ -36,16 +36,30 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# (Aura de Corruption, Idole du Grand Pacte).
 	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
 
+	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
+	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
+	var attacker_had_aegis: bool = attacker.has_keyword(Keyword.Type.AEGIS)
+	var defender_had_aegis: bool = defender.has_keyword(Keyword.Type.AEGIS)
+
 	var a_dmg: int = attacker.attack
 	var d_dmg: int = defender.attack
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	AudioManager.play(AudioManager.HIT)
 
+	if defender_had_aegis and not defender.has_keyword(Keyword.Type.AEGIS):
+		battle.animation_system.play_aegis_break(defender_visual)
+	if attacker_had_aegis and not attacker.has_keyword(Keyword.Type.AEGIS):
+		battle.animation_system.play_aegis_break(attacker_visual)
+
 	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
 	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+		if not defender.is_dead():
+			battle.animation_system.play_deadly_poison(defender_visual)
 		defender.health = 0
 	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and not attacker.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+		if not attacker.is_dead():
+			battle.animation_system.play_deadly_poison(attacker_visual)
 		attacker.health = 0
 
 	# PESTIFÉRÉ : l'attaque inflige Infection en plus des dégâts
@@ -53,16 +67,19 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# de infected gère l'immunité CHAIR MORTE)
 	if attacker.has_undead_keyword(KeywordUndead.Type.PESTIFERE) and dealt_to_defender > 0 and not defender.is_dead():
 		defender.infected = true
+		battle.animation_system.play_infection(defender_visual)
 
 	# CORRUPTION : l'attaque inflige Corruption en plus des dégâts (-1 ATK
 	# permanent, cumulable ; apply_corruption gère l'immunité CHAIR DE SOUFRE)
 	if attacker.has_demon_keyword(KeywordDemon.Type.CORRUPTION) and dealt_to_defender > 0 and not defender.is_dead():
 		defender.apply_corruption(1)
+		battle.animation_system.play_corruption(defender_visual)
 
 	# TERREUR : la cible ne peut pas attaquer lors du prochain tour adverse
 	# (sans effet sur les serviteurs immunisés à la peur)
 	if attacker.has_demon_keyword(KeywordDemon.Type.TERREUR) and not defender.is_dead() and not defender.is_fear_immune():
 		defender.terror_turns = max(defender.terror_turns, 1)
+		battle.animation_system.play_terror(defender_visual)
 
 	if dealt_to_attacker > 0:
 		await battle.effect_manager.notify_damaged(battle, attacker)
@@ -71,10 +88,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 		if defender.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):
 			var counter: int = attacker.take_damage(defender.attack)
 			if counter > 0:
+				battle.animation_system.play_counter_attack(defender_visual, attacker_visual)
 				await battle.effect_manager.notify_damaged(battle, attacker)
-	
-	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
+
+	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and dealt_to_defender > 0:
 		battle.hero_system.get_owner_hero(attacker).heal(dealt_to_defender)
+		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
+		battle.animation_system.play_lifesteal(attacker_visual, hero_panel, dealt_to_defender)
 
 	if defender.is_dead():
 		await battle.effect_manager.trigger_effects(battle, attacker, "OnExecution")
@@ -82,6 +102,8 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 			var excess: int = a_dmg - defender.max_health
 			if excess > 0:
 				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
+				var enemy_hero_panel: Control = battle.get_node("EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel")
+				battle.animation_system.play_ravage_overkill(attacker_visual, enemy_hero_panel)
 		# Contre-Offensive : un Humain qui tue rejoue immédiatement (+1 attaque, le
 		# consume_attack ci-dessous ramène au net d'une relance).
 		if attacker.card_data.race == Race.Type.HUMAN and battle.counter_offensive.get(attacker.owner_is_player, false):
@@ -105,6 +127,9 @@ func perform_hero_attack(attacker: Minion) -> void:
 	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
-	if attacker.has_keyword(Keyword.Type.LIFESTEAL):
+	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:
 		battle.hero_system.get_owner_hero(attacker).heal(attacker.attack)
+		if visual:
+			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
+			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)
 	attacker.consume_attack()

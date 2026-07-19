@@ -110,6 +110,9 @@ func _apply_infection_damage() -> void:
 			var dealt: int = minion.take_damage(1)
 			if dealt > 0:
 				battle.combat_log.infection_tick(minion)
+				var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+				if visual:
+					battle.animation_system.play_infection_tick(visual, dealt)
 				await battle.effect_manager.notify_damaged(battle, minion)
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
