@@ -86,6 +86,7 @@ func _start_backend_sync() -> void:
 		CardLibrary.sync_backend_catalog(func(success: bool):
 			if success:
 				DeckManager.sync_from_backend()
+				CollectionManager.sync_from_backend()
 		)
 	, CONNECT_ONE_SHOT)
 	BackendClient.login_failed.connect(func(reason: String):

@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dd5oc0340dey0"
-path="res://.godot/imported/unrecognizing-altar.jpg-967573a4568c2ec660289257716c728e.ctex"
+path.s3tc="res://.godot/imported/unrecognizing-altar.jpg-967573a4568c2ec660289257716c728e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/abomination/unrecognizing-altar.jpg"
-dest_files=["res://.godot/imported/unrecognizing-altar.jpg-967573a4568c2ec660289257716c728e.ctex"]
+dest_files=["res://.godot/imported/unrecognizing-altar.jpg-967573a4568c2ec660289257716c728e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

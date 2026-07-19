@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://di7v12rs4jcwy"
-path="res://.godot/imported/abyss-herald.jpg-84a483a3a1de4656407a50a40bdc7600.ctex"
+path.s3tc="res://.godot/imported/abyss-herald.jpg-84a483a3a1de4656407a50a40bdc7600.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/abyss-herald.jpg"
-dest_files=["res://.godot/imported/abyss-herald.jpg-84a483a3a1de4656407a50a40bdc7600.ctex"]
+dest_files=["res://.godot/imported/abyss-herald.jpg-84a483a3a1de4656407a50a40bdc7600.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
