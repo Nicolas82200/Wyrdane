@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bench4nt1con0"
-path="res://.godot/imported/enchantment.png-1d55d9e4fb42e4414f3032dc3d056358.ctex"
+path.s3tc="res://.godot/imported/enchantment.png-1d55d9e4fb42e4414f3032dc3d056358.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/icons/enchantment.png"
-dest_files=["res://.godot/imported/enchantment.png-1d55d9e4fb42e4414f3032dc3d056358.ctex"]
+dest_files=["res://.godot/imported/enchantment.png-1d55d9e4fb42e4414f3032dc3d056358.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
