@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://0108y1t8qfnd"
-path="res://.godot/imported/crown-of-the-pact.jpg-b21729b8b44681576063eaf4fb88ded9.ctex"
+path.s3tc="res://.godot/imported/crown-of-the-pact.jpg-b21729b8b44681576063eaf4fb88ded9.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/crown-of-the-pact.jpg"
-dest_files=["res://.godot/imported/crown-of-the-pact.jpg-b21729b8b44681576063eaf4fb88ded9.ctex"]
+dest_files=["res://.godot/imported/crown-of-the-pact.jpg-b21729b8b44681576063eaf4fb88ded9.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

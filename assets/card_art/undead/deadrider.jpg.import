@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://vsw7vyo40ct"
-path="res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.ctex"
+path.s3tc="res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/deadrider.jpg"
-dest_files=["res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.ctex"]
+dest_files=["res://.godot/imported/deadrider.jpg-c49e30b1f1cf060c184233a0088c8a7e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

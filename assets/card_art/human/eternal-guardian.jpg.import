@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cqm8yt1ac8dfm"
-path="res://.godot/imported/eternal-guardian.jpg-83d4dd5ea2f838e5caa0a6727ffc8277.ctex"
+path.s3tc="res://.godot/imported/eternal-guardian.jpg-83d4dd5ea2f838e5caa0a6727ffc8277.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/eternal-guardian.jpg"
-dest_files=["res://.godot/imported/eternal-guardian.jpg-83d4dd5ea2f838e5caa0a6727ffc8277.ctex"]
+dest_files=["res://.godot/imported/eternal-guardian.jpg-83d4dd5ea2f838e5caa0a6727ffc8277.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

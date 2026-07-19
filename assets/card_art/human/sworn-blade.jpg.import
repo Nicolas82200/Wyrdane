@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d38eosiidryou"
-path="res://.godot/imported/sworn-blade.jpg-158c2b50b75c022ef16fd9a9f59fc48d.ctex"
+path.s3tc="res://.godot/imported/sworn-blade.jpg-158c2b50b75c022ef16fd9a9f59fc48d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/sworn-blade.jpg"
-dest_files=["res://.godot/imported/sworn-blade.jpg-158c2b50b75c022ef16fd9a9f59fc48d.ctex"]
+dest_files=["res://.godot/imported/sworn-blade.jpg-158c2b50b75c022ef16fd9a9f59fc48d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

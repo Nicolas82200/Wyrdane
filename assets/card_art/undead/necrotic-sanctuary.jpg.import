@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cjq5ihi78chwl"
-path="res://.godot/imported/necrotic-sanctuary.jpg-3a544d085c211381fa35f8a334721ecb.ctex"
+path.s3tc="res://.godot/imported/necrotic-sanctuary.jpg-3a544d085c211381fa35f8a334721ecb.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/necrotic-sanctuary.jpg"
-dest_files=["res://.godot/imported/necrotic-sanctuary.jpg-3a544d085c211381fa35f8a334721ecb.ctex"]
+dest_files=["res://.godot/imported/necrotic-sanctuary.jpg-3a544d085c211381fa35f8a334721ecb.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

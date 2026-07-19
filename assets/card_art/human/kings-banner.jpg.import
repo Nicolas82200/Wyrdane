@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dh58q2pc1ysu7"
-path="res://.godot/imported/kings-banner.jpg-1ed026823b74e702e03e38747822a382.ctex"
+path.s3tc="res://.godot/imported/kings-banner.jpg-1ed026823b74e702e03e38747822a382.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/kings-banner.jpg"
-dest_files=["res://.godot/imported/kings-banner.jpg-1ed026823b74e702e03e38747822a382.ctex"]
+dest_files=["res://.godot/imported/kings-banner.jpg-1ed026823b74e702e03e38747822a382.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
