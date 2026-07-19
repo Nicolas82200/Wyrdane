@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ca0lm1mwefv40"
-path="res://.godot/imported/famished-ghoul.jpg-9e147242449f5a4305ccf34c8a1f9985.ctex"
+path.s3tc="res://.godot/imported/famished-ghoul.jpg-9e147242449f5a4305ccf34c8a1f9985.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/famished-ghoul.jpg"
-dest_files=["res://.godot/imported/famished-ghoul.jpg-9e147242449f5a4305ccf34c8a1f9985.ctex"]
+dest_files=["res://.godot/imported/famished-ghoul.jpg-9e147242449f5a4305ccf34c8a1f9985.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

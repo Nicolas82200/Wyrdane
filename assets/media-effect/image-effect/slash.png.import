@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d3orhpvww15hd"
-path="res://.godot/imported/slash.png-b9d6395ad8be2d926b1aa68e1b9ae4a5.ctex"
+path.s3tc="res://.godot/imported/slash.png-b9d6395ad8be2d926b1aa68e1b9ae4a5.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/media-effect/image-effect/slash.png"
-dest_files=["res://.godot/imported/slash.png-b9d6395ad8be2d926b1aa68e1b9ae4a5.ctex"]
+dest_files=["res://.godot/imported/slash.png-b9d6395ad8be2d926b1aa68e1b9ae4a5.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

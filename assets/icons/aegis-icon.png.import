@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://osyu312ghouk"
-path="res://.godot/imported/aegis-icon.png-42b39fc361caaa0abd4ebf668f8a374f.ctex"
+path.s3tc="res://.godot/imported/aegis-icon.png-42b39fc361caaa0abd4ebf668f8a374f.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/icons/aegis-icon.png"
-dest_files=["res://.godot/imported/aegis-icon.png-42b39fc361caaa0abd4ebf668f8a374f.ctex"]
+dest_files=["res://.godot/imported/aegis-icon.png-42b39fc361caaa0abd4ebf668f8a374f.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://qxyjl263givg"
-path="res://.godot/imported/bloated-giant.jpg-83efe265c5198df8187b13708f2641ee.ctex"
+path.s3tc="res://.godot/imported/bloated-giant.jpg-83efe265c5198df8187b13708f2641ee.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/bloated-giant.jpg"
-dest_files=["res://.godot/imported/bloated-giant.jpg-83efe265c5198df8187b13708f2641ee.ctex"]
+dest_files=["res://.godot/imported/bloated-giant.jpg-83efe265c5198df8187b13708f2641ee.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

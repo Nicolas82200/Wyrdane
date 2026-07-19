@@ -595,6 +595,7 @@ mouse_filter = 2
 alignment = 1
 
 [node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -611,6 +612,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -629,6 +631,7 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -645,6 +648,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -807,9 +811,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -860.0
-offset_top = 326.25
+offset_top = 142.5
 offset_right = -710.0
-offset_bottom = 551.25
+offset_bottom = 367.5
 pivot_offset = Vector2(75, 112.5)
 rotation_degrees = 90.0
 scale = Vector2(1.05, 1.05)
@@ -841,9 +845,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 710.0
-offset_top = -551.25
+offset_top = -367.5
 offset_right = 860.0
-offset_bottom = -326.25
+offset_bottom = -142.5
 pivot_offset = Vector2(75, 112.5)
 rotation_degrees = 90.0
 scale = Vector2(1.05, 1.05)
@@ -879,9 +883,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -860.0
-offset_top = 148.75
+offset_top = -27.5
 offset_right = -710.0
-offset_bottom = 373.75
+offset_bottom = 197.5
 pivot_offset = Vector2(75, 112.5)
 rotation_degrees = 90.0
 scale = Vector2(1.05, 1.05)
@@ -922,9 +926,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 710.0
-offset_top = -373.75
+offset_top = -197.5
 offset_right = 860.0
-offset_bottom = -148.75
+offset_bottom = 27.5
 pivot_offset = Vector2(75, 112.5)
 rotation_degrees = 90.0
 scale = Vector2(1.05, 1.05)

@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://d4g4nmmij1ch4"
-path="res://.godot/imported/spear-wall.jpg-7b12abff59ce02b4cfef2a75bbd8ac57.ctex"
+path.s3tc="res://.godot/imported/spear-wall.jpg-7b12abff59ce02b4cfef2a75bbd8ac57.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/spear-wall.jpg"
-dest_files=["res://.godot/imported/spear-wall.jpg-7b12abff59ce02b4cfef2a75bbd8ac57.ctex"]
+dest_files=["res://.godot/imported/spear-wall.jpg-7b12abff59ce02b4cfef2a75bbd8ac57.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

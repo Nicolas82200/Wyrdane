@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://mjw74diol1xu"
-path="res://.godot/imported/cadaverous-larva.jpg-78d3b5b3b406a0946909f65a0c3aa5dc.ctex"
+path.s3tc="res://.godot/imported/cadaverous-larva.jpg-78d3b5b3b406a0946909f65a0c3aa5dc.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/cadaverous-larva.jpg"
-dest_files=["res://.godot/imported/cadaverous-larva.jpg-78d3b5b3b406a0946909f65a0c3aa5dc.ctex"]
+dest_files=["res://.godot/imported/cadaverous-larva.jpg-78d3b5b3b406a0946909f65a0c3aa5dc.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

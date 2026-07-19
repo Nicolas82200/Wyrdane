@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c5g7lhq4y34q8"
-path="res://.godot/imported/putrefied-ravager.jpg-eed2755b3c2e1762a7de61ee918c9600.ctex"
+path.s3tc="res://.godot/imported/putrefied-ravager.jpg-eed2755b3c2e1762a7de61ee918c9600.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/putrefied-ravager.jpg"
-dest_files=["res://.godot/imported/putrefied-ravager.jpg-eed2755b3c2e1762a7de61ee918c9600.ctex"]
+dest_files=["res://.godot/imported/putrefied-ravager.jpg-eed2755b3c2e1762a7de61ee918c9600.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
