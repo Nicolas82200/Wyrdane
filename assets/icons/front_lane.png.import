@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dlp41jts34p28"
-path="res://.godot/imported/front_lane.png-54f4be872688618b023e67d96e0ecb48.ctex"
+path.s3tc="res://.godot/imported/front_lane.png-54f4be872688618b023e67d96e0ecb48.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/icons/front_lane.png"
-dest_files=["res://.godot/imported/front_lane.png-54f4be872688618b023e67d96e0ecb48.ctex"]
+dest_files=["res://.godot/imported/front_lane.png-54f4be872688618b023e67d96e0ecb48.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
