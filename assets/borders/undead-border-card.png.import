@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cstppl282uxc6"
-path="res://.godot/imported/undead-border-card.png-7c3d091d8d793bfa17f29d6d9f0d59a6.ctex"
+path.s3tc="res://.godot/imported/undead-border-card.png-7c3d091d8d793bfa17f29d6d9f0d59a6.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/borders/undead-border-card.png"
-dest_files=["res://.godot/imported/undead-border-card.png-7c3d091d8d793bfa17f29d6d9f0d59a6.ctex"]
+dest_files=["res://.godot/imported/undead-border-card.png-7c3d091d8d793bfa17f29d6d9f0d59a6.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqg2h4i5tk6pl"
-path="res://.godot/imported/ritual-of-the-crimson-eclipse.jpg-3e1e33472d471a0515135dab86134fbd.ctex"
+path.s3tc="res://.godot/imported/ritual-of-the-crimson-eclipse.jpg-3e1e33472d471a0515135dab86134fbd.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/ritual-of-the-crimson-eclipse.jpg"
-dest_files=["res://.godot/imported/ritual-of-the-crimson-eclipse.jpg-3e1e33472d471a0515135dab86134fbd.ctex"]
+dest_files=["res://.godot/imported/ritual-of-the-crimson-eclipse.jpg-3e1e33472d471a0515135dab86134fbd.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

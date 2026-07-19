@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgs48860bf44"
-path="res://.godot/imported/whisperfiend.jpg-852528830053d718957b2c7626fb109d.ctex"
+path.s3tc="res://.godot/imported/whisperfiend.jpg-852528830053d718957b2c7626fb109d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/whisperfiend.jpg"
-dest_files=["res://.godot/imported/whisperfiend.jpg-852528830053d718957b2c7626fb109d.ctex"]
+dest_files=["res://.godot/imported/whisperfiend.jpg-852528830053d718957b2c7626fb109d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

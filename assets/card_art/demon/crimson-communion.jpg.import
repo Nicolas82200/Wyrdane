@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bgwi6t2n6he87"
-path="res://.godot/imported/crimson-communion.jpg-74e2370eb04d0128e90627e4dd81ab05.ctex"
+path.s3tc="res://.godot/imported/crimson-communion.jpg-74e2370eb04d0128e90627e4dd81ab05.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/crimson-communion.jpg"
-dest_files=["res://.godot/imported/crimson-communion.jpg-74e2370eb04d0128e90627e4dd81ab05.ctex"]
+dest_files=["res://.godot/imported/crimson-communion.jpg-74e2370eb04d0128e90627e4dd81ab05.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

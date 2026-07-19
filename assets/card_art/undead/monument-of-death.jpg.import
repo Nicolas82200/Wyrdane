@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ubxc8ovhnifn"
-path="res://.godot/imported/monument-of-death.jpg-bc2cc629175c677cc3d88ff102d2cf1e.ctex"
+path.s3tc="res://.godot/imported/monument-of-death.jpg-bc2cc629175c677cc3d88ff102d2cf1e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/undead/monument-of-death.jpg"
-dest_files=["res://.godot/imported/monument-of-death.jpg-bc2cc629175c677cc3d88ff102d2cf1e.ctex"]
+dest_files=["res://.godot/imported/monument-of-death.jpg-bc2cc629175c677cc3d88ff102d2cf1e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

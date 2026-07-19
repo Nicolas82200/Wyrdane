@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cicbhnami3qb"
-path="res://.godot/imported/crimson-demon-king.jpg-d676c4931a73c0f6174660bcd8709034.ctex"
+path.s3tc="res://.godot/imported/crimson-demon-king.jpg-d676c4931a73c0f6174660bcd8709034.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/crimson-demon-king.jpg"
-dest_files=["res://.godot/imported/crimson-demon-king.jpg-d676c4931a73c0f6174660bcd8709034.ctex"]
+dest_files=["res://.godot/imported/crimson-demon-king.jpg-d676c4931a73c0f6174660bcd8709034.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

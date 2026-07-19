@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://r735e24rixuf"
-path="res://.godot/imported/abyssal-stalker.jpg-e17b709808c278b996dfc48bd33adbaf.ctex"
+path.s3tc="res://.godot/imported/abyssal-stalker.jpg-e17b709808c278b996dfc48bd33adbaf.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/demon/abyssal-stalker.jpg"
-dest_files=["res://.godot/imported/abyssal-stalker.jpg-e17b709808c278b996dfc48bd33adbaf.ctex"]
+dest_files=["res://.godot/imported/abyssal-stalker.jpg-e17b709808c278b996dfc48bd33adbaf.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
