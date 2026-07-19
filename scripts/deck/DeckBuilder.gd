@@ -236,7 +236,7 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	card_preview.show()
 	_position_hover_tooltips()
 	if _is_card_maxed(card_data):
-		_show_max_copies_tooltip(wrapper)
+		_show_max_copies_tooltip(wrapper, card_data)
 	await _show_keyword_tooltips(card_data, wrapper)
 
 func _on_card_wrapper_exited(card_visual: Card) -> void:
@@ -524,7 +524,7 @@ func _on_add_card(card_data: CardData) -> void:
 	_refresh_deck_list()
 	# Si on vient d'atteindre le max de copies, feedback immédiat sous le curseur
 	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
-		_show_max_copies_tooltip(_hovered_wrapper)
+		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -637,27 +637,36 @@ func _count_in_deck(path: String) -> int:
 	return count
 
 func _is_card_maxed(card_data: CardData) -> bool:
+	var owned := CollectionManager.owned_quantity(card_data)
 	if card_data.card_type == "Resource":
-		return false
-	return _count_in_deck(card_data.resource_path) >= MAX_COPIES
+		return _count_in_deck(card_data.resource_path) >= owned
+	return _count_in_deck(card_data.resource_path) >= min(MAX_COPIES, owned)
 
-## Grise les cartes de la grille dont le deck contient déjà le max de copies.
-## Les cartes-ressource n'ont pas de plafond (un deck en a besoin de nombreux
-## exemplaires — voir README « Système de Ressources par Race »).
+## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
+## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
+## ce deck — sert à choisir le bon message de tooltip, voir _show_max_copies_tooltip.
+func _is_card_locked(card_data: CardData) -> bool:
+	return CollectionManager.owned_quantity(card_data) <= 0
+
+## Grise les cartes de la grille dont le deck contient déjà le max de copies
+## possédées (voir _is_card_maxed — inclut désormais les cartes-ressource,
+## bornées par la quantité réellement débloquée plutôt que par MAX_COPIES).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
 		if not is_instance_valid(visual):
 			continue
 		var card_data: CardData = visual.data
-		var maxed: bool = card_data != null and card_data.card_type != "Resource" \
-			and _count_in_deck(path) >= MAX_COPIES
+		var maxed: bool = card_data != null and _is_card_maxed(card_data)
 		visual.modulate = MAXED_TINT if maxed else Color.WHITE
 
-## Tooltip centré sur la carte grisée : max de copies atteint.
-func _show_max_copies_tooltip(anchor: Control) -> void:
+## Tooltip centré sur la carte grisée : max de copies possédées atteint, ou
+## carte pas encore débloquée du tout (message distinct, voir _is_card_locked).
+func _show_max_copies_tooltip(anchor: Control, card_data: CardData = null) -> void:
 	_clear_max_tooltip()
-	var panel := TooltipData.make_race_tooltip("deck.max_copies_reached")
+	var text_key := "deck.card_locked" if (card_data != null and _is_card_locked(card_data)) \
+		else "deck.max_copies_reached"
+	var panel := TooltipData.make_race_tooltip(text_key)
 	panel.position = Vector2(-9999, -9999)
 	_overlay_layer.add_child(panel)
 	_max_tooltip = panel
