@@ -2,6 +2,7 @@
 MENU_SUBTITLE,"Un jeu de cartes stratégique","A strategic card game"
 MENU_PLAY,"Jouer","Play"
 MENU_DECKS,"Mes Decks","My Decks"
+MENU_REPLAY_TUTORIAL_DEBUG,"Refaire le tutoriel (debug)","Replay tutorial (debug)"
 MENU_MULTIPLAYER,"Multijoueur","Multiplayer"
 NET_BACK,"Retour","Back"
 NET_STEAM_HOST,"Héberger (Steam)","Host (Steam)"
