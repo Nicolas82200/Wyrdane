@@ -35,6 +35,36 @@ func test_necrophage_permanent_buff_survives_even_if_bearer_dies() -> void:
 	assert_false(result.player_won)
 	assert_gt(necro.base_attack, 1, "NÉCROPHAGE doit avoir gagné un buff permanent quand Fodder meurt")
 
+func test_deathrattle_summon_minion_does_not_crash() -> void:
+	var sim := SimulatedBattle.new()
+	var token_data := CardData.new()
+	token_data.card_name = "Token"
+	token_data.attack = 1
+	token_data.health = 1
+	token_data.cost = 1
+	token_data.is_token = true
+
+	var summon_effect := CardEffect.new()
+	summon_effect.effect_id = "SummonMinion"
+	summon_effect.summon_card = token_data
+	summon_effect.summon_row = "Front"
+
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "DEATHRATTLE"
+
+	var dying_data := CardData.new()
+	dying_data.card_name = "Dying"
+	dying_data.attack = 1
+	dying_data.health = 1
+	dying_data.cost = 1
+	dying_data.trigger_types = [trigger]
+	dying_data.effects = [summon_effect]
+
+	var dying := Minion.new(dying_data, true, "Front")
+	var enemy := _make_minion("Enemy", 5, 5, 1)
+	var result: SimulatedBattle.CombatResult = await sim.run_combat([dying], [], [enemy], [])
+	assert_not_null(result, "un Dernier Souffle SummonMinion ne doit pas planter le combat simulé")
+
 func test_front_row_must_be_empty_before_back_row_is_attackable() -> void:
 	var sim := SimulatedBattle.new()
 	var attacker := _make_minion("Attacker", 3, 10, 1)
