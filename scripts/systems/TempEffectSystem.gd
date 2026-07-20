@@ -94,6 +94,20 @@ func add_temp_silence(minion: Minion, duration: String) -> void:
 		"duration":        duration,
 	})
 
+# ─── Lecture (affichage) ───────────────────────────────────────────────────────
+
+# Somme des deltas de stats temporaires actuellement actifs sur ce serviteur.
+# Utilisé par BoardMinion pour distinguer un debuff temporaire (orange) d'un
+# debuff permanent (rouge) alors que les deux modifient base_attack/base_max_health.
+func get_temp_stat_delta(minion: Minion) -> Vector2i:
+	var attack_delta := 0
+	var health_delta := 0
+	for entry in _entries:
+		if entry["kind"] == "stats" and entry["minion"] == minion:
+			attack_delta += entry["attack_delta"]
+			health_delta += entry["health_delta"]
+	return Vector2i(attack_delta, health_delta)
+
 # ─── Expiration ───────────────────────────────────────────────────────────────
 
 func expire_end_of_player_turn() -> void:
