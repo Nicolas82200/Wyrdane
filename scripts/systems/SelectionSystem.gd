@@ -110,6 +110,8 @@ func _resolve_multi_attack_hero() -> void:
 	var attackers := _sort_attackers_left_to_right(selected_attackers)
 	clear_multi_selection()
 	for attacker in attackers:
+		if battle.game_over:
+			break
 		if attacker == null or attacker.is_dead() or not attacker.can_attack():
 			continue
 		if not battle._can_attack_hero(attacker):
