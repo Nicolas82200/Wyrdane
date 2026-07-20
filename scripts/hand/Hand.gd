@@ -27,6 +27,7 @@ const HOVER_LIFT       := 40.0
 const HOVER_PUSH_MAX   := 28.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
 const HOVER_PUSH_DECAY := 0.55
+const HAND_START_X     := 80.0
 
 var _base_positions:    Dictionary     = {}
 var _hovered_card:      Card           = null
@@ -59,8 +60,29 @@ func _process(_delta: float) -> void:
 
 func _is_mouse_in_hand_zone() -> bool:
 	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
-	var mouse_y: float = get_viewport().get_mouse_position().y
-	return mouse_y >= size.y - zone_height
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	if mouse_pos.y < size.y - zone_height:
+		return false
+	var x_range := _hand_cards_x_range()
+	if x_range.x > x_range.y:
+		return false
+	return mouse_pos.x >= x_range.x and mouse_pos.x <= x_range.y
+
+# Étendue horizontale (avec marge) occupée par les cartes en main, utilisée
+# pour restreindre la zone de survol qui déploie la main : sans ça, une bande
+# couvrant toute la largeur de l'écran se déclenche même en visant un bouton
+# éloigné (ex. Fin du tour) situé à la même hauteur.
+const HAND_ZONE_X_PADDING := 60.0
+
+func _hand_cards_x_range() -> Vector2:
+	var cards := container.get_children()
+	if cards.is_empty():
+		return Vector2(1.0, -1.0)
+	var layout := _compute_layout(cards)
+	var last_card: Control = cards[cards.size() - 1]
+	var min_x: float = HAND_START_X - HAND_ZONE_X_PADDING
+	var max_x: float = HAND_START_X + (cards.size() - 1) * layout["spacing"] + last_card.size.x * layout["scale"].x + HAND_ZONE_X_PADDING
+	return Vector2(min_x, max_x)
 
 # Zone basse de l'écran considérée comme « dans la main » : lâcher une carte
 # éphémère/rituel/enchantement au-delà de cette zone suffit à la jouer
@@ -329,7 +351,7 @@ func _card_position(index: int, layout: Dictionary, card: Control, norm: float, 
 	var y: float = layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
 	if not _hand_expanded:
 		y += card.size.y * layout["scale"].y * (1.0 - COLLAPSED_PEEK_RATIO)
-	var x: float = 80.0 + index * layout["spacing"]
+	var x: float = HAND_START_X + index * layout["spacing"]
 	if hovered_index != -1:
 		if index == hovered_index:
 			y -= HOVER_LIFT
