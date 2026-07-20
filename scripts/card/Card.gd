@@ -9,7 +9,6 @@ signal mulligan_clicked
 
 const DRAG_THRESHOLD      := 350.0
 const HAND_RETURN_DISTANCE := 50.0
-const BOARD_MINION_SCENE  = preload("res://scenes/minion/BoardMinion.tscn")
 const BOARD_MINION_SIZE   := Vector2(100, 150)
 const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
