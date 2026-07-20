@@ -6,6 +6,9 @@ const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 const READ_HOLD = 0.4
 # Temps où la popup reste affichée pendant/après la résolution de l'effet
 const DISPLAY_DURATION = 0.6
+# Temps où la popup d'une carte-ressource reste affichée avant de se désintégrer
+# vers le pool de mana (voir show_resource_popup / _absorb_resource_popup)
+const RESOURCE_HOLD = 0.5
 const LEFT_MARGIN = 24.0
 # File d'attente façon MTG Arena : une seule popup « se joue » à la fois à
 # l'emplacement principal ; les suivantes patientent empilées au-dessus,
@@ -98,6 +101,35 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 	while not entry["shown"]:
 		await battle.get_tree().process_frame
 
+# Popup d'une carte-ressource jouée : même emplacement/mise en scène que
+# show_card_popup (glisse depuis la gauche, temps de lecture des effets), mais
+# se termine par une désintégration vers le pool de mana de sa race au lieu
+# d'un fondu — voir _absorb_resource_popup.
+func show_resource_popup(card_data: CardData) -> void:
+	if card_data == null:
+		return
+	var card: Card = CARD_SCENE.instantiate()
+	_popup_layer.add_child(card)
+	card.set_non_interactive()
+	card.set_data(card_data)
+	await card.get_tree().process_frame
+	card.pivot_offset = card.size / 2.0
+	if _active_card != null and is_instance_valid(_active_card):
+		_popup_layer.move_child(card, _active_card.get_index())
+
+	card.modulate.a = 0.0
+	card.position = _waiting_slot_position(0, card.size)
+	card.position.x = -card.size.x
+	card.scale = Vector2(STACK_SCALE, STACK_SCALE)
+
+	var entry := {"card": card, "shown": false, "kind": "resource", "card_data": card_data}
+	_pending.push_front(entry)
+	_reflow_pending()
+	if not _popup_active:
+		_process_popup_queue()
+	while not entry["shown"]:
+		await battle.get_tree().process_frame
+
 # Joue les popups une par une ; les arrivées pendant la résolution sont
 # insérées en tête de _pending et seront donc jouées avant les plus anciennes
 func _process_popup_queue() -> void:
@@ -142,9 +174,11 @@ func _play_popup(entry: Dictionary) -> void:
 	if not is_instance_valid(card):
 		entry["shown"] = true
 		return
+	var is_resource: bool = entry.get("kind", "") == "resource"
 	_active_card = card
-	# Cette carte devient l'origine des courbes d'effet tracées vers les cibles
-	_effect_card = card
+	if not is_resource:
+		# Cette carte devient l'origine des courbes d'effet tracées vers les cibles
+		_effect_card = card
 	# Dessinée au-dessus des popups en attente
 	_popup_layer.move_child(card, _popup_layer.get_child_count() - 1)
 	_kill_popup_tween(card)
@@ -162,6 +196,12 @@ func _play_popup(entry: Dictionary) -> void:
 	await battle.get_tree().create_timer(READ_HOLD).timeout
 	entry["shown"] = true
 
+	if is_resource:
+		await battle.get_tree().create_timer(RESOURCE_HOLD).timeout
+		_active_card = null
+		_absorb_resource_popup(card, entry["card_data"])
+		return
+
 	await battle.get_tree().create_timer(DISPLAY_DURATION).timeout
 
 	if _effect_card == card:
@@ -170,6 +210,21 @@ func _play_popup(entry: Dictionary) -> void:
 	_active_card = null
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card)
+
+# Remplace le fondu habituel par la désintégration en fragments de
+# AnimationSystem, depuis la position de la popup vers le pool de mana de la
+# race de la carte — la même animation que Card.gd utilisait auparavant depuis
+# la main, désormais déclenchée depuis l'emplacement de la popup.
+func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
+	var color: Color = Color.WHITE
+	var target: Vector2 = card.global_position + card.size * 0.5
+	if battle.get("mana_display"):
+		color  = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
+		target = battle.mana_display.get_race_anchor_global_position(card_data.race)
+	if battle.get("animation_system"):
+		battle.animation_system.play_resource_absorb(card, target, color)
+	else:
+		card.queue_free()
 
 func _fade_out_popup(card: Card) -> void:
 	_kill_popup_tween(card)
