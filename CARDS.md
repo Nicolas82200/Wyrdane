@@ -831,10 +831,12 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | A77 | Amas Informe (jeton) | ⚔️ | — | 1 | 2 | MUTATION. (jeton, invoqué par : Ce-Qui-A-Cessé-de-S'arrêter, Un-Devenu-Plusieurs, Nid Débordant, Semeur de Nœuds). Distinct d'« Amas Informe Reformé »/« Amas Informe Mutant » (jetons dédiés de Vase Brisé/Accord de la Chair Neuve). | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
+| A78 | Amas Informe Mutant (jeton) | ⚔️ | — | 2 | 2 | MUTATION. (jeton, invoqué par : Accord de la Chair Neuve). | *L'offrande revient sous une forme différente.* |
+| A79 | Amas Informe Reformé (jeton) | ⚔️ | — | 2 | 2 | (jeton, invoqué par : Vase Brisé, Encore Plein). | *Il se réarrange, tout simplement.* |
 
 ## ✅ Points d'intégration tranchés (Abomination)
 
-Le support moteur est en place (voir « Mécaniques Abomination » dans `README.md`) ; les 75 ressources `.tres` des cartes (+ 2 jetons + la carte-ressource) sont créées dans `resources/cards/abomination/`.
+Le support moteur est en place (voir « Mécaniques Abomination » dans `README.md`) ; les 75 ressources `.tres` des cartes (+ 3 jetons + la carte-ressource) sont créées dans `resources/cards/abomination/`.
 
 1. **`MUTATION`** : jet pondéré (40/40/20) centralisé dans `EffectManager.roll_mutation`, déclenché automatiquement par `EffectManager.notify_damaged` (survie à une Blessure). `Minion.mutation_stacks` / `Minion.mutations` gardent l'historique pour l'affichage. Effets permanents et cumulables, appliqués directement sur `base_attack`/`base_max_health`.
 2. **`FUSION`** : le mot-clé est défini et affiché (tooltip), mais **aucune UI d'activation n'a été câblée** — contrairement aux rituels à `sacrifice_count`, il n'existe pas encore d'« capacité activable » pour un mot-clé de serviteur en jeu. Les cartes qui portent uniquement FUSION (sans autre texte) sont donc, pour l'instant, cosmétiques. À trancher dans une itération suivante : soit ajouter une UI générique d'activation de mot-clé, soit retirer FUSION du texte tant qu'elle n'est pas jouable.
