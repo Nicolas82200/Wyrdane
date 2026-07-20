@@ -93,8 +93,8 @@ func take_turn() -> void:
 	await battle.trigger_system.fire("OnAwaken", null, false)
 	for minion in battle.player_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
-	await _play_cards_phase()
-	await _attack_phase()
+	var played_cards := await _play_cards_phase()
+	await _attack_phase(played_cards)
 	battle.set_enemy_turn(false)
 
 # Miroir de TurnSystem._begin_player_turn/_finish_turn_start : recharge les
@@ -109,13 +109,13 @@ func _start_of_turn_phase() -> void:
 	battle.update_enemy_mana_ui()
 
 # Pause AVANT chaque action sauf la première : une action isolée reste fluide
-func _play_cards_phase() -> void:
+func _play_cards_phase() -> bool:
 	_maybe_play_resource_card()
 	var played := false
 	while not battle.game_over:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
-			return
+			return played
 		if played:
 			await battle.pace_actions()
 		hand.erase(card)
@@ -128,16 +128,17 @@ func _play_cards_phase() -> void:
 		else:
 			await _cast_spell(card)
 		played = true
+	return played
 
-func _attack_phase() -> void:
-	var attacked := false
+func _attack_phase(already_acted: bool) -> void:
+	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not _can_attack_player_hero(attacker):
 				break
 			if attacked:
-				await battle.pace_actions(battle.ATTACK_PACE)
+				await battle.pace_actions()
 			if target != null:
 				await battle.combat_system.resolve_combat(attacker, target)
 			else:
