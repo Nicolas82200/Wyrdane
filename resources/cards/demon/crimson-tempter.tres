@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Séducteur Écarlate"
-description = "Ralliement : la cible perd 1 ATK de façon permanente (Corruption)."
+description = "Attaque : la cible perd 1 ATK de façon permanente (Corruption)."
 flavour_text = "Il ne promet rien. Il se contente de prendre, doucement."
 texture = ExtResource("3_texture")
 cost = 3

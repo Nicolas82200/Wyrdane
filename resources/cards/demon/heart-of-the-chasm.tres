@@ -29,7 +29,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cœur du Gouffre"
-description = "Présence : au début de ton tour, ton héros perd 1 HP ; tous tes serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour."
+description = "Début de tour : ton héros perd 1 HP ; tous tes serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour."
 flavour_text = "Il bat au rythme de ce que tu es prêt à sacrifier chaque matin."
 texture = ExtResource("3_texture")
 cost = 5
