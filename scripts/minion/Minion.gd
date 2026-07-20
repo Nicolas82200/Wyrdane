@@ -68,6 +68,12 @@ var sacrificed: bool = false
 var extra_attack_used_this_turn: bool = false
 var buffs: Array = []
 
+# ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
+# Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).
+var star_level: int = 1
+# Verrouillée en boutique : ne sera pas re-proposée au reroll suivant.
+var locked: bool = false
+
 func _init(data: CardData, is_player: bool = true, row: String = "Front") -> void:
 	owner_is_player = is_player
 	card_data = data

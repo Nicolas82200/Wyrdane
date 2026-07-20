@@ -3,9 +3,11 @@ extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
+const ARENA_SCENE := "res://scenes/arena/ArenaBattle.tscn"
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
 @onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
+@onready var arena_button:    Button = $NavPanel/NavMargin/VBoxContainer/ArenaButton
 @onready var settings_button: Button = $NavPanel/NavMargin/VBoxContainer/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/VBoxContainer/CreditsButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/VBoxContainer/QuitButton
@@ -32,6 +34,7 @@ func _ready() -> void:
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
 	multiplayer_button.pressed.connect(_on_multiplayer)
+	arena_button.pressed.connect(_on_arena)
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
@@ -168,6 +171,10 @@ func _on_multiplayer() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	get_tree().change_scene_to_file(NET_LOBBY_SCENE)
 
+func _on_arena() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	get_tree().change_scene_to_file(ARENA_SCENE)
+
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
 	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
@@ -184,6 +191,7 @@ func _retranslate() -> void:
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	multiplayer_button.text = SettingsManager.t("MENU_MULTIPLAYER")
+	arena_button.text = SettingsManager.t("MENU_ARENA")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")

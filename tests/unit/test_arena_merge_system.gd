@@ -1,0 +1,66 @@
+extends GutTest
+
+func _make_card(name: String, cost: int, path: String, atk: int = 2, hp: int = 2) -> CardData:
+	var data := CardData.new()
+	data.card_name = name
+	data.cost = cost
+	data.rarity = "Common"
+	data.card_type = "Minion"
+	data.resource_path = path
+	data.attack = atk
+	data.health = hp
+	return data
+
+func test_three_identical_copies_merge_into_two_star() -> void:
+	var card := _make_card("Grunt", 1, "res://fake/merge_grunt.tres", 2, 2)
+	var player := ArenaPlayerState.new("Player")
+	for i in 3:
+		player.hand.append(Minion.new(card, true, "Front"))
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	assert_eq(player.hand.size(), 1, "les 3 copies doivent être remplacées par 1 seule carte 2★")
+	var merged: Minion = player.hand[0]
+	assert_eq(merged.star_level, 2)
+	assert_eq(merged.base_attack, 6, "stats additionnées (2+2+2)")
+	assert_eq(merged.base_max_health, 6)
+
+func test_merge_sums_permanent_buffs_already_acquired() -> void:
+	var card := _make_card("Grunt", 1, "res://fake/merge_buffed.tres", 2, 2)
+	var player := ArenaPlayerState.new("Player")
+	var buffed := Minion.new(card, true, "Front")
+	buffed.base_attack += 3  # buff permanent type NÉCROPHAGE déjà acquis
+	buffed.base_max_health += 3
+	player.hand.append(buffed)
+	player.hand.append(Minion.new(card, true, "Front"))
+	player.hand.append(Minion.new(card, true, "Front"))
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	var merged: Minion = player.hand[0]
+	assert_eq(merged.base_attack, 2 + 2 + 5, "le buff permanent déjà acquis doit être conservé dans la somme")
+
+func test_merge_frees_board_slot_when_source_was_placed() -> void:
+	var card := _make_card("Grunt", 1, "res://fake/merge_board.tres")
+	var player := ArenaPlayerState.new("Player")
+	var on_board := Minion.new(card, true, "Front")
+	player.hand.append(on_board)
+	player.place_on_board(on_board, true)
+	player.hand.append(Minion.new(card, true, "Front"))
+	player.hand.append(Minion.new(card, true, "Front"))
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	assert_true(player.board_front.is_empty(), "la case du plateau occupée par une source fusionnée doit être libérée")
+	assert_eq(player.hand.size(), 1, "le résultat de la fusion va toujours en main")
+
+func test_merge_respects_hand_suspension_when_full() -> void:
+	var merge_card := _make_card("Grunt", 1, "res://fake/merge_over.tres")
+	var player := ArenaPlayerState.new("Player")
+	# Chaque "filler" a un chemin distinct pour ne pas déclencher lui-même
+	# une fusion (seules les 3 copies de merge_card doivent fusionner ici).
+	for i in ArenaConstants.HAND_MAX:
+		player.hand.append(Minion.new(_make_card("Filler%d" % i, 1, "res://fake/merge_filler_%d.tres" % i)))
+	player.hand.append(Minion.new(merge_card, true, "Front"))
+	player.hand.append(Minion.new(merge_card, true, "Front"))
+	player.hand.append(Minion.new(merge_card, true, "Front"))
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	assert_true(player.suspended.size() >= 1, "main pleine -> le résultat de fusion doit être mis en suspens")
