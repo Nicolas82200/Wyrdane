@@ -80,6 +80,7 @@ func _is_mouse_in_hand_zone() -> bool:
 const HAND_ZONE_X_PADDING := 60.0
 
 func _hand_cards_x_range() -> Vector2:
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return Vector2(1.0, -1.0)
@@ -313,6 +314,7 @@ func set_compact(compact: bool) -> void:
 	if _is_compact == compact:
 		return
 	_is_compact = compact
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return
@@ -329,6 +331,7 @@ func set_compact(compact: bool) -> void:
 	_sync_tree_order(hovered_index)
 
 func _update_hand_layout(animated: bool = false) -> void:
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return
@@ -349,6 +352,17 @@ func _update_hand_layout(animated: bool = false) -> void:
 		else:
 			card.position = pos
 	_sync_tree_order(hovered_index)
+
+# Une carte peut être libérée en dehors d'un rebuild complet de la main (ex.
+# Card.gd s'auto-détruit via queue_free() une fois glissée en jeu) : sans ce
+# nettoyage, _hand_order garderait une référence obsolète et tout accès à ses
+# propriétés (taille, position...) ferait planter le jeu ("previously freed").
+func _prune_hand_order() -> void:
+	for i in range(_hand_order.size() - 1, -1, -1):
+		if not is_instance_valid(_hand_order[i]):
+			_hand_order.remove_at(i)
+	if _hovered_card != null and not is_instance_valid(_hovered_card):
+		_hovered_card = null
 
 # Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
 # main, puis place la carte survolée en dernier (donc au-dessus de toutes les
