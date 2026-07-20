@@ -368,7 +368,7 @@ Liste complète des cartes de la race **Humain**.
 | H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
 | H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
-| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant. | *Chaque coup reçu est une réponse en attente.* |
+| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : tous les serviteurs Humains alliés gagnent CONTRE-ATTAQUE jusqu'à fin de tour. | *Chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 charges | **Ralliement** : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
 | H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
 | H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
