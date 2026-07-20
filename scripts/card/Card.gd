@@ -381,17 +381,17 @@ func _on_drag_released() -> void:
 
 	if not drop_row.is_empty():
 		var insert_index := -1
-		var battle_ref: Node = _battle
 		if _battle and _battle.get("drop_system"):
 			insert_index = _battle.drop_system.get_player_drop_index_at(mouse_pos, drop_row)
 			_battle.drop_system.clear_player_drop_highlight()
 		_battle = null
+		# Pour une carte-ressource, la popup d'effet instanciée par
+		# CardPopupSystem.show_resource_popup se charge de représenter la carte
+		# et de la désintégrer vers le pool de mana — cette carte (invisible
+		# depuis le début du drag) n'a donc plus qu'à se libérer.
 		card_clicked.emit(data, drop_row, insert_index)
 		drag_ended.emit()
-		if data.card_type == "Resource" and battle_ref != null:
-			_play_resource_absorb(battle_ref)
-		else:
-			queue_free()
+		queue_free()
 		return
 
 	if _battle and _battle.get("drop_system"):
@@ -399,28 +399,6 @@ func _on_drag_released() -> void:
 	_battle = null
 	_restore_in_hand()
 	drag_ended.emit()
-
-# Sort la carte de la main (reparentée en top-level pour ne plus être affectée
-# par le layout de Hand) puis la fait désintégrer vers le pool de mana de sa
-# race via AnimationSystem, qui se charge de la libérer (queue_free) à la fin.
-func _play_resource_absorb(battle_ref: Node) -> void:
-	var global_pos_before := global_position
-	var parent := get_parent()
-	if parent:
-		parent.remove_child(self)
-	battle_ref.add_child(self)
-	global_position = global_pos_before
-
-	var color: Color = Color.WHITE
-	var target: Vector2 = global_position
-	if battle_ref.get("mana_display"):
-		color  = ManaDisplay.RACE_MANA_COLORS.get(data.race, Color.WHITE)
-		target = battle_ref.mana_display.get_race_anchor_global_position(data.race)
-
-	if battle_ref.get("animation_system"):
-		battle_ref.animation_system.play_resource_absorb(self, target, color)
-	else:
-		queue_free()
 
 func _restore_in_hand() -> void:
 	visible = true
