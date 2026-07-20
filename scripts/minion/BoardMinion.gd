@@ -178,15 +178,15 @@ func _is_player_turn() -> bool:
 func _update_ready_glow() -> void:
 	if _ready_glow == null or minion == null:
 		return
-	var show: bool = minion.owner_is_player \
+	var should_show: bool = minion.owner_is_player \
 		and _is_player_turn() \
 		and minion.can_attack() \
 		and not is_selected \
 		and not _targetable
-	if show and not _ready_glow.visible:
+	if should_show and not _ready_glow.visible:
 		_ready_pulse = 0.0
 		_ready_style.border_color = READY_GLOW_COLOR
-	_ready_glow.visible = show
+	_ready_glow.visible = should_show
 
 # ─── Sélection / Ciblage ──────────────────────────────────────────────────────
 
