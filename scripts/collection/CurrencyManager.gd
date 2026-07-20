@@ -7,10 +7,11 @@ extends Node
 
 # Affiché à titre indicatif dans l'UI ; le coût réel est appliqué et vérifié
 # côté serveur (voir PACK_COST dans wyrdane-backend/backend/src/model/packModel.ts).
-const PACK_COST := 100
-# Doit rester synchronisé avec SOLO_WIN_REWARD côté
+const PACK_COST := 250
+# Doivent rester synchronisées avec SOLO_WIN_REWARD/SOLO_DEFEAT_REWARD côté
 # wyrdane-backend/backend/src/controller/rewardsController.ts.
-const SOLO_WIN_REWARD_DISPLAY := 20
+const SOLO_WIN_REWARD_DISPLAY := 25
+const SOLO_DEFEAT_REWARD_DISPLAY := 10
 
 var balance: int = 0
 var is_synced: bool = false
