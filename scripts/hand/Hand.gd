@@ -28,14 +28,13 @@ const HOVER_PUSH_MAX   := 28.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
 const HOVER_PUSH_DECAY := 0.55
 const HAND_START_X     := 80.0
-# Marge de tolérance (hystérésis) autour de la zone "au repos" d'une carte
-# survolée : évite l'oscillation quand la souris reste près de la frontière
-# entre deux cartes (le décalage visuel du survol la ferait sinon changer en
-# boucle, la carte s'écartant puis revenant sous le curseur)
-const HOVER_STICKY_MARGIN := 20.0
 
 var _base_positions:    Dictionary     = {}
-var _rest_positions:    Dictionary     = {}
+# Ordre logique fixe des cartes en main (position/index), indépendant de
+# l'ordre des enfants du conteneur — celui-ci est réarrangé au survol (voir
+# _sync_tree_order) pour que la carte survolée passe réellement au-dessus des
+# autres, y compris pour la détection de la souris, sans décaler leur position.
+var _hand_order:        Array          = []
 var _hovered_card:      Card           = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
@@ -63,14 +62,6 @@ func _process(_delta: float) -> void:
 	if should_expand != _hand_expanded:
 		_hand_expanded = should_expand
 		_update_hand_layout(true)
-	# Filet de sécurité : si la souris a quitté la zone de la carte survolée sans
-	# qu'aucun signal mouse_exited ne soit jamais arrivé (ex. la carte s'est
-	# décalée hors du curseur à cause de son propre effet de survol, consommant
-	# le seul événement de sortie possible), on nettoie ici plutôt que de rester
-	# bloqué avec un aperçu qui ne se referme jamais.
-	if _hovered_card != null and is_instance_valid(_hovered_card):
-		if not _is_mouse_near_rest_rect(_hovered_card):
-			_clear_hover()
 
 func _is_mouse_in_hand_zone() -> bool:
 	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
@@ -89,7 +80,7 @@ func _is_mouse_in_hand_zone() -> bool:
 const HAND_ZONE_X_PADDING := 60.0
 
 func _hand_cards_x_range() -> Vector2:
-	var cards := container.get_children()
+	var cards := _hand_order
 	if cards.is_empty():
 		return Vector2(1.0, -1.0)
 	var layout := _compute_layout(cards)
@@ -119,7 +110,7 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 	for c in container.get_children():
 		c.queue_free()
 	_base_positions.clear()
-	_rest_positions.clear()
+	_hand_order.clear()
 	_hovered_card = null
 	await get_tree().process_frame
 
@@ -132,6 +123,7 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 		card.set_data(card_data)
 		card.scale = NORMAL_SCALE
 		_connect_card(card)
+		_hand_order.append(card)
 
 	await get_tree().process_frame
 	for card in container.get_children():
@@ -147,13 +139,13 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	new_card.set_data(new_card_data)
 	new_card.scale = NORMAL_SCALE
 	_connect_card(new_card)
+	_hand_order.append(new_card)
 	await get_tree().process_frame
 	new_card.pivot_offset = Vector2(new_card.size.x / 2.0, new_card.size.y)
 	_update_hand_layout(false)
 
-	var children := container.get_children()
-	for i in range(children.size() - 1):
-		var card = children[i]
+	for i in range(_hand_order.size() - 1):
+		var card = _hand_order[i]
 		var tween_existing := create_tween()
 		tween_existing.set_parallel(true)
 		tween_existing.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -209,23 +201,21 @@ func set_mulligan_mode(active: bool) -> void:
 				card.set_mulligan_swapped(false)
 
 func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
-	var children := container.get_children()
-	if index < 0 or index >= children.size():
+	if index < 0 or index >= _hand_order.size():
 		return
-	var card: Card = children[index]
+	var card: Card = _hand_order[index]
 	if card is Card:
 		card.set_mulligan_swapped(swapped)
 
 func _on_mulligan_card_clicked(card: Card) -> void:
-	var index: int = container.get_children().find(card)
+	var index: int = _hand_order.find(card)
 	if index != -1:
 		mulligan_card_clicked.emit(index, card.data)
 
 func flip_replace_at(index: int, new_data: CardData) -> void:
-	var children := container.get_children()
-	if index < 0 or index >= children.size():
+	if index < 0 or index >= _hand_order.size():
 		return
-	var card: Card = children[index]
+	var card: Card = _hand_order[index]
 	var target_scale_x: float = card.scale.x
 	var tween := create_tween()
 	tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
@@ -237,32 +227,6 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
 
 
-# Rectangle global "au repos" (sans le décalage/levage appliqué par le survol)
-# d'une carte, agrandi de la marge de tolérance. Sert de référence stable pour
-# décider s'il faut vraiment changer de carte survolée, indépendamment de
-# l'animation en cours (qui elle-même dépend de la carte survolée : s'y fier
-# directement crée une boucle de rétroaction qui fait osciller le survol).
-func _card_sticky_rest_rect(card: Control) -> Rect2:
-	if not _rest_positions.has(card):
-		return card.get_global_rect().grow(HOVER_STICKY_MARGIN)
-	var pos: Vector2   = _rest_positions[card]
-	var scale: Vector2 = card.scale
-	var pivot: Vector2 = card.pivot_offset
-	var top_left: Vector2 = pos + pivot * (Vector2.ONE - scale)
-	var rect := Rect2(container.global_position + top_left, card.size * scale)
-	return rect.grow(HOVER_STICKY_MARGIN)
-
-func _is_mouse_near_rest_rect(card: Control) -> bool:
-	return _card_sticky_rest_rect(card).has_point(get_viewport().get_mouse_position())
-
-func _clear_hover() -> void:
-	_hovering = false
-	preview.hide()
-	_hide_keyword_tooltips()
-	if _hovered_card != null:
-		_hovered_card = null
-		_update_hand_layout(true)
-
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
 	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
@@ -271,10 +235,6 @@ func _on_card_hover(card: Card) -> void:
 		if c is Card and c.dragging:
 			return
 	if card.dragging:
-		return
-	if _hovered_card != null and _hovered_card != card and is_instance_valid(_hovered_card) and _is_mouse_near_rest_rect(_hovered_card):
-		# La souris est encore dans la zone de tolérance de la carte déjà
-		# survolée : on ignore ce changement pour éviter l'oscillation au bord.
 		return
 	if _hovered_card != card:
 		_hovered_card = card
@@ -300,9 +260,12 @@ func _on_card_hover(card: Card) -> void:
 	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y)
 
 func _on_card_unhover() -> void:
-	if _hovered_card != null and is_instance_valid(_hovered_card) and _is_mouse_near_rest_rect(_hovered_card):
-		return
-	_clear_hover()
+	_hovering = false
+	preview.hide()
+	_hide_keyword_tooltips()
+	if _hovered_card != null:
+		_hovered_card = null
+		_update_hand_layout(true)
 
 
 func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
@@ -350,7 +313,7 @@ func set_compact(compact: bool) -> void:
 	if _is_compact == compact:
 		return
 	_is_compact = compact
-	var cards := container.get_children()
+	var cards := _hand_order
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
@@ -360,13 +323,13 @@ func set_compact(compact: bool) -> void:
 		var norm   := _card_norm(i, cards.size())
 		var pos    := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		_rest_positions[card] = _card_position(i, layout, card, norm, -1)
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_sync_tree_order(hovered_index)
 
 func _update_hand_layout(animated: bool = false) -> void:
-	var cards := container.get_children()
+	var cards := _hand_order
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
@@ -376,7 +339,6 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		_rest_positions[card] = _card_position(i, layout, card, norm, -1)
 		card.z_index = 100 if i == hovered_index else i
 		card.scale   = layout["scale"]
 		if animated:
@@ -386,6 +348,25 @@ func _update_hand_layout(animated: bool = false) -> void:
 			tween.tween_property(card, "scale",    layout["scale"], 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
+	_sync_tree_order(hovered_index)
+
+# Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
+# main, puis place la carte survolée en dernier (donc au-dessus de toutes les
+# autres). L'ordre des enfants pilote aussi bien le rendu que la détection de
+# la souris sur les zones qui se chevauchent (contrairement au z_index seul,
+# qui ne suffit pas à garantir la priorité de survol) : sans ce passage, une
+# carte voisine non survolée peut rester "au-dessus" pour la souris malgré le
+# z_index, et capter le survol dans la zone de chevauchement, créant une
+# oscillation entre les deux cartes.
+func _sync_tree_order(hovered_index: int) -> void:
+	for i in range(_hand_order.size()):
+		var card = _hand_order[i]
+		if is_instance_valid(card):
+			container.move_child(card, i)
+	if hovered_index != -1 and hovered_index < _hand_order.size():
+		var hovered_card = _hand_order[hovered_index]
+		if is_instance_valid(hovered_card):
+			container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
