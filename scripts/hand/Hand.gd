@@ -28,8 +28,14 @@ const HOVER_PUSH_MAX   := 28.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
 const HOVER_PUSH_DECAY := 0.55
 const HAND_START_X     := 80.0
+# Marge de tolérance (hystérésis) autour de la zone "au repos" d'une carte
+# survolée : évite l'oscillation quand la souris reste près de la frontière
+# entre deux cartes (le décalage visuel du survol la ferait sinon changer en
+# boucle, la carte s'écartant puis revenant sous le curseur)
+const HOVER_STICKY_MARGIN := 20.0
 
 var _base_positions:    Dictionary     = {}
+var _rest_positions:    Dictionary     = {}
 var _hovered_card:      Card           = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
@@ -57,6 +63,14 @@ func _process(_delta: float) -> void:
 	if should_expand != _hand_expanded:
 		_hand_expanded = should_expand
 		_update_hand_layout(true)
+	# Filet de sécurité : si la souris a quitté la zone de la carte survolée sans
+	# qu'aucun signal mouse_exited ne soit jamais arrivé (ex. la carte s'est
+	# décalée hors du curseur à cause de son propre effet de survol, consommant
+	# le seul événement de sortie possible), on nettoie ici plutôt que de rester
+	# bloqué avec un aperçu qui ne se referme jamais.
+	if _hovered_card != null and is_instance_valid(_hovered_card):
+		if not _is_mouse_near_rest_rect(_hovered_card):
+			_clear_hover()
 
 func _is_mouse_in_hand_zone() -> bool:
 	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
@@ -105,6 +119,7 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 	for c in container.get_children():
 		c.queue_free()
 	_base_positions.clear()
+	_rest_positions.clear()
 	_hovered_card = null
 	await get_tree().process_frame
 
@@ -222,6 +237,32 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
 
 
+# Rectangle global "au repos" (sans le décalage/levage appliqué par le survol)
+# d'une carte, agrandi de la marge de tolérance. Sert de référence stable pour
+# décider s'il faut vraiment changer de carte survolée, indépendamment de
+# l'animation en cours (qui elle-même dépend de la carte survolée : s'y fier
+# directement crée une boucle de rétroaction qui fait osciller le survol).
+func _card_sticky_rest_rect(card: Control) -> Rect2:
+	if not _rest_positions.has(card):
+		return card.get_global_rect().grow(HOVER_STICKY_MARGIN)
+	var pos: Vector2   = _rest_positions[card]
+	var scale: Vector2 = card.scale
+	var pivot: Vector2 = card.pivot_offset
+	var top_left: Vector2 = pos + pivot * (Vector2.ONE - scale)
+	var rect := Rect2(container.global_position + top_left, card.size * scale)
+	return rect.grow(HOVER_STICKY_MARGIN)
+
+func _is_mouse_near_rest_rect(card: Control) -> bool:
+	return _card_sticky_rest_rect(card).has_point(get_viewport().get_mouse_position())
+
+func _clear_hover() -> void:
+	_hovering = false
+	preview.hide()
+	_hide_keyword_tooltips()
+	if _hovered_card != null:
+		_hovered_card = null
+		_update_hand_layout(true)
+
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
 	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
@@ -230,6 +271,10 @@ func _on_card_hover(card: Card) -> void:
 		if c is Card and c.dragging:
 			return
 	if card.dragging:
+		return
+	if _hovered_card != null and _hovered_card != card and is_instance_valid(_hovered_card) and _is_mouse_near_rest_rect(_hovered_card):
+		# La souris est encore dans la zone de tolérance de la carte déjà
+		# survolée : on ignore ce changement pour éviter l'oscillation au bord.
 		return
 	if _hovered_card != card:
 		_hovered_card = card
@@ -255,12 +300,9 @@ func _on_card_hover(card: Card) -> void:
 	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y)
 
 func _on_card_unhover() -> void:
-	_hovering = false
-	preview.hide()
-	_hide_keyword_tooltips()
-	if _hovered_card != null:
-		_hovered_card = null
-		_update_hand_layout(true)
+	if _hovered_card != null and is_instance_valid(_hovered_card) and _is_mouse_near_rest_rect(_hovered_card):
+		return
+	_clear_hover()
 
 
 func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
@@ -318,6 +360,7 @@ func set_compact(compact: bool) -> void:
 		var norm   := _card_norm(i, cards.size())
 		var pos    := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
+		_rest_positions[card] = _card_position(i, layout, card, norm, -1)
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -333,6 +376,7 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
+		_rest_positions[card] = _card_position(i, layout, card, norm, -1)
 		card.z_index = 100 if i == hovered_index else i
 		card.scale   = layout["scale"]
 		if animated:
