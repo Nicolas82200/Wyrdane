@@ -5,6 +5,7 @@
 [ext_resource type="VideoStream" uid="uid://detsxoxojoqv1" path="res://assets/main-menu/mainMenu.ogv" id="3_bkukm"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_xwq4k"]
 [ext_resource type="PackedScene" uid="uid://c53ofvbh8ht3r" path="res://scenes/deck/DeckList.tscn" id="4_decklist"]
+[ext_resource type="PackedScene" path="res://scenes/shop/PackShop.tscn" id="7_packshop"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
 
@@ -199,6 +200,11 @@ custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Mes Decks"
 
+[node name="PacksButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000031]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Packs"
+
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
 layout_mode = 2
 
@@ -336,9 +342,29 @@ theme_override_font_sizes/font_size = 18
 text = "Pseudo Steam"
 vertical_alignment = 1
 
+[node name="CurrencyLabel" type="Label" parent="." unique_id=300000032]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
 [node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
 visible = false
 layout_mode = 1
 
 [node name="SettingsMenu" parent="." unique_id=2017956977 instance=ExtResource("1_settings")]
+layout_mode = 1
+
+[node name="PackShop" parent="." unique_id=300000033 instance=ExtResource("7_packshop")]
+visible = false
 layout_mode = 1
