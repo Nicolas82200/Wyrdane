@@ -847,9 +847,11 @@ func _show_game_over(result: String) -> void:
 	# n'a pas de second client pour faire foi : le client déclare directement
 	# son résultat, plafonné par jour côté serveur contre l'abus.
 	if network_manager == null:
-		CurrencyManager.report_solo_match_result(result == "victory", func(credited: bool):
+		var won := result == "victory"
+		CurrencyManager.report_solo_match_result(won, func(credited: bool):
 			if credited:
-				game_over_screen.show_reward(CurrencyManager.SOLO_WIN_REWARD_DISPLAY)
+				var reward := CurrencyManager.SOLO_WIN_REWARD_DISPLAY if won else CurrencyManager.SOLO_DEFEAT_REWARD_DISPLAY
+				game_over_screen.show_reward(reward)
 		)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
