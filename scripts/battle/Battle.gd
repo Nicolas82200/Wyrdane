@@ -26,7 +26,6 @@ const BOARD_MINION_SIZE  := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
-const ATTACK_PACE                 := 0.5
 # Pose visuelle des cartes-ressource dans leur zone dédiée (bande de droite) :
 # désactivée pour l'instant (feature repoussée). Le système est conservé tel
 # quel (EnchantmentSystem.add_resource, zones Player/EnemyResourceZone) pour
@@ -361,7 +360,8 @@ func _run_mulligan() -> void:
 	_mulligan_swapped_indices.clear()
 	hand.set_mulligan_mode(true)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
-	turn_banner.show_banner(SettingsManager.t("mulligan.banner"))
+	turn_banner.show_banner_persistent(
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"))
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
@@ -371,6 +371,7 @@ func _run_mulligan() -> void:
 		turn_timer.start(MULLIGAN_DURATION)
 	await mulligan_confirmed
 	turn_timer.stop()
+	turn_banner.hide_banner()
 	end_turn_button.disabled = true
 	end_turn_button.set_ready_hint(false)
 	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)

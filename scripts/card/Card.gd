@@ -289,12 +289,15 @@ func _gui_input(event: InputEvent) -> void:
 			and event.pressed):
 		return
 
+	var battle: Node = get_tree().current_scene
+	if battle and "enemy_turn_active" in battle and battle.enemy_turn_active:
+		get_viewport().set_input_as_handled()
+		return
+
 	var can_drag: bool = not can_drag_check.is_valid() or can_drag_check.call(data)
 	if not can_drag:
 		get_viewport().set_input_as_handled()
 		return
-
-	var battle: Node = get_tree().current_scene
 
 	if data.card_type == "Minion":
 		if battle and battle.has_method("get_allowed_rows_for_card"):
