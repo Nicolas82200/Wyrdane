@@ -80,6 +80,7 @@ func _is_mouse_in_hand_zone() -> bool:
 const HAND_ZONE_X_PADDING := 60.0
 
 func _hand_cards_x_range() -> Vector2:
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return Vector2(1.0, -1.0)
@@ -313,6 +314,7 @@ func set_compact(compact: bool) -> void:
 	if _is_compact == compact:
 		return
 	_is_compact = compact
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return
@@ -329,6 +331,7 @@ func set_compact(compact: bool) -> void:
 	_sync_tree_order(hovered_index)
 
 func _update_hand_layout(animated: bool = false) -> void:
+	_prune_hand_order()
 	var cards := _hand_order
 	if cards.is_empty():
 		return
@@ -350,6 +353,22 @@ func _update_hand_layout(animated: bool = false) -> void:
 			card.position = pos
 	_sync_tree_order(hovered_index)
 
+# Une carte peut quitter la main en dehors d'un rebuild complet (ex. Card.gd
+# s'auto-détruit via queue_free() une fois glissée en jeu, ou se reparente
+# temporairement hors du conteneur le temps de son animation de dissolution
+# pour une carte-ressource — voir Card._play_resource_absorb). Sans ce
+# nettoyage, _hand_order garderait une référence obsolète : soit un nœud
+# libéré (tout accès à ses propriétés plante avec "previously freed"), soit un
+# nœud toujours valide mais qui n'est plus un enfant du conteneur (move_child
+# plante avec "Child is not a child of this node").
+func _prune_hand_order() -> void:
+	for i in range(_hand_order.size() - 1, -1, -1):
+		var card = _hand_order[i]
+		if not is_instance_valid(card) or card.get_parent() != container:
+			_hand_order.remove_at(i)
+	if _hovered_card != null and not is_instance_valid(_hovered_card):
+		_hovered_card = null
+
 # Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
 # main, puis place la carte survolée en dernier (donc au-dessus de toutes les
 # autres). L'ordre des enfants pilote aussi bien le rendu que la détection de
@@ -361,11 +380,11 @@ func _update_hand_layout(animated: bool = false) -> void:
 func _sync_tree_order(hovered_index: int) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]
-		if is_instance_valid(card):
+		if is_instance_valid(card) and card.get_parent() == container:
 			container.move_child(card, i)
 	if hovered_index != -1 and hovered_index < _hand_order.size():
 		var hovered_card = _hand_order[hovered_index]
-		if is_instance_valid(hovered_card):
+		if is_instance_valid(hovered_card) and hovered_card.get_parent() == container:
 			container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
