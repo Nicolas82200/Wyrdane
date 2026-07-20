@@ -98,3 +98,10 @@ static func hero_level_for_xp(xp: int) -> int:
 
 static func unlocked_costs_for_level(level: int) -> Array:
 	return HERO_LEVEL_UNLOCKED_COSTS.get(clampi(level, 1, 8), [1])
+
+# XP cumulé requis pour atteindre le PROCHAIN niveau (-1 si niveau 8 = max,
+# déjà atteint). Pour l'affichage "XP : 4/10" en boutique.
+static func xp_required_for_next_level(level: int) -> int:
+	if level >= 8:
+		return -1
+	return int(HERO_LEVEL_XP_THRESHOLDS.get(level + 1, -1))

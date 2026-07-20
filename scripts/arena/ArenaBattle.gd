@@ -21,6 +21,9 @@ var xp_label: Label
 var level_label: Label
 var participants_label: Label
 var shop_row: HBoxContainer
+var reroll_button: Button
+var buy_xp_button: Button
+var suspended_label: Label
 var hand_container: VBoxContainer
 var front_container: HBoxContainer
 var back_container: HBoxContainer
@@ -90,16 +93,15 @@ func _build_ui() -> void:
 	var shop_controls := HBoxContainer.new()
 	shop_controls.add_theme_constant_override("separation", 8)
 	vbox.add_child(shop_controls)
-	var reroll_button := Button.new()
-	reroll_button.text = SettingsManager.t("ARENA_REROLL_BUTTON")
+	reroll_button = Button.new()
 	reroll_button.pressed.connect(_on_reroll_pressed)
 	shop_controls.add_child(reroll_button)
-	var buy_xp_button := Button.new()
-	buy_xp_button.text = SettingsManager.t("ARENA_BUY_XP_BUTTON")
+	buy_xp_button = Button.new()
 	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
 	shop_controls.add_child(buy_xp_button)
 
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_HAND_TITLE")))
+	suspended_label = _make_label(vbox)
 	hand_container = VBoxContainer.new()
 	vbox.add_child(hand_container)
 
@@ -161,7 +163,11 @@ func _refresh_ui() -> void:
 	hero_hp_label.text = SettingsManager.t("ARENA_HERO_HP_LABEL") % human.hero_hp
 	gold_label.text = SettingsManager.t("ARENA_GOLD_LABEL") % human.gold
 	xp_label.text = SettingsManager.t("ARENA_XP_LABEL") % human.xp
-	level_label.text = SettingsManager.t("ARENA_LEVEL_LABEL") % human.level
+	var next_level_xp: int = ArenaConstants.xp_required_for_next_level(human.level)
+	if next_level_xp < 0:
+		level_label.text = SettingsManager.t("ARENA_LEVEL_MAX_LABEL") % human.level
+	else:
+		level_label.text = SettingsManager.t("ARENA_LEVEL_PROGRESS_LABEL") % [human.level, human.xp, next_level_xp]
 
 	var lines: Array[String] = []
 	lines.append(SettingsManager.t("ARENA_PARTICIPANTS_TITLE") + " :")
@@ -169,6 +175,13 @@ func _refresh_ui() -> void:
 		var status: String = SettingsManager.t("ARENA_ELIMINATED_STATUS") if p.is_eliminated else str(p.hero_hp)
 		lines.append("  %s : %s" % [p.display_name, status])
 	participants_label.text = "\n".join(lines)
+
+	reroll_button.text = SettingsManager.t("ARENA_REROLL_BUTTON")
+	reroll_button.disabled = human.gold < ArenaConstants.REROLL_COST
+	buy_xp_button.text = SettingsManager.t("ARENA_BUY_XP_BUTTON")
+	buy_xp_button.disabled = not ArenaEconomy.can_buy_xp(match_.round_number) or human.gold < ArenaConstants.GOLD_TO_XP_RATE or human.level >= 8
+
+	suspended_label.text = SettingsManager.t("ARENA_SUSPENDED_LABEL") % human.suspended.size() if not human.suspended.is_empty() else ""
 
 	_refresh_shop()
 	_refresh_hand()
