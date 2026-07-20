@@ -87,6 +87,7 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	acted = await _trigger_minions_paced(turn_minions, "OnAwaken", acted)
 	acted = await battle.trigger_system.fire("OnAwaken", null, is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(other_minions, "OnDecline", acted)
+	acted = await battle.trigger_system.fire("OnDecline", null, not is_local_turn, {}, true, acted)
 
 # Déclenche un trigger sur chaque serviteur de la liste, avec une pause AVANT
 # chaque déclenchement sauf le premier de la file. Retourne l'état "acted"

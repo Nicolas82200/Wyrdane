@@ -8,12 +8,22 @@
 
 [sub_resource type="Resource" id="Resource_4psxl"]
 script = ExtResource("5_trig")
-type = "OnDamaged"
+type = "OnAwaken"
+
+[sub_resource type="Resource" id="Resource_gckw2"]
+script = ExtResource("1_cardeffect")
+effect_id = "GrantKeyword"
+target = "AllAllies"
+duration = "UntilEndOfTurn"
+race_filter = "Human"
+granted_keyword = "CONTRE_ATTAQUE"
+granted_keyword_is_human = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Contre-Attaque Générale"
-description = "Blessure : chaque serviteur Humain allié qui subit des dégâts et survit inflige son ATK en retour à l'attaquant."
+description = "Éveil : tous les serviteurs Humains alliés gagnent CONTRE-ATTAQUE jusqu'à fin de tour."
 flavour_text = "Chaque coup reçu est une réponse en attente."
 texture = ExtResource("3_texture")
 cost = 5
@@ -21,5 +31,6 @@ race = 1
 card_type = "Ritual"
 ritual_duration = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_4psxl")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_gckw2")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
