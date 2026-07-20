@@ -354,9 +354,7 @@ func _update_hand_layout(animated: bool = false) -> void:
 	_sync_tree_order(hovered_index)
 
 # Une carte peut quitter la main en dehors d'un rebuild complet (ex. Card.gd
-# s'auto-détruit via queue_free() une fois glissée en jeu, ou se reparente
-# temporairement hors du conteneur le temps de son animation de dissolution
-# pour une carte-ressource — voir Card._play_resource_absorb). Sans ce
+# s'auto-détruit via queue_free() une fois glissée en jeu). Sans ce
 # nettoyage, _hand_order garderait une référence obsolète : soit un nœud
 # libéré (tout accès à ses propriétés plante avec "previously freed"), soit un
 # nœud toujours valide mais qui n'est plus un enfant du conteneur (move_child
