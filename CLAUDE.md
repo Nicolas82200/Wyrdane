@@ -79,7 +79,7 @@ Autoloads globaux (voir `project.godot`) :
 - **Ressource** — carte de race (coût 0) ; +1 (actuel et max) au pool de mana de sa race, puis retirée de la partie (aucune zone ne la garde — non récupérable). Une seule par tour et par camp. Voir « Système de Ressources par Race » ci-dessous.
 
 ### Système de Ressources par Race
-Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Éclat d'Âme / Sceau du Royaume / Fragment de Pacte). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
+Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Éclat d'Âme / Sceau du Royaume / Fragment de Pacte / Éclat d'Anomalie). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
 
 Une fois jouée, la carte-ressource n'est posée dans aucune zone du plateau ni conservée dans une structure de données (cimetière ou autre) : elle disparaît simplement de la partie (`Battle.play_resource_card`), donc aucun effet ne peut jamais la récupérer. La pose visuelle en zone dédiée du plateau (`PlayerResourceZone`/`EnemyResourceZone`, `EnchantmentSystem.add_resource`) est **désactivée** (`Battle.RESOURCE_ZONE_ENABLED = false`) mais conservée telle quelle en vue d'une réactivation future.
 
@@ -141,7 +141,7 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 
 Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.csv` (clé, fr, en) compilé en `game.fr.translation` / `game.en.translation`.
 - Tout texte UI passe par `SettingsManager.t("CLE")` (délègue au `TranslationServer`) ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`
-- Les cartes (noms, effets, flavour) sont également traduites — les 151 cartes ont leurs clés dans le CSV
+- Les cartes (noms, effets, flavour) sont également traduites — les 317 cartes (jetons compris) ont leurs clés dans le CSV
 - **Tout nouveau texte visible par le joueur doit avoir sa ligne FR + EN dans `translations/game.csv`** — ne jamais mettre de chaîne en dur dans l'UI
 - Une clé absente du CSV est affichée telle quelle en jeu (utile pour repérer les oublis)
 - Sélecteur de langue dans les réglages d'affichage
@@ -186,7 +186,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, trois races de cartes (Mort-Vivant, Humain, Démon — 227 cartes au total) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 3 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
 - ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
 
 ## Notes pour les agents

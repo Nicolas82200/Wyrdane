@@ -7,8 +7,7 @@ extends Node
 # comme un navigateur, donc on doit le lire dans Set-Cookie et le renvoyer
 # nous-mêmes en header Cookie sur chaque appel.
 #
-# À changer pour l'URL de prod une fois le backend déployé.
-const API_URL := "http://localhost:3000"
+const API_URL := "https://wyrdane-backend.onrender.com"
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : tant qu'on
 # n'a pas d'accès Steamworks Partner, AuthenticateUserTicket refuse notre clé
