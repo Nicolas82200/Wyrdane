@@ -602,17 +602,35 @@ func intro_mulligan() -> void:
 	await _popup("tutorial.mulligan_intro", [battle.hand, battle.end_turn_button])
 
 # Appelé par Battle._run_mulligan() une fois le mode mulligan actif (cartes
-# cliquables) : surligne les 3 exemplaires d'Éclat d'Âme (fusionnés en une
-# seule zone par _dim_hole, voir TutorialDeck.player_hand()) et force
-# réellement l'échange de l'un d'eux avant de laisser le script continuer —
-# comme les autres mécaniques enseignées, pas juste une popup qu'on ignore.
-# Le remplacement lui-même reste toujours une nouvelle carte-ressource (voir
-# DeckSystem.mulligan_replace_one), donc peu importe laquelle des 3 est
-# échangée, la main obtenue reste toujours valide pour la suite du script.
+# cliquables) : cible les cartes en main comme _popup_play_card (cartes
+# voisines assombries, aucun cadre de surbrillance, popup positionnée par
+# rapport à toute la main dépliée pour ne jamais la chevaucher) plutôt que le
+# cadre + assombrissement plein écran de _popup_wait_action, qui ne convient
+# qu'aux cibles hors main (zones du plateau, boutons...). Force réellement
+# l'échange de l'un des 3 exemplaires d'Éclat d'Âme avant de laisser le script
+# continuer. Le remplacement lui-même reste toujours une nouvelle
+# carte-ressource (voir DeckSystem.mulligan_replace_one), donc peu importe
+# laquelle des 3 est échangée, la main obtenue reste toujours valide pour la
+# suite du script.
 func guided_mulligan() -> void:
-	var nodes := _find_hand_card_nodes(TutorialDeck.resource_card())
-	await _popup_wait_action("tutorial.mulligan_guided", nodes, "mulligan_swap",
-		Callable(), "tutorial.hint_mulligan_swap")
+	var card := TutorialDeck.resource_card()
+	var nodes := _find_hand_card_nodes(card)
+	if battle.hand != null and not battle.hand._force_expanded:
+		battle.hand._force_expanded = true
+		_forced_hand_expanded = true
+		# Même délai que _popup_play_card : laisse le dépli de la main se
+		# terminer avant de mesurer son contour (voir son commentaire).
+		await get_tree().create_timer(0.35).timeout
+		nodes = _find_hand_card_nodes(card)
+	_dim_other_cards(nodes)
+	_show_card_popup("tutorial.mulligan_guided", "tutorial.hint_mulligan_swap", _hand_bounds())
+	await _wait_for("mulligan_swap")
+	await _dismiss_popup()
+	_using_card_dim = false
+	_undim_all_cards()
+	if _forced_hand_expanded and battle.hand != null and not battle.is_dragging_card():
+		battle.hand._force_expanded = false
+	_forced_hand_expanded = false
 
 # Appelé par Battle._on_mulligan_card_clicked() après un échange réussi.
 func notify_mulligan_swap(card_data: CardData) -> void:
