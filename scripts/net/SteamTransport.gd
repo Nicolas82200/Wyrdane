@@ -280,5 +280,5 @@ func _extract_remote_id(connection: Dictionary) -> int:
 
 # Pseudo Steam d'un joueur (pour le journal de diagnostic).
 func _persona(steam_id: int) -> String:
-	var name: String = _steam.getFriendPersonaName(steam_id)
-	return name if name != "" else str(steam_id)
+	var persona_name: String = _steam.getFriendPersonaName(steam_id)
+	return persona_name if persona_name != "" else str(steam_id)
