@@ -14,6 +14,10 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		_remove_from_hand(card_data)
 		await battle.get_tree().process_frame
 		battle.hand._update_hand_layout(true)
+		# Popup d'effet (glisse depuis la gauche, lisible) qui se désintègre
+		# ensuite vers le pool de mana de sa race — sans await, pour ne pas
+		# bloquer la suite du tour sur cette animation cosmétique.
+		battle.card_popup_system.show_resource_popup(card_data)
 		if battle.net_emitter != null:
 			battle.net_emitter.play_card(card_data, "Resource", -1)
 		if battle.tutorial_manager:
