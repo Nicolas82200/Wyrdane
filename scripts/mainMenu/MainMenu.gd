@@ -12,6 +12,8 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var credits_panel:   Panel  = $CreditsPanel
 @onready var close_credits:   Button = $CreditsPanel/CloseCreditsButton
 @onready var decks_button:    Button = $NavPanel/NavMargin/VBoxContainer/DecksButton
+@onready var packs_button:    Button = $NavPanel/NavMargin/VBoxContainer/PacksButton
+@onready var pack_shop:       Control = $PackShop
 @onready var replay_tutorial_button: Button = $NavPanel/NavMargin/VBoxContainer/ReplayTutorialButton
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
@@ -19,6 +21,7 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var steam_profile:   Control = $SteamProfile
 @onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
 @onready var steam_name_label: Label = $SteamProfile/NameLabel
+@onready var currency_label: Label = $CurrencyLabel
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -32,6 +35,7 @@ func _ready() -> void:
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
+	packs_button.pressed.connect(_on_packs_button_pressed)
 	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	# Le son de fermeture remplace le clic générique
 	close_credits.set_meta("no_click_sound", true)
@@ -46,6 +50,10 @@ func _ready() -> void:
 		push_error("SettingsMenu introuvable !")
 	credits_panel.hide()
 	_update_steam_profile()
+	CurrencyManager.balance_changed.connect(func(new_balance: int):
+		currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
+	)
+	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	_start_backend_sync()
 
 # Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
@@ -74,8 +82,10 @@ func _apply_tutorial_lock() -> void:
 	var locked: bool = not SettingsManager.tutorial_completed
 	multiplayer_button.disabled = locked
 	decks_button.disabled = locked
+	packs_button.disabled = locked
 	multiplayer_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	packs_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 # Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
 # en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
@@ -89,6 +99,7 @@ func _start_backend_sync() -> void:
 			if success:
 				DeckManager.sync_from_backend()
 				CollectionManager.sync_from_backend()
+				CurrencyManager.sync_from_backend()
 		)
 	, CONNECT_ONE_SHOT)
 	BackendClient.login_failed.connect(func(reason: String):
@@ -104,6 +115,12 @@ func _on_decks_button_pressed() -> void:
 	deck_list.visible = true
 	if deck_list.has_method("_refresh"):
 		deck_list._refresh()
+
+func _on_packs_button_pressed() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	pack_shop.visible = true
+	if pack_shop.has_method("refresh"):
+		pack_shop.refresh()
 
 func _on_play() -> void:
 	TutorialContext.active = not SettingsManager.tutorial_completed
@@ -138,6 +155,8 @@ func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
+	packs_button.text   = SettingsManager.t("MENU_PACKS")
+	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	multiplayer_button.text = SettingsManager.t("MENU_MULTIPLAYER")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
