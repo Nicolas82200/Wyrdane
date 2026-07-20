@@ -9,13 +9,13 @@ extends Node
 #
 const API_URL := "https://wyrdane-backend.onrender.com"
 
-# Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : tant qu'on
-# n'a pas d'accès Steamworks Partner, AuthenticateUserTicket refuse notre clé
-# Web API personnelle (403 Forbidden côté Steam). Envoie le steamid local
-# directement au lieu d'un vrai ticket. Le backend doit avoir
-# DEV_SKIP_STEAM_VERIFY=true, sinon ce ticket est simplement rejeté (401) et
-# on retombe sur le vrai flow. À retirer une fois l'accès Partner obtenu.
-const DEV_SKIP_STEAM_VERIFY := true
+# Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
+# steamid local directement au lieu d'un vrai ticket. Utile pour tester en
+# local sans backend joignable ; le backend n'accepte ce ticket que si
+# NODE_ENV != production, donc laisser à false désormais que le vrai flow
+# (AuthenticateUserTicket via api.steampowered.com + AppID Spacewar 480)
+# fonctionne avec une clé Web API personnelle.
+const DEV_SKIP_STEAM_VERIFY := false
 
 signal login_succeeded(user: Dictionary)
 signal login_failed(reason: String)
