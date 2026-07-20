@@ -832,6 +832,17 @@ func _show_game_over(result: String) -> void:
 		return
 	game_over_screen.show_result(result, network_manager == null)
 
+	# Un match réseau/ranked est crédité côté serveur au moment du rapport de
+	# match (voir rankedModel.confirmMatch côté backend) — hors scope ici tant
+	# que ce rapport n'est pas encore envoyé par le client. Un match solo/IA
+	# n'a pas de second client pour faire foi : le client déclare directement
+	# son résultat, plafonné par jour côté serveur contre l'abus.
+	if network_manager == null:
+		CurrencyManager.report_solo_match_result(result == "victory", func(credited: bool):
+			if credited:
+				game_over_screen.show_reward(CurrencyManager.SOLO_WIN_REWARD_DISPLAY)
+		)
+
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
 func _on_hand_drag_started() -> void:
