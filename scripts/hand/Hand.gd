@@ -81,7 +81,7 @@ const HAND_ZONE_X_PADDING := 60.0
 
 func _hand_cards_x_range() -> Vector2:
 	_prune_hand_order()
-	var cards := _hand_order
+	var cards := _layout_cards()
 	if cards.is_empty():
 		return Vector2(1.0, -1.0)
 	var layout := _compute_layout(cards)
@@ -295,6 +295,15 @@ func _hide_keyword_tooltips() -> void:
 		_tooltip_layer = null
 
 
+# Sous-ensemble de _hand_order utilisé pour le calcul de la disposition
+# (nombre de cartes, index, espacement) : exclut la carte en cours de glisser-
+# déposer, qui reste invisible dans son slot en main tant qu'on ne l'a pas
+# lâchée (pour pouvoir annuler proprement le drag). Sans cette exclusion, un
+# trou vide subsiste dans l'éventail pendant tout le glisser, jusqu'à ce que
+# la carte soit réellement retirée de la main.
+func _layout_cards() -> Array:
+	return _hand_order.filter(func(c): return not c.dragging)
+
 func _compute_layout(cards: Array) -> Dictionary:
 	var count := cards.size()
 	var viewport           := get_viewport_rect().size
@@ -315,7 +324,7 @@ func set_compact(compact: bool) -> void:
 		return
 	_is_compact = compact
 	_prune_hand_order()
-	var cards := _hand_order
+	var cards := _layout_cards()
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
@@ -332,7 +341,7 @@ func set_compact(compact: bool) -> void:
 
 func _update_hand_layout(animated: bool = false) -> void:
 	_prune_hand_order()
-	var cards := _hand_order
+	var cards := _layout_cards()
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
@@ -409,13 +418,20 @@ func _card_position(index: int, layout: Dictionary, card: Control, norm: float, 
 
 func _relay_drag_started() -> void:
 	_force_expanded = true
-	if _hovered_card != null:
-		_hovered_card = null
-		_update_hand_layout(true)
+	_hovered_card = null
+	# Referme immédiatement l'écart laissé par la carte qu'on vient de saisir :
+	# elle reste en main (invisible) tant que le drag n'est pas résolu, mais ne
+	# doit plus réserver sa place dans l'éventail pendant ce temps (voir
+	# _layout_cards).
+	_update_hand_layout(true)
 	drag_started.emit()
 
 func _relay_drag_ended() -> void:
 	_force_expanded = false
+	# Que le drag ait été annulé (la carte réintègre son slot) ou résolu (elle
+	# va être libérée juste après ce signal), on refait le calcul pour que les
+	# autres cartes reprennent leur place correcte dans les deux cas.
+	_update_hand_layout(true)
 	drag_ended.emit()
 
 func _connect_card(card: Card) -> void:
