@@ -155,7 +155,7 @@ func _update_drop_placeholder(row: String, insert_index: int, show_style: bool) 
 		_drop_placeholder = _create_drop_placeholder()
 	# Highlights désactivés : le placeholder écarte les serviteurs mais reste invisible
 	_drop_placeholder.add_theme_stylebox_override(
-		"panel", _placeholder_style if show_style else _placeholder_empty_style)
+		"panel", (_placeholder_style as StyleBox) if show_style else (_placeholder_empty_style as StyleBox))
 	if _drop_placeholder.get_parent() != container:
 		if _drop_placeholder.get_parent() != null:
 			_drop_placeholder.get_parent().remove_child(_drop_placeholder)
