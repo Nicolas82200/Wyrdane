@@ -27,6 +27,7 @@ var suspended_label: Label
 var hand_container: VBoxContainer
 var front_container: HBoxContainer
 var back_container: HBoxContainer
+var other_boards_container: VBoxContainer
 var ready_button: Button
 var next_round_button: Button
 var back_to_menu_button: Button
@@ -119,6 +120,11 @@ func _build_ui() -> void:
 	back_container = HBoxContainer.new()
 	back_col.add_child(back_container)
 
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_OTHER_BOARDS_TITLE")))
+	other_boards_container = VBoxContainer.new()
+	other_boards_container.add_theme_constant_override("separation", 6)
+	vbox.add_child(other_boards_container)
+
 	ready_button = Button.new()
 	ready_button.text = SettingsManager.t("ARENA_READY_BUTTON")
 	ready_button.pressed.connect(_on_ready_pressed)
@@ -186,6 +192,7 @@ func _refresh_ui() -> void:
 	_refresh_shop()
 	_refresh_hand()
 	_refresh_board()
+	_refresh_other_boards()
 
 	ready_button.disabled = game_over
 	ready_button.visible = not game_over
@@ -254,6 +261,30 @@ func _make_board_entry(minion: Minion) -> VBoxContainer:
 	sell_button.pressed.connect(_on_sell_pressed.bind(minion, true))
 	col.add_child(sell_button)
 	return col
+
+# Le plateau de chaque joueur est visible de tous (README « Visibilité entre
+# joueurs ») — lecture seule, sans les boutons d'action réservés à la main du
+# joueur humain. La main/boutique de chacun reste privée, donc jamais affichée.
+func _refresh_other_boards() -> void:
+	for child in other_boards_container.get_children():
+		child.queue_free()
+	for p in match_.players:
+		if p == human:
+			continue
+		var col := VBoxContainer.new()
+		other_boards_container.add_child(col)
+		if p.is_eliminated:
+			col.add_child(_make_label_text("%s — %s" % [p.display_name, SettingsManager.t("ARENA_ELIMINATED_STATUS")]))
+			continue
+		col.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_LINE") % [p.display_name, p.hero_hp]))
+		var minions: Array[Minion] = p.board_front + p.board_back
+		if minions.is_empty():
+			col.add_child(_make_label_text("  " + SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
+		else:
+			var summaries: Array[String] = []
+			for minion in minions:
+				summaries.append(_minion_summary(minion))
+			col.add_child(_make_label_text("  " + ", ".join(summaries)))
 
 func _minion_summary(minion: Minion) -> String:
 	var star: String = " ★%d" % minion.star_level if minion.star_level > 1 else ""
