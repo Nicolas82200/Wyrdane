@@ -32,7 +32,7 @@ Le backend fonctionne avec l'AppID de test 480 (Spacewar), documenté et volonta
 
 ## P4 — Incohérence mineure de comptage de cartes
 
-`README.md` et `CLAUDE.md` annoncent 226 cartes au total ; le compte réel des `.tres` dans `resources/cards/` est 224 (75 Mort-Vivant + 74 Humain + 75 Démon). Écart mineur, à vérifier lors de la prochaine carte ajoutée/retirée (peut-être un chiffre resté après une carte supprimée en cours de design). **Fait dans cette branche** : correction de la ligne obsolète dans `CLAUDE.md` qui indiquait encore que les `.tres` Démon « restent à créer » (ils existent déjà, 75 fichiers).
+**Résolu dans cette branche.** Le compte réel des `.tres` dans `resources/cards/` est désormais 317 (80 Mort-Vivant dont 4 jetons, 81 Humain dont 5 jetons, 77 Démon dont 1 jeton, 79 Abomination dont 3 jetons) — `README.md` et `CLAUDE.md` annonçaient encore 226/227/303. Deux cartes-jetons Abomination (« Amas Informe Mutant », « Amas Informe Reformé ») existaient dans `resources/cards/abomination/` sans ligne correspondante dans `CARDS.md` ; ajoutées (A78/A79). Comptages mis à jour dans `README.md`, `CLAUDE.md` et `CARDS.md`. À revérifier lors de la prochaine carte ajoutée/retirée.
 
 ## P5 — Elfe / Nain : scaffolding minimal
 
@@ -42,4 +42,4 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
 - i18n : échantillonnage de `Battle.gd`, `GameOverScreen.gd`, `Card.gd` — tout passe par `SettingsManager.t()` ou `display_*()`, pas de chaîne FR en dur trouvée.
-- `README.md` et `CLAUDE.md` sont globalement alignés (roadmap, limites IA, statut Steam identiques des deux côtés) en dehors du point P5 corrigé ci-dessus.
+- `README.md` et `CLAUDE.md` sont globalement alignés (roadmap, limites IA, statut Steam identiques des deux côtés) en dehors du point P4 corrigé ci-dessus.
