@@ -202,12 +202,12 @@ func _compute_target_rects(targets: Array) -> Array:
 # position/size bruts.
 func _transformed_rect(control: Control) -> Rect2:
 	var xform := control.get_global_transform()
-	var size: Vector2 = control.size
+	var control_size: Vector2 = control.size
 	var corners := [
 		xform * Vector2.ZERO,
-		xform * Vector2(size.x, 0),
-		xform * Vector2(0, size.y),
-		xform * size,
+		xform * Vector2(control_size.x, 0),
+		xform * Vector2(0, control_size.y),
+		xform * control_size,
 	]
 	var result := Rect2(corners[0], Vector2.ZERO)
 	for c in corners:

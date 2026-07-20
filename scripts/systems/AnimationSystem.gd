@@ -147,6 +147,92 @@ func _shatter_card_art(card: Card, color: Color) -> void:
 				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 			tween.chain().tween_callback(piece.queue_free)
 
+## SORT : projectile qui file de la popup d'effet (`from`) vers chaque cible
+## touchée (`targets`), en suivant la même courbe que la flèche de ciblage
+## (`ArrowOverlay`). Laisse une traînée d'étincelles et explose à l'impact.
+## `color` vient de la race de la carte lancée (voir ManaDisplay.RACE_MANA_COLORS).
+func play_spell_missile(from: Vector2, targets: Array, color: Color) -> void:
+	for i in range(targets.size()):
+		_fire_missile(from, targets[i], color, i * 0.05)
+
+func _fire_missile(start: Vector2, target: Vector2, color: Color, delay: float) -> void:
+	if delay > 0.0:
+		await battle.get_tree().create_timer(delay).timeout
+	if not is_instance_valid(battle):
+		return
+	var glow_color: Color = color.lightened(0.35)
+
+	var bolt := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = glow_color
+	style.set_corner_radius_all(5)
+	bolt.add_theme_stylebox_override("panel", style)
+	bolt.size = Vector2(22, 9)
+	bolt.pivot_offset = bolt.size / 2.0
+	bolt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bolt.z_index = 105
+	bolt.modulate.a = 0.0
+	battle.add_child(bolt)
+	bolt.global_position = start - bolt.size / 2.0
+
+	var duration: float = clampf(start.distance_to(target) / 1300.0, 0.18, 0.45)
+	var perp: Vector2 = (target - start).orthogonal().normalized()
+	var trail_spawned := {}
+
+	var curve_pos := func(t: float) -> Vector2:
+		var pos_t: float = t * t * (3.0 - 2.0 * t)
+		return start.lerp(target, pos_t) + perp * sin(t * PI) * 14.0
+
+	var step := func(t: float):
+		if not is_instance_valid(bolt):
+			return
+		var pos: Vector2 = curve_pos.call(t)
+		var ahead: Vector2 = curve_pos.call(minf(t + 0.03, 1.0))
+		bolt.rotation = (ahead - pos).angle()
+		bolt.global_position = pos - bolt.size / 2.0
+		var step8: int = int(t * 8.0)
+		if not trail_spawned.has(step8):
+			trail_spawned[step8] = true
+			_travel_spark(pos, pos, glow_color, 0.0, 0.22, 6.0)
+
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(bolt, "modulate:a", 1.0, 0.03)
+	tween.tween_method(step, 0.0, 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(func():
+		if is_instance_valid(bolt):
+			bolt.queue_free()
+		_missile_impact(target, glow_color)
+	)
+
+## Petite explosion radiale au point d'impact d'un projectile de sort.
+func _missile_impact(pos: Vector2, color: Color) -> void:
+	const BURST_COUNT := 8
+	for i in range(BURST_COUNT):
+		var angle: float = i * TAU / BURST_COUNT
+		var offset: Vector2 = Vector2(cos(angle), sin(angle)) * 34.0
+		_travel_spark(pos, pos + offset, color, 0.0, 0.22, 6.0)
+
+	var flash := Panel.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(20)
+	flash.add_theme_stylebox_override("panel", style)
+	flash.size = Vector2(40, 40)
+	flash.pivot_offset = flash.size / 2.0
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	flash.z_index = 106
+	flash.modulate.a = 0.85
+	battle.add_child(flash)
+	flash.global_position = pos - flash.size / 2.0
+
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(flash, "scale", Vector2(1.6, 1.6), 0.22)\
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(flash, "modulate:a", 0.0, 0.22)
+	tween.chain().tween_callback(flash.queue_free)
+
 ## Boule de lumière qui voyage de `start` à `target` avec un halo et une
 ## traînée d'après-images, façon "âme" absorbée vers le pool de mana.
 func _travel_light_orb(start: Vector2, target: Vector2, color: Color) -> void:
