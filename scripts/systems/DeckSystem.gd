@@ -36,10 +36,25 @@ func deal_opening_hand() -> void:
 # mulligan : elle retourne dans le deck (mélangé), une nouvelle est piochée à
 # sa place, au même index. Retourne la nouvelle carte, ou null si le deck est
 # vide (rien à piocher, la carte reste en main) ou l'index invalide.
+# En tutoriel, le deck de pioche (TutorialDeck.player_deck_padding) ne contient
+# aucune carte-ressource : piocher au hasard dedans transformerait un échange
+# de ressource en Zombie/Cadavre Errant surnuméraire et ferait manquer une des
+# 3 ressources attendues par le script (voir TutorialManager.run()), le
+# bloquant indéfiniment. On remplace donc toujours une ressource par une
+# nouvelle ressource, sans piocher dans le deck.
 func mulligan_replace_one(index: int) -> CardData:
-	if battle.deck.is_empty() or index < 0 or index >= battle.hand_cards.size():
+	if index < 0 or index >= battle.hand_cards.size():
 		return null
 	var old_card: CardData = battle.hand_cards[index]
+	if battle.tutorial_active and TutorialDeck.is_swappable_during_tutorial(old_card):
+		battle.deck.append(old_card)
+		battle.deck.shuffle()
+		var new_resource: CardData = TutorialDeck.resource_card()
+		battle.hand_cards[index] = new_resource
+		update_deck_ui()
+		return new_resource
+	if battle.deck.is_empty():
+		return null
 	battle.deck.append(old_card)
 	battle.deck.shuffle()
 	var new_card: CardData = battle.deck.pop_back()

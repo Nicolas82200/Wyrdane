@@ -601,6 +601,23 @@ func _wait_minion() -> void:
 func intro_mulligan() -> void:
 	await _popup("tutorial.mulligan_intro", [battle.hand, battle.end_turn_button])
 
+# Appelé par Battle._run_mulligan() une fois le mode mulligan actif (cartes
+# cliquables) : surligne les 3 exemplaires d'Éclat d'Âme (fusionnés en une
+# seule zone par _dim_hole, voir TutorialDeck.player_hand()) et force
+# réellement l'échange de l'un d'eux avant de laisser le script continuer —
+# comme les autres mécaniques enseignées, pas juste une popup qu'on ignore.
+# Le remplacement lui-même reste toujours une nouvelle carte-ressource (voir
+# DeckSystem.mulligan_replace_one), donc peu importe laquelle des 3 est
+# échangée, la main obtenue reste toujours valide pour la suite du script.
+func guided_mulligan() -> void:
+	var nodes := _find_hand_card_nodes(TutorialDeck.resource_card())
+	await _popup_wait_action("tutorial.mulligan_guided", nodes, "mulligan_swap",
+		Callable(), "tutorial.hint_mulligan_swap")
+
+# Appelé par Battle._on_mulligan_card_clicked() après un échange réussi.
+func notify_mulligan_swap(card_data: CardData) -> void:
+	_event.emit({"kind": "mulligan_swap", "payload": card_data})
+
 # ─── Script du tutoriel ───────────────────────────────────────────────────────
 
 func run() -> void:

@@ -369,6 +369,12 @@ func _run_mulligan() -> void:
 	# le joueur lit la popup d'introduction avant de pouvoir même cliquer.
 	if not tutorial_active:
 		turn_timer.start(MULLIGAN_DURATION)
+	else:
+		# Étape guidée : surligne les cartes-ressource et force réellement
+		# l'échange d'au moins l'une d'elles avant de laisser le joueur
+		# confirmer, pour que le mulligan soit enseigné comme les autres
+		# mécaniques (pas juste une popup de narration qui se ferme au clic).
+		await tutorial_manager.guided_mulligan()
 	await mulligan_confirmed
 	turn_timer.stop()
 	turn_banner.hide_banner()
@@ -397,6 +403,8 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	AudioManager.play(AudioManager.DRAW)
 	hand.flip_replace_at(index, new_data)
 	hand.set_card_mulligan_swapped(index, true)
+	if tutorial_active:
+		tutorial_manager.notify_mulligan_swap(_card_data)
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
