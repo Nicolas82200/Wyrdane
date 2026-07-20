@@ -28,6 +28,7 @@ TooltipData="*uid://bxsh8pr326i0h"
 CardLibrary="*uid://d3txnel4suoji"
 SettingsManager="*res://scripts/settings/SettingsManager.gd"
 CollectionManager="*res://scripts/collection/CollectionManager.gd"
+CurrencyManager="*res://scripts/collection/CurrencyManager.gd"
 BackendClient="*res://scripts/net/BackendClient.gd"
 
 [display]

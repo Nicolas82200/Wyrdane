@@ -16,12 +16,15 @@ const TITLE_DISCONNECT_COLOR := Color(0.75, 0.72, 0.65)
 @onready var subtitle_label: Label   = $Panel/VBox/SubtitleMargin/Subtitle
 @onready var replay_button: Button   = $Panel/VBox/ButtonsMargin/ButtonsVBox/ReplayButton
 @onready var menu_button: Button     = $Panel/VBox/ButtonsMargin/ButtonsVBox/MenuButton
+@onready var reward_label: Label     = $Panel/VBox/RewardLabel
 
 # "victory" | "defeat" | "disconnect" — mémorisé pour retraduire à la volée.
 var _result: String = "victory"
+var _reward_amount: int = 0
 
 func _ready() -> void:
 	hide()
+	reward_label.hide()
 	_style_button(replay_button)
 	_style_button(menu_button)
 	replay_button.pressed.connect(func(): replay_requested.emit())
@@ -33,6 +36,8 @@ func _ready() -> void:
 # est parti) : seul le retour au menu est proposé.
 func show_result(result: String, allow_replay: bool = true) -> void:
 	_result = result
+	_reward_amount = 0
+	reward_label.hide()
 	replay_button.visible = allow_replay and result != "disconnect"
 	match result:
 		"defeat":
@@ -44,6 +49,13 @@ func show_result(result: String, allow_replay: bool = true) -> void:
 	_retranslate()
 	AudioManager.play(AudioManager.OPEN_MENU)
 	show()
+
+# Appelé après confirmation serveur du crédit de monnaie (voir
+# Battle._show_game_over) : peut arriver après que l'écran soit déjà affiché.
+func show_reward(amount: int) -> void:
+	_reward_amount = amount
+	reward_label.text = SettingsManager.t("battle.gameover.reward") % amount
+	reward_label.show()
 
 func _retranslate() -> void:
 	match _result:
@@ -58,6 +70,8 @@ func _retranslate() -> void:
 			subtitle_label.text = SettingsManager.t("battle.gameover.victory_sub")
 	replay_button.text = SettingsManager.t("battle.gameover.replay")
 	menu_button.text   = SettingsManager.t("battle.gameover.menu")
+	if _reward_amount > 0:
+		reward_label.text = SettingsManager.t("battle.gameover.reward") % _reward_amount
 
 # Même habillage que les boutons du menu réglages (SettingsMenu.gd).
 func _style_button(btn: Button) -> void:
