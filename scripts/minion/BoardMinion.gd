@@ -49,6 +49,7 @@ const FROZEN_TINT      := Color(0.55, 0.75, 1.0)
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
+var _last_card_scene_error_msec: int = -999999
 var _tooltip_layer: CanvasLayer = null
 
 # Référence Battle mise en cache
@@ -241,7 +242,14 @@ func _on_mouse_entered() -> void:
 	if _hover_preview != null:
 		return
 	if CARD_SCENE == null or not CARD_SCENE.can_instantiate():
-		push_error("BoardMinion: CARD_SCENE is invalid")
+		# _process() retente ce hover à chaque frame tant qu'aucune preview
+		# n'existe : sans throttle, un échec transitoire (ex. réimport
+		# d'assets en cours pendant que le jeu tourne dans l'éditeur) spamme
+		# la console en continu au lieu de simplement réessayer plus tard.
+		var now := Time.get_ticks_msec()
+		if now - _last_card_scene_error_msec > 2000:
+			push_error("BoardMinion: CARD_SCENE is invalid")
+			_last_card_scene_error_msec = now
 		return
 	_hover_preview = CARD_SCENE.instantiate()
 	if _hover_preview == null:
