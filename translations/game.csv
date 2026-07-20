@@ -77,6 +77,7 @@ turn.mana_desc,"Gagnez définitivement\n+1 cristal de mana maximum.","Permanentl
 turn.hint,"Un seul choix par tour — choisissez avec sagesse.","One choice per turn — choose wisely."
 turn.peek,"Voir ma main","View my hand"
 mulligan.banner,"Choisissez votre main","Choose your hand"
+mulligan.hint,"Vous pouvez changer jusqu'à 2 cartes","You may change up to 2 cards"
 mulligan.start_button,"Commencer","Start"
 KW_TAUNT_NAME,"Rempart","Taunt"
 KW_CHARGE_NAME,"Assaut","Charge"
