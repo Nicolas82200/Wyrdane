@@ -245,7 +245,7 @@ func _on_mouse_entered() -> void:
 		# _process() retente ce hover à chaque frame tant qu'aucune preview
 		# n'existe : sans throttle, un échec transitoire (ex. réimport
 		# d'assets en cours pendant que le jeu tourne dans l'éditeur) spamme
-		# la console en continu au lieu de simplement réessayer plus tard.
+		# la console en continu au --lieu de simplement réessayer plus tard.
 		var now := Time.get_ticks_msec()
 		if now - _last_card_scene_error_msec > 2000:
 			push_error("BoardMinion: CARD_SCENE is invalid")
