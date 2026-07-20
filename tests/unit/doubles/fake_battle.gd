@@ -41,6 +41,15 @@ var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
 var _fake_tree := FakeSceneTree.new()
 
+# ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
+var deck: Array[CardData] = []
+var hand_cards: Array[CardData] = []
+var tutorial_active: bool = false
+var deck_button: Button = Button.new()
+var deck_count_label: Label = Label.new()
+const MAX_STACK_VISUAL := 8
+const CARD_BACK = preload("res://assets/card_back/card-back.png")
+
 func get_tree() -> FakeSceneTree:
 	return _fake_tree
 

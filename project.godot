@@ -73,10 +73,6 @@ locale/translations=PackedStringArray("res://translations/game.fr.translation", 
 
 3d/physics_engine="Jolt Physics"
 
-[rendering]
-
-rendering_device/driver.windows="vulkan"
-
 [steam]
 
 initialization/app_data/app_type=0
