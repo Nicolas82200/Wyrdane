@@ -28,6 +28,15 @@ func test_gold_increments_and_caps() -> void:
 	match_.start_shop_phase()
 	assert_eq(match_.players[0].gold, ArenaConstants.GOLD_CAP, "l'or ne doit jamais dépasser le plafond")
 
+func test_gold_income_grows_even_when_fully_spent_each_round() -> void:
+	# Un joueur qui dépense tout son or chaque round (comportement encouragé
+	# par le design, voir README « Philosophie de design ») ne doit jamais
+	# rester bloqué à 1 or/round : le revenu doit croître de round en round.
+	assert_eq(ArenaEconomy.compute_gold_for_round(2, 0), 2)
+	assert_eq(ArenaEconomy.compute_gold_for_round(3, 0), 3)
+	assert_eq(ArenaEconomy.compute_gold_for_round(10, 0), 10)
+	assert_eq(ArenaEconomy.compute_gold_for_round(20, 0), ArenaConstants.GOLD_CAP, "le revenu par round est plafonné à 15")
+
 func test_xp_purchase_locked_at_round_1() -> void:
 	var match_ := _make_match()
 	match_.players[0].gold = 10
