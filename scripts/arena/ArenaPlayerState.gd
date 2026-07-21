@@ -22,6 +22,9 @@ var board_front: Array[Minion] = []
 var board_back: Array[Minion] = []
 # Cartes en attente d'une place en main libre (fusion produite main pleine).
 var suspended: Array[Minion] = []
+# Incantations achetées mais pas encore lancées (CardData brut : pas de
+# plateau, pas de stats permanentes, donc pas besoin d'un wrapper Minion).
+var spell_hand: Array[CardData] = []
 
 var shop_offer: Array[CardData] = []
 # Parallèle à shop_offer : une case verrouillée n'est pas re-tirée au reroll.
@@ -42,12 +45,17 @@ func all_owned_minions() -> Array[Minion]:
 	return result
 
 func hand_count() -> int:
-	return hand.size() + suspended.size()
+	return hand.size() + spell_hand.size() + suspended.size()
 
 # Places physiques en main occupées (les cartes suspendues n'occupent aucune
 # place tant qu'elles n'ont pas rejoint la main).
 func is_hand_full() -> bool:
-	return hand.size() >= ArenaConstants.HAND_MAX
+	return hand.size() + spell_hand.size() >= ArenaConstants.HAND_MAX
+
+# Les Incantations n'ont ni plateau ni fusion : pas de mécanisme de suspens,
+# l'achat est simplement refusé si la main est pleine (voir ArenaMatch.buy_card).
+func add_spell_to_hand(card_data: CardData) -> void:
+	spell_hand.append(card_data)
 
 # Ajoute une carte en main, ou en suspens si la main est pleine ; libère
 # automatiquement les cartes suspendues dès qu'une place se libère.

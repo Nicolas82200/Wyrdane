@@ -2,8 +2,11 @@ extends RefCounted
 class_name ArenaCardPool
 
 # Pool de cartes partagé du mode Arena (voir README « Pool de cartes partagé »).
-# Contient uniquement des Serviteurs (Incantations/Rituels/Enchantements hors
-# scope v1, voir CLAUDE.md/plan Arena) des 4 races déjà jouables.
+# Contient les Serviteurs (des 4 races) et, depuis l'ajout des Incantations
+# Arena, les sorts marqués `CardData.arena_only = true` (voir CARDS.md
+# « Cartes exclusives Arena ») — jamais les ~100 Incantations 1v1 existantes,
+# pensées pour un modèle de ciblage/pioche incompatible (voir README
+# « Incantations »). Rituels/Enchantements restent hors scope v1.
 
 var remaining_copies: Dictionary = {}       # resource_path (String) -> int
 var _cards_by_path: Dictionary = {}         # resource_path (String) -> CardData
@@ -14,7 +17,10 @@ func _init(source_cards: Array[CardData] = []) -> void:
 	if cards.is_empty():
 		cards = CardLibrary.all_cards
 	for card in cards:
-		if card.card_type != "Minion" or card.is_token:
+		if card.is_token:
+			continue
+		var is_eligible: bool = card.card_type == "Minion" or (card.card_type == "Instant" and card.arena_only)
+		if not is_eligible:
 			continue
 		var path: String = card.resource_path
 		_cards_by_path[path] = card

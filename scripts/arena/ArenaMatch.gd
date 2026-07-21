@@ -61,9 +61,37 @@ func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	player.shop_offer[shop_index] = null
 	if shop_index < player.shop_locked.size():
 		player.shop_locked[shop_index] = false
-	var minion := Minion.new(card_data, true, "Front")
-	player.add_to_hand(minion)
-	merge_system.try_merge_all(player)
+	if card_data.card_type == "Minion":
+		var minion := Minion.new(card_data, true, "Front")
+		player.add_to_hand(minion)
+		merge_system.try_merge_all(player)
+	else:
+		# Incantation (arena_only, voir README « Cartes exclusives Arena ») :
+		# rejoint la main, sera lancée séparément via cast_spell().
+		player.add_spell_to_hand(card_data)
+	return true
+
+# Lance une Incantation depuis la main : n'accepte que les effets ciblant le
+# lanceur/ses propres alliés (Buff/GrantKeyword/HealHero sur Self, AllAllies*,
+# OwnerHero) — pas de ciblage ennemi en Arena v1 (l'adversaire du round n'est
+# révélé qu'au moment du combat, voir plan Arena). Réutilise SimulatedBattle
+# comme contexte d'exécution : enemy_minions reste vide (sans objet ici),
+# player_minions/player_hero reflètent l'état réel du lanceur, puis sont
+# resynchronisés vers ArenaPlayerState après résolution (Minion partagés par
+# référence pour le plateau ; hero_hp copié explicitement).
+func cast_spell(player: ArenaPlayerState, card_data: CardData) -> bool:
+	if not player.spell_hand.has(card_data):
+		return false
+	var sim := SimulatedBattle.new()
+	sim.player_hero = Hero.new(player.hero_hp)
+	sim.player_minions = (player.board_front + player.board_back).duplicate()
+	for m in sim.player_minions:
+		m.owner_is_player = true
+	for effect in card_data.effects:
+		await sim.effect_manager.execute_effect(sim, null, effect, null)
+	sim.aura_system.recompute_all()
+	player.hero_hp = sim.player_hero.health
+	player.spell_hand.erase(card_data)
 	return true
 
 # Vente 100% depuis la main, 50% depuis le plateau (README « Cycle de vie
@@ -80,6 +108,16 @@ func sell_card(player: ArenaPlayerState, minion: Minion, from_board: bool) -> bo
 		player.remove_from_hand(minion)
 	pool.release(minion.card_data)
 	player.gold += ArenaEconomy.sell_refund(minion.card_data.cost, from_board)
+	return true
+
+# Une Incantation non lancée reste en main jusqu'à être vendue (100%, comme
+# n'importe quelle carte en main) ou lancée (cast_spell).
+func sell_spell(player: ArenaPlayerState, card_data: CardData) -> bool:
+	if not player.spell_hand.has(card_data):
+		return false
+	player.spell_hand.erase(card_data)
+	pool.release(card_data)
+	player.gold += ArenaEconomy.sell_refund(card_data.cost, false)
 	return true
 
 func reroll(player: ArenaPlayerState) -> bool:
@@ -172,10 +210,13 @@ func _eliminate(player: ArenaPlayerState) -> void:
 	ghost_board = GhostBoard.capture(player)
 	for minion in player.all_owned_minions():
 		pool.release(minion.card_data)
+	for card_data in player.spell_hand:
+		pool.release(card_data)
 	player.hand.clear()
 	player.board_front.clear()
 	player.board_back.clear()
 	player.suspended.clear()
+	player.spell_hand.clear()
 
 func advance_round() -> void:
 	round_number += 1

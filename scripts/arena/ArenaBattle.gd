@@ -37,6 +37,7 @@ var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
 var hand_container: HBoxContainer
+var spell_hand_container: HBoxContainer
 var front_row: ArenaBoardRow
 var back_row: ArenaBoardRow
 var hero_portrait: TextureRect
@@ -158,6 +159,11 @@ func _build_ui() -> void:
 	hand_container.add_theme_constant_override("separation", 8)
 	vbox.add_child(hand_container)
 
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_SPELL_HAND_TITLE")))
+	spell_hand_container = HBoxContainer.new()
+	spell_hand_container.add_theme_constant_override("separation", 8)
+	vbox.add_child(spell_hand_container)
+
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_OTHER_BOARDS_TITLE")))
 	other_boards_container = VBoxContainer.new()
 	other_boards_container.add_theme_constant_override("separation", 6)
@@ -237,6 +243,7 @@ func _refresh_ui() -> void:
 
 	_refresh_shop()
 	_refresh_hand()
+	_refresh_spells()
 	_refresh_board()
 	_refresh_other_boards()
 
@@ -310,6 +317,35 @@ func _add_minion_card_visual(col: Node, minion: Minion) -> void:
 	card.health_label.text = str(minion.health)
 	if minion.star_level > 1:
 		card.name_label.text += " ★%d" % minion.star_level
+
+# Incantations achetées (arena_only, voir CARDS.md « Cartes exclusives
+# Arena ») : uniquement des effets ciblant soi-même/ses alliés (Buff/
+# GrantKeyword/HealHero) — aucun ciblage à choisir, "Lancer" les applique
+# immédiatement (à soi, tout le plateau, ou une rangée).
+func _refresh_spells() -> void:
+	for child in spell_hand_container.get_children():
+		child.queue_free()
+	for card_data in human.spell_hand:
+		var col := VBoxContainer.new()
+		spell_hand_container.add_child(col)
+		_add_spell_card_visual(col, card_data)
+		var cast_button := Button.new()
+		cast_button.text = SettingsManager.t("ARENA_CAST_BUTTON")
+		cast_button.pressed.connect(_on_cast_pressed.bind(card_data))
+		col.add_child(cast_button)
+		var sell_button := Button.new()
+		sell_button.text = SettingsManager.t("ARENA_SELL_BUTTON")
+		sell_button.pressed.connect(_on_sell_spell_pressed.bind(card_data))
+		col.add_child(sell_button)
+
+func _add_spell_card_visual(col: Node, card_data: CardData) -> void:
+	var card: Card = CARD_SCENE.instantiate()
+	col.add_child(card)
+	card.scale = Vector2(0.6, 0.6)
+	card.set_data(card_data)
+	card.set_non_interactive()
+	card.cost_label.text = str(card_data.cost)
+	card.generic_cost_label.visible = false
 
 func _refresh_board() -> void:
 	for child in front_row.get_children():
@@ -397,6 +433,14 @@ func _on_sell_pressed(minion: Minion, from_board: bool) -> void:
 	match_.sell_card(human, minion, from_board)
 	_refresh_ui()
 
+func _on_cast_pressed(card_data: CardData) -> void:
+	await match_.cast_spell(human, card_data)
+	_refresh_ui()
+
+func _on_sell_spell_pressed(card_data: CardData) -> void:
+	match_.sell_spell(human, card_data)
+	_refresh_ui()
+
 # ─── Phase Combat ────────────────────────────────────────────────────────────
 
 func _on_ready_pressed() -> void:
@@ -406,6 +450,9 @@ func _on_ready_pressed() -> void:
 			continue
 		bot_driver.play_shop_phase(bot, match_)
 		bot_driver.play_positioning_phase(bot)
+		# Après la pose, pas avant : les Incantations "tout le plateau" doivent
+		# viser la composition finale du bot, pas un plateau encore incomplet.
+		await bot_driver.cast_spells_phase(bot, match_)
 	match_.end_shop_phase()
 	await match_.start_combat_phase()
 	combat_log_label.text = "\n".join(match_.last_combat_summaries)

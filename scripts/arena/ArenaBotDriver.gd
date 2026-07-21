@@ -40,6 +40,14 @@ func _affordable_indices(player: ArenaPlayerState) -> Array[int]:
 			result.append(i)
 	return result
 
+# Lance toutes les Incantations achetées : elles ne sont que des buffs/octrois
+# de mot-clé sans contrepartie en Arena v1 (voir README « Cartes exclusives
+# Arena »), donc les lancer systématiquement est un choix raisonnable même
+# pour un bot très simple.
+func cast_spells_phase(player: ArenaPlayerState, match_: ArenaMatch) -> void:
+	for card_data in player.spell_hand.duplicate():
+		await match_.cast_spell(player, card_data)
+
 # Pose gratuite au hasard Avant/Arrière, dans la limite de 10 par rangée
 # (README « Pose sur le plateau »).
 func play_positioning_phase(player: ArenaPlayerState) -> void:

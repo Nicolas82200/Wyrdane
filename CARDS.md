@@ -144,6 +144,12 @@ Positionnement (Lane Types)
 | Légion Décharnée | ⚔️ | 3 | 3 | 3 | HORDE. | Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue. |
 | Colosse Revenant | ⚔️ | 5 | 5 | 6 | REMPART. REVENANT. | Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre. |
 
+**Incantations Arena** — achetées en boutique puis lancées séparément depuis la main (pas de ciblage ennemi en v1, voir README « Incantations » et plan Arena) :
+
+| Nom | ⬡ | Rareté | Effet | Flavour |
+|---|:---:|---|---|---|
+| Souffle du Charnier Ancestral | 3 | Rare | Tous tes serviteurs alliés gagnent +1/+1 de façon permanente. | Un seul souffle, et chaque carcasse debout se redresse un peu plus droite. |
+
 ---
 
 ## Incantations
@@ -358,6 +364,12 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 |---|:---:|:---:|:---:|:---:|---|---|
 | Porte-Bannière Royal | 🛡️ | 4 | 3 | 5 | COMMANDEMENT. | Chaque recrue qui rejoint sa bannière se tient un peu plus droite. |
 | Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION : tant qu'un allié est adjacent, ce serviteur gagne +1/+1. | Seule, une lance plie. En ligne, elle ne recule plus. |
+
+**Incantations Arena** :
+
+| Nom | ⬡ | Rareté | Effet | Flavour |
+|---|:---:|---|---|---|
+| Bénédiction du Front | 3 | Rare | Tous tes serviteurs alliés en rangée Avant gagnent ÉGIDE. | La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon. |
 
 ---
 
@@ -587,6 +599,12 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | Bourreau Corrompu | ⚔️ | 4 | 4 | 4 | CORRUPTION. | Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait. |
 | Émissaire Zélé | ⚔️ | 2 | 3 | 2 | ASSAUT. | Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse. |
 
+**Incantations Arena** :
+
+| Nom | ⬡ | Rareté | Effet | Flavour |
+|---|:---:|---|---|---|
+| Rite du Sang Renforcé | 4 | Épique | Tous tes serviteurs alliés gagnent +2/+0 de façon permanente. | Le sang versé n'appelle pas la pitié. Il appelle la force de frapper plus fort. |
+
 ---
 
 ## Incantations
@@ -810,6 +828,12 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 |---|:---:|:---:|:---:|:---:|---|---|
 | Prototype Instable | ⚔️ | 3 | 2 | 4 | MUTATION. | Sa forme n'est jamais tout à fait la même deux combats de suite. |
 | Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE. VENIN MORTEL. | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
+
+**Incantations Arena** :
+
+| Nom | ⬡ | Rareté | Effet | Flavour |
+|---|:---:|---|---|---|
+| Chant Dévorant | 4 | Épique | Tous tes serviteurs alliés gagnent VENIN MORTEL. | Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire. |
 
 ---
 
