@@ -1,0 +1,56 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/Navbar.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/shop/PackShop.tscn" id="2_packshop"]
+[ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="3_font"]
+
+[node name="Navbar" type="Control"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 56.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("1_script")
+
+[node name="Bar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HBox" type="HBoxContainer" parent="Bar"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = 44.0
+grow_horizontal = 0
+theme_override_constants/separation = 16
+
+[node name="CurrencyLabel" type="Label" parent="Bar/HBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="ShopButton" type="Button" parent="Bar/HBox"]
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Packs"
+
+[node name="ShopLayer" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="PackShop" parent="ShopLayer" instance=ExtResource("2_packshop")]
