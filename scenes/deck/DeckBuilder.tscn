@@ -4,6 +4,7 @@
 [ext_resource type="Theme" path="res://resources/themes/ui_theme.tres" id="2_theme"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_font"]
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="4_card"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Navbar.tscn" id="5_navbar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
 bg_color = Color(0.05, 0.042, 0.03, 1)
@@ -224,3 +225,6 @@ layout_mode = 0
 offset_right = 250.0
 offset_bottom = 375.0
 mouse_filter = 2
+
+[node name="Navbar" parent="." instance=ExtResource("5_navbar")]
+layout_mode = 1
