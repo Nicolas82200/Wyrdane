@@ -32,7 +32,7 @@ func test_full_round_loop_does_not_crash() -> void:
 		scene._on_next_round_pressed()
 		assert_eq(scene.match_.round_number, 2)
 
-func test_shop_card_drop_buys_and_places_on_board() -> void:
+func test_shop_card_drop_buys_into_hand_without_placing() -> void:
 	var affordable_index := -1
 	for i in scene.human.shop_offer.size():
 		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
@@ -42,4 +42,5 @@ func test_shop_card_drop_buys_and_places_on_board() -> void:
 	var gold_before: int = scene.human.gold
 	scene._on_shop_card_dropped(affordable_index, true)
 	assert_lt(scene.human.gold, gold_before, "le drop doit débiter l'or (achat)")
-	assert_eq(scene.human.board_front.size(), 1, "le drop doit poser directement le serviteur acheté en Avant")
+	assert_eq(scene.human.hand.size(), 1, "la carte achetée doit rejoindre la main")
+	assert_true(scene.human.board_front.is_empty(), "la pose reste une action séparée, pas automatique au drop")

@@ -8,6 +8,8 @@ extends Control
 # centre) ; acheter un serviteur se fait en le glissant vers son propre
 # plateau (drag & drop autonome, voir ArenaShopCardSlot/ArenaBoardRow — pas
 # de réutilisation de Card.gd/DropSystem.gd, pensés pour le mana/ciblage 1v1).
+# L'achat rejoint la main (comme un achat au clic) ; la pose sur le plateau
+# reste une action séparée via les boutons Avant/Arrière de la main.
 #
 # 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
 
@@ -262,19 +264,11 @@ func _refresh_shop() -> void:
 		lock_button.pressed.connect(_on_lock_pressed.bind(i))
 		col.add_child(lock_button)
 
-func _on_shop_card_dropped(shop_index: int, is_front: bool) -> void:
-	var hand_before: Array[Minion] = human.hand.duplicate()
-	if not match_.buy_card(human, shop_index):
-		return
-	# La carte achetée rejoint la main (ArenaMatch.buy_card) ; on la pose
-	# immédiatement là où le joueur l'a lâchée (achat + pose en un seul geste).
-	var bought: Minion = null
-	for m in human.hand:
-		if not hand_before.has(m):
-			bought = m
-			break
-	if bought != null:
-		human.place_on_board(bought, is_front)
+func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
+	# L'achat par glisser-déposer rejoint la main (comme un achat au clic) ;
+	# la pose sur le plateau reste une action séparée et volontaire du joueur
+	# (boutons Avant/Arrière dans la main), pas automatique au moment du drop.
+	match_.buy_card(human, shop_index)
 	_refresh_ui()
 
 func _refresh_hand() -> void:
