@@ -135,6 +135,17 @@ Positionnement (Lane Types)
 
 ---
 
+## Cartes exclusives Arena
+
+`CardData.arena_only = true` : jamais dans le deckbuilder, le pool IA ou `SummonRandom` (1v1) — uniquement dans le pool partagé du mode Arena (`CardLibrary.arena_only_cards`, voir `scripts/arena/ArenaCardPool.gd`). Introduites pour diversifier les archétypes de l'Arena au-delà de NÉCROPHAGE/ASSIMILATION (buffs permanents qui accumulent sans limite sur la durée d'une partie Arena).
+
+| Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|---|:---:|:---:|:---:|:---:|---|---|
+| Légion Décharnée | ⚔️ | 3 | 3 | 3 | HORDE. | Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue. |
+| Colosse Revenant | ⚔️ | 5 | 5 | 6 | REMPART. REVENANT. | Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre. |
+
+---
+
 ## Incantations
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
@@ -336,6 +347,17 @@ Liste complète des cartes de la race **Humain**.
 | H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART. | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
 | H38 | Commandant des Derniers | 🛡️ | 7 | 5 | 6 | COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
 | H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART. ÉGIDE. DISCIPLINE. Arrivée : tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour adverse. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
+
+---
+
+## Cartes exclusives Arena
+
+Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_only`.
+
+| Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|---|:---:|:---:|:---:|:---:|---|---|
+| Porte-Bannière Royal | 🛡️ | 4 | 3 | 5 | COMMANDEMENT. | Chaque recrue qui rejoint sa bannière se tient un peu plus droite. |
+| Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION : tant qu'un allié est adjacent, ce serviteur gagne +1/+1. | Seule, une lance plie. En ligne, elle ne recule plus. |
 
 ---
 
@@ -556,6 +578,17 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 
 ---
 
+## Cartes exclusives Arena
+
+Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_only`.
+
+| Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|---|:---:|:---:|:---:|:---:|---|---|
+| Bourreau Corrompu | ⚔️ | 4 | 4 | 4 | CORRUPTION. | Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait. |
+| Émissaire Zélé | ⚔️ | 2 | 3 | 2 | ASSAUT. | Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse. |
+
+---
+
 ## Incantations
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
@@ -766,6 +799,19 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
 | A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART. Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
 | A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : choisis un serviteur ennemi ciblé — il devient une copie exacte (stats et mots-clés) sous ton contrôle jusqu'à la fin de la partie. | *Il n'a pas de visage. Il porte le tien, à présent.* |
+
+---
+
+## Cartes exclusives Arena
+
+Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_only`. Contrairement à ASSIMILATION/VIRULENT (déjà dominants en Arena), ces deux cartes utilisent MUTATION (table aléatoire, pas un buff garanti) et RAVAGE/VENIN MORTEL (finisseur agressif, pas un gain permanent).
+
+| Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|---|:---:|:---:|:---:|:---:|---|---|
+| Prototype Instable | ⚔️ | 3 | 2 | 4 | MUTATION. | Sa forme n'est jamais tout à fait la même deux combats de suite. |
+| Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE. VENIN MORTEL. | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
+
+---
 
 ## Incantations
 

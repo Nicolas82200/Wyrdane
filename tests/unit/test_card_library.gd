@@ -65,6 +65,13 @@ func test_token_cards_are_excluded_from_library() -> void:
 	for card in library.all_cards:
 		assert_false(card.is_token, "%s : un jeton (is_token=true) ne doit pas apparaître dans CardLibrary.all_cards (deckbuilder/IA/pool aléatoire)" % card.resource_path)
 
+func test_arena_only_cards_are_excluded_from_library_but_kept_separately() -> void:
+	for card in library.all_cards:
+		assert_false(card.arena_only, "%s : une carte arena_only=true ne doit pas apparaître dans all_cards (deckbuilder/IA/pool aléatoire)" % card.resource_path)
+	assert_gt(library.arena_only_cards.size(), 0, "aucune carte arena_only trouvée, le scan a probablement échoué")
+	for card in library.arena_only_cards:
+		assert_true(card.arena_only)
+
 func test_token_cards_have_no_chaining_effects() -> void:
 	var token_paths: Array[String] = []
 	_collect_token_paths("res://resources/cards", token_paths)

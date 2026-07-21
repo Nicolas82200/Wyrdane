@@ -56,7 +56,10 @@ func _ready() -> void:
 func _start_match() -> void:
 	if not CardLibrary.is_loaded:
 		CardLibrary.load_all_cards()
-	var pool := ArenaCardPool.new(CardLibrary.all_cards)
+	# Le pool Arena inclut les cartes exclusives à ce mode (CardData.arena_only)
+	# en plus du pool 1v1 normal (voir CardLibrary.arena_only_cards).
+	var pool_cards: Array[CardData] = CardLibrary.all_cards + CardLibrary.arena_only_cards
+	var pool := ArenaCardPool.new(pool_cards)
 	human = ArenaPlayerState.new("Joueur", false)
 	bots = [
 		ArenaPlayerState.new("Bot 1", true),

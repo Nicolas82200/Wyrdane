@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" path="res://assets/card_art/human/brigade-general.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="3_kwh"]
+
+[sub_resource type="Resource" id="Resource_kwh1"]
+script = ExtResource("3_kwh")
+keyword_type = 3
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Porte-Bannière Royal"
+description = "COMMANDEMENT."
+flavour_text = "Chaque recrue qui rejoint sa bannière se tient un peu plus droite."
+texture = ExtResource("2_texture")
+cost = 4
+race = 1
+attack = 3
+health = 5
+unit_style = 19
+human_keywords = Array[ExtResource("3_kwh")]([SubResource("Resource_kwh1")])
+rarity = "Rare"
+arena_only = true
+metadata/_custom_type_script = "uid://bru7ohxxvloht"
