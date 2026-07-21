@@ -7,11 +7,21 @@ extends Node
 
 # Affiché à titre indicatif dans l'UI ; le coût réel est appliqué et vérifié
 # côté serveur (voir PACK_COST dans wyrdane-backend/backend/src/model/packModel.ts).
-const PACK_COST := 250
+const PACK_COST := 500
 # Doivent rester synchronisées avec SOLO_WIN_REWARD/SOLO_DEFEAT_REWARD côté
 # wyrdane-backend/backend/src/controller/rewardsController.ts.
 const SOLO_WIN_REWARD_DISPLAY := 25
 const SOLO_DEFEAT_REWARD_DISPLAY := 10
+
+# Prix d'achat à l'unité dans le deckbuilder, par rareté — affiché à titre
+# indicatif ; le prix réel est appliqué et vérifié côté serveur (voir
+# CARD_PRICE_BY_RARITY dans wyrdane-backend/backend/src/model/collectionModel.ts).
+const CARD_PRICE_BY_RARITY := {
+	"Common": 100,
+	"Rare": 150,
+	"Epic": 200,
+	"Legendary": 250,
+}
 
 var balance: int = 0
 var is_synced: bool = false
@@ -50,6 +60,17 @@ func open_pack(on_complete: Callable = Callable()) -> void:
 		if on_complete.is_valid():
 			on_complete.call(code, cards)
 	)
+
+## Prix affiché pour une carte de la rareté donnée, 0 si non tarifée (ex.
+## cartes-ressource, non vendables à l'unité — voir CollectionManager.buy_card).
+func card_price(rarity: String) -> int:
+	return CARD_PRICE_BY_RARITY.get(rarity, 0)
+
+# Permet à un autre autoload (CollectionManager.buy_card) de répercuter le
+# solde renvoyé par un appel réseau qu'il a lui-même déclenché, sans dupliquer
+# une requête GET /api/currency/balance juste après.
+func apply_balance_update(new_balance: int) -> void:
+	_set_balance(new_balance)
 
 func _set_balance(new_balance: int) -> void:
 	balance = new_balance

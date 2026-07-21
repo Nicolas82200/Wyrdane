@@ -56,6 +56,9 @@ var _max_tooltip:   Control     = null
 
 # resource_path -> Card (visuel dans la grille), pour griser au max de copies
 var _grid_visuals: Dictionary = {}
+# resource_path -> Button "Acheter (%d)", affiché uniquement sur les cartes
+# non débloquées (voir _is_card_locked) et retiré une fois l'achat réussi.
+var _buy_buttons: Dictionary = {}
 
 # ─── Filtres ──────────────────────────────────────────────────────────────────
 
@@ -125,6 +128,7 @@ func _refresh_card_grid() -> void:
 	for child in card_grid.get_children():
 		child.queue_free()
 	_grid_visuals.clear()
+	_buy_buttons.clear()
 
 	_pending_cards.clear()
 	for card_data in _all_cards:
@@ -227,6 +231,64 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	wrapper.gui_input.connect(_on_card_wrapper_input.bind(card_data))
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual))
+
+	_add_buy_button_if_locked(card_data, wrapper)
+
+## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
+## débloquée (les cartes-ressource ne sont pas vendables à l'unité — voir
+## CollectionManager.buy_card, qui reflète le même refus côté serveur).
+func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
+	if not _is_card_locked(card_data) or card_data.card_type == "Resource":
+		return
+	var price := CurrencyManager.card_price(card_data.rarity)
+	if price <= 0:
+		return
+
+	var buy_button := Button.new()
+	buy_button.text = SettingsManager.t("deck.buy_button") % price
+	buy_button.custom_minimum_size = Vector2(0, 26)
+	buy_button.add_theme_font_size_override("font_size", 12)
+	buy_button.anchor_left   = 0.0
+	buy_button.anchor_right  = 1.0
+	buy_button.anchor_top    = 1.0
+	buy_button.anchor_bottom = 1.0
+	buy_button.offset_top    = -30
+	buy_button.offset_bottom = -4
+	buy_button.mouse_filter  = Control.MOUSE_FILTER_STOP
+	buy_button.pressed.connect(_on_buy_card.bind(card_data, buy_button))
+	wrapper.add_child(buy_button)
+	_buy_buttons[card_data.resource_path] = buy_button
+
+func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
+	buy_button.disabled = true
+	CollectionManager.buy_card(card_data, func(success: bool) -> void:
+		if not is_instance_valid(buy_button):
+			return
+		if success:
+			_buy_buttons.erase(card_data.resource_path)
+			buy_button.queue_free()
+			_update_grid_maxed_states()
+		else:
+			buy_button.disabled = false
+			_show_buy_error_tooltip(buy_button)
+	)
+
+## Petit tooltip d'erreur temporaire au-dessus du bouton d'achat (solde
+## insuffisant ou requête réseau échouée) — se referme seul après 2s.
+func _show_buy_error_tooltip(anchor: Control) -> void:
+	var panel := TooltipData.make_race_tooltip("deck.buy_error")
+	panel.position = Vector2(-9999, -9999)
+	_overlay_layer.add_child(panel)
+	await get_tree().process_frame
+	if not is_instance_valid(panel):
+		return
+	if not is_instance_valid(anchor):
+		panel.queue_free()
+		return
+	panel.global_position = anchor.global_position + Vector2((anchor.size.x - panel.size.x) / 2.0, -panel.size.y - 4.0)
+	await get_tree().create_timer(2.0).timeout
+	if is_instance_valid(panel):
+		panel.queue_free()
 
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 	if event is InputEventMouseButton \
