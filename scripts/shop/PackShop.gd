@@ -43,6 +43,11 @@ func _on_pack_opened(code: int, cards: Array) -> void:
 		status_label.show()
 		return
 
+	# Les cartes tirées viennent d'être octroyées côté serveur (grantCard) :
+	# resynchronise la collection pour qu'elles soient utilisables tout de
+	# suite dans le deckbuilder sans attendre le prochain redémarrage.
+	CollectionManager.sync_from_backend()
+
 	for card_row in cards:
 		var card_data: CardData = CardLibrary.card_by_backend_id.get(card_row.get("id"), null)
 		if card_data == null:
