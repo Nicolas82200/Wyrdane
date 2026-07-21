@@ -18,10 +18,11 @@ func test_scene_builds_ui_and_starts_a_shop_phase() -> void:
 	assert_eq(scene.shop_row.get_child_count(), ArenaConstants.SHOP_SIZE)
 
 func test_full_round_loop_does_not_crash() -> void:
-	# Achète tout ce qui est abordable, pose tout en Avant, puis lance le combat.
+	# Simule un drag & drop d'achat (ArenaShopCardSlot -> ArenaBoardRow), pose
+	# le reste de la main en Avant, puis lance le combat.
 	for i in scene.human.shop_offer.size():
 		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
-			scene._on_buy_pressed(i)
+			scene._on_shop_card_dropped(i, true)
 			break
 	for minion in scene.human.hand.duplicate():
 		scene._on_place_pressed(minion, true)
@@ -30,3 +31,15 @@ func test_full_round_loop_does_not_crash() -> void:
 	if not scene.game_over:
 		scene._on_next_round_pressed()
 		assert_eq(scene.match_.round_number, 2)
+
+func test_shop_card_drop_buys_and_places_on_board() -> void:
+	var affordable_index := -1
+	for i in scene.human.shop_offer.size():
+		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
+			affordable_index = i
+			break
+	assert_gte(affordable_index, 0, "au round 1 (or=1), au moins une carte à 1⬡ doit être proposée")
+	var gold_before: int = scene.human.gold
+	scene._on_shop_card_dropped(affordable_index, true)
+	assert_lt(scene.human.gold, gold_before, "le drop doit débiter l'or (achat)")
+	assert_eq(scene.human.board_front.size(), 1, "le drop doit poser directement le serviteur acheté en Avant")

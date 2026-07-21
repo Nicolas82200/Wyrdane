@@ -1,12 +1,22 @@
 extends Control
 
-# Scène racine du prototype Arena (voir plan Arena, étape 7). UI
-# volontairement grossière (Labels/Buttons, aucune animation) : l'objectif est
-# de valider le moteur de règles (ArenaMatch/SimulatedBattle/ArenaBotDriver),
-# pas le rendu visuel — voir décisions du plan ("résumé texte instantané",
-# "bouton Prêt sans timer", scène quasi-final laissée pour plus tard).
+# Scène racine du prototype Arena (voir plan Arena « Refonte visuelle »).
+# Reprend le look du plateau 1v1 (scenes/battle/Battle.tscn) en réutilisant
+# les vrais visuels `Card`/`BoardMinion`, construits ici programmatiquement
+# (pas de .tscn détaillé) pour éviter le risque d'édition de scène à la main.
+# La boutique occupe la position "rangée adverse" (Avant, la plus proche du
+# centre) ; acheter un serviteur se fait en le glissant vers son propre
+# plateau (drag & drop autonome, voir ArenaShopCardSlot/ArenaBoardRow — pas
+# de réutilisation de Card.gd/DropSystem.gd, pensés pour le mana/ciblage 1v1).
 #
 # 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
+
+const CARD_SCENE := preload("res://scenes/card/Card.tscn")
+const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
+const HERO_ARTS := [
+	preload("res://assets/heros_art/king-aldric-dawnbearer.jpg"),
+	preload("res://assets/heros_art/azhar-the-fallen.jpg"),
+]
 
 var match_: ArenaMatch
 var human: ArenaPlayerState
@@ -24,9 +34,10 @@ var shop_row: HBoxContainer
 var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
-var hand_container: VBoxContainer
-var front_container: HBoxContainer
-var back_container: HBoxContainer
+var hand_container: HBoxContainer
+var front_row: ArenaBoardRow
+var back_row: ArenaBoardRow
+var hero_portrait: TextureRect
 var other_boards_container: VBoxContainer
 var ready_button: Button
 var next_round_button: Button
@@ -71,9 +82,13 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_bottom", 16)
 	add_child(margin)
 
+	var scroll := ScrollContainer.new()
+	margin.add_child(scroll)
+
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 10)
-	margin.add_child(vbox)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
 
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 20)
@@ -86,9 +101,11 @@ func _build_ui() -> void:
 
 	participants_label = _make_label(vbox)
 
+	# ─ Rangée boutique : occupe la position "Avant adverse" du plateau ─
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_SHOP_TITLE")))
 	shop_row = HBoxContainer.new()
 	shop_row.add_theme_constant_override("separation", 8)
+	shop_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(shop_row)
 
 	var shop_controls := HBoxContainer.new()
@@ -101,24 +118,40 @@ func _build_ui() -> void:
 	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
 	shop_controls.add_child(buy_xp_button)
 
+	var center_sep := HSeparator.new()
+	vbox.add_child(center_sep)
+
+	# ─ Plateau du joueur : Avant proche du centre, Arrière plus loin ─
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_BOARD_FRONT_TITLE")))
+	front_row = ArenaBoardRow.new()
+	front_row.is_front = true
+	front_row.on_drop = _on_shop_card_dropped
+	front_row.add_theme_constant_override("separation", 8)
+	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	front_row.custom_minimum_size = Vector2(0, 160)
+	vbox.add_child(front_row)
+
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_BOARD_BACK_TITLE")))
+	back_row = ArenaBoardRow.new()
+	back_row.is_front = false
+	back_row.on_drop = _on_shop_card_dropped
+	back_row.add_theme_constant_override("separation", 8)
+	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	back_row.custom_minimum_size = Vector2(0, 160)
+	vbox.add_child(back_row)
+
+	var hero_row := HBoxContainer.new()
+	hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(hero_row)
+	hero_portrait = _make_hero_portrait(HERO_ARTS[0])
+	hero_row.add_child(hero_portrait)
+
+	# ─ Main du joueur ─
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_HAND_TITLE")))
 	suspended_label = _make_label(vbox)
-	hand_container = VBoxContainer.new()
+	hand_container = HBoxContainer.new()
+	hand_container.add_theme_constant_override("separation", 8)
 	vbox.add_child(hand_container)
-
-	var board_row := HBoxContainer.new()
-	board_row.add_theme_constant_override("separation", 24)
-	vbox.add_child(board_row)
-	var front_col := VBoxContainer.new()
-	board_row.add_child(front_col)
-	front_col.add_child(_make_title(SettingsManager.t("ARENA_BOARD_FRONT_TITLE")))
-	front_container = HBoxContainer.new()
-	front_col.add_child(front_container)
-	var back_col := VBoxContainer.new()
-	board_row.add_child(back_col)
-	back_col.add_child(_make_title(SettingsManager.t("ARENA_BOARD_BACK_TITLE")))
-	back_container = HBoxContainer.new()
-	back_col.add_child(back_container)
 
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_OTHER_BOARDS_TITLE")))
 	other_boards_container = VBoxContainer.new()
@@ -162,6 +195,14 @@ func _make_title(text: String) -> Label:
 	label.add_theme_font_size_override("font_size", 18)
 	return label
 
+func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRect:
+	var tex := TextureRect.new()
+	tex.texture = art
+	tex.custom_minimum_size = Vector2(90, 125) * scale_factor
+	tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	return tex
+
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
 func _refresh_ui() -> void:
@@ -197,6 +238,9 @@ func _refresh_ui() -> void:
 	ready_button.disabled = game_over
 	ready_button.visible = not game_over
 
+# La boutique occupe la position "Avant adverse" : chaque offre est une vraie
+# `Card` (voir ArenaShopCardSlot), verrouillable (bouton) et achetable en la
+# glissant vers son propre plateau (front_row/back_row, voir ArenaBoardRow).
 func _refresh_shop() -> void:
 	for child in shop_row.get_children():
 		child.queue_free()
@@ -204,15 +248,13 @@ func _refresh_shop() -> void:
 		var card: CardData = human.shop_offer[i]
 		var col := VBoxContainer.new()
 		shop_row.add_child(col)
-		var buy_button := Button.new()
-		if card == null:
-			buy_button.text = "—"
-			buy_button.disabled = true
-		else:
-			buy_button.text = "%s (%d)" % [card.display_name(), card.cost]
-			buy_button.disabled = human.gold < card.cost or human.is_hand_full()
-			buy_button.pressed.connect(_on_buy_pressed.bind(i))
-		col.add_child(buy_button)
+		var slot := ArenaShopCardSlot.new()
+		# `col` doit déjà être dans l'arbre de scène avant setup() (qui
+		# instancie et configure une vraie Card en enfant) : les @onready
+		# de Card ne sont peuplés qu'une fois le nœud réellement entré dans
+		# l'arbre (voir Hand.gd : add_child() puis set_data(), jamais l'inverse).
+		col.add_child(slot)
+		slot.setup(card, i)
 		var lock_button := Button.new()
 		var locked: bool = i < human.shop_locked.size() and human.shop_locked[i]
 		lock_button.text = SettingsManager.t("ARENA_UNLOCK_BUTTON") if locked else SettingsManager.t("ARENA_LOCK_BUTTON")
@@ -220,71 +262,112 @@ func _refresh_shop() -> void:
 		lock_button.pressed.connect(_on_lock_pressed.bind(i))
 		col.add_child(lock_button)
 
+func _on_shop_card_dropped(shop_index: int, is_front: bool) -> void:
+	var hand_before: Array[Minion] = human.hand.duplicate()
+	if not match_.buy_card(human, shop_index):
+		return
+	# La carte achetée rejoint la main (ArenaMatch.buy_card) ; on la pose
+	# immédiatement là où le joueur l'a lâchée (achat + pose en un seul geste).
+	var bought: Minion = null
+	for m in human.hand:
+		if not hand_before.has(m):
+			bought = m
+			break
+	if bought != null:
+		human.place_on_board(bought, is_front)
+	_refresh_ui()
+
 func _refresh_hand() -> void:
 	for child in hand_container.get_children():
 		child.queue_free()
 	for minion in human.hand:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		hand_container.add_child(row)
-		row.add_child(_make_label_text(_minion_summary(minion)))
+		var col := VBoxContainer.new()
+		hand_container.add_child(col)
+		_add_minion_card_visual(col, minion)
 		var front_button := Button.new()
 		front_button.text = SettingsManager.t("ARENA_PLACE_FRONT_BUTTON")
 		front_button.disabled = not human.can_place_on_row(true)
 		front_button.pressed.connect(_on_place_pressed.bind(minion, true))
-		row.add_child(front_button)
+		col.add_child(front_button)
 		var back_button := Button.new()
 		back_button.text = SettingsManager.t("ARENA_PLACE_BACK_BUTTON")
 		back_button.disabled = not human.can_place_on_row(false)
 		back_button.pressed.connect(_on_place_pressed.bind(minion, false))
-		row.add_child(back_button)
+		col.add_child(back_button)
 		var sell_button := Button.new()
 		sell_button.text = SettingsManager.t("ARENA_SELL_BUTTON")
 		sell_button.pressed.connect(_on_sell_pressed.bind(minion, false))
-		row.add_child(sell_button)
+		col.add_child(sell_button)
+
+# `col` doit déjà être dans l'arbre de scène (voir commentaire _refresh_shop) :
+# on l'ajoute avant d'instancier/configurer la Card, jamais après.
+func _add_minion_card_visual(col: Node, minion: Minion) -> void:
+	var card: Card = CARD_SCENE.instantiate()
+	col.add_child(card)
+	card.scale = Vector2(0.6, 0.6)
+	card.set_data(minion.card_data)
+	card.set_non_interactive()
+	card.cost_label.text = str(minion.card_data.cost)
+	card.generic_cost_label.visible = false
+	card.attack_label.text = str(minion.attack)
+	card.health_label.text = str(minion.health)
+	if minion.star_level > 1:
+		card.name_label.text += " ★%d" % minion.star_level
 
 func _refresh_board() -> void:
-	for child in front_container.get_children():
+	for child in front_row.get_children():
 		child.queue_free()
-	for child in back_container.get_children():
+	for child in back_row.get_children():
 		child.queue_free()
 	for minion in human.board_front:
-		front_container.add_child(_make_board_entry(minion))
+		_add_board_entry(front_row, minion)
 	for minion in human.board_back:
-		back_container.add_child(_make_board_entry(minion))
+		_add_board_entry(back_row, minion)
 
-func _make_board_entry(minion: Minion) -> VBoxContainer:
+func _add_board_entry(row: Node, minion: Minion) -> void:
 	var col := VBoxContainer.new()
-	col.add_child(_make_label_text(_minion_summary(minion)))
+	row.add_child(col)
+	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+	col.add_child(visual)
+	visual.set_minion(minion)
 	var sell_button := Button.new()
 	sell_button.text = SettingsManager.t("ARENA_SELL_BUTTON")
 	sell_button.pressed.connect(_on_sell_pressed.bind(minion, true))
 	col.add_child(sell_button)
-	return col
 
 # Le plateau de chaque joueur est visible de tous (README « Visibilité entre
-# joueurs ») — lecture seule, sans les boutons d'action réservés à la main du
-# joueur humain. La main/boutique de chacun reste privée, donc jamais affichée.
+# joueurs ») — lecture seule (aucun signal de clic connecté), à échelle
+# réduite. La main/boutique de chacun reste privée, donc jamais affichée.
 func _refresh_other_boards() -> void:
 	for child in other_boards_container.get_children():
 		child.queue_free()
+	var art_index := 0
 	for p in match_.players:
 		if p == human:
 			continue
-		var col := VBoxContainer.new()
-		other_boards_container.add_child(col)
+		art_index += 1
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		other_boards_container.add_child(row)
+		row.add_child(_make_hero_portrait(HERO_ARTS[art_index % HERO_ARTS.size()], 0.5))
+		var info := VBoxContainer.new()
+		row.add_child(info)
 		if p.is_eliminated:
-			col.add_child(_make_label_text("%s — %s" % [p.display_name, SettingsManager.t("ARENA_ELIMINATED_STATUS")]))
+			info.add_child(_make_label_text("%s — %s" % [p.display_name, SettingsManager.t("ARENA_ELIMINATED_STATUS")]))
 			continue
-		col.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_LINE") % [p.display_name, p.hero_hp]))
+		info.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_LINE") % [p.display_name, p.hero_hp]))
+		var minions_box := HBoxContainer.new()
+		minions_box.add_theme_constant_override("separation", 2)
+		info.add_child(minions_box)
 		var minions: Array[Minion] = p.board_front + p.board_back
 		if minions.is_empty():
-			col.add_child(_make_label_text("  " + SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
+			minions_box.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
 		else:
-			var summaries: Array[String] = []
 			for minion in minions:
-				summaries.append(_minion_summary(minion))
-			col.add_child(_make_label_text("  " + ", ".join(summaries)))
+				var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+				visual.scale = Vector2(0.5, 0.5)
+				minions_box.add_child(visual)
+				visual.set_minion(minion)
 
 func _minion_summary(minion: Minion) -> String:
 	var star: String = " ★%d" % minion.star_level if minion.star_level > 1 else ""
@@ -296,10 +379,6 @@ func _make_label_text(text: String) -> Label:
 	return label
 
 # ─── Actions joueur ──────────────────────────────────────────────────────────
-
-func _on_buy_pressed(index: int) -> void:
-	match_.buy_card(human, index)
-	_refresh_ui()
 
 func _on_lock_pressed(index: int) -> void:
 	match_.lock_card(human, index)
