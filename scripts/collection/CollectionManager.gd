@@ -36,3 +36,24 @@ func owned_quantity(card_data: CardData) -> int:
 
 func is_owned(card_data: CardData) -> bool:
 	return owned_quantity(card_data) > 0
+
+## Achète un exemplaire de card_data à l'unité (boutique du deckbuilder, prix
+## par rareté — voir CurrencyManager.card_price). Le prix réel est appliqué et
+## vérifié côté serveur (POST /api/collection/buy-card). on_complete est
+## appelé avec (success: bool) une fois la réponse reçue.
+func buy_card(card_data: CardData, on_complete: Callable = Callable()) -> void:
+	var backend_id: int = CardLibrary.backend_id_by_path.get(card_data.resource_path, -1)
+	if backend_id == -1:
+		if on_complete.is_valid():
+			on_complete.call(false)
+		return
+
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/collection/buy-card", {"cardId": backend_id}, func(code: int, parsed) -> void:
+		var success := code == 200 and parsed is Dictionary
+		if success:
+			owned_quantities[card_data.resource_path] = int(parsed.get("quantity", 0))
+			CurrencyManager.apply_balance_update(int(parsed.get("balance", CurrencyManager.balance)))
+			collection_loaded.emit()
+		if on_complete.is_valid():
+			on_complete.call(success)
+	)

@@ -5,6 +5,7 @@
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_title"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="4_subtitle"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Navbar.tscn" id="6_navbar"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -306,3 +307,6 @@ theme_override_font_sizes/font_size = 14
 text = "v0.1 — prototype"
 horizontal_alignment = 2
 vertical_alignment = 2
+
+[node name="Navbar" parent="." instance=ExtResource("6_navbar")]
+layout_mode = 1
