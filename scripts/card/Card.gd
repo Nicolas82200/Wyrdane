@@ -42,11 +42,11 @@ const RACE_COLORS := {
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
 const TYPE_LABELS := {
-	"Minion":      "Serviteur",
-	"Instant":     "Éphémère",
-	"Ritual":      "Rituel",
-	"Enchantment": "Enchantement",
-	"Resource":    "Ressource",
+	"Minion":      "cardtype.minion",
+	"Instant":     "cardtype.instant",
+	"Ritual":      "cardtype.ritual",
+	"Enchantment": "cardtype.enchantment",
+	"Resource":    "cardtype.resource",
 }
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
@@ -128,6 +128,8 @@ func _ready() -> void:
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
 
+	SettingsManager.language_changed.connect(func(_l): update_display())
+
 	_playable_style = StyleBoxFlat.new()
 	_playable_style.bg_color            = Color.TRANSPARENT
 	_playable_style.border_width_left   = 3
@@ -172,6 +174,8 @@ func set_display_cost(cost_split: Dictionary) -> void:
 	generic_cost_label.add_theme_color_override("font_color", color)
 
 func update_display() -> void:
+	if data == null:
+		return
 	name_label.text   = data.display_name()
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
@@ -238,7 +242,8 @@ func _is_players_turn() -> bool:
 
 # Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
 func _apply_type_style() -> void:
-	var label_text: String = TYPE_LABELS.get(data.card_type, "Serviteur")
+	var translation_key: String = TYPE_LABELS.get(data.card_type, "cardtype.minion")
+	var label_text: String = SettingsManager.t(translation_key)
 	if data.card_type == "Ritual":
 		if data.ritual_duration > 0:
 			label_text += " • %d charge%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
