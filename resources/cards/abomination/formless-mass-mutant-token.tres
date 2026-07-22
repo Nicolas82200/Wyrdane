@@ -1,12 +1,17 @@
-[gd_resource type="Resource" script_class="CardData" format=3]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cryj5ygoqoepn"]
 
 [ext_resource type="Script" uid="uid://c85woqh2ck2sx" path="res://scripts/card/KeywordChoiceAbomination.gd" id="1_akw"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="2_c653p"]
 [ext_resource type="Texture2D" uid="uid://uuy7jmvg6uhm" path="res://assets/card_art/abomination/formless-mass.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="3_6txmi"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="4_s1j0c"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="5_5f1dl"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="8_yi7tm"]
+[ext_resource type="Script" uid="uid://fly4qfjek3e6" path="res://scripts/card/KeywordChoiceUndead.gd" id="9_cv3x4"]
 
 [sub_resource type="Resource" id="Resource_a002"]
 script = ExtResource("1_akw")
-keyword_type = 0
 
 [resource]
 script = ExtResource("3_carddata")
@@ -14,12 +19,10 @@ card_name = "Amas Informe Mutant"
 description = "MUTATION."
 flavour_text = "L'offrande revient sous une forme différente."
 texture = ExtResource("2_texture")
-cost = 1
+is_token = true
 race = 6
 unit_style = 20
 attack = 2
 health = 2
 abomination_keywords = Array[ExtResource("1_akw")]([SubResource("Resource_a002")])
-rarity = "Common"
-is_token = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
