@@ -1,8 +1,14 @@
-[gd_resource type="Resource" script_class="CardData" format=3]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://b6w4707345fbv"]
 
+[ext_resource type="Script" uid="uid://c85woqh2ck2sx" path="res://scripts/card/KeywordChoiceAbomination.gd" id="1_bwwfu"]
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="2_4wso0"]
 [ext_resource type="Texture2D" uid="uid://t2ncmkyb6ay0" path="res://assets/card_art/abomination/fresh-flesh-vise.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="4_fvapu"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="5_0nnve"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="8_qcww3"]
+[ext_resource type="Script" uid="uid://fly4qfjek3e6" path="res://scripts/card/KeywordChoiceUndead.gd" id="9_wtt71"]
 
 [sub_resource type="Resource" id="Resource_a093"]
 script = ExtResource("1_cardeffect")
@@ -20,7 +26,7 @@ texture = ExtResource("2_texture")
 cost = 2
 race = 6
 card_type = "Instant"
-requires_target = true
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a093")])
+requires_target = true
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

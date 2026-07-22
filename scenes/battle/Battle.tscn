@@ -595,7 +595,6 @@ mouse_filter = 2
 alignment = 1
 
 [node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -612,7 +611,6 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
-visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -631,7 +629,6 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -648,7 +645,6 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
-visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -815,11 +811,11 @@ offset_left = -860.0
 offset_top = 142.5
 offset_right = -710.0
 offset_bottom = 367.5
-pivot_offset = Vector2(75, 112.5)
-rotation_degrees = 90.0
-scale = Vector2(1.05, 1.05)
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 
 [node name="CountLabel" type="Label" parent="PlayerGraveyardButton" unique_id=376800410]
 custom_minimum_size = Vector2(150, 225)
@@ -849,11 +845,11 @@ offset_left = 710.0
 offset_top = -367.5
 offset_right = 860.0
 offset_bottom = -142.5
-pivot_offset = Vector2(75, 112.5)
-rotation_degrees = 90.0
-scale = Vector2(1.05, 1.05)
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 
 [node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
 custom_minimum_size = Vector2(150, 225)
@@ -887,11 +883,11 @@ offset_left = -860.0
 offset_top = -27.5
 offset_right = -710.0
 offset_bottom = 197.5
-pivot_offset = Vector2(75, 112.5)
-rotation_degrees = 90.0
-scale = Vector2(1.05, 1.05)
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
@@ -930,11 +926,11 @@ offset_left = 710.0
 offset_top = -197.5
 offset_right = 860.0
 offset_bottom = 27.5
-pivot_offset = Vector2(75, 112.5)
-rotation_degrees = 90.0
-scale = Vector2(1.05, 1.05)
 grow_horizontal = 2
 grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
