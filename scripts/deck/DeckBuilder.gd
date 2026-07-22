@@ -719,6 +719,10 @@ func _is_card_maxed(card_data: CardData) -> bool:
 ## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
 ## ce deck — sert à choisir le bon message de tooltip, voir _show_max_copies_tooltip.
 func _is_card_locked(card_data: CardData) -> bool:
+	if card_data == null:
+		return true
+	if card_data.card_type == "Resource":
+		return false
 	return CollectionManager.owned_quantity(card_data) <= 0
 
 ## Grise les cartes de la grille dont le deck contient déjà le max de copies
