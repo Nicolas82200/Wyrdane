@@ -91,14 +91,19 @@ func can_place_on_row(is_front: bool) -> bool:
 	return board_row(is_front).size() < ArenaConstants.BOARD_ROW_MAX
 
 # Pose gratuite (déjà payée en boutique) : retire de la main, ajoute au plateau.
-func place_on_board(minion: Minion, is_front: bool) -> bool:
+# `index` négatif ou hors bornes = fin de ligne (comportement par défaut).
+func place_on_board(minion: Minion, is_front: bool, index: int = -1) -> bool:
 	if not can_place_on_row(is_front):
 		return false
 	if not hand.has(minion):
 		return false
 	hand.erase(minion)
 	minion.board_row = "Front" if is_front else "Back"
-	board_row(is_front).append(minion)
+	var target: Array[Minion] = board_row(is_front)
+	if index < 0 or index > target.size():
+		target.append(minion)
+	else:
+		target.insert(index, minion)
 	return true
 
 # Déplace un serviteur déjà sur le plateau (repositionnement, glisser-déposer

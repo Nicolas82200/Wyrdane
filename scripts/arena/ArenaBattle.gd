@@ -477,7 +477,7 @@ func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 func can_summon_to_row(_is_player: bool, row: String) -> bool:
 	return human.can_place_on_row(row == ROW_FRONT)
 
-func _on_hand_card_played(card_data: CardData, row: String, _insert_index: int) -> void:
+func _on_hand_card_played(card_data: CardData, row: String, insert_index: int) -> void:
 	if row == ArenaDropSystem.ROW_SHOP:
 		for minion in human.hand:
 			if minion.card_data == card_data:
@@ -487,7 +487,7 @@ func _on_hand_card_played(card_data: CardData, row: String, _insert_index: int) 
 		return
 	for minion in human.hand:
 		if minion.card_data == card_data:
-			_on_place_pressed(minion, row == ROW_FRONT)
+			_on_place_pressed(minion, row == ROW_FRONT, insert_index)
 			return
 
 func _process(_delta: float) -> void:
@@ -695,8 +695,8 @@ func _on_buy_xp_pressed() -> void:
 	match_.buy_xp(human)
 	_refresh_ui()
 
-func _on_place_pressed(minion: Minion, is_front: bool) -> void:
-	human.place_on_board(minion, is_front)
+func _on_place_pressed(minion: Minion, is_front: bool, index: int = -1) -> void:
+	human.place_on_board(minion, is_front, index)
 	_refresh_ui()
 
 # Repositionnement (même ligne ou changement de ligne) d'un serviteur déjà

@@ -27,8 +27,21 @@ func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> Strin
 		return battle.ROW_BACK if battle.ROW_BACK in allowed else ""
 	return ""
 
-func get_player_drop_index_at(_mouse: Vector2, _row: String) -> int:
-	return -1
+func get_player_drop_index_at(mouse: Vector2, row: String) -> int:
+	var container: Control = null
+	if row == battle.ROW_FRONT:
+		container = battle.player_front_container
+	elif row == battle.ROW_BACK:
+		container = battle.player_back_container
+	if container == null:
+		return -1
+	var index := 0
+	for child in container.get_children():
+		var rect: Rect2 = child.get_global_rect()
+		if mouse.x < rect.position.x + rect.size.x * 0.5:
+			return index
+		index += 1
+	return index
 
 func update_player_drop_highlight(_card_data: CardData, _mouse: Vector2, _display_show: bool) -> bool:
 	return false
