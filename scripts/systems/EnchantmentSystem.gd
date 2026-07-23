@@ -69,6 +69,7 @@ func _add_card(card_data: CardData, is_player: bool, duration: int) -> void:
 		visual.set_turns_left(duration)
 	_relayout(zone)
 	refresh_activatable()
+	battle.animation_system.play_appear(visual)
 
 # Clic sur un rituel posé : demande d'activation (Rituels de Sacrifice)
 func _on_card_activate_requested(card_data: CardData, is_player: bool) -> void:
@@ -94,9 +95,23 @@ func remove_enchantment(card_data: CardData, is_player: bool) -> void:
 		return
 	for child in zone.get_children():
 		if child.has_method("setup") and child.card_data == card_data:
-			child.queue_free()
+			_animate_removal(child)
 			break
 	_relayout(zone)
+
+# Sort `visual` de sa zone (HBoxContainer) pour le laisser s'effacer en
+# flottant librement au premier plan, sans que _relayout ne le compte parmi
+# les cartes restantes ni que sa disparition ne "saute" la mise en page.
+func _animate_removal(visual: Control) -> void:
+	var global_pos: Vector2 = visual.global_position
+	var visual_size: Vector2 = visual.size
+	visual.get_parent().remove_child(visual)
+	battle.add_child(visual)
+	visual.global_position = global_pos
+	visual.size = visual_size
+	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tween: Tween = battle.animation_system.play_disappear(visual)
+	tween.chain().tween_callback(visual.queue_free)
 
 # Resserre les cartes (séparation négative = chevauchement) pour que la bande
 # puisse en accumuler sans jamais déborder de son cadre.

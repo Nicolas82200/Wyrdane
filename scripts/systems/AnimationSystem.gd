@@ -4,6 +4,10 @@ class_name AnimationSystem
 const SLASH_TEXTURE := preload("res://assets/media-effect/image-effect/slash.png")
 const CLAW_TEXTURE := preload("res://assets/media-effect/image-effect/claw.png")
 
+# Durée totale de play_death (coupe + chute des 2 moitiés) : DeathSystem
+# attend ce délai avant de retirer le nœud du plateau.
+const DEATH_ANIMATION_DURATION := 0.55
+
 var battle
 
 func init(_battle) -> void:
@@ -17,14 +21,71 @@ func play_summon(visual: BoardMinion) -> void:
 	tween.tween_property(visual, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(visual, "modulate:a", 1.0, 0.25)
 
+## Mort d'un serviteur : l'illustration se coupe nettement en deux moitiés qui
+## glissent chacune sur le côté en tombant et en tournant légèrement, pendant
+## que le reste de la carte (bordures, stats, icônes) s'efface derrière elles.
 func play_death(visual: BoardMinion) -> Tween:
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_split_card_in_half(visual)
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(visual, "scale", Vector2.ZERO, 0.35)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tween.tween_property(visual, "modulate:a", 0.0, 0.25)
+	tween.tween_property(visual, "modulate:a", 0.0, 0.2).set_delay(0.05)
 	return tween
+
+func _split_card_in_half(visual: BoardMinion) -> void:
+	var art: TextureRect = visual.art
+	if art == null or art.texture == null:
+		return
+	var texture: Texture2D = art.texture
+	var art_rect: Rect2 = Rect2(art.global_position, art.size)
+	if art_rect.size.x <= 0.0 or art_rect.size.y <= 0.0:
+		return
+	var tex_size: Vector2 = texture.get_size()
+
+	# Éclair blanc bref le long de la ligne de coupe, façon lame qui tranche.
+	var cut_line := Panel.new()
+	var cut_style := StyleBoxFlat.new()
+	cut_style.bg_color = Color(1.0, 1.0, 1.0, 0.9)
+	cut_line.add_theme_stylebox_override("panel", cut_style)
+	cut_line.size = Vector2(3, art_rect.size.y)
+	cut_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cut_line.z_index = 110
+	battle.add_child(cut_line)
+	cut_line.global_position = art_rect.position + Vector2(art_rect.size.x * 0.5 - 1.5, 0)
+	var cut_tween: Tween = battle.create_tween()
+	cut_tween.tween_property(cut_line, "modulate:a", 0.0, 0.18).set_delay(0.05)
+	cut_tween.tween_callback(cut_line.queue_free)
+
+	for side in range(2):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = texture
+		var half_tex_w: float = tex_size.x * 0.5
+		atlas.region = Rect2(Vector2(side * half_tex_w, 0), Vector2(half_tex_w, tex_size.y))
+
+		var piece := TextureRect.new()
+		piece.texture = atlas
+		piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		piece.stretch_mode = TextureRect.STRETCH_SCALE
+		piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		piece.size = Vector2(art_rect.size.x * 0.5, art_rect.size.y)
+		piece.z_index = 100
+		var piece_pos: Vector2 = art_rect.position + Vector2(side * piece.size.x, 0)
+		piece.global_position = piece_pos
+		piece.pivot_offset = piece.size * 0.5
+		battle.add_child(piece)
+
+		var dir: float = -1.0 if side == 0 else 1.0
+		var travel := Vector2(dir * 45.0, 70.0)
+		var spin: float = dir * 30.0
+
+		var tween: Tween = battle.create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(piece, "global_position", piece_pos + travel, 0.5)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(piece, "rotation_degrees", spin, 0.5)\
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(piece, "modulate:a", 0.0, 0.35).set_delay(0.18)
+		tween.chain().tween_callback(piece.queue_free)
 
 func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 	if not is_instance_valid(attacker_visual) or not is_instance_valid(target):
@@ -593,3 +654,74 @@ func play_death_rage(visual: Control) -> void:
 	_pulse_scale(visual, 1.22, 0.3)
 	_flash(visual, Color(0.85, 0.15, 0.1), 0.35)
 	_floating_text(visual, TranslationServer.translate("TRIG_ONDEATHRAGE_NAME"), Color(0.9, 0.25, 0.2))
+
+# ─── Feedback générique : dégâts / soin / buff / debuff bruts ────────────────
+# Utilisé par les effets "Damage"/"Heal"/"Buff"/"Debuff" qui n'ont pas de
+# mot-clé dédié (donc pas d'animation spécifique ci-dessus) — serviteur ou
+# héros, `visual` étant dans les deux cas un simple Control.
+
+## Dégâts génériques : flash rouge (toujours, même bloqué à 0) + texte "-X"
+## si des dégâts ont réellement été infligés.
+func play_damage(visual: Control, amount: int) -> void:
+	if not is_instance_valid(visual):
+		return
+	_flash(visual, Color(1.8, 0.3, 0.3, 1.0), 0.18)
+	if amount > 0:
+		_floating_text(visual, "-%d" % amount, Color(1.0, 0.35, 0.3))
+
+## Soin générique : flash vert + texte "+X".
+func play_heal(visual: Control, amount: int) -> void:
+	if not is_instance_valid(visual) or amount <= 0:
+		return
+	_flash(visual, Color(0.4, 1.0, 0.5, 1.0), 0.22)
+	_floating_text(visual, "+%d" % amount, Color(0.45, 1.0, 0.55))
+
+## Buff stat générique (effet "Buff" brut, hors mot-clé dédié) : pulse doré +
+## texte récapitulatif du delta ATK/PV.
+func play_generic_buff(visual: Control, attack_gain: int, health_gain: int) -> void:
+	if not is_instance_valid(visual) or (attack_gain <= 0 and health_gain <= 0):
+		return
+	_pulse_scale(visual, 1.12)
+	_flash(visual, Color(0.9, 0.8, 0.35), 0.2)
+	_floating_text(visual, _stat_delta_text(attack_gain, health_gain), Color(0.4, 0.95, 0.4))
+
+## Debuff stat générique (effet "Debuff" brut, hors mot-clé dédié) : flash
+## sombre + texte récapitulatif du delta ATK/PV.
+func play_generic_debuff(visual: Control, attack_loss: int, health_loss: int) -> void:
+	if not is_instance_valid(visual) or (attack_loss <= 0 and health_loss <= 0):
+		return
+	_flash(visual, Color(0.55, 0.15, 0.6), 0.25)
+	_floating_text(visual, _stat_delta_text(-attack_loss, -health_loss), Color(0.95, 0.35, 0.35))
+
+func _stat_delta_text(attack_delta: int, health_delta: int) -> String:
+	if attack_delta != 0 and health_delta != 0:
+		return "%+d/%+d" % [attack_delta, health_delta]
+	if attack_delta != 0:
+		return "%+d ATK" % attack_delta
+	return "%+d PV" % health_delta
+
+# ─── Apparition / disparition génériques (Enchantements, Rituels) ────────────
+
+## Apparition générique : léger scale-in + fade-in (Enchantement/Rituel posé).
+func play_appear(visual: Control) -> void:
+	if not is_instance_valid(visual):
+		return
+	visual.pivot_offset = visual.size / 2.0
+	visual.scale = Vector2(0.3, 0.3)
+	visual.modulate.a = 0.0
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(visual, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual, "modulate:a", 1.0, 0.22)
+
+## Disparition générique : fade-out + léger repli d'échelle (Enchantement/
+## Rituel détruit). Retourne le Tween pour enchaîner sa destruction réelle.
+func play_disappear(visual: Control) -> Tween:
+	var tween: Tween = battle.create_tween()
+	if not is_instance_valid(visual):
+		return tween
+	visual.pivot_offset = visual.size / 2.0
+	tween.set_parallel(true)
+	tween.tween_property(visual, "scale", Vector2(0.6, 0.6), 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(visual, "modulate:a", 0.0, 0.25)
+	return tween
