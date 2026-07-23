@@ -372,7 +372,8 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 				if visual:
 					var flash: Tween = battle.create_tween()
 					flash.tween_property(visual, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
-					flash.tween_property(visual, "modulate", Color.WHITE, 0.18)
+					flash.tween_property(visual, "modulate", battle.animation_system.rest_tint(visual), 0.18)
+					flash.tween_callback(func(): battle.animation_system.reapply_status_tint(visual))
 				var dealt: int = target.take_damage(damage)
 				if dealt > 0:
 					await notify_damaged(battle, target)

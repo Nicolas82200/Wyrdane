@@ -185,22 +185,7 @@ func update_display() -> void:
 		return
 	attack_label.text = str(minion.attack)
 	health_label.text = str(max(minion.health, 0))
-	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
-	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
-	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
-	var c: Color
-	if minion.frozen_turns > 0:
-		c = FROZEN_TINT
-	elif minion.terror_turns > 0:
-		c = TERROR_TINT
-	elif minion.silenced:
-		c = SILENCE_TINT
-	elif minion.infected:
-		c = INFECTED_TINT
-	elif owners_turn and not minion.can_attack():
-		c = EXHAUSTED_TINT
-	else:
-		c = Color.WHITE
+	var c: Color = status_tint()
 	modulate.r = c.r
 	modulate.g = c.g
 	modulate.b = c.b
@@ -213,6 +198,26 @@ func update_display() -> void:
 	_refresh_keyword_icons()
 	_refresh_status_vfx()
 	_apply_stat_colors()
+
+## Teinte persistante d'état (Gel, Terreur, Silence, Infection, épuisement).
+## Toute animation qui flashe `modulate` doit revenir à cette couleur — jamais
+## à Color.WHITE — pour ne pas effacer le visuel d'un statut encore actif.
+func status_tint() -> Color:
+	if minion == null:
+		return Color.WHITE
+	if minion.frozen_turns > 0:
+		return FROZEN_TINT
+	if minion.terror_turns > 0:
+		return TERROR_TINT
+	if minion.silenced:
+		return SILENCE_TINT
+	if minion.infected:
+		return INFECTED_TINT
+	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
+	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
+	if minion.owner_is_player == _is_player_turn() and not minion.can_attack():
+		return EXHAUSTED_TINT
+	return Color.WHITE
 
 # ─── Halo « prêt à attaquer » ────────────────────────────────────────────────
 
