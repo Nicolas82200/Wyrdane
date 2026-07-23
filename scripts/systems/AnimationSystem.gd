@@ -21,9 +21,10 @@ func play_summon(visual: BoardMinion) -> void:
 	tween.tween_property(visual, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(visual, "modulate:a", 1.0, 0.25)
 
-## Mort d'un serviteur : l'illustration se coupe nettement en deux moitiés qui
-## glissent chacune sur le côté en tombant et en tournant légèrement, pendant
-## que le reste de la carte (bordures, stats, icônes) s'efface derrière elles.
+## Mort d'un serviteur : l'illustration se déchire en deux moitiés selon une
+## ligne diagonale irrégulière (pas une coupe nette), qui s'écartent à peine
+## en tombant, pendant que le reste de la carte (bordures, stats, icônes)
+## s'efface derrière elles.
 func play_death(visual: BoardMinion) -> Tween:
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_split_card_in_half(visual)
@@ -31,6 +32,16 @@ func play_death(visual: BoardMinion) -> Tween:
 	tween.set_parallel(true)
 	tween.tween_property(visual, "modulate:a", 0.0, 0.2).set_delay(0.05)
 	return tween
+
+# Nombre de bandes horizontales utilisées pour approximer une ligne de coupe
+# diagonale et irrégulière à partir de simples régions rectangulaires
+# (AtlasTexture ne permet pas de région oblique sans shader/masque).
+const _DEATH_CUT_BANDS := 5
+# Dérive progressive du point de coupe d'une bande à l'autre (tendance
+# diagonale), en fraction de la largeur de la texture.
+const _DEATH_CUT_SLOPE := 0.09
+# Aléa ajouté par bande pour que la ligne de coupe ne soit jamais nette.
+const _DEATH_CUT_JITTER := 0.07
 
 func _split_card_in_half(visual: BoardMinion) -> void:
 	var art: TextureRect = visual.art
@@ -41,51 +52,68 @@ func _split_card_in_half(visual: BoardMinion) -> void:
 	if art_rect.size.x <= 0.0 or art_rect.size.y <= 0.0:
 		return
 	var tex_size: Vector2 = texture.get_size()
+	var screen_scale: float = art_rect.size.x / tex_size.x
 
-	# Éclair blanc bref le long de la ligne de coupe, façon lame qui tranche.
-	var cut_line := Panel.new()
-	var cut_style := StyleBoxFlat.new()
-	cut_style.bg_color = Color(1.0, 1.0, 1.0, 0.9)
-	cut_line.add_theme_stylebox_override("panel", cut_style)
-	cut_line.size = Vector2(3, art_rect.size.y)
-	cut_line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cut_line.z_index = 110
-	battle.add_child(cut_line)
-	cut_line.global_position = art_rect.position + Vector2(art_rect.size.x * 0.5 - 1.5, 0)
-	var cut_tween: Tween = battle.create_tween()
-	cut_tween.tween_property(cut_line, "modulate:a", 0.0, 0.18).set_delay(0.05)
-	cut_tween.tween_callback(cut_line.queue_free)
+	var band_h_tex: float = tex_size.y / float(_DEATH_CUT_BANDS)
+	var band_h_screen: float = art_rect.size.y / float(_DEATH_CUT_BANDS)
 
-	for side in range(2):
-		var atlas := AtlasTexture.new()
-		atlas.atlas = texture
-		var half_tex_w: float = tex_size.x * 0.5
-		atlas.region = Rect2(Vector2(side * half_tex_w, 0), Vector2(half_tex_w, tex_size.y))
+	for i in range(_DEATH_CUT_BANDS):
+		var slope_offset: float = (i - (_DEATH_CUT_BANDS - 1) * 0.5) * _DEATH_CUT_SLOPE * tex_size.x
+		var jitter: float = randf_range(-_DEATH_CUT_JITTER, _DEATH_CUT_JITTER) * tex_size.x
+		var cut_x: float = clampf(tex_size.x * 0.5 + slope_offset + jitter, tex_size.x * 0.2, tex_size.x * 0.8)
+		var band_y_tex: float = i * band_h_tex
+		var band_y_screen: float = art_rect.position.y + i * band_h_screen
 
-		var piece := TextureRect.new()
-		piece.texture = atlas
-		piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		piece.stretch_mode = TextureRect.STRETCH_SCALE
-		piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		piece.size = Vector2(art_rect.size.x * 0.5, art_rect.size.y)
-		piece.z_index = 100
-		var piece_pos: Vector2 = art_rect.position + Vector2(side * piece.size.x, 0)
-		piece.global_position = piece_pos
-		piece.pivot_offset = piece.size * 0.5
-		battle.add_child(piece)
+		# Éclair blanc bref sur ce segment de la ligne de coupe.
+		var cut_seg := Panel.new()
+		var cut_style := StyleBoxFlat.new()
+		cut_style.bg_color = Color(1.0, 1.0, 1.0, 0.85)
+		cut_seg.add_theme_stylebox_override("panel", cut_style)
+		cut_seg.size = Vector2(3, band_h_screen)
+		cut_seg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cut_seg.z_index = 110
+		battle.add_child(cut_seg)
+		cut_seg.global_position = Vector2(art_rect.position.x + cut_x * screen_scale - 1.5, band_y_screen)
+		var cut_tween: Tween = battle.create_tween()
+		cut_tween.tween_property(cut_seg, "modulate:a", 0.0, 0.16).set_delay(0.04)
+		cut_tween.tween_callback(cut_seg.queue_free)
 
-		var dir: float = -1.0 if side == 0 else 1.0
-		var travel := Vector2(dir * 45.0, 70.0)
-		var spin: float = dir * 30.0
+		for side in range(2):
+			var region_x: float = 0.0 if side == 0 else cut_x
+			var region_w: float = cut_x if side == 0 else (tex_size.x - cut_x)
+			if region_w <= 0.0:
+				continue
 
-		var tween: Tween = battle.create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(piece, "global_position", piece_pos + travel, 0.5)\
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tween.tween_property(piece, "rotation_degrees", spin, 0.5)\
-			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tween.tween_property(piece, "modulate:a", 0.0, 0.35).set_delay(0.18)
-		tween.chain().tween_callback(piece.queue_free)
+			var atlas := AtlasTexture.new()
+			atlas.atlas = texture
+			atlas.region = Rect2(Vector2(region_x, band_y_tex), Vector2(region_w, band_h_tex))
+
+			var piece := TextureRect.new()
+			piece.texture = atlas
+			piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			piece.stretch_mode = TextureRect.STRETCH_SCALE
+			piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			piece.size = Vector2(region_w * screen_scale, band_h_screen)
+			piece.z_index = 100
+			var piece_pos := Vector2(art_rect.position.x + region_x * screen_scale, band_y_screen)
+			piece.global_position = piece_pos
+			piece.pivot_offset = piece.size * 0.5
+			battle.add_child(piece)
+
+			# Séparation discrète : un peu à l'écart et vers le bas, avec un
+			# petit aléa pour que les deux moitiés ne bougent pas en bloc rigide.
+			var dir: float = -1.0 if side == 0 else 1.0
+			var travel := Vector2(dir * 18.0, 30.0) + Vector2(randf_range(-4.0, 4.0), randf_range(-3.0, 3.0))
+			var spin: float = dir * randf_range(8.0, 16.0)
+
+			var tween: Tween = battle.create_tween()
+			tween.set_parallel(true)
+			tween.tween_property(piece, "global_position", piece_pos + travel, 0.45)\
+				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tween.tween_property(piece, "rotation_degrees", spin, 0.45)\
+				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(piece, "modulate:a", 0.0, 0.3).set_delay(0.2)
+			tween.chain().tween_callback(piece.queue_free)
 
 func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 	if not is_instance_valid(attacker_visual) or not is_instance_valid(target):
