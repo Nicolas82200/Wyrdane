@@ -113,6 +113,7 @@ class FakeHeroSystem:
 
 
 class FakeBoardVisualSystem:
+	var refresh_count: int = 0
 	func get_visual(_minion: Minion):
 		return null
 	func find_visual(_minion: Minion):
@@ -120,7 +121,7 @@ class FakeBoardVisualSystem:
 	func remove_visual(_minion: Minion) -> void:
 		pass
 	func refresh_board() -> void:
-		pass
+		refresh_count += 1
 	func reparent_minion_visual(_minion: Minion, _is_player: bool) -> void:
 		pass
 
