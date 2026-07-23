@@ -75,6 +75,17 @@ func _sync_backend() -> void:
 	CardLibrary.sync_backend_catalog(func(success: bool): catalog.result = 1 if success else -1)
 	if not await _wait_until(func(): return catalog.result != 0, deadline) or catalog.result != 1:
 		return
+	progress_bar.value = 60
+
+	# Réclame les 4 decks préfaits + cartes de départ si ce n'est pas déjà fait
+	# (idempotent côté backend, voir wyrdane-backend claim-starter) : ainsi un
+	# nouveau joueur a déjà ses decks/cartes dès le menu, sans attendre la fin
+	# du tutoriel pour les voir apparaître (TutorialManager.notify_victory ne
+	# fait plus cet appel).
+	var claim := {"result": 0}
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/collection/claim-starter", {},
+		func(code: int, _parsed): claim.result = 1 if code == 200 else -1)
+	await _wait_until(func(): return claim.result != 0, deadline)
 	progress_bar.value = 70
 
 	var pending := {"count": 3}
