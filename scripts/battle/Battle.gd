@@ -95,6 +95,7 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
+var fusion_system := FusionSystem.new()
 var combat_log := CombatLogSystem.new()
 # Overlay de VFX 3D (impacts de coup, projectiles de sort), créé en code (voir
 # VFXManager) — pas de nœud dans Battle.tscn.
@@ -216,6 +217,7 @@ func _init_systems() -> void:
 	temp_effect_system.init(self)
 	cost_system.init(self)
 	sacrifice_system.init(self)
+	fusion_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
 	vfx_manager = VFXManager.new()
@@ -235,6 +237,7 @@ func _init_systems() -> void:
 	add_child(trigger_system)
 	add_child(targeting_system)
 	add_child(sacrifice_system)
+	add_child(fusion_system)
 	hand.display_cost = get_card_cost
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
@@ -436,6 +439,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.is_action_pressed("ui_cancel"):
 			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+
+	if fusion_system.is_active():
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_RIGHT \
+				and event.pressed:
+			fusion_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_cancel"):
+			fusion_system.cancel()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -679,8 +694,8 @@ func destroy_minion(target: Minion) -> void:
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
 		return
-	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
-	if sacrifice_system.is_active():
+	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice/FUSION
+	if sacrifice_system.is_active() or fusion_system.is_active():
 		return
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
