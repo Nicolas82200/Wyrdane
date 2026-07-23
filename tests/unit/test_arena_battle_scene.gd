@@ -20,17 +20,18 @@ func test_scene_builds_ui_and_starts_a_shop_phase() -> void:
 
 func test_full_round_loop_does_not_crash() -> void:
 	# Simule un drag & drop d'achat (ArenaShopCardSlot -> ArenaBoardRow), pose
-	# le reste de la main en Avant, puis lance le combat.
+	# le reste de la main en Avant, puis résout le combat (normalement déclenché
+	# par l'expiration du minuteur de phase, voir _on_phase_timer_timeout).
 	for i in scene.human.shop_offer.size():
 		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
 			scene._on_shop_card_dropped(i, true)
 			break
 	for minion in scene.human.hand.duplicate():
 		scene._on_place_pressed(minion, true)
-	await scene._on_ready_pressed()
-	assert_true(scene.match_.round_number == 1, "le round n'avance qu'après le bouton 'round suivant'")
+	await scene._resolve_combat_phase()
+	assert_true(scene.match_.round_number == 1, "le round n'avance qu'après la phase Combat")
 	if not scene.game_over:
-		scene._on_next_round_pressed()
+		scene._advance_round()
 		assert_eq(scene.match_.round_number, 2)
 
 func test_shop_card_drop_buys_into_hand_without_placing() -> void:
@@ -83,3 +84,38 @@ func test_viewed_target_resets_to_self_if_eliminated() -> void:
 	bot.is_eliminated = true
 	scene._refresh_ui()
 	assert_eq(scene.viewed_target, scene.human, "consulter un plateau qui vient d'être éliminé doit revenir sur le sien")
+
+func test_dragging_a_board_minion_to_another_row_relocates_it() -> void:
+	var card := CardData.new()
+	card.card_name = "Filler"
+	card.cost = 1
+	var minion := Minion.new(card, true, "Front")
+	scene.human.board_front.append(minion)
+	scene._on_board_minion_dropped(minion, false, -1)
+	assert_true(scene.human.board_back.has(minion), "le serviteur doit rejoindre l'Arrière")
+	assert_false(scene.human.board_front.has(minion), "le serviteur doit quitter l'Avant")
+
+func test_dragging_a_board_minion_onto_the_shop_sells_it() -> void:
+	var card := CardData.new()
+	card.card_name = "Filler"
+	card.cost = 4
+	var minion := Minion.new(card, true, "Front")
+	scene.human.board_front.append(minion)
+	var gold_before: int = scene.human.gold
+	scene._on_board_minion_sold(minion)
+	assert_false(scene.human.board_front.has(minion), "le serviteur vendu doit quitter le plateau")
+	assert_gt(scene.human.gold, gold_before, "vendre doit rapporter de l'or")
+
+func test_ghost_board_is_never_shown_as_a_clickable_portrait() -> void:
+	scene.match_.ghost_board = GhostBoard.new()
+	scene._refresh_ui()
+	await get_tree().process_frame
+	assert_eq(scene.portraits_column.get_child_count(), scene.match_.players.size(),
+		"le Fantôme ne doit jamais apparaître comme un portrait cliquable")
+
+func test_shop_is_only_interactable_during_the_shop_phase() -> void:
+	assert_eq(scene.reroll_button.disabled, scene.human.gold < ArenaConstants.REROLL_COST,
+		"en phase Boutique, seul l'or manquant doit désactiver le reroll")
+	await scene._resolve_combat_phase()
+	if not scene.game_over:
+		assert_true(scene.reroll_button.disabled, "la boutique doit être désactivée pendant l'affichage du combat")

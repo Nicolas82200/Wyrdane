@@ -101,6 +101,25 @@ func place_on_board(minion: Minion, is_front: bool) -> bool:
 	board_row(is_front).append(minion)
 	return true
 
+# Déplace un serviteur déjà sur le plateau (repositionnement, glisser-déposer
+# en phase Boutique) : réordonne au sein d'une ligne ou change de ligne, sans
+# passer par la main ni la boutique. `index` négatif ou hors bornes = fin de
+# ligne. Refusé si ça changerait de ligne et que la ligne cible est déjà pleine
+# (le déplacement au sein d'une même ligne ne change jamais l'effectif total).
+func move_on_board(minion: Minion, is_front: bool, index: int = -1) -> bool:
+	var already_on_target_row: bool = board_row(is_front).has(minion)
+	if not already_on_target_row and not can_place_on_row(is_front):
+		return false
+	board_front.erase(minion)
+	board_back.erase(minion)
+	minion.board_row = "Front" if is_front else "Back"
+	var target: Array[Minion] = board_row(is_front)
+	if index < 0 or index > target.size():
+		target.append(minion)
+	else:
+		target.insert(index, minion)
+	return true
+
 func remove_from_board(minion: Minion) -> void:
 	board_front.erase(minion)
 	board_back.erase(minion)

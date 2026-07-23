@@ -13,8 +13,10 @@ extends Control
 # réutilise directement Hand.tscn/Hand.gd (voir _create_card_drag_preview et
 # get_allowed_rows_for_card/can_summon_to_row/player_front_container/
 # player_back_container/drop_system ci-dessous, qui donnent à ArenaBattle la
-# même API que Battle.gd, seule condition pour que Card.gd/DropSystem.gd
-# fonctionnent tels quels sans aucune modification).
+# même API que Battle.gd, seule condition pour que Card.gd fonctionne tel quel
+# sans aucune modification). `drop_system` est ArenaDropSystem (pas DropSystem.gd,
+# spécifique 1v1) : même contrat, avec en plus une rangée virtuelle "Shop" pour
+# vendre une carte de la main en la lâchant sur la boutique.
 #
 # 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
 
@@ -50,8 +52,8 @@ var hero_hp_label: Label
 var gold_label: Label
 var xp_label: Label
 var level_label: Label
-var shop_front_row: HBoxContainer
-var shop_back_row: HBoxContainer
+var shop_front_row: ArenaSellZone
+var shop_back_row: ArenaSellZone
 var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
@@ -66,17 +68,27 @@ var back_row: ArenaBoardRow
 # container/player_back_container) — ce sont les mêmes objets que front_row/back_row.
 var player_front_container: Control
 var player_back_container: Control
-var drop_system: DropSystem
+var drop_system: ArenaDropSystem
 var hero_portrait: TextureRect
 var hero_hp_overlay: Label
 var portraits_column: VBoxContainer
 # Joueur (ou GhostBoard) dont le plateau est actuellement affiché — façon TFT,
 # cliquer un portrait remplace la vue par le sien, en lecture seule.
 var viewed_target = null
-var ready_button: Button
-var next_round_button: Button
 var back_to_menu_button: Button
 var end_game_label: Label
+
+# ─── Minuteur de phase (Boutique/Combat) : plus de bouton "prêt"/"round
+# suivant", la partie s'enchaîne automatiquement à l'expiration du minuteur
+# (voir _start_shop_phase_timer/_on_phase_timer_timeout/_resolve_combat_phase/
+# _advance_round).
+enum Phase { SHOP, COMBAT }
+const SHOP_PHASE_DURATION := 10.0
+const COMBAT_PHASE_DURATION := 15.0
+var current_phase: Phase = Phase.SHOP
+var phase_timer: Timer
+var phase_label: Label
+var phase_time_label: Label
 
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
@@ -102,7 +114,7 @@ func _start_match() -> void:
 	match_ = ArenaMatch.new(players, pool)
 	viewed_target = human
 	match_.start_shop_phase()
-	_refresh_ui()
+	_start_shop_phase_timer()
 
 # ─── Construction de l'UI (programmatique, pas de .tscn détaillé) ────────────
 
@@ -122,16 +134,6 @@ func _build_ui() -> void:
 	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	background.stretch_mode = TextureRect.STRETCH_SCALE
 	add_child(background)
-
-	# Nœud "Board" requis par DropSystem.gd (battle.get_node_or_null("Board")) :
-	# reçoit les surlignages de dépôt en survol, sans quoi _ensure_drop_highlights
-	# échouerait (voir scripts/systems/DropSystem.gd ligne 65-69).
-	var board_overlay := Control.new()
-	board_overlay.name = "Board"
-	board_overlay.anchor_right = 1.0
-	board_overlay.anchor_bottom = 1.0
-	board_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(board_overlay)
 
 	# Pas de défilement : tout tient dans un écran unique (rangées et marges
 	# resserrées plutôt qu'un ScrollContainer).
@@ -184,12 +186,16 @@ func _build_ui() -> void:
 	# tour était le plateau d'en face. Arrière (plus loin du centre) d'abord,
 	# Avant (plus proche du centre) ensuite, pour respecter l'empilement
 	# vertical du plateau 1v1 (Battle.tscn). Même hauteur de rangée que le 1v1
-	# (Battle.tscn : custom_minimum_size = Vector2(1200, 150)).
-	shop_back_row = HBoxContainer.new()
+	# (Battle.tscn : custom_minimum_size = Vector2(1200, 150)). ArenaSellZone
+	# (pas un simple HBoxContainer) : accepte aussi le drop d'un serviteur du
+	# plateau pour le vendre (voir _on_board_minion_sold) — plus de bouton vendre.
+	shop_back_row = ArenaSellZone.new()
+	shop_back_row.on_sell = _on_board_minion_sold
 	shop_back_row.add_theme_constant_override("separation", 8)
 	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(_make_lane_panel(shop_back_row, 150))
-	shop_front_row = HBoxContainer.new()
+	shop_front_row = ArenaSellZone.new()
+	shop_front_row.on_sell = _on_board_minion_sold
 	shop_front_row.add_theme_constant_override("separation", 8)
 	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(_make_lane_panel(shop_front_row, 150))
@@ -228,7 +234,7 @@ func _build_ui() -> void:
 
 	player_front_container = front_row
 	player_back_container = back_row
-	drop_system = DropSystem.new()
+	drop_system = ArenaDropSystem.new()
 	drop_system.init(self)
 
 	var mid_row := HBoxContainer.new()
@@ -248,17 +254,6 @@ func _build_ui() -> void:
 	bottom_row.add_theme_constant_override("separation", 12)
 	bottom_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_child(bottom_row)
-
-	ready_button = Button.new()
-	ready_button.pressed.connect(_on_ready_pressed)
-	_style_button(ready_button, null, ArenaIcon.Kind.PLAY)
-	bottom_row.add_child(ready_button)
-
-	next_round_button = Button.new()
-	next_round_button.visible = false
-	next_round_button.pressed.connect(_on_next_round_pressed)
-	_style_button(next_round_button, null, ArenaIcon.Kind.FORWARD)
-	bottom_row.add_child(next_round_button)
 
 	back_to_menu_button = Button.new()
 	back_to_menu_button.visible = false
@@ -282,6 +277,38 @@ func _build_ui() -> void:
 		return {"race": card_data.cost, "generic": 0}
 	hand.card_played.connect(_on_hand_card_played)
 	add_child(hand)
+
+	# ─ Minuteur de phase (Boutique/Combat), au milieu à droite de l'écran — la
+	# partie s'enchaîne automatiquement à son expiration, plus de bouton
+	# "prêt"/"round suivant" à cliquer (voir _start_shop_phase_timer et suite).
+	# Seul endroit du jeu avec du texte écrit (demande explicite du joueur) :
+	# le nom de la phase, traduit via SettingsManager.t (voir game.csv).
+	var timer_box := VBoxContainer.new()
+	timer_box.anchor_left = 1.0
+	timer_box.anchor_right = 1.0
+	timer_box.anchor_top = 0.5
+	timer_box.anchor_bottom = 0.5
+	timer_box.offset_left = -150.0
+	timer_box.offset_right = -20.0
+	timer_box.offset_top = -40.0
+	timer_box.offset_bottom = 40.0
+	timer_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	add_child(timer_box)
+
+	phase_label = Label.new()
+	phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	phase_label.add_theme_font_size_override("font_size", 18)
+	timer_box.add_child(phase_label)
+
+	phase_time_label = Label.new()
+	phase_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	phase_time_label.add_theme_font_size_override("font_size", 30)
+	timer_box.add_child(phase_time_label)
+
+	phase_timer = Timer.new()
+	phase_timer.one_shot = true
+	phase_timer.timeout.connect(_on_phase_timer_timeout)
+	add_child(phase_timer)
 
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
@@ -451,10 +478,22 @@ func can_summon_to_row(_is_player: bool, row: String) -> bool:
 	return human.can_place_on_row(row == ROW_FRONT)
 
 func _on_hand_card_played(card_data: CardData, row: String, _insert_index: int) -> void:
+	if row == ArenaDropSystem.ROW_SHOP:
+		for minion in human.hand:
+			if minion.card_data == card_data:
+				match_.sell_card(human, minion, false)
+				break
+		_refresh_ui()
+		return
 	for minion in human.hand:
 		if minion.card_data == card_data:
 			_on_place_pressed(minion, row == ROW_FRONT)
 			return
+
+func _process(_delta: float) -> void:
+	if phase_timer == null:
+		return
+	phase_time_label.text = str(ceili(phase_timer.time_left)) if phase_timer.time_left > 0.0 else "0"
 
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
@@ -473,8 +512,13 @@ func _refresh_ui() -> void:
 	if viewed_target == null or (viewed_target is ArenaPlayerState and viewed_target.is_eliminated):
 		viewed_target = human
 
-	reroll_button.disabled = human.gold < ArenaConstants.REROLL_COST
-	buy_xp_button.disabled = not ArenaEconomy.can_buy_xp(match_.round_number) or human.gold < ArenaConstants.GOLD_TO_XP_RATE or human.level >= 8
+	# La boutique n'est utilisable qu'en phase Boutique (voir minuteur) : pas de
+	# reroll/XP/achat pendant l'affichage du résultat de combat.
+	var in_shop_phase: bool = not game_over and current_phase == Phase.SHOP
+	shop_front_row.get_parent().visible = in_shop_phase
+	shop_back_row.get_parent().visible = in_shop_phase
+	reroll_button.disabled = not in_shop_phase or human.gold < ArenaConstants.REROLL_COST
+	buy_xp_button.disabled = not in_shop_phase or not ArenaEconomy.can_buy_xp(match_.round_number) or human.gold < ArenaConstants.GOLD_TO_XP_RATE or human.level >= 8
 
 	suspended_label.text = str(human.suspended.size()) if not human.suspended.is_empty() else ""
 
@@ -483,9 +527,6 @@ func _refresh_ui() -> void:
 	_refresh_spells()
 	_refresh_board()
 	_refresh_portraits()
-
-	ready_button.disabled = game_over
-	ready_button.visible = not game_over
 
 # La boutique occupe la position "adverse" du plateau : chaque offre est une
 # vraie `Card` (voir ArenaShopCardSlot), rangée dans shop_front_row ou
@@ -572,6 +613,8 @@ func _refresh_board() -> void:
 	var is_own_board: bool = viewed_target == human
 	front_row.on_drop = _on_shop_card_dropped if is_own_board else Callable()
 	back_row.on_drop = _on_shop_card_dropped if is_own_board else Callable()
+	front_row.on_reposition = _on_board_minion_dropped if is_own_board else Callable()
+	back_row.on_reposition = _on_board_minion_dropped if is_own_board else Callable()
 
 	var is_ghost: bool = viewed_target is GhostBoard
 	var front: Array[Minion] = viewed_target.front if is_ghost else viewed_target.board_front
@@ -589,17 +632,20 @@ func _refresh_board() -> void:
 	# pour le Fantôme, qui n'a pas de héros (juste un plateau figé).
 	hero_hp_overlay.text = "" if is_ghost else str(viewed_target.hero_hp)
 
+# Interactif (son propre plateau) : le serviteur est glissable, pour se
+# repositionner sur sa ligne, changer de ligne, ou être vendu en le lâchant
+# sur la boutique (voir ArenaBoardMinionSlot/ArenaBoardRow/ArenaSellZone) —
+# plus de bouton dédié. Lecture seule (plateau d'un autre joueur consulté) :
+# juste le visuel, sans wrapper glissable.
 func _add_board_entry(row: Node, minion: Minion, interactive: bool) -> void:
-	var col := VBoxContainer.new()
-	row.add_child(col)
-	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
-	col.add_child(visual)
-	visual.set_minion(minion)
 	if interactive:
-		var sell_button := Button.new()
-		col.add_child(sell_button)
-		_style_button(sell_button, ICON_GEM)
-		sell_button.pressed.connect(_on_sell_pressed.bind(minion, true))
+		var slot := ArenaBoardMinionSlot.new()
+		row.add_child(slot)
+		slot.setup(minion)
+	else:
+		var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+		row.add_child(visual)
+		visual.set_minion(minion)
 
 # Portrait stable par participant (même art réutilisé qu'ailleurs dans le
 # jeu, voir décision "pas de génération d'illustrations" du plan Arena) : le
@@ -612,16 +658,15 @@ func _art_for_target(target) -> Texture2D:
 	return HERO_ARTS[max(idx, 0) % HERO_ARTS.size()]
 
 # Colonne de portraits cliquables (façon TFT), à gauche de l'écran : cliquer
-# un participant (ou le Fantôme s'il est actif) affiche son plateau à la
-# place du tien ci-dessus.
+# un participant affiche son plateau à la place du tien ci-dessus. Le Fantôme
+# (plateau figé du dernier éliminé, comble l'appariement à effectif impair —
+# voir GhostBoard/README) n'est volontairement pas montré ici : c'est un
+# détail d'appariement interne, pas un participant à consulter.
 func _refresh_portraits() -> void:
 	for child in portraits_column.get_children():
 		child.queue_free()
 	for p in match_.players:
 		portraits_column.add_child(_make_participant_button(p, p.display_name, p.is_eliminated, p == human, p.hero_hp))
-	if match_.ghost_board != null:
-		var ghost: GhostBoard = match_.ghost_board
-		portraits_column.add_child(_make_participant_button(ghost, ghost.origin_player_name, false, false, -1))
 
 func _make_participant_button(target, _label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
 	var btn := Button.new()
@@ -654,8 +699,15 @@ func _on_place_pressed(minion: Minion, is_front: bool) -> void:
 	human.place_on_board(minion, is_front)
 	_refresh_ui()
 
-func _on_sell_pressed(minion: Minion, from_board: bool) -> void:
-	match_.sell_card(human, minion, from_board)
+# Repositionnement (même ligne ou changement de ligne) d'un serviteur déjà
+# posé — voir ArenaBoardMinionSlot/ArenaBoardRow.on_reposition.
+func _on_board_minion_dropped(minion: Minion, is_front: bool, index: int) -> void:
+	human.move_on_board(minion, is_front, index)
+	_refresh_ui()
+
+# Vente en glissant un serviteur du plateau sur la boutique — voir ArenaSellZone.
+func _on_board_minion_sold(minion: Minion) -> void:
+	match_.sell_card(human, minion, true)
 	_refresh_ui()
 
 func _on_cast_pressed(card_data: CardData) -> void:
@@ -671,9 +723,30 @@ func _on_view_board_pressed(target) -> void:
 	_refresh_ui()
 
 # ─── Phase Combat ────────────────────────────────────────────────────────────
+# Plus de bouton "prêt"/"round suivant" : le minuteur enchaîne automatiquement
+# Boutique -> Combat -> Boutique du round suivant, jusqu'à la fin de partie.
 
-func _on_ready_pressed() -> void:
-	ready_button.disabled = true
+func _start_shop_phase_timer() -> void:
+	current_phase = Phase.SHOP
+	phase_label.text = SettingsManager.t("ARENA_SHOP_TITLE")
+	phase_timer.start(SHOP_PHASE_DURATION)
+	_refresh_ui()
+
+func _start_combat_phase_timer() -> void:
+	current_phase = Phase.COMBAT
+	phase_label.text = SettingsManager.t("ARENA_PHASE_COMBAT")
+	phase_timer.start(COMBAT_PHASE_DURATION)
+	_refresh_ui()
+
+func _on_phase_timer_timeout() -> void:
+	if game_over:
+		return
+	if current_phase == Phase.SHOP:
+		await _resolve_combat_phase()
+	else:
+		_advance_round()
+
+func _resolve_combat_phase() -> void:
 	for bot in bots:
 		if not bot.is_alive():
 			continue
@@ -688,11 +761,11 @@ func _on_ready_pressed() -> void:
 	if match_.is_match_over() or human.is_eliminated:
 		_show_game_over()
 	else:
-		next_round_button.visible = true
-	_refresh_ui()
+		_start_combat_phase_timer()
 
 func _show_game_over() -> void:
 	game_over = true
+	phase_timer.stop()
 	end_game_label.visible = true
 	back_to_menu_button.visible = true
 	var title: String = SettingsManager.t("ARENA_DEFEAT_TITLE") if human.is_eliminated else SettingsManager.t("ARENA_VICTORY_TITLE")
@@ -701,13 +774,13 @@ func _show_game_over() -> void:
 	for i in ranking.size():
 		lines.append("  %d. %s" % [i + 1, ranking[i].display_name])
 	end_game_label.text = "\n".join(lines)
+	_refresh_ui()
 
-func _on_next_round_pressed() -> void:
-	next_round_button.visible = false
+func _advance_round() -> void:
 	viewed_target = human
 	match_.advance_round()
 	match_.start_shop_phase()
-	_refresh_ui()
+	_start_shop_phase_timer()
 
 func _on_back_to_menu_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
