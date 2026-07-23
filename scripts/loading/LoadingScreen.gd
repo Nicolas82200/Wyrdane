@@ -18,7 +18,6 @@ func _ready() -> void:
 		await get_tree().process_frame
 		CardLibrary.load_all_cards()
 
-	status_label.text  = SettingsManager.t("loading.cards_loaded") % CardLibrary.all_cards.size()
 	progress_bar.value = 40
 
 	await _sync_backend()
@@ -37,7 +36,7 @@ func _sync_backend() -> void:
 		return
 	var deadline := Time.get_ticks_msec() + int(BACKEND_TIMEOUT_SEC * 1000.0)
 
-	status_label.text = SettingsManager.t("loading.connecting")
+	status_label.text = SettingsManager.t("loading.profile")
 	# result : 0 = en attente, 1 = succès, -1 = échec (Dictionary : les lambdas
 	# GDScript capturent par valeur, seule une référence permet de rapporter).
 	var login := {"result": 0}
@@ -48,7 +47,6 @@ func _sync_backend() -> void:
 		return
 	progress_bar.value = 55
 
-	status_label.text = SettingsManager.t("loading.profile")
 	var catalog := {"result": 0}
 	CardLibrary.sync_backend_catalog(func(success: bool): catalog.result = 1 if success else -1)
 	if not await _wait_until(func(): return catalog.result != 0, deadline) or catalog.result != 1:
