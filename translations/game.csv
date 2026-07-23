@@ -222,6 +222,7 @@ deck.max_copies_reached,"Nombre maximum de copies dans ce deck atteint","Maximum
 deck.card_locked,"Carte non débloquée","Card not unlocked"
 deck.buy_button,"Acheter (%d)","Buy (%d)"
 deck.buy_error,"Achat impossible (solde insuffisant ou erreur réseau).","Purchase failed (insufficient balance or network error)."
+deck.stock_format,"En stock : %d","In stock: %d"
 deck.filter_hide_locked,"Cacher les cartes non débloquées","Hide locked cards"
 deck.sort_label,"Trier :","Sort:"
 deck.sort_default,"Par défaut","Default"
