@@ -4,7 +4,7 @@ class_name Card
 
 signal card_clicked(card: CardData, row: String, insert_index: int)
 signal drag_started
-signal drag_ended
+signal drag_ended(played: bool)
 signal mulligan_clicked
 
 const DRAG_THRESHOLD      := 350.0
@@ -394,7 +394,7 @@ func _on_drag_released() -> void:
 		# et de la désintégrer vers le pool de mana — cette carte (invisible
 		# depuis le début du drag) n'a donc plus qu'à se libérer.
 		card_clicked.emit(data, drop_row, insert_index)
-		drag_ended.emit()
+		drag_ended.emit(true)
 		queue_free()
 		return
 
@@ -402,7 +402,7 @@ func _on_drag_released() -> void:
 		_battle.drop_system.clear_player_drop_highlight()
 	_battle = null
 	_restore_in_hand()
-	drag_ended.emit()
+	drag_ended.emit(false)
 
 func _restore_in_hand() -> void:
 	visible = true
