@@ -28,6 +28,11 @@ const HOVER_PUSH_MAX   := 28.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
 const HOVER_PUSH_DECAY := 0.55
 const HAND_START_X     := 80.0
+# Délai avant repliement une fois la souris sortie de la zone de main (évite un
+# repli trop nerveux) — ignoré quand une carte vient d'être jouée (repli immédiat)
+const COLLAPSE_DELAY   := 1.0
+# Durée des animations de déploiement/repliement de la main
+const LAYOUT_TWEEN_DURATION := 0.28
 
 var _base_positions:    Dictionary     = {}
 # Ordre logique fixe des cartes en main (position/index), indépendant de
@@ -48,6 +53,9 @@ var _mulligan_mode:     bool           = false
 var _hand_expanded:     bool           = false
 # Vrai pendant un drag issu de la main : reste déployée quelle que soit la souris
 var _force_expanded:    bool           = false
+# Temps écoulé (s) depuis que la souris a quitté la zone de main, en attente du
+# délai avant repliement (voir COLLAPSE_DELAY)
+var _collapse_elapsed:  float          = 0.0
 
 var _battle: Node = null
 
@@ -55,13 +63,21 @@ func _ready() -> void:
 	preview.hide()
 	_battle = get_tree().current_scene
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _mulligan_mode:
 		return
 	var should_expand: bool = _force_expanded or _is_mouse_in_hand_zone()
-	if should_expand != _hand_expanded:
-		_hand_expanded = should_expand
-		_update_hand_layout(true)
+	if should_expand:
+		_collapse_elapsed = 0.0
+		if not _hand_expanded:
+			_hand_expanded = true
+			_update_hand_layout(true)
+	elif _hand_expanded:
+		_collapse_elapsed += delta
+		if _collapse_elapsed >= COLLAPSE_DELAY:
+			_collapse_elapsed = 0.0
+			_hand_expanded = false
+			_update_hand_layout(true)
 
 func _is_mouse_in_hand_zone() -> bool:
 	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
@@ -358,8 +374,8 @@ func _update_hand_layout(animated: bool = false) -> void:
 		if animated:
 			var tween := create_tween()
 			tween.set_parallel(true)
-			tween.tween_property(card, "position", pos,             0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tween.tween_property(card, "scale",    layout["scale"], 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "position", pos,             LAYOUT_TWEEN_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "scale",    layout["scale"], LAYOUT_TWEEN_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
 	_sync_tree_order(hovered_index)
@@ -426,8 +442,13 @@ func _relay_drag_started() -> void:
 	_update_hand_layout(true)
 	drag_started.emit()
 
-func _relay_drag_ended() -> void:
+func _relay_drag_ended(played: bool = false) -> void:
 	_force_expanded = false
+	if played:
+		# La carte vient d'être jouée : la main se replie tout de suite, sans
+		# attendre le délai normal (COLLAPSE_DELAY) ni que la souris quitte sa zone.
+		_collapse_elapsed = 0.0
+		_hand_expanded = false
 	# Que le drag ait été annulé (la carte réintègre son slot) ou résolu (elle
 	# va être libérée juste après ce signal), on refait le calcul pour que les
 	# autres cartes reprennent leur place correcte dans les deux cas.
