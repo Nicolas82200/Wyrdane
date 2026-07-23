@@ -11,7 +11,7 @@ func process_deaths(silent: Array = []) -> void:
 	if processing_deaths:
 		return
 	processing_deaths = true
-	_apply_revenant(battle.player_minions + battle.enemy_minions)
+	var revived := _apply_revenant(battle.player_minions + battle.enemy_minions)
 	var dead_player: Array[Minion] = battle.player_minions.filter(func(m: Minion): return m.is_dead())
 	var dead_enemy:  Array[Minion] = battle.enemy_minions.filter(func(m: Minion): return m.is_dead())
 	var dead_all:    Array[Minion] = []
@@ -19,6 +19,11 @@ func process_deaths(silent: Array = []) -> void:
 	dead_all.append_array(dead_enemy)
 	if dead_all.is_empty():
 		processing_deaths = false
+		# Si REVENANT a relevé un serviteur (health 0 → 1) sans qu'aucune mort ne
+		# subsiste, la sortie anticipée sauterait le refresh de fin de vague : le
+		# visuel resterait figé à 0 HP.
+		if revived:
+			battle.board_visual_system.refresh_board()
 		return
 	# VIRULENT (Abomination) : capture les cibles AVANT retrait du plateau, la
 	# recherche d'adjacence se fait sur les listes de serviteurs encore en jeu.
@@ -46,7 +51,9 @@ func process_deaths(silent: Array = []) -> void:
 
 # REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par partie.
 # Un Sacrifice volontaire consomme le serviteur normalement (pas de relève).
-func _apply_revenant(minions: Array[Minion]) -> void:
+# Retourne true si au moins un serviteur a été relevé.
+func _apply_revenant(minions: Array[Minion]) -> bool:
+	var revived := false
 	for minion in minions:
 		if not minion.is_dead():
 			continue
@@ -56,9 +63,11 @@ func _apply_revenant(minions: Array[Minion]) -> void:
 			continue
 		minion.revenant_triggered = true
 		minion.health = 1
+		revived = true
 		var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 		if visual:
 			battle.animation_system.play_revenant(visual)
+	return revived
 
 func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:

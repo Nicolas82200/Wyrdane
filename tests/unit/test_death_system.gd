@@ -85,6 +85,14 @@ func test_revenant_revives_once() -> void:
 	assert_true(minion.revenant_triggered)
 	assert_true(minion in battle.player_minions, "le serviteur relevé doit rester en jeu")
 
+func test_revenant_alone_still_refreshes_board() -> void:
+	# Régression : si REVENANT relève le seul mort de la vague, process_deaths
+	# sortait en avance sans refresh — le visuel restait figé à 0 HP.
+	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
+	minion.health = 0
+	await death_system.process_deaths()
+	assert_gt(battle.board_visual_system.refresh_count, 0, "le plateau doit être rafraîchi après une relève REVENANT sans autre mort")
+
 func test_revenant_does_not_apply_when_sacrificed() -> void:
 	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
 	minion.sacrificed = true
