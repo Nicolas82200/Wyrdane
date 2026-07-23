@@ -23,7 +23,6 @@ func test_bot_never_spends_more_gold_than_it_has() -> void:
 	var player := m.players[0]
 	player.gold = 3
 	player.shop_offer = [cards[0], cards[1], null, null, null]
-	player.shop_locked = [false, false, false, false, false]
 	var bot := ArenaBotDriver.new(RandomNumberGenerator.new())
 	bot.play_shop_phase(player, m)
 	assert_true(player.gold >= 0, "l'or ne doit jamais devenir négatif")
@@ -46,7 +45,6 @@ func test_bot_handles_empty_shop_without_crashing() -> void:
 	var player := m.players[0]
 	player.gold = 0
 	player.shop_offer = [null, null, null, null, null]
-	player.shop_locked = [false, false, false, false, false]
 	var bot := ArenaBotDriver.new(RandomNumberGenerator.new())
 	bot.play_shop_phase(player, m)
 	assert_eq(player.hand.size(), 0)
@@ -58,7 +56,6 @@ func test_bot_buys_xp_from_round_2_with_enough_gold() -> void:
 	var player := m.players[0]
 	player.gold = 5
 	player.shop_offer = [card, null, null, null, null]
-	player.shop_locked = [false, false, false, false, false]
 	var bot := ArenaBotDriver.new(RandomNumberGenerator.new())
 	bot.play_shop_phase(player, m)
 	assert_gt(player.xp, 0, "le bot doit acheter de l'XP quand il a de l'or inutile à partir du round 2")

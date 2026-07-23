@@ -57,12 +57,8 @@ func start_shop_phase() -> void:
 func _refresh_shop_offer(player: ArenaPlayerState) -> void:
 	if player.shop_offer.size() != ArenaConstants.SHOP_SIZE:
 		player.shop_offer.resize(ArenaConstants.SHOP_SIZE)
-		player.shop_locked.resize(ArenaConstants.SHOP_SIZE)
 	for i in ArenaConstants.SHOP_SIZE:
-		if i >= player.shop_locked.size() or not player.shop_locked[i]:
-			player.shop_offer[i] = pool.draw_card(player.level, rng)
-			if i < player.shop_locked.size():
-				player.shop_locked[i] = false
+		player.shop_offer[i] = pool.draw_card(player.level, rng)
 
 func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	if shop_index < 0 or shop_index >= player.shop_offer.size():
@@ -73,8 +69,6 @@ func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	player.gold -= card_data.cost
 	pool.take(card_data)
 	player.shop_offer[shop_index] = null
-	if shop_index < player.shop_locked.size():
-		player.shop_locked[shop_index] = false
 	if card_data.card_type == "Minion":
 		var minion := Minion.new(card_data, true, "Front")
 		player.add_to_hand(minion)
@@ -140,15 +134,6 @@ func reroll(player: ArenaPlayerState) -> bool:
 	player.gold -= ArenaConstants.REROLL_COST
 	_refresh_shop_offer(player)
 	return true
-
-func lock_card(player: ArenaPlayerState, shop_index: int) -> void:
-	if shop_index < 0 or shop_index >= player.shop_offer.size():
-		return
-	if player.shop_offer[shop_index] == null:
-		return
-	if shop_index >= player.shop_locked.size():
-		player.shop_locked.resize(player.shop_offer.size())
-	player.shop_locked[shop_index] = not player.shop_locked[shop_index]
 
 func buy_xp(player: ArenaPlayerState) -> bool:
 	if not ArenaEconomy.can_buy_xp(round_number):

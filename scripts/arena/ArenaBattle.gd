@@ -8,13 +8,19 @@ extends Control
 # centre) ; acheter un serviteur se fait en le glissant vers son propre
 # plateau (drag & drop autonome, voir ArenaShopCardSlot/ArenaBoardRow — pas
 # de réutilisation de Card.gd/DropSystem.gd, pensés pour le mana/ciblage 1v1).
-# L'achat rejoint la main (comme un achat au clic) ; la pose sur le plateau
-# reste une action séparée via les boutons Avant/Arrière de la main.
+# L'achat rejoint la main ; la pose sur le plateau se fait ensuite en glissant
+# la carte de la main vers une rangée, exactement comme en 1v1 : la main
+# réutilise directement Hand.tscn/Hand.gd (voir _create_card_drag_preview et
+# get_allowed_rows_for_card/can_summon_to_row/player_front_container/
+# player_back_container/drop_system ci-dessous, qui donnent à ArenaBattle la
+# même API que Battle.gd, seule condition pour que Card.gd/DropSystem.gd
+# fonctionnent tels quels sans aucune modification).
 #
 # 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
 
 const CARD_SCENE := preload("res://scenes/card/Card.tscn")
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
+const HAND_SCENE := preload("res://scenes/hand/Hand.tscn")
 const BACKGROUND_ART := preload("res://assets/background/background-05.jpg")
 const ROUNDED_CORNERS_SHADER := preload("res://resources/shaders/rounded_corners.gdshader")
 const UI_FONT := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
@@ -23,13 +29,15 @@ const HERO_ARTS := [
 	preload("res://assets/heros_art/azhar-the-fallen.jpg"),
 ]
 # Icônes réutilisées depuis assets/icons/ existants (aucune icône dédiée
-# "vendre"/"verrouiller"/"prêt" n'existe encore dans le projet) : le Gemme
-# représente l'or (vendre = récupérer de l'or), Instant le type Incantation,
-# les icônes de rangée l'action "poser Avant/Arrière".
+# "vendre"/"prêt" n'existe encore dans le projet) : le Gemme représente l'or
+# (vendre = récupérer de l'or), Instant le type Incantation.
 const ICON_GEM := preload("res://assets/icons/gem.png")
-const ICON_FRONT_LANE := preload("res://assets/icons/front_lane.png")
-const ICON_BACK_LANE := preload("res://assets/icons/back_lane.png")
 const ICON_INSTANT := preload("res://assets/icons/instant.png")
+
+# Même vocabulaire de lignes que Battle.gd — requis tel quel par DropSystem.gd
+# (battle.ROW_FRONT/battle.ROW_BACK) pour pouvoir le réutiliser sans changement.
+const ROW_FRONT := "Front"
+const ROW_BACK := "Back"
 
 var match_: ArenaMatch
 var human: ArenaPlayerState
@@ -47,20 +55,27 @@ var shop_back_row: HBoxContainer
 var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
-var hand_container: HBoxContainer
+# Main du joueur — la même Hand.tscn/Hand.gd que le mode 1v1 (voir en-tête de
+# fichier), pas une approximation construite à la main.
+var hand: Hand
 var spell_hand_container: HBoxContainer
 var viewing_label: Label
 var front_row: ArenaBoardRow
 var back_row: ArenaBoardRow
+# Alias exposés avec les noms attendus par DropSystem.gd (battle.player_front_
+# container/player_back_container) — ce sont les mêmes objets que front_row/back_row.
+var player_front_container: Control
+var player_back_container: Control
+var drop_system: DropSystem
 var hero_portrait: TextureRect
-var portraits_row: HBoxContainer
+var hero_hp_overlay: Label
+var portraits_column: VBoxContainer
 # Joueur (ou GhostBoard) dont le plateau est actuellement affiché — façon TFT,
 # cliquer un portrait remplace la vue par le sien, en lecture seule.
 var viewed_target = null
 var ready_button: Button
 var next_round_button: Button
 var back_to_menu_button: Button
-var combat_log_label: Label
 var end_game_label: Label
 
 const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
@@ -108,6 +123,16 @@ func _build_ui() -> void:
 	background.stretch_mode = TextureRect.STRETCH_SCALE
 	add_child(background)
 
+	# Nœud "Board" requis par DropSystem.gd (battle.get_node_or_null("Board")) :
+	# reçoit les surlignages de dépôt en survol, sans quoi _ensure_drop_highlights
+	# échouerait (voir scripts/systems/DropSystem.gd ligne 65-69).
+	var board_overlay := Control.new()
+	board_overlay.name = "Board"
+	board_overlay.anchor_right = 1.0
+	board_overlay.anchor_bottom = 1.0
+	board_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(board_overlay)
+
 	# Pas de défilement : tout tient dans un écran unique (rangées et marges
 	# resserrées plutôt qu'un ScrollContainer).
 	var margin := MarginContainer.new()
@@ -119,11 +144,28 @@ func _build_ui() -> void:
 	margin.add_theme_constant_override("margin_bottom", 10)
 	add_child(margin)
 
+	# Rangée principale : les portraits des autres participants à gauche (façon
+	# TFT), le reste du plateau à droite — plus de rangée horizontale de
+	# portraits au milieu du flux vertical.
+	var root_hbox := HBoxContainer.new()
+	root_hbox.add_theme_constant_override("separation", 10)
+	root_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(root_hbox)
+
+	# ─ Colonne de gauche : portraits cliquables des autres participants (façon
+	# TFT) — cliquer en affiche le plateau à la place du sien, en lecture seule.
+	portraits_column = VBoxContainer.new()
+	portraits_column.add_theme_constant_override("separation", 8)
+	portraits_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
+	root_hbox.add_child(portraits_column)
+
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 6)
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(vbox)
+	root_hbox.add_child(vbox)
 
 	# En-tête tout en icônes + chiffres (aucun mot) : rangée, cœur, gemme, étoile.
 	var header := HBoxContainer.new()
@@ -141,15 +183,16 @@ func _build_ui() -> void:
 	# propre board_position (README : lignes adverses), comme si l'offre du
 	# tour était le plateau d'en face. Arrière (plus loin du centre) d'abord,
 	# Avant (plus proche du centre) ensuite, pour respecter l'empilement
-	# vertical du plateau 1v1 (Battle.tscn).
+	# vertical du plateau 1v1 (Battle.tscn). Même hauteur de rangée que le 1v1
+	# (Battle.tscn : custom_minimum_size = Vector2(1200, 150)).
 	shop_back_row = HBoxContainer.new()
 	shop_back_row.add_theme_constant_override("separation", 8)
 	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(shop_back_row, 120))
+	vbox.add_child(_make_lane_panel(shop_back_row, 150))
 	shop_front_row = HBoxContainer.new()
 	shop_front_row.add_theme_constant_override("separation", 8)
 	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(shop_front_row, 120))
+	vbox.add_child(_make_lane_panel(shop_front_row, 150))
 
 	var shop_controls := HBoxContainer.new()
 	shop_controls.add_theme_constant_override("separation", 8)
@@ -165,23 +208,28 @@ func _build_ui() -> void:
 	shop_controls.add_child(buy_xp_button)
 
 	# ─ Plateau consulté : Avant proche du centre, Arrière plus loin. Par
-	# défaut le sien, mais cliquer un portrait (portraits_row plus bas)
-	# l'échange contre celui d'un autre participant (lecture seule). Pas
-	# d'emplacement Rituel/Enchantement pour l'instant (hors scope Arena v1).
+	# défaut le sien, mais cliquer un portrait (colonne de gauche) l'échange
+	# contre celui d'un autre participant (lecture seule). Pas d'emplacement
+	# Rituel/Enchantement pour l'instant (hors scope Arena v1).
 	viewing_label = _make_label(vbox)
 	front_row = ArenaBoardRow.new()
 	front_row.is_front = true
 	front_row.on_drop = _on_shop_card_dropped
 	front_row.add_theme_constant_override("separation", 8)
 	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(front_row, 120))
+	vbox.add_child(_make_lane_panel(front_row, 150))
 
 	back_row = ArenaBoardRow.new()
 	back_row.is_front = false
 	back_row.on_drop = _on_shop_card_dropped
 	back_row.add_theme_constant_override("separation", 8)
 	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(back_row, 120))
+	vbox.add_child(_make_lane_panel(back_row, 150))
+
+	player_front_container = front_row
+	player_back_container = back_row
+	drop_system = DropSystem.new()
+	drop_system.init(self)
 
 	var mid_row := HBoxContainer.new()
 	mid_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -191,16 +239,10 @@ func _build_ui() -> void:
 	mid_row.add_child(hero_portrait)
 	suspended_label = _make_label(mid_row)
 
-	# ─ Main du joueur + Incantations (côte à côte pour économiser la hauteur) ─
-	var hands_row := HBoxContainer.new()
-	hands_row.add_theme_constant_override("separation", 24)
-	vbox.add_child(hands_row)
-	hand_container = HBoxContainer.new()
-	hand_container.add_theme_constant_override("separation", 6)
-	hands_row.add_child(hand_container)
+	# ─ Incantations achetées, non lancées (voir _refresh_spells) ─
 	spell_hand_container = HBoxContainer.new()
 	spell_hand_container.add_theme_constant_override("separation", 6)
-	hands_row.add_child(spell_hand_container)
+	vbox.add_child(spell_hand_container)
 
 	var bottom_row := HBoxContainer.new()
 	bottom_row.add_theme_constant_override("separation", 12)
@@ -229,19 +271,17 @@ func _build_ui() -> void:
 	end_game_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(end_game_label)
 
-	# ─ Portraits cliquables (façon TFT), à la place du journal de combat :
-	# cliquer un participant affiche son plateau ci-dessus à la place du
-	# tien (lecture seule). Le journal détaillé (texte) reste dessous.
-	portraits_row = HBoxContainer.new()
-	portraits_row.add_theme_constant_override("separation", 8)
-	portraits_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(portraits_row)
-
-	combat_log_label = Label.new()
-	combat_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	combat_log_label.clip_text = true
-	combat_log_label.custom_minimum_size = Vector2(0, 60)
-	vbox.add_child(combat_log_label)
+	# ─ Main du joueur : la même Hand.tscn/Hand.gd que le mode 1v1, ancrée en
+	# bas de l'écran (voir Hand.tscn : anchor_top=1.0, grow_vertical=0) —
+	# enfant direct de la racine, pas de la colonne de contenu, pour occuper
+	# toute la largeur comme en 1v1. Glisser une carte vers front_row/back_row
+	# la pose (voir get_allowed_rows_for_card/can_summon_to_row/drop_system).
+	hand = HAND_SCENE.instantiate()
+	hand.create_drag_preview = _create_card_drag_preview
+	hand.display_cost = func(card_data: CardData) -> Dictionary:
+		return {"race": card_data.cost, "generic": 0}
+	hand.card_played.connect(_on_hand_card_played)
+	add_child(hand)
 
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
@@ -281,6 +321,20 @@ func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRe
 	material.set_shader_parameter("radius_bottom_right", 16.0)
 	material.set_shader_parameter("radius_bottom_left", 16.0)
 	tex.material = material
+
+	# PV inscrits directement sur le portrait, superposés — même pattern que
+	# Battle.tscn (HealthLabel plein cadre par-dessus Portrait), pas un chiffre
+	# séparé à côté.
+	hero_hp_overlay = Label.new()
+	hero_hp_overlay.anchor_right = 1.0
+	hero_hp_overlay.anchor_bottom = 1.0
+	hero_hp_overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hero_hp_overlay.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hero_hp_overlay.add_theme_font_size_override("font_size", 24)
+	hero_hp_overlay.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
+	hero_hp_overlay.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	hero_hp_overlay.add_theme_constant_override("outline_size", 6)
+	tex.add_child(hero_hp_overlay)
 	return tex
 
 # Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
@@ -365,6 +419,43 @@ func _style_button(btn: Button, icon: Texture2D = null, vector_kind = null) -> v
 	btn.add_theme_stylebox_override("pressed", pressed)
 	btn.add_theme_stylebox_override("disabled", disabled)
 
+# ─── API attendue par Card.gd/DropSystem.gd (voir Battle.gd, mêmes signatures) ─
+# Ces méthodes/propriétés (ROW_FRONT/ROW_BACK, player_front_container/
+# player_back_container, drop_system, get_allowed_rows_for_card,
+# can_summon_to_row) sont ce qui permet de réutiliser Card.gd/DropSystem.gd
+# tels quels pour la main : ils ne connaissent Battle.gd que par duck-typing
+# (get_tree().current_scene), jamais par référence directe à sa classe.
+
+func _create_card_drag_preview(card_data: CardData) -> Control:
+	var preview: BoardMinion = BOARD_MINION_SCENE.instantiate() as BoardMinion
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.z_index = 200
+	add_child(preview)
+	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
+	if card_data.card_type != "Minion":
+		preview.attack_label.visible = false
+		preview.health_label.visible = false
+	preview.scale = Vector2.ONE
+	preview.modulate = Color(1, 1, 1, 0.85)
+	return preview
+
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [ROW_FRONT, ROW_BACK]
+	match card_data.board_position:
+		ROW_FRONT: return [ROW_FRONT]
+		ROW_BACK: return [ROW_BACK]
+		_: return [ROW_FRONT, ROW_BACK]
+
+func can_summon_to_row(_is_player: bool, row: String) -> bool:
+	return human.can_place_on_row(row == ROW_FRONT)
+
+func _on_hand_card_played(card_data: CardData, row: String, _insert_index: int) -> void:
+	var matching: Array[Minion] = human.hand.filter(func(m: Minion): return m.card_data == card_data)
+	if matching.is_empty():
+		return
+	_on_place_pressed(matching[0], row == ROW_FRONT)
+
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
 func _refresh_ui() -> void:
@@ -399,9 +490,9 @@ func _refresh_ui() -> void:
 # La boutique occupe la position "adverse" du plateau : chaque offre est une
 # vraie `Card` (voir ArenaShopCardSlot), rangée dans shop_front_row ou
 # shop_back_row selon son propre board_position ("Back" -> Arrière, sinon
-# Avant), verrouillable (bouton) et achetable en la glissant vers son propre
-# plateau (front_row/back_row, voir ArenaBoardRow). Un emplacement déjà
-# acheté (carte nulle) n'affiche simplement rien jusqu'au prochain reroll.
+# Avant), achetable en la glissant vers son propre plateau (front_row/back_row,
+# voir ArenaBoardRow). Un emplacement déjà acheté (carte nulle) n'affiche
+# simplement rien jusqu'au prochain reroll. Pas de verrouillage (retiré).
 func _refresh_shop() -> void:
 	for child in shop_front_row.get_children():
 		child.queue_free()
@@ -412,20 +503,13 @@ func _refresh_shop() -> void:
 		if card == null:
 			continue
 		var target_row: HBoxContainer = shop_back_row if card.board_position == "Back" else shop_front_row
-		var col := VBoxContainer.new()
-		target_row.add_child(col)
 		var slot := ArenaShopCardSlot.new()
-		# `col` doit déjà être dans l'arbre de scène avant setup() (qui
+		# `target_row` est déjà dans l'arbre de scène avant setup() (qui
 		# instancie et configure une vraie Card en enfant) : les @onready
 		# de Card ne sont peuplés qu'une fois le nœud réellement entré dans
 		# l'arbre (voir Hand.gd : add_child() puis set_data(), jamais l'inverse).
-		col.add_child(slot)
+		target_row.add_child(slot)
 		slot.setup(card, i)
-		var lock_button := Button.new()
-		var locked: bool = i < human.shop_locked.size() and human.shop_locked[i]
-		_style_button(lock_button, null, ArenaIcon.Kind.LOCK_CLOSED if locked else ArenaIcon.Kind.LOCK_OPEN)
-		lock_button.pressed.connect(_on_lock_pressed.bind(i))
-		col.add_child(lock_button)
 
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	# L'achat par glisser-déposer rejoint la main (comme un achat au clic) ;
@@ -434,55 +518,14 @@ func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	match_.buy_card(human, shop_index)
 	_refresh_ui()
 
+# Rebâtit intégralement la main via Hand.gd (même comportement que le 1v1 :
+# éventail, survol qui soulève la carte, repli en bas de l'écran, drag&drop
+# natif vers front_row/back_row) — pas d'action séparée bouton Avant/Arrière,
+# la pose se fait en glissant la carte (voir get_allowed_rows_for_card,
+# can_summon_to_row, _on_hand_card_played).
 func _refresh_hand() -> void:
-	for child in hand_container.get_children():
-		child.queue_free()
-	var count: int = human.hand.size()
-	for i in count:
-		var minion: Minion = human.hand[i]
-		var col := VBoxContainer.new()
-		hand_container.add_child(col)
-		_add_minion_card_visual(col, minion, i, count)
-		var actions := HBoxContainer.new()
-		actions.alignment = BoxContainer.ALIGNMENT_CENTER
-		col.add_child(actions)
-		var front_button := Button.new()
-		actions.add_child(front_button)
-		_style_button(front_button, ICON_FRONT_LANE)
-		front_button.disabled = not human.can_place_on_row(true)
-		front_button.pressed.connect(_on_place_pressed.bind(minion, true))
-		var back_button := Button.new()
-		actions.add_child(back_button)
-		_style_button(back_button, ICON_BACK_LANE)
-		back_button.disabled = not human.can_place_on_row(false)
-		back_button.pressed.connect(_on_place_pressed.bind(minion, false))
-		var sell_button := Button.new()
-		actions.add_child(sell_button)
-		_style_button(sell_button, ICON_GEM)
-		sell_button.pressed.connect(_on_sell_pressed.bind(minion, false))
-
-# `col` doit déjà être dans l'arbre de scène (voir commentaire _refresh_shop) :
-# on l'ajoute avant d'instancier/configurer la Card, jamais après.
-func _add_minion_card_visual(col: Node, minion: Minion, index: int = 0, count: int = 1) -> void:
-	var card: Card = CARD_SCENE.instantiate()
-	col.add_child(card)
-	card.scale = Vector2(0.75, 0.75)
-	# Léger éventail façon main tenue (comme le plateau 1v1) : chaque carte
-	# pivote un peu plus en s'éloignant du centre de la main. Le pivot utilise
-	# la taille connue de Card.tscn (260x390) plutôt que card.size, pas encore
-	# fiable juste après l'entrée dans l'arbre (le VBoxContainer parent n'a pas
-	# fini de négocier la mise en page).
-	var mid := (count - 1) / 2.0
-	card.pivot_offset = Vector2(130, 390)
-	card.rotation_degrees = (index - mid) * 4.0
-	card.set_data(minion.card_data)
-	card.set_non_interactive()
-	card.cost_label.text = str(minion.card_data.cost)
-	card.generic_cost_label.visible = false
-	card.attack_label.text = str(minion.attack)
-	card.health_label.text = str(minion.health)
-	if minion.star_level > 1:
-		card.name_label.text += " ★%d" % minion.star_level
+	var cards: Array[CardData] = human.hand.map(func(m: Minion): return m.card_data)
+	hand.set_hand(cards)
 
 # Incantations achetées (arena_only, voir CARDS.md « Cartes exclusives
 # Arena ») : uniquement des effets ciblant soi-même/ses alliés (Buff/
@@ -517,8 +560,8 @@ func _add_spell_card_visual(col: Node, card_data: CardData) -> void:
 	card.generic_cost_label.visible = false
 
 # Affiche le plateau de `viewed_target` (soi-même par défaut, ou tout autre
-# participant/le Fantôme consulté via portraits_row) — façon TFT : un seul
-# plateau visible à la fois, interactif seulement quand c'est le sien.
+# participant/le Fantôme consulté via la colonne de portraits) — façon TFT :
+# un seul plateau visible à la fois, interactif seulement quand c'est le sien.
 func _refresh_board() -> void:
 	for child in front_row.get_children():
 		child.queue_free()
@@ -540,6 +583,9 @@ func _refresh_board() -> void:
 	# plateau affiché, sans texte de remplissage.
 	viewing_label.text = viewed_target.origin_player_name if is_ghost else viewed_target.display_name
 	hero_portrait.texture = _art_for_target(viewed_target)
+	# PV inscrits sur le portrait (voir _make_hero_portrait) — pas de valeur
+	# pour le Fantôme, qui n'a pas de héros (juste un plateau figé).
+	hero_hp_overlay.text = "" if is_ghost else str(viewed_target.hero_hp)
 
 func _add_board_entry(row: Node, minion: Minion, interactive: bool) -> void:
 	var col := VBoxContainer.new()
@@ -563,16 +609,17 @@ func _art_for_target(target) -> Texture2D:
 	var idx: int = match_.players.find(target)
 	return HERO_ARTS[max(idx, 0) % HERO_ARTS.size()]
 
-# Rangée de portraits cliquables (façon TFT) : cliquer un participant (ou le
-# Fantôme s'il est actif) affiche son plateau à la place du tien ci-dessus.
+# Colonne de portraits cliquables (façon TFT), à gauche de l'écran : cliquer
+# un participant (ou le Fantôme s'il est actif) affiche son plateau à la
+# place du tien ci-dessus.
 func _refresh_portraits() -> void:
-	for child in portraits_row.get_children():
+	for child in portraits_column.get_children():
 		child.queue_free()
 	for p in match_.players:
-		portraits_row.add_child(_make_participant_button(p, p.display_name, p.is_eliminated, p == human, p.hero_hp))
+		portraits_column.add_child(_make_participant_button(p, p.display_name, p.is_eliminated, p == human, p.hero_hp))
 	if match_.ghost_board != null:
 		var ghost: GhostBoard = match_.ghost_board
-		portraits_row.add_child(_make_participant_button(ghost, ghost.origin_player_name, false, false, -1))
+		portraits_column.add_child(_make_participant_button(ghost, ghost.origin_player_name, false, false, -1))
 
 func _make_participant_button(target, _label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
 	var btn := Button.new()
@@ -592,10 +639,6 @@ func _make_participant_button(target, _label_name: String, eliminated: bool, is_
 	return btn
 
 # ─── Actions joueur ──────────────────────────────────────────────────────────
-
-func _on_lock_pressed(index: int) -> void:
-	match_.lock_card(human, index)
-	_refresh_ui()
 
 func _on_reroll_pressed() -> void:
 	match_.reroll(human)
@@ -639,7 +682,6 @@ func _on_ready_pressed() -> void:
 		await bot_driver.cast_spells_phase(bot, match_)
 	match_.end_shop_phase()
 	await match_.start_combat_phase()
-	combat_log_label.text = "\n".join(match_.last_combat_summaries)
 
 	if match_.is_match_over() or human.is_eliminated:
 		_show_game_over()
@@ -663,7 +705,6 @@ func _on_next_round_pressed() -> void:
 	viewed_target = human
 	match_.advance_round()
 	match_.start_shop_phase()
-	combat_log_label.text = ""
 	_refresh_ui()
 
 func _on_back_to_menu_pressed() -> void:

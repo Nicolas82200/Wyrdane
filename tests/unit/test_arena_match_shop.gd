@@ -14,7 +14,6 @@ func _make_match(cards: Array[CardData]) -> ArenaMatch:
 	var players: Array[ArenaPlayerState] = [ArenaPlayerState.new("Player")]
 	var m := ArenaMatch.new(players, pool)
 	m.players[0].shop_offer = [cards[0], null, null, null, null]
-	m.players[0].shop_locked = [false, false, false, false, false]
 	return m
 
 func test_buy_card_spends_gold_and_takes_from_pool() -> void:

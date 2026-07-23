@@ -6,7 +6,7 @@ class_name ArenaIcon
 # ArenaBattle._style_button) pour les quelques actions sans image dédiée dans
 # assets/icons/ (reroll, XP, cadenas, prêt, round suivant, retour au menu).
 
-enum Kind { REROLL, STAR, LOCK_CLOSED, LOCK_OPEN, PLAY, FORWARD, HOME, HEART }
+enum Kind { REROLL, STAR, PLAY, FORWARD, HOME, HEART }
 
 @export var kind: Kind = Kind.PLAY
 @export var line_color: Color = Color(0.92, 0.85, 0.65)
@@ -29,13 +29,6 @@ func _draw() -> void:
 				var rad: float = r if i % 2 == 0 else r * 0.42
 				points.append(c + Vector2(cos(ang), sin(ang)) * rad)
 			draw_colored_polygon(points, line_color)
-		Kind.LOCK_CLOSED, Kind.LOCK_OPEN:
-			var body_size := Vector2(r * 1.3, r * 1.0)
-			var body_pos := c + Vector2(-body_size.x * 0.5, r * 0.05)
-			draw_rect(Rect2(body_pos, body_size), line_color, false, r * 0.12)
-			var shackle_r: float = r * 0.5
-			var shackle_center: Vector2 = c + Vector2(0.0 if kind == Kind.LOCK_CLOSED else r * 0.3, -r * 0.35)
-			draw_arc(shackle_center, shackle_r, PI, PI * 2, 16, line_color, r * 0.14, true)
 		Kind.PLAY:
 			draw_colored_polygon([
 				c + Vector2(-r * 0.5, -r * 0.65),

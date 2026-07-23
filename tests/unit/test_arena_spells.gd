@@ -64,7 +64,6 @@ func test_buying_a_spell_goes_to_spell_hand_not_minion_hand() -> void:
 	var player := players[0]
 	player.gold = 2
 	player.shop_offer = [spell, null, null, null, null]
-	player.shop_locked = [false, false, false, false, false]
 	assert_true(m.buy_card(player, 0))
 	assert_eq(player.spell_hand.size(), 1)
 	assert_eq(player.hand.size(), 0, "un sort acheté ne doit pas créer de Minion")

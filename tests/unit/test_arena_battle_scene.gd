@@ -61,8 +61,6 @@ func test_shop_cards_are_routed_to_the_row_matching_their_board_position() -> vo
 	back_card.board_position = "Back"
 	var offer: Array[CardData] = [front_card, back_card, null, null, null]
 	scene.human.shop_offer = offer
-	var locked: Array[bool] = [false, false, false, false, false]
-	scene.human.shop_locked = locked
 	scene._refresh_ui()
 	await get_tree().process_frame
 	assert_eq(scene.shop_front_row.get_child_count(), 1, "une carte board_position=Front doit apparaître dans la rangée Avant de la boutique")

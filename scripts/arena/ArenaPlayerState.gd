@@ -27,8 +27,6 @@ var suspended: Array[Minion] = []
 var spell_hand: Array[CardData] = []
 
 var shop_offer: Array[CardData] = []
-# Parallèle à shop_offer : une case verrouillée n'est pas re-tirée au reroll.
-var shop_locked: Array[bool] = []
 
 func _init(name: String, bot: bool = false) -> void:
 	display_name = name
