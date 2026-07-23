@@ -204,3 +204,24 @@ func test_board_rows_stay_at_the_same_screen_position_across_phases() -> void:
 	var front_row_top_combat_phase: float = scene.front_row.get_parent().global_position.y
 	assert_eq(front_row_top_combat_phase, front_row_top_shop_phase,
 		"le plateau ne doit pas se déplacer entre la phase Boutique et la phase Combat")
+
+func test_resolving_combat_shows_a_live_two_board_view_then_hides_it() -> void:
+	var player_card := CardData.new()
+	player_card.card_name = "PlayerFighter"
+	player_card.attack = 3
+	player_card.health = 3
+	scene.human.board_front.append(Minion.new(player_card, true, "Front"))
+	for bot in scene.bots:
+		var bot_card := CardData.new()
+		bot_card.card_name = "BotFighter"
+		bot_card.attack = 2
+		bot_card.health = 2
+		bot.board_front.append(Minion.new(bot_card, true, "Front"))
+
+	assert_false(scene.combat_view.visible, "la vue de combat doit être cachée en phase Boutique")
+	await scene._resolve_combat_phase()
+	await get_tree().process_frame  # queue_free() des visuels est différé
+	assert_false(scene.combat_view.visible, "la vue de combat doit être re-cachée une fois le combat résolu")
+	assert_null(scene._live_sim, "la référence au combat en direct doit être nettoyée après résolution")
+	for row in [scene.live_player_front, scene.live_player_back, scene.live_enemy_front, scene.live_enemy_back]:
+		assert_eq(row.get_child_count(), 0, "les visuels du combat animé doivent être nettoyés après résolution")

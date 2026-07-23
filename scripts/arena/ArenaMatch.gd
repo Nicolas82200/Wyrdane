@@ -154,7 +154,13 @@ func end_shop_phase() -> void:
 
 # ─── Phase Combat ───────────────────────────────────────────────────────────
 
-func start_combat_phase() -> void:
+# `live_setup` (optionnel) : callable `func(sim: SimulatedBattle) -> void`
+# fourni par ArenaBattle pour rejouer le combat du joueur humain avec les
+# vraies animations 1v1 (voir SimulatedBattle.enable_live_visuals) au lieu
+# d'une résolution headless instantanée. Uniquement appliqué à l'appariement
+# qui implique `players[0]` (le joueur humain, jamais un bot) : les autres
+# combats (bots entre eux, jamais regardés) restent résolus en headless.
+func start_combat_phase(live_setup: Callable = Callable()) -> void:
 	last_combat_summaries.clear()
 	var alive: Array = alive_players()
 	var participants: Array = alive.duplicate()
@@ -168,9 +174,16 @@ func start_combat_phase() -> void:
 		var b = pair[1]
 		if b == null:
 			continue  # bye : garde-fou, ne devrait survenir qu'en effectif impair sans fantôme disponible
-		await _resolve_pairing(a, b)
+		await _resolve_pairing(a, b, live_setup)
 
-func _resolve_pairing(a, b) -> void:
+func _resolve_pairing(a, b, live_setup: Callable = Callable()) -> void:
+	# Le joueur humain (players[0]) doit toujours être "a" : run_combat()
+	# mappe front_a/back_a -> sim.player_minions, la convention dont dépend
+	# live_setup pour savoir quel plateau afficher côté "joueur".
+	if not players.is_empty() and b == players[0] and a != players[0]:
+		var tmp = a
+		a = b
+		b = tmp
 	var a_is_ghost: bool = a is GhostBoard
 	var b_is_ghost: bool = b is GhostBoard
 	var front_a: Array[Minion] = a.front if a_is_ghost else a.board_front
@@ -178,7 +191,9 @@ func _resolve_pairing(a, b) -> void:
 	var front_b: Array[Minion] = b.front if b_is_ghost else b.board_front
 	var back_b: Array[Minion] = b.back if b_is_ghost else b.board_back
 	var sim := SimulatedBattle.new()
-	var result: SimulatedBattle.CombatResult = await sim.run_combat(front_a, back_a, front_b, back_b)
+	var is_human_pairing: bool = live_setup.is_valid() and not players.is_empty() and a == players[0]
+	var result: SimulatedBattle.CombatResult = await sim.run_combat(
+		front_a, back_a, front_b, back_b, live_setup if is_human_pairing else Callable())
 	var name_a: String = "Fantôme (%s)" % a.origin_player_name if a_is_ghost else a.display_name
 	var name_b: String = "Fantôme (%s)" % b.origin_player_name if b_is_ghost else b.display_name
 	var winner_name: String = (name_a if result.player_won else name_b) if result.damage_dealt > 0 else ""

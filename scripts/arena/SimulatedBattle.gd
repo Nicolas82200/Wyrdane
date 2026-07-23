@@ -61,12 +61,32 @@ var aura_system := AuraSystem.new()
 var trigger_system := SimTriggerSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var hero_system: SimHeroSystem
-var board_visual_system := SimBoardVisualSystem.new()
+# Non typé (pas `:=`) : basculé vers le VRAI BoardVisualSystem/AnimationSystem
+# (1v1) en mode live, voir enable_live_visuals — un type statique figerait
+# l'assignation sur le seul stub Sim*.
+var board_visual_system = SimBoardVisualSystem.new()
 var card_popup_system := SimCardPopupSystem.new()
-var animation_system := SimAnimationSystem.new()
+var animation_system = SimAnimationSystem.new()
 var combat_log := SimCombatLog.new()
 var _tree := SimSceneTree.new()
 var _firing_on_summon: bool = false
+
+# ─── Mode "live" (voir enable_live_visuals) ─────────────────────────────────
+# Ces quatre containers + `selection_system`/`sacrifice_system`/`targeting_
+# system` n'existent que pour satisfaire l'API attendue par le VRAI
+# `BoardVisualSystem`/`AnimationSystem` (1v1, voir scripts/systems/) une fois
+# branchés à la place des stubs Sim* ci-dessus — jamais utilisés en dehors
+# du combat animé du joueur humain (voir ArenaBattle._resolve_combat_phase).
+var player_front_container: Control = null
+var player_back_container: Control = null
+var enemy_front_container: Control = null
+var enemy_back_container: Control = null
+var selection_system := SimSelectionSystem.new()
+var sacrifice_system := SimSacrificeSystem.new()
+var targeting_system := SimTargetingSystem.new()
+var _live_scene_node: Node = null
+var _live_player_hero_panel: Control = null
+var _live_enemy_hero_panel: Control = null
 
 func _init() -> void:
 	hero_system = SimHeroSystem.new(self)
@@ -76,14 +96,67 @@ func _init() -> void:
 	aura_system.init(self)
 	temp_effect_system.init(self)
 
-func get_tree() -> SimSceneTree:
+func get_tree():
+	if _live_scene_node != null:
+		return _live_scene_node.get_tree()
 	return _tree
 
-func get_node(_path):
+func get_node(path):
+	if _live_player_hero_panel != null:
+		var key := str(path)
+		if key == "PlayerHeroPanel":
+			return _live_player_hero_panel
+		if key == "EnemyHeroPanel":
+			return _live_enemy_hero_panel
 	return null
 
 func get_node_or_null(_path):
 	return null
+
+# Bascule board_visual_system/animation_system des stubs headless (Sim*, sans
+# délai ni animation) vers les VRAIS systèmes 1v1 (BoardVisualSystem/
+# AnimationSystem, scripts/systems/) : le combat se rejoue alors avec les
+# mêmes animations qu'en 1v1 (lancer d'attaque, poison, vol de vie, mort...).
+# `scene_node` fournit ce que RefCounted n'a pas (create_tween/add_child/
+# get_tree) — passé tel quel à AnimationSystem.init(), jamais confondu avec
+# `self` (ce SimulatedBattle), que CombatSystem/DeathSystem continuent
+# d'utiliser sans changement. À appeler seulement après que run_combat() ait
+# peuplé player_minions/enemy_minions (voir son paramètre `live_setup`).
+func enable_live_visuals(
+		scene_node: Node,
+		p_front: Control, p_back: Control,
+		e_front: Control, e_back: Control,
+		p_hero_panel: Control, e_hero_panel: Control) -> void:
+	_live_scene_node = scene_node
+	player_front_container = p_front
+	player_back_container = p_back
+	enemy_front_container = e_front
+	enemy_back_container = e_back
+	_live_player_hero_panel = p_hero_panel
+	_live_enemy_hero_panel = e_hero_panel
+
+	board_visual_system = BoardVisualSystem.new()
+	board_visual_system.init(self)
+	animation_system = AnimationSystem.new()
+	animation_system.init(scene_node)
+
+	for m in player_minions:
+		_spawn_live_visual(m, p_front, p_back)
+	for m in enemy_minions:
+		_spawn_live_visual(m, e_front, e_back)
+
+# N'utilise volontairement pas BoardVisualSystem.spawn_minion_visual() : ce
+# serviteur est déjà sur le plateau depuis la phase Boutique, il ne "vient
+# pas d'arriver" — jouer une animation d'invocation serait trompeur.
+func _spawn_live_visual(minion: Minion, front: Control, back: Control) -> void:
+	var container: Control = front if minion.board_row == ROW_FRONT else back
+	var visual: BoardMinion = (load("res://scenes/minion/BoardMinion.tscn") as PackedScene).instantiate()
+	container.add_child(visual)
+	visual.set_minion(minion)
+	board_visual_system.minion_to_visual[minion] = visual
+
+func update_end_turn_hint() -> void:
+	pass
 
 func get_owner_minions(minion: Minion) -> Array[Minion]:
 	if minion == null:
@@ -214,7 +287,10 @@ class CombatResult:
 # Coroutine : les systèmes réutilisés (CombatSystem/DeathSystem) contiennent
 # des `await` (timers/animations, résolus immédiatement ici par SimTimer via
 # call_deferred, voir plus bas) — l'appelant doit donc `await run_combat(...)`.
-func run_combat(front_a: Array[Minion], back_a: Array[Minion], front_b: Array[Minion], back_b: Array[Minion]) -> CombatResult:
+func run_combat(
+		front_a: Array[Minion], back_a: Array[Minion],
+		front_b: Array[Minion], back_b: Array[Minion],
+		live_setup: Callable = Callable()) -> CombatResult:
 	player_minions = (front_a + back_a).duplicate()
 	enemy_minions = (front_b + back_b).duplicate()
 	# owner_is_player n'est pas un attribut permanent d'un participant Arena :
@@ -228,6 +304,12 @@ func run_combat(front_a: Array[Minion], back_a: Array[Minion], front_b: Array[Mi
 	for m in enemy_minions:
 		m.owner_is_player = false
 		m.attacks_remaining = 1
+
+	# Optionnel (voir enable_live_visuals) : bascule vers les vrais systèmes
+	# visuels 1v1 pour ce combat précis, uniquement une fois player_minions/
+	# enemy_minions peuplés (nécessaire pour créer les visuels initiaux).
+	if live_setup.is_valid():
+		live_setup.call(self)
 
 	var order_a: Array[Minion] = front_a.duplicate() + back_a.duplicate()
 	var order_b: Array[Minion] = front_b.duplicate() + back_b.duplicate()
@@ -425,6 +507,37 @@ class SimEnchantmentSystem:
 	func get_rituals(_is_player: bool) -> Array:
 		return []
 	func destroy_enchantment(_card_data: CardData, _is_player: bool) -> void:
+		pass
+	# Appelé par le VRAI BoardVisualSystem.refresh_board() (voir enable_live_
+	# visuals) : pas d'enchantements en Arena v1, rien à réactiver.
+	func refresh_activatable() -> void:
+		pass
+
+
+# Pas de sélection manuelle d'attaquant en Arena (combat auto-résolu) : ces
+# handlers existent uniquement pour que le VRAI BoardVisualSystem puisse
+# connecter BoardMinion.minion_clicked sans planter (voir enable_live_visuals/
+# _wire_visual_signals) — jamais déclenchés puisque rien ne clique pendant un
+# combat animé.
+class SimSelectionSystem:
+	var selected_attacker = null
+	func on_player_minion_clicked(_minion, _visual) -> void:
+		pass
+	func on_enemy_minion_clicked(_minion, _visual) -> void:
+		pass
+	func clear_selection() -> void:
+		selected_attacker = null
+
+
+class SimSacrificeSystem:
+	func on_ally_minion_clicked(_minion, _visual) -> void:
+		pass
+
+
+class SimTargetingSystem:
+	func on_ally_minion_clicked(_minion, _visual) -> void:
+		pass
+	func on_enemy_minion_clicked(_minion, _visual) -> void:
 		pass
 
 

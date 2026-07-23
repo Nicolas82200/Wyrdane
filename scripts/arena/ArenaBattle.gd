@@ -81,6 +81,27 @@ var viewed_target = null
 var back_to_menu_button: Button
 var end_game_label: Label
 
+# ─── Combat animé (voir _build_combat_view/_resolve_combat_phase) : rejoue le
+# combat du joueur humain avec les vraies animations 1v1 (CombatSystem/
+# AnimationSystem/BoardVisualSystem, voir SimulatedBattle.enable_live_visuals)
+# sur un plateau à deux camps temporaire, superposé par-dessus tout le reste
+# (jamais inséré dans le vbox principal) — les rangées Avant/Arrière du
+# joueur derrière ne bougent donc jamais, elles sont juste couvertes le temps
+# du combat.
+var combat_view: Control
+var live_player_front: HBoxContainer
+var live_player_back: HBoxContainer
+var live_enemy_front: HBoxContainer
+var live_enemy_back: HBoxContainer
+var live_player_hero_panel: TextureRect
+var live_enemy_hero_panel: TextureRect
+var live_player_hp_overlay: Label
+var live_enemy_hp_overlay: Label
+# Rempli pendant le combat animé (voir SimulatedBattle.enable_live_visuals),
+# pour synchroniser l'affichage des PV en direct (SimHeroSystem.update_ui()
+# ne fait rien, voir _process) — remis à null une fois le combat terminé.
+var _live_sim: SimulatedBattle = null
+
 # ─── Minuteur de phase (Boutique/Combat) : plus de bouton "prêt"/"round
 # suivant", la partie s'enchaîne automatiquement à l'expiration du minuteur
 # (voir _start_shop_phase_timer/_on_phase_timer_timeout/_resolve_combat_phase/
@@ -245,6 +266,7 @@ func _build_ui() -> void:
 	mid_row.add_theme_constant_override("separation", 16)
 	vbox.add_child(mid_row)
 	hero_portrait = _make_hero_portrait(HERO_ARTS[0])
+	hero_hp_overlay = hero_portrait.get_child(0)
 	mid_row.add_child(hero_portrait)
 	suspended_label = _make_label(mid_row)
 
@@ -312,6 +334,66 @@ func _build_ui() -> void:
 	phase_timer.timeout.connect(_on_phase_timer_timeout)
 	add_child(phase_timer)
 
+	_build_combat_view()
+
+# Plateau à deux camps temporaire pour le combat animé du joueur humain (voir
+# _resolve_combat_phase/SimulatedBattle.enable_live_visuals) : superposé en
+# plein écran par-dessus tout le reste (dernier enfant = rendu au-dessus),
+# masqué le reste du temps — jamais inséré dans le vbox principal, pour que
+# les rangées Avant/Arrière du plateau (boutique) ne bougent jamais.
+func _build_combat_view() -> void:
+	combat_view = Control.new()
+	combat_view.anchor_right = 1.0
+	combat_view.anchor_bottom = 1.0
+	combat_view.visible = false
+	var view_bg := ColorRect.new()
+	view_bg.anchor_right = 1.0
+	view_bg.anchor_bottom = 1.0
+	view_bg.color = Color(0.02, 0.02, 0.03, 0.92)
+	combat_view.add_child(view_bg)
+	add_child(combat_view)
+
+	var view_vbox := VBoxContainer.new()
+	view_vbox.anchor_right = 1.0
+	view_vbox.anchor_bottom = 1.0
+	view_vbox.add_theme_constant_override("separation", 10)
+	view_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	combat_view.add_child(view_vbox)
+
+	live_enemy_hero_panel = _make_hero_portrait(HERO_ARTS[1])
+	live_enemy_hp_overlay = live_enemy_hero_panel.get_child(0)
+	var enemy_hero_row := HBoxContainer.new()
+	enemy_hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	enemy_hero_row.add_child(live_enemy_hero_panel)
+	view_vbox.add_child(enemy_hero_row)
+
+	live_enemy_back = HBoxContainer.new()
+	live_enemy_back.add_theme_constant_override("separation", 8)
+	live_enemy_back.alignment = BoxContainer.ALIGNMENT_CENTER
+	view_vbox.add_child(_make_lane_panel(live_enemy_back, 150))
+
+	live_enemy_front = HBoxContainer.new()
+	live_enemy_front.add_theme_constant_override("separation", 8)
+	live_enemy_front.alignment = BoxContainer.ALIGNMENT_CENTER
+	view_vbox.add_child(_make_lane_panel(live_enemy_front, 150))
+
+	live_player_front = HBoxContainer.new()
+	live_player_front.add_theme_constant_override("separation", 8)
+	live_player_front.alignment = BoxContainer.ALIGNMENT_CENTER
+	view_vbox.add_child(_make_lane_panel(live_player_front, 150))
+
+	live_player_back = HBoxContainer.new()
+	live_player_back.add_theme_constant_override("separation", 8)
+	live_player_back.alignment = BoxContainer.ALIGNMENT_CENTER
+	view_vbox.add_child(_make_lane_panel(live_player_back, 150))
+
+	live_player_hero_panel = _make_hero_portrait(HERO_ARTS[0])
+	live_player_hp_overlay = live_player_hero_panel.get_child(0)
+	var player_hero_row := HBoxContainer.new()
+	player_hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	player_hero_row.add_child(live_player_hero_panel)
+	view_vbox.add_child(player_hero_row)
+
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
 	parent.add_child(label)
@@ -353,17 +435,20 @@ func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRe
 
 	# PV inscrits directement sur le portrait, superposés — même pattern que
 	# Battle.tscn (HealthLabel plein cadre par-dessus Portrait), pas un chiffre
-	# séparé à côté.
-	hero_hp_overlay = Label.new()
-	hero_hp_overlay.anchor_right = 1.0
-	hero_hp_overlay.anchor_bottom = 1.0
-	hero_hp_overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hero_hp_overlay.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	hero_hp_overlay.add_theme_font_size_override("font_size", 24)
-	hero_hp_overlay.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
-	hero_hp_overlay.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
-	hero_hp_overlay.add_theme_constant_override("outline_size", 6)
-	tex.add_child(hero_hp_overlay)
+	# séparé à côté. Le label est le seul enfant du portrait : l'appelant le
+	# récupère via `portrait.get_child(0)` plutôt que par une variable membre
+	# partagée, pour pouvoir créer plusieurs portraits indépendants (plateau
+	# consulté ET vue de combat animé, voir _build_combat_view).
+	var overlay := Label.new()
+	overlay.anchor_right = 1.0
+	overlay.anchor_bottom = 1.0
+	overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	overlay.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	overlay.add_theme_font_size_override("font_size", 24)
+	overlay.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
+	overlay.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	overlay.add_theme_constant_override("outline_size", 6)
+	tex.add_child(overlay)
 	return tex
 
 # Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
@@ -528,6 +613,12 @@ func _process(_delta: float) -> void:
 	if phase_timer == null:
 		return
 	phase_time_label.text = str(ceili(phase_timer.time_left)) if phase_timer.time_left > 0.0 else "0"
+	# SimHeroSystem.update_ui() (voir SimulatedBattle) ne fait rien : les PV
+	# affichés pendant le combat animé sont synchronisés ici, à chaque frame,
+	# tant qu'un combat est en cours (_live_sim non nul, voir _resolve_combat_phase).
+	if _live_sim != null:
+		live_player_hp_overlay.text = str(max(_live_sim.player_hero.health, 0))
+		live_enemy_hp_overlay.text = str(max(_live_sim.enemy_hero.health, 0))
 
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
@@ -788,12 +879,40 @@ func _resolve_combat_phase() -> void:
 		# viser la composition finale du bot, pas un plateau encore incomplet.
 		await bot_driver.cast_spells_phase(bot, match_)
 	match_.end_shop_phase()
-	await match_.start_combat_phase()
+
+	# Seul l'appariement du joueur humain (jamais les combats bots-contre-bots,
+	# jamais regardés) est rejoué avec les vraies animations 1v1 — voir
+	# ArenaMatch._resolve_pairing/SimulatedBattle.enable_live_visuals.
+	_show_combat_view()
+	var live_setup := func(sim: SimulatedBattle) -> void:
+		_live_sim = sim
+		sim.enable_live_visuals(
+			self,
+			live_player_front, live_player_back,
+			live_enemy_front, live_enemy_back,
+			live_player_hero_panel, live_enemy_hero_panel)
+	await match_.start_combat_phase(live_setup)
+	_hide_combat_view()
 
 	if match_.is_match_over() or human.is_eliminated:
 		_show_game_over()
 	else:
 		_start_combat_phase_timer()
+
+func _show_combat_view() -> void:
+	for row in [live_player_front, live_player_back, live_enemy_front, live_enemy_back]:
+		for child in row.get_children():
+			child.queue_free()
+	live_player_hp_overlay.text = str(human.hero_hp)
+	live_enemy_hp_overlay.text = ""
+	combat_view.visible = true
+
+func _hide_combat_view() -> void:
+	combat_view.visible = false
+	_live_sim = null
+	for row in [live_player_front, live_player_back, live_enemy_front, live_enemy_back]:
+		for child in row.get_children():
+			child.queue_free()
 
 func _show_game_over() -> void:
 	game_over = true
