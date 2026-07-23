@@ -3,20 +3,19 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://x7hxg5iwuva"
-path.s3tc="res://.godot/imported/demon-border-card.png-2b744407ceb9dfe46265b54d9b90c0de.s3tc.ctex"
+path="res://.godot/imported/demon-border-card.png-2b744407ceb9dfe46265b54d9b90c0de.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/borders/demon-border-card.png"
-dest_files=["res://.godot/imported/demon-border-card.png-2b744407ceb9dfe46265b54d9b90c0de.s3tc.ctex"]
+dest_files=["res://.godot/imported/demon-border-card.png-2b744407ceb9dfe46265b54d9b90c0de.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -24,7 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
