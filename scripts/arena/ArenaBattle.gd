@@ -451,10 +451,10 @@ func can_summon_to_row(_is_player: bool, row: String) -> bool:
 	return human.can_place_on_row(row == ROW_FRONT)
 
 func _on_hand_card_played(card_data: CardData, row: String, _insert_index: int) -> void:
-	var matching: Array[Minion] = human.hand.filter(func(m: Minion): return m.card_data == card_data)
-	if matching.is_empty():
-		return
-	_on_place_pressed(matching[0], row == ROW_FRONT)
+	for minion in human.hand:
+		if minion.card_data == card_data:
+			_on_place_pressed(minion, row == ROW_FRONT)
+			return
 
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
@@ -524,7 +524,9 @@ func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 # la pose se fait en glissant la carte (voir get_allowed_rows_for_card,
 # can_summon_to_row, _on_hand_card_played).
 func _refresh_hand() -> void:
-	var cards: Array[CardData] = human.hand.map(func(m: Minion): return m.card_data)
+	var cards: Array[CardData] = []
+	for minion in human.hand:
+		cards.append(minion.card_data)
 	hand.set_hand(cards)
 
 # Incantations achetées (arena_only, voir CARDS.md « Cartes exclusives
