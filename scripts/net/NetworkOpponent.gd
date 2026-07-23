@@ -251,6 +251,10 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	var early_target: Minion = null
 	if target_id != NetCommand.TARGET_NONE:
 		early_target = battle.net_registry.resolve(target_id)
+	var shows_popup: bool = card.card_type != "Enchantment" \
+		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
+	if shows_popup:
+		await battle.card_popup_system.show_card_popup(card)
 	if card.card_type == "Instant" or card.card_type == "Ritual":
 		AudioManager.play_spell_cast(card)
 		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target)
