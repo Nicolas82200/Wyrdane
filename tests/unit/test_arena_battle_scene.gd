@@ -85,15 +85,27 @@ func test_viewed_target_resets_to_self_if_eliminated() -> void:
 	scene._refresh_ui()
 	assert_eq(scene.viewed_target, scene.human, "consulter un plateau qui vient d'être éliminé doit revenir sur le sien")
 
-func test_dragging_a_board_minion_to_another_row_relocates_it() -> void:
+func test_dragging_a_board_minion_reorders_it_within_its_own_row() -> void:
+	var card_a := CardData.new()
+	card_a.card_name = "A"
+	var card_b := CardData.new()
+	card_b.card_name = "B"
+	var minion_a := Minion.new(card_a, true, "Front")
+	var minion_b := Minion.new(card_b, true, "Front")
+	scene.human.board_front.append(minion_a)
+	scene.human.board_front.append(minion_b)
+	scene._on_board_minion_dropped(minion_b, true, 0)
+	assert_eq(scene.human.board_front, [minion_b, minion_a], "le serviteur doit changer de place au sein de sa ligne")
+
+func test_a_board_minion_cannot_be_dropped_on_the_other_row() -> void:
 	var card := CardData.new()
 	card.card_name = "Filler"
-	card.cost = 1
 	var minion := Minion.new(card, true, "Front")
 	scene.human.board_front.append(minion)
-	scene._on_board_minion_dropped(minion, false, -1)
-	assert_true(scene.human.board_back.has(minion), "le serviteur doit rejoindre l'Arrière")
-	assert_false(scene.human.board_front.has(minion), "le serviteur doit quitter l'Avant")
+	assert_false(scene.back_row._can_drop_data(Vector2.ZERO, {"arena_board_minion": minion}),
+		"un serviteur de l'Avant ne doit pas pouvoir être lâché sur l'Arrière")
+	assert_true(scene.front_row._can_drop_data(Vector2.ZERO, {"arena_board_minion": minion}),
+		"un serviteur de l'Avant doit pouvoir être lâché sur sa propre ligne")
 
 func test_dragging_a_board_minion_onto_the_shop_sells_it() -> void:
 	var card := CardData.new()

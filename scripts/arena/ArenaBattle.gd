@@ -245,11 +245,6 @@ func _build_ui() -> void:
 	mid_row.add_child(hero_portrait)
 	suspended_label = _make_label(mid_row)
 
-	# ─ Incantations achetées, non lancées (voir _refresh_spells) ─
-	spell_hand_container = HBoxContainer.new()
-	spell_hand_container.add_theme_constant_override("separation", 6)
-	vbox.add_child(spell_hand_container)
-
 	var bottom_row := HBoxContainer.new()
 	bottom_row.add_theme_constant_override("separation", 12)
 	bottom_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -277,6 +272,21 @@ func _build_ui() -> void:
 		return {"race": card_data.cost, "generic": 0}
 	hand.card_played.connect(_on_hand_card_played)
 	add_child(hand)
+
+	# ─ Incantations achetées, non lancées (voir _refresh_spells) : une bande
+	# distincte juste au-dessus de la main, pas à côté du héros — sinon ça se
+	# confond avec une seconde main flottante ailleurs à l'écran.
+	spell_hand_container = HBoxContainer.new()
+	spell_hand_container.anchor_left = 0.0
+	spell_hand_container.anchor_right = 1.0
+	spell_hand_container.anchor_top = 1.0
+	spell_hand_container.anchor_bottom = 1.0
+	spell_hand_container.offset_top = -260.0
+	spell_hand_container.offset_bottom = -120.0
+	spell_hand_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	spell_hand_container.add_theme_constant_override("separation", 6)
+	spell_hand_container.mouse_filter = Control.MOUSE_FILTER_PASS
+	add_child(spell_hand_container)
 
 	# ─ Minuteur de phase (Boutique/Combat), au milieu à droite de l'écran — la
 	# partie s'enchaîne automatiquement à son expiration, plus de bouton
