@@ -131,3 +131,37 @@ func test_shop_is_only_interactable_during_the_shop_phase() -> void:
 	await scene._resolve_combat_phase()
 	if not scene.game_over:
 		assert_true(scene.reroll_button.disabled, "la boutique doit être désactivée pendant l'affichage du combat")
+
+func test_hand_contains_both_minions_and_purchased_spells_together() -> void:
+	# Une seule main : pas de zone séparée pour les Incantations achetées.
+	var minion_card := CardData.new()
+	minion_card.card_name = "Filler"
+	scene.human.hand.append(Minion.new(minion_card, true, "Front"))
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	scene.human.spell_hand.append(spell_card)
+	scene._refresh_ui()
+	await get_tree().process_frame
+	assert_eq(scene.hand.container.get_child_count(), 2,
+		"la main doit afficher le serviteur et l'Incantation ensemble")
+
+func test_dropping_a_purchased_spell_onto_the_board_casts_it() -> void:
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	spell_card.effects = []
+	scene.human.spell_hand.append(spell_card)
+	await scene._on_hand_card_played(spell_card, scene.ROW_FRONT, -1)
+	assert_false(scene.human.spell_hand.has(spell_card), "l'Incantation lancée doit quitter la main")
+
+func test_dropping_a_purchased_spell_onto_the_shop_sells_it() -> void:
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	spell_card.cost = 3
+	scene.human.spell_hand.append(spell_card)
+	var gold_before: int = scene.human.gold
+	scene._on_hand_card_played(spell_card, ArenaDropSystem.ROW_SHOP, -1)
+	assert_false(scene.human.spell_hand.has(spell_card), "l'Incantation vendue doit quitter la main")
+	assert_gt(scene.human.gold, gold_before, "vendre l'Incantation doit rapporter de l'or")

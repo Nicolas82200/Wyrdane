@@ -20,7 +20,6 @@ extends Control
 #
 # 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
 
-const CARD_SCENE := preload("res://scenes/card/Card.tscn")
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
 const HAND_SCENE := preload("res://scenes/hand/Hand.tscn")
 const BACKGROUND_ART := preload("res://assets/background/background-05.jpg")
@@ -30,11 +29,9 @@ const HERO_ARTS := [
 	preload("res://assets/heros_art/king-aldric-dawnbearer.jpg"),
 	preload("res://assets/heros_art/azhar-the-fallen.jpg"),
 ]
-# Icônes réutilisées depuis assets/icons/ existants (aucune icône dédiée
-# "vendre"/"prêt" n'existe encore dans le projet) : le Gemme représente l'or
-# (vendre = récupérer de l'or), Instant le type Incantation.
+# Gemme réutilisée depuis assets/icons/ (aucune icône dédiée "vendre" n'existe
+# encore dans le projet) : représente l'or, pour le solde en en-tête.
 const ICON_GEM := preload("res://assets/icons/gem.png")
-const ICON_INSTANT := preload("res://assets/icons/instant.png")
 
 # Même vocabulaire de lignes que Battle.gd — requis tel quel par DropSystem.gd
 # (battle.ROW_FRONT/battle.ROW_BACK) pour pouvoir le réutiliser sans changement.
@@ -60,7 +57,6 @@ var suspended_label: Label
 # Main du joueur — la même Hand.tscn/Hand.gd que le mode 1v1 (voir en-tête de
 # fichier), pas une approximation construite à la main.
 var hand: Hand
-var spell_hand_container: HBoxContainer
 var viewing_label: Label
 var front_row: ArenaBoardRow
 var back_row: ArenaBoardRow
@@ -264,29 +260,16 @@ func _build_ui() -> void:
 	# ─ Main du joueur : la même Hand.tscn/Hand.gd que le mode 1v1, ancrée en
 	# bas de l'écran (voir Hand.tscn : anchor_top=1.0, grow_vertical=0) —
 	# enfant direct de la racine, pas de la colonne de contenu, pour occuper
-	# toute la largeur comme en 1v1. Glisser une carte vers front_row/back_row
-	# la pose (voir get_allowed_rows_for_card/can_summon_to_row/drop_system).
+	# toute la largeur comme en 1v1. Une seule main pour tout (serviteurs ET
+	# Incantations, voir _refresh_hand) : glisser une carte vers front_row/
+	# back_row la pose (serviteur) ou la lance (Incantation, cible soi/ses
+	# alliés) ; la glisser vers la boutique la vend (voir _on_hand_card_played).
 	hand = HAND_SCENE.instantiate()
 	hand.create_drag_preview = _create_card_drag_preview
 	hand.display_cost = func(card_data: CardData) -> Dictionary:
 		return {"race": card_data.cost, "generic": 0}
 	hand.card_played.connect(_on_hand_card_played)
 	add_child(hand)
-
-	# ─ Incantations achetées, non lancées (voir _refresh_spells) : une bande
-	# distincte juste au-dessus de la main, pas à côté du héros — sinon ça se
-	# confond avec une seconde main flottante ailleurs à l'écran.
-	spell_hand_container = HBoxContainer.new()
-	spell_hand_container.anchor_left = 0.0
-	spell_hand_container.anchor_right = 1.0
-	spell_hand_container.anchor_top = 1.0
-	spell_hand_container.anchor_bottom = 1.0
-	spell_hand_container.offset_top = -260.0
-	spell_hand_container.offset_bottom = -120.0
-	spell_hand_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	spell_hand_container.add_theme_constant_override("separation", 6)
-	spell_hand_container.mouse_filter = Control.MOUSE_FILTER_PASS
-	add_child(spell_hand_container)
 
 	# ─ Minuteur de phase (Boutique/Combat), au milieu à droite de l'écran — la
 	# partie s'enchaîne automatiquement à son expiration, plus de bouton
@@ -487,18 +470,28 @@ func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 func can_summon_to_row(_is_player: bool, row: String) -> bool:
 	return human.can_place_on_row(row == ROW_FRONT)
 
+# Résout la carte lâchée (serviteur ou Incantation, la main ne fait plus de
+# distinction visuelle entre les deux) puis l'action correspondant à la zone
+# visée : boutique = vente, plateau = pose (serviteur) ou lancer (Incantation,
+# cible toujours soi/ses alliés — voir ArenaMatch.cast_spell).
 func _on_hand_card_played(card_data: CardData, row: String, insert_index: int) -> void:
 	if row == ArenaDropSystem.ROW_SHOP:
 		for minion in human.hand:
 			if minion.card_data == card_data:
 				match_.sell_card(human, minion, false)
-				break
-		_refresh_ui()
+				_refresh_ui()
+				return
+		if human.spell_hand.has(card_data):
+			match_.sell_spell(human, card_data)
+			_refresh_ui()
 		return
 	for minion in human.hand:
 		if minion.card_data == card_data:
 			_on_place_pressed(minion, row == ROW_FRONT, insert_index)
 			return
+	if human.spell_hand.has(card_data):
+		await match_.cast_spell(human, card_data)
+		_refresh_ui()
 
 func _process(_delta: float) -> void:
 	if phase_timer == null:
@@ -534,7 +527,6 @@ func _refresh_ui() -> void:
 
 	_refresh_shop()
 	_refresh_hand()
-	_refresh_spells()
 	_refresh_board()
 	_refresh_portraits()
 
@@ -571,46 +563,19 @@ func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 
 # Rebâtit intégralement la main via Hand.gd (même comportement que le 1v1 :
 # éventail, survol qui soulève la carte, repli en bas de l'écran, drag&drop
-# natif vers front_row/back_row) — pas d'action séparée bouton Avant/Arrière,
-# la pose se fait en glissant la carte (voir get_allowed_rows_for_card,
-# can_summon_to_row, _on_hand_card_played).
+# natif vers front_row/back_row) — une seule main pour les serviteurs ET les
+# Incantations achetées (arena_only, voir CARDS.md « Cartes exclusives
+# Arena »), pas deux zones séparées. La pose (serviteur), le lancer
+# (Incantation, cible toujours soi/ses alliés) et la vente se font tous en
+# glissant la carte (voir get_allowed_rows_for_card, can_summon_to_row,
+# _on_hand_card_played) — pas de bouton dédié.
 func _refresh_hand() -> void:
 	var cards: Array[CardData] = []
 	for minion in human.hand:
 		cards.append(minion.card_data)
-	hand.set_hand(cards)
-
-# Incantations achetées (arena_only, voir CARDS.md « Cartes exclusives
-# Arena ») : uniquement des effets ciblant soi-même/ses alliés (Buff/
-# GrantKeyword/HealHero) — aucun ciblage à choisir, "Lancer" les applique
-# immédiatement (à soi, tout le plateau, ou une rangée).
-func _refresh_spells() -> void:
-	for child in spell_hand_container.get_children():
-		child.queue_free()
 	for card_data in human.spell_hand:
-		var col := VBoxContainer.new()
-		spell_hand_container.add_child(col)
-		_add_spell_card_visual(col, card_data)
-		var actions := HBoxContainer.new()
-		actions.alignment = BoxContainer.ALIGNMENT_CENTER
-		col.add_child(actions)
-		var cast_button := Button.new()
-		actions.add_child(cast_button)
-		_style_button(cast_button, ICON_INSTANT)
-		cast_button.pressed.connect(_on_cast_pressed.bind(card_data))
-		var sell_button := Button.new()
-		actions.add_child(sell_button)
-		_style_button(sell_button, ICON_GEM)
-		sell_button.pressed.connect(_on_sell_spell_pressed.bind(card_data))
-
-func _add_spell_card_visual(col: Node, card_data: CardData) -> void:
-	var card: Card = CARD_SCENE.instantiate()
-	col.add_child(card)
-	card.scale = Vector2(0.6, 0.6)
-	card.set_data(card_data)
-	card.set_non_interactive()
-	card.cost_label.text = str(card_data.cost)
-	card.generic_cost_label.visible = false
+		cards.append(card_data)
+	hand.set_hand(cards)
 
 # Affiche le plateau de `viewed_target` (soi-même par défaut, ou tout autre
 # participant/le Fantôme consulté via la colonne de portraits) — façon TFT :
@@ -718,14 +683,6 @@ func _on_board_minion_dropped(minion: Minion, is_front: bool, index: int) -> voi
 # Vente en glissant un serviteur du plateau sur la boutique — voir ArenaSellZone.
 func _on_board_minion_sold(minion: Minion) -> void:
 	match_.sell_card(human, minion, true)
-	_refresh_ui()
-
-func _on_cast_pressed(card_data: CardData) -> void:
-	await match_.cast_spell(human, card_data)
-	_refresh_ui()
-
-func _on_sell_spell_pressed(card_data: CardData) -> void:
-	match_.sell_spell(human, card_data)
 	_refresh_ui()
 
 func _on_view_board_pressed(target) -> void:
