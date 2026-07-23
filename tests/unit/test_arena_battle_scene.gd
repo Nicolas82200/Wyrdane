@@ -141,8 +141,7 @@ func test_hand_contains_both_minions_and_purchased_spells_together() -> void:
 	spell_card.card_name = "Buff"
 	spell_card.card_type = "Instant"
 	scene.human.spell_hand.append(spell_card)
-	scene._refresh_ui()
-	await get_tree().process_frame
+	await scene._refresh_hand()
 	assert_eq(scene.hand.container.get_child_count(), 2,
 		"la main doit afficher le serviteur et l'Incantation ensemble")
 

@@ -569,13 +569,41 @@ func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 # (Incantation, cible toujours soi/ses alliés) et la vente se font tous en
 # glissant la carte (voir get_allowed_rows_for_card, can_summon_to_row,
 # _on_hand_card_played) — pas de bouton dédié.
+#
+# `hand.set_hand()` est asynchrone (deux `await get_tree().process_frame` en
+# interne, voir Hand.gd) : appelée sans attendre (comme ici, `_refresh_ui()`
+# n'étant elle-même jamais awaited par la plupart des handlers d'action), deux
+# actions rapprochées (achat puis pose en un clin d'œil) peuvent chevaucher
+# deux appels en vol simultanément — la seconde `set_hand()` vide/reconstruit
+# `container` alors que la première n'a pas fini d'y ajouter ses cartes,
+# doublant/déplaçant des cartes de façon incohérente (symptôme observé : des
+# cartes en double, mal positionnées). `_hand_refresh_running`/`_hand_refresh_
+# dirty` sérialise les reconstructions : un appel qui arrive pendant qu'une
+# reconstruction tourne déjà se contente de marquer "à refaire" et attend le
+# signal de fin plutôt que de laisser deux coroutines toucher `container` en
+# même temps.
+signal _hand_refreshed
+var _hand_refresh_running: bool = false
+var _hand_refresh_dirty: bool = false
+
 func _refresh_hand() -> void:
-	var cards: Array[CardData] = []
-	for minion in human.hand:
-		cards.append(minion.card_data)
-	for card_data in human.spell_hand:
-		cards.append(card_data)
-	hand.set_hand(cards)
+	if _hand_refresh_running:
+		_hand_refresh_dirty = true
+		await _hand_refreshed
+		return
+	_hand_refresh_running = true
+	while true:
+		_hand_refresh_dirty = false
+		var cards: Array[CardData] = []
+		for minion in human.hand:
+			cards.append(minion.card_data)
+		for card_data in human.spell_hand:
+			cards.append(card_data)
+		await hand.set_hand(cards)
+		if not _hand_refresh_dirty:
+			break
+	_hand_refresh_running = false
+	_hand_refreshed.emit()
 
 # Affiche le plateau de `viewed_target` (soi-même par défaut, ou tout autre
 # participant/le Fantôme consulté via la colonne de portraits) — façon TFT :
