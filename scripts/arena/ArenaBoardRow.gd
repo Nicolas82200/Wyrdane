@@ -9,6 +9,8 @@ class_name ArenaBoardRow
 var on_drop: Callable = Callable()
 
 func _can_drop_data(_at_position: Vector2, data) -> bool:
+	if not on_drop.is_valid():
+		return false  # plateau d'un autre joueur consulté en lecture seule (scoutage)
 	return typeof(data) == TYPE_DICTIONARY and data.has("arena_shop_index")
 
 func _drop_data(_at_position: Vector2, data) -> void:

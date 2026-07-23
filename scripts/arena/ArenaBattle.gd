@@ -31,17 +31,20 @@ var hero_hp_label: Label
 var gold_label: Label
 var xp_label: Label
 var level_label: Label
-var participants_label: Label
 var shop_row: HBoxContainer
 var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
 var hand_container: HBoxContainer
 var spell_hand_container: HBoxContainer
+var viewing_label: Label
 var front_row: ArenaBoardRow
 var back_row: ArenaBoardRow
 var hero_portrait: TextureRect
-var other_boards_container: VBoxContainer
+var portraits_row: HBoxContainer
+# Joueur (ou GhostBoard) dont le plateau est actuellement affiché — façon TFT,
+# cliquer un portrait remplace la vue par le sien, en lecture seule.
+var viewed_target = null
 var ready_button: Button
 var next_round_button: Button
 var back_to_menu_button: Button
@@ -70,6 +73,7 @@ func _start_match() -> void:
 	var players: Array[ArenaPlayerState] = [human]
 	players.append_array(bots)
 	match_ = ArenaMatch.new(players, pool)
+	viewed_target = human
 	match_.start_shop_phase()
 	_refresh_ui()
 
@@ -105,8 +109,6 @@ func _build_ui() -> void:
 	xp_label = _make_label(header)
 	level_label = _make_label(header)
 
-	participants_label = _make_label(vbox)
-
 	# ─ Rangée boutique : occupe la position "Avant adverse" du plateau ─
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_SHOP_TITLE")))
 	shop_row = HBoxContainer.new()
@@ -127,7 +129,11 @@ func _build_ui() -> void:
 	var center_sep := HSeparator.new()
 	vbox.add_child(center_sep)
 
-	# ─ Plateau du joueur : Avant proche du centre, Arrière plus loin ─
+	# ─ Plateau consulté : Avant proche du centre, Arrière plus loin. Par
+	# défaut le sien, mais cliquer un portrait (portraits_row plus bas)
+	# l'échange contre celui d'un autre participant (lecture seule).
+	viewing_label = _make_title("")
+	vbox.add_child(viewing_label)
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_BOARD_FRONT_TITLE")))
 	front_row = ArenaBoardRow.new()
 	front_row.is_front = true
@@ -164,20 +170,18 @@ func _build_ui() -> void:
 	spell_hand_container.add_theme_constant_override("separation", 8)
 	vbox.add_child(spell_hand_container)
 
-	vbox.add_child(_make_title(SettingsManager.t("ARENA_OTHER_BOARDS_TITLE")))
-	other_boards_container = VBoxContainer.new()
-	other_boards_container.add_theme_constant_override("separation", 6)
-	vbox.add_child(other_boards_container)
-
 	ready_button = Button.new()
 	ready_button.text = SettingsManager.t("ARENA_READY_BUTTON")
 	ready_button.pressed.connect(_on_ready_pressed)
 	vbox.add_child(ready_button)
 
-	vbox.add_child(_make_title(SettingsManager.t("ARENA_COMBAT_LOG_TITLE")))
-	combat_log_label = Label.new()
-	combat_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(combat_log_label)
+	# ─ Portraits cliquables (façon TFT) : remplace la position du journal de
+	# combat — cliquer un participant affiche son plateau ci-dessus à la
+	# place du tien (lecture seule). Le journal détaillé reste plus bas.
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_PARTICIPANTS_TITLE")))
+	portraits_row = HBoxContainer.new()
+	portraits_row.add_theme_constant_override("separation", 8)
+	vbox.add_child(portraits_row)
 
 	next_round_button = Button.new()
 	next_round_button.text = SettingsManager.t("ARENA_NEXT_ROUND_BUTTON")
@@ -194,6 +198,11 @@ func _build_ui() -> void:
 	back_to_menu_button.visible = false
 	back_to_menu_button.pressed.connect(_on_back_to_menu_pressed)
 	vbox.add_child(back_to_menu_button)
+
+	vbox.add_child(_make_title(SettingsManager.t("ARENA_COMBAT_LOG_TITLE")))
+	combat_log_label = Label.new()
+	combat_log_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(combat_log_label)
 
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
@@ -227,12 +236,10 @@ func _refresh_ui() -> void:
 	else:
 		level_label.text = SettingsManager.t("ARENA_LEVEL_PROGRESS_LABEL") % [human.level, human.xp, next_level_xp]
 
-	var lines: Array[String] = []
-	lines.append(SettingsManager.t("ARENA_PARTICIPANTS_TITLE") + " :")
-	for p in match_.players:
-		var status: String = SettingsManager.t("ARENA_ELIMINATED_STATUS") if p.is_eliminated else str(p.hero_hp)
-		lines.append("  %s : %s" % [p.display_name, status])
-	participants_label.text = "\n".join(lines)
+	# Si la cible consultée est éliminée (ou invalide), on revient sur son
+	# propre plateau plutôt que d'afficher un plateau figé/vidé.
+	if viewed_target == null or (viewed_target is ArenaPlayerState and viewed_target.is_eliminated):
+		viewed_target = human
 
 	reroll_button.text = SettingsManager.t("ARENA_REROLL_BUTTON")
 	reroll_button.disabled = human.gold < ArenaConstants.REROLL_COST
@@ -245,7 +252,7 @@ func _refresh_ui() -> void:
 	_refresh_hand()
 	_refresh_spells()
 	_refresh_board()
-	_refresh_other_boards()
+	_refresh_portraits()
 
 	ready_button.disabled = game_over
 	ready_button.visible = not game_over
@@ -347,93 +354,79 @@ func _add_spell_card_visual(col: Node, card_data: CardData) -> void:
 	card.cost_label.text = str(card_data.cost)
 	card.generic_cost_label.visible = false
 
+# Affiche le plateau de `viewed_target` (soi-même par défaut, ou tout autre
+# participant/le Fantôme consulté via portraits_row) — façon TFT : un seul
+# plateau visible à la fois, interactif seulement quand c'est le sien.
 func _refresh_board() -> void:
 	for child in front_row.get_children():
 		child.queue_free()
 	for child in back_row.get_children():
 		child.queue_free()
-	for minion in human.board_front:
-		_add_board_entry(front_row, minion)
-	for minion in human.board_back:
-		_add_board_entry(back_row, minion)
+	var is_own_board: bool = viewed_target == human
+	front_row.on_drop = _on_shop_card_dropped if is_own_board else Callable()
+	back_row.on_drop = _on_shop_card_dropped if is_own_board else Callable()
 
-func _add_board_entry(row: Node, minion: Minion) -> void:
+	var is_ghost: bool = viewed_target is GhostBoard
+	var front: Array[Minion] = viewed_target.front if is_ghost else viewed_target.board_front
+	var back: Array[Minion] = viewed_target.back if is_ghost else viewed_target.board_back
+	for minion in front:
+		_add_board_entry(front_row, minion, is_own_board)
+	for minion in back:
+		_add_board_entry(back_row, minion, is_own_board)
+
+	var target_name: String = viewed_target.origin_player_name if is_ghost else viewed_target.display_name
+	if is_ghost:
+		target_name = SettingsManager.t("ARENA_GHOST_BOARD_LINE") % target_name
+	viewing_label.text = SettingsManager.t("ARENA_VIEWING_BOARD_LABEL") % target_name
+	hero_portrait.texture = _art_for_target(viewed_target)
+
+func _add_board_entry(row: Node, minion: Minion, interactive: bool) -> void:
 	var col := VBoxContainer.new()
 	row.add_child(col)
 	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
 	col.add_child(visual)
 	visual.set_minion(minion)
-	var sell_button := Button.new()
-	sell_button.text = SettingsManager.t("ARENA_SELL_BUTTON")
-	sell_button.pressed.connect(_on_sell_pressed.bind(minion, true))
-	col.add_child(sell_button)
+	if interactive:
+		var sell_button := Button.new()
+		sell_button.text = SettingsManager.t("ARENA_SELL_BUTTON")
+		sell_button.pressed.connect(_on_sell_pressed.bind(minion, true))
+		col.add_child(sell_button)
 
-# Le plateau de chaque joueur est visible de tous (README « Visibilité entre
-# joueurs ») — lecture seule (aucun signal de clic connecté), à échelle
-# réduite. La main/boutique de chacun reste privée, donc jamais affichée.
-func _refresh_other_boards() -> void:
-	for child in other_boards_container.get_children():
+# Portrait stable par participant (même art réutilisé qu'ailleurs dans le
+# jeu, voir décision "pas de génération d'illustrations" du plan Arena) : le
+# joueur humain a toujours HERO_ARTS[0], les autres/le Fantôme cyclent sur le
+# reste selon leur position dans match_.players.
+func _art_for_target(target) -> Texture2D:
+	if target is GhostBoard:
+		return HERO_ARTS[1 % HERO_ARTS.size()]
+	var idx: int = match_.players.find(target)
+	return HERO_ARTS[max(idx, 0) % HERO_ARTS.size()]
+
+# Rangée de portraits cliquables (façon TFT) : cliquer un participant (ou le
+# Fantôme s'il est actif) affiche son plateau à la place du tien ci-dessus.
+func _refresh_portraits() -> void:
+	for child in portraits_row.get_children():
 		child.queue_free()
-	var art_index := 0
 	for p in match_.players:
-		if p == human:
-			continue
-		art_index += 1
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		other_boards_container.add_child(row)
-		row.add_child(_make_hero_portrait(HERO_ARTS[art_index % HERO_ARTS.size()], 0.5))
-		var info := VBoxContainer.new()
-		row.add_child(info)
-		if p.is_eliminated:
-			info.add_child(_make_label_text("%s — %s" % [p.display_name, SettingsManager.t("ARENA_ELIMINATED_STATUS")]))
-			continue
-		info.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_LINE") % [p.display_name, p.hero_hp]))
-		var minions_box := HBoxContainer.new()
-		minions_box.add_theme_constant_override("separation", 2)
-		info.add_child(minions_box)
-		var minions: Array[Minion] = p.board_front + p.board_back
-		if minions.is_empty():
-			minions_box.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
-		else:
-			for minion in minions:
-				var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
-				visual.scale = Vector2(0.5, 0.5)
-				minions_box.add_child(visual)
-				visual.set_minion(minion)
-	_refresh_ghost_board()
+		portraits_row.add_child(_make_participant_button(p, p.display_name, p.is_eliminated, p == human, p.hero_hp))
+	if match_.ghost_board != null:
+		var ghost: GhostBoard = match_.ghost_board
+		portraits_row.add_child(_make_participant_button(ghost, SettingsManager.t("ARENA_GHOST_BOARD_LINE") % ghost.origin_player_name, false, false, -1))
 
-func _refresh_ghost_board() -> void:
-	var ghost: GhostBoard = match_.ghost_board
-	if ghost == null:
-		return
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	other_boards_container.add_child(row)
-	var info := VBoxContainer.new()
-	row.add_child(info)
-	info.add_child(_make_label_text(SettingsManager.t("ARENA_GHOST_BOARD_LINE") % ghost.origin_player_name))
-	var minions_box := HBoxContainer.new()
-	minions_box.add_theme_constant_override("separation", 2)
-	info.add_child(minions_box)
-	var minions: Array[Minion] = ghost.front + ghost.back
-	if minions.is_empty():
-		minions_box.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
-	else:
-		for minion in minions:
-			var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
-			visual.scale = Vector2(0.5, 0.5)
-			minions_box.add_child(visual)
-			visual.set_minion(minion)
-
-func _minion_summary(minion: Minion) -> String:
-	var star: String = " ★%d" % minion.star_level if minion.star_level > 1 else ""
-	return "%s%s (%d/%d, %d⬡)" % [minion.card_data.display_name(), star, minion.attack, minion.health, minion.card_data.cost]
-
-func _make_label_text(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	return label
+func _make_participant_button(target, label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(90, 120)
+	btn.icon = _art_for_target(target)
+	btn.expand_icon = true
+	btn.disabled = eliminated
+	var suffix: String = SettingsManager.t("ARENA_ELIMINATED_STATUS") if eliminated else (str(hp) if hp >= 0 else "")
+	var self_tag: String = " (%s)" % SettingsManager.t("ARENA_SELF_TAG") if is_self else ""
+	btn.text = "%s%s\n%s" % [label_name, self_tag, suffix]
+	btn.toggle_mode = true
+	btn.button_pressed = target == viewed_target
+	if not eliminated:
+		btn.pressed.connect(_on_view_board_pressed.bind(target))
+	return btn
 
 # ─── Actions joueur ──────────────────────────────────────────────────────────
 
@@ -463,6 +456,10 @@ func _on_cast_pressed(card_data: CardData) -> void:
 
 func _on_sell_spell_pressed(card_data: CardData) -> void:
 	match_.sell_spell(human, card_data)
+	_refresh_ui()
+
+func _on_view_board_pressed(target) -> void:
+	viewed_target = target
 	_refresh_ui()
 
 # ─── Phase Combat ────────────────────────────────────────────────────────────
@@ -500,6 +497,7 @@ func _show_game_over() -> void:
 
 func _on_next_round_pressed() -> void:
 	next_round_button.visible = false
+	viewed_target = human
 	match_.advance_round()
 	match_.start_shop_phase()
 	combat_log_label.text = ""

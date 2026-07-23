@@ -44,3 +44,21 @@ func test_shop_card_drop_buys_into_hand_without_placing() -> void:
 	assert_lt(scene.human.gold, gold_before, "le drop doit débiter l'or (achat)")
 	assert_eq(scene.human.hand.size(), 1, "la carte achetée doit rejoindre la main")
 	assert_true(scene.human.board_front.is_empty(), "la pose reste une action séparée, pas automatique au drop")
+
+func test_clicking_a_bot_portrait_switches_the_displayed_board_read_only() -> void:
+	assert_eq(scene.viewed_target, scene.human, "par défaut, on consulte son propre plateau")
+	var bot: ArenaPlayerState = scene.bots[0]
+	scene._on_view_board_pressed(bot)
+	assert_eq(scene.viewed_target, bot)
+	assert_eq(scene.front_row.on_drop, Callable(), "le plateau d'un autre joueur ne doit pas accepter d'achat par drop")
+
+	scene._on_view_board_pressed(scene.human)
+	assert_eq(scene.viewed_target, scene.human)
+	assert_true(scene.front_row.on_drop.is_valid(), "revenir sur son propre plateau doit réactiver le drop d'achat")
+
+func test_viewed_target_resets_to_self_if_eliminated() -> void:
+	var bot: ArenaPlayerState = scene.bots[0]
+	scene._on_view_board_pressed(bot)
+	bot.is_eliminated = true
+	scene._refresh_ui()
+	assert_eq(scene.viewed_target, scene.human, "consulter un plateau qui vient d'être éliminé doit revenir sur le sien")
