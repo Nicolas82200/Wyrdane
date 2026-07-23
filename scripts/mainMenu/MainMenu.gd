@@ -55,6 +55,22 @@ func _ready() -> void:
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	_start_backend_sync()
+	_play_intro_animation()
+
+# Apparition en cascade des boutons de navigation (la barre de l'écran de
+# chargement disparaît elle-même en fondu — voir
+# LoadingScreen._fade_out_loading_ui). Rejoué aussi au retour d'une partie :
+# transition douce dans tous les cas.
+func _play_intro_animation() -> void:
+	var nav_buttons := play_button.get_parent().get_children()
+	for i in nav_buttons.size():
+		var button := nav_buttons[i] as Control
+		if button == null:
+			continue
+		button.modulate.a = 0.0
+		var tween := create_tween()
+		tween.tween_interval(0.15 + i * 0.07)
+		tween.tween_property(button, "modulate:a", 1.0, 0.3)
 
 # Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
 # Masqué entièrement si Steam est indisponible (même logique que le reste du
