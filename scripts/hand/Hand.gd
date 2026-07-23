@@ -1,4 +1,3 @@
-# Hand.gd
 extends Control
 class_name Hand
 
@@ -15,29 +14,92 @@ const NORMAL_SCALE    := Vector2(0.75, 0.75)
 const SPACING         := 100.0
 const COMPACT_SPACING := 20.0
 const ARC_STRENGTH    := 20.0
+# Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
+# main est repliée — le reste dépasse sous le bas de l'écran
+const COLLAPSED_PEEK_RATIO := 0.22
+# Bande basse de l'écran qui déclenche le déploiement quand la main est repliée
+const EXPAND_ZONE_HEIGHT   := 90.0
+# Bande basse qui garde la main déployée une fois ouverte (hystérésis anti-flicker)
+const COLLAPSE_ZONE_HEIGHT := 340.0
+# Décalage vertical de la carte survolée (se soulève pour se démarquer)
+const HOVER_LIFT       := 40.0
+# Décalage horizontal maximal appliqué aux cartes voisines pour dégager la carte survolée
+const HOVER_PUSH_MAX   := 28.0
+# Atténuation du décalage horizontal par carte d'écart supplémentaire
+const HOVER_PUSH_DECAY := 0.55
+const HAND_START_X     := 80.0
 
 var _base_positions:    Dictionary     = {}
+# Ordre logique fixe des cartes en main (position/index), indépendant de
+# l'ordre des enfants du conteneur — celui-ci est réarrangé au survol (voir
+# _sync_tree_order) pour que la carte survolée passe réellement au-dessus des
+# autres, y compris pour la détection de la souris, sans décaler leur position.
+var _hand_order:        Array          = []
+var _hovered_card:      Card           = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
-# Coût effectif d'une carte (remises de mana comprises), injecté par Battle.
-# Non défini hors bataille : le coût de base est alors affiché.
 var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
-# Phase de mulligan : un clic sur une carte la remplace directement (pas de
-# drag). Appliqué à chaque carte connectée, y compris celles créées après coup.
 var _mulligan_mode:     bool           = false
+# Repli/déploiement façon TCG : la main se range vers le bas hors hover
+var _hand_expanded:     bool           = false
+# Vrai pendant un drag issu de la main : reste déployée quelle que soit la souris
+var _force_expanded:    bool           = false
 
-# Référence Battle mise en cache
 var _battle: Node = null
 
 func _ready() -> void:
 	preview.hide()
 	_battle = get_tree().current_scene
 
-# ─── Main ─────────────────────────────────────────────────────────────────────
+func _process(_delta: float) -> void:
+	if _mulligan_mode:
+		return
+	var should_expand: bool = _force_expanded or _is_mouse_in_hand_zone()
+	if should_expand != _hand_expanded:
+		_hand_expanded = should_expand
+		_update_hand_layout(true)
+
+func _is_mouse_in_hand_zone() -> bool:
+	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	if mouse_pos.y < size.y - zone_height:
+		return false
+	var x_range := _hand_cards_x_range()
+	if x_range.x > x_range.y:
+		return false
+	return mouse_pos.x >= x_range.x and mouse_pos.x <= x_range.y
+
+# Étendue horizontale (avec marge) occupée par les cartes en main, utilisée
+# pour restreindre la zone de survol qui déploie la main : sans ça, une bande
+# couvrant toute la largeur de l'écran se déclenche même en visant un bouton
+# éloigné (ex. Fin du tour) situé à la même hauteur.
+const HAND_ZONE_X_PADDING := 60.0
+
+func _hand_cards_x_range() -> Vector2:
+	_prune_hand_order()
+	var cards := _layout_cards()
+	if cards.is_empty():
+		return Vector2(1.0, -1.0)
+	var layout := _compute_layout(cards)
+	var last_card: Control = cards[cards.size() - 1]
+	var min_x: float = HAND_START_X - HAND_ZONE_X_PADDING
+	var max_x: float = HAND_START_X + (cards.size() - 1) * layout["spacing"] + last_card.size.x * layout["scale"].x + HAND_ZONE_X_PADDING
+	return Vector2(min_x, max_x)
+
+# Zone basse de l'écran considérée comme « dans la main » : lâcher une carte
+# éphémère/rituel/enchantement au-delà de cette zone suffit à la jouer
+func get_hand_zone_rect() -> Rect2:
+	var zone_height: float = COLLAPSE_ZONE_HEIGHT if _hand_expanded else EXPAND_ZONE_HEIGHT
+	var full: Rect2 = get_global_rect()
+	return Rect2(
+		Vector2(full.position.x, full.position.y + full.size.y - zone_height),
+		Vector2(full.size.x, zone_height)
+	)
+
 
 func set_hand(cards: Array[CardData], animate_last: bool = false, deck_origin: Vector2 = Vector2.ZERO) -> void:
 	if not animate_last:
@@ -49,6 +111,8 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 	for c in container.get_children():
 		c.queue_free()
 	_base_positions.clear()
+	_hand_order.clear()
+	_hovered_card = null
 	await get_tree().process_frame
 
 	for card_data in cards:
@@ -60,6 +124,7 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 		card.set_data(card_data)
 		card.scale = NORMAL_SCALE
 		_connect_card(card)
+		_hand_order.append(card)
 
 	await get_tree().process_frame
 	for card in container.get_children():
@@ -75,13 +140,13 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	new_card.set_data(new_card_data)
 	new_card.scale = NORMAL_SCALE
 	_connect_card(new_card)
+	_hand_order.append(new_card)
 	await get_tree().process_frame
 	new_card.pivot_offset = Vector2(new_card.size.x / 2.0, new_card.size.y)
 	_update_hand_layout(false)
 
-	var children := container.get_children()
-	for i in range(children.size() - 1):
-		var card = children[i]
+	for i in range(_hand_order.size() - 1):
+		var card = _hand_order[i]
 		var tween_existing := create_tween()
 		tween_existing.set_parallel(true)
 		tween_existing.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -120,49 +185,38 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 		ghost.queue_free()
 	)
 
-# ─── Carte cliquée ────────────────────────────────────────────────────────────
 
 func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: int = -1) -> void:
 	card_played.emit(card_data, row, insert_index)
 
-# ─── Mulligan ─────────────────────────────────────────────────────────────────
 
 func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
+	if active and not _hand_expanded:
+		_hand_expanded = true
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
-			# Fin du mulligan : la partie commence, les cartes échangées redeviennent
-			# normales (le grisé n'a de sens que pendant la phase de mulligan).
 			if not active:
 				card.set_mulligan_swapped(false)
 
-# Grise la carte à cet index pour indiquer qu'elle vient d'être échangée et ne
-# peut plus être re-mulligan tant que la phase de mulligan est en cours.
 func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
-	var children := container.get_children()
-	if index < 0 or index >= children.size():
+	if index < 0 or index >= _hand_order.size():
 		return
-	var card: Card = children[index]
+	var card: Card = _hand_order[index]
 	if card is Card:
 		card.set_mulligan_swapped(swapped)
 
-# L'index dans container (== index dans battle.hand_cards, même ordre) identifie
-# la carte sans ambiguïté : deux exemplaires d'une même carte partagent la même
-# ressource CardData, donc comparer par égalité de données désignerait toujours
-# le premier exemplaire au lieu de celui réellement cliqué.
 func _on_mulligan_card_clicked(card: Card) -> void:
-	var index: int = container.get_children().find(card)
+	var index: int = _hand_order.find(card)
 	if index != -1:
 		mulligan_card_clicked.emit(index, card.data)
 
-# Remplace en place la carte à cet index, avec un effet de retournement (comme
-# la pioche animée), sans reconstruire toute la main.
 func flip_replace_at(index: int, new_data: CardData) -> void:
-	var children := container.get_children()
-	if index < 0 or index >= children.size():
+	if index < 0 or index >= _hand_order.size():
 		return
-	var card: Card = children[index]
+	var card: Card = _hand_order[index]
 	var target_scale_x: float = card.scale.x
 	var tween := create_tween()
 	tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
@@ -173,10 +227,11 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 	)
 	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
 
-# ─── Hover ────────────────────────────────────────────────────────────────────
 
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
+	if _battle and "game_over" in _battle and _battle.game_over:
+		return
 	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
 	for c in container.get_children():
@@ -184,6 +239,9 @@ func _on_card_hover(card: Card) -> void:
 			return
 	if card.dragging:
 		return
+	if _hovered_card != card:
+		_hovered_card = card
+		_update_hand_layout(true)
 	preview.set_data(card.data)
 	if display_cost.is_valid():
 		preview.set_display_cost(display_cost.call(card.data))
@@ -208,8 +266,10 @@ func _on_card_unhover() -> void:
 	_hovering = false
 	preview.hide()
 	_hide_keyword_tooltips()
+	if _hovered_card != null:
+		_hovered_card = null
+		_update_hand_layout(true)
 
-# ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
 func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
 	_hide_keyword_tooltips()
@@ -236,7 +296,15 @@ func _hide_keyword_tooltips() -> void:
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
 
-# ─── Layout ───────────────────────────────────────────────────────────────────
+
+# Sous-ensemble de _hand_order utilisé pour le calcul de la disposition
+# (nombre de cartes, index, espacement) : exclut la carte en cours de glisser-
+# déposer, qui reste invisible dans son slot en main tant qu'on ne l'a pas
+# lâchée (pour pouvoir annuler proprement le drag). Sans cette exclusion, un
+# trou vide subsiste dans l'éventail pendant tout le glisser, jusqu'à ce que
+# la carte soit réellement retirée de la main.
+func _layout_cards() -> Array:
+	return _hand_order.filter(func(c): return not c.dragging)
 
 func _compute_layout(cards: Array) -> Dictionary:
 	var count := cards.size()
@@ -257,55 +325,113 @@ func set_compact(compact: bool) -> void:
 	if _is_compact == compact:
 		return
 	_is_compact = compact
-	var cards := container.get_children()
+	_prune_hand_order()
+	var cards := _layout_cards()
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
 	for i in range(cards.size()):
 		var card   = cards[i]
 		var norm   := _card_norm(i, cards.size())
-		var pos    := _card_position(i, layout, card, norm)
+		var pos    := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_sync_tree_order(hovered_index)
 
 func _update_hand_layout(animated: bool = false) -> void:
-	var cards := container.get_children()
+	_prune_hand_order()
+	var cards := _layout_cards()
 	if cards.is_empty():
 		return
 	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
 	for i in range(cards.size()):
 		var card = cards[i]
 		var norm := _card_norm(i, cards.size())
-		var pos  := _card_position(i, layout, card, norm)
+		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = i
+		card.z_index = 100 if i == hovered_index else i
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
 			tween.set_parallel(true)
-			tween.tween_property(card, "position", pos,             0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-			tween.tween_property(card, "scale",    layout["scale"], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "position", pos,             0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(card, "scale",    layout["scale"], 0.2).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
+	_sync_tree_order(hovered_index)
+
+# Une carte peut quitter la main en dehors d'un rebuild complet (ex. Card.gd
+# s'auto-détruit via queue_free() une fois glissée en jeu). Sans ce
+# nettoyage, _hand_order garderait une référence obsolète : soit un nœud
+# libéré (tout accès à ses propriétés plante avec "previously freed"), soit un
+# nœud toujours valide mais qui n'est plus un enfant du conteneur (move_child
+# plante avec "Child is not a child of this node").
+func _prune_hand_order() -> void:
+	for i in range(_hand_order.size() - 1, -1, -1):
+		var card = _hand_order[i]
+		if not is_instance_valid(card) or card.get_parent() != container:
+			_hand_order.remove_at(i)
+	if _hovered_card != null and not is_instance_valid(_hovered_card):
+		_hovered_card = null
+
+# Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
+# main, puis place la carte survolée en dernier (donc au-dessus de toutes les
+# autres). L'ordre des enfants pilote aussi bien le rendu que la détection de
+# la souris sur les zones qui se chevauchent (contrairement au z_index seul,
+# qui ne suffit pas à garantir la priorité de survol) : sans ce passage, une
+# carte voisine non survolée peut rester "au-dessus" pour la souris malgré le
+# z_index, et capter le survol dans la zone de chevauchement, créant une
+# oscillation entre les deux cartes.
+func _sync_tree_order(hovered_index: int) -> void:
+	for i in range(_hand_order.size()):
+		var card = _hand_order[i]
+		if is_instance_valid(card) and card.get_parent() == container:
+			container.move_child(card, i)
+	if hovered_index != -1 and hovered_index < _hand_order.size():
+		var hovered_card = _hand_order[hovered_index]
+		if is_instance_valid(hovered_card) and hovered_card.get_parent() == container:
+			container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
 	return offset / max(float(count - 1) / 2.0, 1.0)
 
-func _card_position(index: int, layout: Dictionary, card: Control, norm: float) -> Vector2:
-	return Vector2(
-		80.0 + index * layout["spacing"],
-		layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
-	)
+func _card_position(index: int, layout: Dictionary, card: Control, norm: float, hovered_index: int = -1) -> Vector2:
+	var y: float = layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
+	if not _hand_expanded:
+		y += card.size.y * layout["scale"].y * (1.0 - COLLAPSED_PEEK_RATIO)
+	var x: float = HAND_START_X + index * layout["spacing"]
+	if hovered_index != -1:
+		if index == hovered_index:
+			y -= HOVER_LIFT
+		else:
+			var dist   := index - hovered_index
+			var steps  := absi(dist) - 1
+			var push   := HOVER_PUSH_MAX * pow(HOVER_PUSH_DECAY, steps)
+			x += signf(dist) * push
+	return Vector2(x, y)
 
-# ─── Connexions ───────────────────────────────────────────────────────────────
 
 func _relay_drag_started() -> void:
+	_force_expanded = true
+	_hovered_card = null
+	# Referme immédiatement l'écart laissé par la carte qu'on vient de saisir :
+	# elle reste en main (invisible) tant que le drag n'est pas résolu, mais ne
+	# doit plus réserver sa place dans l'éventail pendant ce temps (voir
+	# _layout_cards).
+	_update_hand_layout(true)
 	drag_started.emit()
 
 func _relay_drag_ended() -> void:
+	_force_expanded = false
+	# Que le drag ait été annulé (la carte réintègre son slot) ou résolu (elle
+	# va être libérée juste après ce signal), on refait le calcul pour que les
+	# autres cartes reprennent leur place correcte dans les deux cas.
+	_update_hand_layout(true)
 	drag_ended.emit()
 
 func _connect_card(card: Card) -> void:
@@ -333,12 +459,18 @@ func _connect_card(card: Card) -> void:
 		card.create_drag_preview = create_drag_preview
 	if display_cost.is_valid():
 		card.set_display_cost(display_cost.call(card.data))
+	card.update_playable_highlight()
 
-# Réaffiche le coût effectif de chaque carte en main (appelé quand une remise
-# de mana apparaît ou expire).
 func refresh_costs() -> void:
 	if not display_cost.is_valid():
 		return
 	for card in container.get_children():
 		if card is Card and card.data != null and not card.is_queued_for_deletion():
 			card.set_display_cost(display_cost.call(card.data))
+
+# À appeler chaque fois que la jouabilité des cartes en main peut changer
+# (mana gagné/dépensé, ressource posée, tour qui commence...).
+func refresh_playable_highlights() -> void:
+	for card in container.get_children():
+		if card is Card and card.data != null and not card.is_queued_for_deletion():
+			card.update_playable_highlight()

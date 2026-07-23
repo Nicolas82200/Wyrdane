@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://c1oul4rd002"]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" uid="uid://bfqyd4xb8fo3c" path="res://assets/card_art/resource/human-resource.jpg" id="2_texture"]
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Sceau du Royaume"
+description = "Ajoute 1 Sceau à votre réserve. Vous ne pouvez jouer qu'une ressource par tour."
+flavour_text = "Frappé au nom du roi, il lie chaque soldat à son serment."
+texture = ExtResource("2_texture")
+cost = 0
+race = 1
+card_type = "Resource"
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

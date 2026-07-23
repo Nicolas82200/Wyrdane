@@ -16,19 +16,19 @@ class_name SteamTransport
 # n'est émis qu'une fois la connexion P2P RÉELLEMENT établie — plus une
 # simple présomption basée sur la présence dans le lobby.
 #
-# - host() : crée un lobby public tagué "fatebound" ET un socket d'écoute P2P.
+# - host() : crée un lobby public tagué "wyrdane" ET un socket d'écoute P2P.
 #   La partie démarre quand un second membre entre dans le lobby ET que sa
 #   connexion P2P entrante est acceptée.
 # - join() : rejoint un lobby précis ({"lobby_id": int}) ou, sans id, cherche
 #   le premier lobby Wyrdane ouvert (partie rapide), puis ouvre la connexion
 #   P2P vers l'hôte.
 #
-# Comme pour ENet, aucun identifiant Steam (SteamID64, lobby id) ne fuit hors
-# de cette classe : le reste du jeu ne voit que l'interface NetTransport.
+# Aucun identifiant Steam (SteamID64, lobby id) ne fuit hors de cette classe :
+# le reste du jeu ne voit que l'interface NetTransport.
 # Tous les appels au singleton Steam sont dynamiques (voir SteamService).
 
 const LOBBY_GAME_KEY := "game"
-const LOBBY_GAME_VALUE := "fatebound"
+const LOBBY_GAME_VALUE := "wyrdane"
 const LOBBY_OWNER_KEY := "owner_id"
 const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 
@@ -83,6 +83,16 @@ func join(params: Dictionary) -> int:
 		status.emit("Steam : recherche d'un lobby Wyrdane (portée mondiale)…")
 	return OK
 
+# Reconnexion directe au pair déjà connu (lobby/SteamID conservés après une
+# coupure P2P transitoire) : évite de relancer une recherche/entrée de lobby.
+# Sans contexte de lobby connu (ex. lobby lui-même quitté), retombe sur join().
+func try_reconnect(params: Dictionary) -> int:
+	if _steam == null or _lobby_id == 0 or _remote_id == 0:
+		return join(params)
+	status.emit("Steam : nouvelle tentative de connexion P2P…")
+	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
+	return OK
+
 func send(bytes: PackedByteArray, reliable: bool = true) -> void:
 	if _steam == null or _connection_handle == 0:
 		return
@@ -100,6 +110,14 @@ func poll() -> void:
 		var bytes: PackedByteArray = message.get("payload", message.get("data", PackedByteArray()))
 		if not bytes.is_empty():
 			packet_received.emit(bytes)
+
+# Ouvre l'overlay Steam d'invitation d'amis pour le lobby en cours (hôte
+# uniquement — un client n'a pas de lobby à proposer). No-op si aucun lobby
+# n'est encore créé (host() pas encore confirmé par lobby_created).
+func invite_friends() -> void:
+	if _steam == null or _lobby_id == 0:
+		return
+	_steam.activateGameOverlayInviteDialog(_lobby_id)
 
 func close() -> void:
 	if _steam == null:
@@ -262,5 +280,5 @@ func _extract_remote_id(connection: Dictionary) -> int:
 
 # Pseudo Steam d'un joueur (pour le journal de diagnostic).
 func _persona(steam_id: int) -> String:
-	var name: String = _steam.getFriendPersonaName(steam_id)
-	return name if name != "" else str(steam_id)
+	var persona_name: String = _steam.getFriendPersonaName(steam_id)
+	return persona_name if persona_name != "" else str(steam_id)

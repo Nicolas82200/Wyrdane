@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://buar8m3srr0rk" path="res://assets/card_art/abomination/the-nameless.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a079"]
+script = ExtResource("4_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_a080"]
+script = ExtResource("1_cardeffect")
+effect_id = "StealMinion"
+target = "EnemyMinion"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "L'Innommable"
+description = "Arrivée : choisis un serviteur ennemi ciblé — il devient une copie exacte (stats et mots-clés) sous ton contrôle jusqu'à la fin de la partie."
+flavour_text = "Il n'a pas de visage. Il porte le tien, à présent."
+texture = ExtResource("2_texture")
+cost = 7
+race = 6
+unit_style = 20
+attack = 7
+health = 6
+requires_target = true
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a079")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a080")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://caljm7eak1dfc" path="res://assets/card_art/abomination/detached-gaze.jpg" id="1_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
+
+[resource]
+script = ExtResource("2_carddata")
+card_name = "Regard Détaché"
+description = ""
+flavour_text = "Il ne cligne jamais. Il n'a plus rien à protéger."
+texture = ExtResource("1_texture")
+cost = 2
+race = 6
+unit_style = 20
+attack = 1
+health = 2
+board_position = "Back"
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

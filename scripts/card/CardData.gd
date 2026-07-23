@@ -6,11 +6,16 @@ class_name CardData
 @export_multiline var flavour_text: String
 @export var texture: Texture2D
 @export var cost: int = 1
+# Jeton non collectible : exclu du deckbuilder et du pool IA/aléatoire
+# (CardLibrary), utilisé uniquement comme cible d'invocation fixe
+# (CardEffect.summon_card) pour éviter d'invoquer une vraie carte du deck
+# et les réactions en chaîne que ses propres triggers pourraient déclencher.
+@export var is_token: bool = false
 
 
 @export var race: Race.Type = Race.Type.UNDEAD
 @export var unit_style: UnitStyle.Type = UnitStyle.Type.ZOMBIE  
-@export_enum("Minion", "Instant", "Ritual", "Enchantment") var card_type: String = "Minion"
+@export_enum("Minion", "Instant", "Ritual", "Enchantment", "Resource") var card_type: String = "Minion"
 # Rituels uniquement : nombre de tours actifs (0 = instantané, -1 = permanent)
 @export var ritual_duration: int = 0
 
@@ -43,6 +48,7 @@ class_name CardData
 @export var human_keywords: Array[KeywordChoiceHuman] = []
 @export var undead_keywords: Array[KeywordChoiceUndead] = []
 @export var demon_keywords: Array[KeywordChoiceDemon] = []
+@export var abomination_keywords: Array[KeywordChoiceAbomination] = []
 @export var trigger_types: Array[TriggerTypeChoice] = []
 @export var effects: Array[CardEffect] = []
 @export var requires_target: bool = false
@@ -63,6 +69,13 @@ class_name CardData
 
 @export_enum("Common", "Rare", "Epic", "Legendary") var rarity: String = "Common"
 @export_enum("Front", "Back", "Hybrid") var board_position: String = "Front"
+
+# ─── Ressource de race ─────────────────────────────────────────────────────────
+# Pourcentage du coût verrouillé sur le pool de race de la carte (voir CostSystem
+# et « Système de Ressources par Race » dans README.md). -1 = utiliser la formule
+# par défaut basée sur `rarity`. Permet de déroger au calcul automatique sur une
+# carte précise.
+@export var race_cost_override: int = -1
 
 # ─── Textes localisés ─────────────────────────────────────────────────────────
 # Le texte français (nom/description/ambiance) sert de clé de traduction : il est
@@ -99,6 +112,12 @@ func get_undead_keyword_values() -> Array[int]:
 func get_demon_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in demon_keywords:
+		values.append(kw.keyword_type)
+	return values
+
+func get_abomination_keyword_values() -> Array[int]:
+	var values: Array[int] = []
+	for kw in abomination_keywords:
 		values.append(kw.keyword_type)
 	return values
 

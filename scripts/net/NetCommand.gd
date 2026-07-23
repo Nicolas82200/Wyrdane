@@ -16,13 +16,13 @@ class_name NetCommand
 const PLAY_CARD   := "PLAY_CARD"    # invoquer un serviteur / lancer un sort
 const ATTACK      := "ATTACK"       # un serviteur en attaque un autre
 const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
-const TURN_CHOICE := "TURN_CHOICE"  # choix de début de tour : "mana" ou "draw"
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
+const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -49,9 +49,6 @@ static func attack(attacker_net_id: int, defender_net_id: int) -> Dictionary:
 
 static func attack_hero(attacker_net_id: int) -> Dictionary:
 	return {"type": ATTACK_HERO, "attacker": attacker_net_id}
-
-static func turn_choice(choice: String) -> Dictionary:
-	return {"type": TURN_CHOICE, "choice": choice}
 
 # ids : net_id des serviteurs créés par les déclencheurs de fin de tour, à imposer
 # lors du rejeu de cette phase sur le pair.
@@ -95,6 +92,13 @@ static func hello_ack() -> Dictionary:
 # de la décision est communiquée, pour synchroniser le début du tour 1.
 static func mulligan_done() -> Dictionary:
 	return {"type": MULLIGAN_DONE}
+
+# Envoyé juste avant de fermer volontairement la connexion (concède/retour au
+# menu) : permet au pair de distinguer un départ délibéré d'une coupure réseau
+# transitoire, et donc de ne pas attendre inutilement une reconnexion qui ne
+# viendra jamais (voir NetworkManager._on_packet_received).
+static func leave_match() -> Dictionary:
+	return {"type": LEAVE_MATCH}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

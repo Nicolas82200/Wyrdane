@@ -2,8 +2,11 @@
 extends Control
 
 const ALL_CARDS_PATH := "res://resources/cards"
+# Plus de plafond de taille de deck (voir README « Système de Ressources par
+# Race ») : seuls des minimums sont imposés, cartes jouables et ressources
+# comptées séparément bien que mélangées dans le même paquet.
 const MIN_CARDS := 40
-const MAX_CARDS := 60
+const MIN_RESOURCE_CARDS := 10
 const MAX_COPIES := 4
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
@@ -15,7 +18,7 @@ const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 
 # Preview agrandie affichée au survol (façon board/main), à la place du léger
 # zoom en place — évite le chevauchement des cartes voisines de la grille.
-const PREVIEW_SCALE := Vector2(1.35, 1.35)
+const PREVIEW_SCALE := Vector2(1.15, 1.15)
 
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
@@ -27,8 +30,8 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
-@onready var filter_bar:       HBoxContainer = %FilterBar
-@onready var sort_bar:         HBoxContainer = %SortBar
+@onready var filter_bar:       HFlowContainer = %FilterBar
+@onready var sort_bar:         HFlowContainer = %SortBar
 @onready var stats_panel:      VBoxContainer = %StatsPanel
 @onready var export_button:    Button        = %ExportButton
 @onready var import_button:    Button        = %ImportButton
@@ -53,6 +56,9 @@ var _max_tooltip:   Control     = null
 
 # resource_path -> Card (visuel dans la grille), pour griser au max de copies
 var _grid_visuals: Dictionary = {}
+# resource_path -> Button "Acheter (%d)", affiché uniquement sur les cartes
+# non débloquées (voir _is_card_locked) et retiré une fois l'achat réussi.
+var _buy_buttons: Dictionary = {}
 
 # ─── Filtres ──────────────────────────────────────────────────────────────────
 
@@ -63,6 +69,10 @@ var _filter_type:       String = ""
 var _filter_cost:       int    = -1
 var _filter_keyword:    String = ""  # "" = tous, sinon "pool:value" (voir _card_has_keyword)
 var _sort_mode:         String = ""  # "" = par défaut, "cost", "name", "rarity"
+# Par défaut, la grille ne montre que les cartes débloquées (voir
+# CollectionManager) — permet aux nouveaux joueurs de ne voir que ce qu'ils
+# possèdent réellement (decks de départ), le reste restant accessible via ce filtre.
+var _filter_hide_locked: bool = true
 
 const RARITY_ORDER := ["Common", "Rare", "Epic", "Legendary"]
 
@@ -118,6 +128,7 @@ func _refresh_card_grid() -> void:
 	for child in card_grid.get_children():
 		child.queue_free()
 	_grid_visuals.clear()
+	_buy_buttons.clear()
 
 	_pending_cards.clear()
 	for card_data in _all_cards:
@@ -146,6 +157,8 @@ func _match_filters(c: CardData) -> bool:
 		return false
 	if _filter_keyword != "" and not _card_has_keyword(c, _filter_keyword):
 		return false
+	if _filter_hide_locked and _is_card_locked(c):
+		return false
 	return true
 
 ## Vérifie si une carte porte le mot-clé désigné par "pool:value"
@@ -160,6 +173,7 @@ func _card_has_keyword(c: CardData, keyword_id: String) -> bool:
 		"H": return value in c.get_human_keyword_values()
 		"U": return value in c.get_undead_keyword_values()
 		"D": return value in c.get_demon_keyword_values()
+		"A": return value in c.get_abomination_keyword_values()
 		_:   return false
 
 func _sort_cards(cards: Array[CardData]) -> void:
@@ -218,6 +232,64 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual))
 
+	_add_buy_button_if_locked(card_data, wrapper)
+
+## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
+## débloquée (les cartes-ressource ne sont pas vendables à l'unité — voir
+## CollectionManager.buy_card, qui reflète le même refus côté serveur).
+func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
+	if not _is_card_locked(card_data) or card_data.card_type == "Resource":
+		return
+	var price := CurrencyManager.card_price(card_data.rarity)
+	if price <= 0:
+		return
+
+	var buy_button := Button.new()
+	buy_button.text = SettingsManager.t("deck.buy_button") % price
+	buy_button.custom_minimum_size = Vector2(0, 26)
+	buy_button.add_theme_font_size_override("font_size", 12)
+	buy_button.anchor_left   = 0.0
+	buy_button.anchor_right  = 1.0
+	buy_button.anchor_top    = 1.0
+	buy_button.anchor_bottom = 1.0
+	buy_button.offset_top    = -30
+	buy_button.offset_bottom = -4
+	buy_button.mouse_filter  = Control.MOUSE_FILTER_STOP
+	buy_button.pressed.connect(_on_buy_card.bind(card_data, buy_button))
+	wrapper.add_child(buy_button)
+	_buy_buttons[card_data.resource_path] = buy_button
+
+func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
+	buy_button.disabled = true
+	CollectionManager.buy_card(card_data, func(success: bool) -> void:
+		if not is_instance_valid(buy_button):
+			return
+		if success:
+			_buy_buttons.erase(card_data.resource_path)
+			buy_button.queue_free()
+			_update_grid_maxed_states()
+		else:
+			buy_button.disabled = false
+			_show_buy_error_tooltip(buy_button)
+	)
+
+## Petit tooltip d'erreur temporaire au-dessus du bouton d'achat (solde
+## insuffisant ou requête réseau échouée) — se referme seul après 2s.
+func _show_buy_error_tooltip(anchor: Control) -> void:
+	var panel := TooltipData.make_race_tooltip("deck.buy_error")
+	panel.position = Vector2(-9999, -9999)
+	_overlay_layer.add_child(panel)
+	await get_tree().process_frame
+	if not is_instance_valid(panel):
+		return
+	if not is_instance_valid(anchor):
+		panel.queue_free()
+		return
+	panel.global_position = anchor.global_position + Vector2((anchor.size.x - panel.size.x) / 2.0, -panel.size.y - 4.0)
+	await get_tree().create_timer(2.0).timeout
+	if is_instance_valid(panel):
+		panel.queue_free()
+
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
@@ -232,7 +304,7 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	card_preview.show()
 	_position_hover_tooltips()
 	if _is_card_maxed(card_data):
-		_show_max_copies_tooltip(wrapper)
+		_show_max_copies_tooltip(wrapper, card_data)
 	await _show_keyword_tooltips(card_data, wrapper)
 
 func _on_card_wrapper_exited(card_visual: Card) -> void:
@@ -341,12 +413,40 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
 
+	# Preview agrandie au survol d'une carte déjà dans le deck, même mécanisme
+	# que pour la grille de collection (voir _on_card_wrapper_entered/_exited).
+	panel.mouse_entered.connect(_on_card_wrapper_entered.bind(card, null, panel))
+	panel.mouse_exited.connect(_on_card_wrapper_exited.bind(null))
+
 	return panel
 
+func _playable_count() -> int:
+	if current_deck == null:
+		return 0
+	var n := 0
+	for card in current_deck.get_cards():
+		if card.card_type != "Resource":
+			n += 1
+	return n
+
+func _resource_count() -> int:
+	if current_deck == null:
+		return 0
+	var n := 0
+	for card in current_deck.get_cards():
+		if card.card_type == "Resource":
+			n += 1
+	return n
+
 func _update_count_label() -> void:
-	var count := current_deck.size() if current_deck else 0
-	card_count_label.text     = SettingsManager.t("deck.count_format") % [count, MAX_CARDS, MIN_CARDS]
-	card_count_label.modulate = Color(1, 0.4, 0.4) if count < MIN_CARDS else Color(0.5, 0.9, 0.5)
+	var playable := _playable_count()
+	var resources := _resource_count()
+	card_count_label.text = "%s\n%s" % [
+		SettingsManager.t("deck.count_format") % [playable, MIN_CARDS],
+		SettingsManager.t("deck.resource_count_format") % [resources, MIN_RESOURCE_CARDS],
+	]
+	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
+	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
 
 # ─── Statistiques du deck (courbe de mana + répartition) ──────────────────────
 
@@ -404,7 +504,7 @@ func _update_stats_panel() -> void:
 	var type_row := HBoxContainer.new()
 	type_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	type_row.add_theme_constant_override("separation", 10)
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment"]:
+	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
 		if type_counts.has(type_name):
 			type_row.add_child(_make_chip(
 				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
@@ -497,7 +597,7 @@ func _on_add_card(card_data: CardData) -> void:
 	_refresh_deck_list()
 	# Si on vient d'atteindre le max de copies, feedback immédiat sous le curseur
 	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
-		_show_max_copies_tooltip(_hovered_wrapper)
+		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -516,7 +616,7 @@ func _on_search_changed(text: String) -> void:
 	_refresh_card_grid()
 
 func _on_save() -> void:
-	if current_deck == null or current_deck.size() < MIN_CARDS:
+	if current_deck == null or _playable_count() < MIN_CARDS or _resource_count() < MIN_RESOURCE_CARDS:
 		return
 	DeckManager.save_decks()
 
@@ -610,20 +710,40 @@ func _count_in_deck(path: String) -> int:
 	return count
 
 func _is_card_maxed(card_data: CardData) -> bool:
-	return _count_in_deck(card_data.resource_path) >= MAX_COPIES
+	var owned := CollectionManager.owned_quantity(card_data)
+	if card_data.card_type == "Resource":
+		return _count_in_deck(card_data.resource_path) >= owned
+	return _count_in_deck(card_data.resource_path) >= min(MAX_COPIES, owned)
 
-## Grise les cartes de la grille dont le deck contient déjà le max de copies.
+## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
+## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
+## ce deck — sert à choisir le bon message de tooltip, voir _show_max_copies_tooltip.
+func _is_card_locked(card_data: CardData) -> bool:
+	if card_data == null:
+		return true
+	if card_data.card_type == "Resource":
+		return false
+	return CollectionManager.owned_quantity(card_data) <= 0
+
+## Grise les cartes de la grille dont le deck contient déjà le max de copies
+## possédées (voir _is_card_maxed — inclut désormais les cartes-ressource,
+## bornées par la quantité réellement débloquée plutôt que par MAX_COPIES).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
 		if not is_instance_valid(visual):
 			continue
-		visual.modulate = MAXED_TINT if _count_in_deck(path) >= MAX_COPIES else Color.WHITE
+		var card_data: CardData = visual.data
+		var maxed: bool = card_data != null and _is_card_maxed(card_data)
+		visual.modulate = MAXED_TINT if maxed else Color.WHITE
 
-## Tooltip centré sur la carte grisée : max de copies atteint.
-func _show_max_copies_tooltip(anchor: Control) -> void:
+## Tooltip centré sur la carte grisée : max de copies possédées atteint, ou
+## carte pas encore débloquée du tout (message distinct, voir _is_card_locked).
+func _show_max_copies_tooltip(anchor: Control, card_data: CardData = null) -> void:
 	_clear_max_tooltip()
-	var panel := TooltipData.make_race_tooltip("deck.max_copies_reached")
+	var text_key := "deck.card_locked" if (card_data != null and _is_card_locked(card_data)) \
+		else "deck.max_copies_reached"
+	var panel := TooltipData.make_race_tooltip(text_key)
 	panel.position = Vector2(-9999, -9999)
 	_overlay_layer.add_child(panel)
 	_max_tooltip = panel
@@ -676,22 +796,23 @@ func _position_hover_tooltips() -> void:
 	var wrapper := _hovered_wrapper
 	if wrapper == null or not is_instance_valid(wrapper):
 		return
-
 	var vp := get_viewport_rect().size
 	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
 	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
 
-	# Preview centrée sur la carte survolée, au-dessus si la place le permet
-	# (sinon en dessous), pour ne jamais masquer le curseur du joueur.
-	var preview_x: float = clampf(
-		wrapper_center.x - preview_size.x / 2.0, 4.0, vp.x - preview_size.x - 4.0)
-	var preview_y: float = wrapper.global_position.y - preview_size.y - 12.0
-	if preview_y < 4.0:
-		preview_y = wrapper.global_position.y + wrapper.size.y + 12.0
-	card_preview.global_position = Vector2(preview_x, preview_y)
+	# Preview centrée verticalement sur la carte survolée, à droite si la
+	# place le permet (sinon à gauche), pour ne jamais masquer le curseur.
+	var preview_y: float = clampf(
+		wrapper_center.y - preview_size.y / 2.0, 4.0, vp.y - preview_size.y - 4.0)
+	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
+	if preview_x + preview_size.x > vp.x - 4.0:
+		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
+	card_preview.global_position = Vector2(preview_x, preview_y)
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
+
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
@@ -700,7 +821,6 @@ func _position_hover_tooltips() -> void:
 			px = card_preview.global_position.x - panel.size.x - 12.0
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
-
 	if _race_tooltip != null and is_instance_valid(_race_tooltip):
 		var rx: float = clampf(
 			card_center.x - _race_tooltip.size.x / 2.0,
@@ -709,7 +829,6 @@ func _position_hover_tooltips() -> void:
 		if ry + _race_tooltip.size.y > vp.y:
 			ry = card_preview.global_position.y - _race_tooltip.size.y - 4.0
 		_race_tooltip.global_position = Vector2(rx, ry)
-
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):
 		_max_tooltip.global_position = \
 			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
@@ -757,11 +876,12 @@ func _build_filter_bar() -> void:
 
 	# Type de carte
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
-	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment"],
+	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment", "Resource"],
 		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
 		func() -> String: return _filter_type,
 		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
-			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment")])
+			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment"),
+			SettingsManager.t("cardtype.resource")])
 
 	# Rareté
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))
@@ -776,6 +896,20 @@ func _build_filter_bar() -> void:
 		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
 		func() -> int: return _filter_cost,
 		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
+
+	# Cacher/montrer les cartes non débloquées (bouton à bascule seul, pas un groupe radio)
+	var lock_btn := Button.new()
+	lock_btn.text            = SettingsManager.t("deck.filter_hide_locked")
+	lock_btn.toggle_mode     = true
+	lock_btn.button_pressed  = _filter_hide_locked
+	lock_btn.custom_minimum_size = Vector2(0, 26)
+	lock_btn.add_theme_font_size_override("font_size", 12)
+	_style_filter_button(lock_btn, _filter_hide_locked)
+	lock_btn.toggled.connect(func(pressed: bool) -> void:
+		_filter_hide_locked = pressed
+		_style_filter_button(lock_btn, pressed)
+		_refresh_card_grid())
+	filter_bar.add_child(lock_btn)
 
 
 ## Barre secondaire : filtre par mot-clé (dropdown, trop de valeurs pour des
@@ -795,7 +929,7 @@ func _build_sort_bar() -> void:
 	sort_bar.add_child(_make_keyword_dropdown(kw_values, kw_labels))
 
 	var sort_spacer := Control.new()
-	sort_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sort_spacer.custom_minimum_size = Vector2(20, 0)
 	sort_bar.add_child(sort_spacer)
 
 	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.sort_label")))
@@ -820,6 +954,9 @@ func _all_keyword_entries() -> Array[Dictionary]:
 	for key in KeywordDemon.Type.keys():
 		var v: int = KeywordDemon.Type[key]
 		entries.append({"id": "D:%d" % v, "label": KeywordDemon.get_keyword_name(v)})
+	for key in KeywordAbomination.Type.keys():
+		var v: int = KeywordAbomination.Type[key]
+		entries.append({"id": "A:%d" % v, "label": KeywordAbomination.get_keyword_name(v)})
 	return entries
 
 func _make_keyword_dropdown(values: Array[String], labels: Array[String]) -> OptionButton:

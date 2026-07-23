@@ -1,9 +1,10 @@
 extends Control
 
-# Visuel d'une carte Enchantement ou Rituel posée dans sa zone (à droite du board).
+# Visuel d'une carte Enchantement, Rituel ou Ressource posée dans sa zone.
 # Affiche le card art comme les unités sur le board ; au survol, la carte
-# originale apparaît en aperçu à gauche (les zones étant en colonne de droite),
-# avec les tooltips de mots-clés — même comportement que BoardMinion.
+# originale apparaît en aperçu à gauche, ou à droite si la zone est trop
+# proche du bord de l'écran, avec les tooltips de mots-clés — même
+# comportement que BoardMinion.
 # Les Rituels de Sacrifice du joueur sont cliquables : le clic demande leur
 # activation (choix des victimes via SacrificeSystem).
 
@@ -55,12 +56,15 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 # ─── Hover & Preview ──────────────────────────────────────────────────────────
-# Même aperçu que BoardMinion, mais la carte originale apparaît à GAUCHE
-# (les zones enchantements/rituels occupent la colonne de droite du board).
+# Même aperçu que BoardMinion. Les zones enchantements/rituels/ressources ne
+# sont pas toutes du même côté du board (ex: zone de ressource du joueur à
+# gauche) : l'aperçu apparaît à gauche s'il tient à l'écran, sinon à droite.
 
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
 	if card_data == null or _battle == null:
+		return
+	if "game_over" in _battle and _battle.game_over:
 		return
 	if _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
@@ -75,6 +79,7 @@ func _on_mouse_entered() -> void:
 		return
 	_hover_preview.drag_enabled = false
 	_hover_preview.z_index = 1000
+	_hover_preview.visible = false
 	_battle.add_child(_hover_preview)
 	_hover_preview.set_data(card_data)
 	_hover_preview.scale = Vector2(PREVIEW_SCALE, PREVIEW_SCALE)
@@ -85,14 +90,20 @@ func _on_mouse_entered() -> void:
 		_cleanup_hover()
 		return
 
-	_hover_preview.global_position = global_position + Vector2(
-		-_hover_preview.size.x * PREVIEW_SCALE - 15,
-		(size.y - _hover_preview.size.y * PREVIEW_SCALE) / 2.0
+	var preview_width := _hover_preview.size.x * PREVIEW_SCALE
+	var show_left := global_position.x - preview_width - 15 >= 0.0
+	var preview_x := global_position.x - preview_width - 15 if show_left else global_position.x + size.x + 15
+	_hover_preview.global_position = Vector2(
+		preview_x,
+		global_position.y + (size.y - _hover_preview.size.y * PREVIEW_SCALE) / 2.0
 	)
-	# Tooltips alignés à gauche de l'aperçu
-	var tooltip_right := _hover_preview.global_position.x - 15
+	_hover_preview.visible = true
+
+	# Tooltips du côté opposé à l'aperçu par rapport à la carte survolée
+	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
+		else _hover_preview.global_position.x + preview_width + 15
 	var tooltip_y := _hover_preview.global_position.y
-	await _show_keyword_tooltips(tooltip_right, tooltip_y)
+	await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
 
 func _on_mouse_exited() -> void:
 	_mouse_is_over = false
@@ -105,10 +116,11 @@ func _cleanup_hover() -> void:
 	_hover_preview = null
 
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
-# right_x est le bord DROIT des panneaux : ils s'empilent vers la gauche
-# pour ne pas recouvrir l'aperçu ni la zone survolée.
+# anchor_x est le bord DROIT des panneaux (align_right = true, ils s'empilent
+# vers la gauche) ou leur bord GAUCHE (align_right = false, ils s'empilent
+# vers la droite) — toujours du côté opposé à l'aperçu pour ne pas le recouvrir.
 
-func _show_keyword_tooltips(right_x: float, base_y: float) -> void:
+func _show_keyword_tooltips(anchor_x: float, base_y: float, align_right: bool) -> void:
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
@@ -127,7 +139,8 @@ func _show_keyword_tooltips(right_x: float, base_y: float) -> void:
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
-		panel.global_position = Vector2(right_x - panel.size.x, y)
+		var panel_x := anchor_x - panel.size.x if align_right else anchor_x
+		panel.global_position = Vector2(panel_x, y)
 		y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
 

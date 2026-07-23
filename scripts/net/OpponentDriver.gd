@@ -10,10 +10,11 @@ class_name OpponentDriver
 # battle.opponent.take_turn() sans se soucier de l'implémentation.
 
 var battle
-# Ressource du camp adverse, affichée côté joueur local (cristaux de mana).
-# Gérée par chaque implémentation : l'IA en solo, le rejeu des TURN_CHOICE en réseau.
-var mana: int = 0
-var max_mana: int = 0
+# Pools de ressource par race (clé = Race.Type) du camp adverse, affichés côté
+# joueur local. Gérés par chaque implémentation : l'IA en solo, le rejeu des
+# cartes-ressource (PLAY_CARD) du pair distant en réseau.
+var race_mana: Dictionary = {}
+var race_max_mana: Dictionary = {}
 
 func init(_battle) -> void:
 	battle = _battle
@@ -43,3 +44,10 @@ func get_deck_count() -> int:
 
 func get_hand_count() -> int:
 	return 0
+
+# Pioche 1 carte pour le camp adverse (effets déclenchés côté ennemi, ex.
+# Autel des Damnés). Surchargé par chaque implémentation : l'IA pioche
+# réellement dans son propre deck, le réseau se contente de mettre à jour ses
+# compteurs cosmétiques (le pair distant pioche la vraie carte de son côté).
+func draw_card() -> void:
+	pass

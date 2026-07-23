@@ -43,6 +43,7 @@ func test_card_race_matches_resource_folder() -> void:
 			Race.Type.UNDEAD: expected_folder = "/undead/"
 			Race.Type.HUMAN:  expected_folder = "/human/"
 			Race.Type.DEMON:  expected_folder = "/demon/"
+			Race.Type.ABOMINATION: expected_folder = "/abomination/"
 			_: continue
 		assert_true(path.contains(expected_folder), "%s : race %s ne correspond pas au dossier %s" % [path, card.race, path])
 
@@ -59,3 +60,33 @@ func test_ritual_cards_have_a_duration() -> void:
 	for card in library.all_cards:
 		if card.card_type == "Ritual":
 			assert_ne(card.ritual_duration, 0, "%s : un Rituel doit avoir ritual_duration != 0" % card.card_name)
+
+func test_token_cards_are_excluded_from_library() -> void:
+	for card in library.all_cards:
+		assert_false(card.is_token, "%s : un jeton (is_token=true) ne doit pas apparaître dans CardLibrary.all_cards (deckbuilder/IA/pool aléatoire)" % card.resource_path)
+
+func test_token_cards_have_no_chaining_effects() -> void:
+	var token_paths: Array[String] = []
+	_collect_token_paths("res://resources/cards", token_paths)
+	assert_gt(token_paths.size(), 0, "aucun jeton trouvé, le scan a probablement échoué")
+	for path in token_paths:
+		var card: CardData = load(path)
+		assert_true(card.is_token, "%s devrait avoir is_token=true" % path)
+		assert_eq(card.effects.size(), 0, "%s : un jeton ne doit porter aucun effect (risque de réaction en chaîne)" % path)
+
+func _collect_token_paths(path: String, out: Array[String]) -> void:
+	var dir := DirAccess.open(path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		var full_path := path + "/" + file_name
+		if dir.current_is_dir():
+			_collect_token_paths(full_path, out)
+		elif file_name.ends_with(".tres"):
+			var res := load(full_path)
+			if res is CardData and (res as CardData).is_token:
+				out.append(full_path)
+		file_name = dir.get_next()
+	dir.list_dir_end()

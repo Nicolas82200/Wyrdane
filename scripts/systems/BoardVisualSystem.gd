@@ -13,27 +13,17 @@ func init(_battle) -> void:
 	battle = _battle
 
 
-func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
-	var container: Control
+func _row_container(minion: Minion, is_player: bool) -> Control:
 	if is_player:
-		container = battle.player_front_container if minion.board_row == battle.ROW_FRONT else battle.player_back_container
-	else:
-		container = battle.enemy_front_container if minion.board_row == battle.ROW_FRONT else battle.enemy_back_container
-	if container == null:
-		push_error("Container null pour spawn minion !")
-		return
-	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
-	container.add_child(visual)
-	visual.set_minion(minion)
-	minion_to_visual[minion] = visual
+		return battle.player_front_container if minion.board_row == battle.ROW_FRONT else battle.player_back_container
+	return battle.enemy_front_container if minion.board_row == battle.ROW_FRONT else battle.enemy_back_container
 
-	# ← Repositionne le visual selon l'index du minion dans l'array
+
+# Insère `visual` dans `container` à l'index correspondant à la position de
+# `minion` dans le tableau de données de sa rangée, pour garder l'ordre
+# visuel synchronisé avec player_minions/enemy_minions.
+func _place_visual_in_row(container: Control, visual: BoardMinion, minion: Minion, is_player: bool) -> void:
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
-	var row_visuals: Array[Node] = []
-	for child in container.get_children():
-		if child is BoardMinion:
-			row_visuals.append(child)
-	# Trouve l'index visuel du minion dans sa row
 	var row_index: int = 0
 	for m in minions:
 		if m.board_row != minion.board_row:
@@ -41,7 +31,7 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 		if m == minion:
 			break
 		row_index += 1
-	# Trouve la position enfant correspondante dans le container
+
 	var seen: int = 0
 	for i in range(container.get_child_count()):
 		var child := container.get_child(i)
@@ -53,6 +43,13 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 				break
 			seen += 1
 
+
+# (Re)connecte minion_clicked aux handlers du camp `is_player`, en coupant
+# d'abord toute connexion existante (utile lors d'un changement de camp,
+# ex: contrôle mental).
+func _wire_visual_signals(visual: BoardMinion, is_player: bool) -> void:
+	for connection in visual.minion_clicked.get_connections():
+		visual.minion_clicked.disconnect(connection.callable)
 	if is_player:
 		visual.minion_clicked.connect(battle.selection_system.on_player_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_ally_minion_clicked(m, v))
@@ -60,7 +57,40 @@ func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
 	else:
 		visual.minion_clicked.connect(battle.selection_system.on_enemy_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_enemy_minion_clicked(m, v))
+
+
+func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
+	var container: Control = _row_container(minion, is_player)
+	if container == null:
+		push_error("Container null pour spawn minion !")
+		return
+	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+	container.add_child(visual)
+	visual.set_minion(minion)
+	minion_to_visual[minion] = visual
+
+	_place_visual_in_row(container, visual, minion, is_player)
+	_wire_visual_signals(visual, is_player)
 	battle.animation_system.play_summon(visual)
+
+
+# Déplace le noeud visuel d'un serviteur vers le container du nouveau
+# camp/rangée (ex: contrôle mental) et rebranche ses signaux de clic —
+# sans cela le serviteur volé reste affiché du côté de son ancien
+# propriétaire malgré le transfert de propriété côté données.
+func reparent_minion_visual(minion: Minion, is_player: bool) -> void:
+	var visual: BoardMinion = minion_to_visual.get(minion)
+	if visual == null or not is_instance_valid(visual):
+		return
+	var container: Control = _row_container(minion, is_player)
+	if container == null:
+		return
+	var old_parent: Node = visual.get_parent()
+	if old_parent != null:
+		old_parent.remove_child(visual)
+	container.add_child(visual)
+	_place_visual_in_row(container, visual, minion, is_player)
+	_wire_visual_signals(visual, is_player)
 
 
 func get_visual(minion: Minion) -> BoardMinion:
@@ -113,10 +143,10 @@ func refresh_board() -> void:
 	and battle.selection_system.selected_attacker not in battle.player_minions:
 		battle.selection_system.clear_selection()
 
-	# Surbrillance des Rituels de Sacrifice activables (dépend du board)
+
 	battle.enchantment_system.refresh_activatable()
 
-	# Halo « Fin du tour » : l'état du board conditionne les actions restantes
+
 	battle.update_end_turn_hint()
 
 	_refreshing = false

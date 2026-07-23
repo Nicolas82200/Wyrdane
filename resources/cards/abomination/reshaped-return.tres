@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://bqyd21yignykq" path="res://assets/card_art/abomination/reshaped-return.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a124"]
+script = ExtResource("4_trig")
+type = "OnGrief"
+
+[sub_resource type="Resource" id="Resource_a125"]
+script = ExtResource("1_cardeffect")
+effect_id = "ReturnFromGrave"
+race_filter = "Abomination"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Grand Retour Sous une Autre Forme"
+description = "Deuil : ramène en main le serviteur Abomination allié le plus récemment mort."
+flavour_text = "\"Je ne les rappelle pas. Je les laisse simplement finir de devenir autre chose.\""
+texture = ExtResource("2_texture")
+cost = 8
+race = 6
+card_type = "Ritual"
+ritual_duration = 3
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a124")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a125")])
+rarity = "Legendary"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

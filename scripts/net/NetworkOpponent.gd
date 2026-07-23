@@ -22,7 +22,6 @@ func _init(network_manager: NetworkManager) -> void:
 
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
-const MANA_CAP := 10
 const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
 
 # Compteurs cosmétiques du camp distant (dos de deck / main), suivis via les
@@ -31,9 +30,10 @@ var _deck_count: int = 0
 var _hand_count: int = 0
 
 func setup() -> void:
-	# Mana initial du camp adverse, miroir du 1er tour du joueur local.
-	mana = 1
-	max_mana = 1
+	# Pools de ressource initiaux du camp adverse : vides tant qu'aucune carte-
+	# ressource n'a été posée (plus de mana de départ, voir README).
+	race_mana = {}
+	race_max_mana = {}
 	# Compteurs initiaux d'après le deck reçu au handshake, moins la main de départ.
 	var deck_size: int = NetContext.setup.get("opponent_deck", []).size()
 	_hand_count = min(STARTING_HAND, deck_size)
@@ -47,6 +47,16 @@ func get_deck_count() -> int:
 
 func get_hand_count() -> int:
 	return _hand_count
+
+# Effet local (ex. Autel des Damnés côté ennemi) déclenché en miroir sur les
+# deux clients : le pair distant pioche déjà sa vraie carte de son côté, on se
+# contente ici de refléter le changement dans les compteurs cosmétiques.
+func draw_card() -> void:
+	if _deck_count > 0:
+		_deck_count -= 1
+		_hand_count += 1
+	battle.update_enemy_hand_ui()
+	battle.deck_system.update_enemy_deck_ui()
 
 # Attend le MULLIGAN_DONE du pair distant (déjà reçu, ou à recevoir).
 func await_mulligan() -> void:
@@ -111,52 +121,90 @@ func _on_command_received(command: Dictionary) -> void:
 func _apply(cmd: Dictionary) -> void:
 	match NetCommand.type_of(cmd):
 		NetCommand.TURN_START:
-			# Rejoue la phase de début du tour distant (is_local_turn = false).
+			# Rejoue la phase de début du tour distant (is_local_turn = false) :
+			# recharge les pools de ressource à leur maximum et pioche une carte
+			# automatiquement, comme le tour local (plus de choix Mana/Pioche).
 			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 			await battle.turn_system.run_turn_start_triggers(false)
 			battle.net_registry.set_imposed_ids([])
-		NetCommand.TURN_CHOICE:
-			# Choix de début de tour distant : mana augmente la réserve, pioche non.
-			# Affichage cosmétique côté joueur local (les plays sont déjà validés
-			# chez l'émetteur).
-			if cmd.get("choice", "mana") == "mana":
-				max_mana = min(max_mana + 1, MANA_CAP)
-			else:
-				# Pioche : une carte quitte le deck pour la main adverse.
-				if _deck_count > 0:
-					_deck_count -= 1
-					_hand_count += 1
-				battle.update_enemy_hand_ui()
-				battle.deck_system.update_enemy_deck_ui()
-			mana = max_mana
+			battle.refill_mana_pool(false)
 			battle.update_enemy_mana_ui()
+			if _deck_count > 0:
+				_deck_count -= 1
+				_hand_count += 1
+			battle.update_enemy_hand_ui()
+			battle.deck_system.update_enemy_deck_ui()
 		NetCommand.PLAY_CARD:
 			await _apply_play_card(cmd)
 		NetCommand.ATTACK:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
 			var defender: Minion = battle.net_registry.resolve(cmd.get("defender", 0))
-			if attacker != null and defender != null:
+			# L'attaquant rejoué doit appartenir au camp distant et la cible au
+			# camp local : sans ce contrôle, un pair pourrait désigner un net_id
+			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
+			if attacker != null and defender != null \
+					and not attacker.owner_is_player and defender.owner_is_player:
 				await battle.combat_system.resolve_combat(attacker, defender)
+			else:
+				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			if attacker != null:
+			if attacker != null and not attacker.owner_is_player:
 				await battle.combat_system.perform_hero_attack(attacker)
+			elif attacker != null:
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
+
+# Charge une carte désignée par son resource_path reçu du réseau. Restreint au
+# dossier des ressources de carte et exclut les jetons d'invocation (jamais
+# censés être joués depuis une main) pour empêcher un pair de faire charger un
+# chemin arbitraire du projet.
+const CARDS_RESOURCE_PREFIX := "res://resources/cards/"
+
+func _load_remote_card(path: String) -> CardData:
+	if not path.begins_with(CARDS_RESOURCE_PREFIX) or not path.ends_with(".tres"):
+		push_warning("NetworkOpponent : chemin de carte refusé '%s'" % path)
+		return null
+	var card: CardData = load(path) as CardData
+	if card == null:
+		push_warning("NetworkOpponent : carte introuvable '%s'" % path)
+		return null
+	if card.is_token:
+		push_warning("NetworkOpponent : jeton refusé '%s'" % path)
+		return null
+	return card
 
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
 # Limité aux serviteurs pour l'instant : les sorts distants demandent un
 # EffectManager conscient du propriétaire (brique suivante).
 func _apply_play_card(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : carte introuvable '%s'" % cmd.get("card", ""))
+		return
+	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
+	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
+	if _hand_count <= 0:
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (main distante vide)")
+		return
+	if card.card_type == "Resource":
+		# Carte-ressource : pas de coût, +1 au pool de sa race (voir Battle.play_resource_card).
+		_hand_count -= 1
+		battle.update_enemy_hand_ui()
+		battle.play_resource_card(card, false)
+		return
+	# Coût réel du camp distant : refuse si le pair n'a pas les ressources
+	# affichées pour cette carte (sinon un client modifié pourrait poser
+	# n'importe quoi gratuitement et faire passer les pools en négatif).
+	if not battle.cost_system.can_afford(card, false):
+		push_warning("NetworkOpponent : PLAY_CARD rejeté (coût non couvert) '%s'" % card.card_name)
 		return
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-	# Suivi des coûts du camp distant (compteurs "premier de la race joué ce tour")
+	battle.cost_system.pay(card, false)
+	battle.update_enemy_mana_ui()
 	await battle.cost_system.on_card_played(card, false)
 	# La carte jouée quitte la main adverse (compteur cosmétique).
 	if _hand_count > 0:
@@ -183,9 +231,8 @@ func _apply_play_card(cmd: Dictionary) -> void:
 # est retrouvé par resource_path parmi les rituels adverses en jeu, les victimes
 # par net_id ; l'exécution passe par le même chemin que côté émetteur.
 func _apply_activate_ritual(cmd: Dictionary) -> void:
-	var card: CardData = load(cmd.get("card", "")) as CardData
+	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
-		push_warning("NetworkOpponent : rituel introuvable '%s'" % cmd.get("card", ""))
 		return
 	var victims: Array = []
 	for victim_id in cmd.get("victims", []):
@@ -205,10 +252,12 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
 		var target: Minion = null

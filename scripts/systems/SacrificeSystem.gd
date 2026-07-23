@@ -29,7 +29,7 @@ func is_active() -> bool:
 func can_activate(card_data: CardData, is_player: bool) -> bool:
 	if card_data == null or not is_player:
 		return false
-	if battle.game_over or battle.enemy_turn_active or battle.waiting_for_target:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target:
 		return false
 	if _active or battle.targeting_system.is_targeting():
 		return false

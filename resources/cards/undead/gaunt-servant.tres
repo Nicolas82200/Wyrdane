@@ -15,12 +15,12 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_a7ez9"]
 script = ExtResource("5_trig")
-type = "OnSummon"
+type = "OnAttack"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Servant Décharné"
-description = "Ralliement : tes serviteurs en rangée Avant ont +0/+1 HP."
+description = "Assaut : tes serviteurs en rangée Avant ont +0/+1 HP."
 flavour_text = "Il ne commande pas. Il pousse. Et ça suffit."
 texture = ExtResource("3_texture")
 cost = 3

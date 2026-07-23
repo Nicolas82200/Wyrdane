@@ -13,4 +13,5 @@ cost = 1
 attack = 1
 health = 1
 rarity = "Common"
+is_token = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

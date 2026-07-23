@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://bv168a7sur7ln" path="res://assets/card_art/abomination/handless-sculptor.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_a061"]
+script = ExtResource("4_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_a062"]
+script = ExtResource("1_cardeffect")
+effect_id = "GrantKeyword"
+target = "AllyMinion"
+duration = "Permanent"
+granted_keyword = "MUTATION"
+granted_keyword_is_abomination = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Le Sculpteur Sans Mains"
+description = "Arrivée : un serviteur allié ciblé gagne MUTATION de façon permanente."
+flavour_text = "\"La forme n'est qu'une suggestion. Je préfère négocier.\""
+texture = ExtResource("2_texture")
+cost = 4
+race = 6
+unit_style = 20
+attack = 2
+health = 4
+board_position = "Back"
+requires_target = true
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a061")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a062")])
+rarity = "Epic"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

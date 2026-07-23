@@ -18,9 +18,9 @@ class_name SteamService
 # ⚠ Le backend Steam NE PEUT PAS se tester avec deux instances locales du jeu :
 # elles partagent le même compte Steam, or les lobbies/P2P Steamworks exigent
 # deux comptes distincts (l'hôte ne voit jamais « entrer » son propre compte).
-# SteamTransport détecte ce cas et affiche NET_STEAM_SAME_ACCOUNT. Pour tester
-# en local à deux instances, utiliser le mode IP directe (127.0.0.1) ; pour
-# tester Steam, il faut deux machines/sessions avec deux comptes connectés.
+# SteamTransport détecte ce cas et affiche NET_STEAM_SAME_ACCOUNT. Le
+# multijoueur ne peut donc se tester qu'avec deux machines/sessions et deux
+# comptes Steam distincts (plus de mode IP/LAN de secours pour tester en local).
 #
 # Le singleton n'existant pas à la compilation, tous les appels sont dynamiques
 # (aucun typage Steam ici ni dans SteamTransport).
@@ -28,6 +28,8 @@ class_name SteamService
 const APP_ID := 480  # Spacewar (AppID de test public Steam)
 
 static var _initialized := false
+static var _join_requested_callback := Callable()
+static var _join_signal_connected := false
 
 static func is_available() -> bool:
 	return Engine.has_singleton("Steam")
@@ -76,3 +78,51 @@ static func run_callbacks() -> void:
 static func local_persona_name() -> String:
 	var s := steam()
 	return s.getPersonaName() if _initialized and s != null else ""
+
+# SteamID64 du joueur local sous forme de chaîne (vide si indisponible).
+static func local_steam_id() -> String:
+	var s := steam()
+	if not _initialized or s == null:
+		return ""
+	return str(s.getSteamID())
+
+# Avatar Steam du joueur local (résolution moyenne, 64×64), ou null si
+# indisponible (Steam absent, ou avatar pas encore mis en cache par le
+# client Steam — dans ce cas on ne l'attend pas, on affiche juste sans).
+static func local_avatar_texture() -> ImageTexture:
+	var s := steam()
+	if not _initialized or s == null:
+		return null
+	var steam_id: int = s.getSteamID()
+	var handle: int = s.getMediumFriendAvatar(steam_id)
+	if handle <= 0:
+		return null
+	var size: Dictionary = s.getImageSize(handle)
+	if not size.get("success", false):
+		return null
+	var rgba: Dictionary = s.getImageRGBA(handle)
+	if not rgba.get("success", false):
+		return null
+	var image := Image.create_from_data(size["width"], size["height"], false, Image.FORMAT_RGBA8, rgba["buffer"])
+	return ImageTexture.create_from_image(image)
+
+# Écoute les demandes de rejoindre un lobby via ami Steam (overlay « Rejoindre
+# la partie », invitation acceptée) — indépendamment de tout host()/join() déjà
+# en cours côté SteamTransport. À appeler dès l'arrivée sur l'écran multijoueur
+# pour capter une invitation même avant que le joueur ait cliqué un bouton :
+# initialise Steam si besoin (idempotent) et pompe les callbacks à chaque appel
+# de run_callbacks(), qu'une session de jeu soit active ou non.
+# Callback appelé avec (lobby_id: int) quand une demande arrive.
+static func watch_join_requests(on_join_requested: Callable) -> bool:
+	if not ensure_init():
+		return false
+	_join_requested_callback = on_join_requested
+	var s := steam()
+	if not _join_signal_connected:
+		s.connect("join_requested", _on_join_requested)
+		_join_signal_connected = true
+	return true
+
+static func _on_join_requested(lobby_id: int, _friend_id: int = 0) -> void:
+	if _join_requested_callback.is_valid():
+		_join_requested_callback.call(lobby_id)

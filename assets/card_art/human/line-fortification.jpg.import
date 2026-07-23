@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ba510ie5q5nua"
-path="res://.godot/imported/line-fortification.jpg-4550bc47d57cfc7afe393d6491b4d35c.ctex"
+path.s3tc="res://.godot/imported/line-fortification.jpg-4550bc47d57cfc7afe393d6491b4d35c.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/line-fortification.jpg"
-dest_files=["res://.godot/imported/line-fortification.jpg-4550bc47d57cfc7afe393d6491b4d35c.ctex"]
+dest_files=["res://.godot/imported/line-fortification.jpg-4550bc47d57cfc7afe393d6491b4d35c.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

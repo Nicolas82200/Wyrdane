@@ -91,6 +91,26 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 - **Vol temporaire** (effet `StealMinionThenDestroy` + `TempEffectSystem.add_destroy_at_expiry`) : prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit (Emprise Écarlate). Immunités au contrôle mental respectées.
 - **Drain de héros** (effet `StealHealthFromHero`) : vole X HP au héros ennemi et en soigne le héros allié d'autant (Suceur d'Âmes).
 
+### 🧬 Mécaniques Abomination
+
+Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CARDS.md`) :
+
+| Mot-clé | Effet | Implémentation |
+|---|---|---|
+| `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
+| `FUSION` | Sacrifice un allié adjacent : absorbe ses stats restantes ET un mot-clé au choix. | Mot-clé affiché ; **aucune UI d'activation n'est câblée** (voir limitation ci-dessous) |
+| `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
+| `ASSIMILATION` | Dévoration : gagne +1/+1 permanent (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
+| `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
+
+- **Table de Mutation** (`EffectManager.roll_mutation`) : tirage sur le RNG de jeu partagé (déterministe/synchronisé réseau) — 40 % Croissance (+2/+0 permanent), 40 % Renforcement (+0/+2 permanent), 20 % Dégénérescence (-1/-1 permanent, peut tuer si les dégâts déjà subis dépassent le nouveau maximum). `Minion.mutation_stacks` / `Minion.mutations` gardent une trace pour l'affichage.
+- **Trigger `OnMutation`** (« Résonance » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
+- **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
+- **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
+
+**⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -200,12 +220,12 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (20 serviteurs Mort-Vivants aléatoires via `CardLibrary`), sa main et son mana.
+L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
-1.  **Ressource** — mana ou pioche (symétrique du choix joueur du `TurnChoicePanel`).
-2.  **Pose** — joue tous les types de cartes (Serviteur, Éphémère, Rituel, Enchantement) ; serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière) ; choisit ses cibles de sort (menace la plus forte côté joueur, allié le plus faible à soutenir).
+1.  **Début de tour** — recharge ses pools de ressource à leur maximum et pioche une carte automatiquement (plus de choix Mana/Pioche, symétrique du tour joueur).
+2.  **Pose** — pose d'abord une carte-ressource de sa main si elle en a une (une par tour), puis joue tous les autres types de cartes (Serviteur, Éphémère, Rituel, Enchantement) ; serviteurs les plus chers d'abord, respecte `board_position` (hybrides fragiles à l'arrière) ; choisit ses cibles de sort (menace la plus forte côté joueur, allié le plus faible à soutenir).
 3.  **Attaque** — priorité : Provocation > létal sur le héros > trade favorable (tuer sans mourir) > héros.
 
 Trois niveaux de difficulté (réglage `SettingsManager.ai_difficulty` : `easy`/`normal`/`hard`) :
@@ -219,22 +239,21 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Couche transport
 
-*   `NetTransport` — interface abstraite (host/join/send/close).
-*   `ENetTransport` — implémentation P2P hôte/client via `ENetMultiplayerPeer` (IP directe / LAN).
-*   `SteamTransport` — implémentation Steam : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby sont alors cachés). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
-*   `TransportFactory` — crée le backend demandé (ENet ou Steam).
-*   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`.
+*   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
+*   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
+*   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
+*   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).
 
 #### Entrée en partie
 
-1.  `scenes/net/NetLobby.tscn` — un joueur clique « Héberger », l'autre saisit l'IP et « Rejoindre ». Si GodotSteam est présent, une seconde rangée propose « Héberger (Steam) » et « Partie rapide (Steam) ».
+1.  `scenes/net/NetLobby.tscn` — « Héberger », « Partie rapide » ou « Inviter un ami » (backend Steam uniquement).
 2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
 3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 
 #### Protocole (`NetCommand.gd`)
 
-Commandes échangées : `PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE` (mana/pioche), `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
+Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
 
 *   `NetEmitter` — émet les actions du joueur local sous forme de commandes.
 *   `NetworkOpponent` — met en file les commandes distantes et les rejoue dans l'ordre jusqu'à `END_TURN`.
@@ -244,7 +263,7 @@ Commandes échangées : `PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `TURN_CHOICE` (man
 *   **RNG de jeu partagée** (graine échangée au handshake) : les effets aléatoires produisent le même résultat sur les deux clients.
 *   Triggers de début/fin de tour (Éveil/Déclin) et infection synchronisés entre clients ; les effets d'invocation ciblés sont rejoués côté distant.
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
-*   Déconnexion du pair en cours de partie gérée (message + sortie propre) ; quitter la partie déconnecte proprement.
+*   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
 ### 🌍 Internationalisation (i18n)
 
@@ -252,7 +271,7 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 
 *   `translations/game.csv` (clé, fr, en) — compilé automatiquement par Godot en `game.fr.translation` / `game.en.translation`.
 *   `SettingsManager.t("CLE")` délègue au `TranslationServer` ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`.
-*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 151 cartes** (noms, effets, flavour).
+*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 317 cartes** (jetons compris ; noms, effets, flavour).
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
@@ -360,18 +379,18 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `TargetingSystem.gd`: Gestion du ciblage d'entités pour les effets de cartes.
 *   `EnchantmentSystem.gd`: Gestion des enchantements et modifications de statistiques des serviteurs.
 *   `TempEffectSystem.gd`: Effets temporaires (buffs/debuffs et mots-clés à durée limitée), retirés automatiquement en fin de tour (`UntilEndOfTurn` / `UntilEndOfEnemyTurn`).
-*   `AISystem.gd`: Adversaire — deck, main, mana et déroulé automatique de son tour.
+*   `AISystem.gd`: Adversaire — deck, main, pools de mana par race et déroulé automatique de son tour.
 *   `AuraSystem.gd`: Recalcul des bonus d'aura (Présence) des serviteurs.
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
 *   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
-*   `TurnChoicePanel.gd`: Panneau du choix Mana/Pioche en début de tour.
+*   `CostSystem.gd`: Coût effectif d'une carte (remises) et paiement race verrouillée/générique des pools de ressource (voir « Système de Ressources par Race »).
 *   `TooltipData.gd`: Tooltips des mots-clés (autoload).
 
 ### Scripts Réseau (`scripts/net/`)
 
 Couche multijoueur 1v1 (voir la section « Multijoueur 1v1 » plus haut pour l'architecture) :
 
-*   `NetTransport.gd` / `ENetTransport.gd` / `SteamTransport.gd` / `SteamService.gd` / `TransportFactory.gd`: Abstraction du transport et ses implémentations ENet et Steam (GodotSteam optionnel).
+*   `NetTransport.gd` / `SteamTransport.gd` / `SteamService.gd` / `TransportFactory.gd`: Abstraction du transport et son implémentation Steam (GodotSteam optionnel).
 *   `NetworkManager.gd`: Connexion, sérialisation et routage des commandes de jeu.
 *   `NetCommand.gd`: Vocabulaire partagé des commandes (`PLAY_CARD`, `ATTACK`, `END_TURN`...).
 *   `NetHandshake.gd`: Échange d'ouverture (decks, graine RNG, premier joueur).
@@ -725,9 +744,9 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 ### 🌐 Réseau & Visibilité
 
 #### Hébergement (non tranché)
-Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hôte** (`ENetMultiplayerPeer`, API haut-niveau Godot) pour une v1 jouable entre amis via code de partie, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
+Décision reportée. Recommandation actuelle : réutiliser le backend Steam existant (**P2P, un joueur hôte**, lobby Steam) pour une v1 jouable entre amis, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
 
-👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport ENet P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
+👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport Steam P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
 
 #### Visibilité entre joueurs (validé)
 - **Le plateau (board)** de chaque joueur est **visible par tous les autres joueurs** à tout moment (permet de scouter les adversaires, anticiper les fusions/synergies en cours, décision stratégique classique d'autobattler).
@@ -745,12 +764,11 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
-*   Trois races jouables : Mort-Vivant, Humain et Démon (226 cartes au total, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`)
+*   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P ENet (lobby IP/LAN), relais de commandes, RNG déterministe partagée, gestion des déconnexions (voir section « Multijoueur 1v1 »)
-*   **Backend Steam** — `SteamTransport` (lobby Steam + P2P Steamworks) avec « Héberger (Steam) » et « Partie rapide (Steam) » dans le lobby ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
-*   **Internationalisation FR/EN** — toute l'UI et les 226 cartes, via le système de traduction natif Godot (`translations/game.csv`)
-*   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion` (combat, mots-clés) et tests d'intégrité sur l'ensemble des ressources `.tres` de cartes (voir « Tests automatisés » dans `CLAUDE.md`)
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
+*   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
+*   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion`, `CardLibrary`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, la mutation Abomination et le timer de tour (voir « Tests automatisés » dans `CLAUDE.md`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
@@ -764,3 +782,77 @@ Décision reportée. Recommandation actuelle : démarrer en **P2P, un joueur hô
 *   Mode campagne et collection de cartes
 *   Animations shaders
 *   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
+---
+
+## 💠 Système de Ressources par Race
+
+Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) par des **pools de ressource séparés par race**, alimentés par une carte-ressource dédiée à chaque race, posée dans une **zone du plateau qui lui est propre** — distincte des rangées Avant/Arrière et des zones Rituel/Enchantement. Donne du poids stratégique au choix mono-race vs multi-race.
+
+### 🏷️ Nommage par race
+
+| Race | Ressource | Carte |
+|---|---|---|
+| Mort-Vivant | **Âme** | Éclat d'Âme (`resources/cards/undead/soul-shard.tres`) |
+| Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
+| Démon | **Pacte** | Fragment de Pacte (`resources/cards/demon/pact-fragment.tres`) |
+| Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
+
+### 🃏 Zone de ressource et pose
+
+- Chaque camp a sa **propre zone de ressource** sur le plateau (`PlayerResourceZone`/`EnemyResourceZone` dans `Battle.tscn`, symétrique aux zones Rituel/Enchantement mais sur le côté opposé du plateau) : les cartes-ressource posées y restent visibles individuellement, la zone se resserre pour en accumuler plusieurs sans jamais déborder (même logique de compression que les zones Rituel/Enchantement, voir `EnchantmentSystem._relayout`).
+- Poser une carte-ressource est une **action à part** : elle ne consomme pas le droit de jouer une carte normale ce tour-ci, mais est limitée à **une carte-ressource par tour et par camp** (`Battle.resource_played_this_turn`), remis à zéro à chaque début de tour.
+- Carte-ressource : coût 0, aucun effet propre autre que **+1 (actuel et maximum) au pool de sa race** à la pose (`Battle.play_resource_card`) — purement visuelle et comptable côté `EnchantmentSystem` (zones/listes `player_resources`/`enemy_resources`), sans trigger ni activation.
+- Comme pour les Rituels/Enchantements, la carte reste ciblable/comptable dès la base technique pour de futures interactions (compter le nombre en jeu, cibler/détruire une ressource adverse, convertir une ressource d'une race à l'autre) même si aucune carte normale n'exploite encore ces effets.
+
+### 🔄 Début de tour : plus de choix Mana/Pioche
+
+Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSystem._begin_player_turn` recharge automatiquement les pools de ressource du camp à leur maximum (`Battle.refill_mana_pool`) puis pioche une carte, sans décision du joueur. Le mana temporaire hors-race (effet `GainMana`, ex. Vortex des Âmes) reste possible via un bucket générique qui n'est jamais rechargé au tour suivant — donc bien perdu comme avant. Symétrique côté IA (`AISystem._start_of_turn_phase`) et côté réseau (mirroring via `TURN_START`, plus besoin de la commande `TURN_CHOICE` supprimée du protocole).
+
+### ⚖️ Composition du deck
+
+- **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
+- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
+- Les cartes-ressource sont **exemptées de la limite de 4 copies** (`MAX_COPIES_PER_CARD`) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum.
+- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+
+```
+ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
+nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
+```
+
+*(Non encore implémenté dans l'UI — seule la validation des deux minimums l'est.)*
+
+### 💰 Coût des cartes : race-locked + générique
+
+Chaque carte de race a un coût scindé en deux parts, calculées à la volée par `CostSystem` depuis `CardData.cost` + `CardData.rarity` (aucune migration des ressources `.tres` existantes) :
+
+- **`race_cost`** (`CostSystem.get_race_cost`) : payé uniquement depuis le pool de la race de la carte.
+- **`generic_cost`** (`CostSystem.get_generic_cost`) : payable depuis n'importe quel pool ayant du surplus, race de la carte comprise.
+
+| Rareté | % du coût verrouillé en ressource de race |
+|---|---|
+| Commune | 25% |
+| Rare | 40% |
+| Épique | 55% |
+| Légendaire | 65% |
+
+Formule : `race_cost = clamp(arrondi(coût effectif × %), 1, coût effectif)` — garantit qu'aucune carte de race n'est jouable "gratuitement" hors de sa race, même à 1⬡ (sauf coût déjà réduit à 0 par une remise).
+
+Override possible via le champ `CardData.race_cost_override` (-1 = formule automatique) pour déroger à la formule sur une carte précise.
+
+### 🧩 Impact technique (implémenté)
+
+- Nouveau type `CardData` : **Resource** (`card_type`), coût 0, sans stats.
+- Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
+- `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
+- `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
+- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Éclat d'Âme), pose d'une ressource par tour avant sa phase de jeu normale.
+- Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
+
+### 📋 Points encore ouverts
+
+1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
+2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
+3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
+4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

@@ -26,7 +26,12 @@ const BOARD_MINION_SIZE  := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
 const ACTION_PACE                 := 1.0
-const ATTACK_PACE                 := 0.5
+# Pose visuelle des cartes-ressource dans leur zone dédiée (bande de droite) :
+# désactivée pour l'instant (feature repoussée). Le système est conservé tel
+# quel (EnchantmentSystem.add_resource, zones Player/EnemyResourceZone) pour
+# être réactivé plus tard ; en attendant, une carte-ressource jouée disparaît
+# simplement de la partie (voir play_resource_card) au lieu d'être posée.
+const RESOURCE_ZONE_ENABLED       := false
 const MULLIGAN_DURATION           := 30.0
 
 # Godot affichera une erreur claire si le noeud est absent, plutôt qu'un null silencieux
@@ -42,6 +47,8 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_enchantment_zone: HBoxContainer     = $Board/EnemyEnchantmentZone
 @onready var player_ritual_zone: HBoxContainer         = $Board/PlayerRitualZone
 @onready var enemy_ritual_zone: HBoxContainer          = $Board/EnemyRitualZone
+@onready var player_resource_zone: HBoxContainer       = $Board/PlayerResourceZone
+@onready var enemy_resource_zone: HBoxContainer        = $Board/EnemyResourceZone
 @onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
 @onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
 @onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
@@ -54,7 +61,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
-@onready var turn_choice_panel                         = $TurnChoicePanel
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -98,8 +104,17 @@ var turn_banner: TurnBanner
 var combat_log_panel: CombatLogPanel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
 var turn_timer: TurnTimer
+# Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
+# (voir ReconnectOverlay). Reste inutilisé/masqué en solo.
+var reconnect_overlay: ReconnectOverlay
 
 var effect_manager := EffectManager.new()
+# Tutoriel obligatoire du nouveau joueur (voir TutorialContext/TutorialManager) :
+# adversaire scripté, deck fixe, popups pédagogiques. tutorial_manager reste
+# nul en partie normale — tous les points d'accroche le vérifient avant
+# d'appeler quoi que ce soit.
+var tutorial_active: bool = false
+var tutorial_manager: TutorialManager = null
 # RNG dédié à l'aléatoire de JEU (cibles/invocations aléatoires). En réseau il est
 # seedé par le handshake pour que les deux clients tirent la même séquence ;
 # en solo il est simplement aléatoire.
@@ -115,12 +130,21 @@ var pending_insert_index: int    = -1
 var waiting_for_target: bool     = false
 var deck: Array[CardData]        = []
 var hand_cards: Array[CardData]  = []
-var mana: int                    = 1
-var max_mana: int                = 1
+# Pools de ressource par race (clé = Race.Type). Alimentés uniquement en jouant
+# une carte-ressource (Âme/Sceau/Pacte...) dans sa zone dédiée — voir
+# `play_resource_card` et README « Système de Ressources par Race ».
+var race_mana: Dictionary        = {}
+var race_max_mana: Dictionary    = {}
+# Une seule carte-ressource jouable par tour et par camp (comme un "land drop").
+var resource_played_this_turn: Dictionary = {true: false, false: false}
 var player_hero: Hero
 var enemy_hero: Hero
 var game_over: bool              = false
 var enemy_turn_active: bool      = false
+# Coupure réseau transitoire en cours (voir NetworkManager.connection_lost) :
+# le match est mis en pause, les inputs sont bloqués, en attendant une
+# reconnexion ou l'expiration du délai de grâce.
+var reconnecting: bool           = false
 var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
@@ -145,8 +169,11 @@ func _ready() -> void:
 	_start_game()
 
 func _init_data() -> void:
+	tutorial_active = TutorialContext.active
 	player_hero = Hero.new(30)
-	enemy_hero  = Hero.new(30)
+	# HP réduits en tutoriel : l'adversaire scripté ne joue que 2 serviteurs et
+	# n'attaque jamais, la victoire doit rester atteignable en quelques tours.
+	enemy_hero  = Hero.new(8 if tutorial_active else 30)
 	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
@@ -169,7 +196,15 @@ func _init_systems() -> void:
 	targeting_system.init(self)
 	ai_system.init(self)
 	opponent = ai_system
-	if NetContext.active:
+	if tutorial_active:
+		var tut_opponent := TutorialOpponent.new()
+		add_child(tut_opponent)
+		tut_opponent.init(self)
+		opponent = tut_opponent
+		tutorial_manager = TutorialManager.new()
+		add_child(tutorial_manager)
+		tutorial_manager.init(self)
+	elif NetContext.active:
 		_setup_network()
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
@@ -180,12 +215,12 @@ func _init_systems() -> void:
 	sacrifice_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
-	# Sous TurnChoicePanel : la bannière ne masque jamais un panneau de décision.
-	move_child(turn_banner, turn_choice_panel.get_index())
 	combat_log.init(self)
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
 	add_child(combat_log_panel)
+	reconnect_overlay = ReconnectOverlay.new()
+	add_child(reconnect_overlay)
 	turn_timer = TurnTimer.new()
 	turn_timer.timeout.connect(_on_turn_timer_timeout)
 	# Enfant du bouton lui-même (comme le halo "ready hint" de EndTurnButton) :
@@ -209,19 +244,43 @@ func _setup_network() -> void:
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
 	net_emitter = NetEmitter.new(net)
+	net.connection_lost.connect(_on_net_connection_lost)
+	net.connection_restored.connect(_on_net_connection_restored)
 	net.peer_disconnected.connect(_on_net_peer_disconnected)
 	var netopp := NetworkOpponent.new(net)
 	add_child(netopp)
 	netopp.init(self)
 	opponent = netopp
 
-# Pair déconnecté en cours de partie : on stoppe le match (débloque l'attente du
-# tour distant et fige les inputs) et on affiche l'écran de fin en mode
+# Coupure réseau transitoire détectée (Wifi, P2P Steam) : on met le match en
+# pause (fige le décompte de tour et bloque les inputs) sans l'arrêter — une
+# reconnexion est tentée en arrière-plan par NetworkManager pendant son délai
+# de grâce. Si elle échoue, _on_net_peer_disconnected prend le relais.
+func _on_net_connection_lost(_reason: String) -> void:
+	if game_over:
+		return
+	reconnecting = true
+	turn_timer.stop()
+	reconnect_overlay.show_overlay(NetworkManager.RECONNECT_GRACE_SECONDS)
+
+# Reconnexion réussie dans le délai de grâce : le match reprend là où il en était.
+func _on_net_connection_restored() -> void:
+	if game_over:
+		return
+	reconnecting = false
+	reconnect_overlay.hide_overlay()
+	if not enemy_turn_active and not _mulligan_active:
+		turn_timer.start()
+
+# Pair définitivement perdu (délai de grâce de reconnexion expiré, ou coupure
+# non transitoire) : on stoppe le match et on affiche l'écran de fin en mode
 # déconnexion (retour au menu uniquement, rejouer n'a pas de sens sans le pair).
 func _on_net_peer_disconnected(_reason: String) -> void:
 	if game_over:
 		return
 	game_over = true
+	reconnecting = false
+	reconnect_overlay.hide_overlay()
 	enemy_turn_active = false
 	turn_timer.stop()
 	_show_game_over("disconnect")
@@ -235,8 +294,6 @@ func _connect_signals() -> void:
 	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
-	turn_choice_panel.draw_selected.connect(_on_draw_selected)
-	turn_choice_panel.mana_selected.connect(_on_mana_selected)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
 	settings_menu.concede_requested.connect(_on_quit_match)
@@ -249,7 +306,11 @@ func _connect_signals() -> void:
 func _start_game() -> void:
 	update_mana_ui()
 	hero_system.update_ui()
-	deck_system.load_deck()
+	if tutorial_active:
+		deck.clear()
+		deck.append_array(TutorialDeck.player_deck_padding())
+	else:
+		deck_system.load_deck()
 	deck_system.update_deck_ui()
 	board_visual_system.refresh_board()
 	update_hero_turn_halo()
@@ -257,12 +318,17 @@ func _start_game() -> void:
 		board_visual_system.spawn_minion_visual(minion, true)
 	for minion in enemy_minions:
 		board_visual_system.spawn_minion_visual(minion, false)
-	if NetContext.active:
+	if tutorial_active or NetContext.active:
 		opponent.setup()
 	else:
 		ai_system.setup()
-	deck_system.deal_opening_hand()
+	if tutorial_active:
+		hand_cards = TutorialDeck.player_hand()
+	else:
+		deck_system.deal_opening_hand()
 	hand.set_hand(hand_cards, false)
+	if tutorial_active:
+		await tutorial_manager.intro_mulligan()
 	await _run_mulligan()
 	if NetContext.active:
 		var local_first: bool = net_local_first
@@ -271,10 +337,17 @@ func _start_game() -> void:
 		if not local_first:
 			await _run_remote_first_turn()
 			return
-	# Le joueur local ouvre la partie : annonce de son premier tour.
-	turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+	# Le joueur local ouvre la partie : annonce de son premier tour (sauf en
+	# tutoriel, où les popups pédagogiques s'en chargent déjà).
+	if not tutorial_active:
+		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 	update_end_turn_hint()
-	turn_timer.start()
+	if tutorial_active:
+		# Pas de pression du temps pendant le tutoriel obligatoire.
+		TutorialContext.clear()
+		tutorial_manager.start()
+	else:
+		turn_timer.start()
 
 # Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
 # normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
@@ -287,13 +360,24 @@ func _run_mulligan() -> void:
 	_mulligan_swapped_indices.clear()
 	hand.set_mulligan_mode(true)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
-	turn_banner.show_banner(SettingsManager.t("mulligan.banner"))
+	turn_banner.show_banner_persistent(
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"))
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
-	turn_timer.start(MULLIGAN_DURATION)
+	# Pas de pression du temps pendant le tutoriel obligatoire (voir _start_game) :
+	# le joueur lit la popup d'introduction avant de pouvoir même cliquer.
+	if not tutorial_active:
+		turn_timer.start(MULLIGAN_DURATION)
+	else:
+		# Étape guidée : surligne les cartes-ressource et force réellement
+		# l'échange d'au moins l'une d'elles avant de laisser le joueur
+		# confirmer, pour que le mulligan soit enseigné comme les autres
+		# mécaniques (pas juste une popup de narration qui se ferme au clic).
+		await tutorial_manager.guided_mulligan()
 	await mulligan_confirmed
 	turn_timer.stop()
+	turn_banner.hide_banner()
 	end_turn_button.disabled = true
 	end_turn_button.set_ready_hint(false)
 	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
@@ -309,6 +393,8 @@ func _run_mulligan() -> void:
 func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	if index in _mulligan_swapped_indices or _mulligan_swap_count >= MULLIGAN_MAX_SWAPS:
 		return
+	if tutorial_active and not TutorialDeck.is_swappable_during_tutorial(_card_data):
+		return
 	var new_data: CardData = deck_system.mulligan_replace_one(index)
 	if new_data == null:
 		return
@@ -317,6 +403,8 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	AudioManager.play(AudioManager.DRAW)
 	hand.flip_replace_at(index, new_data)
 	hand.set_card_mulligan_swapped(index, true)
+	if tutorial_active:
+		tutorial_manager.notify_mulligan_swap(_card_data)
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func _run_remote_first_turn() -> void:
@@ -358,7 +446,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 			return
 
-	# Raccourcis clavier (fin de tour, choix mana/pioche, cimetières, Échap)
+	# Raccourcis clavier (fin de tour, cimetières, Échap)
 	if _handle_shortcut(event):
 		get_viewport().set_input_as_handled()
 		return
@@ -378,20 +466,9 @@ func _handle_shortcut(event: InputEvent) -> bool:
 	if event.is_action_pressed("ui_cancel"):
 		return _handle_cancel()
 
-	# Choix mana/pioche : uniquement quand le panneau attend une décision
-	if event.is_action_pressed("choose_mana"):
-		if turn_choice_panel.is_active():
-			turn_choice_panel.select_mana()
-		return true
-	if event.is_action_pressed("choose_draw"):
-		if turn_choice_panel.is_active():
-			turn_choice_panel.select_draw()
-		return true
-
-	# Fin de tour : neutralisée tant qu'un choix de début de tour est en attente
+	# Fin de tour
 	if event.is_action_pressed("end_turn"):
-		if not turn_choice_panel.is_active():
-			_on_end_turn_pressed()
+		_on_end_turn_pressed()
 		return true
 
 	if event.is_action_pressed("toggle_graveyard"):
@@ -422,6 +499,9 @@ func _on_quit_match() -> void:
 	settings_menu.close()
 	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
 	if network_manager != null:
+		# Départ délibéré : prévient le pair pour qu'il ne poursuive pas
+		# inutilement le délai de grâce de reconnexion (voir NetCommand.leave_match).
+		network_manager.send_command(NetCommand.leave_match())
 		network_manager.close()
 		network_manager.queue_free()
 		network_manager = null
@@ -432,6 +512,7 @@ func _on_quit_match() -> void:
 # Rejouer est masqué en réseau, mais on nettoie le transport par sécurité).
 func _on_replay_match() -> void:
 	if network_manager != null:
+		network_manager.send_command(NetCommand.leave_match())
 		network_manager.close()
 		network_manager.queue_free()
 		network_manager = null
@@ -460,20 +541,74 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 	await get_tree().create_timer(delay).timeout
 
 # ─── Mana ─────────────────────────────────────────────────────────────────────
+# Un pool par race (voir README « Système de Ressources par Race ») : plus de
+# mana générique unique. `race_mana`/`race_max_mana` appartiennent au joueur ;
+# `opponent.race_mana`/`opponent.race_max_mana` au camp adverse (IA ou réseau).
+
+func race_mana_pool(is_player: bool) -> Dictionary:
+	return race_mana if is_player else opponent.race_mana
+
+func race_max_mana_pool(is_player: bool) -> Dictionary:
+	return race_max_mana if is_player else opponent.race_max_mana
+
+func total_mana(is_player: bool = true) -> int:
+	var total := 0
+	for v in race_mana_pool(is_player).values():
+		total += int(v)
+	return total
+
+func total_max_mana(is_player: bool = true) -> int:
+	var total := 0
+	for v in race_max_mana_pool(is_player).values():
+		total += int(v)
+	return total
+
+# Recharge le pool courant de chaque race à son maximum (début de tour) et
+# efface tout mana temporaire hors-race (GainMana) : "le surplus non dépensé
+# est perdu au tour suivant" (Vortex des Âmes).
+func refill_mana_pool(is_player: bool = true) -> void:
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	pool.clear()
+	for r in max_pool:
+		pool[r] = max_pool[r]
 
 func update_mana_ui() -> void:
-	mana_display.set_mana(mana, max_mana)
+	mana_display.set_mana_pools(race_mana_pool(true), race_max_mana_pool(true))
 	update_end_turn_hint()
+	if hand != null:
+		hand.refresh_playable_highlights()
 
 func update_enemy_mana_ui() -> void:
-	enemy_mana_display.set_mana(opponent.mana, opponent.max_mana)
+	enemy_mana_display.set_mana_pools(race_mana_pool(false), race_max_mana_pool(false))
 
 func update_enemy_hand_ui() -> void:
 	enemy_hand_display.set_count(opponent.get_hand_count())
 
-func _pay_mana(cost: int) -> void:
-	mana -= cost
-	update_mana_ui()
+# Une carte-ressource jouée est consommée : +1 (actuel et max) au pool de sa
+# race, action à part qui ne consomme pas le droit de jouer une carte normale
+# mais limitée à une par tour et par camp. La carte est ensuite simplement
+# retirée de la partie (déjà sortie de la main par l'appelant) : aucune zone
+# ne la garde, elle n'est donc récupérable par aucun effet. La pose visuelle
+# en zone dédiée (EnchantmentSystem.add_resource) est conservée mais
+# désactivée pour l'instant — voir RESOURCE_ZONE_ENABLED.
+func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
+	if resource_played_this_turn.get(is_player, false):
+		return
+	resource_played_this_turn[is_player] = true
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	max_pool[card_data.race] = int(max_pool.get(card_data.race, 0)) + 1
+	pool[card_data.race]     = int(pool.get(card_data.race, 0)) + 1
+	if RESOURCE_ZONE_ENABLED:
+		enchantment_system.add_resource(card_data, is_player)
+	combat_log.card_played(card_data, is_player)
+	if is_player:
+		update_mana_ui()
+		mana_display.pulse_max()
+	else:
+		update_enemy_mana_ui()
+		enemy_mana_display.pulse_max()
 
 # ─── Serviteurs ───────────────────────────────────────────────────────────────
 
@@ -537,7 +672,7 @@ func destroy_minion(target: Minion) -> void:
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or enemy_turn_active or get_card_cost(card_data) > mana:
+	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
 	if sacrifice_system.is_active():
@@ -545,8 +680,8 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> void:
-	await board_system.summon_minion(card_data, is_player, row, insert_index)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await board_system.summon_minion(card_data, is_player, row, insert_index, skip_onplay)
 
 func _on_targeting_cancelled() -> void:
 	waiting_for_target   = false
@@ -563,30 +698,27 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active:
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
+	if tutorial_manager:
+		await tutorial_manager.notify_end_turn_pressed()
 	turn_system.end_turn()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
-# quelle (comme un clic sur "Commencer"). En tour normal, résout le choix
-# Mana/Pioche s'il est encore en attente (la Mana est le choix par défaut,
-# sans perte d'information contrairement à la Pioche qui révèle une carte),
-# puis termine le tour comme un clic normal.
+# quelle (comme un clic sur "Commencer"). En tour normal, termine le tour
+# comme un clic normal sur Fin du tour.
 func _on_turn_timer_timeout() -> void:
-	if game_over:
+	if game_over or reconnecting:
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
 	if enemy_turn_active:
 		return
-	if turn_choice_panel.is_active():
-		turn_choice_panel.select_mana()
-	else:
-		turn_system.end_turn()
+	turn_system.end_turn()
 
 # Bascule l'UI entre tour local et tour adverse : flag d'inputs, état du bouton
 # Fin de tour et bannière de transition. Appelé par AISystem / NetworkOpponent.
@@ -595,17 +727,23 @@ func set_enemy_turn(active: bool) -> void:
 	end_turn_button.disabled = active
 	_retranslate_battle()
 	update_hero_turn_halo()
+	if hand != null:
+		hand.refresh_playable_highlights()
 	if active:
 		turn_timer.stop()
 	if game_over:
 		# Partie terminée pendant le tour adverse : pas d'annonce de tour
 		end_turn_button.set_ready_hint(false)
 		return
+	# En tutoriel, les popups pédagogiques narrent déjà les transitions de
+	# tour : la bannière ferait doublon et se superposerait à la popup.
 	if active:
 		end_turn_button.set_ready_hint(false)
-		turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
+		if not tutorial_active:
+			turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
 	else:
-		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
+		if not tutorial_active:
+			turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 		update_end_turn_hint()
 
 # Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros
@@ -648,7 +786,7 @@ func update_end_turn_hint() -> void:
 	end_turn_button.set_ready_hint(_player_has_no_actions())
 
 func _player_has_no_actions() -> bool:
-	if game_over or enemy_turn_active or turn_choice_panel.is_active():
+	if game_over or reconnecting or enemy_turn_active:
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -665,15 +803,6 @@ func _retranslate_battle() -> void:
 		return
 	var key := "battle.enemy_turn" if enemy_turn_active else "battle.end_turn"
 	end_turn_button.text = SettingsManager.t(key)
-
-func draw_card() -> void:
-	turn_system.draw_card()
-
-func _on_draw_selected() -> void:
-	turn_system.choose_draw()
-
-func _on_mana_selected() -> void:
-	turn_system.choose_mana()
 
 # ─── Cimetière ────────────────────────────────────────────────────────────────
 
@@ -707,7 +836,23 @@ func check_game_end() -> void:
 # l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
 func _show_game_over(result: String) -> void:
 	await get_tree().create_timer(1.0).timeout
+	if tutorial_active and result == "victory":
+		await tutorial_manager.notify_victory()
+		return
 	game_over_screen.show_result(result, network_manager == null)
+
+	# Un match réseau/ranked est crédité côté serveur au moment du rapport de
+	# match (voir rankedModel.confirmMatch côté backend) — hors scope ici tant
+	# que ce rapport n'est pas encore envoyé par le client. Un match solo/IA
+	# n'a pas de second client pour faire foi : le client déclare directement
+	# son résultat, plafonné par jour côté serveur contre l'abus.
+	if network_manager == null:
+		var won := result == "victory"
+		CurrencyManager.report_solo_match_result(won, func(credited: bool):
+			if credited:
+				var reward := CurrencyManager.SOLO_WIN_REWARD_DISPLAY if won else CurrencyManager.SOLO_DEFEAT_REWARD_DISPLAY
+				game_over_screen.show_reward(reward)
+		)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
@@ -719,12 +864,20 @@ func _on_hand_drag_ended() -> void:
 	_is_dragging_card = false
 	hand.set_compact(false)
 
-# Coût effectif d'une carte de la main du joueur (remises comprises).
-func get_card_cost(card_data: CardData) -> int:
-	return cost_system.get_cost(card_data, true)
+# Répartition race/générique du coût effectif d'une carte de la main du joueur
+# (remises comprises) : {"race": int, "generic": int}. Voir CostSystem pour le
+# détail du calcul (Système de Ressources par Race).
+func get_card_cost(card_data: CardData) -> Dictionary:
+	var total: int = cost_system.get_cost(card_data, true)
+	var race_cost: int = cost_system.get_race_cost(card_data, true)
+	return {"race": race_cost, "generic": total - race_cost}
 
 func can_afford_card(card_data: CardData) -> bool:
-	return card_data != null and mana >= get_card_cost(card_data)
+	if card_data == null:
+		return false
+	if card_data.card_type == "Resource":
+		return not resource_played_this_turn.get(true, false)
+	return cost_system.can_afford(card_data, true)
 
 # Jouabilité complète : mana + conditions du sort (cibles valides, cimetière...)
 func can_play_card(card_data: CardData) -> bool:

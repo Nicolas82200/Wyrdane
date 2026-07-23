@@ -9,7 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://b5x1ff0bko5km" path="res://scenes/graveyard/GraveyardView.tscn" id="7_nyp61"]
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="10_q5nyf"]
-[ext_resource type="PackedScene" uid="uid://4xcbdy48uylq" path="res://scenes/battle/TurnChoicePanel.tscn" id="12_pk84k"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 [ext_resource type="Script" uid="uid://c6bscpyi2ynfo" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
@@ -64,6 +63,18 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.5, 0.5, 0.55, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_resourcezone"]
+bg_color = Color(0.1, 0.1, 0.12, 0.3)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.72, 0.6, 0.3, 0.5)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -130,13 +141,6 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_kos6x")
 expand_mode = 2
-
-[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.0
-offset_top = 0.0
-grow_vertical = 2
 
 [node name="Board" type="Control" parent="." unique_id=465586971]
 custom_minimum_size = Vector2(1920, 1080)
@@ -214,6 +218,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_laneback")
 
 [node name="EnemyBackLaneIndicator" type="Control" parent="Board" unique_id=763696947]
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -229,6 +234,7 @@ script = ExtResource("15_lanein")
 
 [node name="EnemyFrontLaneIndicator" type="Control" parent="Board" unique_id=394778972]
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -245,6 +251,7 @@ filled_row = 1
 
 [node name="PlayerFrontLaneIndicator" type="Control" parent="Board" unique_id=1324537594]
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -260,6 +267,7 @@ script = ExtResource("15_lanein")
 
 [node name="PlayerBackLaneIndicator" type="Control" parent="Board" unique_id=1952941941]
 layout_mode = 1
+anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -409,9 +417,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 620.0
+offset_left = -950.0
 offset_top = -330.0
-offset_right = 950.0
+offset_right = -620.0
 offset_bottom = -175.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -439,9 +447,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 620.0
+offset_left = -950.0
 offset_top = -330.0
-offset_right = 950.0
+offset_right = -620.0
 offset_bottom = -175.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -455,9 +463,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 620.0
+offset_left = -950.0
 offset_top = -165.0
-offset_right = 950.0
+offset_right = -620.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -485,9 +493,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = 620.0
+offset_left = -950.0
 offset_top = -165.0
-offset_right = 950.0
+offset_right = -620.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -585,6 +593,81 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 alignment = 1
+
+[node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 620.0
+offset_top = -160.0
+offset_right = 950.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
+
+[node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
+custom_minimum_size = Vector2(330, 150)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 620.0
+offset_top = -160.0
+offset_right = 950.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = 10.0
+offset_right = -620.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
+
+[node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
+custom_minimum_size = Vector2(330, 150)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -950.0
+offset_top = 10.0
+offset_right = -620.0
+offset_bottom = 160.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.0
+offset_top = 0.0
+grow_vertical = 2
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
 custom_minimum_size = Vector2(170, 48)
@@ -716,19 +799,23 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
+z_index = -1
 custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = 330.0
-offset_top = -232.0
-offset_right = 480.0
-offset_bottom = -7.0
+anchor_bottom = 0.5
+offset_left = -860.0
+offset_top = 142.5
+offset_right = -710.0
+offset_bottom = 367.5
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 
 [node name="CountLabel" type="Label" parent="PlayerGraveyardButton" unique_id=376800410]
 custom_minimum_size = Vector2(150, 225)
@@ -751,12 +838,18 @@ custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -480.0
-offset_top = 35.0
-offset_right = -330.0
-offset_bottom = 260.0
+anchor_bottom = 0.5
+offset_left = 710.0
+offset_top = -367.5
+offset_right = 860.0
+offset_bottom = -142.5
 grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 
 [node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
 custom_minimum_size = Vector2(150, 225)
@@ -783,15 +876,18 @@ custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = 160.0
-offset_top = -232.0
-offset_right = 310.0
-offset_bottom = -7.0
+anchor_bottom = 0.5
+offset_left = -860.0
+offset_top = -27.5
+offset_right = -710.0
+offset_bottom = 197.5
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
@@ -823,12 +919,18 @@ custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
+anchor_top = 0.5
 anchor_right = 0.5
-offset_left = -310.0
-offset_top = 35.0
-offset_right = -160.0
-offset_bottom = 260.0
+anchor_bottom = 0.5
+offset_left = 710.0
+offset_top = -197.5
+offset_right = 860.0
+offset_bottom = 27.5
 grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
@@ -857,6 +959,7 @@ expand_mode = 1
 
 [node name="EnemyHandDisplay" type="Control" parent="." unique_id=1474603863]
 layout_mode = 1
+anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -760.0
@@ -876,9 +979,6 @@ text = "⚙️"
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 1
 show_quit = true
-
-[node name="TurnChoicePanel" parent="." unique_id=1856936643 instance=ExtResource("12_pk84k")]
-layout_mode = 1
 
 [node name="GameOverScreen" parent="." unique_id=1455444611 instance=ExtResource("19_gameover")]
 layout_mode = 1

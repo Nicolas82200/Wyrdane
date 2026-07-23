@@ -55,6 +55,16 @@ func add_temp_demon_keyword(minion: Minion, keyword: int, duration: String) -> v
 		"duration": duration,
 	})
 
+func add_temp_abomination_keyword(minion: Minion, keyword: int, duration: String) -> void:
+	if duration == "Permanent" or minion == null:
+		return
+	_entries.append({
+		"kind":     "keyword_abomination",
+		"minion":   minion,
+		"keyword":  keyword,
+		"duration": duration,
+	})
+
 # Emprise Écarlate : le serviteur (volé temporairement) est détruit à
 # l'expiration de la durée, quel que soit son camp à ce moment-là.
 func add_destroy_at_expiry(minion: Minion, duration: String) -> void:
@@ -80,8 +90,23 @@ func add_temp_silence(minion: Minion, duration: String) -> void:
 		"human_keywords":  minion.human_keywords.duplicate(),
 		"undead_keywords": minion.undead_keywords.duplicate(),
 		"demon_keywords":  minion.demon_keywords.duplicate(),
+		"abomination_keywords": minion.abomination_keywords.duplicate(),
 		"duration":        duration,
 	})
+
+# ─── Lecture (affichage) ───────────────────────────────────────────────────────
+
+# Somme des deltas de stats temporaires actuellement actifs sur ce serviteur.
+# Utilisé par BoardMinion pour distinguer un debuff temporaire (orange) d'un
+# debuff permanent (rouge) alors que les deux modifient base_attack/base_max_health.
+func get_temp_stat_delta(minion: Minion) -> Vector2i:
+	var attack_delta := 0
+	var health_delta := 0
+	for entry in _entries:
+		if entry["kind"] == "stats" and entry["minion"] == minion:
+			attack_delta += entry["attack_delta"]
+			health_delta += entry["health_delta"]
+	return Vector2i(attack_delta, health_delta)
 
 # ─── Expiration ───────────────────────────────────────────────────────────────
 
@@ -121,6 +146,8 @@ func _revert(entry: Dictionary) -> void:
 				minion.remove_keyword(entry["keyword"])
 		"keyword_demon":
 			minion.remove_demon_keyword(entry["keyword"])
+		"keyword_abomination":
+			minion.remove_abomination_keyword(entry["keyword"])
 		"destroy":
 			# La mort est résolue en batch par _expire, après tous les reverts
 			minion.health = 0
@@ -129,6 +156,7 @@ func _revert(entry: Dictionary) -> void:
 			minion.human_keywords  = entry["human_keywords"].duplicate()
 			minion.undead_keywords = entry["undead_keywords"].duplicate()
 			minion.demon_keywords  = entry["demon_keywords"].duplicate()
+			minion.abomination_keywords = entry["abomination_keywords"].duplicate()
 			minion.silenced = false
 		"spell_immunity":
 			minion.spell_immune = false

@@ -7,6 +7,22 @@ func init(_battle: Node) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	if card_data.card_type == "Resource":
+		if not battle.can_afford_card(card_data):
+			return
+		battle.play_resource_card(card_data, true)
+		_remove_from_hand(card_data)
+		await battle.get_tree().process_frame
+		battle.hand._update_hand_layout(true)
+		# Popup d'effet (glisse depuis la gauche, lisible) qui se désintègre
+		# ensuite vers le pool de mana de sa race — sans await, pour ne pas
+		# bloquer la suite du tour sur cette animation cosmétique.
+		battle.card_popup_system.show_resource_popup(card_data)
+		if battle.net_emitter != null:
+			battle.net_emitter.play_card(card_data, "Resource", -1)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_card_played(card_data)
+		return
 	if card_data.card_type == "Minion" and not battle.can_play_card_on_row(card_data, row):
 		return
 	if card_data.card_type == "Minion" and not battle.can_summon_to_row(true, row):
@@ -61,15 +77,19 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 		await battle.card_popup_system.show_targeting_popup(card_data)
 		await battle.get_tree().create_timer(0.4).timeout
 		battle.card_popup_system.hide_targeting_popup()
-	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.pay(card_data, true)
+	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
 	await _resolve(card_data, row, insert_index)
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_card_played(card_data)
 
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
-	battle._pay_mana(battle.get_card_cost(card_data))
+	battle.cost_system.pay(card_data, true)
+	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -111,12 +131,14 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+			await battle.death_system.process_deaths()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
+			await battle.death_system.process_deaths()
 		else:
 			battle.player_graveyard.add_spell(card_data)
 			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
@@ -142,6 +164,8 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			ids, target if target is Minion else null)
 
 	battle.reset_targeting_state()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_card_played(card_data)
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if battle.net_emitter != null:
@@ -159,12 +183,14 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+			await battle.death_system.process_deaths()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
+			await battle.death_system.process_deaths()
 		else:
 			battle.player_graveyard.add_spell(card_data)
 			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT

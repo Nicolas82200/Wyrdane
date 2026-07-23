@@ -15,7 +15,7 @@ func init(_battle) -> void:
 # ─── Sélection joueur ─────────────────────────────────────────────────────────
 
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.enemy_turn_active or not minion.can_attack():
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or not minion.can_attack():
 		return
 	# Clic destiné au ciblage (sort/effet) ou au choix d'une victime de Sacrifice :
 	# pas une sélection d'attaquant.
@@ -56,7 +56,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 # ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
 func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -69,9 +69,11 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 		return
 	await battle.combat_system.resolve_combat(selected_attacker, target)
 	clear_selection()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
 
 func on_enemy_hero_clicked() -> void:
-	if battle.game_over or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -84,6 +86,8 @@ func on_enemy_hero_clicked() -> void:
 	clear_selection()
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
 
 # ─── Multi-attaque ────────────────────────────────────────────────────────────
 
@@ -98,17 +102,23 @@ func _resolve_multi_attack(target: Minion) -> void:
 		if not battle._can_attack_minion_target(attacker, target):
 			continue
 		await battle.combat_system.resolve_combat(attacker, target)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.4).timeout
 
 func _resolve_multi_attack_hero() -> void:
 	var attackers := _sort_attackers_left_to_right(selected_attackers)
 	clear_multi_selection()
 	for attacker in attackers:
+		if battle.game_over:
+			break
 		if attacker == null or attacker.is_dead() or not attacker.can_attack():
 			continue
 		if not battle._can_attack_hero(attacker):
 			continue
 		await battle.combat_system.perform_hero_attack(attacker)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.2).timeout
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()

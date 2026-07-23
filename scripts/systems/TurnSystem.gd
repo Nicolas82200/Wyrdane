@@ -57,16 +57,23 @@ func _begin_player_turn() -> void:
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.turn_start(ids)
-	battle.turn_choice_panel.show_choice()
-	battle.turn_timer.start()
+	_finish_turn_start()
+	draw_card()
+	if battle.tutorial_active:
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_player_turn_began()
+	else:
+		battle.turn_timer.start()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
 # c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
+	await battle.death_system.process_deaths()
 	battle.cost_system.on_turn_started(is_local_turn)
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
+	battle.resource_played_this_turn[is_local_turn] = false
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():
@@ -80,6 +87,7 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	acted = await _trigger_minions_paced(turn_minions, "OnAwaken", acted)
 	acted = await battle.trigger_system.fire("OnAwaken", null, is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(other_minions, "OnDecline", acted)
+	acted = await battle.trigger_system.fire("OnDecline", null, not is_local_turn, {}, true, acted)
 
 # Déclenche un trigger sur chaque serviteur de la liste, avec une pause AVANT
 # chaque déclenchement sauf le premier de la file. Retourne l'état "acted"
@@ -103,27 +111,17 @@ func _apply_infection_damage() -> void:
 			var dealt: int = minion.take_damage(1)
 			if dealt > 0:
 				battle.combat_log.infection_tick(minion)
+				var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+				if visual:
+					battle.animation_system.play_infection_tick(visual, dealt)
 				await battle.effect_manager.notify_damaged(battle, minion)
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 	if any_infected:
 		await battle.pace_actions()
 
-func choose_draw() -> void:
-	if battle.net_emitter != null:
-		battle.net_emitter.turn_choice("draw")
-	draw_card()
-	_finish_turn_start()
-
-func choose_mana() -> void:
-	if battle.net_emitter != null:
-		battle.net_emitter.turn_choice("mana")
-	battle.max_mana += 1
-	_finish_turn_start()
-	battle.mana_display.pulse_max()
-
 func _finish_turn_start() -> void:
-	battle.mana = battle.max_mana
+	battle.refill_mana_pool(true)
 	battle.update_mana_ui()
 	battle.board_visual_system.refresh_board()
 

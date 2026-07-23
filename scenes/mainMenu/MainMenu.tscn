@@ -5,8 +5,79 @@
 [ext_resource type="VideoStream" uid="uid://detsxoxojoqv1" path="res://assets/main-menu/mainMenu.ogv" id="3_bkukm"]
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_xwq4k"]
 [ext_resource type="PackedScene" uid="uid://c53ofvbh8ht3r" path="res://scenes/deck/DeckList.tscn" id="4_decklist"]
+[ext_resource type="PackedScene" path="res://scenes/shop/PackShop.tscn" id="7_packshop"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
+
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0, 0, 0, 0.75, 0, 0, 0, 0.25, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
+fill_to = Vector2(1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav"]
+bg_color = Color(0.043, 0.035, 0.024, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.41, 0.08, 0.85)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.58, 0.42, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.72, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_hover"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.71, 0.53, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_pressed"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.45, 0.32, 0.07, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.72, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="MainMenu" type="Control" unique_id=1995000585]
 layout_mode = 3
@@ -37,7 +108,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.45)
+color = Color(0, 0, 0, 0.35)
+
+[node name="LeftVignette" type="TextureRect" parent="." unique_id=1914385731]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
+expand_mode = 1
 
 [node name="TitleLabel" type="Label" parent="." unique_id=1202251533]
 layout_mode = 1
@@ -87,6 +169,7 @@ offset_right = 392.0
 offset_bottom = 262.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
 
 [node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
 layout_mode = 2
@@ -100,14 +183,27 @@ layout_mode = 2
 theme_override_constants/separation = 14
 
 [node name="PlayButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=641949860]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 text = "Jouer"
 
 [node name="DecksButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000001]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Mes Decks"
+
+[node name="PacksButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000031]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Packs"
 
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
 layout_mode = 2
@@ -129,6 +225,12 @@ text = "Credits"
 
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000011]
 layout_mode = 2
+
+[node name="ReplayTutorialButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000012]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Refaire le tutoriel (debug)"
 
 [node name="QuitButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
@@ -211,9 +313,58 @@ text = "v0.1 — prototype"
 horizontal_alignment = 2
 vertical_alignment = 2
 
+[node name="SteamProfile" type="HBoxContainer" parent="." unique_id=300000020]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -64.0
+offset_right = 240.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_constants/separation = 10
+
+[node name="Avatar" type="TextureRect" parent="SteamProfile" unique_id=300000021]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="SteamProfile" unique_id=300000022]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 18
+text = "Pseudo Steam"
+vertical_alignment = 1
+
+[node name="CurrencyLabel" type="Label" parent="." unique_id=300000032]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -220.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
 [node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
 visible = false
 layout_mode = 1
 
 [node name="SettingsMenu" parent="." unique_id=2017956977 instance=ExtResource("1_settings")]
+layout_mode = 1
+
+[node name="PackShop" parent="." unique_id=300000033 instance=ExtResource("7_packshop")]
+visible = false
 layout_mode = 1

@@ -7,9 +7,9 @@ class_name AISystem
 # La qualité de ses décisions dépend du réglage SettingsManager.ai_difficulty
 # ("easy", "normal", "hard").
 
-const DECK_SIZE    := 20
-const MAX_COPIES   := 2
-const MANA_CAP     := 10
+const DECK_SIZE       := 40  # cartes jouables (hors ressources), minimum imposé aux joueurs
+const RESOURCE_COUNT  := 12  # cartes-ressource mélangées au deck (minimum 10, voir README)
+const MAX_COPIES      := 2
 const STARTING_HAND := 4
 
 # Facile : chance de gaspiller son tour (carte au hasard plutôt que le meilleur
@@ -32,7 +32,7 @@ const AUTO_TARGET_EFFECTS := ["SacrificeAlly", "SacrificeDrawPerVictim"]
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
 var difficulty: String = "normal"
-# mana / max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
+# race_mana / race_max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
 	difficulty = SettingsManager.ai_difficulty
@@ -70,6 +70,11 @@ func refresh_ui() -> void:
 func get_deck_count() -> int:
 	return deck.size()
 
+# Pioche pour l'IA (effets déclenchés par une carte lui appartenant, ex. Autel
+# des Damnés). Simple alias public de _draw_card, exposé via OpponentDriver.
+func draw_card() -> void:
+	_draw_card()
+
 func get_hand_count() -> int:
 	return hand.size()
 
@@ -79,7 +84,7 @@ func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
-	_resource_phase()
+	_start_of_turn_phase()
 	battle.trigger_system.reset_once_per_turn(false)
 	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
 	# son tour, Déclin pour le camp adverse
@@ -88,36 +93,33 @@ func take_turn() -> void:
 	await battle.trigger_system.fire("OnAwaken", null, false)
 	for minion in battle.player_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
-	await _play_cards_phase()
-	await _attack_phase()
+	var played_cards := await _play_cards_phase()
+	await _attack_phase(played_cards)
 	battle.set_enemy_turn(false)
 
-# Symétrique du TurnChoicePanel du joueur : pioche OU mana
-func _resource_phase() -> void:
-	var gained_max := false
-	if max_mana >= MANA_CAP or (hand.size() <= 2 and max_mana >= 4):
-		_draw_card()
-	else:
-		max_mana += 1
-		gained_max = true
-	mana = max_mana
+# Miroir de TurnSystem._begin_player_turn/_finish_turn_start : recharge les
+# pools de ressource à leur maximum et pioche une carte, plus de choix Mana/Pioche.
+func _start_of_turn_phase() -> void:
+	battle.cost_system.on_turn_started(false)
+	battle.resource_played_this_turn[false] = false
+	battle.refill_mana_pool(false)
+	_draw_card()
 	for minion in battle.enemy_minions:
 		minion.refresh_attacks()
 	battle.update_enemy_mana_ui()
-	if gained_max:
-		battle.enemy_mana_display.pulse_max()
 
 # Pause AVANT chaque action sauf la première : une action isolée reste fluide
-func _play_cards_phase() -> void:
+func _play_cards_phase() -> bool:
+	_maybe_play_resource_card()
 	var played := false
 	while not battle.game_over:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
-			return
+			return played
 		if played:
 			await battle.pace_actions()
 		hand.erase(card)
-		mana -= card.cost
+		battle.cost_system.pay(card, false)
 		await battle.cost_system.on_card_played(card, false)
 		refresh_ui()
 		if card.card_type == "Minion":
@@ -126,16 +128,17 @@ func _play_cards_phase() -> void:
 		else:
 			await _cast_spell(card)
 		played = true
+	return played
 
-func _attack_phase() -> void:
-	var attacked := false
+func _attack_phase(already_acted: bool) -> void:
+	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not _can_attack_player_hero(attacker):
 				break
 			if attacked:
-				await battle.pace_actions(battle.ATTACK_PACE)
+				await battle.pace_actions()
 			if target != null:
 				await battle.combat_system.resolve_combat(attacker, target)
 			else:
@@ -150,29 +153,46 @@ func _build_deck() -> void:
 	CardLibrary.load_all_cards()
 	var pool: Array[CardData] = []
 	for card in CardLibrary.all_cards:
-		if card.race == Race.Type.UNDEAD:
+		if card.race == Race.Type.UNDEAD and card.card_type != "Resource":
 			pool.append(card)
 	if pool.is_empty():
 		var fallback := load("res://resources/cards/undead/gaunt-servant.tres") as CardData
 		for i in range(DECK_SIZE):
 			deck.append(fallback)
-		return
-	var copies: Dictionary = {}
-	# Si le pool est trop petit pour respecter la limite de copies, on l'ignore
-	var enforce_copies: bool = pool.size() * MAX_COPIES > DECK_SIZE
-	while deck.size() < DECK_SIZE:
-		var card: CardData = pool.pick_random()
-		var count: int = copies.get(card, 0)
-		if enforce_copies and count >= MAX_COPIES:
-			continue
-		copies[card] = count + 1
-		deck.append(card)
+	else:
+		var copies: Dictionary = {}
+		# Si le pool est trop petit pour respecter la limite de copies, on l'ignore
+		var enforce_copies: bool = pool.size() * MAX_COPIES > DECK_SIZE
+		while deck.size() < DECK_SIZE:
+			var card: CardData = pool.pick_random()
+			var count: int = copies.get(card, 0)
+			if enforce_copies and count >= MAX_COPIES:
+				continue
+			copies[card] = count + 1
+			deck.append(card)
+	# Cartes-ressource (Âme) mélangées au deck, comme l'impose le deckbuilder joueur.
+	var resource_card := load("res://resources/cards/undead/soul-shard.tres") as CardData
+	if resource_card != null:
+		for i in range(RESOURCE_COUNT):
+			deck.append(resource_card)
 
 func _draw_card() -> void:
 	if deck.is_empty():
 		return
 	hand.append(deck.pop_back())
 	refresh_ui()
+
+# Pose une carte-ressource de sa main si elle en a une, une seule par tour
+# (miroir du "land drop" du joueur — voir Battle.play_resource_card).
+func _maybe_play_resource_card() -> void:
+	if battle.resource_played_this_turn.get(false, false):
+		return
+	for card in hand:
+		if card.card_type == "Resource":
+			hand.erase(card)
+			battle.play_resource_card(card, false)
+			refresh_ui()
+			return
 
 # ─── Choix de pose ────────────────────────────────────────────────────────────
 
@@ -188,8 +208,12 @@ func _playable_cards() -> Array[CardData]:
 			result.append(card)
 	return result
 
+# Les cartes-ressource sont gérées à part par _maybe_play_resource_card
+# (action séparée, une seule par tour) : jamais choisies par la boucle normale.
 func _can_play_card(card: CardData) -> bool:
-	if card.cost > mana:
+	if card.card_type == "Resource":
+		return false
+	if not battle.cost_system.can_afford(card, false):
 		return false
 	if card.card_type == "Minion":
 		return _pick_row_for(card) != ""
@@ -286,10 +310,12 @@ func _cast_spell(card: CardData) -> void:
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
+		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
@@ -337,8 +363,9 @@ func _pick_spell_target(card: CardData) -> Minion:
 
 # Filtres de l'effet (race/rangée/seuils HP-ATK), miroir d'EffectManager._filter_targets.
 func _filter_spell_targets(minions: Array[Minion], effect: CardEffect) -> Array[Minion]:
+	var race_id: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
 	return minions.filter(func(m: Minion) -> bool:
-		if not effect.race_filter.is_empty() and m.card_data.race != Race.from_string(effect.race_filter):
+		if not effect.race_filter.is_empty() and m.card_data.race != race_id:
 			return false
 		if not effect.row_filter.is_empty() and m.board_row != effect.row_filter:
 			return false

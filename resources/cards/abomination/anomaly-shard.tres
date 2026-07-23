@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" load_steps=3 format=3 uid="uid://c1oul4rd004"]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" uid="uid://dfyk5r268jbby" path="res://assets/card_art/resource/abomination-resource.jpg" id="2_texture"]
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Éclat d'Anomalie"
+description = "Ajoute 1 Anomalie à votre réserve. Vous ne pouvez jouer qu'une ressource par tour."
+flavour_text = "Ça continue de battre, même détaché de tout le reste."
+texture = ExtResource("2_texture")
+cost = 0
+race = 6
+card_type = "Resource"
+rarity = "Common"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

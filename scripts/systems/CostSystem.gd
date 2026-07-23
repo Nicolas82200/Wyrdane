@@ -18,8 +18,70 @@ var _temp_discounts: Dictionary = {}
 # Nombre de serviteurs joués ce tour, par camp puis par race (clé = Race.Type).
 var _race_played_this_turn: Dictionary = {true: {}, false: {}}
 
+# ─── Ressources de race (voir README « Système de Ressources par Race ») ──────
+# % du coût verrouillé sur le pool de race de la carte, selon sa rareté.
+const RACE_LOCK_PCT := {
+	"Common":    0.25,
+	"Rare":      0.40,
+	"Epic":      0.55,
+	"Legendary": 0.65,
+}
+
 func init(_battle) -> void:
 	battle = _battle
+
+# Part du coût payable UNIQUEMENT depuis le pool de la race de la carte.
+func get_race_cost(card_data: CardData, is_player: bool) -> int:
+	var total: int = get_cost(card_data, is_player)
+	return compute_race_cost(total, card_data.race, card_data.rarity, card_data.race_cost_override)
+
+# Version statique de la répartition race/générique, utilisable sans instance de
+# bataille (aperçus en main-hors-partie, deck builder, cimetière...) : n'a besoin
+# que du coût total déjà connu (typiquement card_data.cost, sans remises).
+static func compute_race_cost(total: int, race: int, rarity: String, override: int) -> int:
+	if total <= 0 or race == Race.Type.NONE:
+		return 0
+	if override >= 0:
+		return clampi(override, 0, total)
+	var pct: float = RACE_LOCK_PCT.get(rarity, 0.40)
+	return clampi(int(round(total * pct)), 1, total)
+
+# Part du coût payable depuis n'importe quel pool en surplus.
+func get_generic_cost(card_data: CardData, is_player: bool) -> int:
+	return get_cost(card_data, is_player) - get_race_cost(card_data, is_player)
+
+# Le camp peut-il payer cette carte avec ses pools de ressource actuels ?
+func can_afford(card_data: CardData, is_player: bool) -> bool:
+	if card_data == null:
+		return false
+	var race_cost: int = get_race_cost(card_data, is_player)
+	var generic_cost: int = get_generic_cost(card_data, is_player)
+	var pool: Dictionary = battle.race_mana_pool(is_player)
+	var race_available: int = int(pool.get(card_data.race, 0))
+	if race_available < race_cost:
+		return false
+	var total_available: int = 0
+	for r in pool:
+		total_available += int(pool[r])
+	return total_available - race_cost >= generic_cost
+
+# Déduit le coût de la carte des pools de ressource du camp (race verrouillée
+# d'abord, puis surplus générique pris sur n'importe quel pool).
+func pay(card_data: CardData, is_player: bool) -> void:
+	var race_cost: int = get_race_cost(card_data, is_player)
+	var generic_cost: int = get_generic_cost(card_data, is_player)
+	var pool: Dictionary = battle.race_mana_pool(is_player)
+	pool[card_data.race] = int(pool.get(card_data.race, 0)) - race_cost
+	var remaining: int = generic_cost
+	for r in pool.keys():
+		if remaining <= 0:
+			break
+		var available: int = int(pool[r])
+		if available <= 0:
+			continue
+		var take: int = min(available, remaining)
+		pool[r] = available - take
+		remaining -= take
 
 func get_cost(card_data: CardData, is_player: bool) -> int:
 	if card_data == null:

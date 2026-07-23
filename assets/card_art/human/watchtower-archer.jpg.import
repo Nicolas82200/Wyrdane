@@ -3,19 +3,20 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cklpgdqk6o0pp"
-path="res://.godot/imported/watchtower-archer.jpg-5c404a80440a7b74c5be999f0885403b.ctex"
+path.s3tc="res://.godot/imported/watchtower-archer.jpg-5c404a80440a7b74c5be999f0885403b.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/card_art/human/watchtower-archer.jpg"
-dest_files=["res://.godot/imported/watchtower-archer.jpg-5c404a80440a7b74c5be999f0885403b.ctex"]
+dest_files=["res://.godot/imported/watchtower-archer.jpg-5c404a80440a7b74c5be999f0885403b.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

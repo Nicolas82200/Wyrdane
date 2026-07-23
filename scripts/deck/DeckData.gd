@@ -2,18 +2,9 @@ class_name DeckData
 
 var name: String = "Nouveau Deck"
 var card_paths: Array[String] = []
-
-func to_dict() -> Dictionary:
-	return {
-		"name": name,
-		"card_paths": card_paths
-	}
-
-static func from_dict(dict: Dictionary) -> DeckData:
-	var deck := DeckData.new()
-	deck.name = dict.get("name", "Deck")
-	deck.card_paths = Array(dict.get("card_paths", []), TYPE_STRING, "", null)
-	return deck
+# Id du deck côté wyrdane-backend, ou -1 si pas encore créé côté serveur
+# (deck construit localement puis poussé au prochain DeckManager.save_decks()).
+var backend_id: int = -1
 
 func get_cards() -> Array[CardData]:
 	var cards: Array[CardData] = []
@@ -55,9 +46,10 @@ static func from_code(code: String) -> DeckData:
 		var path := lines[i]
 		if path == "" or not ResourceLoader.exists(path, "CardData"):
 			continue
-		if paths.size() >= DeckManager.MAX_CARDS_PER_DECK:
-			break
-		if copies.get(path, 0) >= DeckManager.MAX_COPIES_PER_CARD:
+		var card := load(path) as CardData
+		if card == null:
+			continue
+		if card.card_type != "Resource" and copies.get(path, 0) >= DeckManager.MAX_COPIES_PER_CARD:
 			continue
 		copies[path] = copies.get(path, 0) + 1
 		paths.append(path)

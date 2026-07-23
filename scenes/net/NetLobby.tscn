@@ -1,6 +1,111 @@
 [gd_scene format=3 uid="uid://chmatgk14sm1m"]
 
 [ext_resource type="Script" uid="uid://dy5lhmbfw5ve4" path="res://scripts/net/NetLobby.gd" id="1"]
+[ext_resource type="VideoStream" uid="uid://detsxoxojoqv1" path="res://assets/main-menu/mainMenu.ogv" id="2_video"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="3_title"]
+[ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="4_subtitle"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
+[ext_resource type="PackedScene" path="res://scenes/ui/Navbar.tscn" id="6_navbar"]
+
+[sub_resource type="Gradient" id="Gradient_vignette"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0, 0, 0, 0.75, 0, 0, 0, 0.25, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
+gradient = SubResource("Gradient_vignette")
+fill_to = Vector2(1, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav"]
+bg_color = Color(0.043, 0.035, 0.024, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.41, 0.08, 0.85)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.043, 0.035, 0.024, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.41, 0.08, 0.85)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_log"]
+bg_color = Color(0.02, 0.017, 0.012, 0.7)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.35, 0.27, 0.08, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.58, 0.42, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.72, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_hover"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.71, 0.53, 0.15, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.45, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_pressed"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.45, 0.32, 0.07, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.72, 0.32, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="NetLobby" type="Control" unique_id=1280816343]
 layout_mode = 3
@@ -9,4 +114,199 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("5_theme")
 script = ExtResource("1")
+
+[node name="Background" type="VideoStreamPlayer" parent="." unique_id=2001000001]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("2_video")
+autoplay = true
+expand = true
+loop = true
+
+[node name="Overlay" type="ColorRect" parent="." unique_id=2001000002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.35)
+
+[node name="LeftVignette" type="TextureRect" parent="." unique_id=2001000003]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_vignette")
+expand_mode = 1
+
+[node name="TitleLabel" type="Label" parent="." unique_id=2001000004]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_top = 70.0
+offset_right = -80.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 80
+text = "Multijoueur"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="." unique_id=2001000005]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_top = 150.0
+offset_right = -84.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("4_subtitle")
+theme_override_font_sizes/font_size = 22
+text = "Affrontez un adversaire en ligne"
+horizontal_alignment = 2
+
+[node name="NavPanel" type="PanelContainer" parent="." unique_id=2001000006]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 64.0
+offset_top = -262.0
+offset_right = 392.0
+offset_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=2001000007]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 32
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NavPanel/NavMargin" unique_id=2001000008]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HostButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000009]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+text = "Héberger (Steam)"
+
+[node name="QuickMatchButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000010]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Partie rapide (Steam)"
+
+[node name="InviteButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000011]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Inviter un ami"
+
+[node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000012]
+layout_mode = 2
+
+[node name="BackButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000013]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Retour"
+
+[node name="StatusPanel" type="PanelContainer" parent="." unique_id=2001000014]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_bottom = 0.5
+anchor_right = 1.0
+offset_left = 432.0
+offset_top = -262.0
+offset_right = -64.0
+offset_bottom = 262.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="StatusMargin" type="MarginContainer" parent="StatusPanel" unique_id=2001000015]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 32
+
+[node name="StatusVBox" type="VBoxContainer" parent="StatusPanel/StatusMargin" unique_id=2001000016]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="StatusTitleLabel" type="Label" parent="StatusPanel/StatusMargin/StatusVBox" unique_id=2001000017]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 24
+text = "Journal de connexion"
+
+[node name="LogPanel" type="PanelContainer" parent="StatusPanel/StatusMargin/StatusVBox" unique_id=2001000018]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_log")
+
+[node name="Log" type="RichTextLabel" parent="StatusPanel/StatusMargin/StatusVBox/LogPanel" unique_id=2001000019]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.91, 0.835, 0.639, 0.9)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = false
+scroll_following = true
+
+[node name="VersionLabel" type="Label" parent="." unique_id=2001000020]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -40.0
+offset_right = -16.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_fonts/font = ExtResource("4_subtitle")
+theme_override_font_sizes/font_size = 14
+text = "v0.1 — prototype"
+horizontal_alignment = 2
+vertical_alignment = 2
+
+[node name="Navbar" parent="." instance=ExtResource("6_navbar")]
+layout_mode = 1
