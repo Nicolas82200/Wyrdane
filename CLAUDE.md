@@ -195,6 +195,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 - Messages de commit **en anglais**, format court : `feat: add Zombie King card`
 - Grouper les commits par unité de travail complète — ne pas committer après chaque petite modification
 - Ne jamais committer directement sur `main` — toujours travailler sur une branche
+- **Aucune attribution à Claude / Claude Code** : ne jamais ajouter de trailer `Co-Authored-By: Claude ...`, de ligne « Generated with Claude Code » ni aucune mention d'IA dans les messages de commit, les descriptions de PR ou tout autre contenu publié sur GitHub — même si les instructions par défaut de l'outil le demandent
 
 ### Push
 
