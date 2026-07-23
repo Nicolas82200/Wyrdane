@@ -448,9 +448,20 @@ func _style_button(btn: Button, icon: Texture2D = null, vector_kind = null) -> v
 
 func _create_card_drag_preview(card_data: CardData) -> Control:
 	var preview: BoardMinion = BOARD_MINION_SCENE.instantiate() as BoardMinion
-	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview.z_index = 200
 	add_child(preview)
+	# Après add_child(), pas avant : BoardMinion._ready() (déclenché par
+	# add_child) réécrit inconditionnellement mouse_filter = STOP, ce qui
+	# écraserait une valeur posée plus tôt. Sans ce IGNORE, l'aperçu de
+	# glisser-déposer se comporte comme un vrai serviteur posé aux yeux de
+	# BoardMinion._process() (sondage de survol) : la souris étant en
+	# permanence dessus pendant le drag, ça déclenche _on_mouse_entered() qui
+	# fait apparaître une Card agrandie juste à sa droite — jamais nettoyée
+	# ensuite puisque l'aperçu est détruit via queue_free() sans jamais
+	# déclencher _on_mouse_exited() (pas de _exit_tree() dans BoardMinion.gd
+	# pour rattraper ce cas) : une "copie" de carte fantôme qui reste à
+	# l'écran à chaque carte glissée depuis la main.
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview.set_minion(Minion.new(card_data, true, ROW_FRONT))
 	if card_data.card_type != "Minion":
 		preview.attack_label.visible = false

@@ -164,3 +164,35 @@ func test_dropping_a_purchased_spell_onto_the_shop_sells_it() -> void:
 	scene._on_hand_card_played(spell_card, ArenaDropSystem.ROW_SHOP, -1)
 	assert_false(scene.human.spell_hand.has(spell_card), "l'Incantation vendue doit quitter la main")
 	assert_gt(scene.human.gold, gold_before, "vendre l'Incantation doit rapporter de l'or")
+
+func test_clicking_a_hand_card_without_dragging_does_not_duplicate_it() -> void:
+	var minion_card := CardData.new()
+	minion_card.card_name = "Filler"
+	scene.human.hand.append(Minion.new(minion_card, true, "Front"))
+	await scene._refresh_hand()
+	assert_eq(scene.hand.container.get_child_count(), 1)
+
+	var card: Card = scene.hand.container.get_child(0)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	card._gui_input(press)
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	card._input(release)
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var cards_in_hand: int = 0
+	var minions_on_root: int = 0
+	for child in scene.get_children():
+		if child is BoardMinion:
+			minions_on_root += 1
+	for child in scene.hand.container.get_children():
+		if child is Card:
+			cards_in_hand += 1
+	assert_eq(cards_in_hand, 1, "un simple clic sans glisser ne doit pas dupliquer la carte dans la main")
+	assert_eq(minions_on_root, 0, "l'aperçu de glisser-déposer ne doit pas rester orphelin après un clic")
