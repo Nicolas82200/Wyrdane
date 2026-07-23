@@ -12,6 +12,7 @@ const SUMMON := "summon"
 # Cartes
 const DRAW := "draw"
 const PLAY_CARD := "play_card"
+const SPELL_CAST := "spell_cast"
 
 # Tour
 const TURN_START := "turn_start"
@@ -134,6 +135,21 @@ func load_sounds() -> void:
 			preload("res://assets/audio/sound-effect/global/draw-card-01.mp3"),
 			preload("res://assets/audio/sound-effect/global/draw-card-02.mp3"),
 			preload("res://assets/audio/sound-effect/global/draw-card-03.mp3")
+		],
+		SPELL_CAST: [
+			preload("res://assets/audio/sound-effect/global/spell-cast-01.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-02.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-03.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-04.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-05.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-06.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-07.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-08.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-09.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-10.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-11.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-12.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-13.wav"),
 		],
 		HIT: [
 			preload("res://assets/audio/sound-effect/global/hit-01.wav"),
