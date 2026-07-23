@@ -12,6 +12,11 @@ const TITLE_VICTORY_COLOR    := Color(0.95, 0.82, 0.35)
 const TITLE_DEFEAT_COLOR     := Color(0.85, 0.25, 0.2)
 const TITLE_DISCONNECT_COLOR := Color(0.75, 0.72, 0.65)
 
+const OVERLAY_FADE_TIME := 0.35
+const PANEL_ZOOM_TIME   := 0.35
+
+@onready var overlay: ColorRect       = $Overlay
+@onready var panel: PanelContainer    = $Panel
 @onready var title_label: Label      = $Panel/VBox/TitleMargin/Title
 @onready var subtitle_label: Label   = $Panel/VBox/SubtitleMargin/Subtitle
 @onready var replay_button: Button   = $Panel/VBox/ButtonsMargin/ButtonsVBox/ReplayButton
@@ -48,7 +53,22 @@ func show_result(result: String, allow_replay: bool = true) -> void:
 			title_label.add_theme_color_override("font_color", TITLE_VICTORY_COLOR)
 	_retranslate()
 	AudioManager.play(AudioManager.OPEN_MENU)
+	_animate_show()
+
+# Fondu du fond assombri, puis zoom-in du panneau de résultat — cohérent avec
+# le style de TurnBanner (scale+alpha depuis le centre), en plus lent et ample.
+func _animate_show() -> void:
+	overlay.modulate.a = 0.0
+	panel.modulate.a = 0.0
+	panel.pivot_offset = panel.size / 2.0
+	panel.scale = Vector2(1.2, 1.2)
 	show()
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(overlay, "modulate:a", 1.0, OVERLAY_FADE_TIME)
+	tween.tween_property(panel, "modulate:a", 1.0, PANEL_ZOOM_TIME).set_delay(0.05)
+	tween.tween_property(panel, "scale", Vector2.ONE, PANEL_ZOOM_TIME).set_delay(0.05)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 # Appelé après confirmation serveur du crédit de monnaie (voir
 # Battle._show_game_over) : peut arriver après que l'écran soit déjà affiché.
