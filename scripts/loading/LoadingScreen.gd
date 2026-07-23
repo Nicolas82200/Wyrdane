@@ -25,7 +25,19 @@ func _ready() -> void:
 	progress_bar.value = 100
 	await get_tree().create_timer(0.25).timeout
 	await _fade_out_loading_ui()
-	get_tree().change_scene_to_file(next_scene)
+	_swap_to_next_scene()
+
+# Remplace change_scene_to_file : celui-ci libère la scène courante avant
+# d'instancier la suivante, ce qui laisse passer une frame vide (couleur de
+# fond du moteur) — le « flash » visible entre chargement et menu. Ici la
+# nouvelle scène est ajoutée avant de libérer celle-ci : aucune frame sans rien
+# à l'écran.
+func _swap_to_next_scene() -> void:
+	var next_root: Node = (load(next_scene) as PackedScene).instantiate()
+	var tree := get_tree()
+	tree.root.add_child(next_root)
+	tree.current_scene = next_root
+	queue_free()
 
 # Fait disparaître en fondu la barre de chargement et son texte (le fond
 # reste affiché) avant de basculer sur le menu, dont les boutons apparaissent

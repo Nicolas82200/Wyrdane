@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/shop/PackShop.tscn" id="7_packshop"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
+[ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="8_bgstill"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -88,6 +89,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("5_theme")
 script = ExtResource("1_1bhmf")
+
+[node name="BackgroundStill" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("8_bgstill")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Background" type="VideoStreamPlayer" parent="." unique_id=911109928]
 layout_mode = 1
