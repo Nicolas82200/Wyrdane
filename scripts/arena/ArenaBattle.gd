@@ -31,7 +31,8 @@ var hero_hp_label: Label
 var gold_label: Label
 var xp_label: Label
 var level_label: Label
-var shop_row: HBoxContainer
+var shop_front_row: HBoxContainer
+var shop_back_row: HBoxContainer
 var reroll_button: Button
 var buy_xp_button: Button
 var suspended_label: Label
@@ -109,12 +110,21 @@ func _build_ui() -> void:
 	xp_label = _make_label(header)
 	level_label = _make_label(header)
 
-	# ─ Rangée boutique : occupe la position "Avant adverse" du plateau ─
+	# ─ Boutique : occupe la position "adverse" du plateau — chaque carte
+	# proposée est rangée dans la rangée Avant/Arrière qui correspond à son
+	# propre board_position (README : lignes adverses), comme si l'offre du
+	# tour était le plateau d'en face. Arrière (plus loin du centre) d'abord,
+	# Avant (plus proche du centre) ensuite, pour respecter l'empilement
+	# vertical du plateau 1v1 (Battle.tscn).
 	vbox.add_child(_make_title(SettingsManager.t("ARENA_SHOP_TITLE")))
-	shop_row = HBoxContainer.new()
-	shop_row.add_theme_constant_override("separation", 8)
-	shop_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(shop_row)
+	shop_back_row = HBoxContainer.new()
+	shop_back_row.add_theme_constant_override("separation", 8)
+	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(_make_lane_panel(shop_back_row))
+	shop_front_row = HBoxContainer.new()
+	shop_front_row.add_theme_constant_override("separation", 8)
+	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(_make_lane_panel(shop_front_row))
 
 	var shop_controls := HBoxContainer.new()
 	shop_controls.add_theme_constant_override("separation", 8)
@@ -131,26 +141,23 @@ func _build_ui() -> void:
 
 	# ─ Plateau consulté : Avant proche du centre, Arrière plus loin. Par
 	# défaut le sien, mais cliquer un portrait (portraits_row plus bas)
-	# l'échange contre celui d'un autre participant (lecture seule).
+	# l'échange contre celui d'un autre participant (lecture seule). Pas
+	# d'emplacement Rituel/Enchantement pour l'instant (hors scope Arena v1).
 	viewing_label = _make_title("")
 	vbox.add_child(viewing_label)
-	vbox.add_child(_make_title(SettingsManager.t("ARENA_BOARD_FRONT_TITLE")))
 	front_row = ArenaBoardRow.new()
 	front_row.is_front = true
 	front_row.on_drop = _on_shop_card_dropped
 	front_row.add_theme_constant_override("separation", 8)
 	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	front_row.custom_minimum_size = Vector2(0, 160)
-	vbox.add_child(front_row)
+	vbox.add_child(_make_lane_panel(front_row))
 
-	vbox.add_child(_make_title(SettingsManager.t("ARENA_BOARD_BACK_TITLE")))
 	back_row = ArenaBoardRow.new()
 	back_row.is_front = false
 	back_row.on_drop = _on_shop_card_dropped
 	back_row.add_theme_constant_override("separation", 8)
 	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	back_row.custom_minimum_size = Vector2(0, 160)
-	vbox.add_child(back_row)
+	vbox.add_child(_make_lane_panel(back_row))
 
 	var hero_row := HBoxContainer.new()
 	hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -223,6 +230,32 @@ func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRe
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	return tex
 
+# Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
+# "lane" gris foncé translucide) : juste le fond visuel d'une rangée Avant/
+# Arrière (boutique ou plateau) — pas d'emplacement Rituel/Enchantement.
+func _make_lane_panel(row: Control) -> PanelContainer:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.12, 0.18)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.55, 0.55, 0.6, 0.3)
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_right = 10
+	style.corner_radius_bottom_left = 10
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", style)
+	panel.custom_minimum_size = Vector2(0, 160)
+	panel.add_child(row)
+	return panel
+
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
 func _refresh_ui() -> void:
@@ -257,16 +290,24 @@ func _refresh_ui() -> void:
 	ready_button.disabled = game_over
 	ready_button.visible = not game_over
 
-# La boutique occupe la position "Avant adverse" : chaque offre est une vraie
-# `Card` (voir ArenaShopCardSlot), verrouillable (bouton) et achetable en la
-# glissant vers son propre plateau (front_row/back_row, voir ArenaBoardRow).
+# La boutique occupe la position "adverse" du plateau : chaque offre est une
+# vraie `Card` (voir ArenaShopCardSlot), rangée dans shop_front_row ou
+# shop_back_row selon son propre board_position ("Back" -> Arrière, sinon
+# Avant), verrouillable (bouton) et achetable en la glissant vers son propre
+# plateau (front_row/back_row, voir ArenaBoardRow). Un emplacement déjà
+# acheté (carte nulle) n'affiche simplement rien jusqu'au prochain reroll.
 func _refresh_shop() -> void:
-	for child in shop_row.get_children():
+	for child in shop_front_row.get_children():
+		child.queue_free()
+	for child in shop_back_row.get_children():
 		child.queue_free()
 	for i in human.shop_offer.size():
 		var card: CardData = human.shop_offer[i]
+		if card == null:
+			continue
+		var target_row: HBoxContainer = shop_back_row if card.board_position == "Back" else shop_front_row
 		var col := VBoxContainer.new()
-		shop_row.add_child(col)
+		target_row.add_child(col)
 		var slot := ArenaShopCardSlot.new()
 		# `col` doit déjà être dans l'arbre de scène avant setup() (qui
 		# instancie et configure une vraie Card en enfant) : les @onready
@@ -277,7 +318,6 @@ func _refresh_shop() -> void:
 		var lock_button := Button.new()
 		var locked: bool = i < human.shop_locked.size() and human.shop_locked[i]
 		lock_button.text = SettingsManager.t("ARENA_UNLOCK_BUTTON") if locked else SettingsManager.t("ARENA_LOCK_BUTTON")
-		lock_button.disabled = card == null
 		lock_button.pressed.connect(_on_lock_pressed.bind(i))
 		col.add_child(lock_button)
 

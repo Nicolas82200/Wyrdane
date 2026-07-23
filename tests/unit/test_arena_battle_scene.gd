@@ -15,7 +15,8 @@ func test_scene_builds_ui_and_starts_a_shop_phase() -> void:
 	assert_not_null(scene.match_)
 	assert_eq(scene.match_.round_number, 1)
 	assert_eq(scene.human.shop_offer.size(), ArenaConstants.SHOP_SIZE)
-	assert_eq(scene.shop_row.get_child_count(), ArenaConstants.SHOP_SIZE)
+	var shown_cards: int = scene.shop_front_row.get_child_count() + scene.shop_back_row.get_child_count()
+	assert_eq(shown_cards, ArenaConstants.SHOP_SIZE, "chaque carte proposée doit être visible dans la rangée Avant ou Arrière de la boutique")
 
 func test_full_round_loop_does_not_crash() -> void:
 	# Simule un drag & drop d'achat (ArenaShopCardSlot -> ArenaBoardRow), pose
@@ -44,6 +45,28 @@ func test_shop_card_drop_buys_into_hand_without_placing() -> void:
 	assert_lt(scene.human.gold, gold_before, "le drop doit débiter l'or (achat)")
 	assert_eq(scene.human.hand.size(), 1, "la carte achetée doit rejoindre la main")
 	assert_true(scene.human.board_front.is_empty(), "la pose reste une action séparée, pas automatique au drop")
+
+func test_shop_cards_are_routed_to_the_row_matching_their_board_position() -> void:
+	# Laisse d'abord le premier queue_free() (déclenché par _start_match() dans
+	# before_each) se terminer, sinon les enfants de la boutique initiale sont
+	# encore comptés en plus des nouveaux (queue_free() est différé).
+	await get_tree().process_frame
+	var front_card := CardData.new()
+	front_card.card_name = "FrontOffer"
+	front_card.card_type = "Minion"
+	front_card.board_position = "Front"
+	var back_card := CardData.new()
+	back_card.card_name = "BackOffer"
+	back_card.card_type = "Minion"
+	back_card.board_position = "Back"
+	var offer: Array[CardData] = [front_card, back_card, null, null, null]
+	scene.human.shop_offer = offer
+	var locked: Array[bool] = [false, false, false, false, false]
+	scene.human.shop_locked = locked
+	scene._refresh_ui()
+	await get_tree().process_frame
+	assert_eq(scene.shop_front_row.get_child_count(), 1, "une carte board_position=Front doit apparaître dans la rangée Avant de la boutique")
+	assert_eq(scene.shop_back_row.get_child_count(), 1, "une carte board_position=Back doit apparaître dans la rangée Arrière de la boutique")
 
 func test_clicking_a_bot_portrait_switches_the_displayed_board_read_only() -> void:
 	assert_eq(scene.viewed_target, scene.human, "par défaut, on consulte son propre plateau")
