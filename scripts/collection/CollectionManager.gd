@@ -15,9 +15,13 @@ signal collection_loaded
 
 # À appeler après CardLibrary.sync_backend_catalog() (le mapping id -> carte
 # doit exister pour résoudre les cardId renvoyés par l'API vers un resource_path).
-func sync_from_backend() -> void:
+# on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
+# reçue — permet à l'écran de chargement d'attendre la fin de la sync.
+func sync_from_backend(on_complete: Callable = Callable()) -> void:
 	BackendClient.request(HTTPClient.METHOD_GET, "/api/collection", {}, func(code: int, parsed) -> void:
 		if code != 200 or not (parsed is Array):
+			if on_complete.is_valid():
+				on_complete.call(false)
 			return
 		owned_quantities.clear()
 		for row in parsed:
@@ -27,6 +31,8 @@ func sync_from_backend() -> void:
 			owned_quantities[card.resource_path] = int(row.get("quantity", 0))
 		is_synced = true
 		collection_loaded.emit()
+		if on_complete.is_valid():
+			on_complete.call(true)
 	)
 
 func owned_quantity(card_data: CardData) -> int:
