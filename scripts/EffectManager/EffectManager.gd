@@ -345,52 +345,65 @@ func _point_arrows_to(battle, targets: Array[Minion]) -> void:
 	if not positions.is_empty():
 		await battle.card_popup_system.show_effect_arrows(positions)
 
-func _point_arrow_to_hero(battle, is_enemy: bool) -> void:
+func _point_arrow_to_hero(battle, is_enemy: bool) -> Control:
 	var panel = battle.get_node_or_null("EnemyHeroPanel" if is_enemy else "PlayerHeroPanel")
 	if panel != null:
 		await battle.card_popup_system.show_effect_arrows([panel.global_position + panel.size * 0.5])
+	return panel
 
 # ─── Effets existants ─────────────────────────────────────────────────────────
 
 func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	match effect.target:
 		"EnemyHero":
-			await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
 			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
+			battle.animation_system.play_damage(hero_panel, effect.value)
 		"OwnerHero":
-			await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
 			# "Ton héros perd X HP" : dégâts auto-infligés — passent par le pipeline
 			# self_damage (blocages, réduction, garde-fou 1 HP, SANG NOIR, OnSelfDamage)
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
-			await battle.hero_system.self_damage(is_p, effect.value)
+			var dealt_self: int = await battle.hero_system.self_damage(is_p, effect.value)
+			battle.animation_system.play_damage(hero_panel, dealt_self)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
 			await _point_arrows_to(battle, targets)
 			for target in targets:
 				var visual = battle.board_visual_system.get_visual(target)
-				if visual:
-					var flash: Tween = battle.create_tween()
-					flash.tween_property(visual, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
-					flash.tween_property(visual, "modulate", battle.animation_system.rest_tint(visual), 0.18)
-					flash.tween_callback(func(): battle.animation_system.reapply_status_tint(visual))
 				var dealt: int = target.take_damage(damage)
+				if visual:
+					battle.animation_system.play_damage(visual, dealt)
 				if dealt > 0:
 					await notify_damaged(battle, target)
 
 func _heal(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	match effect.target:
 		"OwnerHero":
-			await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
-			battle.hero_system.get_owner_hero(source_minion).heal(effect.value)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
+			var hero: Hero = battle.hero_system.get_owner_hero(source_minion)
+			var could_heal: bool = hero.heal_block_turns <= 0
+			hero.heal(effect.value)
+			if could_heal:
+				battle.animation_system.play_heal(hero_panel, effect.value)
 		"EnemyHero":
-			await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
-			battle.hero_system.get_enemy_hero(source_minion).heal(effect.value)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
+			var hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
+			var could_heal: bool = hero.heal_block_turns <= 0
+			hero.heal(effect.value)
+			if could_heal:
+				battle.animation_system.play_heal(hero_panel, effect.value)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			await _point_arrows_to(battle, targets)
 			for target in targets:
+				var could_heal: bool = not target.is_heal_immune()
 				target.heal(effect.value)
+				if could_heal:
+					var visual = battle.board_visual_system.get_visual(target)
+					if visual:
+						battle.animation_system.play_heal(visual, effect.value)
 
 func _heal_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 	battle.hero_system.get_owner_hero(source_minion).heal(effect.value)
@@ -403,6 +416,9 @@ func _buff(battle, source_minion, effect, selected_target = null) -> void:
 		target.base_attack     += attack_gain
 		target.base_max_health += effect.value_2
 		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
+		var visual = battle.board_visual_system.get_visual(target)
+		if visual:
+			battle.animation_system.play_generic_buff(visual, attack_gain, effect.value_2)
 
 func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -416,6 +432,9 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 		# Applique aussi la perte aux HP actuels, sans plafonner à 1 : un
 		# "-X/-X" doit pouvoir tuer un serviteur déjà bas en vie (Épidémie...)
 		target.health = max(0, old_health - effect.value_2)
+		var visual = battle.board_visual_system.get_visual(target)
+		if visual:
+			battle.animation_system.play_generic_debuff(visual, effect.value, effect.value_2)
 
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
@@ -1088,11 +1107,17 @@ func _corrupt(battle, source_minion: Minion, effect: CardEffect, selected_target
 # (Suceur d'Âmes). Distinct de StealHealth, qui vise les serviteurs.
 func _steal_health_from_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_p: bool = source_minion == null or source_minion.owner_is_player
-	await _point_arrow_to_hero(battle, is_p)
+	var enemy_hero_panel: Control = await _point_arrow_to_hero(battle, is_p)
 	var enemy_hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
 	var stolen: int = mini(effect.value, maxi(enemy_hero.health, 0))
 	battle.hero_system.damage(enemy_hero, stolen)
-	battle.hero_system.get_owner_hero(source_minion).heal(stolen)
+	battle.animation_system.play_damage(enemy_hero_panel, stolen)
+	var owner_hero: Hero = battle.hero_system.get_owner_hero(source_minion)
+	var could_heal: bool = owner_hero.heal_block_turns <= 0
+	owner_hero.heal(stolen)
+	if could_heal and stolen > 0:
+		var owner_panel: Control = battle.get_node_or_null("PlayerHeroPanel" if is_p else "EnemyHeroPanel")
+		battle.animation_system.play_heal(owner_panel, stolen)
 
 # Absolution Écarlate : les dégâts que tes propres cartes infligeraient à ton
 # héros ce tour sont annulés. Expiré par TurnSystem en fin de tour.

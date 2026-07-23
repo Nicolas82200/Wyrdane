@@ -79,7 +79,7 @@ func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 		if visual:
 			battle.animation_system.play_death(visual)
 	if not dead_minions.is_empty():
-		await battle.get_tree().create_timer(0.35).timeout
+		await battle.get_tree().create_timer(AnimationSystem.DEATH_ANIMATION_DURATION).timeout
 	for minion in dead_minions:
 		var visual = battle.board_visual_system.get_visual(minion)
 		if visual and is_instance_valid(visual):
