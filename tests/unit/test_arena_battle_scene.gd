@@ -196,3 +196,11 @@ func test_clicking_a_hand_card_without_dragging_does_not_duplicate_it() -> void:
 			cards_in_hand += 1
 	assert_eq(cards_in_hand, 1, "un simple clic sans glisser ne doit pas dupliquer la carte dans la main")
 	assert_eq(minions_on_root, 0, "l'aperçu de glisser-déposer ne doit pas rester orphelin après un clic")
+
+func test_board_rows_stay_at_the_same_screen_position_across_phases() -> void:
+	await get_tree().process_frame
+	var front_row_top_shop_phase: float = scene.front_row.get_parent().global_position.y
+	await scene._resolve_combat_phase()
+	var front_row_top_combat_phase: float = scene.front_row.get_parent().global_position.y
+	assert_eq(front_row_top_combat_phase, front_row_top_shop_phase,
+		"le plateau ne doit pas se déplacer entre la phase Boutique et la phase Combat")

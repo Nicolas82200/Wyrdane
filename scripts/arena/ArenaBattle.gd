@@ -547,16 +547,18 @@ func _refresh_ui() -> void:
 		viewed_target = human
 
 	# La boutique n'est utilisable qu'en phase Boutique (voir minuteur) : pas de
-	# reroll/XP/achat pendant l'affichage du résultat de combat.
+	# reroll/XP/achat pendant l'affichage du résultat de combat. Les panneaux
+	# restent visibles (juste vidés, voir _refresh_shop) plutôt que masqués :
+	# les cacher retirerait leur hauteur de la mise en page verticale et ferait
+	# remonter tout ce qui suit (plateau, héros...), qui doit rester à la même
+	# place tout au long de la partie.
 	var in_shop_phase: bool = not game_over and current_phase == Phase.SHOP
-	shop_front_row.get_parent().visible = in_shop_phase
-	shop_back_row.get_parent().visible = in_shop_phase
 	reroll_button.disabled = not in_shop_phase or human.gold < ArenaConstants.REROLL_COST
 	buy_xp_button.disabled = not in_shop_phase or not ArenaEconomy.can_buy_xp(match_.round_number) or human.gold < ArenaConstants.GOLD_TO_XP_RATE or human.level >= 8
 
 	suspended_label.text = str(human.suspended.size()) if not human.suspended.is_empty() else ""
 
-	_refresh_shop()
+	_refresh_shop(in_shop_phase)
 	_refresh_hand()
 	_refresh_board()
 	_refresh_portraits()
@@ -567,11 +569,15 @@ func _refresh_ui() -> void:
 # Avant), achetable en la glissant vers son propre plateau (front_row/back_row,
 # voir ArenaBoardRow). Un emplacement déjà acheté (carte nulle) n'affiche
 # simplement rien jusqu'au prochain reroll. Pas de verrouillage (retiré).
-func _refresh_shop() -> void:
+# Hors phase Boutique, les rangées restent vides (pas d'offre affichée) mais
+# gardent leur hauteur (voir _refresh_ui) pour ne pas déplacer le plateau.
+func _refresh_shop(in_shop_phase: bool = true) -> void:
 	for child in shop_front_row.get_children():
 		child.queue_free()
 	for child in shop_back_row.get_children():
 		child.queue_free()
+	if not in_shop_phase:
+		return
 	for i in human.shop_offer.size():
 		var card: CardData = human.shop_offer[i]
 		if card == null:
