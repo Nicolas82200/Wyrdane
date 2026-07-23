@@ -276,10 +276,14 @@ func _update_stock_label(card_data: CardData, label: Label) -> void:
 	label.text = SettingsManager.t("deck.stock_format") % remaining
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
-## débloquée (les cartes-ressource ne sont pas vendables à l'unité — voir
+## encore possédée à MAX_COPIES (qu'elle soit à 0 ou partiellement possédée :
+## on peut toujours compléter jusqu'au plafond utilisable en deck) — les
+## cartes-ressource ne sont pas vendables à l'unité (voir
 ## CollectionManager.buy_card, qui reflète le même refus côté serveur).
 func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
-	if not _is_card_locked(card_data) or card_data.card_type == "Resource":
+	if card_data.card_type == "Resource":
+		return
+	if CollectionManager.owned_quantity(card_data) >= MAX_COPIES:
 		return
 	var price := CurrencyManager.card_price(card_data.rarity)
 	if price <= 0:
@@ -306,8 +310,13 @@ func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
 		if not is_instance_valid(buy_button):
 			return
 		if success:
-			_buy_buttons.erase(card_data.resource_path)
-			buy_button.queue_free()
+			# Le plafond peut ne pas être encore atteint (achat partiel) : le
+			# bouton reste alors disponible pour compléter la collection.
+			if CollectionManager.owned_quantity(card_data) >= MAX_COPIES:
+				_buy_buttons.erase(card_data.resource_path)
+				buy_button.queue_free()
+			else:
+				buy_button.disabled = false
 			_update_grid_maxed_states()
 		else:
 			buy_button.disabled = false
