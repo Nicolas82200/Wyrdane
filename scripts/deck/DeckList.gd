@@ -117,7 +117,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Nom
 	var name_lbl := Label.new()
-	name_lbl.text = deck.name
+	name_lbl.text = SettingsManager.t(deck.name)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
