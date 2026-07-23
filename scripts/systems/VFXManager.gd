@@ -10,9 +10,9 @@ class_name VFXManager
 ## des scripts partagés du pack), pour rester cohérent avec le thème sonore
 ## par race déjà en place dans AudioManager.
 
-const PROJECTILE_SIZE := Vector2(140, 140)
+const PROJECTILE_SIZE := Vector2(210, 210)
 const IMPACT_SIZE := Vector2(180, 180)
-const PROJECTILE_CAMERA_SIZE := 2.2
+const PROJECTILE_CAMERA_SIZE := 1.5
 const IMPACT_CAMERA_SIZE := 5.0
 const BIG_IMPACT_CAMERA_SIZE := 8.0
 const PROJECTILE_FLIGHT_TIME := 0.35
@@ -68,6 +68,12 @@ func spawn_spell_projectile(from: Vector2, to: Vector2, race: int) -> void:
 	var scene: PackedScene = _PROJECTILE_SCENES.get(race, _PROJECTILE_SCENES[Race.Type.NONE])
 	var overlay := _make_overlay(scene, PROJECTILE_SIZE, PROJECTILE_CAMERA_SIZE, race, true, false)
 	add_child(overlay)
+	# Le modèle 3D pointe vers +X locale par défaut (traînée à l'arrière du
+	# noyau) ; la caméra le rend donc "vers la droite" par défaut. On tourne
+	# l'overlay 2D entier (image déjà rendue) pour l'aligner sur la vraie
+	# direction de vol, plutôt que de manipuler la scène 3D.
+	overlay.pivot_offset = PROJECTILE_SIZE / 2.0
+	overlay.rotation = (to - from).angle()
 	overlay.global_position = from - PROJECTILE_SIZE / 2.0
 	var tween := create_tween()
 	tween.tween_property(overlay, "global_position", to - PROJECTILE_SIZE / 2.0, PROJECTILE_FLIGHT_TIME)
@@ -86,14 +92,18 @@ func spawn_hit_impact(at: Vector2, race: int, big: bool) -> void:
 	overlay.global_position = at - IMPACT_SIZE / 2.0
 
 
-## Détermine l'origine (lanceur) et la destination (cible unique, camp
-## ennemi, ou lanceur lui-même pour un sort sans cible ennemie) d'un sort,
-## puis déclenche le projectile thémé par race. `target` est le Minion visé
-## si le sort a une cible unique déjà résolue (Ephémère/Rituel ciblé), sinon
-## null.
+## Détermine l'origine (la popup de la carte jouée, glissée depuis le bord
+## gauche de l'écran par CardPopupSystem ; repli sur le portrait du héros si
+## aucune popup n'est affichée, ex. rituel à durée qui rejoint sa zone sans
+## reveal) et la destination (cible unique, camp ennemi, ou origine elle-même
+## pour un sort sans cible ennemie) d'un sort, puis déclenche le projectile
+## thémé par race. `target` est le Minion visé si le sort a une cible unique
+## déjà résolue (Ephémère/Rituel ciblé), sinon null.
 func spawn_for_spell(battle, card_data: CardData, caster_is_player: bool, target: Minion) -> void:
-	var caster_panel: Control = battle.get_node("PlayerHeroPanel" if caster_is_player else "EnemyHeroPanel")
-	var from: Vector2 = caster_panel.global_position + caster_panel.size / 2.0
+	var from: Vector2 = battle.card_popup_system.get_effect_popup_tip()
+	if from == Vector2.ZERO:
+		var caster_panel: Control = battle.get_node("PlayerHeroPanel" if caster_is_player else "EnemyHeroPanel")
+		from = caster_panel.global_position + caster_panel.size / 2.0
 	var to: Vector2 = from
 	if target != null:
 		var target_visual: BoardMinion = battle.board_visual_system.find_visual(target)
