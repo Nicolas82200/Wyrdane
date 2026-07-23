@@ -55,8 +55,11 @@ func report_solo_match_result(won: bool, on_complete: Callable = Callable()) -> 
 
 # Ouvre un pack (coût fixe côté serveur) : renvoie les cartes tirées (tableau
 # de dictionnaires bruts backend, avec au moins "id") au callback, vide si échec.
-func open_pack(on_complete: Callable = Callable()) -> void:
-	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/open", {}, func(code: int, parsed) -> void:
+# `free` passe par la route dev /open-free (sans débit), refusée par le
+# serveur (403) tant que DEV_FREE_PACKS n'y est pas activé.
+func open_pack(on_complete: Callable = Callable(), free: bool = false) -> void:
+	var path := "/api/packs/open-free" if free else "/api/packs/open"
+	BackendClient.request(HTTPClient.METHOD_POST, path, {}, func(code: int, parsed) -> void:
 		var cards: Array = []
 		if code == 200 and parsed is Dictionary:
 			cards = parsed.get("cards", [])
