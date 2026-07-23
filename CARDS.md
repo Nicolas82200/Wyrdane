@@ -6,7 +6,7 @@ Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
 > - Les Rituels Mort-Vivant/Humain avec une durée "Instantané" ou "Ce tour" ont été retravaillés en effets vraiment récurrents (voir IDs 54, 56, 57, 58, 60, 62, 63, 64 côté Mort-Vivant ; H55, H61, H63, H64 côté Humain). Les Rituels Démon utilisent directement le système de **charges** décrit dans `CLAUDE.md`.
 > - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
-> - **Système de Ressources par Race** (voir `README.md`) : chaque race a désormais sa propre carte-ressource (type `Resource`, coût 0, posée dans une zone dédiée du plateau — une seule par tour et par camp) : Éclat d'Âme (Mort-Vivant), Sceau du Royaume (Humain), Fragment de Pacte (Démon). Voir la section « Ressource » de chaque race ci-dessous. Anomalie (Abomination) est documentée en attendant le support moteur de cette race.
+> - **Système de Ressources par Race** (voir `README.md`) : chaque race a désormais sa propre carte-ressource (type `Resource`, coût 0, posée dans une zone dédiée du plateau — une seule par tour et par camp) : Chair (Mort-Vivant), Sceau du Royaume (Humain), Âme (Démon), Éclat d'Anomalie (Abomination). Voir la section « Ressource » de chaque race ci-dessous.
 
 ---
 
@@ -207,7 +207,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 77 | Éclat d'Âme | 0 | Commune | Ajoute 1 Âme à ta réserve de Mort-Vivant. Une seule carte-ressource par tour et par camp. | Ce qui reste d'une vie, cristallisé par la nécromancie. |
+| 77 | Chair | 0 | Commune | Ajoute 1 Chair à ta réserve de Mort-Vivant. Une seule carte-ressource par tour et par camp. | Ce qui reste d'une vie, cristallisé par la nécromancie. |
 
 # Wyrdane — CARDS_HUMAIN.md
 
@@ -621,7 +621,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| D76 | Fragment de Pacte | 0 | Commune | Ajoute 1 Pacte à ta réserve Démoniaque. Une seule carte-ressource par tour et par camp. | *Une clause parmi tant d'autres. Elle aussi se paiera.* |
+| D76 | Âme | 0 | Commune | Ajoute 1 Âme à ta réserve Démoniaque. Une seule carte-ressource par tour et par camp. | *Une clause parmi tant d'autres. Elle aussi se paiera.* |
 
 ---
 
