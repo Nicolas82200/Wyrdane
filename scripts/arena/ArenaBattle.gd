@@ -43,6 +43,13 @@ var human: ArenaPlayerState
 var bots: Array[ArenaPlayerState] = []
 var bot_driver := ArenaBotDriver.new()
 var game_over: bool = false
+# Interrogé en duck-typing par BoardMinion.gd (._is_dragging_card(), voir
+# BoardMinion.gd) pour couper sa création de tooltip de survol pendant
+# n'importe quel glisser de carte de la main — sans ce contrat identique à
+# Battle.gd (1v1), rien n'empêche BoardMinion de croire qu'un vrai serviteur
+# est survolé quand c'est l'aperçu de drag qui suit la souris, et de faire
+# apparaître une Card fantôme jamais nettoyée (voir _create_card_drag_preview).
+var _is_dragging_card: bool = false
 
 var round_label: Label
 var hero_hp_label: Label
@@ -269,6 +276,8 @@ func _build_ui() -> void:
 	hand.display_cost = func(card_data: CardData) -> Dictionary:
 		return {"race": card_data.cost, "generic": 0}
 	hand.card_played.connect(_on_hand_card_played)
+	hand.drag_started.connect(_on_hand_drag_started)
+	hand.drag_ended.connect(_on_hand_drag_ended)
 	add_child(hand)
 
 	# ─ Minuteur de phase (Boutique/Combat), au milieu à droite de l'écran — la
@@ -480,6 +489,17 @@ func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 
 func can_summon_to_row(_is_player: bool, row: String) -> bool:
 	return human.can_place_on_row(row == ROW_FRONT)
+
+func is_dragging_card() -> bool:
+	return _is_dragging_card
+
+func _on_hand_drag_started() -> void:
+	_is_dragging_card = true
+	hand.set_compact(true)
+
+func _on_hand_drag_ended() -> void:
+	_is_dragging_card = false
+	hand.set_compact(false)
 
 # Résout la carte lâchée (serviteur ou Incantation, la main ne fait plus de
 # distinction visuelle entre les deux) puis l'action correspondant à la zone
