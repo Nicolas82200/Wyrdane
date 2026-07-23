@@ -28,12 +28,16 @@ var is_synced: bool = false
 
 signal balance_changed(new_balance: int)
 
-func sync_from_backend() -> void:
+# on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
+# reçue — permet à l'écran de chargement d'attendre la fin de la sync.
+func sync_from_backend(on_complete: Callable = Callable()) -> void:
 	BackendClient.request(HTTPClient.METHOD_GET, "/api/currency/balance", {}, func(code: int, parsed) -> void:
-		if code != 200 or not (parsed is Dictionary):
-			return
-		is_synced = true
-		_set_balance(int(parsed.get("balance", balance)))
+		var success := code == 200 and parsed is Dictionary
+		if success:
+			is_synced = true
+			_set_balance(int(parsed.get("balance", balance)))
+		if on_complete.is_valid():
+			on_complete.call(success)
 	)
 
 # À appeler après une victoire vs IA (pas de report réseau pour ces matchs) :
