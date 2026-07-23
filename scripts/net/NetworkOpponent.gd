@@ -155,6 +155,8 @@ func _apply(cmd: Dictionary) -> void:
 				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
+		NetCommand.ACTIVATE_FUSION:
+			await _apply_activate_fusion(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
@@ -242,6 +244,19 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
 	battle.net_registry.set_imposed_ids([])
+
+# Rejoue l'activation distante du mot-clé FUSION côté ENNEMI : source et
+# victime doivent toutes deux appartenir au camp distant (comme ATTACK), sans
+# quoi un pair malveillant pourrait désigner un net_id de notre propre camp.
+func _apply_activate_fusion(cmd: Dictionary) -> void:
+	var source: Minion = battle.net_registry.resolve(cmd.get("source", 0))
+	var victim: Minion = battle.net_registry.resolve(cmd.get("victim", 0))
+	if source == null or victim == null or source.owner_is_player or victim.owner_is_player:
+		push_warning("NetworkOpponent : ACTIVATE_FUSION invalide (propriété incohérente)")
+		return
+	var pool: String = cmd.get("pool", "")
+	var keyword: int = FusionSystem.keyword_from_name(pool, cmd.get("keyword", "")) if pool != "" else -1
+	await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
 
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles

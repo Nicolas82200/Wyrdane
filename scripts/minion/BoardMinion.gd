@@ -3,6 +3,7 @@ extends Control
 class_name BoardMinion
 
 signal minion_clicked(minion, board_minion)
+signal fusion_requested(minion)
 
 var minion = null
 var is_selected := false
@@ -40,6 +41,7 @@ var _mouse_is_over: bool = false
 var _ready_glow: Panel = null
 var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
+var _fusion_button: Button = null
 
 # ─── Statuts persistants (Rempart, Égide, Gel, Infection, Terreur, Silence,
 # Corruption, Immunité aux sorts) ──────────────────────────────────────────────
@@ -144,6 +146,23 @@ func _ready() -> void:
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS
 
+	# Bouton d'activation du mot-clé FUSION (Abomination) : seule capacité
+	# activée manuellement depuis un serviteur déjà en jeu — pas de contrepartie
+	# passive/déclenchée, donc pas de tooltip standard (voir TooltipData).
+	# Ajouté APRÈS la boucle ci-dessus pour garder son propre mouse_filter STOP :
+	# sans cela, ses clics fuiraient vers la sélection d'attaquant du serviteur.
+	_fusion_button = Button.new()
+	_fusion_button.name = "FusionButton"
+	_fusion_button.text = "F"
+	_fusion_button.custom_minimum_size = Vector2(26, 26)
+	_fusion_button.position = Vector2(70, 2)
+	_fusion_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_fusion_button.visible = false
+	_fusion_button.add_theme_font_size_override("font_size", 14)
+	_fusion_button.tooltip_text = TranslationServer.translate("KW_FUSION_NAME")
+	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
+	add_child(_fusion_button)
+
 func _process(delta: float) -> void:
 	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de
 	# serviteurs (HBoxContainer) se réorganise souvent (mort, invocation,
@@ -170,6 +189,7 @@ func _process(delta: float) -> void:
 		_ready_style.border_color.a = 0.55 + sin(_ready_pulse) * 0.35
 		_ready_glow.queue_redraw()
 	_update_status_pulse(delta)
+	_update_fusion_button()
 	if not _targetable or _targetable_style == null:
 		return
 	_pulse_time += delta * 3.0
@@ -221,6 +241,14 @@ func status_tint() -> Color:
 	if minion.owner_is_player == _is_player_turn() and not minion.can_attack():
 		return EXHAUSTED_TINT
 	return Color.WHITE
+
+# ─── Activation de FUSION ─────────────────────────────────────────────────────
+
+func _update_fusion_button() -> void:
+	if _fusion_button == null or minion == null or _battle == null:
+		return
+	_fusion_button.visible = "fusion_system" in _battle \
+		and _battle.fusion_system.can_activate(minion)
 
 # ─── Halo « prêt à attaquer » ────────────────────────────────────────────────
 
