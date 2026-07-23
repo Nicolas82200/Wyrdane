@@ -59,6 +59,8 @@ var _grid_visuals: Dictionary = {}
 # resource_path -> Button "Acheter (%d)", affiché uniquement sur les cartes
 # non débloquées (voir _is_card_locked) et retiré une fois l'achat réussi.
 var _buy_buttons: Dictionary = {}
+# resource_path -> Label affichant le stock restant (possédé - déjà dans le deck)
+var _stock_labels: Dictionary = {}
 
 # ─── Filtres ──────────────────────────────────────────────────────────────────
 
@@ -129,6 +131,7 @@ func _refresh_card_grid() -> void:
 		child.queue_free()
 	_grid_visuals.clear()
 	_buy_buttons.clear()
+	_stock_labels.clear()
 
 	_pending_cards.clear()
 	for card_data in _all_cards:
@@ -233,6 +236,40 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual))
 
 	_add_buy_button_if_locked(card_data, wrapper)
+	_add_stock_badge(card_data, wrapper)
+
+## Badge en coin de la vignette indiquant le stock restant (possédé - déjà
+## placé dans le deck en cours). Mis à jour à chaque ajout/retrait de carte
+## (voir _update_grid_maxed_states) sans reconstruire toute la grille.
+func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
+	var badge_bg := StyleBoxFlat.new()
+	badge_bg.bg_color = Color(0.05, 0.04, 0.02, 0.85)
+	badge_bg.set_corner_radius_all(3)
+	badge_bg.content_margin_left   = 5
+	badge_bg.content_margin_right  = 5
+	badge_bg.content_margin_top    = 1
+	badge_bg.content_margin_bottom = 1
+
+	var badge_panel := PanelContainer.new()
+	badge_panel.add_theme_stylebox_override("panel", badge_bg)
+	badge_panel.position     = Vector2(4, 4)
+	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var badge_label := Label.new()
+	badge_label.add_theme_font_size_override("font_size", 12)
+	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	badge_panel.add_child(badge_label)
+	wrapper.add_child(badge_panel)
+
+	_stock_labels[card_data.resource_path] = badge_label
+	_update_stock_label(card_data, badge_label)
+
+## Texte du badge de stock : quantité possédée moins les copies déjà dans le
+## deck en cours (jamais négatif).
+func _update_stock_label(card_data: CardData, label: Label) -> void:
+	var owned := CollectionManager.owned_quantity(card_data)
+	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
+	label.text = SettingsManager.t("deck.stock_format") % remaining
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
 ## débloquée (les cartes-ressource ne sont pas vendables à l'unité — voir
@@ -736,6 +773,10 @@ func _update_grid_maxed_states() -> void:
 		var card_data: CardData = visual.data
 		var maxed: bool = card_data != null and _is_card_maxed(card_data)
 		visual.modulate = MAXED_TINT if maxed else Color.WHITE
+		if card_data != null and _stock_labels.has(path):
+			var stock_label: Label = _stock_labels[path]
+			if is_instance_valid(stock_label):
+				_update_stock_label(card_data, stock_label)
 
 ## Tooltip centré sur la carte grisée : max de copies possédées atteint, ou
 ## carte pas encore débloquée du tout (message distinct, voir _is_card_locked).
