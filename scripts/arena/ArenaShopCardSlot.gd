@@ -16,14 +16,21 @@ var shop_index: int = -1
 func setup(data: CardData, index: int) -> void:
 	card_data = data
 	shop_index = index
-	custom_minimum_size = Vector2(180, 270)
+	# Doit tenir dans la hauteur nominale d'une rangée (150, moins les marges
+	# internes du panneau — content_margin_top/bottom = 8 chacune, voir
+	# ArenaBattle._make_lane_panel) : à l'échelle 0.7 utilisée auparavant, la
+	# carte (260x390 native) dépassait largement — le panneau grandissait donc
+	# réellement pendant la boutique et se rétractait en combat (la boutique
+	# vidée de ses offres tient, elle, dans les 150), décalant tout le
+	# plateau du joueur en dessous à chaque passage boutique -> combat.
+	custom_minimum_size = Vector2(88, 132)
 	for child in get_children():
 		child.queue_free()
 	if data == null:
 		return
 	var card: Card = CARD_SCENE.instantiate()
 	add_child(card)
-	card.scale = Vector2(0.7, 0.7)
+	card.scale = Vector2(0.34, 0.34)
 	card.set_data(data)
 	card.set_non_interactive()
 	# Le prix affiché doit être le coût en or de la boutique, pas la

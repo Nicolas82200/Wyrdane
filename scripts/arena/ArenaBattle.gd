@@ -81,22 +81,20 @@ var viewed_target = null
 var back_to_menu_button: Button
 var end_game_label: Label
 
-# ─── Combat animé (voir _build_combat_view/_resolve_combat_phase) : rejoue le
-# combat du joueur humain avec les vraies animations 1v1 (CombatSystem/
-# AnimationSystem/BoardVisualSystem, voir SimulatedBattle.enable_live_visuals)
-# sur un plateau à deux camps temporaire, superposé par-dessus tout le reste
-# (jamais inséré dans le vbox principal) — les rangées Avant/Arrière du
-# joueur derrière ne bougent donc jamais, elles sont juste couvertes le temps
-# du combat.
-var combat_view: Control
-var live_player_front: HBoxContainer
-var live_player_back: HBoxContainer
-var live_enemy_front: HBoxContainer
-var live_enemy_back: HBoxContainer
-var live_player_hero_panel: TextureRect
-var live_enemy_hero_panel: TextureRect
-var live_player_hp_overlay: Label
-var live_enemy_hp_overlay: Label
+# ─── Combat animé (voir _resolve_combat_phase) : rejoue le combat du joueur
+# humain avec les vraies animations 1v1 (CombatSystem/AnimationSystem/
+# BoardVisualSystem, voir SimulatedBattle.enable_live_visuals) — pas de scène
+# ni de plateau séparé : les rangées Avant/Arrière (front_row/back_row, déjà
+# celles du joueur en phase Boutique) servent aussi de plateau "joueur"
+# pendant le combat, et les rangées de la boutique (shop_front_row/
+# shop_back_row, vidées de leurs offres) servent de plateau "adverse" —
+# cohérent avec le choix de design déjà fait pour la boutique (« occupe la
+# position adverse du plateau »). Une banderole "Combat" (bandeau + portrait
+# du héros adverse, superposés, jamais dans le vbox) s'affiche 2 secondes
+# avant que le combat ne démarre réellement.
+var combat_banner_label: Label
+var enemy_hero_panel: TextureRect
+var enemy_hp_overlay: Label
 # Rempli pendant le combat animé (voir SimulatedBattle.enable_live_visuals),
 # pour synchroniser l'affichage des PV en direct (SimHeroSystem.update_ui()
 # ne fait rien, voir _process) — remis à null une fois le combat terminé.
@@ -334,65 +332,43 @@ func _build_ui() -> void:
 	phase_timer.timeout.connect(_on_phase_timer_timeout)
 	add_child(phase_timer)
 
-	_build_combat_view()
+	_build_combat_banner()
 
-# Plateau à deux camps temporaire pour le combat animé du joueur humain (voir
-# _resolve_combat_phase/SimulatedBattle.enable_live_visuals) : superposé en
-# plein écran par-dessus tout le reste (dernier enfant = rendu au-dessus),
-# masqué le reste du temps — jamais inséré dans le vbox principal, pour que
-# les rangées Avant/Arrière du plateau (boutique) ne bougent jamais.
-func _build_combat_view() -> void:
-	combat_view = Control.new()
-	combat_view.anchor_right = 1.0
-	combat_view.anchor_bottom = 1.0
-	combat_view.visible = false
-	var view_bg := ColorRect.new()
-	view_bg.anchor_right = 1.0
-	view_bg.anchor_bottom = 1.0
-	view_bg.color = Color(0.02, 0.02, 0.03, 0.92)
-	combat_view.add_child(view_bg)
-	add_child(combat_view)
+# Bandeau "Combat" + portrait du héros adverse (nécessaire à AnimationSystem
+# pour le vol de vie/Ravage, voir CombatSystem.gd) : superposés (jamais dans
+# le vbox principal, pour ne jamais déplacer les rangées du joueur), masqués
+# hors combat. Le bandeau texte ne reste que 2 secondes (annonce), le
+# portrait adverse toute la durée du combat animé (voir _resolve_combat_phase).
+# Seul endroit du jeu avec du texte écrit, à la demande explicite du joueur.
+func _build_combat_banner() -> void:
+	combat_banner_label = Label.new()
+	combat_banner_label.anchor_left = 0.5
+	combat_banner_label.anchor_right = 0.5
+	combat_banner_label.offset_left = -120.0
+	combat_banner_label.offset_right = 120.0
+	combat_banner_label.offset_top = 16.0
+	combat_banner_label.offset_bottom = 66.0
+	combat_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	combat_banner_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	combat_banner_label.add_theme_font_size_override("font_size", 40)
+	combat_banner_label.add_theme_color_override("font_color", Color(0.92, 0.3, 0.25))
+	combat_banner_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
+	combat_banner_label.add_theme_constant_override("outline_size", 8)
+	combat_banner_label.text = SettingsManager.t("ARENA_PHASE_COMBAT")
+	combat_banner_label.visible = false
+	combat_banner_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(combat_banner_label)
 
-	var view_vbox := VBoxContainer.new()
-	view_vbox.anchor_right = 1.0
-	view_vbox.anchor_bottom = 1.0
-	view_vbox.add_theme_constant_override("separation", 10)
-	view_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	combat_view.add_child(view_vbox)
-
-	live_enemy_hero_panel = _make_hero_portrait(HERO_ARTS[1])
-	live_enemy_hp_overlay = live_enemy_hero_panel.get_child(0)
-	var enemy_hero_row := HBoxContainer.new()
-	enemy_hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	enemy_hero_row.add_child(live_enemy_hero_panel)
-	view_vbox.add_child(enemy_hero_row)
-
-	live_enemy_back = HBoxContainer.new()
-	live_enemy_back.add_theme_constant_override("separation", 8)
-	live_enemy_back.alignment = BoxContainer.ALIGNMENT_CENTER
-	view_vbox.add_child(_make_lane_panel(live_enemy_back, 150))
-
-	live_enemy_front = HBoxContainer.new()
-	live_enemy_front.add_theme_constant_override("separation", 8)
-	live_enemy_front.alignment = BoxContainer.ALIGNMENT_CENTER
-	view_vbox.add_child(_make_lane_panel(live_enemy_front, 150))
-
-	live_player_front = HBoxContainer.new()
-	live_player_front.add_theme_constant_override("separation", 8)
-	live_player_front.alignment = BoxContainer.ALIGNMENT_CENTER
-	view_vbox.add_child(_make_lane_panel(live_player_front, 150))
-
-	live_player_back = HBoxContainer.new()
-	live_player_back.add_theme_constant_override("separation", 8)
-	live_player_back.alignment = BoxContainer.ALIGNMENT_CENTER
-	view_vbox.add_child(_make_lane_panel(live_player_back, 150))
-
-	live_player_hero_panel = _make_hero_portrait(HERO_ARTS[0])
-	live_player_hp_overlay = live_player_hero_panel.get_child(0)
-	var player_hero_row := HBoxContainer.new()
-	player_hero_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	player_hero_row.add_child(live_player_hero_panel)
-	view_vbox.add_child(player_hero_row)
+	enemy_hero_panel = _make_hero_portrait(HERO_ARTS[1], 0.6)
+	enemy_hp_overlay = enemy_hero_panel.get_child(0)
+	enemy_hero_panel.anchor_left = 0.5
+	enemy_hero_panel.anchor_right = 0.5
+	enemy_hero_panel.offset_left = -27.0
+	enemy_hero_panel.offset_right = 27.0
+	enemy_hero_panel.offset_top = 74.0
+	enemy_hero_panel.visible = false
+	enemy_hero_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(enemy_hero_panel)
 
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
@@ -617,8 +593,8 @@ func _process(_delta: float) -> void:
 	# affichés pendant le combat animé sont synchronisés ici, à chaque frame,
 	# tant qu'un combat est en cours (_live_sim non nul, voir _resolve_combat_phase).
 	if _live_sim != null:
-		live_player_hp_overlay.text = str(max(_live_sim.player_hero.health, 0))
-		live_enemy_hp_overlay.text = str(max(_live_sim.enemy_hero.health, 0))
+		hero_hp_overlay.text = str(max(_live_sim.player_hero.health, 0))
+		enemy_hp_overlay.text = str(max(_live_sim.enemy_hero.health, 0))
 
 # ─── Rafraîchissement ────────────────────────────────────────────────────────
 
@@ -882,37 +858,41 @@ func _resolve_combat_phase() -> void:
 
 	# Seul l'appariement du joueur humain (jamais les combats bots-contre-bots,
 	# jamais regardés) est rejoué avec les vraies animations 1v1 — voir
-	# ArenaMatch._resolve_pairing/SimulatedBattle.enable_live_visuals.
-	_show_combat_view()
+	# ArenaMatch._resolve_pairing/SimulatedBattle.enable_live_visuals. Pas de
+	# plateau séparé : la boutique (vidée de ses offres, voir _refresh_shop)
+	# sert de plateau adverse, exactement comme prévu par le design d'origine
+	# ("la boutique occupe la position adverse du plateau").
 	var live_setup := func(sim: SimulatedBattle) -> void:
 		_live_sim = sim
+		# Le plateau du joueur affichait ses propres serviteurs (ArenaBoardMinionSlot,
+		# glissables) pendant la boutique : on les retire avant que le combat n'y
+		# pose ses propres visuels (BoardMinion nus, non glissables), sans quoi
+		# les deux se superposeraient.
+		for row in [front_row, back_row, shop_front_row, shop_back_row]:
+			for child in row.get_children().duplicate():
+				row.remove_child(child)
+				child.queue_free()
+		# Pas d'interaction possible pendant le combat animé (rien à acheter/
+		# poser/vendre) : coupe le drop, restauré par le prochain _refresh_board().
+		front_row.on_drop = Callable()
+		front_row.on_reposition = Callable()
+		back_row.on_drop = Callable()
+		back_row.on_reposition = Callable()
 		sim.enable_live_visuals(
-			self,
-			live_player_front, live_player_back,
-			live_enemy_front, live_enemy_back,
-			live_player_hero_panel, live_enemy_hero_panel)
+			self, front_row, back_row, shop_front_row, shop_back_row,
+			hero_portrait, enemy_hero_panel)
+		enemy_hero_panel.visible = true
+		combat_banner_label.visible = true
+		await get_tree().create_timer(2.0).timeout
+		combat_banner_label.visible = false
 	await match_.start_combat_phase(live_setup)
-	_hide_combat_view()
+	enemy_hero_panel.visible = false
+	_live_sim = null
 
 	if match_.is_match_over() or human.is_eliminated:
 		_show_game_over()
 	else:
 		_start_combat_phase_timer()
-
-func _show_combat_view() -> void:
-	for row in [live_player_front, live_player_back, live_enemy_front, live_enemy_back]:
-		for child in row.get_children():
-			child.queue_free()
-	live_player_hp_overlay.text = str(human.hero_hp)
-	live_enemy_hp_overlay.text = ""
-	combat_view.visible = true
-
-func _hide_combat_view() -> void:
-	combat_view.visible = false
-	_live_sim = null
-	for row in [live_player_front, live_player_back, live_enemy_front, live_enemy_back]:
-		for child in row.get_children():
-			child.queue_free()
 
 func _show_game_over() -> void:
 	game_over = true

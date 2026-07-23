@@ -308,8 +308,11 @@ func run_combat(
 	# Optionnel (voir enable_live_visuals) : bascule vers les vrais systèmes
 	# visuels 1v1 pour ce combat précis, uniquement une fois player_minions/
 	# enemy_minions peuplés (nécessaire pour créer les visuels initiaux).
+	# Awaited : le callable d'ArenaBattle attend 2s (banderole "Combat")
+	# avant de rendre la main — sans await ici, la boucle d'attaque
+	# démarrerait immédiatement en parallèle de cette attente.
 	if live_setup.is_valid():
-		live_setup.call(self)
+		await live_setup.call(self)
 
 	var order_a: Array[Minion] = front_a.duplicate() + back_a.duplicate()
 	var order_b: Array[Minion] = front_b.duplicate() + back_b.duplicate()
