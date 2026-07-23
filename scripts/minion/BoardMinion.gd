@@ -149,8 +149,11 @@ func _process(delta: float) -> void:
 	# serviteurs (HBoxContainer) se réorganise souvent (mort, invocation,
 	# placeholder de drop) sans que la souris ne bouge, ce qui ne redéclenche
 	# pas les signaux natifs de survol et laissait parfois le hover coincé.
+	# Le sondage ignore l'overlay de l'écran de fin de partie (contrairement aux
+	# signaux GUI natifs) : bloquer explicitement le hover une fois la partie finie.
 	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
 		and is_visible_in_tree() \
+		and not _is_game_over() \
 		and get_global_rect().has_point(get_global_mouse_position())
 	if over and not _mouse_is_over:
 		_on_mouse_entered()
@@ -185,22 +188,7 @@ func update_display() -> void:
 		return
 	attack_label.text = str(minion.attack)
 	health_label.text = str(max(minion.health, 0))
-	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
-	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
-	var owners_turn: bool = minion.owner_is_player == _is_player_turn()
-	var c: Color
-	if minion.frozen_turns > 0:
-		c = FROZEN_TINT
-	elif minion.terror_turns > 0:
-		c = TERROR_TINT
-	elif minion.silenced:
-		c = SILENCE_TINT
-	elif minion.infected:
-		c = INFECTED_TINT
-	elif owners_turn and not minion.can_attack():
-		c = EXHAUSTED_TINT
-	else:
-		c = Color.WHITE
+	var c: Color = status_tint()
 	modulate.r = c.r
 	modulate.g = c.g
 	modulate.b = c.b
@@ -213,6 +201,26 @@ func update_display() -> void:
 	_refresh_keyword_icons()
 	_refresh_status_vfx()
 	_apply_stat_colors()
+
+## Teinte persistante d'état (Gel, Terreur, Silence, Infection, épuisement).
+## Toute animation qui flashe `modulate` doit revenir à cette couleur — jamais
+## à Color.WHITE — pour ne pas effacer le visuel d'un statut encore actif.
+func status_tint() -> Color:
+	if minion == null:
+		return Color.WHITE
+	if minion.frozen_turns > 0:
+		return FROZEN_TINT
+	if minion.terror_turns > 0:
+		return TERROR_TINT
+	if minion.silenced:
+		return SILENCE_TINT
+	if minion.infected:
+		return INFECTED_TINT
+	# Grisage uniquement pendant le tour du propriétaire : un serviteur adverse
+	# n'a pas à paraître « épuisé » pendant le tour du joueur (et inversement)
+	if minion.owner_is_player == _is_player_turn() and not minion.can_attack():
+		return EXHAUSTED_TINT
+	return Color.WHITE
 
 # ─── Halo « prêt à attaquer » ────────────────────────────────────────────────
 
@@ -504,6 +512,9 @@ func _gui_input(event: InputEvent) -> void:
 
 func _is_dragging_card() -> bool:
 	return _battle != null and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card")
+
+func _is_game_over() -> bool:
+	return _battle != null and "game_over" in _battle and _battle.game_over
 
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true

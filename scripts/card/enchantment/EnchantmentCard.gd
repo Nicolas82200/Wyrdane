@@ -64,6 +64,8 @@ func _on_mouse_entered() -> void:
 	_mouse_is_over = true
 	if card_data == null or _battle == null:
 		return
+	if "game_over" in _battle and _battle.game_over:
+		return
 	if _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
 	if _hover_preview != null:

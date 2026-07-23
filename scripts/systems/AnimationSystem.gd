@@ -52,7 +52,8 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		# Flash rouge
 		var flash: Tween = battle.create_tween()
 		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
-		flash.tween_property(target, "modulate", Color.WHITE, 0.18)
+		flash.tween_property(target, "modulate", rest_tint(target), 0.18)
+		flash.tween_callback(func(): reapply_status_tint(target))
 		play_hit_mark(attacker_visual, target)
 	)
 	tween.tween_property(attacker_visual, "position", start_pos, 0.25)\
@@ -312,13 +313,29 @@ func _travel_spark(start: Vector2, target: Vector2, color: Color, delay: float =
 	tween.parallel().tween_property(spark, "modulate:a", 0.0, duration)
 	tween.tween_callback(spark.queue_free)
 
-## Flash coloré bref sur `visual` (revient à blanc).
+## Flash coloré bref sur `visual` (revient à sa teinte de statut, blanc sinon).
 func _flash(visual: CanvasItem, color: Color, duration: float = 0.22) -> void:
 	if not is_instance_valid(visual):
 		return
 	var tween: Tween = battle.create_tween()
 	tween.tween_property(visual, "modulate", color, 0.05)
-	tween.tween_property(visual, "modulate", Color.WHITE, duration)
+	tween.tween_property(visual, "modulate", rest_tint(visual), duration)
+	tween.tween_callback(func(): reapply_status_tint(visual))
+
+## Couleur de retour après un flash : la teinte de statut persistante du
+## serviteur (Gel bleuté, Infection verte...) plutôt qu'un blanc qui
+## l'effacerait jusqu'au prochain update_display().
+func rest_tint(visual: CanvasItem) -> Color:
+	if is_instance_valid(visual) and visual.has_method("status_tint"):
+		return visual.status_tint()
+	return Color.WHITE
+
+## Filet de sécurité en fin de flash : si le statut a changé pendant le tween
+## (ex. Gel appliqué juste après le lancement du flash), la couleur cible
+## calculée au départ est périmée — on resynchronise sur l'état réel.
+func reapply_status_tint(visual: CanvasItem) -> void:
+	if is_instance_valid(visual) and visual.has_method("status_tint"):
+		visual.update_display()
 
 ## Petit shake horizontal (ex: peur, choc encaissé).
 func _shake(visual: Control, amount: float = 8.0, step: float = 0.05) -> void:
@@ -428,7 +445,8 @@ func play_revenant(visual: Control) -> void:
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(visual, "modulate", Color(0.6, 1.0, 0.9, 1.0), 0.12)
 	tween.tween_property(visual, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(visual, "modulate", Color.WHITE, 0.25)
+	tween.parallel().tween_property(visual, "modulate", rest_tint(visual), 0.25)
+	tween.chain().tween_callback(func(): reapply_status_tint(visual))
 	_floating_text(visual, "%s !" % KeywordUndead.get_keyword_name(KeywordUndead.Type.REVENANT), Color(0.6, 1.0, 0.9))
 
 # ─── Mots-clés Humain ───────────────────────────────────────────────────────

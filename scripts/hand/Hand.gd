@@ -230,6 +230,8 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
+	if _battle and "game_over" in _battle and _battle.game_over:
+		return
 	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
 	for c in container.get_children():
