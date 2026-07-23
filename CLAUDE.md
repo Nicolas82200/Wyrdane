@@ -15,7 +15,7 @@ Liste complète des cartes : voir `CARDS.md`.
 - Scène principale (F5) : `scenes/loading/LoadingScreen.tscn` — charge toutes les cartes via `CardLibrary` puis ouvre le menu principal
 - Pour tester directement une bataille : lancer `scenes/battle/Battle.tscn` (F6). Attention : `CardLibrary` n'est alors pas pré-chargé, certains systèmes (deck IA notamment) utilisent un fallback
 - Le multijoueur est backend Steam uniquement (plus de mode IP/LAN) : le tester nécessite deux machines/sessions avec deux comptes Steam distincts (deux instances locales sur le même compte échouent avec `NET_STEAM_SAME_ACCOUNT` — voir `SteamService.gd`)
-- Vérification syntaxique possible en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit`
+- Vérification syntaxique en CLI : `godot --headless --path . --check-only --script res://scripts/.../MonScript.gd --quit` fonctionne pour un script isolé mais donne de faux positifs sur les autoloads (non chargés) et peut rater de vraies erreurs (ex. inférence `:=` sur un Variant). Pour un check fiable de tout `scripts/`, préférer une scène temporaire headless qui `load()` chaque `.gd` (le projet tourne réellement → autoloads présents) ; penser à restaurer `translations/*.translation` après un `--import`
 - Tests automatisés (GUT) : voir section « Tests automatisés » plus bas
 
 ## Tests automatisés
@@ -47,6 +47,7 @@ scripts/
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
 ├── card/            # CardData, Card (UI), CardEffect, styles
+├── collection/      # CollectionManager, CurrencyManager (autoloads) — sync backend
 ├── data/            # Énumérations (EffectType, Keyword, KeywordHuman, KeywordUndead, Race, TargetType, TriggerType...)
 ├── deck/            # DeckBuilder, DeckData, DeckList, DeckManager (autoload)
 ├── graveyard/       # Cimetière (logique + vue)
@@ -55,9 +56,11 @@ scripts/
 ├── loading/         # CardLibrary (autoload) + écran de chargement
 ├── mainMenu/        # Menu principal
 ├── minion/          # Minion (logique) et BoardMinion (visuel)
-├── net/             # Couche multijoueur (NetworkManager, NetworkOpponent, NetLobby, protocole de commandes...)
+├── net/             # Couche multijoueur (NetworkManager, NetworkOpponent, NetLobby, protocole de commandes...) + BackendClient (autoload, auth Steam/HTTP)
 ├── settings/        # Menus de réglages + SettingsManager (autoload)
-└── systems/         # Systèmes de jeu (AISystem, CombatSystem, TurnSystem, DeathSystem...)
+├── shop/            # PackShop.gd — écran d'ouverture de packs
+├── systems/         # Systèmes de jeu (AISystem, CombatSystem, TurnSystem, DeathSystem...)
+└── tutorial/        # TutorialManager, TutorialDeck, TutorialOpponent, TutorialContext — tutoriel obligatoire guidé
 
 translations/        # Traductions FR/EN (game.csv → .translation compilés par Godot)
 ```
@@ -68,6 +71,9 @@ Autoloads globaux (voir `project.godot`) :
 - `TooltipData` — `scripts/systems/TooltipData.gd`
 - `CardLibrary` — `scripts/loading/CardLibrary.gd`
 - `SettingsManager` — `scripts/settings/SettingsManager.gd` (réglages persistants + i18n)
+- `CollectionManager` — `scripts/collection/CollectionManager.gd` (collection de cartes possédées, autoritaire côté backend)
+- `CurrencyManager` — `scripts/collection/CurrencyManager.gd` (solde de monnaie molle, autoritaire côté backend)
+- `BackendClient` — `scripts/net/BackendClient.gd` (client HTTP vers `wyrdane-backend`, auth Steam)
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
@@ -105,7 +111,7 @@ Un effet `SummonMinion` (cible fixe via `CardEffect.summon_card`) ne doit **jama
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
 
-Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`, 76 cartes dont 1 jeton), **Humain** (`human/`, 75 cartes, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...), **Démon** (`demon/`, 75 cartes, mots-clés dans `KeywordDemon.gd`, Corruption, pipeline de dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage` — voir « Mécaniques Démon » dans `README.md`) et **Abomination** (`abomination/`, 77 cartes dont 2 jetons, mots-clés dans `KeywordAbomination.gd` : MUTATION, FUSION, VIRULENT, CHAIR ADAPTATIVE, ASSIMILATION, INSTABLE — Table de Mutation dans `EffectManager.roll_mutation`, trigger `OnDevoration` (n'importe quelle mort, tout camp) et `OnMutation` — voir « Mécaniques Abomination » dans `README.md`. Plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute d'UI de choix de cible/mot-clé — le texte affiché en jeu reflète toujours le comportement réel). Races prévues (non commencées, seuls les enums `Race.Type.ELF`/`Race.Type.DWARF` existent) : Elfe, Nain.
+Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`undead/`, 80 cartes dont 4 jetons), **Humain** (`human/`, 81 cartes dont 5 jetons, avec ses mots-clés propres dans `KeywordHuman.gd` : Commandement, Contre-attaque...), **Démon** (`demon/`, 77 cartes dont 1 jeton, mots-clés dans `KeywordDemon.gd`, Corruption, pipeline de dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage` — voir « Mécaniques Démon » dans `README.md`) et **Abomination** (`abomination/`, 79 cartes dont 3 jetons, mots-clés dans `KeywordAbomination.gd` : MUTATION, FUSION, VIRULENT, CHAIR ADAPTATIVE, ASSIMILATION, INSTABLE — Table de Mutation dans `EffectManager.roll_mutation`, trigger `OnDevoration` (n'importe quelle mort, tout camp) et `OnMutation` — voir « Mécaniques Abomination » dans `README.md`. Plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute d'UI de choix de cible/mot-clé — le texte affiché en jeu reflète toujours le comportement réel). Total : 317 cartes (13 jetons compris). Races prévues (non commencées, seuls les enums `Race.Type.ELF`/`Race.Type.DWARF` existent) : Elfe, Nain.
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
@@ -121,6 +127,16 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - **Protocole** : vocabulaire dans `NetCommand.gd` (`PLAY_CARD`, `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO`). `PLAY_CARD` sert aussi à poser une carte-ressource (`row = "Resource"`). Une carte est désignée par son `resource_path`, un serviteur par un `net_id` stable attribué par `NetRegistry`.
 - **Déterminisme** : RNG de jeu partagée (seed du handshake) pour que les effets aléatoires donnent le même résultat des deux côtés ; les triggers de début/fin de tour (Éveil/Déclin, infection) sont synchronisés.
 - La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
+
+### Backend (`wyrdane-backend`, dépôt séparé)
+`BackendClient` (autoload, `scripts/net/BackendClient.gd`) parle en HTTP à un backend Node/Express séparé (dépôt local `E:\wyrdane-backend`, hébergé sur Render — `API_URL` en dur dans le script). Authentification par ticket de session Steamworks (`POST /api/auth/steam`), cookie de session porté manuellement sur chaque requête suivante (`request()` générique, callback `(code, parsed_body)`). Toute la progression joueur (collection de cartes possédées, monnaie molle, packs) est **autoritaire côté serveur** : `CollectionManager`/`CurrencyManager` ne mettent jamais en cache hors-ligne, seule la dernière sync fait foi ; tant qu'aucune sync n'a réussi, le deck builder considère le joueur comme ne possédant aucune carte (comportement prudent, pas un bug).
+- `MainMenu._start_backend_sync()` lance `BackendClient.login_with_steam()` à l'ouverture du menu, puis déclenche `CollectionManager.sync_from_backend()` et `CurrencyManager.sync_from_backend()` une fois connecté.
+- `PackShop.gd` (`scripts/shop/`) est l'écran d'ouverture de packs : dépense la monnaie molle (`CurrencyManager.open_pack`, coût affiché `CurrencyManager.PACK_COST`) contre des cartes aléatoires pondérées par rareté, résolues via `CardLibrary.card_by_backend_id`.
+- Le backend local (`E:\wyrdane-backend`, branche `dev`) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `dev` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
+- Dégradation attendue si le backend est injoignable : les managers restent `is_synced = false`, l'UI affiche les valeurs par défaut (solde 0, collection vide) sans bloquer le joueur.
+
+### Tutoriel guidé obligatoire
+`TutorialManager` (`scripts/tutorial/TutorialManager.gd`, ~700 lignes) orchestre un tutoriel scripté séquentiel (popups + attentes d'action réelle via `_popup`/`_popup_wait_action`/`_wait_for`) déclenché par `Battle._start_tutorial` avec un deck dédié (`TutorialDeck.gd`) et un adversaire scripté (`TutorialOpponent.gd`, implémente `OpponentDriver`). Couvre notamment une phase de mulligan guidée (`intro_mulligan`/`guided_mulligan`, appelée par `Battle._run_mulligan()`) et se termine par `notify_victory()` : marque le tutoriel complété (`SettingsManager.set_tutorial_completed()`) puis réclame côté backend les 4 decks préfaits + cartes associées (`POST /api/collection/claim-starter`) avant de retourner au menu principal.
 
 ## Décisions de design UI
 
@@ -186,8 +202,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo)
-- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, collection de cartes, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs)
+- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
 
 ## Notes pour les agents
 
