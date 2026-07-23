@@ -57,20 +57,11 @@ func _ready() -> void:
 	_start_backend_sync()
 	_play_intro_animation()
 
-# Fondu depuis le noir (l'écran de chargement se termine par un fondu vers le
-# noir — voir LoadingScreen._fade_to_black) puis apparition en cascade des
-# boutons de navigation. Rejoué aussi au retour d'une partie : transition douce
-# dans tous les cas.
+# Apparition en cascade des boutons de navigation (la barre de l'écran de
+# chargement disparaît elle-même en fondu — voir
+# LoadingScreen._fade_out_loading_ui). Rejoué aussi au retour d'une partie :
+# transition douce dans tous les cas.
 func _play_intro_animation() -> void:
-	var fade := ColorRect.new()
-	fade.color = Color.BLACK
-	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(fade)
-	var fade_tween := create_tween()
-	fade_tween.tween_property(fade, "color:a", 0.0, 0.45)
-	fade_tween.tween_callback(fade.queue_free)
-
 	var nav_buttons := play_button.get_parent().get_children()
 	for i in nav_buttons.size():
 		var button := nav_buttons[i] as Control
