@@ -149,8 +149,11 @@ func _process(delta: float) -> void:
 	# serviteurs (HBoxContainer) se réorganise souvent (mort, invocation,
 	# placeholder de drop) sans que la souris ne bouge, ce qui ne redéclenche
 	# pas les signaux natifs de survol et laissait parfois le hover coincé.
+	# Le sondage ignore l'overlay de l'écran de fin de partie (contrairement aux
+	# signaux GUI natifs) : bloquer explicitement le hover une fois la partie finie.
 	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
 		and is_visible_in_tree() \
+		and not _is_game_over() \
 		and get_global_rect().has_point(get_global_mouse_position())
 	if over and not _mouse_is_over:
 		_on_mouse_entered()
@@ -504,6 +507,9 @@ func _gui_input(event: InputEvent) -> void:
 
 func _is_dragging_card() -> bool:
 	return _battle != null and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card")
+
+func _is_game_over() -> bool:
+	return _battle != null and "game_over" in _battle and _battle.game_over
 
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
