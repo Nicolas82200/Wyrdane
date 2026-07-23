@@ -306,6 +306,7 @@ func _cast_spell(card: CardData) -> void:
 		return
 	if card.card_type == "Instant" or card.card_type == "Ritual":
 		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 	for ally in battle.enemy_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 	if card.card_type == "Enchantment":
