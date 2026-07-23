@@ -67,6 +67,41 @@ func _on_pack_opened(code: int, cards: Array) -> void:
 		cards_grid.add_child(card_instance)
 		card_instance.set_data(card_data)
 		card_instance.set_non_interactive()
+		if card_row.get("dusted", false):
+			_add_dust_badge(card_instance, int(card_row.get("goldEarned", 0)))
+
+## Badge affiché sur les cartes en double (déjà à MAX_COPIES) : le pack a
+## converti cet exemplaire en or plutôt que de l'ajouter à la collection
+## (voir packModel.openPack côté wyrdane-backend).
+func _add_dust_badge(card_instance: Control, gold_earned: int) -> void:
+	card_instance.modulate = Color(0.6, 0.6, 0.6, 1)
+
+	var badge_bg := StyleBoxFlat.new()
+	badge_bg.bg_color = Color(0.05, 0.04, 0.02, 0.9)
+	badge_bg.set_corner_radius_all(4)
+	badge_bg.content_margin_left   = 6
+	badge_bg.content_margin_right  = 6
+	badge_bg.content_margin_top    = 2
+	badge_bg.content_margin_bottom = 2
+
+	var badge_panel := PanelContainer.new()
+	badge_panel.add_theme_stylebox_override("panel", badge_bg)
+	badge_panel.anchor_left   = 0.0
+	badge_panel.anchor_right  = 1.0
+	badge_panel.anchor_top    = 1.0
+	badge_panel.anchor_bottom = 1.0
+	badge_panel.offset_top    = -30
+	badge_panel.offset_bottom = -6
+	badge_panel.mouse_filter  = Control.MOUSE_FILTER_IGNORE
+
+	var badge_label := Label.new()
+	badge_label.text = SettingsManager.t("pack_shop.dust_format") % gold_earned
+	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.40, 1))
+	badge_panel.add_child(badge_label)
+
+	card_instance.add_child(badge_panel)
 
 func _clear_cards() -> void:
 	for child in cards_grid.get_children():
