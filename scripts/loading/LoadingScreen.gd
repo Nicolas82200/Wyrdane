@@ -40,11 +40,14 @@ func _swap_to_next_scene() -> void:
 	queue_free()
 
 # Fait disparaître en fondu la barre de chargement et son texte (le fond
-# reste affiché) avant de basculer sur le menu, dont les boutons apparaissent
-# eux-mêmes en fondu (MainMenu._play_intro_animation) — pas de coupure sèche.
+# reste affiché) tout en faisant monter la vignette latérale au niveau
+# d'assombrissement du menu (même dégradé que MainMenu/LeftVignette) : la
+# dernière frame du chargement est alors identique au fond du menu, dont les
+# boutons apparaissent ensuite en fondu (MainMenu._play_intro_animation).
 func _fade_out_loading_ui() -> void:
-	var tween := create_tween()
+	var tween := create_tween().set_parallel(true)
 	tween.tween_property($VBox, "modulate:a", 0.0, 0.3)
+	tween.tween_property($Vignette, "modulate:a", 1.0, 0.3)
 	await tween.finished
 
 # Auth Steam + récupération du profil joueur (catalogue backend, decks,
