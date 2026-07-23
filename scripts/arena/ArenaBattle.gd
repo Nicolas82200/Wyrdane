@@ -401,6 +401,30 @@ func _refresh_other_boards() -> void:
 				visual.scale = Vector2(0.5, 0.5)
 				minions_box.add_child(visual)
 				visual.set_minion(minion)
+	_refresh_ghost_board()
+
+func _refresh_ghost_board() -> void:
+	var ghost: GhostBoard = match_.ghost_board
+	if ghost == null:
+		return
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	other_boards_container.add_child(row)
+	var info := VBoxContainer.new()
+	row.add_child(info)
+	info.add_child(_make_label_text(SettingsManager.t("ARENA_GHOST_BOARD_LINE") % ghost.origin_player_name))
+	var minions_box := HBoxContainer.new()
+	minions_box.add_theme_constant_override("separation", 2)
+	info.add_child(minions_box)
+	var minions: Array[Minion] = ghost.front + ghost.back
+	if minions.is_empty():
+		minions_box.add_child(_make_label_text(SettingsManager.t("ARENA_OTHER_BOARD_EMPTY")))
+	else:
+		for minion in minions:
+			var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+			visual.scale = Vector2(0.5, 0.5)
+			minions_box.add_child(visual)
+			visual.set_minion(minion)
 
 func _minion_summary(minion: Minion) -> String:
 	var star: String = " ★%d" % minion.star_level if minion.star_level > 1 else ""
@@ -467,10 +491,12 @@ func _show_game_over() -> void:
 	game_over = true
 	end_game_label.visible = true
 	back_to_menu_button.visible = true
-	if human.is_eliminated:
-		end_game_label.text = SettingsManager.t("ARENA_DEFEAT_TITLE")
-	else:
-		end_game_label.text = SettingsManager.t("ARENA_VICTORY_TITLE")
+	var title: String = SettingsManager.t("ARENA_DEFEAT_TITLE") if human.is_eliminated else SettingsManager.t("ARENA_VICTORY_TITLE")
+	var lines: Array[String] = [title, "", SettingsManager.t("ARENA_RANKING_TITLE") + " :"]
+	var ranking: Array[ArenaPlayerState] = match_.final_ranking()
+	for i in ranking.size():
+		lines.append("  %d. %s" % [i + 1, ranking[i].display_name])
+	end_game_label.text = "\n".join(lines)
 
 func _on_next_round_pressed() -> void:
 	next_round_button.visible = false

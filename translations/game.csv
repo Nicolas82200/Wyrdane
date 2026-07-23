@@ -1257,6 +1257,8 @@ ARENA_SUSPENDED_LABEL,"En attente (main pleine) : %d carte(s)","Waiting (hand fu
 ARENA_OTHER_BOARDS_TITLE,"Plateaux des autres joueurs","Other players' boards"
 ARENA_OTHER_BOARD_LINE,"%s — PV %d","%s — HP %d"
 ARENA_OTHER_BOARD_EMPTY,"(plateau vide)","(empty board)"
+ARENA_GHOST_BOARD_LINE,"Fantôme (%s)","Ghost (%s)"
+ARENA_RANKING_TITLE,"Classement final","Final ranking"
 ARENA_HERO_HP_LABEL,"PV Héros : %d","Hero HP: %d"
 ARENA_REROLL_BUTTON,"Relancer (1 or)","Reroll (1 gold)"
 ARENA_BUY_XP_BUTTON,"Acheter XP (1 or)","Buy XP (1 gold)"

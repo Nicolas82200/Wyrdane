@@ -25,6 +25,11 @@ func test_combat_phase_damages_loser_and_eliminates_at_zero_hp() -> void:
 	await m.start_combat_phase()
 	assert_true(p2.is_eliminated, "PV à 0 ou moins doit éliminer le joueur")
 	assert_true(m.is_match_over())
+	assert_eq(m.elimination_order, [p2])
+	var ranking: Array[ArenaPlayerState] = m.final_ranking()
+	assert_eq(ranking.size(), 2)
+	assert_eq(ranking[0], p1, "le survivant est classé 1er")
+	assert_eq(ranking[1], p2, "l'unique éliminé est classé dernier")
 
 func test_reset_after_combat_clears_temporary_death_state() -> void:
 	var a_card := _make_card("A", 2, "res://fake/match_reset_a.tres", 1, 1)

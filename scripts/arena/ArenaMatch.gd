@@ -20,6 +20,9 @@ var pairing_history: Dictionary = {}
 # Résumés texte des combats du dernier appel à start_combat_phase() (pour
 # affichage UI ; voir décision "résumé texte instantané" du plan Arena).
 var last_combat_summaries: Array[String] = []
+# Ordre d'élimination (le premier éliminé est en tête), pour le classement
+# final (README « Fin de partie » : classement brut 1er → dernier).
+var elimination_order: Array[ArenaPlayerState] = []
 
 func _init(_players: Array[ArenaPlayerState], _pool: ArenaCardPool) -> void:
 	players = _players
@@ -30,6 +33,17 @@ func alive_players() -> Array[ArenaPlayerState]:
 
 func is_match_over() -> bool:
 	return alive_players().size() <= 1
+
+# Classement brut 1er → dernier (README « Fin de partie ») : les survivants
+# d'abord (partie encore en cours = plusieurs "1ers" ex-aequo temporaires),
+# puis les éliminés dans l'ordre INVERSE d'élimination (le dernier éliminé
+# a survécu plus longtemps, donc mieux classé que le tout premier éliminé).
+func final_ranking() -> Array[ArenaPlayerState]:
+	var ranking: Array[ArenaPlayerState] = alive_players()
+	var eliminated_reversed: Array[ArenaPlayerState] = elimination_order.duplicate()
+	eliminated_reversed.reverse()
+	ranking.append_array(eliminated_reversed)
+	return ranking
 
 # ─── Phase Boutique ─────────────────────────────────────────────────────────
 
@@ -187,6 +201,8 @@ func _resolve_pairing(a, b) -> void:
 		last_combat_summaries.append("%s vs %s : égalité, aucun dégât" % [name_a, name_b])
 	else:
 		last_combat_summaries.append("%s vs %s : %s gagne, %d dégâts" % [name_a, name_b, winner_name, result.damage_dealt])
+		for line in result.log:
+			last_combat_summaries.append("    " + line)
 	# Application des dégâts : le perdant réel (pas le fantôme, qui n'a pas de héros) encaisse.
 	if result.damage_dealt > 0:
 		if result.player_won:
@@ -207,6 +223,7 @@ func _apply_damage(player: ArenaPlayerState, amount: int) -> void:
 
 func _eliminate(player: ArenaPlayerState) -> void:
 	player.is_eliminated = true
+	elimination_order.append(player)
 	ghost_board = GhostBoard.capture(player)
 	for minion in player.all_owned_minions():
 		pool.release(minion.card_data)
