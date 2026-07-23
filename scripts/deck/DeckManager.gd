@@ -21,16 +21,22 @@ func _ready() -> void:
 
 # À appeler après CardLibrary.sync_backend_catalog() (le mapping id -> carte
 # doit exister pour reconstruire card_paths depuis les cardId renvoyés par l'API).
-func sync_from_backend() -> void:
+# on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
+# reçue — permet à l'écran de chargement d'attendre la fin de la sync.
+func sync_from_backend(on_complete: Callable = Callable()) -> void:
 	BackendClient.request(HTTPClient.METHOD_GET, "/api/decks", {}, func(code: int, parsed) -> void:
 		if code != 200 or not (parsed is Array):
 			sync_failed.emit("Impossible de charger les decks (HTTP %d)" % code)
+			if on_complete.is_valid():
+				on_complete.call(false)
 			return
 		decks.clear()
 		for row in parsed:
 			decks.append(_deck_from_api(row))
 		active_deck_index = clamp(active_deck_index, 0, max(0, decks.size() - 1))
 		decks_loaded.emit()
+		if on_complete.is_valid():
+			on_complete.call(true)
 	)
 
 func _deck_from_api(row: Dictionary) -> DeckData:
