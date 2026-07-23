@@ -123,7 +123,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			return
 		battle.combat_log.card_played(card_data, true)
 		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
-			AudioManager.play(AudioManager.SPELL_CAST)
+			AudioManager.play_spell_cast(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -177,7 +177,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	else:
 		battle.combat_log.card_played(card_data, true)
 		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
-			AudioManager.play(AudioManager.SPELL_CAST)
+			AudioManager.play_spell_cast(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
