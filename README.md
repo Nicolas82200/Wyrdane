@@ -1,5 +1,7 @@
 Wyrdane est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
+**Licence** : projet propriétaire, tous droits réservés — voir [`LICENSE.md`](./LICENSE.md). Aucune réutilisation, copie ou redistribution du code ou des assets n'est autorisée sans accord écrit préalable de l'auteur.
+
 ---
 
 ## 🧠 Architecture interne (dev)

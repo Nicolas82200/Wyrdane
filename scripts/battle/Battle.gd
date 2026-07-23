@@ -96,6 +96,9 @@ var temp_effect_system := TempEffectSystem.new()
 var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
 var combat_log := CombatLogSystem.new()
+# Overlay de VFX 3D (impacts de coup, projectiles de sort), créé en code (voir
+# VFXManager) — pas de nœud dans Battle.tscn.
+var vfx_manager: VFXManager
 # Bannière de transition de tour (« À vous de jouer » / « Tour adverse »),
 # créée en code pour ne pas toucher Battle.tscn.
 var turn_banner: TurnBanner
@@ -215,6 +218,8 @@ func _init_systems() -> void:
 	sacrifice_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
+	vfx_manager = VFXManager.new()
+	add_child(vfx_manager)
 	combat_log.init(self)
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)

@@ -248,6 +248,12 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 # du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
 func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	battle.combat_log.card_played(card, false)
+	var early_target: Minion = null
+	if target_id != NetCommand.TARGET_NONE:
+		early_target = battle.net_registry.resolve(target_id)
+	if card.card_type == "Instant" or card.card_type == "Ritual":
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target)
 	if card.card_type == "Enchantment":
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
@@ -260,9 +266,7 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
-		var target: Minion = null
-		if target_id != NetCommand.TARGET_NONE:
-			target = battle.net_registry.resolve(target_id)
+		var target: Minion = early_target
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
 		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
 		if target != null and await battle.trigger_system.try_cancel_spell(false, target):

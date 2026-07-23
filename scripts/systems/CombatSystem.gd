@@ -46,6 +46,14 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	AudioManager.play(AudioManager.HIT)
+	if defender_visual and dealt_to_defender > 0:
+		battle.vfx_manager.spawn_hit_impact(
+			defender_visual.global_position + battle.BOARD_MINION_SIZE / 2.0,
+			defender.card_data.race, defender.is_dead())
+	if attacker_visual and dealt_to_attacker > 0:
+		battle.vfx_manager.spawn_hit_impact(
+			attacker_visual.global_position + battle.BOARD_MINION_SIZE / 2.0,
+			attacker.card_data.race, attacker.is_dead())
 
 	if defender_had_aegis and not defender.has_keyword(Keyword.Type.AEGIS):
 		battle.animation_system.play_aegis_break(defender_visual)
@@ -122,6 +130,11 @@ func perform_hero_attack(attacker: Minion) -> void:
 		var hero_panel: Control = battle.get_node(panel_name)
 		await battle.animation_system.play_attack_lunge(visual, hero_panel)
 	AudioManager.play(AudioManager.HIT)
+	if visual:
+		var target_hero_panel: Control = battle.get_node(panel_name)
+		battle.vfx_manager.spawn_hit_impact(
+			target_hero_panel.global_position + target_hero_panel.size / 2.0,
+			attacker.card_data.race, false)
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
 	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
