@@ -55,6 +55,31 @@ func _ready() -> void:
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	_start_backend_sync()
+	_play_intro_animation()
+
+# Fondu depuis le noir (l'écran de chargement se termine par un fondu vers le
+# noir — voir LoadingScreen._fade_to_black) puis apparition en cascade des
+# boutons de navigation. Rejoué aussi au retour d'une partie : transition douce
+# dans tous les cas.
+func _play_intro_animation() -> void:
+	var fade := ColorRect.new()
+	fade.color = Color.BLACK
+	fade.set_anchors_preset(Control.PRESET_FULL_RECT)
+	fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(fade)
+	var fade_tween := create_tween()
+	fade_tween.tween_property(fade, "color:a", 0.0, 0.45)
+	fade_tween.tween_callback(fade.queue_free)
+
+	var nav_buttons := play_button.get_parent().get_children()
+	for i in nav_buttons.size():
+		var button := nav_buttons[i] as Control
+		if button == null:
+			continue
+		button.modulate.a = 0.0
+		var tween := create_tween()
+		tween.tween_interval(0.15 + i * 0.07)
+		tween.tween_property(button, "modulate:a", 1.0, 0.3)
 
 # Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
 # Masqué entièrement si Steam est indisponible (même logique que le reste du
