@@ -264,10 +264,14 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	_stock_labels[card_data.resource_path] = badge_label
 	_update_stock_label(card_data, badge_label)
 
-## Texte du badge de stock : quantité possédée moins les copies déjà dans le
+## Texte du badge de stock : quantité possédée (plafonnée à MAX_COPIES pour
+## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
+## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
 ## deck en cours (jamais négatif).
 func _update_stock_label(card_data: CardData, label: Label) -> void:
 	var owned := CollectionManager.owned_quantity(card_data)
+	if card_data.card_type != "Resource":
+		owned = mini(owned, MAX_COPIES)
 	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
 	label.text = SettingsManager.t("deck.stock_format") % remaining
 
