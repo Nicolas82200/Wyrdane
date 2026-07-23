@@ -157,44 +157,91 @@ func _build_ui() -> void:
 	background.stretch_mode = TextureRect.STRETCH_SCALE
 	add_child(background)
 
-	# Pas de défilement : tout tient dans un écran unique (rangées et marges
-	# resserrées plutôt qu'un ScrollContainer).
-	var margin := MarginContainer.new()
-	margin.anchor_right = 1.0
-	margin.anchor_bottom = 1.0
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	add_child(margin)
+	# ─ Plateau : mêmes coordonnées que le 1v1 (scenes/battle/Battle.tscn,
+	# lignes 345-411) — 4 rangées de 1200x150 centrées sur l'écran (ancrage
+	# 0.5/0.5 + décalages fixes), pas empilées dans un flux vertical qui
+	# pousserait tout vers le haut. La boutique occupe la position "adverse"
+	# (Arrière/Avant les plus proches du centre-haut) — pendant le combat
+	# animé, ses rangées (vidées de leurs offres) servent de plateau adverse
+	# (voir _resolve_combat_phase) ; le plateau du joueur (Avant/Arrière les
+	# plus proches du centre-bas) ne bouge donc jamais, ni entre les phases
+	# ni ici : les décalages sont fixes, jamais recalculés depuis un flux.
+	var board_root := Control.new()
+	board_root.anchor_right = 1.0
+	board_root.anchor_bottom = 1.0
+	board_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(board_root)
 
-	# Rangée principale : les portraits des autres participants à gauche (façon
-	# TFT), le reste du plateau à droite — plus de rangée horizontale de
-	# portraits au milieu du flux vertical.
-	var root_hbox := HBoxContainer.new()
-	root_hbox.add_theme_constant_override("separation", 10)
-	root_hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root_hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(root_hbox)
+	shop_back_row = ArenaSellZone.new()
+	shop_back_row.on_sell = _on_board_minion_sold
+	shop_back_row.add_theme_constant_override("separation", 8)
+	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	board_root.add_child(_make_lane_panel(shop_back_row, -330.0, -180.0))
 
-	# ─ Colonne de gauche : portraits cliquables des autres participants (façon
-	# TFT) — cliquer en affiche le plateau à la place du sien, en lecture seule.
-	portraits_column = VBoxContainer.new()
-	portraits_column.add_theme_constant_override("separation", 8)
-	portraits_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
-	root_hbox.add_child(portraits_column)
+	shop_front_row = ArenaSellZone.new()
+	shop_front_row.on_sell = _on_board_minion_sold
+	shop_front_row.add_theme_constant_override("separation", 8)
+	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	board_root.add_child(_make_lane_panel(shop_front_row, -160.0, -10.0))
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root_hbox.add_child(vbox)
+	front_row = ArenaBoardRow.new()
+	front_row.is_front = true
+	front_row.on_drop = _on_shop_card_dropped
+	front_row.add_theme_constant_override("separation", 8)
+	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	board_root.add_child(_make_lane_panel(front_row, 10.0, 160.0))
 
-	# En-tête tout en icônes + chiffres (aucun mot) : rangée, cœur, gemme, étoile.
+	back_row = ArenaBoardRow.new()
+	back_row.is_front = false
+	back_row.on_drop = _on_shop_card_dropped
+	back_row.add_theme_constant_override("separation", 8)
+	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	board_root.add_child(_make_lane_panel(back_row, 180.0, 330.0))
+
+	player_front_container = front_row
+	player_back_container = back_row
+	drop_system = ArenaDropSystem.new()
+	drop_system.init(self)
+
+	# ─ Héros du joueur : tout en bas de l'écran, centré — mêmes ancrages que
+	# PlayerHeroPanel en 1v1 (anchor_top=anchor_bottom=1.0, offset_top négatif).
+	hero_portrait = _make_hero_portrait(HERO_ARTS[0])
+	hero_hp_overlay = hero_portrait.get_child(0)
+	hero_portrait.anchor_left = 0.5
+	hero_portrait.anchor_right = 0.5
+	hero_portrait.anchor_top = 1.0
+	hero_portrait.anchor_bottom = 1.0
+	hero_portrait.offset_left = -45.0
+	hero_portrait.offset_right = 45.0
+	hero_portrait.offset_top = -135.0
+	hero_portrait.offset_bottom = -10.0
+	add_child(hero_portrait)
+
+	suspended_label = Label.new()
+	suspended_label.anchor_left = 0.5
+	suspended_label.anchor_right = 0.5
+	suspended_label.anchor_top = 1.0
+	suspended_label.anchor_bottom = 1.0
+	suspended_label.offset_left = 55.0
+	suspended_label.offset_right = 155.0
+	suspended_label.offset_top = -80.0
+	suspended_label.offset_bottom = -50.0
+	add_child(suspended_label)
+
+	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot) et
+	# contrôles boutique, superposés en haut de l'écran (jamais dans le flux
+	# du plateau, pour ne jamais influencer sa position).
+	var top_bar := VBoxContainer.new()
+	top_bar.anchor_right = 1.0
+	top_bar.offset_left = 12.0
+	top_bar.offset_top = 10.0
+	top_bar.offset_right = -12.0
+	top_bar.add_theme_constant_override("separation", 4)
+	add_child(top_bar)
+
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 20)
-	vbox.add_child(header)
+	top_bar.add_child(header)
 	round_label = _make_stat(header, ArenaIcon.Kind.FORWARD, null)
 	hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null)
 	gold_label = _make_stat(header, null, ICON_GEM)
@@ -202,30 +249,9 @@ func _build_ui() -> void:
 	xp_label = _make_label(header)
 	xp_label.add_theme_font_size_override("font_size", 12)
 
-	# ─ Boutique : occupe la position "adverse" du plateau — chaque carte
-	# proposée est rangée dans la rangée Avant/Arrière qui correspond à son
-	# propre board_position (README : lignes adverses), comme si l'offre du
-	# tour était le plateau d'en face. Arrière (plus loin du centre) d'abord,
-	# Avant (plus proche du centre) ensuite, pour respecter l'empilement
-	# vertical du plateau 1v1 (Battle.tscn). Même hauteur de rangée que le 1v1
-	# (Battle.tscn : custom_minimum_size = Vector2(1200, 150)). ArenaSellZone
-	# (pas un simple HBoxContainer) : accepte aussi le drop d'un serviteur du
-	# plateau pour le vendre (voir _on_board_minion_sold) — plus de bouton vendre.
-	shop_back_row = ArenaSellZone.new()
-	shop_back_row.on_sell = _on_board_minion_sold
-	shop_back_row.add_theme_constant_override("separation", 8)
-	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(shop_back_row, 150))
-	shop_front_row = ArenaSellZone.new()
-	shop_front_row.on_sell = _on_board_minion_sold
-	shop_front_row.add_theme_constant_override("separation", 8)
-	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(shop_front_row, 150))
-
 	var shop_controls := HBoxContainer.new()
 	shop_controls.add_theme_constant_override("separation", 8)
-	shop_controls.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(shop_controls)
+	top_bar.add_child(shop_controls)
 	reroll_button = Button.new()
 	reroll_button.pressed.connect(_on_reroll_pressed)
 	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
@@ -235,54 +261,47 @@ func _build_ui() -> void:
 	_style_button(buy_xp_button, null, ArenaIcon.Kind.STAR)
 	shop_controls.add_child(buy_xp_button)
 
-	# ─ Plateau consulté : Avant proche du centre, Arrière plus loin. Par
-	# défaut le sien, mais cliquer un portrait (colonne de gauche) l'échange
-	# contre celui d'un autre participant (lecture seule). Pas d'emplacement
-	# Rituel/Enchantement pour l'instant (hors scope Arena v1).
-	viewing_label = _make_label(vbox)
-	front_row = ArenaBoardRow.new()
-	front_row.is_front = true
-	front_row.on_drop = _on_shop_card_dropped
-	front_row.add_theme_constant_override("separation", 8)
-	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(front_row, 150))
+	# Nom du plateau consulté (voir portraits_column) : sous les contrôles boutique.
+	viewing_label = _make_label(top_bar)
 
-	back_row = ArenaBoardRow.new()
-	back_row.is_front = false
-	back_row.on_drop = _on_shop_card_dropped
-	back_row.add_theme_constant_override("separation", 8)
-	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(_make_lane_panel(back_row, 150))
+	# ─ Colonne de gauche : portraits cliquables des autres participants (façon
+	# TFT) — cliquer en affiche le plateau à la place du sien, en lecture seule.
+	portraits_column = VBoxContainer.new()
+	portraits_column.anchor_top = 0.5
+	portraits_column.anchor_bottom = 0.5
+	portraits_column.offset_left = 12.0
+	portraits_column.offset_top = -150.0
+	portraits_column.offset_bottom = 150.0
+	portraits_column.add_theme_constant_override("separation", 8)
+	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
+	add_child(portraits_column)
 
-	player_front_container = front_row
-	player_back_container = back_row
-	drop_system = ArenaDropSystem.new()
-	drop_system.init(self)
-
-	var mid_row := HBoxContainer.new()
-	mid_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	mid_row.add_theme_constant_override("separation", 16)
-	vbox.add_child(mid_row)
-	hero_portrait = _make_hero_portrait(HERO_ARTS[0])
-	hero_hp_overlay = hero_portrait.get_child(0)
-	mid_row.add_child(hero_portrait)
-	suspended_label = _make_label(mid_row)
-
-	var bottom_row := HBoxContainer.new()
-	bottom_row.add_theme_constant_override("separation", 12)
-	bottom_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(bottom_row)
-
+	# ─ Fin de partie : superposée au centre, masquée le reste du temps.
 	back_to_menu_button = Button.new()
 	back_to_menu_button.visible = false
+	back_to_menu_button.anchor_left = 0.5
+	back_to_menu_button.anchor_right = 0.5
+	back_to_menu_button.anchor_top = 0.5
+	back_to_menu_button.anchor_bottom = 0.5
+	back_to_menu_button.offset_left = -26.0
+	back_to_menu_button.offset_right = 26.0
+	back_to_menu_button.offset_top = 60.0
+	back_to_menu_button.offset_bottom = 112.0
 	back_to_menu_button.pressed.connect(_on_back_to_menu_pressed)
 	_style_button(back_to_menu_button, null, ArenaIcon.Kind.HOME)
-	bottom_row.add_child(back_to_menu_button)
+	add_child(back_to_menu_button)
 
 	end_game_label = Label.new()
 	end_game_label.visible = false
+	end_game_label.anchor_left = 0.5
+	end_game_label.anchor_right = 0.5
+	end_game_label.anchor_top = 0.5
+	end_game_label.anchor_bottom = 0.5
+	end_game_label.offset_left = -160.0
+	end_game_label.offset_right = 160.0
+	end_game_label.offset_top = -60.0
 	end_game_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(end_game_label)
+	add_child(end_game_label)
 
 	# ─ Main du joueur : la même Hand.tscn/Hand.gd que le mode 1v1, ancrée en
 	# bas de l'écran (voir Hand.tscn : anchor_top=1.0, grow_vertical=0) —
@@ -430,7 +449,12 @@ func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRe
 # Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
 # "lane" gris foncé translucide) : juste le fond visuel d'une rangée Avant/
 # Arrière (boutique ou plateau) — pas d'emplacement Rituel/Enchantement.
-func _make_lane_panel(row: Control, min_height: float = 160) -> PanelContainer:
+# Positionnée exactement comme une ligne du plateau 1v1 (Battle.tscn, lignes
+# 345-411) : ancrée au centre de l'écran (anchor 0.5/0.5), décalages fixes en
+# pixels par rapport à ce centre — jamais dans un flux qui la ferait bouger
+# selon ce qu'il y a au-dessus. `offset_top`/`offset_bottom` reproduisent
+# ceux d'EnemyBackLine/EnemyFrontLine/PlayerFrontLine/PlayerBackLine.
+func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> PanelContainer:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12, 0.18)
 	style.border_width_left = 1
@@ -449,7 +473,15 @@ func _make_lane_panel(row: Control, min_height: float = 160) -> PanelContainer:
 
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", style)
-	panel.custom_minimum_size = Vector2(0, min_height)
+	panel.custom_minimum_size = Vector2(1200, offset_bottom - offset_top)
+	panel.anchor_left = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_bottom = 0.5
+	panel.offset_left = -600.0
+	panel.offset_right = 600.0
+	panel.offset_top = offset_top
+	panel.offset_bottom = offset_bottom
 	panel.add_child(row)
 	return panel
 
