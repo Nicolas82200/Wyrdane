@@ -15,6 +15,8 @@ extends Control
 
 const CARD_SCENE := preload("res://scenes/card/Card.tscn")
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
+const BACKGROUND_ART := preload("res://assets/background/background-05.jpg")
+const ROUNDED_CORNERS_SHADER := preload("res://resources/shaders/rounded_corners.gdshader")
 const HERO_ARTS := [
 	preload("res://assets/heros_art/king-aldric-dawnbearer.jpg"),
 	preload("res://assets/heros_art/azhar-the-fallen.jpg"),
@@ -83,6 +85,16 @@ func _start_match() -> void:
 func _build_ui() -> void:
 	anchor_right = 1.0
 	anchor_bottom = 1.0
+
+	# Même fond que le plateau 1v1 (scenes/battle/Battle.tscn), pour un rendu
+	# cohérent avec le reste du jeu plutôt qu'un arrière-plan vide.
+	var background := TextureRect.new()
+	background.anchor_right = 1.0
+	background.anchor_bottom = 1.0
+	background.texture = BACKGROUND_ART
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_SCALE
+	add_child(background)
 
 	var margin := MarginContainer.new()
 	margin.anchor_right = 1.0
@@ -224,10 +236,21 @@ func _make_title(text: String) -> Label:
 
 func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRect:
 	var tex := TextureRect.new()
+	var size := Vector2(90, 125) * scale_factor
 	tex.texture = art
-	tex.custom_minimum_size = Vector2(90, 125) * scale_factor
+	tex.custom_minimum_size = size
 	tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# Coins arrondis façon portraits de héros du plateau 1v1 (Battle.tscn) —
+	# même shader, un seul rayon (pas de découpe asymétrique haut/bas ici).
+	var material := ShaderMaterial.new()
+	material.shader = ROUNDED_CORNERS_SHADER
+	material.set_shader_parameter("rect_size", size)
+	material.set_shader_parameter("radius_top_left", 16.0)
+	material.set_shader_parameter("radius_top_right", 16.0)
+	material.set_shader_parameter("radius_bottom_right", 16.0)
+	material.set_shader_parameter("radius_bottom_left", 16.0)
+	tex.material = material
 	return tex
 
 # Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
@@ -331,10 +354,12 @@ func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 func _refresh_hand() -> void:
 	for child in hand_container.get_children():
 		child.queue_free()
-	for minion in human.hand:
+	var count: int = human.hand.size()
+	for i in count:
+		var minion: Minion = human.hand[i]
 		var col := VBoxContainer.new()
 		hand_container.add_child(col)
-		_add_minion_card_visual(col, minion)
+		_add_minion_card_visual(col, minion, i, count)
 		var front_button := Button.new()
 		front_button.text = SettingsManager.t("ARENA_PLACE_FRONT_BUTTON")
 		front_button.disabled = not human.can_place_on_row(true)
@@ -352,10 +377,18 @@ func _refresh_hand() -> void:
 
 # `col` doit déjà être dans l'arbre de scène (voir commentaire _refresh_shop) :
 # on l'ajoute avant d'instancier/configurer la Card, jamais après.
-func _add_minion_card_visual(col: Node, minion: Minion) -> void:
+func _add_minion_card_visual(col: Node, minion: Minion, index: int = 0, count: int = 1) -> void:
 	var card: Card = CARD_SCENE.instantiate()
 	col.add_child(card)
-	card.scale = Vector2(0.6, 0.6)
+	card.scale = Vector2(0.75, 0.75)
+	# Léger éventail façon main tenue (comme le plateau 1v1) : chaque carte
+	# pivote un peu plus en s'éloignant du centre de la main. Le pivot utilise
+	# la taille connue de Card.tscn (260x390) plutôt que card.size, pas encore
+	# fiable juste après l'entrée dans l'arbre (le VBoxContainer parent n'a pas
+	# fini de négocier la mise en page).
+	var mid := (count - 1) / 2.0
+	card.pivot_offset = Vector2(130, 390)
+	card.rotation_degrees = (index - mid) * 4.0
 	card.set_data(minion.card_data)
 	card.set_non_interactive()
 	card.cost_label.text = str(minion.card_data.cost)
