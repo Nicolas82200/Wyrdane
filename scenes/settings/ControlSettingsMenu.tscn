@@ -111,19 +111,19 @@ theme_override_constants/margin_bottom = 0
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MoveDownRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000014]
+[node name="EndTurnRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000014]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MoveDownLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/MoveDownRow" unique_id=700000015]
+[node name="EndTurnLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000015]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
-text = "Descendre"
+text = "Fin de tour"
 
-[node name="MoveDownButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/MoveDownRow" unique_id=700000016]
+[node name="EndTurnButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000016]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -131,21 +131,21 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
-text = "S"
+text = "Espace"
 
-[node name="ConfirmRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000017]
+[node name="ToggleGraveyardRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000017]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ConfirmLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ConfirmRow" unique_id=700000018]
+[node name="ToggleGraveyardLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000018]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
-text = "Confirmer"
+text = "Cimetière allié"
 
-[node name="ConfirmButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ConfirmRow" unique_id=700000019]
+[node name="ToggleGraveyardButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -153,21 +153,21 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
-text = "Entrée"
+text = "G"
 
-[node name="CancelRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=986537293]
+[node name="ToggleEnemyGraveyardRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=986537293]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="CancelLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/CancelRow" unique_id=185130313]
+[node name="ToggleEnemyGraveyardLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=185130313]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
-text = "Annuler"
+text = "Cimetière ennemi"
 
-[node name="CancelButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/CancelRow" unique_id=984335547]
+[node name="ToggleEnemyGraveyardButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -175,7 +175,22 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
-text = "Échap"
+text = "H"
+
+[node name="ConflictMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000025]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 0
+
+[node name="ConflictLabel" type="Label" parent="PanelContainer/VBox/ConflictMargin" unique_id=700000026]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 1
+visible = false
 
 [node name="SepBottom" type="HSeparator" parent="PanelContainer/VBox" unique_id=700000020]
 layout_mode = 2
