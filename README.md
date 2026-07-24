@@ -223,7 +223,7 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
+L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
@@ -795,9 +795,9 @@ Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) 
 
 | Race | Ressource | Carte |
 |---|---|---|
-| Mort-Vivant | **Âme** | Éclat d'Âme (`resources/cards/undead/soul-shard.tres`) |
+| Mort-Vivant | **Chair** | Chair (`resources/cards/undead/soul-shard.tres`) |
 | Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
-| Démon | **Pacte** | Fragment de Pacte (`resources/cards/demon/pact-fragment.tres`) |
+| Démon | **Âme** | Âme (`resources/cards/demon/pact-fragment.tres`) |
 | Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
 
 ### 🃏 Zone de ressource et pose
@@ -850,7 +850,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
 - `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
-- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Éclat d'Âme), pose d'une ressource par tour avant sa phase de jeu normale.
+- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
 ### 📋 Points encore ouverts

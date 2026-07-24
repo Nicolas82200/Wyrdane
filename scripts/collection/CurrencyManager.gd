@@ -23,6 +23,19 @@ const CARD_PRICE_BY_RARITY := {
 	"Legendary": 250,
 }
 
+# Nombre de cartes par pack et pondération de tirage par rareté, affichés à
+# titre indicatif dans la boutique (tooltip des probabilités) — les valeurs
+# réelles sont appliquées côté serveur, doivent rester synchronisées avec
+# CARDS_PER_PACK/RARITY_WEIGHTS dans wyrdane-backend/backend/src/model/packModel.ts.
+# Clés en anglais (contrairement au backend) pour matcher CardData.rarity.
+const CARDS_PER_PACK_DISPLAY := 4
+const RARITY_WEIGHTS_DISPLAY := {
+	"Common": 60,
+	"Rare": 25,
+	"Epic": 12,
+	"Legendary": 3,
+}
+
 var balance: int = 0
 var is_synced: bool = false
 

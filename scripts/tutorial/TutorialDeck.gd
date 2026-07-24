@@ -54,7 +54,7 @@ static func enemy_pestilent_card() -> CardData:
 static func is_swappable_during_tutorial(card: CardData) -> bool:
 	return card != null and card.resource_path == RESOURCE
 
-# Main de départ du joueur. Les 3 exemplaires d'Éclat d'Âme sont groupés
+# Main de départ du joueur. Les 3 exemplaires de Chair sont groupés
 # côte à côte (plutôt qu'éparpillés) : TutorialManager surligne les cartes
 # interchangeables en fusionnant leurs rectangles en une seule zone —
 # éparpillées, cette zone s'étendrait sur toute la largeur de la main.
