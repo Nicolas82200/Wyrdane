@@ -4,6 +4,7 @@ extends Control
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 const NEWS_DIR := "res://resources/news/"
+const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
 @onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
@@ -25,6 +26,7 @@ const NEWS_DIR := "res://resources/news/"
 @onready var currency_label: Label = $CurrencyLabel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
+@onready var discord_button: Button = $SocialRow/DiscordButton
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -42,6 +44,7 @@ func _ready() -> void:
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
 	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
+	discord_button.pressed.connect(_on_discord_pressed)
 	# Le son de fermeture remplace le clic générique
 	close_credits.set_meta("no_click_sound", true)
 	close_credits.pressed.connect(func():
@@ -225,6 +228,9 @@ func _populate_news() -> void:
 
 		news_list_vbox.add_child(item)
 
+func _on_discord_pressed() -> void:
+	OS.shell_open(DISCORD_URL)
+
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
 	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
@@ -248,3 +254,5 @@ func _retranslate() -> void:
 	close_credits.text  = SettingsManager.t("MENU_CLOSE")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	_populate_news()
+	discord_button.text = SettingsManager.t("MENU_DISCORD")
+	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
