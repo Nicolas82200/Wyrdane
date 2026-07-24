@@ -3,6 +3,7 @@ extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
+const NEWS_DIR := "res://resources/news/"
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
 @onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
@@ -22,8 +23,12 @@ const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 @onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
 @onready var steam_name_label: Label = $SteamProfile/NameLabel
 @onready var currency_label: Label = $CurrencyLabel
+@onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
+@onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
+
+var _news_entries: Array[NewsEntry] = []
 
 func _ready() -> void:
 	AudioManager.play_menu_music()
@@ -54,6 +59,7 @@ func _ready() -> void:
 		currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
+	_load_news()
 	_start_backend_sync()
 	_play_intro_animation()
 
@@ -168,6 +174,57 @@ func _on_multiplayer() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	get_tree().change_scene_to_file(NET_LOBBY_SCENE)
 
+# Charge toutes les ressources NewsEntry (res://resources/news/*.tres), triées
+# par date décroissante (format YYYY-MM-DD, comparable directement en string),
+# puis peuple le panneau. Aucune dépendance backend : contenu embarqué au build,
+# comme les cartes.
+func _load_news() -> void:
+	_news_entries.clear()
+	var dir := DirAccess.open(NEWS_DIR)
+	if dir == null:
+		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
+		return
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if file_name.ends_with(".tres"):
+			var entry := load(NEWS_DIR + file_name) as NewsEntry
+			if entry:
+				_news_entries.append(entry)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+	_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
+	_populate_news()
+
+func _populate_news() -> void:
+	for child in news_list_vbox.get_children():
+		child.queue_free()
+	for entry in _news_entries:
+		var item := VBoxContainer.new()
+		item.add_theme_constant_override("separation", 4)
+
+		var date_label := Label.new()
+		date_label.text = entry.date
+		date_label.add_theme_font_size_override("font_size", 13)
+		date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
+		item.add_child(date_label)
+
+		var title_label := Label.new()
+		title_label.text = entry.display_title()
+		title_label.add_theme_font_size_override("font_size", 18)
+		title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+		title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		item.add_child(title_label)
+
+		var body_label := Label.new()
+		body_label.text = entry.display_body()
+		body_label.add_theme_font_size_override("font_size", 15)
+		body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
+		body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+		item.add_child(body_label)
+
+		news_list_vbox.add_child(item)
+
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
 	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
@@ -189,3 +246,5 @@ func _retranslate() -> void:
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	close_credits.text  = SettingsManager.t("MENU_CLOSE")
+	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
+	_populate_news()
