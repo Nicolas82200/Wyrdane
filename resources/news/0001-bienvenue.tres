@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="NewsEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/mainMenu/NewsEntry.gd" id="1_news"]
+
+[resource]
+script = ExtResource("1_news")
+date = "2026-07-24"
+title = "Bienvenue sur Wyrdane"
+body = "Le jeu évolue en permanence : nouvelles cartes, équilibrages et fonctionnalités arrivent régulièrement. Suis cet espace pour ne rien manquer !"
