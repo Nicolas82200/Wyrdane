@@ -615,6 +615,7 @@ func _destroy_and_resurrect(battle, source_minion: Minion, effect: CardEffect, s
 	revived.human_keywords.clear()
 	revived.undead_keywords.clear()
 	revived.demon_keywords.clear()
+	revived.abomination_keywords.clear()
 	revived.silenced = true
 
 func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -711,6 +712,22 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 			await roll_mutation(battle, summoned)
 		await battle.get_tree().create_timer(0.15).timeout
 
+# Fait entrer en jeu card_data avec 1 HP et was_resurrected=true, en rangée
+# Avant si possible sinon Arrière. Retourne false si aucune rangée disponible
+# (partagé par _resurrect/_resurrect_last/_resurrect_self).
+func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
+	var row: String = "Front"
+	if not battle.can_summon_to_row(is_player, row):
+		row = "Back"
+	if not battle.can_summon_to_row(is_player, row):
+		return false
+	await battle.summon_minion(card_data, is_player, row)
+	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
+	if not minions.is_empty():
+		minions.back().health = 1
+		minions.back().was_resurrected = true
+	return true
+
 func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
@@ -723,16 +740,8 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var count: int = mini(effect.count, dead.size())
 	for i in range(count):
 		var card_data: CardData = dead[dead.size() - 1 - i]
-		var row: String = "Front"
-		if not battle.can_summon_to_row(is_player, row):
-			row = "Back"
-		if not battle.can_summon_to_row(is_player, row):
+		if not await _resurrect_card_data(battle, card_data, is_player):
 			break
-		await battle.summon_minion(card_data, is_player, row)
-		var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
-		if not minions.is_empty():
-			minions.back().health = 1
-			minions.back().was_resurrected = true
 		await battle.get_tree().create_timer(0.15).timeout
 
 func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -865,17 +874,7 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target == null or selected_target.card_data == null or selected_target.was_resurrected:
 		return
-	var is_player: bool = selected_target.owner_is_player
-	var row: String = "Front"
-	if not battle.can_summon_to_row(is_player, row):
-		row = "Back"
-	if not battle.can_summon_to_row(is_player, row):
-		return
-	await battle.summon_minion(selected_target.card_data, is_player, row)
-	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
-	if not minions.is_empty():
-		minions.back().health = 1
-		minions.back().was_resurrected = true
+	await _resurrect_card_data(battle, selected_target.card_data, selected_target.owner_is_player)
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
 func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -893,16 +892,7 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 			break
 	if card_data == null:
 		return
-	var row: String = "Front"
-	if not battle.can_summon_to_row(is_player, row):
-		row = "Back"
-	if not battle.can_summon_to_row(is_player, row):
-		return
-	await battle.summon_minion(card_data, is_player, row)
-	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
-	if not minions.is_empty():
-		minions.back().health = 1
-		minions.back().was_resurrected = true
+	await _resurrect_card_data(battle, card_data, is_player)
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
 # Si le serviteur possède déjà le mot-clé, on ne l'enregistre pas en temporaire
