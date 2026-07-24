@@ -19,6 +19,7 @@ const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
+const ACTIVATE_FUSION := "ACTIVATE_FUSION"  # activation volontaire du mot-clé FUSION
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
@@ -68,6 +69,19 @@ static func activate_ritual(card_path: String, victim_ids: Array, ids: Array = [
 		"card": card_path,
 		"victims": victim_ids,
 		"ids": ids,
+	}
+
+# Activation volontaire de FUSION : source/victime désignées par net_id, le
+# mot-clé absorbé par son pool ("keywords"/"human_keywords"/"undead_keywords"/
+# "demon_keywords"/"abomination_keywords") et son nom (Type.keys()[value]),
+# résolu via le from_name() de l'enum correspondant.
+static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String) -> Dictionary:
+	return {
+		"type": ACTIVATE_FUSION,
+		"source": source_id,
+		"victim": victim_id,
+		"pool": keyword_pool,
+		"keyword": keyword_name,
 	}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre

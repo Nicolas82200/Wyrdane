@@ -39,17 +39,23 @@ const DIFFICULTY_LABEL_KEYS := {
 	"hard":   "difficulty.hard",
 }
 
+# Clé de traduction associée à chaque niveau de qualité effets.
+const QUALITY_LABEL_KEYS := {
+	"low":    "quality.low",
+	"medium": "quality.medium",
+	"high":   "quality.high",
+}
+
 func _ready() -> void:
-	resolution_option.add_item("1280 × 720")
-	resolution_option.add_item("1920 × 1080")
-	resolution_option.add_item("2560 × 1440")
-
-	fullscreen_check.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-	vsync_check.button_pressed = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
-
+	_populate_resolutions()
 	_populate_quality()
 	_populate_languages()
 	_populate_difficulties()
+
+	fullscreen_check.button_pressed = SettingsManager.fullscreen
+	vsync_check.button_pressed = SettingsManager.vsync
+	resolution_option.disabled = SettingsManager.fullscreen
+	fullscreen_check.toggled.connect(func(on: bool): resolution_option.disabled = on)
 
 	# Surbrillances : appliqué immédiatement (pas besoin de « Appliquer »).
 	highlight_check.button_pressed = SettingsManager.show_play_highlights
@@ -67,12 +73,26 @@ func _ready() -> void:
 	SettingsManager.language_changed.connect(_on_language_changed)
 	_retranslate()
 
+func _populate_resolutions() -> void:
+	resolution_option.clear()
+	var resolutions: Array = SettingsManager.RESOLUTIONS
+	for i in resolutions.size():
+		var size: Vector2i = resolutions[i]
+		resolution_option.add_item("%d × %d" % [size.x, size.y])
+		if size == SettingsManager.resolution:
+			resolution_option.selected = i
+	if resolution_option.selected < 0:
+		resolution_option.selected = 0
+
 func _populate_quality() -> void:
 	quality_option.clear()
-	quality_option.add_item(SettingsManager.t("quality.low"))
-	quality_option.add_item(SettingsManager.t("quality.medium"))
-	quality_option.add_item(SettingsManager.t("quality.high"))
-	quality_option.selected = 2
+	var levels: Array = SettingsManager.QUALITIES
+	for i in levels.size():
+		var level: String = levels[i]
+		quality_option.add_item(SettingsManager.t(QUALITY_LABEL_KEYS.get(level, level)))
+		quality_option.set_item_metadata(i, level)
+		if level == SettingsManager.quality:
+			quality_option.selected = i
 
 func _populate_languages() -> void:
 	language_option.clear()
@@ -119,10 +139,10 @@ func _retranslate() -> void:
 		_localized_labels[key].text = SettingsManager.t(key)
 
 func _apply() -> void:
-	if fullscreen_check.button_pressed:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
-	else:
-		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-
-	var vsync = DisplayServer.VSYNC_ENABLED if vsync_check.button_pressed else DisplayServer.VSYNC_DISABLED
-	DisplayServer.window_set_vsync_mode(vsync)
+	var resolutions: Array = SettingsManager.RESOLUTIONS
+	var selected_size: Vector2i = resolutions[resolution_option.selected]
+	SettingsManager.set_resolution(selected_size)
+	SettingsManager.set_fullscreen(fullscreen_check.button_pressed)
+	SettingsManager.set_vsync(vsync_check.button_pressed)
+	var level: String = quality_option.get_item_metadata(quality_option.selected)
+	SettingsManager.set_quality(level)

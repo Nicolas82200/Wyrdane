@@ -598,7 +598,7 @@ func intro_mulligan() -> void:
 # rapport à toute la main dépliée pour ne jamais la chevaucher) plutôt que le
 # cadre + assombrissement plein écran de _popup_wait_action, qui ne convient
 # qu'aux cibles hors main (zones du plateau, boutons...). Force réellement
-# l'échange de l'un des 3 exemplaires d'Éclat d'Âme avant de laisser le script
+# l'échange de l'un des 3 exemplaires de Chair avant de laisser le script
 # continuer. Le remplacement lui-même reste toujours une nouvelle
 # carte-ressource (voir DeckSystem.mulligan_replace_one), donc peu importe
 # laquelle des 3 est échangée, la main obtenue reste toujours valide pour la

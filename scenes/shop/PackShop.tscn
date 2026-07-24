@@ -77,21 +77,38 @@ theme_override_font_sizes/font_size = 20
 text = "Solde : 0"
 horizontal_alignment = 1
 
+[node name="ProgressLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.62, 0.55, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+
 [node name="StatusLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.25, 0.2, 1)
 theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 
-[node name="OpenButtonMargin" type="MarginContainer" parent="Panel/VBox"]
+[node name="OpenRowMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/margin_left = 200
 theme_override_constants/margin_right = 200
 
-[node name="OpenButton" type="Button" parent="Panel/VBox/OpenButtonMargin"]
+[node name="OpenRow" type="HBoxContainer" parent="Panel/VBox/OpenRowMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="OpenButton" type="Button" parent="Panel/VBox/OpenRowMargin/OpenRow"]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Ouvrir un pack"
+
+[node name="OddsButton" type="Button" parent="Panel/VBox/OpenRowMargin/OpenRow"]
+custom_minimum_size = Vector2(36, 52)
+layout_mode = 2
+tooltip_text = ""
+text = "?"
 
 [node name="FreeButtonMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
@@ -105,6 +122,14 @@ text = "Ouvrir un pack gratuit (test)"
 
 [node name="Sep" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
+
+[node name="SkipHintLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+mouse_filter = 0
+theme_override_colors/font_color = Color(0.6, 0.58, 0.5, 1)
+theme_override_font_sizes/font_size = 13
+text = "Cliquer pour tout révéler"
+horizontal_alignment = 1
 
 [node name="CardsScroll" type="ScrollContainer" parent="Panel/VBox"]
 custom_minimum_size = Vector2(0, 400)
