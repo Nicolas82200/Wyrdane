@@ -53,7 +53,7 @@ func _start_listening(action: String) -> void:
 		_action_buttons[listening_action].text = OS.get_keycode_string(SettingsManager.get_keybind(listening_action))
 	listening_action = action
 	conflict_label.visible = false
-	_action_buttons[action].text = "..."
+	_action_buttons[action].text = SettingsManager.t("controls.listening")
 
 func _input(event: InputEvent) -> void:
 	if listening_action == "":
