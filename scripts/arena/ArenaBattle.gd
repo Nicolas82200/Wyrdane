@@ -254,7 +254,10 @@ func _build_ui() -> void:
 
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 20)
-	top_bar.add_child(header)
+	# Fond façon ManaDisplay (1v1, scenes/battle/Battle.tscn) : un panneau
+	# discret derrière les statistiques plutôt qu'une rangée nue posée
+	# directement sur le décor — même famille visuelle que les rangées.
+	top_bar.add_child(_make_panel_background(header))
 	round_label = _make_stat(header, ArenaIcon.Kind.FORWARD, null)
 	hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null)
 	gold_label = _make_stat(header, null, ICON_GEM)
@@ -557,7 +560,9 @@ func _make_drop_highlight(parent: Control, offset_top: float, offset_bottom: flo
 # pixels par rapport à ce centre — jamais dans un flux qui la ferait bouger
 # selon ce qu'il y a au-dessus. `offset_top`/`offset_bottom` reproduisent
 # ceux d'EnemyBackLine/EnemyFrontLine/PlayerFrontLine/PlayerBackLine.
-func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> PanelContainer:
+# Style commun aux panneaux discrets Arena (rangées, en-tête) : fond gris
+# foncé translucide, bordure claire fine, coins arrondis.
+func _lane_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.1, 0.12, 0.18)
 	style.border_width_left = 1
@@ -573,9 +578,11 @@ func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> 
 	style.content_margin_right = 8
 	style.content_margin_top = 8
 	style.content_margin_bottom = 8
+	return style
 
+func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel", _lane_style())
 	panel.custom_minimum_size = Vector2(1200, offset_bottom - offset_top)
 	panel.anchor_left = 0.5
 	panel.anchor_right = 0.5
@@ -586,6 +593,15 @@ func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> 
 	panel.offset_top = offset_top
 	panel.offset_bottom = offset_bottom
 	panel.add_child(row)
+	return panel
+
+# Fond discret façon ManaDisplay (1v1) pour un contenu flottant (en-tête de
+# statistiques) — même style que les rangées, sans coordonnées de plateau.
+func _make_panel_background(content: Control) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _lane_style())
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	panel.add_child(content)
 	return panel
 
 # Style commun à tous les boutons Arena : fond sombre translucide, bordure
