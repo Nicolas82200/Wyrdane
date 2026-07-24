@@ -7,8 +7,10 @@ class_name ArenaDropSystem
 # clear_player_drop_highlight/update_player_drop_highlight), avec une rangée
 # virtuelle en plus, ROW_SHOP : lâcher une carte de la main sur la boutique la
 # vend au lieu de la poser sur le plateau (voir ArenaBattle._on_hand_card_played).
-# Pas de surlignage de dépôt (update_player_drop_highlight ne fait rien) —
-# simplification acceptée pour ce prototype.
+# Le surlignage de dépôt (vert, même couleur que Battle.tscn) ne couvre que
+# les deux rangées du joueur (player_front_highlight/player_back_highlight,
+# voir ArenaBattle._make_drop_highlight) : la boutique n'a pas de surlignage
+# dédié (poser dessus n'a pas de sens, elle sert à vendre).
 
 const ROW_SHOP := "Shop"
 
@@ -43,11 +45,19 @@ func get_player_drop_index_at(mouse: Vector2, row: String) -> int:
 		index += 1
 	return index
 
-func update_player_drop_highlight(_card_data: CardData, _mouse: Vector2, _display_show: bool) -> bool:
-	return false
+func update_player_drop_highlight(card_data: CardData, mouse: Vector2, display_show: bool) -> bool:
+	var allowed: Array[String] = battle.get_allowed_rows_for_card(card_data)
+	var over_front: bool = display_show and battle.ROW_FRONT in allowed \
+		and _rect_of(battle.player_front_container).has_point(mouse)
+	var over_back: bool = display_show and battle.ROW_BACK in allowed \
+		and _rect_of(battle.player_back_container).has_point(mouse)
+	battle.player_front_highlight.visible = over_front
+	battle.player_back_highlight.visible = over_back
+	return over_front or over_back
 
 func clear_player_drop_highlight() -> void:
-	pass
+	battle.player_front_highlight.visible = false
+	battle.player_back_highlight.visible = false
 
 func _rect_of(control: Control) -> Rect2:
 	if control == null or not is_instance_valid(control):

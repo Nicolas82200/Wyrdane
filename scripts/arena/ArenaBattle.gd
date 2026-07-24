@@ -71,6 +71,10 @@ var back_row: ArenaBoardRow
 # container/player_back_container) — ce sont les mêmes objets que front_row/back_row.
 var player_front_container: Control
 var player_back_container: Control
+# Surlignage vert façon 1v1 (Battle.tscn : PlayerFrontHighlight/PlayerBack
+# Highlight) pendant le glisser d'une carte de la main — voir ArenaDropSystem.
+var player_front_highlight: ColorRect
+var player_back_highlight: ColorRect
 var drop_system: ArenaDropSystem
 var hero_portrait: TextureRect
 var hero_hp_overlay: Label
@@ -176,12 +180,14 @@ func _build_ui() -> void:
 	shop_back_row.on_sell = _on_board_minion_sold
 	shop_back_row.add_theme_constant_override("separation", 8)
 	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_add_lane_indicator(board_root, -330.0, -180.0, 0)
 	board_root.add_child(_make_lane_panel(shop_back_row, -330.0, -180.0))
 
 	shop_front_row = ArenaSellZone.new()
 	shop_front_row.on_sell = _on_board_minion_sold
 	shop_front_row.add_theme_constant_override("separation", 8)
 	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_add_lane_indicator(board_root, -160.0, -10.0, 1)
 	board_root.add_child(_make_lane_panel(shop_front_row, -160.0, -10.0))
 
 	front_row = ArenaBoardRow.new()
@@ -189,6 +195,7 @@ func _build_ui() -> void:
 	front_row.on_drop = _on_shop_card_dropped
 	front_row.add_theme_constant_override("separation", 8)
 	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_add_lane_indicator(board_root, 10.0, 160.0, 0)
 	board_root.add_child(_make_lane_panel(front_row, 10.0, 160.0))
 
 	back_row = ArenaBoardRow.new()
@@ -196,10 +203,13 @@ func _build_ui() -> void:
 	back_row.on_drop = _on_shop_card_dropped
 	back_row.add_theme_constant_override("separation", 8)
 	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	_add_lane_indicator(board_root, 180.0, 330.0, 1)
 	board_root.add_child(_make_lane_panel(back_row, 180.0, 330.0))
 
 	player_front_container = front_row
 	player_back_container = back_row
+	player_front_highlight = _make_drop_highlight(board_root, 10.0, 160.0)
+	player_back_highlight = _make_drop_highlight(board_root, 180.0, 330.0)
 	drop_system = ArenaDropSystem.new()
 	drop_system.init(self)
 
@@ -449,6 +459,46 @@ func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRe
 # Panneau de rangée façon plateau 1v1 (scenes/battle/Battle.tscn, style
 # "lane" gris foncé translucide) : juste le fond visuel d'une rangée Avant/
 # Arrière (boutique ou plateau) — pas d'emplacement Rituel/Enchantement.
+# Icône discrète au centre d'une rangée vide (voir scripts/battle/LaneIndicator.gd,
+# réutilisé tel quel — même script que le 1v1) : reprend exactement les
+# offsets de Battle.tscn (120x120, centrée sur la même ligne verticale que le
+# panneau). Ajoutée AVANT le panneau (voir appels ci-dessus) pour rester
+# derrière les serviteurs une fois la rangée occupée.
+func _add_lane_indicator(parent: Control, offset_top: float, offset_bottom: float, filled_row: int) -> void:
+	var mid: float = (offset_top + offset_bottom) / 2.0
+	var indicator := LaneIndicator.new()
+	indicator.filled_row = filled_row
+	indicator.anchor_left = 0.5
+	indicator.anchor_right = 0.5
+	indicator.anchor_top = 0.5
+	indicator.anchor_bottom = 0.5
+	indicator.offset_left = -60.0
+	indicator.offset_right = 60.0
+	indicator.offset_top = mid - 60.0
+	indicator.offset_bottom = mid + 60.0
+	indicator.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(indicator)
+
+# Surlignage vert de dépôt (voir Battle.tscn : PlayerFrontHighlight/PlayerBack
+# Highlight, même couleur), affiché pendant le glisser d'une carte de la main
+# au-dessus d'une rangée où elle peut être posée — voir ArenaDropSystem.
+# update_player_drop_highlight. Masqué par défaut.
+func _make_drop_highlight(parent: Control, offset_top: float, offset_bottom: float) -> ColorRect:
+	var highlight := ColorRect.new()
+	highlight.visible = false
+	highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	highlight.color = Color(0, 1, 0, 0.2)
+	highlight.anchor_left = 0.5
+	highlight.anchor_right = 0.5
+	highlight.anchor_top = 0.5
+	highlight.anchor_bottom = 0.5
+	highlight.offset_left = -600.0
+	highlight.offset_right = 600.0
+	highlight.offset_top = offset_top
+	highlight.offset_bottom = offset_bottom
+	parent.add_child(highlight)
+	return highlight
+
 # Positionnée exactement comme une ligne du plateau 1v1 (Battle.tscn, lignes
 # 345-411) : ancrée au centre de l'écran (anchor 0.5/0.5), décalages fixes en
 # pixels par rapport à ce centre — jamais dans un flux qui la ferait bouger
