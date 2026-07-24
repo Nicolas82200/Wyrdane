@@ -233,3 +233,12 @@ func test_resolving_combat_shows_the_enemy_board_and_banner_then_hides_them() ->
 	assert_null(scene._live_sim, "la référence au combat en direct doit être nettoyée après résolution")
 	assert_eq(scene.shop_front_row.get_child_count(), 0, "la boutique doit rester vide après le combat (hors phase Boutique)")
 	assert_eq(scene.shop_back_row.get_child_count(), 0, "la boutique doit rester vide après le combat (hors phase Boutique)")
+
+func test_game_over_shows_the_styled_end_screen() -> void:
+	assert_false(scene.end_game_overlay.visible, "l'écran de fin ne doit pas être visible en cours de partie")
+	scene.human.is_eliminated = true
+	scene._show_game_over()
+	assert_true(scene.end_game_overlay.visible, "le voile doit s'afficher à la fin de partie")
+	assert_true(scene.end_game_screen_panel.visible, "le panneau doit s'afficher à la fin de partie")
+	assert_eq(scene.end_game_title_label.text, SettingsManager.t("ARENA_DEFEAT_TITLE"))
+	assert_true(scene.end_game_label.text.length() > 0, "le classement doit être affiché")

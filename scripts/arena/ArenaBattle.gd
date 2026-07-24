@@ -83,6 +83,9 @@ var portraits_column: VBoxContainer
 # cliquer un portrait remplace la vue par le sien, en lecture seule.
 var viewed_target = null
 var back_to_menu_button: Button
+var end_game_overlay: ColorRect
+var end_game_screen_panel: PanelContainer
+var end_game_title_label: Label
 var end_game_label: Label
 
 # ─── Combat animé (voir _resolve_combat_phase) : rejoue le combat du joueur
@@ -286,32 +289,7 @@ func _build_ui() -> void:
 	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(portraits_column)
 
-	# ─ Fin de partie : superposée au centre, masquée le reste du temps.
-	back_to_menu_button = Button.new()
-	back_to_menu_button.visible = false
-	back_to_menu_button.anchor_left = 0.5
-	back_to_menu_button.anchor_right = 0.5
-	back_to_menu_button.anchor_top = 0.5
-	back_to_menu_button.anchor_bottom = 0.5
-	back_to_menu_button.offset_left = -26.0
-	back_to_menu_button.offset_right = 26.0
-	back_to_menu_button.offset_top = 60.0
-	back_to_menu_button.offset_bottom = 112.0
-	back_to_menu_button.pressed.connect(_on_back_to_menu_pressed)
-	_style_button(back_to_menu_button, null, ArenaIcon.Kind.HOME)
-	add_child(back_to_menu_button)
-
-	end_game_label = Label.new()
-	end_game_label.visible = false
-	end_game_label.anchor_left = 0.5
-	end_game_label.anchor_right = 0.5
-	end_game_label.anchor_top = 0.5
-	end_game_label.anchor_bottom = 0.5
-	end_game_label.offset_left = -160.0
-	end_game_label.offset_right = 160.0
-	end_game_label.offset_top = -60.0
-	end_game_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_child(end_game_label)
+	_build_game_over_screen()
 
 	# ─ Main du joueur : la même Hand.tscn/Hand.gd que le mode 1v1, ancrée en
 	# bas de l'écran (voir Hand.tscn : anchor_top=1.0, grow_vertical=0) —
@@ -398,6 +376,81 @@ func _build_combat_banner() -> void:
 	enemy_hero_panel.visible = false
 	enemy_hero_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(enemy_hero_panel)
+
+# Écran de fin de partie façon 1v1 (scenes/battle/GameOverScreen.tscn : voile
+# sombre + panneau bordé d'or centré) plutôt qu'un simple Label — même
+# palette (fond quasi noir, bordure dorée, titre doré) reproduite ici à la
+# main (pas de réutilisation directe de la scène 1v1 : structure différente,
+# classement de partie au lieu de victoire/défaite simple + récompense).
+func _build_game_over_screen() -> void:
+	end_game_overlay = ColorRect.new()
+	end_game_overlay.visible = false
+	end_game_overlay.anchor_right = 1.0
+	end_game_overlay.anchor_bottom = 1.0
+	end_game_overlay.color = Color(0, 0, 0, 0.88)
+	end_game_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(end_game_overlay)
+
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.06, 0.05, 0.04, 0.95)
+	panel_style.border_width_left = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0.55, 0.41, 0.08, 1)
+	panel_style.corner_radius_top_left = 8
+	panel_style.corner_radius_top_right = 8
+	panel_style.corner_radius_bottom_right = 8
+	panel_style.corner_radius_bottom_left = 8
+
+	var panel := PanelContainer.new()
+	panel.visible = false
+	panel.anchor_left = 0.5
+	panel.anchor_top = 0.5
+	panel.anchor_right = 0.5
+	panel.anchor_bottom = 0.5
+	panel.offset_left = -220.0
+	panel.offset_top = -170.0
+	panel.offset_right = 220.0
+	panel.offset_bottom = 170.0
+	panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(panel)
+	# Le voile et le panneau apparaissent/disparaissent ensemble : `panel`
+	# porte l'état de référence, `end_game_overlay`/les enfants le suivent.
+	end_game_screen_panel = panel
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 32)
+	margin.add_theme_constant_override("margin_top", 28)
+	margin.add_theme_constant_override("margin_right", 32)
+	margin.add_theme_constant_override("margin_bottom", 24)
+	panel.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	margin.add_child(box)
+
+	end_game_title_label = Label.new()
+	end_game_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_game_title_label.add_theme_font_size_override("font_size", 32)
+	end_game_title_label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
+	box.add_child(end_game_title_label)
+
+	box.add_child(HSeparator.new())
+
+	end_game_label = Label.new()
+	end_game_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	end_game_label.add_theme_font_size_override("font_size", 16)
+	end_game_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 1))
+	box.add_child(end_game_label)
+
+	back_to_menu_button = Button.new()
+	back_to_menu_button.pressed.connect(_on_back_to_menu_pressed)
+	_style_button(back_to_menu_button, null, ArenaIcon.Kind.HOME)
+	var button_row := HBoxContainer.new()
+	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_row.add_child(back_to_menu_button)
+	box.add_child(button_row)
 
 func _make_label(parent: Node) -> Label:
 	var label := Label.new()
@@ -979,10 +1032,10 @@ func _resolve_combat_phase() -> void:
 func _show_game_over() -> void:
 	game_over = true
 	phase_timer.stop()
-	end_game_label.visible = true
-	back_to_menu_button.visible = true
-	var title: String = SettingsManager.t("ARENA_DEFEAT_TITLE") if human.is_eliminated else SettingsManager.t("ARENA_VICTORY_TITLE")
-	var lines: Array[String] = [title, "", SettingsManager.t("ARENA_RANKING_TITLE") + " :"]
+	end_game_overlay.visible = true
+	end_game_screen_panel.visible = true
+	end_game_title_label.text = SettingsManager.t("ARENA_DEFEAT_TITLE") if human.is_eliminated else SettingsManager.t("ARENA_VICTORY_TITLE")
+	var lines: Array[String] = [SettingsManager.t("ARENA_RANKING_TITLE") + " :"]
 	var ranking: Array[ArenaPlayerState] = match_.final_ranking()
 	for i in ranking.size():
 		lines.append("  %d. %s" % [i + 1, ranking[i].display_name])
