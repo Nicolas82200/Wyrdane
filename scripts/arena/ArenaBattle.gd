@@ -316,16 +316,17 @@ func _build_ui() -> void:
 	# Seul endroit du jeu avec du texte écrit (demande explicite du joueur) :
 	# le nom de la phase, traduit via SettingsManager.t (voir game.csv).
 	var timer_box := VBoxContainer.new()
-	timer_box.anchor_left = 1.0
-	timer_box.anchor_right = 1.0
-	timer_box.anchor_top = 0.5
-	timer_box.anchor_bottom = 0.5
-	timer_box.offset_left = -150.0
-	timer_box.offset_right = -20.0
-	timer_box.offset_top = -40.0
-	timer_box.offset_bottom = 40.0
 	timer_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	add_child(timer_box)
+	var timer_panel := _make_panel_background(timer_box)
+	timer_panel.anchor_left = 1.0
+	timer_panel.anchor_right = 1.0
+	timer_panel.anchor_top = 0.5
+	timer_panel.anchor_bottom = 0.5
+	timer_panel.offset_left = -150.0
+	timer_panel.offset_right = -20.0
+	timer_panel.offset_top = -40.0
+	timer_panel.offset_bottom = 40.0
+	add_child(timer_panel)
 
 	phase_label = Label.new()
 	phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
