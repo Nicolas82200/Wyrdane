@@ -140,6 +140,7 @@ KW_VIRULENT_DESC,"Dernier Souffle : le serviteur allié adjacent déclenche imm�
 KW_CHAIR_ADAPTATIVE_DESC,"Arrivée : copie un mot-clé au choix présent sur un serviteur adjacent (allié ou ennemi), de façon permanente.","Arrival: permanently copies a keyword of your choice from an adjacent minion (allied or enemy)."
 KW_ASSIMILATION_DESC,"Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 de façon permanente (une fois par mort).","Devour: this minion can absorb the remains to permanently gain +1/+1 (once per death)."
 KW_INSTABLE_DESC,"Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée.","This minion cannot be targeted by healing effects, allied or enemy — its flesh is too erratic to stabilize."
+FUSION_CHOOSE_KEYWORD,"Choisir le mot-clé absorbé","Choose the keyword to absorb"
 TRIG_ONPLAY_NAME,"Arrivée","Arrival"
 TRIG_ONPLAY_DESC,"Déclenché lorsque ce serviteur arrive sur le champ de bataille.","Triggers when this minion arrives on the battlefield."
 TRIG_DEATHRATTLE_NAME,"Dernier souffle","Deathrattle"

@@ -122,6 +122,14 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.reset_targeting_state()
 			return
 		battle.combat_log.card_played(card_data, true)
+		# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
+		# que l'effet ne se joue — uniquement en résolution immédiate (Éphémère,
+		# Rituel sans durée) ; un Enchantement/Rituel à durée rejoint sa zone
+		# sans reveal, donc pas de popup pour lui.
+		var shows_popup: bool = card_data.card_type != "Enchantment" \
+			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
+		if shows_popup:
+			await battle.card_popup_system.show_card_popup(card_data)
 		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
 			AudioManager.play_spell_cast(card_data)
 			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
@@ -144,9 +152,6 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			await battle.death_system.process_deaths()
 		else:
 			battle.player_graveyard.add_spell(card_data)
-			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
-			# que l'effet ne se joue
-			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				if target is Minion:
 					await battle.effect_manager.execute_effect(battle, null, effect, target)
@@ -177,6 +182,10 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
 		battle.combat_log.card_played(card_data, true)
+		var shows_popup: bool = card_data.card_type != "Enchantment" \
+			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
+		if shows_popup:
+			await battle.card_popup_system.show_card_popup(card_data)
 		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
 			AudioManager.play_spell_cast(card_data)
 			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
@@ -199,9 +208,6 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			await battle.death_system.process_deaths()
 		else:
 			battle.player_graveyard.add_spell(card_data)
-			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
-			# que l'effet ne se joue
-			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()
