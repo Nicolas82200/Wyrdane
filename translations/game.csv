@@ -6,6 +6,8 @@ MENU_REPLAY_TUTORIAL_DEBUG,"Refaire le tutoriel (debug)","Replay tutorial (debug
 MENU_PACKS,"Packs","Packs"
 MENU_CURRENCY,"%d 🪙","%d 🪙"
 MENU_NEWS_TITLE,"Actualités","News"
+MENU_DISCORD,"Discord","Discord"
+MENU_DISCORD_TOOLTIP,"Rejoindre notre serveur Discord","Join our Discord server"
 "Bienvenue sur Wyrdane","Bienvenue sur Wyrdane","Welcome to Wyrdane"
 "Le jeu évolue en permanence : nouvelles cartes, équilibrages et fonctionnalités arrivent régulièrement. Suis cet espace pour ne rien manquer !","Le jeu évolue en permanence : nouvelles cartes, équilibrages et fonctionnalités arrivent régulièrement. Suis cet espace pour ne rien manquer !","The game keeps evolving: new cards, balance changes and features arrive regularly. Keep an eye on this space so you don't miss anything!"
 "Nouvelle race : Abomination","Nouvelle race : Abomination","New race: Abomination"
