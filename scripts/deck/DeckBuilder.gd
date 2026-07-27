@@ -916,12 +916,13 @@ func _build_filter_bar() -> void:
 
 	var all_label := SettingsManager.t("deck.filter_all")
 
-	# Race
+	# Race (seules les races dotées de cartes sont proposées comme filtre)
 	var race_values: Array = [-1]
 	var race_labels: Array[String] = [all_label]
-	for key in Race.Type.keys():
-		race_values.append(Race.Type[key])
-		race_labels.append(SettingsManager.t("RACE_" + key))
+	var race_keys := Race.Type.keys()
+	for race_value in Race.get_implemented_races():
+		race_values.append(race_value)
+		race_labels.append(SettingsManager.t("RACE_" + race_keys[race_value]))
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
 	_add_filter_group(filter_bar, race_values,
 		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),
