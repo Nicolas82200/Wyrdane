@@ -29,9 +29,13 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
 @onready var steam_name_label: Label = $SteamProfile/NameLabel
 @onready var currency_label: Label = $CurrencyLabel
+@onready var match_stats_label: Label = $MatchStatsLabel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
 @onready var discord_button: TextureButton = $SocialRow/DiscordButton
+@onready var offline_banner: PanelContainer = $OfflineBanner
+@onready var offline_banner_label: Label = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerLabel
+@onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -69,11 +73,26 @@ func _ready() -> void:
 	else:
 		push_error("SettingsMenu introuvable !")
 	credits_panel.hide()
+	offline_banner.hide()
+	offline_banner_close.set_meta("no_click_sound", true)
+	offline_banner_close.pressed.connect(offline_banner.hide)
+	BackendClient.login_failed.connect(func(reason: String):
+		push_warning("Connexion backend échouée : %s" % reason)
+		_show_offline_banner()
+	)
+	DeckManager.sync_failed.connect(func(reason: String):
+		push_warning("Sync decks échouée : %s" % reason)
+		_show_offline_banner()
+	)
 	_update_steam_profile()
 	CurrencyManager.balance_changed.connect(func(new_balance: int):
 		currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
+	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
+		match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
+	)
+	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_load_news()
 	_start_backend_sync()
 	_play_intro_animation()
@@ -255,6 +274,13 @@ func _on_legal_pressed() -> void:
 func _on_quit() -> void:
 	get_tree().quit()
 
+# Rend visible la bannière "mode hors ligne" (backend/Steam injoignable) :
+# non bloquante, dismissible, tant que la connexion n'a pas été rétablie
+# (voir CollectionManager/CurrencyManager : la progression n'est simplement
+# pas sauvegardée, aucune donnée n'est perdue localement).
+func _show_offline_banner() -> void:
+	offline_banner.visible = true
+
 # Met à jour tous les libellés du menu dans la langue courante.
 func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
@@ -276,3 +302,5 @@ func _retranslate() -> void:
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	_populate_news()
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
+	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
+	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
