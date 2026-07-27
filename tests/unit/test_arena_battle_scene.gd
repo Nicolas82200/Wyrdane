@@ -145,6 +145,32 @@ func test_hand_contains_both_minions_and_purchased_spells_together() -> void:
 	assert_eq(scene.hand.container.get_child_count(), 2,
 		"la main doit afficher le serviteur et l'Incantation ensemble")
 
+func test_merged_minion_shows_a_star_overlay_in_hand_and_on_board() -> void:
+	var card := CardData.new()
+	card.card_name = "Merged"
+	var merged := Minion.new(card, true, "Front")
+	merged.star_level = 2
+	scene.human.hand.append(merged)
+	await scene._refresh_hand()
+	var hand_card: Card = scene.hand.container.get_child(0)
+	var hand_has_star_badge := false
+	for child in hand_card.get_children():
+		if child is HBoxContainer:
+			hand_has_star_badge = true
+	assert_true(hand_has_star_badge, "la carte en main doit porter l'overlay étoile")
+
+	scene.human.hand.erase(merged)
+	scene.human.board_front.append(merged)
+	scene._refresh_board()
+	await get_tree().process_frame
+	var slot: ArenaBoardMinionSlot = scene.front_row.get_child(0)
+	var visual: BoardMinion = slot.get_child(0)
+	var has_star_badge := false
+	for child in visual.get_children():
+		if child is HBoxContainer:
+			has_star_badge = true
+	assert_true(has_star_badge, "le serviteur fusionné doit porter l'overlay étoile sur le plateau")
+
 func test_dropping_a_purchased_spell_onto_the_board_casts_it() -> void:
 	var spell_card := CardData.new()
 	spell_card.card_name = "Buff"

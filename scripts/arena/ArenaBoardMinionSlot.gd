@@ -22,6 +22,12 @@ func setup(m: Minion) -> void:
 	visual.set_minion(m)
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = visual.custom_minimum_size
+	# Étoile de fusion (README « Affichage et déclenchement de la fusion » :
+	# étoile dorée en overlay, coin haut) : BoardMinion.gd est le script 1v1,
+	# qui ne connaît pas star_level (concept propre à la fusion Arena) — on
+	# ajoute donc l'overlay ici plutôt que dans le script partagé.
+	if m.star_level > 1:
+		ArenaStarOverlay.add_to(visual, m.star_level)
 
 func _get_drag_data(_at_position: Vector2):
 	if minion == null:

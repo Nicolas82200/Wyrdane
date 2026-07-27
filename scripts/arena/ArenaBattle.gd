@@ -856,6 +856,18 @@ func _refresh_hand() -> void:
 		for card_data in human.spell_hand:
 			cards.append(card_data)
 		await hand.set_hand(cards)
+		# Étoile de fusion (voir ArenaStarOverlay) : Hand.gd ne connaît que des
+		# CardData, jamais le Minion/star_level qui l'accompagne — les cartes
+		# apparaissent dans `hand.container` dans le même ordre que `cards`
+		# ci-dessus, donc les `human.hand.size()` premiers nœuds correspondent
+		# aux serviteurs (jamais les Incantations, qui n'ont pas de star_level).
+		var card_nodes := hand.container.get_children()
+		for i in human.hand.size():
+			if i >= card_nodes.size():
+				break
+			var minion: Minion = human.hand[i]
+			if minion.star_level > 1:
+				ArenaStarOverlay.add_to(card_nodes[i], minion.star_level)
 		if not _hand_refresh_dirty:
 			break
 	_hand_refresh_running = false
