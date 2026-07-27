@@ -470,7 +470,20 @@ Le projet utilise des singletons pour des systèmes globaux :
 ---
 
 ## 🎮 Mode Battle Royale (8 joueurs) — Design (v1)
-*Document de design — en cours de discussion*
+*Document de design — cible visée à terme (réseau, 8 joueurs). Voir « État actuel du prototype » ci-dessous pour ce qui existe réellement en jeu aujourd'hui.*
+
+### 🚧 État actuel du prototype (`scripts/arena/`, scène `scenes/arena/ArenaBattle.tscn`)
+
+Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
+
+- **4 participants, solo local uniquement** (1 joueur humain + 3 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels).
+- **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board et anti-répétition d'appariement : tout ça est implémenté tel que décrit plus bas.
+- **Pas de verrouillage de case boutique au reroll** (mentionné en introduction plus bas) : retiré du prototype, chaque reroll retire toutes les cases non encore achetées.
+- **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 10 secondes, phase Combat 15 secondes (affichage du résultat), enchaînement entièrement automatique — pas de bouton "prêt"/"round suivant" à cliquer.
+- **Combat du joueur humain rejoué avec animation** (réutilise telle quelle `CombatSystem`/`AnimationSystem`/`BoardVisualSystem`/`DeathSystem` du 1v1, sur les propres rangées Avant/Arrière du joueur + les rangées de la boutique reconverties en plateau adverse le temps du combat) — contrairement à la note « pas de ralenti visuel » plus bas, qui décrivait l'intention initiale avant que l'animation ne soit ajoutée. Les combats bots-contre-bots que le joueur ne voit pas restent résolus headless et instantanément (`SimulatedBattle`).
+- **Une seule main** pour les serviteurs ET les Incantations achetées (`Hand.gd`/`Hand.tscn`, réutilisé tel quel), pas deux zones séparées.
+- **Cartes Arena-only** (`CardData.arena_only`) : quelques serviteurs et Incantations exclusifs à ce mode existent déjà en plus du pool 1v1 normal, voir `CardLibrary.arena_only_cards`.
+- **UI calquée sur le plateau 1v1** (mêmes coordonnées de rangées/héros que `Battle.tscn`, mêmes indicateurs de rangée et surlignage de dépôt, écran de fin de partie stylé pareil) — pas d'emplacements Rituel/Enchantement, pas de deck/cimetière (inutiles ici : pas de pioche, pas de mort permanente hors combat).
 
 ### 🎯 Concept général
 
@@ -772,11 +785,11 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
-*   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
+*   **Prototype Arena / Battle Royale jouable en solo local** (4 participants : 1 joueur + 3 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design 8 joueurs (pas de réseau, timers différents, pas de verrouillage de boutique)
 
 ### À faire
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
-*   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
+*   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Cartes Démon : passe d'éligibilité des Incantations (non couverte lors de l'analyse initiale)
 *   Nouvelles races : Elfe, Nain
 *   Mode campagne et collection de cartes
