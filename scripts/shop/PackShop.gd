@@ -14,8 +14,8 @@ class_name PackShop
 @export var card_scene: PackedScene
 
 const CARD_SIZE := Vector2(250, 375)
-const STAGE_SCALE := 1.45
-const COLLECTED_SCALE := 0.4
+const STAGE_SCALE := 1.25
+const COLLECTED_SCALE := 0.32
 const FLIP_HALF_DURATION := 0.14
 const FLIP_TILT_DEGREES := 7.0
 const FIRST_REVEAL_DELAY := 0.2
@@ -35,8 +35,8 @@ const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
 @onready var free_button: Button = $Panel/VBox/FreeButtonMargin/FreeButton
 @onready var close_button: Button = $Panel/VBox/CloseButtonMargin/CloseButton
 @onready var skip_hint_label: Label = $Panel/VBox/SkipHintLabel
-@onready var stage_container: CenterContainer = $Panel/VBox/RevealArea/StageContainer
-@onready var collected_row: HBoxContainer = $Panel/VBox/RevealArea/CollectedMargin/CollectedRow
+@onready var stage_container: CenterContainer = $Panel/VBox/StageContainer
+@onready var collected_row: HBoxContainer = $Panel/VBox/CollectedRowMargin/CollectedRow
 @onready var title_label: Label = $Panel/VBox/TitleMargin/Title
 @onready var shake_target: Control = $Panel
 @onready var flash_rect: ColorRect = $FlashRect
