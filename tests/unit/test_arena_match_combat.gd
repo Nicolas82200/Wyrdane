@@ -48,3 +48,24 @@ func test_reset_after_combat_clears_temporary_death_state() -> void:
 	# doivent réapparaître (mort temporaire) sur le plateau au round suivant.
 	assert_true(p1.board_front.has(a), "un serviteur mort en combat simulé reste sur le plateau (mort temporaire)")
 	assert_eq(a.damage_taken, 0, "l'état de vie doit être réinitialisé après le combat")
+
+func test_resolve_pairing_always_treats_the_human_as_side_a_regardless_of_argument_order() -> void:
+	# run_combat() mappe front_a/back_a -> sim.player_minions (voir
+	# SimulatedBattle), convention dont dépend le combat animé du joueur
+	# humain (ArenaBattle._resolve_combat_phase/enable_live_visuals) pour
+	# savoir quel plateau afficher côté "joueur" — _resolve_pairing doit donc
+	# toujours ramener players[0] (le joueur humain) en position "a", même
+	# quand l'appariement le donne en second argument.
+	var strong_card := _make_card("Strong", 3, "res://fake/match_swap_strong.tres", 10, 10)
+	var weak_card := _make_card("Weak", 1, "res://fake/match_swap_weak.tres", 1, 1)
+	var pool := ArenaCardPool.new([strong_card, weak_card])
+	var human := ArenaPlayerState.new("Human")
+	var bot := ArenaPlayerState.new("Bot", true)
+	bot.hero_hp = 2
+	human.board_front.append(Minion.new(strong_card, true, "Front"))
+	bot.board_front.append(Minion.new(weak_card, true, "Front"))
+	var players: Array[ArenaPlayerState] = [human, bot]
+	var m := ArenaMatch.new(players, pool)
+	await m._resolve_pairing(bot, human)
+	assert_false(human.is_eliminated, "le joueur humain (plateau fort) doit gagner peu importe l'ordre des arguments")
+	assert_true(bot.is_eliminated, "le bot (plateau faible) doit être éliminé")
