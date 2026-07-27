@@ -976,6 +976,13 @@ offset_right = 8.0
 offset_bottom = 8.0
 text = "⚙️"
 
+[node name="HelpButton" type="Button" parent="." unique_id=1329099648]
+layout_mode = 0
+offset_left = 46.0
+offset_right = 54.0
+offset_bottom = 8.0
+text = "❔"
+
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 1
 show_quit = true
