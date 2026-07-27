@@ -678,13 +678,18 @@ func has_enemy_taunt(attacker: Minion) -> bool:
 			return true
 	return false
 
+# Généralisé pour un attaquant de n'importe quel camp (joueur ou IA/réseau) :
+# la rangée/le camp "en face" se déduit de la propriété de l'attaquant plutôt
+# que d'être toujours le camp ennemi du joueur local.
 func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	var defending_is_player: bool = attacker != null and not attacker.owner_is_player
+	var defenders: Array[Minion] = player_minions if defending_is_player else enemy_minions
 	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
-		return enemy_minions
-	var front: Array[Minion] = get_front_minions(false)
+		return defenders
+	var front: Array[Minion] = get_front_minions(defending_is_player)
 	if not front.is_empty():
 		return front
-	return enemy_minions
+	return defenders
 
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
@@ -835,12 +840,16 @@ func _can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
 		return false
 	return true
 
+# Généralisé pour un attaquant de n'importe quel camp : utilisé par
+# SelectionSystem (joueur local), AISystem et NetworkOpponent (revalidation
+# des commandes distantes).
 func _can_attack_hero(attacker: Minion) -> bool:
 	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
 		return false
 	if has_enemy_taunt(attacker):
 		return false
-	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
+	var defending_is_player: bool = not attacker.owner_is_player
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 

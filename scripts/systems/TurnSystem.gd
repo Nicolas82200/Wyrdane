@@ -24,6 +24,7 @@ func end_turn() -> void:
 	if battle.game_over:
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
 

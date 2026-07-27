@@ -149,10 +149,14 @@ func _apply(cmd: Dictionary) -> void:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			if attacker != null and not attacker.owner_is_player:
+			# Revalide la règle "Rangée Avant vide"/Rempart côté réception (battle._can_attack_hero
+			# est généralisé pour n'importe quel camp attaquant) : un pair distant désynchronisé
+			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
+			# perform_hero_attack lui-même n'effectue aucune validation.
+			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
 				await battle.combat_system.perform_hero_attack(attacker)
 			elif attacker != null:
-				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		NetCommand.ACTIVATE_FUSION:
@@ -294,6 +298,7 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent
 		# AVANT les effets du sort, comme dans CardSystem, pour garder l'ordre
 		# d'attribution des ids identique entre les deux clients.
+		await battle.trigger_system.fire("OnSpell", null, true)
 		for ally in battle.enemy_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		var proxy := Minion.new(card, false, "")
