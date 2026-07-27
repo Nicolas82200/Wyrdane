@@ -7,6 +7,7 @@ shader_type canvas_item;
 // zones. Voir SettingsManager.set_colorblind_mode.
 // 0 = aucun, 1 = protanopie, 2 = deutéranopie, 3 = tritanopie.
 uniform int mode : hint_range(0, 3) = 0;
+uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 
 vec3 rgb2hsv(vec3 c) {
 	vec4 k = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);

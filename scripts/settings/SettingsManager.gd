@@ -316,13 +316,10 @@ func _save() -> void:
 	cfg.set_value("display", "fullscreen", fullscreen)
 	cfg.set_value("display", "vsync", vsync)
 	cfg.set_value("display", "quality", quality)
-<<<<<<< HEAD
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
-=======
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
->>>>>>> dev
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -347,16 +344,13 @@ func _load() -> void:
 	quality = cfg.get_value("display", "quality", DEFAULT_QUALITY) as String
 	if not QUALITIES.has(quality):
 		quality = DEFAULT_QUALITY
-<<<<<<< HEAD
 	match_wins = cfg.get_value("stats", "match_wins", 0) as int
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
-=======
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String
 	if not COLORBLIND_MODES.has(colorblind_mode):
 		colorblind_mode = DEFAULT_COLORBLIND_MODE
->>>>>>> dev
 
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
