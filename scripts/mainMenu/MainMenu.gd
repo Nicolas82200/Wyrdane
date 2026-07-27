@@ -25,14 +25,14 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
 @onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
-@onready var steam_profile:   Control = $SteamProfile
-@onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
-@onready var steam_name_label: Label = $SteamProfile/NameLabel
-@onready var currency_label: Label = $CurrencyLabel
-@onready var match_stats_label: Label = $MatchStatsLabel
+@onready var steam_profile:   Control = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
+@onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
+@onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
+@onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var match_stats_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/MatchStatsLabel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
-@onready var discord_button: TextureButton = $SocialRow/DiscordButton
+@onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var offline_banner: PanelContainer = $OfflineBanner
 @onready var offline_banner_label: Label = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerLabel
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
@@ -96,6 +96,7 @@ func _ready() -> void:
 	_load_news()
 	_start_backend_sync()
 	_play_intro_animation()
+	_wire_nav_hover_pop()
 
 # Apparition en cascade des boutons de navigation (la barre de l'écran de
 # chargement disparaît elle-même en fondu — voir
@@ -111,6 +112,44 @@ func _play_intro_animation() -> void:
 		var tween := create_tween()
 		tween.tween_interval(0.15 + i * 0.07)
 		tween.tween_property(button, "modulate:a", 1.0, 0.3)
+
+# Léger "pop" d'échelle au survol des boutons de nav, en plus du changement de
+# couleur déjà géré par le thème/StyleBox — renforce le retour visuel sans
+# toucher au style existant.
+func _wire_nav_hover_pop() -> void:
+	for child in play_button.get_parent().get_children():
+		var button := child as BaseButton
+		if button == null:
+			continue
+		button.mouse_entered.connect(func():
+			if button.disabled:
+				return
+			button.pivot_offset = button.size / 2.0
+			var tween := create_tween()
+			tween.tween_property(button, "scale", Vector2(1.035, 1.035), 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		)
+		button.mouse_exited.connect(func():
+			var tween := create_tween()
+			tween.tween_property(button, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		)
+
+# Fondu d'apparition pour les panneaux plein écran (Decks/Packs), qui portent
+# déjà leur propre voile d'assombrissement en fond — un simple fondu du
+# contrôle entier évite tout artefact de bord lié à un scale.
+func _fade_in_overlay(panel: Control) -> void:
+	panel.modulate.a = 0.0
+	var tween := create_tween()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+# Pop d'apparition (fondu + léger zoom depuis 92%) pour les petits panneaux
+# centrés sans voile de fond (Crédits/Mentions légales).
+func _pop_in_panel(panel: Control) -> void:
+	panel.pivot_offset = panel.size / 2.0
+	panel.modulate.a = 0.0
+	panel.scale = Vector2(0.92, 0.92)
+	var tween := create_tween()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.16)
+	tween.parallel().tween_property(panel, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 # Affiche l'avatar + pseudo Steam du joueur local en bas à gauche du menu.
 # Masqué entièrement si Steam est indisponible (même logique que le reste du
@@ -178,12 +217,14 @@ func _on_decks_button_pressed() -> void:
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
 	deck_list.visible = true
+	_fade_in_overlay(deck_list)
 	if deck_list.has_method("_refresh"):
 		deck_list._refresh()
 
 func _on_packs_button_pressed() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	pack_shop.visible = true
+	_fade_in_overlay(pack_shop)
 	if pack_shop.has_method("refresh"):
 		pack_shop.refresh()
 
@@ -265,11 +306,14 @@ func _on_discord_pressed() -> void:
 func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
 	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
+	if credits_panel.visible:
+		_pop_in_panel(credits_panel)
 
 func _on_legal_pressed() -> void:
 	credits_panel.hide()
 	legal_panel.visible = true
 	AudioManager.play(AudioManager.OPEN_MENU)
+	_pop_in_panel(legal_panel)
 
 func _on_quit() -> void:
 	get_tree().quit()

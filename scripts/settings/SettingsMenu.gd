@@ -72,6 +72,12 @@ func open() -> void:
 	confirm_panel.hide()
 	panel.show()
 	show()
+	panel.pivot_offset = panel.size / 2.0
+	panel.modulate.a = 0.0
+	panel.scale = Vector2(0.94, 0.94)
+	var tween := create_tween()
+	tween.tween_property(panel, "modulate:a", 1.0, 0.15)
+	tween.parallel().tween_property(panel, "scale", Vector2.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 func close() -> void:
 	AudioManager.play(AudioManager.CLOSE_MENU)
