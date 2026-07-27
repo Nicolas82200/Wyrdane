@@ -93,12 +93,8 @@ controls.toggle_enemy_graveyard,"Cimetière ennemi","Enemy graveyard"
 controls.conflict,"Touche déjà utilisée par : %s","Key already used by: %s"
 controls.reset,"Réinitialiser","Reset"
 controls.back,"← Retour","← Back"
-<<<<<<< HEAD
-turn.start,"DÉBUT DU TOUR","TURN START"
-=======
 controls.listening,"...","..."
 turn.start,"— DÉBUT DU TOUR —","— TURN START —"
->>>>>>> dev
 turn.choose,"Choisissez votre bonus","Choose your bonus"
 turn.draw_title,"Pioche","Draw"
 turn.draw_desc,"Piochez une carte\nsupplémentaire de votre deck.","Draw an extra card\nfrom your deck."
