@@ -440,6 +440,47 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20
 
+[node name="OfflineBanner" type="PanelContainer" parent="." unique_id=300000070]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 16.0
+offset_right = 320.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="OfflineBannerMargin" type="MarginContainer" parent="OfflineBanner" unique_id=300000071]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="OfflineBannerRow" type="HBoxContainer" parent="OfflineBanner/OfflineBannerMargin" unique_id=300000052]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="OfflineBannerLabel" type="Label" parent="OfflineBanner/OfflineBannerMargin/OfflineBannerRow" unique_id=300000053]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.95, 0.75, 0.35, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 15
+text = "Connexion au serveur impossible : mode hors ligne."
+autowrap_mode = 3
+vertical_alignment = 1
+
+[node name="OfflineBannerCloseButton" type="Button" parent="OfflineBanner/OfflineBannerMargin/OfflineBannerRow" unique_id=300000054]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 14
+text = "✕"
+
 [node name="DeckList" parent="." unique_id=300000002 instance=ExtResource("4_decklist")]
 visible = false
 layout_mode = 1
