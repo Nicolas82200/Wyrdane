@@ -44,43 +44,43 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -700.0
-offset_top = -360.0
-offset_right = 700.0
-offset_bottom = 360.0
+offset_left = -720.0
+offset_top = -380.0
+offset_right = 720.0
+offset_bottom = 380.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="TitleMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 24
+theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 32
 
 [node name="Title" type="Label" parent="Panel/VBox/TitleMargin"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
 theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 34
 text = "Packs"
 horizontal_alignment = 1
 
 [node name="BalanceLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "Solde : 0"
 horizontal_alignment = 1
 
 [node name="ProgressLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.62, 0.55, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="Panel/VBox"]
@@ -91,32 +91,32 @@ horizontal_alignment = 1
 
 [node name="OpenRowMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 200
-theme_override_constants/margin_right = 200
+theme_override_constants/margin_left = 220
+theme_override_constants/margin_right = 220
 
 [node name="OpenRow" type="HBoxContainer" parent="Panel/VBox/OpenRowMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="OpenButton" type="Button" parent="Panel/VBox/OpenRowMargin/OpenRow"]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Ouvrir un pack"
 
 [node name="OddsButton" type="Button" parent="Panel/VBox/OpenRowMargin/OpenRow"]
-custom_minimum_size = Vector2(36, 52)
+custom_minimum_size = Vector2(36, 48)
 layout_mode = 2
 tooltip_text = ""
 text = "?"
 
 [node name="FreeButtonMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 200
-theme_override_constants/margin_right = 200
+theme_override_constants/margin_left = 220
+theme_override_constants/margin_right = 220
 
 [node name="FreeButton" type="Button" parent="Panel/VBox/FreeButtonMargin"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Ouvrir un pack gratuit (test)"
 
@@ -131,22 +131,56 @@ theme_override_font_sizes/font_size = 13
 text = "Cliquer pour tout révéler"
 horizontal_alignment = 1
 
-[node name="CardsScroll" type="ScrollContainer" parent="Panel/VBox"]
-custom_minimum_size = Vector2(0, 400)
+[node name="RevealArea" type="Control" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 470)
 layout_mode = 2
 size_flags_vertical = 3
+clip_contents = true
 
-[node name="CardsGrid" type="HBoxContainer" parent="Panel/VBox/CardsScroll"]
+[node name="StageContainer" type="CenterContainer" parent="Panel/VBox/RevealArea"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -128.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CollectedMargin" type="MarginContainer" parent="Panel/VBox/RevealArea"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+
+[node name="CollectedRow" type="HBoxContainer" parent="Panel/VBox/RevealArea/CollectedMargin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+size_flags_horizontal = 4
+theme_override_constants/separation = 14
+alignment = 1
 
 [node name="CloseButtonMargin" type="MarginContainer" parent="Panel/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 200
-theme_override_constants/margin_right = 200
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 220
+theme_override_constants/margin_right = 220
+theme_override_constants/margin_bottom = 16
 
 [node name="CloseButton" type="Button" parent="Panel/VBox/CloseButtonMargin"]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Fermer"
+
+[node name="FlashRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
