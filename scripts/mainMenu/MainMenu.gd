@@ -31,7 +31,7 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var currency_label: Label = $CurrencyLabel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
-@onready var discord_button: Button = $SocialRow/DiscordButton
+@onready var discord_button: TextureButton = $SocialRow/DiscordButton
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
@@ -275,5 +275,4 @@ func _retranslate() -> void:
 	close_legal.text    = SettingsManager.t("MENU_CLOSE")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	_populate_news()
-	discord_button.text = SettingsManager.t("MENU_DISCORD")
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
