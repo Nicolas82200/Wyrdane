@@ -9,6 +9,9 @@ signal back_requested
 @onready var highlight_check:   CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightCheck
 @onready var language_option:   OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageOption
 @onready var difficulty_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyOption
+@onready var text_scale_slider: HSlider      = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleSlider
+@onready var text_scale_value_label: Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleValueLabel
+@onready var colorblind_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindOption
 @onready var apply_button:      Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton
 @onready var back_button:       Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton
 
@@ -22,6 +25,8 @@ signal back_requested
 	"graphics.highlights":  $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightLabel,
 	"graphics.language":    $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageLabel,
 	"graphics.difficulty":  $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyLabel,
+	"graphics.text_scale":  $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleLabel,
+	"graphics.colorblind":  $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindLabel,
 	"graphics.apply":       $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton,
 	"graphics.back":        $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton,
 }
@@ -46,11 +51,20 @@ const QUALITY_LABEL_KEYS := {
 	"high":   "quality.high",
 }
 
+# Clé de traduction associée à chaque mode d'assistance daltonisme.
+const COLORBLIND_LABEL_KEYS := {
+	"none":         "colorblind.none",
+	"protanopia":   "colorblind.protanopia",
+	"deuteranopia": "colorblind.deuteranopia",
+	"tritanopia":   "colorblind.tritanopia",
+}
+
 func _ready() -> void:
 	_populate_resolutions()
 	_populate_quality()
 	_populate_languages()
 	_populate_difficulties()
+	_populate_colorblind_modes()
 
 	fullscreen_check.button_pressed = SettingsManager.fullscreen
 	vsync_check.button_pressed = SettingsManager.vsync
@@ -66,6 +80,16 @@ func _ready() -> void:
 
 	# Difficulté IA : appliquée immédiatement, prise en compte à la prochaine bataille.
 	difficulty_option.item_selected.connect(_on_difficulty_selected)
+
+	# Accessibilité : taille de l'interface et assistance daltonisme, appliquées
+	# immédiatement pour un retour visuel direct (pas besoin de « Appliquer »).
+	text_scale_slider.value = SettingsManager.text_scale
+	_update_text_scale_label(SettingsManager.text_scale)
+	text_scale_slider.value_changed.connect(func(value: float):
+		SettingsManager.set_text_scale(value)
+		_update_text_scale_label(value)
+	)
+	colorblind_option.item_selected.connect(_on_colorblind_selected)
 
 	apply_button.pressed.connect(_apply)
 	back_button.pressed.connect(func(): back_requested.emit(); hide())
@@ -122,6 +146,23 @@ func _on_difficulty_selected(index: int) -> void:
 	var level: String = difficulty_option.get_item_metadata(index)
 	SettingsManager.set_ai_difficulty(level)
 
+func _populate_colorblind_modes() -> void:
+	colorblind_option.clear()
+	var modes: Array = SettingsManager.COLORBLIND_MODES
+	for i in modes.size():
+		var mode: String = modes[i]
+		colorblind_option.add_item(SettingsManager.t(COLORBLIND_LABEL_KEYS.get(mode, mode)))
+		colorblind_option.set_item_metadata(i, mode)
+		if mode == SettingsManager.colorblind_mode:
+			colorblind_option.selected = i
+
+func _on_colorblind_selected(index: int) -> void:
+	var mode: String = colorblind_option.get_item_metadata(index)
+	SettingsManager.set_colorblind_mode(mode)
+
+func _update_text_scale_label(value: float) -> void:
+	text_scale_value_label.text = "%d%%" % round(value * 100.0)
+
 func _on_language_changed(_locale: String) -> void:
 	# La liste de qualité et celle de difficulté contiennent des textes
 	# traduits : on les régénère en conservant la sélection courante.
@@ -131,6 +172,9 @@ func _on_language_changed(_locale: String) -> void:
 	var prev_difficulty := difficulty_option.selected
 	_populate_difficulties()
 	difficulty_option.selected = prev_difficulty
+	var prev_colorblind := colorblind_option.selected
+	_populate_colorblind_modes()
+	colorblind_option.selected = prev_colorblind
 	_retranslate()
 
 # Met à jour tous les libellés de ce menu dans la langue courante.
