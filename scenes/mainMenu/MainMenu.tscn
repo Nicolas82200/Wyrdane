@@ -390,69 +390,41 @@ theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 16
 text = "Fermer"
 
-[node name="VersionLabel" type="Label" parent="." unique_id=1202251540]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -160.0
-offset_top = -40.0
-offset_right = -16.0
-offset_bottom = -12.0
-grow_horizontal = 0
-grow_vertical = 0
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 14
-text = "v0.1 — prototype"
-horizontal_alignment = 2
-vertical_alignment = 2
-
-[node name="SocialRow" type="HBoxContainer" parent="." unique_id=300000050]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -60.0
-offset_top = -84.0
-offset_right = -16.0
-offset_bottom = -44.0
-grow_horizontal = 0
-grow_vertical = 0
-alignment = 2
-
-[node name="DiscordButton" type="TextureButton" parent="SocialRow" unique_id=300000051]
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-texture_normal = ExtResource("9_discord")
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="SteamProfile" type="HBoxContainer" parent="." unique_id=300000020]
+[node name="PlayerStatusPanel" type="PanelContainer" parent="." unique_id=300000020]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 16.0
-offset_top = -64.0
-offset_right = 240.0
+offset_top = -166.0
+offset_right = 288.0
 offset_bottom = -16.0
 grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="PlayerMargin" type="MarginContainer" parent="PlayerStatusPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="PlayerVBox" type="VBoxContainer" parent="PlayerStatusPanel/PlayerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SteamProfile" type="HBoxContainer" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000021]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Avatar" type="TextureRect" parent="SteamProfile" unique_id=300000021]
-custom_minimum_size = Vector2(48, 48)
+[node name="Avatar" type="TextureRect" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000022]
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="NameLabel" type="Label" parent="SteamProfile" unique_id=300000022]
+[node name="NameLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000023]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
@@ -462,37 +434,67 @@ theme_override_font_sizes/font_size = 18
 text = "Pseudo Steam"
 vertical_alignment = 1
 
-[node name="CurrencyLabel" type="Label" parent="." unique_id=300000032]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -220.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 48.0
-grow_horizontal = 0
+[node name="PlayerSep" type="HSeparator" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox"]
+layout_mode = 2
+
+[node name="CurrencyLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000032]
+layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "0"
-horizontal_alignment = 2
 
-[node name="MatchStatsLabel" type="Label" parent="." unique_id=300000072]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -220.0
-offset_top = 52.0
-offset_right = -16.0
-offset_bottom = 76.0
-grow_horizontal = 0
+[node name="MatchStatsLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000072]
+layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "0V - 0D"
-horizontal_alignment = 2
+
+[node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -206.0
+offset_top = -58.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="FooterMargin" type="MarginContainer" parent="FooterPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 6
+
+[node name="FooterRow" type="HBoxContainer" parent="FooterPanel/FooterMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="VersionLabel" type="Label" parent="FooterPanel/FooterMargin/FooterRow" unique_id=1202251540]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 14
+text = "v0.1 — prototype"
+vertical_alignment = 1
+
+[node name="DiscordButton" type="TextureButton" parent="FooterPanel/FooterMargin/FooterRow" unique_id=300000051]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("9_discord")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="NewsPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
