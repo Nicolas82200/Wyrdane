@@ -31,9 +31,18 @@ func _ready() -> void:
 	add_child(dim)
 
 	_wrapper = PanelContainer.new()
-	_wrapper.set_anchors_preset(Control.PRESET_CENTER)
-	_wrapper.position = -PANEL_SIZE / 2.0
-	_wrapper.size = PANEL_SIZE
+	# Ancres/offsets posés explicitement (plutôt que set_anchors_preset, qui
+	# recalcule les offsets à partir de la taille actuelle du contrôle — encore
+	# 0x0 ici puisqu'il n'est pas encore dans l'arbre — et finit décentré,
+	# la fenêtre n'affichant alors que son coin haut-gauche à l'écran).
+	_wrapper.anchor_left = 0.5
+	_wrapper.anchor_top = 0.5
+	_wrapper.anchor_right = 0.5
+	_wrapper.anchor_bottom = 0.5
+	_wrapper.offset_left = -PANEL_SIZE.x / 2.0
+	_wrapper.offset_top = -PANEL_SIZE.y / 2.0
+	_wrapper.offset_right = PANEL_SIZE.x / 2.0
+	_wrapper.offset_bottom = PANEL_SIZE.y / 2.0
 	_wrapper.custom_minimum_size = PANEL_SIZE
 	var style := StyleBoxFlat.new()
 	style.bg_color              = Color("1a0e0ef2")
