@@ -242,3 +242,23 @@ func test_game_over_shows_the_styled_end_screen() -> void:
 	assert_true(scene.end_game_screen_panel.visible, "le panneau doit s'afficher à la fin de partie")
 	assert_eq(scene.end_game_title_label.text, SettingsManager.t("ARENA_DEFEAT_TITLE"))
 	assert_true(scene.end_game_label.text.length() > 0, "le classement doit être affiché")
+
+func test_full_match_plays_to_completion_without_crashing() -> void:
+	# Simule une partie complète (le joueur humain ne fait rien, seuls les
+	# bots achètent/positionnent chaque round) jusqu'à l'élimination de tous
+	# sauf un — vérifie l'intégration bout en bout (UI + IA + combat animé +
+	# fusion + élimination + Ghost Board) sans se limiter à des cas isolés.
+	var rounds := 0
+	var max_rounds := 40  # garde-fou anti-boucle infinie si un bug bloquait l'élimination
+	while not scene.game_over and rounds < max_rounds:
+		await scene._resolve_combat_phase()
+		if scene.game_over:
+			break
+		scene._advance_round()
+		rounds += 1
+	assert_true(scene.game_over, "la partie doit se terminer avant %d rounds" % max_rounds)
+	# La partie se termine pour le joueur dès SON élimination, même si des
+	# bots survivent encore entre eux (voir _resolve_combat_phase) — pas
+	# nécessairement quand il ne reste qu'un seul participant au global.
+	assert_true(scene.human.is_eliminated or scene.match_.is_match_over(),
+		"la partie doit se terminer soit par l'élimination du joueur, soit par la fin de la partie au global")
