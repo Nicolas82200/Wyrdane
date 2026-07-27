@@ -304,6 +304,91 @@ theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 16
 text = "Fermer"
 
+[node name="LegalButton" type="Button" parent="CreditsPanel" unique_id=1141914077]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -104.0
+offset_right = 110.0
+offset_bottom = -72.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 14
+text = "Mentions légales"
+
+[node name="LegalPanel" type="Panel" parent="." unique_id=1039590751]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -280.0
+offset_right = 320.0
+offset_bottom = 280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LegalTitleLabel" type="Label" parent="LegalPanel" unique_id=1897122272]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 32.0
+offset_top = 20.0
+offset_right = -32.0
+offset_bottom = 52.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 22
+text = "Mentions légales"
+horizontal_alignment = 1
+
+[node name="LegalScroll" type="ScrollContainer" parent="LegalPanel" unique_id=1897122273]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = 60.0
+offset_right = -32.0
+offset_bottom = -68.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LegalLabel" type="Label" parent="LegalPanel/LegalScroll" unique_id=1897122274]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Mentions légales"
+autowrap_mode = 3
+
+[node name="CloseLegalButton" type="Button" parent="LegalPanel" unique_id=1141914078]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -52.0
+offset_right = 80.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 16
+text = "Fermer"
+
 [node name="VersionLabel" type="Label" parent="." unique_id=1202251540]
 layout_mode = 1
 anchors_preset = 3
