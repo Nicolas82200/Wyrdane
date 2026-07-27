@@ -41,7 +41,7 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 func set_turns_left(turns: int) -> void:
 	$TurnsLabel.visible = turns > 0
 	if turns > 0:
-		var fmt := SettingsManager.t("enchant.charges_many") if turns > 1 else SettingsManager.t("enchant.charges_one")
+		var fmt: String = SettingsManager.t("enchant.charges_many") if turns > 1 else SettingsManager.t("enchant.charges_one")
 		$TurnsLabel.text = fmt % turns
 
 # Surbrillance dorée quand le rituel est activable (Sacrifice disponible)

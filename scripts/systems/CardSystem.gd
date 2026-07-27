@@ -1,9 +1,9 @@
 extends Node
 class_name CardSystem
 
-var battle: Node
+var battle
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
@@ -130,9 +130,6 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
 		if shows_popup:
 			await battle.card_popup_system.show_card_popup(card_data)
-		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
-			AudioManager.play_spell_cast(card_data)
-			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -146,11 +143,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 			await battle.death_system.process_deaths()
 		else:
+			# Son/VFX joués juste avant la résolution effective de l'effet (et
+			# non avant), pour rester synchronisés avec ce qui se passe réellement.
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
 			battle.player_graveyard.add_spell(card_data)
 			for effect in card_data.effects:
 				if target is Minion:
@@ -186,9 +189,6 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
 		if shows_popup:
 			await battle.card_popup_system.show_card_popup(card_data)
-		if card_data.card_type == "Instant" or card_data.card_type == "Ritual":
-			AudioManager.play_spell_cast(card_data)
-			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -202,11 +202,17 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 			await battle.death_system.process_deaths()
 		else:
+			# Son/VFX joués juste avant la résolution effective de l'effet (et
+			# non avant), pour rester synchronisés avec ce qui se passe réellement.
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
 			battle.player_graveyard.add_spell(card_data)
 			for effect in card_data.effects:
 				await battle.effect_manager.execute_effect(battle, null, effect)
