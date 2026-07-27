@@ -50,8 +50,40 @@ var deck_count_label: Label = Label.new()
 const MAX_STACK_VISUAL := 8
 const CARD_BACK = preload("res://assets/card_back/card-back.png")
 
+# ─── Ajouts pour tester HeroSystem / CombatSystem / TurnSystem ────────────────
+const BOARD_MINION_SIZE := Vector2(100, 150)
+var animation_system: FakeAnimationSystem = FakeAnimationSystem.new()
+var vfx_manager: FakeVfxManager = FakeVfxManager.new()
+var resource_played_this_turn: Dictionary = {true: false, false: false}
+var cost_system: FakeCostSystem = FakeCostSystem.new()
+var _player_hero_panel := Control.new()
+var _enemy_hero_panel := Control.new()
+var _player_health_label := Label.new()
+var _enemy_health_label := Label.new()
+
 func get_tree() -> FakeSceneTree:
 	return _fake_tree
+
+# FakeBattle extends RefCounted (pas de vrai arbre de scène Godot) : dispatch
+# manuel sur les chemins effectivement utilisés par HeroSystem/CombatSystem,
+# pas une résolution de chemin réelle.
+func get_node(path):
+	var path_str: String = str(path)
+	match path_str:
+		"PlayerHeroPanel":
+			return _player_hero_panel
+		"EnemyHeroPanel":
+			return _enemy_hero_panel
+		"PlayerHeroPanel/HealthLabel":
+			return _player_health_label
+		"EnemyHeroPanel/HealthLabel":
+			return _enemy_health_label
+		_:
+			push_error("FakeBattle.get_node : chemin non stubé : %s" % path_str)
+			return null
+
+func pace_actions() -> void:
+	pass
 
 func get_owner_minions(minion: Minion) -> Array[Minion]:
 	if minion == null:
@@ -156,6 +188,94 @@ class FakeTriggerSystem:
 		return false
 	func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Array) -> void:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
+	func reset_once_per_turn(_is_local_turn: bool) -> void:
+		pass
+
+
+class FakeAnimationSystem:
+	# No-op complet : couvre toutes les méthodes play_* de AnimationSystem.gd
+	# réellement utilisées, pas seulement celles de CombatSystem/HeroSystem/
+	# TurnSystem — EffectManager (instance réelle partagée par tous les tests
+	# GUT du projet) y accède aussi (Damage/Heal/Buff/Debuff/Silence/Freeze/
+	# Infection/StealMinion/DeathRage/Mutation).
+	func play_summon(_visual) -> void:
+		pass
+	func play_death(_visual) -> Tween:
+		return null
+	func play_attack_lunge(_attacker_visual, _target) -> void:
+		pass
+	func play_resource_absorb(_card, _target: Vector2, _color: Color) -> void:
+		pass
+	func play_spell_missile(_from: Vector2, _targets: Array, _color: Color) -> void:
+		pass
+	func play_aegis_break(_visual) -> void:
+		pass
+	func play_lifesteal(_attacker_visual, _hero_panel, _amount: int) -> void:
+		pass
+	func play_deadly_poison(_target_visual) -> void:
+		pass
+	func play_ravage_overkill(_attacker_visual, _hero_panel) -> void:
+		pass
+	func play_counter_attack(_defender_visual, _attacker_visual) -> void:
+		pass
+	func play_necrophage(_visual, _amount: int) -> void:
+		pass
+	func play_revenant(_visual) -> void:
+		pass
+	func play_commandement_buff(_visual) -> void:
+		pass
+	func play_corruption(_target_visual) -> void:
+		pass
+	func play_terror(_target_visual) -> void:
+		pass
+	func play_pact_drain(_hero_panel, _minion_visual) -> void:
+		pass
+	func play_sang_noir_buff(_visual) -> void:
+		pass
+	func play_mutation(_visual, _outcome: String) -> void:
+		pass
+	func play_assimilation_buff(_visual) -> void:
+		pass
+	func play_chair_adaptative_copy(_source_visual, _target_visual) -> void:
+		pass
+	func play_charge_ready(_visual) -> void:
+		pass
+	func play_hit_mark(_attacker_visual, _target) -> void:
+		pass
+	func play_infection(_target_visual) -> void:
+		pass
+	func play_infection_tick(_visual, _amount: int) -> void:
+		pass
+	func play_freeze(_visual) -> void:
+		pass
+	func play_silence(_visual) -> void:
+		pass
+	func play_death_rage(_visual) -> void:
+		pass
+	func play_damage(_visual, _amount: int) -> void:
+		pass
+	func play_heal(_visual, _amount: int) -> void:
+		pass
+	func play_generic_buff(_visual, _attack_gain: int, _health_gain: int) -> void:
+		pass
+	func play_generic_debuff(_visual, _attack_loss: int, _health_loss: int) -> void:
+		pass
+	func play_appear(_visual) -> void:
+		pass
+	func play_disappear(_visual) -> Tween:
+		return null
+
+
+class FakeVfxManager:
+	func spawn_hit_impact(_pos: Vector2, _race: int, _is_dead: bool) -> void:
+		pass
+
+
+class FakeCostSystem:
+	func on_turn_started(_is_local_turn: bool) -> void:
+		pass
+	func expire_end_of_player_turn() -> void:
+		pass
 
 
 class FakeCombatLog:
