@@ -61,6 +61,7 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
+@onready var help_button: Button                       = $HelpButton
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -106,6 +107,9 @@ var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
+# Glossaire des mots-clés/déclencheurs consultable via le bouton "❔", créé en
+# code pour ne pas toucher Battle.tscn (voir KeywordGlossaryPanel).
+var glossary_panel: KeywordGlossaryPanel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
 var turn_timer: TurnTimer
 # Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
@@ -226,6 +230,9 @@ func _init_systems() -> void:
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
 	add_child(combat_log_panel)
+	glossary_panel = KeywordGlossaryPanel.new()
+	add_child(glossary_panel)
+	help_button.pressed.connect(glossary_panel.toggle)
 	reconnect_overlay = ReconnectOverlay.new()
 	add_child(reconnect_overlay)
 	turn_timer = TurnTimer.new()
@@ -823,6 +830,7 @@ func _player_has_no_actions() -> bool:
 
 # Met à jour les libellés fixes de la bataille dans la langue courante.
 func _retranslate_battle() -> void:
+	help_button.tooltip_text = SettingsManager.t("GLOSSARY_TITLE")
 	if _mulligan_active:
 		end_turn_button.text = SettingsManager.t("mulligan.start_button")
 		return
