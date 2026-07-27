@@ -21,7 +21,7 @@ type = "OnAura"
 
 [sub_resource type="Resource" id="Resource_onturnend"]
 script = ExtResource("5_trig")
-type = "OnTurnEnd"
+type = "OnDecline"
 
 [resource]
 script = ExtResource("4_carddata")

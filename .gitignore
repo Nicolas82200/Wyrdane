@@ -13,3 +13,4 @@ addons/godotsteam/**/~*
 # à l'import, leur sérialisation binaire change à chaque recompilation même
 # sans changement de contenu (diffs fantômes, conflits binaires non fusionnables)
 translations/*.translation
+.devlog/
