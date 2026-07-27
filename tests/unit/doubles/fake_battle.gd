@@ -156,6 +156,8 @@ class FakeBoardVisualSystem:
 		refresh_count += 1
 	func reparent_minion_visual(_minion: Minion, _is_player: bool) -> void:
 		pass
+	func spawn_minion_visual(_minion: Minion, _is_player: bool) -> void:
+		pass
 
 
 class FakeCardPopupSystem:

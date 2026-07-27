@@ -1,12 +1,12 @@
 extends Node
 class_name BoardSystem
 
-var battle: Node
+var battle
 
 
 var _firing_on_summon: bool = false
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
