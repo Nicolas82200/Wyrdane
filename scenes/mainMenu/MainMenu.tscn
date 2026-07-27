@@ -9,6 +9,7 @@
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
 [ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="8_bgstill"]
+[ext_resource type="Texture2D" uid="uid://dggq5t2wow6cb" path="res://assets/icons/discord-icon.svg" id="9_discord"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -332,19 +333,20 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -160.0
-offset_top = -76.0
+offset_left = -60.0
+offset_top = -84.0
 offset_right = -16.0
 offset_bottom = -44.0
 grow_horizontal = 0
 grow_vertical = 0
 alignment = 2
 
-[node name="DiscordButton" type="Button" parent="SocialRow" unique_id=300000051]
-custom_minimum_size = Vector2(0, 32)
+[node name="DiscordButton" type="TextureButton" parent="SocialRow" unique_id=300000051]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "Discord"
+texture_normal = ExtResource("9_discord")
+ignore_texture_size = true
+stretch_mode = 5
 
 [node name="SteamProfile" type="HBoxContainer" parent="." unique_id=300000020]
 layout_mode = 1
