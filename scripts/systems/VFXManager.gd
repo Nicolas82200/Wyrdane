@@ -12,7 +12,10 @@ class_name VFXManager
 
 const PROJECTILE_SIZE := Vector2(210, 210)
 const IMPACT_SIZE := Vector2(180, 180)
-const PROJECTILE_CAMERA_SIZE := 1.5
+# La traînée du projectile s'étend loin derrière le noyau (jusqu'à environ
+# 2 unités sur l'axe local) : un cadrage trop serré la fait sortir du champ de
+# la caméra et ne laisse voir que le noyau, d'où un rendu en simple "boule".
+const PROJECTILE_CAMERA_SIZE := 3.2
 const IMPACT_CAMERA_SIZE := 5.0
 const BIG_IMPACT_CAMERA_SIZE := 8.0
 const PROJECTILE_FLIGHT_TIME := 0.35
@@ -136,6 +139,19 @@ func _make_overlay(scene: PackedScene, size: Vector2, cam_size: float, race: int
 	viewport.transparent_bg = true
 	viewport.own_world_3d = true
 	container.add_child(viewport)
+
+	# Les shaders émissifs du pack sont conçus pour le post-traitement Glow de
+	# leur scène de démo ; sans lui, ils rendent plats (de simples formes
+	# colorées) au lieu de rayonner comme prévu.
+	var env := Environment.new()
+	env.background_mode = Environment.BG_CLEAR_COLOR
+	env.glow_enabled = true
+	env.glow_normalized = true
+	env.glow_bloom = 0.15
+	env.glow_intensity = 1.2
+	var world_env := WorldEnvironment.new()
+	world_env.environment = env
+	viewport.add_child(world_env)
 
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
