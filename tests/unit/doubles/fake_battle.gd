@@ -298,16 +298,29 @@ class FakeCombatLog:
 class FakeEnchantmentSystem:
 	var destroyed: Array = []
 	var turns_updates: Array = []
+	var player_enchantments: Array[CardData] = []
+	var enemy_enchantments: Array[CardData] = []
+	var player_rituals: Array[CardData] = []
+	var enemy_rituals: Array[CardData] = []
 	func destroy_enchantment(card_data: CardData, is_player: bool) -> void:
 		destroyed.append({"card_data": card_data, "is_player": is_player})
 	func update_turns_left(card_data: CardData, is_player: bool, turns: int) -> void:
 		turns_updates.append({"card_data": card_data, "is_player": is_player, "turns": turns})
+	func get_enchantments(is_player: bool) -> Array[CardData]:
+		return player_enchantments if is_player else enemy_enchantments
+	func get_rituals(is_player: bool) -> Array[CardData]:
+		return player_rituals if is_player else enemy_rituals
+	func find_visual(_card_data: CardData, _is_player: bool):
+		return null
 
 
 class FakeTargetingSystem:
 	var targeting: bool = false
+	var has_valid_target: bool = true
 	func is_targeting() -> bool:
 		return targeting
+	func has_any_valid_target(_card_data: CardData) -> bool:
+		return has_valid_target
 
 
 class FakeTimer:

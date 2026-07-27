@@ -1,9 +1,9 @@
 extends Node
 class_name CardSystem
 
-var battle: Node
+var battle
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
