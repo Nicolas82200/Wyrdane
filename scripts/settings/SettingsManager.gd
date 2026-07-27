@@ -34,6 +34,15 @@ const DEFAULT_RESOLUTION := Vector2i(1920, 1080)
 const QUALITIES := ["low", "medium", "high"]
 const DEFAULT_QUALITY := "high"
 
+# Échelle de l'interface (accessibilité : agrandit texte + éléments d'UI).
+const TEXT_SCALE_MIN := 0.85
+const TEXT_SCALE_MAX := 1.3
+const DEFAULT_TEXT_SCALE := 1.0
+
+# Filtre d'assistance daltonisme, voir resources/shaders/colorblind_filter.gdshader.
+const COLORBLIND_MODES := ["none", "protanopia", "deuteranopia", "tritanopia"]
+const DEFAULT_COLORBLIND_MODE := "none"
+
 # Actions d'InputMap que le joueur peut réattribuer depuis ControlSettingsMenu.
 # Les touches par défaut sont celles déclarées dans project.godot ; elles sont
 # capturées au premier _ready() pour permettre un « Réinitialiser » fiable
@@ -61,6 +70,9 @@ var resolution: Vector2i = DEFAULT_RESOLUTION
 var fullscreen: bool = false
 var vsync: bool = true
 var quality: String = DEFAULT_QUALITY
+var text_scale: float = DEFAULT_TEXT_SCALE
+var colorblind_mode: String = DEFAULT_COLORBLIND_MODE
+var _colorblind_overlay: ColorRect
 
 # Touches personnalisées : action -> keycode. Une action absente de ce
 # dictionnaire utilise sa touche par défaut (_default_keycodes).
@@ -73,6 +85,7 @@ func _ready() -> void:
 	_apply_language()
 	_apply_display()
 	_apply_keybinds()
+	_setup_colorblind_overlay()
 
 # Retourne le texte traduit d'une clé dans la langue courante. Une clé absente
 # du CSV est renvoyée telle quelle (utile pour repérer les oublis en jeu).
@@ -171,6 +184,57 @@ func _apply_display() -> void:
 		DisplayServer.window_set_position((screen_size - resolution) / 2)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
 	_apply_quality()
+	_apply_text_scale()
+
+# --- Accessibilité (échelle de l'interface / assistance daltonisme) --------
+
+func set_text_scale(value: float) -> void:
+	var clamped: float = clampf(value, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
+	if is_equal_approx(clamped, text_scale):
+		return
+	text_scale = clamped
+	_save()
+	_apply_text_scale()
+	display_settings_changed.emit()
+
+func _apply_text_scale() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	tree.root.content_scale_factor = text_scale
+
+func set_colorblind_mode(mode: String) -> void:
+	if not COLORBLIND_MODES.has(mode) or mode == colorblind_mode:
+		return
+	colorblind_mode = mode
+	_save()
+	_apply_colorblind_mode()
+	display_settings_changed.emit()
+
+# Overlay plein écran unique, ajouté à la racine de l'arbre (pas à la scène
+# courante) pour survivre à tous les changements de scène (menu -> bataille
+# -> etc.), comme un post-effet permanent. Voir
+# resources/shaders/colorblind_filter.gdshader.
+func _setup_colorblind_overlay() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 128
+	tree.root.call_deferred("add_child", layer)
+	_colorblind_overlay = ColorRect.new()
+	_colorblind_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_colorblind_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_colorblind_overlay.material = ShaderMaterial.new()
+	_colorblind_overlay.material.shader = load("res://resources/shaders/colorblind_filter.gdshader")
+	layer.call_deferred("add_child", _colorblind_overlay)
+	_apply_colorblind_mode()
+
+func _apply_colorblind_mode() -> void:
+	if _colorblind_overlay == null or _colorblind_overlay.material == null:
+		return
+	var mode_index: int = COLORBLIND_MODES.find(colorblind_mode)
+	_colorblind_overlay.material.set_shader_parameter("mode", maxi(mode_index, 0))
 
 func _apply_quality() -> void:
 	var vp := get_viewport()
@@ -252,8 +316,13 @@ func _save() -> void:
 	cfg.set_value("display", "fullscreen", fullscreen)
 	cfg.set_value("display", "vsync", vsync)
 	cfg.set_value("display", "quality", quality)
+<<<<<<< HEAD
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
+=======
+	cfg.set_value("display", "text_scale", text_scale)
+	cfg.set_value("display", "colorblind_mode", colorblind_mode)
+>>>>>>> dev
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -278,8 +347,16 @@ func _load() -> void:
 	quality = cfg.get_value("display", "quality", DEFAULT_QUALITY) as String
 	if not QUALITIES.has(quality):
 		quality = DEFAULT_QUALITY
+<<<<<<< HEAD
 	match_wins = cfg.get_value("stats", "match_wins", 0) as int
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
+=======
+	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
+	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
+	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String
+	if not COLORBLIND_MODES.has(colorblind_mode):
+		colorblind_mode = DEFAULT_COLORBLIND_MODE
+>>>>>>> dev
 
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
