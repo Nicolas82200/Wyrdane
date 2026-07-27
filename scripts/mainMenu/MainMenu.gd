@@ -13,6 +13,11 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var quit_button:     Button = $NavPanel/NavMargin/VBoxContainer/QuitButton
 @onready var credits_panel:   Panel  = $CreditsPanel
 @onready var close_credits:   Button = $CreditsPanel/CloseCreditsButton
+@onready var legal_button:    Button = $CreditsPanel/LegalButton
+@onready var legal_panel:     Panel  = $LegalPanel
+@onready var close_legal:     Button = $LegalPanel/CloseLegalButton
+@onready var legal_title_label: Label = $LegalPanel/LegalTitleLabel
+@onready var legal_label:     Label  = $LegalPanel/LegalScroll/LegalLabel
 @onready var decks_button:    Button = $NavPanel/NavMargin/VBoxContainer/DecksButton
 @onready var packs_button:    Button = $NavPanel/NavMargin/VBoxContainer/PacksButton
 @onready var pack_shop:       Control = $PackShop
@@ -51,6 +56,13 @@ func _ready() -> void:
 		AudioManager.play(AudioManager.CLOSE_MENU)
 		credits_panel.hide()
 	)
+	legal_button.pressed.connect(_on_legal_pressed)
+	close_legal.set_meta("no_click_sound", true)
+	close_legal.pressed.connect(func():
+		AudioManager.play(AudioManager.CLOSE_MENU)
+		legal_panel.hide()
+	)
+	legal_panel.hide()
 	# settings_menu peut légitimement être absent
 	if settings_menu:
 		settings_button.pressed.connect(settings_menu.open)
@@ -235,6 +247,11 @@ func _on_credits() -> void:
 	credits_panel.visible = not credits_panel.visible
 	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
 
+func _on_legal_pressed() -> void:
+	credits_panel.hide()
+	legal_panel.visible = true
+	AudioManager.play(AudioManager.OPEN_MENU)
+
 func _on_quit() -> void:
 	get_tree().quit()
 
@@ -252,6 +269,10 @@ func _retranslate() -> void:
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	close_credits.text  = SettingsManager.t("MENU_CLOSE")
+	legal_button.text   = SettingsManager.t("MENU_LEGAL")
+	legal_title_label.text = SettingsManager.t("MENU_LEGAL")
+	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
+	close_legal.text    = SettingsManager.t("MENU_CLOSE")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	_populate_news()
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
