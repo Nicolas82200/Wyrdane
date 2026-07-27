@@ -13,6 +13,7 @@ signal language_changed(locale: String)
 signal ai_difficulty_changed(level: String)
 signal display_settings_changed
 signal keybind_changed(action: String, keycode: int)
+signal match_stats_changed(wins: int, losses: int)
 
 const CONFIG_PATH := "user://display_settings.cfg"
 const DEFAULT_LANGUAGE := "fr"
@@ -48,6 +49,13 @@ var ai_difficulty: String = DEFAULT_AI_DIFFICULTY
 # obligatoire (voir TutorialManager). Multijoueur et deckbuilder restent
 # verrouillés dans MainMenu jusqu'à ce que ce flag passe à true.
 var tutorial_completed: bool = false
+
+# Historique de parties (victoires/défaites), stocké localement uniquement —
+# pas de synchronisation backend, contrairement à la collection/monnaie
+# (voir CollectionManager/CurrencyManager). Compte les matchs solo comme
+# réseau, tutoriel exclu (voir Battle._show_game_over).
+var match_wins: int = 0
+var match_losses: int = 0
 
 var resolution: Vector2i = DEFAULT_RESOLUTION
 var fullscreen: bool = false
@@ -110,6 +118,14 @@ func reset_tutorial_completed() -> void:
 		return
 	tutorial_completed = false
 	_save()
+
+func record_match_result(won: bool) -> void:
+	if won:
+		match_wins += 1
+	else:
+		match_losses += 1
+	_save()
+	match_stats_changed.emit(match_wins, match_losses)
 
 # --- Affichage (résolution / plein écran / vsync / qualité) ---------------
 
@@ -236,6 +252,8 @@ func _save() -> void:
 	cfg.set_value("display", "fullscreen", fullscreen)
 	cfg.set_value("display", "vsync", vsync)
 	cfg.set_value("display", "quality", quality)
+	cfg.set_value("stats", "match_wins", match_wins)
+	cfg.set_value("stats", "match_losses", match_losses)
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -260,6 +278,8 @@ func _load() -> void:
 	quality = cfg.get_value("display", "quality", DEFAULT_QUALITY) as String
 	if not QUALITIES.has(quality):
 		quality = DEFAULT_QUALITY
+	match_wins = cfg.get_value("stats", "match_wins", 0) as int
+	match_losses = cfg.get_value("stats", "match_losses", 0) as int
 
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:

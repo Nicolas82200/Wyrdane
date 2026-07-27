@@ -24,6 +24,7 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var steam_avatar:    TextureRect = $SteamProfile/Avatar
 @onready var steam_name_label: Label = $SteamProfile/NameLabel
 @onready var currency_label: Label = $CurrencyLabel
+@onready var match_stats_label: Label = $MatchStatsLabel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
 @onready var discord_button: TextureButton = $SocialRow/DiscordButton
@@ -76,6 +77,10 @@ func _ready() -> void:
 		currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
+	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
+		match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
+	)
+	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_load_news()
 	_start_backend_sync()
 	_play_intro_animation()
@@ -277,3 +282,4 @@ func _retranslate() -> void:
 	_populate_news()
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
+	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]

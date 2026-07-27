@@ -868,6 +868,8 @@ func _show_game_over(result: String) -> void:
 	if tutorial_active and result == "victory":
 		await tutorial_manager.notify_victory()
 		return
+	if result == "victory" or result == "defeat":
+		SettingsManager.record_match_result(result == "victory")
 	game_over_screen.show_result(result, network_manager == null)
 
 	# Un match réseau/ranked est crédité côté serveur au moment du rapport de
