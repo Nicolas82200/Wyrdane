@@ -27,20 +27,10 @@ func end_turn() -> void:
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
 
-# Phase de fin de tour (OnTurnEnd des deux camps + Infection). is_local_turn :
-# true si c'est le tour du joueur local. L'ordre est relatif au joueur du tour
-# (identique sur les deux clients) pour un rejeu déterministe.
+# Phase de fin de tour (Infection). is_local_turn : true si c'est le tour du
+# joueur local. Le déclencheur "fin de tour" côté cartes est porté par Déclin
+# (OnDecline, déclenché juste après pour le camp dont le tour vient de finir).
 func run_turn_end_triggers(is_local_turn: bool = true) -> void:
-	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
-	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
-	var acted := false
-	# Fin de tour — serviteurs du joueur du tour
-	acted = await _trigger_minions_paced(turn_minions, "OnTurnEnd", acted)
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, is_local_turn, {}, true, acted)
-	# Fin de tour — serviteurs adverses
-	acted = await _trigger_minions_paced(other_minions, "OnTurnEnd", acted)
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, not is_local_turn, {}, true, acted)
-
 	# Blocage de soin (Rituel de la Terreur) : expire à la fin du tour du héros
 	# dont c'est le tour ("jusqu'à la fin de son prochain tour").
 	var turn_hero: Hero = battle.player_hero if is_local_turn else battle.enemy_hero
@@ -66,8 +56,8 @@ func _begin_player_turn() -> void:
 		battle.turn_timer.start()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
-# OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
-# c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
+# OnAwaken vise le camp dont c'est le tour, OnDecline le camp adverse (dont le
+# tour vient de finir) — d'où le paramétrage pour le rejeu.
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
 	await battle.death_system.process_deaths()
@@ -81,9 +71,6 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	var acted := false
 	# Ordre relatif au joueur du tour (identique sur les deux clients) plutôt que
 	# player/enemy relatif au client, pour un tirage RNG déterministe.
-	acted = await _trigger_minions_paced(turn_minions + other_minions, "OnTurnStart", acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, is_local_turn, {}, true, acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, not is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(turn_minions, "OnAwaken", acted)
 	acted = await battle.trigger_system.fire("OnAwaken", null, is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(other_minions, "OnDecline", acted)

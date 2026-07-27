@@ -136,7 +136,7 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 			continue
 
 		match ctx.trigger_name:
-			"OnAwaken", "OnTurnStart":
+			"OnAwaken":
 				return enchantment_owner_is_player == ctx.is_player_event
 			"OnResonance":
 				if ctx.source_minion == null:
@@ -152,13 +152,7 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 				return enchantment_owner_is_player != ctx.is_player_event
 			"OnAura":
 				return true
-			"OnRally":
-				if ctx.source_minion == null:
-					return false
-				return enchantment_owner_is_player == ctx.is_player_event
 			"OnSummon":
-				return enchantment_owner_is_player == ctx.is_player_event
-			"OnTurnEnd":
 				return enchantment_owner_is_player == ctx.is_player_event
 			_:
 				return enchantment_owner_is_player == ctx.is_player_event

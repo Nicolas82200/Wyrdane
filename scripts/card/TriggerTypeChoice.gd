@@ -5,8 +5,8 @@ class_name TriggerTypeChoice
 # comparées par EffectManager.has_trigger et TriggerSystem._enchantment_reacts.
 @export_enum(
 	"ONPLAY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
-	"OnRally", "OnGrief", "OnSpell", "OnSacrifice", "OnExecution", "OnCarnage",
-	"OnAttack", "OnTurnStart", "OnTurnEnd", "OnMourning", "OnDeathRage",
+	"OnGrief", "OnSpell", "OnSacrifice", "OnExecution", "OnCarnage",
+	"OnAttack", "OnMourning", "OnDeathRage",
 	"OnAura", "OnSummon", "OnResonance", "OnSelfDamage", "OnMutation", "OnDevoration"
 ) var type: String = "DEATHRATTLE"
 

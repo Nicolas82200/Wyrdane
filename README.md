@@ -51,7 +51,7 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 3.  Application des dégâts simultanés.
 4.  Effets spéciaux :
     *   Poison / Deadly
-    *   Lifesteal
+    *   Harvest
 5.  Trigger `OnDamaged` (géré par `EffectManager`)
 6.  Mise à jour UI
 7.  `remove_dead_minions()` (dans `DeathSystem`)
@@ -107,7 +107,7 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 | `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
 
 - **Table de Mutation** (`EffectManager.roll_mutation`) : tirage sur le RNG de jeu partagé (déterministe/synchronisé réseau) — 40 % Croissance (+2/+0 permanent), 40 % Renforcement (+0/+2 permanent), 20 % Dégénérescence (-1/-1 permanent, peut tuer si les dégâts déjà subis dépassent le nouveau maximum). `Minion.mutation_stacks` / `Minion.mutations` gardent une trace pour l'affichage.
-- **Trigger `OnMutation`** (« Résonance » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
+- **Trigger `OnMutation`** (« Mutation » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
 - **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
 - **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
 - **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
@@ -185,13 +185,12 @@ EffectManager.execute_targeted_effect()
 
 Triggers disponibles (`TriggerType.gd`) :
 
-*   `ONPLAY` (Invocation) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
-*   `OnDamaged` (Blessure) / `OnAttack` / `OnExecution` (Exécution)
-*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire
-*   `OnTurnStart` / `OnTurnEnd`
-*   `OnRally` (Ralliement) / `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
-*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage)
-*   `OnSummon` (Appel) / `OnAura` (Présence) / `OnResonance` (Résonance)
+*   `ONPLAY` (Arrivée) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
+*   `OnDamaged` (Blessure) / `OnAttack` (Attaque — fusionne l'ancien `OnRally`/Ralliement) / `OnExecution` (Exécution)
+*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire (plus de `OnTurnStart`/`OnTurnEnd` symétriques, retirés)
+*   `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
+*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage — une fois, sous 50% HP max)
+*   `OnSummon` (Renfort) / `OnAura` (Présence) / `OnResonance` (Résonance)
 *   `OnSelfDamage` (Sacrifice du sang — le héros du camp perd des HP à cause de ses propres cartes)
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
@@ -727,8 +726,8 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 | Mort-rage (OnDeathRage) | ✅ Oui |
 | Blessure (OnDamaged) | ✅ Oui |
 | Exécution (OnExecution) | ✅ Oui |
-| Ralliement (OnRally) | ✅ Oui |
-| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Appel / Présence / Résonance | ✅ Oui |
+| Attaque (OnAttack) | ✅ Oui |
+| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Renfort / Présence / Résonance | ✅ Oui |
 
 #### Règle NÉCROPHAGE (et effets similaires)
 - Les morts sont traitées **dans l'ordre chronologique** pendant la simulation (comme `DeathSystem` actuel en batch).
