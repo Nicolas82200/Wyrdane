@@ -23,6 +23,13 @@ signal login_failed(reason: String)
 var _session_cookie: String = ""
 var _pending_ticket_id: int = 0
 var _pending_ticket_buffer: PackedByteArray = PackedByteArray()
+# Id utilisateur backend local, extrait de la réponse de login (voir
+# _on_login_response) : sert à rapporter les matchs réseau (NetHandshake) et
+# récupérer son propre profil. Reste à 0 tant qu'aucun login n'a réussi.
+var _user_id: int = 0
+
+func local_user_id() -> int:
+	return _user_id
 
 # Les callbacks Steamworks (dont get_auth_session_ticket_response) ne sont
 # livrés que si Steam.run_callbacks() est pompé régulièrement. SteamTransport
@@ -90,7 +97,9 @@ func _on_login_response(_result: int, response_code: int, headers: PackedStringA
 
 	_session_cookie = _extract_cookie(headers)
 	var parsed = JSON.parse_string(body.get_string_from_utf8())
-	login_succeeded.emit(parsed.get("users", {}) if parsed is Dictionary else {})
+	var user: Dictionary = parsed.get("users", {}) if parsed is Dictionary else {}
+	_user_id = int(user.get("id", 0))
+	login_succeeded.emit(user)
 
 func _extract_cookie(headers: PackedStringArray) -> String:
 	for header in headers:
@@ -124,3 +133,25 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		http.queue_free()
 		if on_complete.is_valid():
 			on_complete.call(-1, null)
+
+# Profil agrégé du joueur connecté (GET /api/profile) : date de création de
+# compte, nombre de cartes en collection, stats solo/ranked — voir
+# ProfilePanel.gd. on_profile est appelé avec (success: bool, data: Dictionary).
+func get_profile(on_profile: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/profile", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_profile.call(true, parsed)
+		else:
+			on_profile.call(false, {})
+	)
+
+# Rapporte le résultat d'un match réseau (POST /api/ranked/matches/report) —
+# voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
+# indépendamment ; le backend ne valide (MMR, historique) que si les deux
+# rapports concordent (double-report, voir rankedController côté backend).
+func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
+		"clientMatchId": client_match_id,
+		"opponentId": opponent_id,
+		"winnerId": winner_id,
+	}, on_complete)
