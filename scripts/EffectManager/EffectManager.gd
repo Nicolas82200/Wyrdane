@@ -334,7 +334,11 @@ func _get_adjacent_enemies(battle, target: Minion) -> Array[Minion]:
 # les cibles aléatoires, déjà résolues) juste avant l'application de l'effet, pour
 # montrer au joueur qui est touché.
 
-func _point_arrows_to(battle, targets: Array[Minion]) -> void:
+# source_minion == null signifie que l'effet vient de la résolution immédiate
+# d'un sort joué (Éphémère/Rituel sans durée) : CardSystem.gd a déjà lancé le
+# vrai projectile VFXManager pour cette carte, donc on n'affiche pas aussi le
+# projectile de secours d'AnimationSystem (double affichage sinon).
+func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = null) -> void:
 	if targets.is_empty():
 		return
 	var positions: Array[Vector2] = []
@@ -343,12 +347,13 @@ func _point_arrows_to(battle, targets: Array[Minion]) -> void:
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():
-		await battle.card_popup_system.show_effect_arrows(positions)
+		await battle.card_popup_system.show_effect_arrows(positions, 0.35, source_minion == null)
 
-func _point_arrow_to_hero(battle, is_enemy: bool) -> Control:
+func _point_arrow_to_hero(battle, is_enemy: bool, source_minion: Minion = null) -> Control:
 	var panel = battle.get_node_or_null("EnemyHeroPanel" if is_enemy else "PlayerHeroPanel")
 	if panel != null:
-		await battle.card_popup_system.show_effect_arrows([panel.global_position + panel.size * 0.5])
+		await battle.card_popup_system.show_effect_arrows(
+			[panel.global_position + panel.size * 0.5], 0.35, source_minion == null)
 	return panel
 
 # ─── Effets existants ─────────────────────────────────────────────────────────
@@ -356,11 +361,11 @@ func _point_arrow_to_hero(battle, is_enemy: bool) -> Control:
 func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	match effect.target:
 		"EnemyHero":
-			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
 			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
 			battle.animation_system.play_damage(hero_panel, effect.value)
 		"OwnerHero":
-			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player, source_minion)
 			# "Ton héros perd X HP" : dégâts auto-infligés — passent par le pipeline
 			# self_damage (blocages, réduction, garde-fou 1 HP, SANG NOIR, OnSelfDamage)
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
@@ -369,7 +374,7 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
-			await _point_arrows_to(battle, targets)
+			await _point_arrows_to(battle, targets, source_minion)
 			for target in targets:
 				var visual = battle.board_visual_system.get_visual(target)
 				var dealt: int = target.take_damage(damage)
@@ -381,14 +386,14 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 func _heal(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	match effect.target:
 		"OwnerHero":
-			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player, source_minion)
 			var hero: Hero = battle.hero_system.get_owner_hero(source_minion)
 			var could_heal: bool = hero.heal_block_turns <= 0
 			hero.heal(effect.value)
 			if could_heal:
 				battle.animation_system.play_heal(hero_panel, effect.value)
 		"EnemyHero":
-			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player)
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
 			var hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
 			var could_heal: bool = hero.heal_block_turns <= 0
 			hero.heal(effect.value)
@@ -396,7 +401,7 @@ func _heal(battle, source_minion: Minion, effect: CardEffect, selected_target: M
 				battle.animation_system.play_heal(hero_panel, effect.value)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-			await _point_arrows_to(battle, targets)
+			await _point_arrows_to(battle, targets, source_minion)
 			for target in targets:
 				var could_heal: bool = not target.is_heal_immune()
 				target.heal(effect.value)
@@ -411,7 +416,7 @@ func _heal_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _buff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	var attack_gain: int = _effective_value(effect, targets.size())
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.base_attack     += attack_gain
 		target.base_max_health += effect.value_2
@@ -422,7 +427,7 @@ func _buff(battle, source_minion, effect, selected_target = null) -> void:
 
 func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		var old_health: int = target.health
 		target.base_attack     = max(0, target.base_attack - effect.value)
@@ -439,7 +444,7 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		if is_ally_targeted:
 			target.sacrificed = true
@@ -447,7 +452,7 @@ func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target
 
 func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		if target.has_human_keyword(KeywordHuman.Type.DISCIPLINE):
 			continue
@@ -469,7 +474,7 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 # attaque), cette immunité est accordée temporairement et expire par durée.
 func _grant_spell_immunity(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		if target.spell_immune:
 			continue
@@ -478,7 +483,7 @@ func _grant_spell_immunity(battle, source_minion: Minion, effect: CardEffect, se
 
 func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		var turns: int = effect.value if effect.value > 0 else 1
 		target.frozen_turns = max(target.frozen_turns, turns)
@@ -488,7 +493,7 @@ func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target:
 
 func _infect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.infected = true
 		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
@@ -497,7 +502,7 @@ func _infect(battle, source_minion: Minion, effect: CardEffect, selected_target:
 
 func _steal_health(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		var requested: int = min(effect.value, target.health)
 		var dealt: int = target.take_damage(requested)
@@ -508,7 +513,7 @@ func _steal_health(battle, source_minion: Minion, effect: CardEffect, selected_t
 
 func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
 			continue
@@ -534,7 +539,7 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 	if effect.transform_card == null:
 		return
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.card_data        = effect.transform_card
 		target.base_attack      = effect.transform_card.attack
@@ -564,7 +569,7 @@ func _draw_cards(battle, source_minion: Minion, count: int) -> void:
 
 func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		# Immunité au contrôle mental (DISCIPLINE, CHAIR DE SOUFRE)
 		if target.is_mind_control_immune():
@@ -596,7 +601,7 @@ func _destroy_and_resurrect(battle, source_minion: Minion, effect: CardEffect, s
 	if selected_target == null or selected_target.card_data == null:
 		return
 	var card_data: CardData = selected_target.card_data
-	await _point_arrows_to(battle, [selected_target])
+	await _point_arrows_to(battle, [selected_target], source_minion)
 	selected_target.health = 0
 	await battle.death_system.process_deaths()
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
@@ -632,7 +637,7 @@ func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
 		_:
 			targets.append_array(_resolve_targets(battle, source_minion, effect))
 	var damage: int = _effective_value(effect, targets.size())
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		var dealt: int = target.take_damage(damage)
 		if dealt > 0:
@@ -647,7 +652,7 @@ func _buff_row(battle, source_minion, effect) -> void:
 		"AllEnemiesBack":  targets.append_array(battle.get_back_minions(source_minion != null and not source_minion.owner_is_player))
 		_: targets.append_array(_resolve_targets(battle, source_minion, effect))
 	var attack_gain: int = _effective_value(effect, targets.size())
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.base_attack     += attack_gain
 		target.base_max_health += effect.value_2
@@ -773,7 +778,7 @@ func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> voi
 		var i: int = idx + offset
 		if i >= 0 and i < same_row.size():
 			hit.append(same_row[i])
-	await _point_arrows_to(battle, hit)
+	await _point_arrows_to(battle, hit, source_minion)
 	for m in hit:
 		m.infected = true
 		var visual: BoardMinion = battle.board_visual_system.get_visual(m)
@@ -785,7 +790,7 @@ func _buff_adjacent(battle, source_minion, effect) -> void:
 	if source_minion == null:
 		return
 	var adjacents: Array[Minion] = _get_adjacent_minions(battle, source_minion)
-	await _point_arrows_to(battle, adjacents)
+	await _point_arrows_to(battle, adjacents, source_minion)
 	for adjacent in adjacents:
 		adjacent.base_attack     += effect.value
 		adjacent.base_max_health += effect.value_2
@@ -795,7 +800,7 @@ func _splash_damage(battle, source_minion: Minion, effect: CardEffect, selected_
 	if selected_target == null:
 		return
 	var adjacents: Array[Minion] = _get_adjacent_enemies(battle, selected_target)
-	await _point_arrows_to(battle, adjacents)
+	await _point_arrows_to(battle, adjacents, source_minion)
 	for adjacent in adjacents:
 		var dealt: int = adjacent.take_damage(effect.value)
 		if dealt > 0:
@@ -804,7 +809,7 @@ func _splash_damage(battle, source_minion: Minion, effect: CardEffect, selected_
 # Debuff ATK temporaire (Émissaire de la Peste : -2 ATK jusqu'à fin de tour)
 func _debuff_atk(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		var removed: int = min(effect.value, target.base_attack)
 		target.base_attack -= removed
@@ -815,7 +820,7 @@ func _debuff_atk(battle, source_minion, effect, selected_target = null) -> void:
 func _destroy_low_hp(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var enemies: Array[Minion] = _filter_targets(battle.get_enemy_minions(source_minion), effect)
 	var doomed: Array[Minion] = enemies.filter(func(m: Minion): return m.health <= effect.value)
-	await _point_arrows_to(battle, doomed)
+	await _point_arrows_to(battle, doomed, source_minion)
 	for target in doomed:
 		target.health = 0
 
@@ -836,7 +841,7 @@ func _damage_all_minions(battle, source_minion: Minion, effect: CardEffect) -> v
 	var targets: Array[Minion] = []
 	targets.append_array(battle.player_minions)
 	targets.append_array(battle.enemy_minions)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for minion in targets:
 		var dealt: int = minion.take_damage(effect.value)
 		if dealt > 0:
@@ -901,7 +906,7 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 	if effect.granted_keyword.is_empty():
 		return
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		if effect.granted_keyword_is_abomination:
 			var kw: int = KeywordAbomination.from_name(effect.granted_keyword)
@@ -980,7 +985,7 @@ func _group_attack_immediate(battle, source_minion: Minion, effect: CardEffect, 
 # Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
 func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.infected = false
 
@@ -999,7 +1004,7 @@ func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) ->
 # ATK). Marqués `sacrificed` pour déclencher OnSacrifice et empêcher REVENANT.
 func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target != null and not selected_target.is_dead():
-		await _point_arrows_to(battle, [selected_target])
+		await _point_arrows_to(battle, [selected_target], source_minion)
 		selected_target.sacrificed = true
 		selected_target.health = 0
 		await battle.death_system.process_deaths()
@@ -1088,7 +1093,7 @@ func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> v
 # SOUFRE). Cartes : Souffle Corrupteur, Le Corrupteur, Vague de Corruption...
 func _corrupt(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	var stacks: int = maxi(1, effect.value)
 	for target in targets:
 		target.apply_corruption(stacks)
@@ -1097,7 +1102,7 @@ func _corrupt(battle, source_minion: Minion, effect: CardEffect, selected_target
 # (Suceur d'Âmes). Distinct de StealHealth, qui vise les serviteurs.
 func _steal_health_from_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_p: bool = source_minion == null or source_minion.owner_is_player
-	var enemy_hero_panel: Control = await _point_arrow_to_hero(battle, is_p)
+	var enemy_hero_panel: Control = await _point_arrow_to_hero(battle, is_p, source_minion)
 	var enemy_hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
 	var stolen: int = mini(effect.value, maxi(enemy_hero.health, 0))
 	battle.hero_system.damage(enemy_hero, stolen)
@@ -1139,7 +1144,7 @@ func _sacrifice_draw_per_victim(battle, source_minion: Minion, effect: CardEffec
 		victims = allies.slice(0, mini(effect.count, allies.size()))
 	if victims.is_empty():
 		return
-	await _point_arrows_to(battle, victims)
+	await _point_arrows_to(battle, victims, source_minion)
 	for victim in victims:
 		victim.sacrificed = true
 		victim.health = 0
@@ -1235,7 +1240,7 @@ func roll_mutation(battle, minion: Minion) -> void:
 # la/les cible(s) résolue(s) (Premier Tressaut, Le Trieur de Chairs...).
 func _apply_mutation(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
-	await _point_arrows_to(battle, targets)
+	await _point_arrows_to(battle, targets, source_minion)
 	var rolls: int = max(1, effect.count)
 	for target in targets:
 		for i in range(rolls):
@@ -1249,7 +1254,7 @@ func _grant_keyword_adjacent(battle, source_minion: Minion, effect: CardEffect) 
 	if source_minion == null or effect.granted_keyword.is_empty():
 		return
 	var adjacents: Array[Minion] = _get_adjacent_minions(battle, source_minion)
-	await _point_arrows_to(battle, adjacents)
+	await _point_arrows_to(battle, adjacents, source_minion)
 	for target in adjacents:
 		if effect.granted_keyword_is_abomination:
 			var kw: int = KeywordAbomination.from_name(effect.granted_keyword)
@@ -1270,7 +1275,7 @@ func _grant_keyword_adjacent(battle, source_minion: Minion, effect: CardEffect) 
 func _absorb_adjacent_stats(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target == null or selected_target.is_dead():
 		return
-	await _point_arrows_to(battle, [selected_target])
+	await _point_arrows_to(battle, [selected_target], source_minion)
 	var adjacents: Array[Minion] = _get_adjacent_minions(battle, selected_target)
 	var remaining_attack: int = selected_target.attack
 	var remaining_health: int = selected_target.health
@@ -1290,7 +1295,7 @@ func _absorb_adjacent_stats(battle, source_minion: Minion, effect: CardEffect, s
 func _copy_adjacent_keyword_effect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target == null:
 		return
-	await _point_arrows_to(battle, [selected_target])
+	await _point_arrows_to(battle, [selected_target], source_minion)
 	var pool: Array[Minion] = (battle.player_minions + battle.enemy_minions).filter(
 		func(m: Minion) -> bool: return m != selected_target)
 	if pool.is_empty():
