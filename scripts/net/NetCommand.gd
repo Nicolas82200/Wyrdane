@@ -24,6 +24,7 @@ const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
+const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -113,6 +114,11 @@ static func mulligan_done() -> Dictionary:
 # viendra jamais (voir NetworkManager._on_packet_received).
 static func leave_match() -> Dictionary:
 	return {"type": LEAVE_MATCH}
+
+# Signale que ce client a fini le handshake et son chargement local, et
+# n'attend plus que le pair pour entrer dans Battle.tscn (voir NetBattleSync).
+static func battle_ready() -> Dictionary:
+	return {"type": BATTLE_READY}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 
