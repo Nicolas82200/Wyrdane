@@ -74,6 +74,23 @@ var ai_system: FakeOpponent = opponent
 var race_mana: Dictionary = {}
 var enemy_race_mana: Dictionary = {}
 
+# ─── Ajouts pour tester DropSystem ─────────────────────────────────────────────
+const ROW_FRONT := "Front"
+const ROW_BACK := "Back"
+var player_front_container: Control = Control.new()
+var player_back_container: Control = Control.new()
+var enemy_front_container: Control = Control.new()
+var enemy_back_container: Control = Control.new()
+
+# Même formule que Battle.get_allowed_rows_for_card.
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [ROW_FRONT, ROW_BACK]
+	match card_data.board_position:
+		ROW_FRONT: return [ROW_FRONT]
+		ROW_BACK:  return [ROW_BACK]
+		_:         return [ROW_FRONT, ROW_BACK]
+
 func race_mana_pool(is_player: bool) -> Dictionary:
 	return race_mana if is_player else enemy_race_mana
 
@@ -431,6 +448,7 @@ class FakeOpponent:
 
 
 class FakeHand:
+	extends Node
 	var last_set: Array[CardData] = []
 	func set_hand(cards: Array, _animate: bool = false, _from_pos: Vector2 = Vector2.ZERO) -> void:
 		last_set = cards
