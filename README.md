@@ -476,7 +476,7 @@ Le projet utilise des singletons pour des systèmes globaux :
 
 Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
 
-- **4 participants, solo local uniquement** (1 joueur humain + 3 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels).
+- **8 participants, solo local uniquement** (1 joueur humain + 7 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels, mais chacun sur sa propre machine/session ; ici tous simulés localement pour tester les conditions réelles d'une partie complète).
 - **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board et anti-répétition d'appariement : tout ça est implémenté tel que décrit plus bas.
 - **Pas de verrouillage de case boutique au reroll** (mentionné en introduction plus bas) : retiré du prototype, chaque reroll retire toutes les cases non encore achetées.
 - **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 10 secondes, phase Combat 15 secondes (affichage du résultat), enchaînement entièrement automatique — pas de bouton "prêt"/"round suivant" à cliquer.
@@ -785,7 +785,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
-*   **Prototype Arena / Battle Royale jouable en solo local** (4 participants : 1 joueur + 3 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design 8 joueurs (pas de réseau, timers différents, pas de verrouillage de boutique)
+*   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam

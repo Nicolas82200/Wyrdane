@@ -18,7 +18,8 @@ extends Control
 # spécifique 1v1) : même contrat, avec en plus une rangée virtuelle "Shop" pour
 # vendre une carte de la main en la lâchant sur la boutique.
 #
-# 4 participants : le joueur humain (index 0) + 3 bots (ArenaBotDriver).
+# ArenaConstants.PARTICIPANT_COUNT participants (8 par défaut) : le joueur
+# humain (index 0) + le reste en bots (ArenaBotDriver).
 
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
 const HAND_SCENE := preload("res://scenes/hand/Hand.tscn")
@@ -133,11 +134,9 @@ func _start_match() -> void:
 	var pool_cards: Array[CardData] = CardLibrary.all_cards + CardLibrary.arena_only_cards
 	var pool := ArenaCardPool.new(pool_cards)
 	human = ArenaPlayerState.new("Joueur", false)
-	bots = [
-		ArenaPlayerState.new("Bot 1", true),
-		ArenaPlayerState.new("Bot 2", true),
-		ArenaPlayerState.new("Bot 3", true),
-	]
+	bots = []
+	for i in ArenaConstants.PARTICIPANT_COUNT - 1:
+		bots.append(ArenaPlayerState.new("Bot %d" % (i + 1), true))
 	var players: Array[ArenaPlayerState] = [human]
 	players.append_array(bots)
 	match_ = ArenaMatch.new(players, pool)
@@ -280,15 +279,15 @@ func _build_ui() -> void:
 	# Nom du plateau consulté (voir portraits_column) : sous les contrôles boutique.
 	viewing_label = _make_label(top_bar)
 
-	# ─ Colonne de gauche : portraits cliquables des autres participants (façon
+	# ─ Colonne de gauche : portraits cliquables de tous les participants (façon
 	# TFT) — cliquer en affiche le plateau à la place du sien, en lecture seule.
+	# Ancrée en fraction d'écran (pas un décalage fixe) : à 8 participants les
+	# boutons doivent tenir quelle que soit la résolution, contrairement à 4.
 	portraits_column = VBoxContainer.new()
-	portraits_column.anchor_top = 0.5
-	portraits_column.anchor_bottom = 0.5
+	portraits_column.anchor_top = 0.12
+	portraits_column.anchor_bottom = 0.88
 	portraits_column.offset_left = 12.0
-	portraits_column.offset_top = -150.0
-	portraits_column.offset_bottom = 150.0
-	portraits_column.add_theme_constant_override("separation", 8)
+	portraits_column.add_theme_constant_override("separation", 2)
 	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(portraits_column)
 
@@ -941,7 +940,9 @@ func _refresh_portraits() -> void:
 
 func _make_participant_button(target, _label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(72, 96)
+	# Assez petit pour que les 8 participants tiennent dans la colonne de
+	# gauche sans dépasser (voir portraits_column, ancrée en fraction d'écran).
+	btn.custom_minimum_size = Vector2(52, 64)
 	btn.icon = _art_for_target(target)
 	btn.expand_icon = true
 	btn.disabled = eliminated

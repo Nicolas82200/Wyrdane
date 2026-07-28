@@ -27,7 +27,7 @@ var net_emitter = null
 # n'utilise `network_manager` que comme témoin booléen ("== null" => partie
 # solo locale, un humain peut être invité à choisir une cible de trigger).
 # En combat simulé Arena, aucune des deux "mains" n'est un humain devant son
-# écran à cet instant précis (même en 1 joueur + 3 bots, le combat se résout
+# écran à cet instant précis (même en 1 joueur + des bots, le combat se résout
 # hors interaction) : on force donc systématiquement le tirage aléatoire
 # (_rng_pick) plutôt que d'appeler targeting_system.prompt_trigger_target,
 # qui n'a pas d'équivalent headless.

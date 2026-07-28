@@ -2,12 +2,9 @@ extends RefCounted
 class_name ArenaConstants
 
 # Constantes du mode Arena (voir README « Mode Battle Royale (8 joueurs) — Design (v1) »).
-# Ce prototype tourne à 4 participants (1 joueur + 3 bots) au lieu de 8 :
-# les valeurs marquées "4 joueurs" sont adaptées proportionnellement et
-# restent ajustables en playtest, comme le design d'origine l'indique déjà
-# pour la version à 8.
+# Prototype à 8 participants (1 joueur + 7 bots), conditions réelles du design.
 
-const PARTICIPANT_COUNT := 4
+const PARTICIPANT_COUNT := 8
 
 const STARTING_HERO_HP := 30
 const STARTING_GOLD := 1
@@ -22,13 +19,13 @@ const GOLD_TO_XP_RATE := 1
 const SELL_REFUND_FROM_HAND := 1.0
 const SELL_REFUND_FROM_BOARD := 0.5
 
-# Copies disponibles dans le pool par rareté, adaptées à 4 joueurs (~moitié
-# des chiffres 8 joueurs du README, arrondis).
+# Copies disponibles dans le pool par rareté (README « Copies disponibles
+# dans le pool », valeurs 8 joueurs).
 const POOL_COPIES_BY_RARITY := {
-	"Common": 9,
-	"Rare": 6,
-	"Epic": 4,
-	"Legendary": 2,
+	"Common": 19,
+	"Rare": 14,
+	"Epic": 9,
+	"Legendary": 3,
 }
 
 # XP cumulé requis par niveau de héros (README, table niveau 1-8).
@@ -81,9 +78,13 @@ const RARITY_ODDS_BY_COST := {
 }
 
 # Cooldown (en rounds) avant de refaire face au même adversaire (ou au
-# fantôme), selon le nombre de participants restants (fantôme inclus).
-# Table adaptée à 4 participants max (README ligne 535-540, "4 ou 3" -> 2 rounds).
+# fantôme), selon le nombre de participants restants (fantôme inclus) —
+# table complète 8 joueurs (README « Anti-répétition d'appariement »).
 const PAIRING_COOLDOWN_BY_PARTICIPANTS := {
+	8: 4,
+	7: 4,
+	6: 3,
+	5: 3,
 	4: 2,
 	3: 2,
 	2: 1,
