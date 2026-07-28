@@ -351,11 +351,6 @@ func _load() -> void:
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String
 	if not COLORBLIND_MODES.has(colorblind_mode):
 		colorblind_mode = DEFAULT_COLORBLIND_MODE
-<<<<<<< HEAD
-
-=======
->>>>>>> 62f53c433fa61840d97414916bfa1ef2ea1d1936
-
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
 		for action in saved_keybinds:
