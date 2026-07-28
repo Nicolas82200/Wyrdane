@@ -212,3 +212,14 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 - Ne pas inventer de nouveau mot-clé ou trigger sans qu'il soit d'abord ajouté à `README.md`
 - Le projet est en français dans sa documentation et son contenu visible par le joueur (noms de cartes, effets, UI, tooltips) — garder cette langue pour tout ce qui est visible en jeu. Le code (variables, fonctions) peut rester en anglais sauf convention contraire déjà en place. **Seuls les noms de branches et les commits sont toujours en anglais** (voir Workflow Git ci-dessus).
 
+## Maintenir la documentation à jour
+
+`CLAUDE.md`, `README.md`, `TODO.md` et `CARDS.md` doivent toujours refléter l'état réel du projet. À chaque tâche modifiant le code, avant de considérer le travail terminé (et donc avant tout commit/push) :
+
+- **`CARDS.md`** : toute carte ajoutée, supprimée ou dont les stats/coût/rareté/trigger/texte d'effet changent doit voir son entrée mise à jour dans le tableau de sa race.
+- **`README.md`** : toute règle, mot-clé, trigger, mécanique de race ou système de jeu nouveau ou modifié doit être documenté ici (c'est la référence des règles complètes).
+- **`TODO.md`** : cocher/retirer les tâches terminées par ce travail, ajouter les nouvelles tâches ou suivis identifiés en cours de route.
+- **`CLAUDE.md`** : si la tâche change la structure du projet (nouveau dossier/autoload/système), la roadmap (section « Roadmap actuelle »), ou une convention de travail, mettre à jour la section concernée.
+
+Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, correctif visuel sans impact sur les règles), il n'y a rien à mettre à jour — ne pas modifier les `.md` par réflexe. Mais ne jamais laisser la doc devenir obsolète par oubli.
+
