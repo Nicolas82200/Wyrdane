@@ -29,6 +29,10 @@ func test_bot_never_spends_more_gold_than_it_has() -> void:
 
 func test_bot_positioning_respects_row_max() -> void:
 	var card := _make_card("Filler", 1, "res://fake/bot_filler.tres")
+	# CardData.board_position vaut "Front" par défaut (pas un joker "les deux
+	# lignes") : ce test vérifie le plafond par ligne, pas la restriction de
+	# position, donc "Hybrid" pour pouvoir remplir les deux rangées.
+	card.board_position = "Hybrid"
 	var m := _make_match([card])
 	var player := m.players[0]
 	for i in ArenaConstants.BOARD_ROW_MAX * 2 + 3:
@@ -38,6 +42,27 @@ func test_bot_positioning_respects_row_max() -> void:
 	assert_true(player.board_front.size() <= ArenaConstants.BOARD_ROW_MAX)
 	assert_true(player.board_back.size() <= ArenaConstants.BOARD_ROW_MAX)
 	assert_eq(player.hand.size(), 3, "l'excédent au-delà de 20 places doit rester en main")
+
+func test_bot_positioning_respects_card_board_position_restriction() -> void:
+	var front_only := _make_card("FrontOnly", 1, "res://fake/bot_front_only.tres")
+	front_only.board_position = "Front"
+	var back_only := _make_card("BackOnly", 1, "res://fake/bot_back_only.tres")
+	back_only.board_position = "Back"
+	var m := _make_match([front_only, back_only])
+	var player := m.players[0]
+	for i in 5:
+		player.hand.append(Minion.new(front_only))
+		player.hand.append(Minion.new(back_only))
+	var bot := ArenaBotDriver.new(RandomNumberGenerator.new())
+	bot.play_positioning_phase(player)
+	for minion in player.board_front:
+		assert_ne(minion.card_data.board_position, "Back",
+			"une carte imposée Arrière ne doit jamais atterrir en Avant")
+	for minion in player.board_back:
+		assert_ne(minion.card_data.board_position, "Front",
+			"une carte imposée Avant ne doit jamais atterrir en Arrière")
+	assert_eq(player.board_front.size(), 5, "les 5 cartes Avant doivent toutes être posées")
+	assert_eq(player.board_back.size(), 5, "les 5 cartes Arrière doivent toutes être posées")
 
 func test_bot_handles_empty_shop_without_crashing() -> void:
 	var card := _make_card("Solo", 1, "res://fake/bot_empty.tres")

@@ -49,15 +49,22 @@ func cast_spells_phase(player: ArenaPlayerState, match_: ArenaMatch) -> void:
 		await match_.cast_spell(player, card_data)
 
 # Pose gratuite au hasard Avant/Arrière, dans la limite de 10 par rangée
-# (README « Pose sur le plateau »).
+# (README « Pose sur le plateau »), en respectant board_position (une carte
+# Avant/Arrière imposée ne peut pas atterrir sur l'autre rangée — même
+# restriction que ArenaBattle.get_allowed_rows_for_card, qui l'impose déjà
+# au joueur via le glisser-déposer ; sans ce filtre les bots pouvaient poser
+# n'importe quelle carte n'importe où, une incohérence de règles).
 func play_positioning_phase(player: ArenaPlayerState) -> void:
 	for minion in player.hand.duplicate():
+		var restriction: String = minion.card_data.board_position
+		var can_front: bool = restriction != "Back" and player.can_place_on_row(true)
+		var can_back: bool = restriction != "Front" and player.can_place_on_row(false)
 		var rows: Array[bool] = []
-		if player.can_place_on_row(true):
+		if can_front:
 			rows.append(true)
-		if player.can_place_on_row(false):
+		if can_back:
 			rows.append(false)
 		if rows.is_empty():
-			break  # plateau plein des deux côtés (20 serviteurs)
+			continue  # ligne imposée par la carte pleine (ou plateau plein) : reste en main
 		var is_front: bool = rows[rng.randi() % rows.size()]
 		player.place_on_board(minion, is_front)
