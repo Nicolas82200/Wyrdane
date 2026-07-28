@@ -49,6 +49,30 @@ func test_reset_after_combat_clears_temporary_death_state() -> void:
 	assert_true(p1.board_front.has(a), "un serviteur mort en combat simulé reste sur le plateau (mort temporaire)")
 	assert_eq(a.damage_taken, 0, "l'état de vie doit être réinitialisé après le combat")
 
+func test_eliminated_player_releases_suspended_cards_back_to_the_pool() -> void:
+	# all_owned_minions() doit inclure `suspended` : sans ça, une carte
+	# suspendue au moment de l'élimination de son possesseur disparaissait
+	# définitivement du pool commun au lieu d'y retourner (voir README
+	# « Règle de verrouillage » : toute carte revient au pool à l'élimination).
+	var strong_card := _make_card("Strong", 3, "res://fake/match_susp_strong.tres", 10, 10)
+	var weak_card := _make_card("Weak", 1, "res://fake/match_susp_weak.tres", 1, 1)
+	var pool := ArenaCardPool.new([strong_card, weak_card])
+	var p1 := ArenaPlayerState.new("P1")
+	var p2 := ArenaPlayerState.new("P2")
+	p2.hero_hp = 2
+	p1.board_front.append(Minion.new(strong_card, true, "Front"))
+	p2.board_front.append(Minion.new(weak_card, true, "Front"))
+	var suspended_minion := Minion.new(weak_card, true, "Front")
+	p2.suspended.append(suspended_minion)
+	pool.take(weak_card)  # copie retirée du pool le temps qu'elle reste possédée
+	var copies_before: int = pool.copies_remaining(weak_card)
+	var players: Array[ArenaPlayerState] = [p1, p2]
+	var m := ArenaMatch.new(players, pool)
+	await m.start_combat_phase()
+	assert_true(p2.is_eliminated)
+	assert_eq(pool.copies_remaining(weak_card), copies_before + 1,
+		"la copie suspendue du joueur éliminé doit retourner au pool")
+
 func test_resolve_pairing_always_treats_the_human_as_side_a_regardless_of_argument_order() -> void:
 	# run_combat() mappe front_a/back_a -> sim.player_minions (voir
 	# SimulatedBattle), convention dont dépend le combat animé du joueur

@@ -64,3 +64,18 @@ func test_merge_respects_hand_suspension_when_full() -> void:
 	var merge := ArenaMergeSystem.new()
 	merge.try_merge_all(player)
 	assert_true(player.suspended.size() >= 1, "main pleine -> le résultat de fusion doit être mis en suspens")
+
+func test_merge_detects_a_copy_sitting_in_suspended() -> void:
+	# Une carte peut se retrouver en suspens (main pleine au moment de son
+	# ajout, voir add_to_hand) avant même d'avoir pu fusionner — la détection
+	# doit quand même la trouver, pas seulement main+plateau.
+	var card := _make_card("Grunt", 1, "res://fake/merge_suspended.tres")
+	var player := ArenaPlayerState.new("Player")
+	player.hand.append(Minion.new(card, true, "Front"))
+	player.hand.append(Minion.new(card, true, "Front"))
+	player.suspended.append(Minion.new(card, true, "Front"))
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	assert_true(player.suspended.is_empty(), "la copie suspendue source doit être consommée par la fusion")
+	var merged: Array[Minion] = player.hand.filter(func(m: Minion): return m.star_level == 2)
+	assert_eq(merged.size(), 1, "les 3 copies (main+suspens) doivent fusionner en une carte 2★")

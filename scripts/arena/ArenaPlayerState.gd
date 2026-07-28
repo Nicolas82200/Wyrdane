@@ -35,11 +35,16 @@ func _init(name: String, bot: bool = false) -> void:
 func is_alive() -> bool:
 	return not is_eliminated and hero_hp > 0
 
+# Inclut `suspended` (cartes en attente d'une place en main libre, voir
+# add_to_hand) : sans ça, ArenaMatch._eliminate ne rendait jamais ces cartes
+# précises au pool commun (perdues définitivement), et ArenaMergeSystem ne
+# pouvait jamais détecter/fusionner une 3e copie tombée en suspens.
 func all_owned_minions() -> Array[Minion]:
 	var result: Array[Minion] = []
 	result.append_array(hand)
 	result.append_array(board_front)
 	result.append_array(board_back)
+	result.append_array(suspended)
 	return result
 
 func hand_count() -> int:
