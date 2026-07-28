@@ -18,6 +18,13 @@ func test_scene_builds_ui_and_starts_a_shop_phase() -> void:
 	var shown_cards: int = scene.shop_front_row.get_child_count() + scene.shop_back_row.get_child_count()
 	assert_eq(shown_cards, ArenaConstants.SHOP_SIZE, "chaque carte proposée doit être visible dans la rangée Avant ou Arrière de la boutique")
 
+func test_scene_spawns_one_human_and_the_rest_as_bots() -> void:
+	assert_eq(scene.bots.size(), ArenaConstants.PARTICIPANT_COUNT - 1,
+		"le nombre de bots doit suivre PARTICIPANT_COUNT (8 joueurs = 1 humain + 7 bots)")
+	assert_eq(scene.match_.players.size(), ArenaConstants.PARTICIPANT_COUNT)
+	for bot in scene.bots:
+		assert_true(bot.is_bot)
+
 func test_full_round_loop_does_not_crash() -> void:
 	# Simule un drag & drop d'achat (ArenaShopCardSlot -> ArenaBoardRow), pose
 	# le reste de la main en Avant, puis résout le combat (normalement déclenché

@@ -40,3 +40,12 @@ func test_cooldown_ignored_when_only_two_participants_remain() -> void:
 	history[ArenaPairing._pair_key(players[0], players[1])] = 1
 	var pairs := ArenaPairing.compute_pairings(players, history, 2)
 	assert_eq(pairs.size(), 1, "avec seulement 2 participants, ils doivent quand même être appariés")
+
+func test_pairing_cooldown_table_matches_the_8_player_design() -> void:
+	# Protège contre une faute de frappe dans ArenaConstants (voir README
+	# « Anti-répétition d'appariement ») : table complète 8 joueurs, pas
+	# seulement 4/3/2 comme dans l'ancienne échelle réduite du prototype.
+	var expected := {8: 4, 7: 4, 6: 3, 5: 3, 4: 2, 3: 2, 2: 1}
+	for count in expected:
+		assert_eq(ArenaConstants.PAIRING_COOLDOWN_BY_PARTICIPANTS.get(count, -1), expected[count],
+			"cooldown incorrect pour %d participants" % count)
