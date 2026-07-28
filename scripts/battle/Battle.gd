@@ -87,6 +87,11 @@ var net_registry := NetRegistry.new()
 var net_emitter: NetEmitter = null
 # En mode réseau : true si c'est le joueur local qui commence la partie.
 var net_local_first: bool = true
+# En mode réseau : id backend de l'adversaire et identifiant de match partagé,
+# utilisés pour rapporter le résultat au backend (voir _show_game_over). 0/""
+# si l'un des deux camps n'était pas authentifié au moment du handshake.
+var net_opponent_backend_id: int = 0
+var net_client_match_id: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -258,6 +263,8 @@ func _setup_network() -> void:
 	game_rng.seed = setup.get("seed", 0)
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
+	net_opponent_backend_id = setup.get("opponent_backend_id", 0)
+	net_client_match_id = setup.get("client_match_id", "")
 	net_emitter = NetEmitter.new(net)
 	net.connection_lost.connect(_on_net_connection_lost)
 	net.connection_restored.connect(_on_net_connection_restored)
@@ -880,11 +887,11 @@ func _show_game_over(result: String) -> void:
 		SettingsManager.record_match_result(result == "victory")
 	game_over_screen.show_result(result, network_manager == null)
 
-	# Un match réseau/ranked est crédité côté serveur au moment du rapport de
-	# match (voir rankedModel.confirmMatch côté backend) — hors scope ici tant
-	# que ce rapport n'est pas encore envoyé par le client. Un match solo/IA
-	# n'a pas de second client pour faire foi : le client déclare directement
-	# son résultat, plafonné par jour côté serveur contre l'abus.
+	# Un match réseau/ranked est crédité côté serveur uniquement quand les deux
+	# rapports concordent (voir rankedModel.confirmMatch côté backend) : chaque
+	# camp rapporte indépendamment son propre résultat. Un match solo/IA n'a pas
+	# de second client pour faire foi : le client déclare directement son
+	# résultat, plafonné par jour côté serveur contre l'abus.
 	if network_manager == null:
 		var won := result == "victory"
 		CurrencyManager.report_solo_match_result(won, func(credited: bool):
@@ -892,6 +899,9 @@ func _show_game_over(result: String) -> void:
 				var reward := CurrencyManager.SOLO_WIN_REWARD_DISPLAY if won else CurrencyManager.SOLO_DEFEAT_REWARD_DISPLAY
 				game_over_screen.show_reward(reward)
 		)
+	elif (result == "victory" or result == "defeat") and net_client_match_id != "" and net_opponent_backend_id > 0 and BackendClient.local_user_id() > 0:
+		var winner_id := BackendClient.local_user_id() if result == "victory" else net_opponent_backend_id
+		BackendClient.report_ranked_match(net_client_match_id, net_opponent_backend_id, winner_id)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
