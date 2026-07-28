@@ -88,13 +88,16 @@ static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).
 # seed : graine RNG partagée pour que les tirages aléatoires soient identiques.
-static func hello(deck_paths: Array, start_id: int, stride: int, seed: int) -> Dictionary:
+# backend_id : id utilisateur backend local (0 si non authentifié), utilisé
+# côté profil/ranked pour rapporter le résultat du match (voir NetHandshake).
+static func hello(deck_paths: Array, start_id: int, stride: int, seed: int, backend_id: int = 0) -> Dictionary:
 	return {
 		"type": HELLO,
 		"deck": deck_paths,
 		"start_id": start_id,
 		"stride": stride,
 		"seed": seed,
+		"backend_id": backend_id,
 	}
 
 # Accusé de réception du HELLO : garantit à l'émetteur que son deck est bien

@@ -61,6 +61,15 @@ var _enemy_hero_panel := Control.new()
 var _player_health_label := Label.new()
 var _enemy_health_label := Label.new()
 
+# ─── Ajouts pour tester AISystem ───────────────────────────────────────────────
+var deck_system: FakeDeckSystem = FakeDeckSystem.new()
+
+func update_enemy_hand_ui() -> void:
+	pass
+
+func update_enemy_mana_ui() -> void:
+	pass
+
 func get_tree() -> FakeSceneTree:
 	return _fake_tree
 
@@ -107,6 +116,28 @@ func get_back_minions(is_player: bool) -> Array[Minion]:
 
 func can_summon_to_row(is_player: bool, row: String) -> bool:
 	return get_row_minions(is_player, row).size() < 10
+
+# Mêmes formules que Battle.gd (get_attackable_enemy_minions / _can_attack_hero) :
+# priorité à la rangée Avant du camp défenseur, sauf INFILTRATION.
+func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	var defending_is_player: bool = attacker != null and not attacker.owner_is_player
+	var defenders: Array[Minion] = player_minions if defending_is_player else enemy_minions
+	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
+		return defenders
+	var front: Array[Minion] = get_front_minions(defending_is_player)
+	if not front.is_empty():
+		return front
+	return defenders
+
+func _can_attack_hero(attacker: Minion) -> bool:
+	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
+		return false
+	var attackable: Array[Minion] = get_attackable_enemy_minions(attacker)
+	for minion in attackable:
+		if minion.has_keyword(Keyword.Type.TAUNT):
+			return false
+	var defending_is_player: bool = not attacker.owner_is_player
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()
 
 func get_node_or_null(_path):
 	return null
@@ -312,6 +343,11 @@ class FakeEnchantmentSystem:
 		return player_rituals if is_player else enemy_rituals
 	func find_visual(_card_data: CardData, _is_player: bool):
 		return null
+
+
+class FakeDeckSystem:
+	func update_enemy_deck_ui() -> void:
+		pass
 
 
 class FakeTargetingSystem:

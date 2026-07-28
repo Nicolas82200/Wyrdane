@@ -30,6 +30,8 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
 @onready var match_stats_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/MatchStatsLabel
+@onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
+@onready var profile_panel: Control = $ProfilePanel
 @onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -54,6 +56,8 @@ func _ready() -> void:
 	packs_button.pressed.connect(_on_packs_button_pressed)
 	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	discord_button.pressed.connect(_on_discord_pressed)
+	profile_button.set_meta("no_click_sound", true)
+	profile_button.pressed.connect(profile_panel.open)
 	# Le son de fermeture remplace le clic générique
 	close_credits.set_meta("no_click_sound", true)
 	close_credits.pressed.connect(func():
