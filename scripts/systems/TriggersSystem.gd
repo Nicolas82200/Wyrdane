@@ -199,6 +199,10 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 		if not cancel_effect.race_filter.is_empty() \
 				and target.card_data.race != Race.from_string(cancel_effect.race_filter):
 			continue
+		# Mur Infranchissable : "un serviteur Humain allié en rangée Avant".
+		if not cancel_effect.row_filter.is_empty() \
+				and target.board_row != cancel_effect.row_filter:
+			continue
 		var proxy := _make_proxy(card_data, owner_is_player)
 		for effect in card_data.effects:
 			if effect.effect_id == "CancelSpellOnRaceTarget":

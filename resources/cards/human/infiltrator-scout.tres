@@ -13,15 +13,16 @@ type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_immunity"]
 script = ExtResource("1_cardeffect")
-effect_id = "GrantSpellImmunity"
-target = "AllEnemiesBack"
+effect_id = "GrantKeyword"
+target = "AllAllies"
 duration = "UntilEndOfTurn"
+granted_keyword = "BLACK_WINGS"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Éclaireur Infiltré"
-description = "Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour."
+description = "Arrivée : tes serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide."
 flavour_text = "Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant."
 texture = ExtResource("3_texture")
 cost = 3

@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
+race_filter = "Undead"
 value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"

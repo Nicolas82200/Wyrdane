@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 target = "AllEnemies"
 value = 1
+requires_infected_target = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_3n6at"]

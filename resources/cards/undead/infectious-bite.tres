@@ -12,6 +12,7 @@ script = ExtResource("1_cardeffect")
 effect_id = "Transform"
 target = "EnemyMinion"
 transform_card = ExtResource("6_transform")
+exclude_legendary = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
