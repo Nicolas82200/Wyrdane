@@ -602,6 +602,18 @@ func _draw_card_per_ally_death_this_turn(battle, source_minion: Minion, effect: 
 	var count: int = mini(deaths, effect.count) if effect.count > 0 else deaths
 	_draw_cards(battle, source_minion, count)
 
+# Bascule la rangée d'un allié ciblé, Avant<->Arrière (Repli Tactique).
+# Ignore la cible si la rangée d'en face est déjà pleine : rien à échanger.
+func _move_row(battle, source_minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
+		if not battle.can_summon_to_row(target.owner_is_player, other_row):
+			continue
+		target.board_row = other_row
+		battle.board_visual_system.reparent_minion_visual(target, target.owner_is_player)
+
 func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
