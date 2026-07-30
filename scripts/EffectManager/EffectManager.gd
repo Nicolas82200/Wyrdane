@@ -319,7 +319,11 @@ func _get_adjacent_minions(battle, minion: Minion) -> Array[Minion]:
 	return result
 
 func _get_adjacent_enemies(battle, target: Minion) -> Array[Minion]:
-	var list: Array[Minion] = battle.enemy_minions if target.owner_is_player else battle.player_minions
+	# La position adjacente se calcule dans le camp DE LA CIBLE (comme
+	# _get_adjacent_minions) : le camp opposé ne contient jamais `target`,
+	# donc find() y échouait toujours (-1), ce qui ne touchait que le
+	# premier serviteur de la rangée au lieu du vrai voisin (bug corrigé).
+	var list: Array[Minion] = battle.player_minions if target.owner_is_player else battle.enemy_minions
 	var same_row: Array[Minion] = list.filter(func(m: Minion): return m.board_row == target.board_row)
 	var idx: int = same_row.find(target)
 	var result: Array[Minion] = []
@@ -769,9 +773,15 @@ func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> void:
 	if source_minion == null:
 		return
+	# La position "en face" se lit dans le camp DE LA SOURCE (source_minion
+	# n'apparaît jamais dans le camp adverse, donc chercher son index
+	# directement dans `enemies` échouait toujours et ne touchait que le
+	# premier ennemi de la rangée, quelle que soit la position réelle — bug
+	# corrigé en calculant idx depuis le propre camp de la source).
+	var own_row: Array[Minion] = battle.get_owner_minions(source_minion).filter(func(m: Minion): return m.board_row == source_minion.board_row)
+	var idx: int = own_row.find(source_minion)
 	var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
 	var same_row: Array[Minion] = enemies.filter(func(m: Minion): return m.board_row == source_minion.board_row)
-	var idx: int = same_row.find(source_minion)
 	# Cible les ennemis adjacents en face (position idx-1, idx, idx+1)
 	var hit: Array[Minion] = []
 	for offset in [-1, 0, 1]:
