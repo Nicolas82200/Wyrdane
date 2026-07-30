@@ -866,6 +866,17 @@ func _position_hover_tooltips() -> void:
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
 
+	# Hauteur totale de la pile de panneaux : si elle dépasse le bas de l'écran,
+	# on remonte le point de départ (ou on le limite en haut) pour que la pile
+	# entière reste visible plutôt que de déborder sous la fenêtre.
+	var stack_height := 0.0
+	for panel in _keyword_tooltips:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
