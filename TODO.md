@@ -38,6 +38,10 @@ Le backend fonctionne avec l'AppID de test 480 (Spacewar), documenté et volonta
 
 Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Race.gd`). Aucun fichier `KeywordElf.gd`/`KeywordDwarf.gd`, aucun dossier `resources/cards/elf|dwarf/`, aucune entrée dans `CARDS.md`. Chantier de design complet à faire avant tout code (mots-clés propres à définir dans `README.md` d'abord, comme convenu pour toute nouvelle race/mot-clé).
 
+## P6 — Ordre de Tenir (Humain, H53) : effet non implémenté
+
+`resources/cards/human/hold-the-line.tres` a un `trigger_types` (Éveil) mais un tableau `effects` vide : le rituel ne fait rien à l'heure actuelle malgré sa description ("tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis"). Contrairement aux autres bugs corrigés dans cette branche, celui-ci demande un nouveau statut de protection (vérifié dans `ReturnToHand`/`MoveRow`/`StealMinion`, uniquement quand la source de l'effet appartient au camp adverse à celui du protégé) plutôt qu'un simple champ de filtrage — non fait ici par prudence (risque de mécanique bâclée sans tests dédiés). À reprendre dans une branche dédiée.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
