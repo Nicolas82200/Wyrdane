@@ -10,6 +10,13 @@
 script = ExtResource("5_trig")
 type = "OnSpell"
 
+[sub_resource type="Resource" id="Resource_cancel"]
+script = ExtResource("1_cardeffect")
+effect_id = "CancelSpellOnRaceTarget"
+race_filter = "Human"
+row_filter = "Front"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mur Infranchissable"
@@ -21,5 +28,6 @@ race = 1
 card_type = "Ritual"
 ritual_duration = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_6nj0s")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cancel")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

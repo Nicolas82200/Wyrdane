@@ -541,7 +541,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR. RANG INFERNAL. | *Plus tu payes, plus il devient difficile à ignorer.* |
 | D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : ton héros perd 2 HP ; vole 4 HP au héros ennemi. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
-| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
+| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins ; ton héros perd 2 HP. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
 | D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. PACTE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. PACTE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
