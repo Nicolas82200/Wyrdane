@@ -64,6 +64,11 @@ var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
+# Voisins capturés juste avant le retrait du plateau (DeathSystem), pour que
+# les rituels/enchantements à Deuil (Serment du Sang) puissent buffer "le
+# serviteur adjacent" du mort alors que celui-ci n'est déjà plus dans
+# player_minions/enemy_minions au moment où OnGrief se déclenche.
+var grief_adjacent_hint: Array[Minion] = []
 # Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
 var extra_attack_used_this_turn: bool = false
 var buffs: Array = []

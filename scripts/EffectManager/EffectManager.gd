@@ -41,7 +41,7 @@ func execute_effect(
 		"SummonSelf":       await _summon_self(battle, source_minion, effect)
 		"DamageAll":        await _damage_all(battle, source_minion, effect)
 		"BuffRow":          await _buff_row(battle, source_minion, effect)
-		"BuffAdjacent":     await _buff_adjacent(battle, source_minion, effect)
+		"BuffAdjacent":     await _buff_adjacent(battle, source_minion, effect, selected_target)
 		"SplashDamage":     await _splash_damage(battle, source_minion, effect, selected_target)
 		"DebuffATK":        await _debuff_atk(battle, source_minion, effect, selected_target)
 		"DestroyLowHP":     await _destroy_low_hp(battle, source_minion, effect)
@@ -832,13 +832,21 @@ func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> voi
 		if visual:
 			battle.animation_system.play_infection(visual)
 
-# Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...)
-func _buff_adjacent(battle, source_minion, effect) -> void:
-	if source_minion == null:
-		return
-	var adjacents: Array[Minion] = _get_adjacent_minions(battle, source_minion)
+# Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...).
+# Cas Deuil (Serment du Sang) : selected_target est le serviteur qui vient de
+# mourir, déjà retiré du plateau — on retombe alors sur ses voisins capturés
+# par DeathSystem juste avant sa mort (grief_adjacent_hint) plutôt que de
+# recalculer une adjacence sur des tableaux qui ne le contiennent plus.
+func _buff_adjacent(battle, source_minion, effect, selected_target: Minion = null) -> void:
+	var adjacents: Array[Minion] = []
+	if selected_target != null and not selected_target.grief_adjacent_hint.is_empty():
+		adjacents = selected_target.grief_adjacent_hint
+	elif source_minion != null:
+		adjacents = _get_adjacent_minions(battle, source_minion)
 	await _point_arrows_to(battle, adjacents, source_minion)
 	for adjacent in adjacents:
+		if adjacent.is_dead():
+			continue
 		adjacent.base_attack     += effect.value
 		adjacent.base_max_health += effect.value_2
 

@@ -352,7 +352,7 @@ Liste complète des cartes de la race **Humain**.
 | H44 | Volée de Flèches | 3 | Commune | Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 dégâts à la place. | *Plus ils sont nombreux, plus ça fait de cibles.* |
 | H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un serviteur Humain allié ciblé jusqu'à fin du prochain tour adverse. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
 | H46 | Jugement Divin | 3 | Rare | Détruit un serviteur ennemi ayant 2 ATK ou moins. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
-| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent ASSAUT ce tour et peuvent attaquer depuis la rangée Arrière ce tour. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
+| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent +1 ATK de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
 | H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
 | H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |

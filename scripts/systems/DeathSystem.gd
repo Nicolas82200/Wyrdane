@@ -28,6 +28,10 @@ func process_deaths(silent: Array = []) -> void:
 	# VIRULENT (Abomination) : capture les cibles AVANT retrait du plateau, la
 	# recherche d'adjacence se fait sur les listes de serviteurs encore en jeu.
 	var virulent_adjacent: Array[Minion] = _collect_virulent_adjacent(dead_all)
+	# Idem pour le Deuil (Serment du Sang) : chaque mort mémorise ses voisins
+	# actuels avant d'être retiré des tableaux du plateau.
+	for dead in dead_all:
+		dead.grief_adjacent_hint = battle.effect_manager._get_adjacent_minions(battle, dead)
 	await _animate_deaths(dead_all, silent)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
