@@ -149,7 +149,7 @@ Positionnement (Lane Types)
 | 46 | Cri des Damnés | 3 | Rare | Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place. | Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain. |
 | 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur ennemi de 3 HP ou moins dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
 | 48 | Exhalation Toxique | 1 | Commune | 1 dégât à tous les serviteurs en jeu. | Même ses alliés évitent de respirer trop près. |
-| 49 | Dernier Soupir | 3 | Épique | Carnage : pioche 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
+| 49 | Dernier Soupir | 3 | Épique | Pioche 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
 | 50 | Éclat de Putréfaction | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : invoque un Rampant 1/1. | La corruption ne respecte pas la magie. Elle la digère. |
 | 51 | Souffle du Charnier | 1 | Commune | Un Mort-Vivant allié ciblé gagne +0/+2. | Ce qui ne peut pas mourir davantage peut encore endurcir. |
 | 52 | Doigt Décharné | 1 | Rare | Pioche 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce tour. | Il désigne. Quelque chose, quelque part, répond. |
@@ -352,7 +352,7 @@ Liste complète des cartes de la race **Humain**.
 | H44 | Volée de Flèches | 3 | Commune | Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 dégâts à la place. | *Plus ils sont nombreux, plus ça fait de cibles.* |
 | H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un serviteur Humain allié ciblé jusqu'à fin du prochain tour adverse. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
 | H46 | Jugement Divin | 3 | Rare | Détruit un serviteur ennemi ayant 2 ATK ou moins. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
-| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent ASSAUT ce tour et peuvent attaquer depuis la rangée Arrière ce tour. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
+| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent +1 ATK de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
 | H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
 | H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
@@ -541,7 +541,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR. RANG INFERNAL. | *Plus tu payes, plus il devient difficile à ignorer.* |
 | D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : ton héros perd 2 HP ; vole 4 HP au héros ennemi. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
-| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
+| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins ; ton héros perd 2 HP. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
 | D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. PACTE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. PACTE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |

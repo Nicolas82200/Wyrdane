@@ -162,6 +162,9 @@ var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
 var counter_offensive: Dictionary = {true: false, false: false}
+# Nombre de Morts-Vivants alliés morts ce tour, par camp (clé = owner_is_player)
+# — Dernier Soupir : "pioche 1 carte par Mort-Vivant allié mort ce tour".
+var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
 # Phase de mulligan en cours (avant le tour 1) : le bouton Fin du tour devient
 # "Commencer" et un clic sur une carte de la main la remplace au lieu de la jouer.
 var _mulligan_active: bool = false

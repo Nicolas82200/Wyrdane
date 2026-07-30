@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAlliesFront"
+duration = "UntilEndOfTurn"
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -20,7 +21,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Servant Décharné"
-description = "Assaut : tes serviteurs en rangée Avant ont +0/+1 HP."
+description = "Attaque : tes serviteurs en rangée Avant ont +0/+1 HP jusqu'à fin de tour."
 flavour_text = "Il ne commande pas. Il pousse. Et ça suffit."
 texture = ExtResource("3_texture")
 cost = 3

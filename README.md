@@ -267,6 +267,10 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
+### 🗄️ Backend & progression persistante
+
+La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
+
 ### 🌍 Internationalisation (i18n)
 
 Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :

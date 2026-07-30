@@ -49,7 +49,7 @@ func _begin_player_turn() -> void:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.turn_start(ids)
 	_finish_turn_start()
-	draw_card()
+	battle.deck_system.draw_card()
 	if battle.tutorial_active:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_player_turn_began()
@@ -65,6 +65,7 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.cost_system.on_turn_started(is_local_turn)
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	battle.resource_played_this_turn[is_local_turn] = false
+	battle.undead_ally_deaths_this_turn[is_local_turn] = 0
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():
@@ -112,12 +113,3 @@ func _finish_turn_start() -> void:
 	battle.refill_mana_pool(true)
 	battle.update_mana_ui()
 	battle.board_visual_system.refresh_board()
-
-func draw_card() -> void:
-	if battle.deck.is_empty():
-		return
-	battle.hand_cards.append(battle.deck.pop_back())
-	var deck_pos: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
-	AudioManager.play(AudioManager.DRAW)
-	battle.hand.set_hand(battle.hand_cards, true, deck_pos)
-	battle.deck_system.update_deck_ui()

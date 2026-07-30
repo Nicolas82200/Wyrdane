@@ -69,7 +69,50 @@ func test_run_turn_end_triggers_no_crash_without_infected_minions() -> void:
 	assert_eq(battle.player_minions.size(), 1)
 	assert_eq(battle.enemy_minions.size(), 1)
 
+# Serviteur portant `trigger_name` + Buff(Self, +1/+0), pour vérifier
+# concrètement qu'Éveil/Déclin se sont déclenchés sur le bon camp.
+func _minion_with_trigger(trigger_name: String, is_player: bool = true) -> Minion:
+	var data := CardData.new()
+	data.card_name = "TRIGGER_CARD"
+	data.race = Race.Type.UNDEAD
+	data.attack = 2
+	data.health = 4
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = trigger_name
+	data.trigger_types = [trigger]
+	var effect := CardEffect.new()
+	effect.effect_id = "Buff"
+	effect.target = "Self"
+	effect.value = 1
+	data.effects = [effect]
+	var minion := Minion.new(data, is_player)
+	if is_player:
+		battle.player_minions.append(minion)
+	else:
+		battle.enemy_minions.append(minion)
+	return minion
+
 # ─── run_turn_start_triggers ─────────────────────────────────────────────────
+
+func test_run_turn_start_triggers_fires_on_awaken_for_the_active_camp() -> void:
+	var active := _minion_with_trigger("OnAwaken", true)
+	await turn_system.run_turn_start_triggers(true)
+	assert_eq(active.base_attack, 3, "Éveil doit se déclencher pour le camp dont c'est le tour")
+
+func test_run_turn_start_triggers_does_not_fire_on_awaken_for_the_inactive_camp() -> void:
+	var inactive := _minion_with_trigger("OnAwaken", false)
+	await turn_system.run_turn_start_triggers(true)
+	assert_eq(inactive.base_attack, 2)
+
+func test_run_turn_start_triggers_fires_on_decline_for_the_camp_whose_turn_just_ended() -> void:
+	var declining := _minion_with_trigger("OnDecline", false)
+	await turn_system.run_turn_start_triggers(true)
+	assert_eq(declining.base_attack, 3, "Déclin vise le camp adverse (dont le tour vient de finir)")
+
+func test_run_turn_start_triggers_does_not_fire_on_decline_for_the_active_camp() -> void:
+	var active := _minion_with_trigger("OnDecline", true)
+	await turn_system.run_turn_start_triggers(true)
+	assert_eq(active.base_attack, 2)
 
 func test_run_turn_start_triggers_refreshes_attacks_for_active_camp_only() -> void:
 	var active := _minion(true)

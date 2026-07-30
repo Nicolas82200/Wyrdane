@@ -106,6 +106,22 @@ func test_self_damage_does_not_crash_with_no_sang_noir_minions() -> void:
 	await hero_system.self_damage(true, 3)
 	assert_eq(battle.player_hero.health, 27)
 
+func test_self_damage_fires_on_self_damage_trigger_for_owner_camp() -> void:
+	await hero_system.self_damage(true, 3)
+	var calls: Array = battle.trigger_system.fired_calls.filter(
+		func(c: Dictionary) -> bool: return c["trigger_name"] == "OnSelfDamage"
+	)
+	assert_eq(calls.size(), 1, "les dégâts auto-infligés doivent déclencher OnSelfDamage (Autel de la Souffrance)")
+	assert_true(calls[0]["is_player"])
+
+func test_self_damage_does_not_fire_on_self_damage_trigger_when_zero_dealt() -> void:
+	hero_system.self_damage_blocked[true] = true
+	await hero_system.self_damage(true, 3)
+	var calls: Array = battle.trigger_system.fired_calls.filter(
+		func(c: Dictionary) -> bool: return c["trigger_name"] == "OnSelfDamage"
+	)
+	assert_eq(calls.size(), 0, "aucun dégât réellement infligé : pas de déclenchement")
+
 # ─── update_ui() ────────────────────────────────────────────────────────────
 
 func test_update_ui_reflects_current_health() -> void:
