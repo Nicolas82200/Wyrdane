@@ -28,6 +28,33 @@ func test_buy_card_spends_gold_and_takes_from_pool() -> void:
 	assert_eq(player.hand.size(), 1)
 	assert_null(player.shop_offer[0])
 
+func test_buy_card_fails_when_another_player_already_took_the_last_copy() -> void:
+	# draw_card() (voir _refresh_shop_offer) ne réserve rien : à 8 joueurs, la
+	# même copie rare peut apparaître dans plusieurs boutiques la même
+	# manche. Le premier acheteur doit vider vraiment le pool, et un second
+	# acheteur voyant encore la même carte dans SA propre offre ne doit pas
+	# pouvoir l'obtenir quand même.
+	var card := _make_card("Rare1Copy", 2, "res://fake/shop_contested.tres")
+	var pool := ArenaCardPool.new([card])
+	var p1 := ArenaPlayerState.new("P1")
+	var p2 := ArenaPlayerState.new("P2")
+	p1.gold = 5
+	p2.gold = 5
+	var players: Array[ArenaPlayerState] = [p1, p2]
+	var m := ArenaMatch.new(players, pool)
+	# Une seule copie dans le pool, offerte aux deux joueurs simultanément.
+	for i in m.pool.copies_remaining(card) - 1:
+		m.pool.take(card)
+	assert_eq(m.pool.copies_remaining(card), 1)
+	p1.shop_offer = [card, null, null, null, null]
+	p2.shop_offer = [card, null, null, null, null]
+
+	assert_true(m.buy_card(p1, 0), "le premier acheteur doit obtenir la dernière copie")
+	assert_eq(m.pool.copies_remaining(card), 0)
+	assert_false(m.buy_card(p2, 0), "un second acheteur ne doit pas obtenir une copie qui n'existe plus")
+	assert_eq(p2.hand.size(), 0, "P2 ne doit pas recevoir la carte")
+	assert_null(p2.shop_offer[0], "l'offre devenue indisponible doit être vidée plutôt que de rester bloquée")
+
 func test_buy_card_fails_without_enough_gold() -> void:
 	var card := _make_card("Costly", 8, "res://fake/shop_costly.tres")
 	var m := _make_match([card])

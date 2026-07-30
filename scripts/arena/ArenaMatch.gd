@@ -66,6 +66,17 @@ func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	var card_data: CardData = player.shop_offer[shop_index]
 	if card_data == null or player.gold < card_data.cost or player.is_hand_full():
 		return false
+	# Une offre affichée n'est pas réservée (voir _refresh_shop_offer :
+	# draw_card() ne retire rien du pool) : à 8 joueurs, la même copie rare
+	# peut apparaître dans plusieurs boutiques la même manche. Le premier
+	# acheteur la retire réellement (pool.take, plus bas) ; sans cette
+	# vérification, un acheteur suivant pouvait quand même l'obtenir alors
+	# qu'il n'en restait plus une seule — deux joueurs avec la même copie
+	# unique. La case est vidée pour ne pas rester bloquée sur une offre
+	# devenue indisponible.
+	if pool.copies_remaining(card_data) <= 0:
+		player.shop_offer[shop_index] = null
+		return false
 	player.gold -= card_data.cost
 	pool.take(card_data)
 	player.shop_offer[shop_index] = null
