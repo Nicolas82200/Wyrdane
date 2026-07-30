@@ -21,6 +21,7 @@ func execute_effect(
 		"Debuff":           await _debuff(battle, source_minion, effect, selected_target)
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
 		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
+		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
 		"StealHealth":      await _steal_health(battle, source_minion, effect, selected_target)
@@ -166,7 +167,7 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 	if not effect.race_filter.is_empty():
 		var race_id: int = Race.from_string(effect.race_filter)
 		result = result.filter(func(t: Minion) -> bool:
-			return t.card_data.race == race_id
+			return (t.card_data.race == race_id) != effect.race_filter_exclude
 		)
 	if not effect.row_filter.is_empty():
 		result = result.filter(func(t: Minion) -> bool:
@@ -182,6 +183,10 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 		)
 	if effect.requires_resurrected_target:
 		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
+	if effect.exclude_legendary:
+		result = result.filter(func(t: Minion) -> bool: return t.card_data.rarity != "Legendary")
+	if effect.requires_infected_target:
+		result = result.filter(func(t: Minion) -> bool: return t.infected)
 	return result
 
 func _resolve_targets(
@@ -566,6 +571,15 @@ func _draw_cards(battle, source_minion: Minion, count: int) -> void:
 			battle.deck_system.draw_card()
 		else:
 			battle.opponent.draw_card()
+
+# Pioche 1 carte par Mort-Vivant allié mort CE TOUR, plafonné à effect.count
+# (Dernier Soupir : "pioche 1 carte par Mort-Vivant allié mort ce tour, max 3").
+# Compteur tenu à jour par DeathSystem/TurnSystem (battle.undead_ally_deaths_this_turn).
+func _draw_card_per_ally_death_this_turn(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
+	var deaths: int = int(battle.undead_ally_deaths_this_turn.get(is_player, 0))
+	var count: int = mini(deaths, effect.count) if effect.count > 0 else deaths
+	_draw_cards(battle, source_minion, count)
 
 func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)

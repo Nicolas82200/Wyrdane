@@ -22,7 +22,8 @@ class_name CardEffect
 	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
 	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
-	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword"
+	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword",
+	"DrawCardPerAllyDeathThisTurn"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -42,6 +43,9 @@ class_name CardEffect
 @export var summon_card: CardData
 @export var transform_card: CardData
 @export var race_filter: String = ""
+# Inverse le sens de race_filter : ne retient que les cibles qui N'appartiennent
+# PAS à cette race (ex: Fléau Écarlate, "serviteurs non Démons ennemis").
+@export var race_filter_exclude: bool = false
 @export var row_filter: String = ""  # "Front", "Back", ou "" pour les deux
 
 # ─── Conditions sur la cible ──────────────────────────────────────────────────
@@ -53,6 +57,12 @@ class_name CardEffect
 # Ne peut cibler qu'un serviteur ramené du cimetière (Minion.was_resurrected),
 # ex. Brise-Mort.
 @export var requires_resurrected_target: bool = false
+# Exclut les cibles de rareté Légendaire (ex: Morsure Infectieuse : "un
+# serviteur ennemi non-Légendaire"). Vérifié au ciblage ET à la résolution.
+@export var exclude_legendary: bool = false
+# Ne retient que les cibles actuellement infectées (Brouillard Pestilentiel :
+# "les serviteurs ennemis infectés perdent 1 HP supplémentaire").
+@export var requires_infected_target: bool = false
 
 # ─── Condition d'exécution ────────────────────────────────────────────────────
 # L'effet n'est appliqué que si la condition est remplie. "None" = toujours.
