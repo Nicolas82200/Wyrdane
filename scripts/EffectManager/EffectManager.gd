@@ -22,6 +22,7 @@ func execute_effect(
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
 		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
 		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
+		"MoveRow":          await _move_row(battle, source_minion, effect, selected_target)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
 		"StealHealth":      await _steal_health(battle, source_minion, effect, selected_target)
@@ -546,6 +547,12 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
+		# Les deux cartes utilisant Transform (Morsure Infectieuse, Apocalypse
+		# Zombie) précisent toutes deux « sous ton contrôle » : le serviteur
+		# transformé change donc aussi de camp, comme _steal_minion — y compris
+		# l'immunité au contrôle mental, qui bloque alors tout l'effet.
+		if target.is_mind_control_immune():
+			continue
 		target.card_data        = effect.transform_card
 		target.base_attack      = effect.transform_card.attack
 		target.base_max_health  = effect.transform_card.health
@@ -558,6 +565,20 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.demon_keywords   = effect.transform_card.get_demon_keyword_values()
 		target.abomination_keywords = effect.transform_card.get_abomination_keyword_values()
 		target.silenced         = false
+		var from_player: bool = target.owner_is_player
+		var to_player: bool = not from_player
+		if not battle.can_summon_to_row(to_player, target.board_row):
+			var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
+			if battle.can_summon_to_row(to_player, other_row):
+				target.board_row = other_row
+		target.owner_is_player = to_player
+		if from_player:
+			battle.player_minions.erase(target)
+			battle.enemy_minions.append(target)
+		else:
+			battle.enemy_minions.erase(target)
+			battle.player_minions.append(target)
+		battle.board_visual_system.reparent_minion_visual(target, to_player)
 
 # Pioche `count` carte(s) pour le camp propriétaire de `source_minion` (joueur
 # par défaut si absent, ex. carte piochée en main sans source). Le joueur
