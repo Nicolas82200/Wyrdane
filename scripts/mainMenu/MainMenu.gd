@@ -4,6 +4,7 @@ extends Control
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 const NEWS_DIR := "res://resources/news/"
+const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
 const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
@@ -41,7 +42,9 @@ const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $SettingsMenu
 
-var _news_entries: Array[NewsEntry] = []
+var _local_news_entries: Array[NewsEntry] = []
+var _remote_news_entries: Array = []
+var _use_remote_news := false
 
 func _ready() -> void:
 	AudioManager.play_menu_music()
@@ -253,12 +256,18 @@ func _on_multiplayer() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	get_tree().change_scene_to_file(NET_LOBBY_SCENE)
 
-# Charge toutes les ressources NewsEntry (res://resources/news/*.tres), triées
-# par date décroissante (format YYYY-MM-DD, comparable directement en string),
-# puis peuple le panneau. Aucune dépendance backend : contenu embarqué au build,
-# comme les cartes.
+# Charge le panneau d'actualités : les devlogs/actus créés sur le site
+# (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
+# chaque déploiement depuis src/content/news + src/content/devlog — voir son
+# scripts/generate-feed.mjs). Les ressources locales (res://resources/news/*.tres)
+# ne servent plus que de repli si le site est injoignable (même logique de
+# dégradation que CollectionManager/CurrencyManager).
 func _load_news() -> void:
-	_news_entries.clear()
+	_load_local_news()
+	_fetch_remote_news()
+
+func _load_local_news() -> void:
+	_local_news_entries.clear()
 	var dir := DirAccess.open(NEWS_DIR)
 	if dir == null:
 		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
@@ -269,40 +278,70 @@ func _load_news() -> void:
 		if file_name.ends_with(".tres"):
 			var entry := load(NEWS_DIR + file_name) as NewsEntry
 			if entry:
-				_news_entries.append(entry)
+				_local_news_entries.append(entry)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
+	_local_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
 	_populate_news()
+
+func _fetch_remote_news() -> void:
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
+		http.queue_free()
+		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+			push_warning("Impossible de récupérer les actualités du site (résultat %d, code %d)" % [result, response_code])
+			return
+		var parsed = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(parsed) != TYPE_ARRAY:
+			push_warning("Format de flux d'actualités invalide")
+			return
+		_remote_news_entries = parsed
+		_use_remote_news = true
+		_populate_news()
+	)
+	var err := http.request(NEWS_FEED_URL)
+	if err != OK:
+		push_warning("Échec de la requête d'actualités : %d" % err)
+		http.queue_free()
 
 func _populate_news() -> void:
 	for child in news_list_vbox.get_children():
 		child.queue_free()
-	for entry in _news_entries:
-		var item := VBoxContainer.new()
-		item.add_theme_constant_override("separation", 4)
+	if _use_remote_news:
+		for entry in _remote_news_entries:
+			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
+			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
+			_add_news_item(entry.get("date", ""), title, body)
+	else:
+		for entry in _local_news_entries:
+			_add_news_item(entry.date, entry.display_title(), entry.display_body())
 
-		var date_label := Label.new()
-		date_label.text = entry.date
-		date_label.add_theme_font_size_override("font_size", 13)
-		date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
-		item.add_child(date_label)
+func _add_news_item(date: String, title: String, body: String) -> void:
+	var item := VBoxContainer.new()
+	item.add_theme_constant_override("separation", 4)
 
-		var title_label := Label.new()
-		title_label.text = entry.display_title()
-		title_label.add_theme_font_size_override("font_size", 18)
-		title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-		title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		item.add_child(title_label)
+	var date_label := Label.new()
+	date_label.text = date
+	date_label.add_theme_font_size_override("font_size", 13)
+	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
+	item.add_child(date_label)
 
-		var body_label := Label.new()
-		body_label.text = entry.display_body()
-		body_label.add_theme_font_size_override("font_size", 15)
-		body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
-		body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		item.add_child(body_label)
+	var title_label := Label.new()
+	title_label.text = title
+	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	item.add_child(title_label)
 
-		news_list_vbox.add_child(item)
+	var body_label := Label.new()
+	body_label.text = body
+	body_label.add_theme_font_size_override("font_size", 15)
+	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
+	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	item.add_child(body_label)
+
+	news_list_vbox.add_child(item)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)

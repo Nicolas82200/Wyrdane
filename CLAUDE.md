@@ -135,6 +135,9 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Le backend local (`E:\wyrdane-backend`, branche **`main`** — `dev` est gelée) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `main` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
 - Dégradation attendue si le backend est injoignable : les managers restent `is_synced = false`, l'UI affiche les valeurs par défaut (solde 0, collection vide) sans bloquer le joueur.
 
+### Panneau d'actualités (menu principal)
+Le panneau « Actualités » de `MainMenu` (`scripts/mainMenu/MainMenu.gd`, `_fetch_remote_news`) récupère les devlogs/actus créées sur le site (`wyrdane-website`) via `NEWS_FEED_URL = "https://wyrdane.com/feed.json"` — un manifeste JSON bilingue (fr/en) régénéré à chaque build/déploiement du site (`scripts/generate-feed.mjs`, appelé en `predev`/`prebuild`) à partir de `src/content/news/*.json` et `src/content/devlog/*.json`. Aucune action manuelle : ajouter un fichier JSON côté site puis déployer suffit à le faire apparaître en jeu. Si le fetch échoue (site injoignable), repli sur les ressources locales `res://resources/news/*.tres` (`NewsEntry.gd`, conservées pour ce cas).
+
 ### Infra & déploiement (VPS)
 Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck builder web) sont hébergés ensemble sur un **VPS OVH** (`137.74.163.226`, Ubuntu, Docker) — plus sur Render. Domaines : `wyrdane.com`/`www.wyrdane.com` (site) et `api.wyrdane.com` (API). Détail complet de la stack (Docker Compose, Nginx, sécurité, CI/CD) documenté dans le `CLAUDE.md` de `wyrdane-backend`. Rien à faire côté `card-game` pour cette infra sinon garder `API_URL` dans `BackendClient.gd` synchronisé si le domaine change.
 
