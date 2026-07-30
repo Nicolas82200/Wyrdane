@@ -7,7 +7,7 @@ extends Node
 # comme un navigateur, donc on doit le lire dans Set-Cookie et le renvoyer
 # nous-mêmes en header Cookie sur chaque appel.
 #
-const API_URL := "https://wyrdane-backend.onrender.com"
+const API_URL = "https://api.wyrdane.com"
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en

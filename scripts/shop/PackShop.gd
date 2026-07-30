@@ -67,8 +67,7 @@ func _ready() -> void:
 	add_child(_vfx_manager)
 	_resize_shake_layer()
 	get_viewport().size_changed.connect(_resize_shake_layer)
-	_pack_visual = _build_pack_visual()
-	pack_center.add_child(_pack_visual)
+	_pack_visual = _build_pack_visual(pack_center)
 	_style_close_x_button()
 	open_button.pressed.connect(_on_open_pressed)
 	odds_button.pressed.connect(_on_odds_pressed)
@@ -101,14 +100,19 @@ func _resize_shake_layer() -> void:
 	shake_layer.size = get_viewport_rect().size
 
 ## Empilement de dos de carte façon paquet fermé, décalés en diagonale.
-## Retourné non ajouté à l'arbre : l'appelant l'insère dans PackCenter.
-func _build_pack_visual() -> Control:
+## Ajouté à "parent" en tout premier : les layers entrent ainsi dans l'arbre
+## de scène et leur _ready() (donc les @onready de Card) s'exécute avant
+## qu'on appelle show_back() dessus.
+func _build_pack_visual(parent: Control) -> Control:
 	var stack_size: Vector2 = CARD_SIZE + Vector2(PACK_LAYER_OFFSET, PACK_LAYER_OFFSET) * (PACK_LAYER_COUNT - 1)
 	var visual := Control.new()
 	visual.custom_minimum_size = stack_size
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visual.pivot_offset = stack_size / 2.0
 	visual.scale = Vector2(PACK_SCALE, PACK_SCALE)
+
+	parent.add_child(visual)
+
 	for i in PACK_LAYER_COUNT:
 		var layer := card_scene.instantiate()
 		visual.add_child(layer)
