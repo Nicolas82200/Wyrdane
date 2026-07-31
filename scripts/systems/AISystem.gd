@@ -90,6 +90,8 @@ func take_turn() -> void:
 	await battle.turn_system.run_turn_start_triggers(false)
 	_start_of_turn_phase()
 	var played_cards := await _play_cards_phase()
+	await _maybe_activate_sacrifice_rituals()
+	await _maybe_activate_fusion()
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
@@ -327,6 +329,62 @@ func _cast_spell(card: CardData) -> void:
 		for effect in card.effects:
 			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
 	battle.board_visual_system.refresh_board()
+
+# ─── Rituels de Sacrifice ──────────────────────────────────────────────────────
+# Contrairement au joueur (clic sur le rituel puis sur les victimes, voir
+# SacrificeSystem), l'IA n'a aucune interaction : elle active d'elle-même tout
+# Rituel de Sacrifice qu'elle possède dès qu'elle peut se le permettre, en
+# sacrifiant ses serviteurs les plus faibles (garde toujours au moins un
+# serviteur en jeu après coup).
+func _maybe_activate_sacrifice_rituals() -> void:
+	for entry in battle.trigger_system.get_active_enchantments(false).duplicate():
+		var card: CardData = entry["card_data"]
+		if card.sacrifice_count <= 0 or not card.get_trigger_names().has("OnSacrifice"):
+			continue
+		var victims: Array[Minion] = _pick_sacrifice_victims(card)
+		if victims.is_empty():
+			continue
+		await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
+		battle.board_visual_system.refresh_board()
+
+func _pick_sacrifice_victims(card: CardData) -> Array[Minion]:
+	if battle.enemy_minions.size() <= card.sacrifice_count:
+		return []
+	var pool: Array[Minion] = battle.enemy_minions.filter(func(m: Minion) -> bool:
+		return card.sacrifice_max_hp < 0 or m.health <= card.sacrifice_max_hp
+	)
+	if pool.size() < card.sacrifice_count:
+		return []
+	pool.sort_custom(func(a: Minion, b: Minion) -> bool: return a.health + a.attack < b.health + b.attack)
+	return pool.slice(0, card.sacrifice_count)
+
+# ─── Fusion (Abomination) ──────────────────────────────────────────────────────
+# Même bug que les Rituels de Sacrifice ci-dessus : FUSION n'a d'interaction
+# que côté joueur (FusionSystem.try_begin exige owner_is_player). Fusionne
+# chaque serviteur FUSION éligible avec son voisin le plus faible, en
+# absorbant le premier mot-clé disponible du sacrifié (l'IA n'évalue pas la
+# valeur relative des mots-clés, choix arbitraire mais fonctionnel).
+func _maybe_activate_fusion() -> void:
+	for source in battle.enemy_minions.duplicate():
+		if source.is_dead() or not source.has_abomination_keyword(KeywordAbomination.Type.FUSION):
+			continue
+		var victim: Minion = _pick_fusion_victim(source)
+		if victim == null:
+			continue
+		var options: Array = battle.fusion_system._collect_keyword_choices(victim)
+		var pool: String = options[0]["pool"] if not options.is_empty() else ""
+		var keyword: int = options[0]["keyword"] if not options.is_empty() else -1
+		await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+		battle.board_visual_system.refresh_board()
+
+func _pick_fusion_victim(source: Minion) -> Minion:
+	var candidates: Array[Minion] = battle.effect_manager._get_adjacent_minions(battle, source).filter(
+		func(m: Minion) -> bool: return m.owner_is_player == source.owner_is_player and not m.is_dead())
+	var best: Minion = null
+	for m in candidates:
+		if best == null or m.health + m.attack < best.health + best.attack:
+			best = m
+	return best
 
 # Existe-t-il une cible valide pour le premier effet de cette carte ? Les
 # effets à cible automatique (coût de sacrifice) n'ont besoin que d'un allié
