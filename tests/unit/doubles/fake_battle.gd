@@ -40,6 +40,7 @@ var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
+var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
 var _fake_tree := FakeSceneTree.new()
 
 # ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
