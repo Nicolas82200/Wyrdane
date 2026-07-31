@@ -10,7 +10,6 @@
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
 [ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="8_bgstill"]
 [ext_resource type="Texture2D" uid="uid://dggq5t2wow6cb" path="res://assets/icons/discord-icon.svg" id="9_discord"]
-[ext_resource type="PackedScene" path="res://scenes/mainMenu/ProfilePanel.tscn" id="10_profile"]
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="11_card"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
@@ -195,11 +194,21 @@ theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 32
 
-[node name="VBoxContainer" type="VBoxContainer" parent="NavPanel/NavMargin" unique_id=1955392611]
+[node name="NavStack" type="Control" parent="NavPanel/NavMargin"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MainNavView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1955392611]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="PlayButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=641949860]
+[node name="PlayButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=641949860]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
@@ -212,155 +221,136 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 text = "Jouer"
 
-[node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
+[node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
 
-[node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=68074911]
+[node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=68074911]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Parametres"
 
-[node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=444085026]
+[node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=444085026]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Credits"
 
-[node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000011]
+[node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
 
-[node name="ReplayTutorialButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000012]
+[node name="ReplayTutorialButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000012]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Refaire le tutoriel (debug)"
 
-[node name="QuitButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1815401124]
+[node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
 text = "Quitter"
 
-[node name="PlayPanel" type="PanelContainer" parent="."]
+[node name="ModeSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack"]
 visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_right = 1.0
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 424.0
-offset_top = -330.0
-offset_right = -932.0
-offset_bottom = 330.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
-
-[node name="PlayMargin" type="MarginContainer" parent="PlayPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="PlayStack" type="Control" parent="PlayPanel/PlayMargin"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="ModeSelectView" type="VBoxContainer" parent="PlayPanel/PlayMargin/PlayStack"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
-[node name="ModeTitleLabel" type="Label" parent="PlayPanel/PlayMargin/PlayStack/ModeSelectView"]
+[node name="ModeTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/ModeSelectView"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 20
 text = "Choisis ton mode de jeu"
+autowrap_mode = 3
 
-[node name="ModeSep" type="HSeparator" parent="PlayPanel/PlayMargin/PlayStack/ModeSelectView"]
+[node name="ModeSep" type="HSeparator" parent="NavPanel/NavMargin/NavStack/ModeSelectView"]
 layout_mode = 2
 
-[node name="SoloModeButton" type="Button" parent="PlayPanel/PlayMargin/PlayStack/ModeSelectView"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-text = "Solo"
-
-[node name="MultiModeButton" type="Button" parent="PlayPanel/PlayMargin/PlayStack/ModeSelectView"]
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-text = "Multijoueur"
-
-[node name="DeckSelectView" type="VBoxContainer" parent="PlayPanel/PlayMargin/PlayStack"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="DeckSelectHeader" type="HBoxContainer" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="PlayBackButton" type="Button" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView/DeckSelectHeader"]
-layout_mode = 2
-text = "← Retour"
-
-[node name="DeckSelectTitleLabel" type="Label" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView/DeckSelectHeader"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 24
-text = "Choisis ton deck"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="DeckSelectSep" type="HSeparator" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView"]
-layout_mode = 2
-
-[node name="PlayDeckScroll" type="ScrollContainer" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="PlayDecksContainer" type="VBoxContainer" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView/PlayDeckScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
-
-[node name="LaunchButton" type="Button" parent="PlayPanel/PlayMargin/PlayStack/DeckSelectView"]
-disabled = true
-custom_minimum_size = Vector2(0, 54)
+[node name="SoloModeButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView"]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+text = "Solo"
+
+[node name="MultiModeButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+text = "Multijoueur"
+
+[node name="ModeBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "← Retour"
+
+[node name="DeckSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="DeckSelectHeader" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlayBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader"]
+layout_mode = 2
+text = "← Retour"
+
+[node name="DeckSelectTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 17
+text = "Choisis ton deck"
+autowrap_mode = 3
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DeckSelectSep" type="HSeparator" parent="NavPanel/NavMargin/NavStack/DeckSelectView"]
+layout_mode = 2
+
+[node name="PlayDeckScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PlayDecksContainer" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView/PlayDeckScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="LaunchButton" type="Button" parent="NavPanel/NavMargin/NavStack/DeckSelectView"]
+disabled = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
@@ -479,6 +469,13 @@ size_flags_vertical = 4
 texture_normal = ExtResource("9_discord")
 ignore_texture_size = true
 stretch_mode = 5
+
+[node name="WebsiteButton" type="Button" parent="FooterPanel/FooterMargin/FooterRow"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 18
+text = "🌐"
 
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
@@ -617,10 +614,7 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Modifier le deck"
 
-[node name="ProfilePanel" parent="InfoPanel/InfoMargin/ViewsRoot" instance=ExtResource("10_profile")]
-layout_mode = 1
-
-[node name="CreditsView" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot"]
+[node name="ProfileView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -628,103 +622,141 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 14
 
-[node name="CreditsPanel" type="Panel" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView" unique_id=1039590750]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -200.0
-offset_right = 280.0
-offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="ProfileTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Profil"
 
-[node name="CreditsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsPanel" unique_id=1897122271]
+[node name="ProfileSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+
+[node name="ProfileHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="ProfileAvatar" type="TextureRect" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ProfileNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 22
+text = "Pseudo Steam"
+vertical_alignment = 1
+
+[node name="ProfileMemberSinceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "—"
+
+[node name="ProfileCollectionLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "—"
+
+[node name="ProfileSoloStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "—"
+
+[node name="ProfileRankedStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "—"
+
+[node name="CreditsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 28.0
-offset_right = -32.0
-offset_bottom = -84.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="CreditsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView"]
+layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 26
+text = "Crédits"
+
+[node name="CreditsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView"]
+layout_mode = 2
+
+[node name="CreditsStack" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CreditsMainSub" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="CreditsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1897122271]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 17
 text = "Credits
 
 Developpe par Nico
 Musique : The Tavern at Oakhaven
 
 Merci d'avoir joue !"
-horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="LegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsPanel" unique_id=1141914077]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -110.0
-offset_top = -36.0
-offset_right = 110.0
-offset_bottom = -4.0
-grow_horizontal = 2
-grow_vertical = 0
+[node name="LegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1141914077]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 15
 text = "Mentions légales"
 
-[node name="LegalPanel" type="Panel" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView" unique_id=1039590751]
+[node name="CreditsLegalSub" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack"]
 visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -280.0
-offset_right = 320.0
-offset_bottom = 280.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="LegalTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel" unique_id=1897122272]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_left = 32.0
-offset_top = 20.0
-offset_right = -32.0
-offset_bottom = 52.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 22
-text = "Mentions légales"
-horizontal_alignment = 1
-
-[node name="LegalScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel" unique_id=1897122273]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 32.0
-offset_top = 60.0
-offset_right = -32.0
-offset_bottom = -68.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 10
 
-[node name="LegalLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel/LegalScroll" unique_id=1897122274]
+[node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1141914078]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 15
+text = "← Retour"
+
+[node name="LegalScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1897122273]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LegalLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/LegalScroll" unique_id=1897122274]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
@@ -732,23 +764,6 @@ theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 16
 text = "Mentions légales"
 autowrap_mode = 3
-
-[node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel" unique_id=1141914078]
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -80.0
-offset_top = -52.0
-offset_right = 80.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
-text = "Fermer"
 
 [node name="SettingsMenu" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=2017956977 instance=ExtResource("1_settings")]
 layout_mode = 1
