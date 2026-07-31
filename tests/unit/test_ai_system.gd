@@ -254,3 +254,66 @@ func test_pick_attack_target_returns_best_trade_when_hero_is_not_attackable() ->
 	var attacker := _minion(3, 10, false)
 	var blocker := _minion(2, 2, true, "Front")
 	assert_eq(ai_system._pick_attack_target(attacker), blocker)
+
+# ─── Rituels de Sacrifice ────────────────────────────────────────────────────
+# L'IA doit activer d'elle-même les Rituels de Sacrifice qu'elle possède
+# (contrairement au joueur, elle n'a pas de clic pour choisir ses victimes) :
+# voir SacrificeSystem côté joueur.
+
+func _sacrifice_ritual(count: int, max_hp: int = -1) -> CardData:
+	var data := CardData.new()
+	data.card_name = "TEST_RITUAL"
+	data.card_type = "Ritual"
+	data.sacrifice_count = count
+	data.sacrifice_max_hp = max_hp
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnSacrifice"
+	data.trigger_types = [trigger]
+	return data
+
+func test_pick_sacrifice_victims_picks_the_weakest_allies() -> void:
+	var weak := _minion(1, 1, false)
+	_minion(5, 5, false)
+	var card := _sacrifice_ritual(1)
+	assert_eq(ai_system._pick_sacrifice_victims(card), [weak])
+
+func test_pick_sacrifice_victims_keeps_at_least_one_survivor() -> void:
+	_minion(2, 2, false)
+	var card := _sacrifice_ritual(1)
+	assert_eq(ai_system._pick_sacrifice_victims(card), [],
+		"un seul allié en jeu : le sacrifier viderait le plateau")
+
+func test_pick_sacrifice_victims_respects_max_hp_filter() -> void:
+	_minion(3, 3, false)  # trop de HP pour ce rituel
+	var eligible := _minion(1, 1, false)
+	var card := _sacrifice_ritual(1, 2)
+	assert_eq(ai_system._pick_sacrifice_victims(card), [eligible])
+
+func test_pick_sacrifice_victims_empty_without_enough_eligible_allies() -> void:
+	_minion(1, 1, false)
+	var card := _sacrifice_ritual(2)
+	assert_eq(ai_system._pick_sacrifice_victims(card), [])
+
+func test_maybe_activate_sacrifice_rituals_activates_an_affordable_ritual() -> void:
+	var weak := _minion(1, 1, false)
+	_minion(5, 5, false)
+	var card := _sacrifice_ritual(1)
+	battle.trigger_system.active_enchantments[false] = [{"card_data": card}]
+	await ai_system._maybe_activate_sacrifice_rituals()
+	assert_eq(battle.trigger_system.activated_rituals.size(), 1)
+	assert_eq(battle.trigger_system.activated_rituals[0]["card_data"], card)
+	assert_eq(battle.trigger_system.activated_rituals[0]["victims"], [weak])
+
+func test_maybe_activate_sacrifice_rituals_skips_when_unaffordable() -> void:
+	_minion(2, 2, false)
+	var card := _sacrifice_ritual(1)
+	battle.trigger_system.active_enchantments[false] = [{"card_data": card}]
+	await ai_system._maybe_activate_sacrifice_rituals()
+	assert_true(battle.trigger_system.activated_rituals.is_empty())
+
+func test_maybe_activate_sacrifice_rituals_ignores_non_sacrifice_enchantments() -> void:
+	var enchantment := CardData.new()
+	enchantment.card_type = "Enchantment"
+	battle.trigger_system.active_enchantments[false] = [{"card_data": enchantment}]
+	await ai_system._maybe_activate_sacrifice_rituals()
+	assert_true(battle.trigger_system.activated_rituals.is_empty())
