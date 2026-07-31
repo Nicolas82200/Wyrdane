@@ -106,13 +106,16 @@ func take(card_data: CardData) -> void:
 	var path: String = card_data.resource_path
 	remaining_copies[path] = max(0, int(remaining_copies.get(path, 0)) - 1)
 
-# Remet une copie au pool (vente, ou élimination du possesseur).
-func release(card_data: CardData) -> void:
+# Remet `count` copie(s) au pool (vente, ou élimination du possesseur).
+# `count` > 1 sert à rendre les copies de base d'une carte fusionnée (voir
+# README « Upgrade de cartes » : vendre/perdre une carte 2★/3★ rend les 3
+# ou 9 copies de base l'ayant constituée, pas une seule).
+func release(card_data: CardData, count: int = 1) -> void:
 	var path: String = card_data.resource_path
 	if not _cards_by_path.has(path):
 		return
 	var cap: int = int(ArenaConstants.POOL_COPIES_BY_RARITY.get(card_data.rarity, 0))
-	remaining_copies[path] = min(cap, int(remaining_copies.get(path, 0)) + 1)
+	remaining_copies[path] = min(cap, int(remaining_copies.get(path, 0)) + count)
 
 func copies_remaining(card_data: CardData) -> int:
 	return int(remaining_copies.get(card_data.resource_path, 0))

@@ -125,9 +125,15 @@ func sell_card(player: ArenaPlayerState, minion: Minion, from_board: bool) -> bo
 		if not player.hand.has(minion):
 			return false
 		player.remove_from_hand(minion)
-	pool.release(minion.card_data)
+	pool.release(minion.card_data, _base_copies_for_star_level(minion.star_level))
 	player.gold += ArenaEconomy.sell_refund(minion.card_data.cost, from_board)
 	return true
+
+# Nombre de copies de base (1★) qu'une carte de ce niveau représente (voir
+# README « Upgrade de cartes ») : 1 pour une carte normale, 3 pour une 2★
+# (3 copies fusionnées), 9 pour une 3★ (3 cartes 2★, soit 3×3 copies de base).
+func _base_copies_for_star_level(star_level: int) -> int:
+	return int(round(pow(3, star_level - 1)))
 
 # Une Incantation non lancée reste en main jusqu'à être vendue (100%, comme
 # n'importe quelle carte en main) ou lancée (cast_spell).
@@ -237,7 +243,7 @@ func _eliminate(player: ArenaPlayerState) -> void:
 	elimination_order.append(player)
 	ghost_board = GhostBoard.capture(player)
 	for minion in player.all_owned_minions():
-		pool.release(minion.card_data)
+		pool.release(minion.card_data, _base_copies_for_star_level(minion.star_level))
 	for card_data in player.spell_hand:
 		pool.release(card_data)
 	player.hand.clear()

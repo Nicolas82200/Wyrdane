@@ -73,6 +73,29 @@ func test_eliminated_player_releases_suspended_cards_back_to_the_pool() -> void:
 	assert_eq(pool.copies_remaining(weak_card), copies_before + 1,
 		"la copie suspendue du joueur éliminé doit retourner au pool")
 
+func test_eliminated_player_releases_all_base_copies_of_a_merged_card() -> void:
+	# Même règle qu'à la vente (README « Upgrade de cartes ») : perdre une
+	# carte 2★ à l'élimination doit rendre ses 3 copies de base, pas 1 seule.
+	var strong_card := _make_card("Strong", 3, "res://fake/match_elim_strong.tres", 10, 10)
+	var merged_card := _make_card("Merged", 1, "res://fake/match_elim_merged.tres", 1, 1)
+	var pool := ArenaCardPool.new([strong_card, merged_card])
+	var p1 := ArenaPlayerState.new("P1")
+	var p2 := ArenaPlayerState.new("P2")
+	p2.hero_hp = 2
+	p1.board_front.append(Minion.new(strong_card, true, "Front"))
+	var merged := Minion.new(merged_card, true, "Front")
+	merged.star_level = 2
+	p2.board_front.append(merged)
+	for i in 3:
+		pool.take(merged_card)
+	var copies_before: int = pool.copies_remaining(merged_card)
+	var players: Array[ArenaPlayerState] = [p1, p2]
+	var m := ArenaMatch.new(players, pool)
+	await m.start_combat_phase()
+	assert_true(p2.is_eliminated)
+	assert_eq(pool.copies_remaining(merged_card), copies_before + 3,
+		"perdre une carte 2★ à l'élimination doit rendre ses 3 copies de base")
+
 func test_resolve_pairing_always_treats_the_human_as_side_a_regardless_of_argument_order() -> void:
 	# run_combat() mappe front_a/back_a -> sim.player_minions (voir
 	# SimulatedBattle), convention dont dépend le combat animé du joueur
