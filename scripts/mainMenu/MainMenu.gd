@@ -340,17 +340,49 @@ func _open_profile_view() -> void:
 		if tex:
 			profile_avatar.texture = tex
 	_show_profile_placeholders()
-	if not BackendClient.is_authenticated():
+	_fetch_profile()
+
+# BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
+# du menu (voir _start_backend_sync) : si le joueur ouvre cette vue avant la
+# fin de la connexion, is_authenticated() est encore faux. Attendre
+# login_succeeded sans jamais relancer la requête laisserait les libellés
+# bloqués sur "Chargement..." indéfiniment.
+func _fetch_profile() -> void:
+	if BackendClient.is_authenticated():
+		BackendClient.get_profile(_on_profile_response)
 		return
-	BackendClient.get_profile(func(success: bool, data: Dictionary):
-		if _current_info_view != InfoView.PROFILE:
-			return
-		if success:
-			_populate_profile_stats(data)
-	)
+	if not BackendClient.login_succeeded.is_connected(_on_profile_login_succeeded):
+		BackendClient.login_succeeded.connect(_on_profile_login_succeeded, CONNECT_ONE_SHOT)
+	if not BackendClient.login_failed.is_connected(_on_profile_login_failed):
+		BackendClient.login_failed.connect(_on_profile_login_failed, CONNECT_ONE_SHOT)
+
+func _on_profile_login_succeeded(_user: Dictionary) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	BackendClient.get_profile(_on_profile_response)
+
+func _on_profile_login_failed(_reason: String) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	_show_profile_unavailable()
+
+func _on_profile_response(success: bool, data: Dictionary) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	if success:
+		_populate_profile_stats(data)
+	else:
+		_show_profile_unavailable()
 
 func _show_profile_placeholders() -> void:
 	var dash := SettingsManager.t("PROFILE_LOADING")
+	profile_member_since_label.text = dash
+	profile_collection_label.text = dash
+	profile_solo_stats_label.text = dash
+	profile_ranked_stats_label.text = dash
+
+func _show_profile_unavailable() -> void:
+	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
 	profile_member_since_label.text = dash
 	profile_collection_label.text = dash
 	profile_solo_stats_label.text = dash
