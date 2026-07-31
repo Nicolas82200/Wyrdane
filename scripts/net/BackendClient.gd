@@ -136,7 +136,7 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 
 # Profil agrégé du joueur connecté (GET /api/profile) : date de création de
 # compte, nombre de cartes en collection, stats solo/ranked — voir
-# ProfilePanel.gd. on_profile est appelé avec (success: bool, data: Dictionary).
+# MainMenu._show_info_view(PROFILE). on_profile est appelé avec (success: bool, data: Dictionary).
 func get_profile(on_profile: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/profile", {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
