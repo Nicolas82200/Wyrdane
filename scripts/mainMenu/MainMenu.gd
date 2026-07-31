@@ -28,7 +28,8 @@ const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 # Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
 # constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
-const DECK_COMP_PREVIEW_SIZE := Vector2(180, 270)
+# Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
+const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
 const CURVE_BAR_HEIGHT := 60.0
 const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
@@ -80,7 +81,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
 @onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewCard
 @onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
-@onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompStatsScroll/DeckCompStatsPanel
+@onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompStatsScroll/DeckCompStatsPanel
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
 
 @onready var profile_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView
@@ -136,6 +137,12 @@ func _ready() -> void:
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
+	# Taille figée dès le départ (et pas seulement au survol) : la carte est
+	# masquée tant qu'aucune ligne n'est survolée, mais son gabarit ne doit
+	# jamais changer, sinon le CenterContainer autour recalcule sa mise en
+	# page et l'aperçu "saute" entre les deux états.
+	deck_comp_preview_card.custom_minimum_size = DECK_COMP_PREVIEW_SIZE
+	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
 	deck_comp_preview_card.hide()
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
@@ -333,17 +340,49 @@ func _open_profile_view() -> void:
 		if tex:
 			profile_avatar.texture = tex
 	_show_profile_placeholders()
-	if not BackendClient.is_authenticated():
+	_fetch_profile()
+
+# BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
+# du menu (voir _start_backend_sync) : si le joueur ouvre cette vue avant la
+# fin de la connexion, is_authenticated() est encore faux. Attendre
+# login_succeeded sans jamais relancer la requête laisserait les libellés
+# bloqués sur "Chargement..." indéfiniment.
+func _fetch_profile() -> void:
+	if BackendClient.is_authenticated():
+		BackendClient.get_profile(_on_profile_response)
 		return
-	BackendClient.get_profile(func(success: bool, data: Dictionary):
-		if _current_info_view != InfoView.PROFILE:
-			return
-		if success:
-			_populate_profile_stats(data)
-	)
+	if not BackendClient.login_succeeded.is_connected(_on_profile_login_succeeded):
+		BackendClient.login_succeeded.connect(_on_profile_login_succeeded, CONNECT_ONE_SHOT)
+	if not BackendClient.login_failed.is_connected(_on_profile_login_failed):
+		BackendClient.login_failed.connect(_on_profile_login_failed, CONNECT_ONE_SHOT)
+
+func _on_profile_login_succeeded(_user: Dictionary) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	BackendClient.get_profile(_on_profile_response)
+
+func _on_profile_login_failed(_reason: String) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	_show_profile_unavailable()
+
+func _on_profile_response(success: bool, data: Dictionary) -> void:
+	if _current_info_view != InfoView.PROFILE:
+		return
+	if success:
+		_populate_profile_stats(data)
+	else:
+		_show_profile_unavailable()
 
 func _show_profile_placeholders() -> void:
 	var dash := SettingsManager.t("PROFILE_LOADING")
+	profile_member_since_label.text = dash
+	profile_collection_label.text = dash
+	profile_solo_stats_label.text = dash
+	profile_ranked_stats_label.text = dash
+
+func _show_profile_unavailable() -> void:
+	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
 	profile_member_since_label.text = dash
 	profile_collection_label.text = dash
 	profile_solo_stats_label.text = dash
