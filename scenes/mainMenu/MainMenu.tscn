@@ -564,8 +564,10 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 10
 
 [node name="DeckCompScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol"]
+custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -575,18 +577,32 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
+[node name="DeckCompStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol"]
+layout_mode = 2
+
+[node name="DeckCompStatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol"]
+custom_minimum_size = Vector2(0, 190)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="DeckCompStatsPanel" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompStatsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
 [node name="DeckCompRightCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody"]
-custom_minimum_size = Vector2(230, 0)
+custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="DeckCompPreviewBox" type="CenterContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
-custom_minimum_size = Vector2(0, 280)
+custom_minimum_size = Vector2(0, 340)
 layout_mode = 2
 
 [node name="DeckCompPreviewCard" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox" instance=ExtResource("11_card")]
 visible = false
 layout_mode = 2
+custom_minimum_size = Vector2(216, 324)
 
 [node name="DeckCompPreviewHint" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox"]
 layout_mode = 2
@@ -595,19 +611,7 @@ theme_override_font_sizes/font_size = 14
 text = "Survole une carte pour l'aperçu"
 autowrap_mode = 3
 horizontal_alignment = 1
-
-[node name="DeckCompStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
-layout_mode = 2
-
-[node name="DeckCompStatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="DeckCompStatsPanel" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompStatsScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 8
+vertical_alignment = 1
 
 [node name="EditDeckButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
 custom_minimum_size = Vector2(0, 44)

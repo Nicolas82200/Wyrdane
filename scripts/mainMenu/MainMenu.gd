@@ -28,7 +28,8 @@ const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 # Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
 # constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
-const DECK_COMP_PREVIEW_SIZE := Vector2(180, 270)
+# Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
+const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
 const CURVE_BAR_HEIGHT := 60.0
 const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
@@ -80,7 +81,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
 @onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewCard
 @onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
-@onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompStatsScroll/DeckCompStatsPanel
+@onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompStatsScroll/DeckCompStatsPanel
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
 
 @onready var profile_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView
@@ -136,6 +137,12 @@ func _ready() -> void:
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
+	# Taille figée dès le départ (et pas seulement au survol) : la carte est
+	# masquée tant qu'aucune ligne n'est survolée, mais son gabarit ne doit
+	# jamais changer, sinon le CenterContainer autour recalcule sa mise en
+	# page et l'aperçu "saute" entre les deux états.
+	deck_comp_preview_card.custom_minimum_size = DECK_COMP_PREVIEW_SIZE
+	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
 	deck_comp_preview_card.hide()
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
