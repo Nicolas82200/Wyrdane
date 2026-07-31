@@ -23,7 +23,6 @@ const RACE_ACCENTS := {
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
-@onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
 @onready var settings_button: Button = $NavPanel/NavMargin/VBoxContainer/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/VBoxContainer/CreditsButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/VBoxContainer/QuitButton
@@ -101,7 +100,6 @@ func _ready() -> void:
 	_retranslate()
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
-	multiplayer_button.pressed.connect(_on_multiplayer_nav)
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
@@ -238,10 +236,10 @@ func _update_steam_profile() -> void:
 # automatiquement à la place (voir Battle._start_tutorial).
 func _apply_tutorial_lock() -> void:
 	var locked: bool = not SettingsManager.tutorial_completed
-	multiplayer_button.disabled = locked
+	multi_mode_button.disabled = locked
 	decks_button.disabled = locked
 	packs_button.disabled = locked
-	multiplayer_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	multi_mode_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	packs_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
@@ -340,15 +338,6 @@ func _on_play() -> void:
 	play_panel.show()
 	_pop_in_panel(play_panel)
 	_show_mode_select()
-
-# Le bouton "Multijoueur" de la barre de nav saute directement à la
-# sélection de deck en mode multi (le mode est déjà choisi par ce bouton).
-func _on_multiplayer_nav() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	play_panel.show()
-	_pop_in_panel(play_panel)
-	_play_mode = PlayMode.MULTI
-	_show_deck_select()
 
 func _show_mode_select() -> void:
 	mode_select_view.visible = true
@@ -484,11 +473,6 @@ func _on_launch_pressed() -> void:
 	else:
 		AudioManager.play(AudioManager.OPEN_MENU)
 		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
-
-func _on_multiplayer() -> void:
-	# Conservé pour compatibilité : redirige vers le nouveau flux si jamais
-	# appelé directement (aucune connexion restante vers cette fonction).
-	_on_multiplayer_nav()
 
 # --- Composition du deck sélectionné (vue "actualités") -----------------
 
@@ -663,7 +647,6 @@ func _retranslate() -> void:
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
-	multiplayer_button.text = SettingsManager.t("MENU_MULTIPLAYER")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
