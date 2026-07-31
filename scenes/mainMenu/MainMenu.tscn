@@ -214,11 +214,6 @@ text = "Jouer"
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=300000010]
 layout_mode = 2
 
-[node name="MultiplayerButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=1362418039]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Multijoueur"
-
 [node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=68074911]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
@@ -248,6 +243,7 @@ text = "Quitter"
 visible = false
 layout_mode = 1
 anchors_preset = -1
+anchor_right = 1.0
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 424.0
