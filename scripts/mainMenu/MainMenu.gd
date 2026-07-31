@@ -22,6 +22,15 @@ const RACE_ACCENTS := {
 }
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
+# Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
+# constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
+const DECK_COMP_PREVIEW_SIZE := Vector2(180, 270)
+const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
+const CURVE_BAR_HEIGHT := 60.0
+const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
+const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
+const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
+
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/VBoxContainer/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/VBoxContainer/CreditsButton
@@ -62,7 +71,10 @@ const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 @onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
 @onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleLabel
-@onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompScroll/DeckCompListVBox
+@onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
+@onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewCard
+@onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
+@onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompStatsScroll/DeckCompStatsPanel
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
 
 @onready var profile_panel: Control = $InfoPanel/InfoMargin/ViewsRoot/ProfilePanel
@@ -108,6 +120,10 @@ func _ready() -> void:
 	discord_button.pressed.connect(_on_discord_pressed)
 	profile_button.set_meta("no_click_sound", true)
 	profile_button.pressed.connect(_on_profile_button_pressed)
+	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
+
+	deck_comp_preview_card.set_non_interactive()
+	deck_comp_preview_card.hide()
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
 	multi_mode_button.pressed.connect(_on_multi_mode_selected)
@@ -133,6 +149,12 @@ func _ready() -> void:
 	# settings_menu peut légitimement être absent
 	if not settings_menu:
 		push_error("SettingsMenu introuvable !")
+	else:
+		# Même logique : les boutons Fermer/croix de SettingsMenu (voir
+		# SettingsMenu.close) ne font que se cacher eux-mêmes.
+		settings_menu.close_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+		settings_menu.close_x_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+	profile_panel.close_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
 	offline_banner_close.pressed.connect(offline_banner.hide)
@@ -480,6 +502,8 @@ func _show_deck_composition(deck_index: int) -> void:
 	_composition_deck_index = deck_index
 	var deck: DeckData = DeckManager.decks[deck_index]
 	deck_comp_title_label.text = "%s : %s" % [SettingsManager.t("MENU_DECK_COMPOSITION_TITLE"), SettingsManager.t(deck.name)]
+	deck_comp_preview_card.hide()
+	deck_comp_preview_hint.show()
 	for child in deck_comp_list_vbox.get_children():
 		child.queue_free()
 
@@ -493,6 +517,8 @@ func _show_deck_composition(deck_index: int) -> void:
 	for card in order:
 		var line := HBoxContainer.new()
 		line.add_theme_constant_override("separation", 8)
+		line.mouse_entered.connect(_on_deck_comp_card_hover.bind(card))
+		line.mouse_exited.connect(_on_deck_comp_card_unhover)
 
 		var count_lbl := Label.new()
 		count_lbl.text = "x%d" % counts[card.resource_path]
@@ -508,9 +534,148 @@ func _show_deck_composition(deck_index: int) -> void:
 		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 		line.add_child(name_lbl)
 
+		var cost_lbl := Label.new()
+		cost_lbl.text = str(card.cost)
+		cost_lbl.custom_minimum_size = Vector2(20, 0)
+		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cost_lbl.add_theme_font_size_override("font_size", 14)
+		cost_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.95, 1))
+		line.add_child(cost_lbl)
+
 		deck_comp_list_vbox.add_child(line)
 
+	_update_deck_comp_stats(deck.get_cards())
 	_show_info_view(InfoView.DECK_COMPOSITION)
+
+## Aperçu de carte à droite au survol d'une ligne de la composition.
+func _on_deck_comp_card_hover(card: CardData) -> void:
+	deck_comp_preview_hint.hide()
+	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
+	deck_comp_preview_card.set_data(card)
+	deck_comp_preview_card.show()
+
+func _on_deck_comp_card_unhover() -> void:
+	deck_comp_preview_card.hide()
+	deck_comp_preview_hint.show()
+
+## Courbe de mana + répartition types/races du deck affiché, même logique que
+## DeckBuilder._update_stats_panel/_make_curve_chart.
+func _update_deck_comp_stats(cards: Array[CardData]) -> void:
+	for child in deck_comp_stats_panel.get_children():
+		child.queue_free()
+	if cards.is_empty():
+		return
+
+	var curve := []
+	curve.resize(CURVE_BUCKETS)
+	curve.fill(0)
+	var type_counts: Dictionary = {}
+	var race_counts: Dictionary = {}
+	var total_cost := 0
+
+	for card in cards:
+		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
+		curve[bucket] += 1
+		total_cost += card.cost
+		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
+		race_counts[card.race] = race_counts.get(card.race, 0) + 1
+
+	var curve_title := Label.new()
+	curve_title.text = SettingsManager.t("deck.stats_curve_title")
+	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+	curve_title.add_theme_font_size_override("font_size", 13)
+	deck_comp_stats_panel.add_child(curve_title)
+
+	deck_comp_stats_panel.add_child(_make_deck_comp_curve_chart(curve))
+
+	var avg_label := Label.new()
+	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
+	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+	avg_label.add_theme_font_size_override("font_size", 12)
+	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	deck_comp_stats_panel.add_child(avg_label)
+
+	var breakdown_title := Label.new()
+	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
+	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+	breakdown_title.add_theme_font_size_override("font_size", 13)
+	deck_comp_stats_panel.add_child(breakdown_title)
+
+	# Colonne étroite : un chip par ligne plutôt qu'une rangée horizontale
+	# (contrairement à DeckBuilder, qui a toute la largeur de l'écran).
+	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
+		if type_counts.has(type_name):
+			deck_comp_stats_panel.add_child(_make_deck_comp_chip(
+				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
+
+	for key in Race.Type.keys():
+		var race_value: int = Race.Type[key]
+		if race_counts.has(race_value):
+			deck_comp_stats_panel.add_child(_make_deck_comp_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
+
+func _make_deck_comp_curve_chart(curve: Array) -> Control:
+	var max_count: int = 1
+	for c in curve:
+		max_count = max(max_count, c)
+
+	var chart := HBoxContainer.new()
+	chart.alignment = BoxContainer.ALIGNMENT_CENTER
+	chart.add_theme_constant_override("separation", 3)
+
+	for i in range(CURVE_BUCKETS):
+		var count: int = curve[i]
+		var col := VBoxContainer.new()
+		col.alignment = BoxContainer.ALIGNMENT_END
+		col.custom_minimum_size = Vector2(22, 0)
+		col.add_theme_constant_override("separation", 2)
+
+		var count_lbl := Label.new()
+		count_lbl.text = str(count) if count > 0 else ""
+		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		count_lbl.add_theme_font_size_override("font_size", 10)
+		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+		col.add_child(count_lbl)
+
+		var bar := ColorRect.new()
+		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
+		bar.custom_minimum_size = Vector2(18, height)
+		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
+		col.add_child(bar)
+
+		var cost_lbl := Label.new()
+		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
+		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cost_lbl.add_theme_font_size_override("font_size", 10)
+		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
+		col.add_child(cost_lbl)
+
+		chart.add_child(col)
+
+	return chart
+
+func _make_deck_comp_chip(label_text: String, count: int) -> Control:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
+	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(4)
+	bg.content_margin_left   = 8
+	bg.content_margin_right  = 8
+	bg.content_margin_top    = 2
+	bg.content_margin_bottom = 2
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+
+	var lbl := Label.new()
+	lbl.text = "%s ×%d" % [label_text, count]
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
+	panel.add_child(lbl)
+
+	return panel
 
 func _on_edit_composition_deck() -> void:
 	if _composition_deck_index < 0 or _composition_deck_index >= DeckManager.decks.size():
@@ -668,6 +833,7 @@ func _retranslate() -> void:
 	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")
 	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
+	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
 	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
 	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
 	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")

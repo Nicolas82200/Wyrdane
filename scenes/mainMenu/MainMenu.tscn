@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="8_bgstill"]
 [ext_resource type="Texture2D" uid="uid://dggq5t2wow6cb" path="res://assets/icons/discord-icon.svg" id="9_discord"]
 [ext_resource type="PackedScene" path="res://scenes/mainMenu/ProfilePanel.tscn" id="10_profile"]
+[ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="11_card"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -557,15 +558,59 @@ text = "Composition du deck"
 [node name="DeckCompSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
 layout_mode = 2
 
-[node name="DeckCompScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
+[node name="DeckCompBody" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="DeckCompLeftCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DeckCompScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="DeckCompListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompScroll"]
+[node name="DeckCompListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
+
+[node name="DeckCompRightCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody"]
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DeckCompPreviewBox" type="CenterContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
+custom_minimum_size = Vector2(0, 280)
+layout_mode = 2
+
+[node name="DeckCompPreviewCard" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox" instance=ExtResource("11_card")]
+visible = false
+layout_mode = 2
+
+[node name="DeckCompPreviewHint" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.45)
+theme_override_font_sizes/font_size = 14
+text = "Survole une carte pour l'aperçu"
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="DeckCompStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
+layout_mode = 2
+
+[node name="DeckCompStatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DeckCompStatsPanel" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompStatsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="EditDeckButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
 custom_minimum_size = Vector2(0, 44)
