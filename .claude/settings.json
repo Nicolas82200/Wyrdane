@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); case \"$cur\" in worktree-*) new=\"${cur#worktree-}\"; git branch -m \"$new\" 2>/dev/null && echo \"{\\\"systemMessage\\\":\\\"Branche renommee $cur -> $new (convention NNNN-slug de CLAUDE.md)\\\"}\";; esac",
+            "statusMessage": "Vérification du nom de branche du worktree..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "uncommitted=$(git status --porcelain 2>/dev/null | grep -v 'devlogs/'); if [ -n \"$uncommitted\" ]; then devlog_touched=$(git status --porcelain 2>/dev/null | grep 'devlogs/'); if [ -z \"$devlog_touched\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"Stop\\\",\\\"additionalContext\\\":\\\"Rappel devlog : des changements non commites existent hors de devlogs/, et aucune entree de devlog n a ete ajoutee cette session. Avant de considerer le travail termine, ajoute une entree brute dans devlogs/<prochain-lundi>-draft.md (voir CLAUDE.md, section Devlog hebdomadaire).\\\"}}\"; fi; fi",
+            "statusMessage": "Vérification du devlog hebdomadaire..."
+          }
+        ]
+      }
+    ]
+  }
+}
