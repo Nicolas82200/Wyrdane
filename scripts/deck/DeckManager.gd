@@ -106,17 +106,16 @@ func add_deck(deck: DeckData) -> void:
 	save_decks()
 
 func can_add_card(deck: DeckData, card_data: CardData) -> bool:
+	# Cartes-ressource : quantité illimitée dans un deck, sans lien avec ce qui
+	# est possédé en collection (voir README « Système de Ressources par Race »
+	# — le backend ne vérifie ni plafond ni possession pour ce type de carte).
+	if card_data.card_type == "Resource":
+		return true
 	var owned := CollectionManager.owned_quantity(card_data)
 	var count := 0
 	for path in deck.card_paths:
 		if path == card_data.resource_path:
 			count += 1
-	# Cartes-ressource : pas de plafond MAX_COPIES_PER_CARD (voir README
-	# « Système de Ressources par Race »), mais toujours borné par ce qui est
-	# réellement possédé — le backend rejette de toute façon un deck qui en
-	# demande plus (voir collectionModel.findMissing côté wyrdane-backend).
-	if card_data.card_type == "Resource":
-		return count < owned
 	return count < min(MAX_COPIES_PER_CARD, owned)
 
 # ─── Sauvegarde (pousse tous les decks vers l'API) ────────────────────────────
