@@ -1,8 +1,8 @@
 extends GutTest
 
 # Couvre DeckManager.can_add_card (scripts/deck/DeckManager.gd) : logique de
-# légalité de deck (plafond MAX_COPIES_PER_CARD, cartes-ressource sans
-# plafond, borne par ce qui est réellement possédé). can_add_card() lit
+# légalité de deck (plafond MAX_COPIES_PER_CARD, cartes-ressource en quantité
+# illimitée, sans lien avec ce qui est possédé). can_add_card() lit
 # directement l'autoload global CollectionManager (non injectable) : on
 # manipule donc owned_quantities sur l'instance réelle, restaurée après
 # chaque test pour ne pas polluer les autres fichiers GUT (voir CLAUDE.md sur
@@ -51,9 +51,14 @@ func test_resource_cards_ignore_the_max_copies_cap() -> void:
 		deck.add_card(card)
 	assert_true(deck_manager.can_add_card(deck, card), "les cartes-ressource n'ont pas de plafond MAX_COPIES_PER_CARD")
 
-func test_resource_cards_are_still_capped_by_owned_quantity() -> void:
+func test_resource_cards_are_unlimited_regardless_of_owned_quantity() -> void:
 	card.card_type = "Resource"
 	CollectionManager.owned_quantities[card.resource_path] = 2
 	deck.add_card(card)
 	deck.add_card(card)
-	assert_false(deck_manager.can_add_card(deck, card))
+	assert_true(deck_manager.can_add_card(deck, card), "les cartes-ressource sont illimitées, même au-delà de ce qui est possédé")
+
+func test_resource_cards_ignore_zero_owned_quantity() -> void:
+	card.card_type = "Resource"
+	CollectionManager.owned_quantities[card.resource_path] = 0
+	assert_true(deck_manager.can_add_card(deck, card), "les cartes-ressource sont jouables même sans en posséder aucune")
