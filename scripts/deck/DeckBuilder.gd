@@ -7,7 +7,6 @@ const ALL_CARDS_PATH := "res://resources/cards"
 # comptées séparément bien que mélangées dans le même paquet.
 const MIN_CARDS := 40
 const MIN_RESOURCE_CARDS := 10
-const MAX_COPIES := 4
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
@@ -264,26 +263,26 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	_stock_labels[card_data.resource_path] = badge_label
 	_update_stock_label(card_data, badge_label)
 
-## Texte du badge de stock : quantité possédée (plafonnée à MAX_COPIES pour
+## Texte du badge de stock : quantité possédée (plafonnée à DeckManager.MAX_COPIES_PER_CARD pour
 ## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
 ## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
 ## deck en cours (jamais négatif).
 func _update_stock_label(card_data: CardData, label: Label) -> void:
 	var owned := CollectionManager.owned_quantity(card_data)
 	if card_data.card_type != "Resource":
-		owned = mini(owned, MAX_COPIES)
+		owned = mini(owned, DeckManager.MAX_COPIES_PER_CARD)
 	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
 	label.text = SettingsManager.t("deck.stock_format") % remaining
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
-## encore possédée à MAX_COPIES (qu'elle soit à 0 ou partiellement possédée :
+## encore possédée à DeckManager.MAX_COPIES_PER_CARD (qu'elle soit à 0 ou partiellement possédée :
 ## on peut toujours compléter jusqu'au plafond utilisable en deck) — les
 ## cartes-ressource ne sont pas vendables à l'unité (voir
 ## CollectionManager.buy_card, qui reflète le même refus côté serveur).
 func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
 	if card_data.card_type == "Resource":
 		return
-	if CollectionManager.owned_quantity(card_data) >= MAX_COPIES:
+	if CollectionManager.owned_quantity(card_data) >= DeckManager.MAX_COPIES_PER_CARD:
 		return
 	var price := CurrencyManager.card_price(card_data.rarity)
 	if price <= 0:
@@ -312,7 +311,7 @@ func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
 		if success:
 			# Le plafond peut ne pas être encore atteint (achat partiel) : le
 			# bouton reste alors disponible pour compléter la collection.
-			if CollectionManager.owned_quantity(card_data) >= MAX_COPIES:
+			if CollectionManager.owned_quantity(card_data) >= DeckManager.MAX_COPIES_PER_CARD:
 				_buy_buttons.erase(card_data.resource_path)
 				buy_button.queue_free()
 			else:
@@ -763,7 +762,7 @@ func _is_card_maxed(card_data: CardData) -> bool:
 	var owned := CollectionManager.owned_quantity(card_data)
 	if card_data.card_type == "Resource":
 		return _count_in_deck(card_data.resource_path) >= owned
-	return _count_in_deck(card_data.resource_path) >= min(MAX_COPIES, owned)
+	return _count_in_deck(card_data.resource_path) >= min(DeckManager.MAX_COPIES_PER_CARD, owned)
 
 ## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
 ## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
@@ -777,7 +776,7 @@ func _is_card_locked(card_data: CardData) -> bool:
 
 ## Grise les cartes de la grille dont le deck contient déjà le max de copies
 ## possédées (voir _is_card_maxed — inclut désormais les cartes-ressource,
-## bornées par la quantité réellement débloquée plutôt que par MAX_COPIES).
+## bornées par la quantité réellement débloquée plutôt que par DeckManager.MAX_COPIES_PER_CARD).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
@@ -866,6 +865,17 @@ func _position_hover_tooltips() -> void:
 	card_preview.global_position = Vector2(preview_x, preview_y)
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
+
+	# Hauteur totale de la pile de panneaux : si elle dépasse le bas de l'écran,
+	# on remonte le point de départ (ou on le limite en haut) pour que la pile
+	# entière reste visible plutôt que de déborder sous la fenêtre.
+	var stack_height := 0.0
+	for panel in _keyword_tooltips:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):

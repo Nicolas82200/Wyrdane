@@ -4,44 +4,96 @@ extends Control
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 const NEWS_DIR := "res://resources/news/"
+const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
 const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
+const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
+
+enum PlayMode { SOLO, MULTI }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP }
+
+# Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
+# la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
+const RACE_ACCENTS := {
+	Race.Type.UNDEAD: Color(0.35, 0.62, 0.32, 1),
+	Race.Type.HUMAN:  Color(0.85, 0.68, 0.30, 1),
+	Race.Type.DEMON:  Color(0.78, 0.22, 0.25, 1),
+	Race.Type.ELF:    Color(0.30, 0.65, 0.55, 1),
+	Race.Type.DWARF:  Color(0.62, 0.42, 0.24, 1),
+}
+const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 @onready var play_button:     Button = $NavPanel/NavMargin/VBoxContainer/PlayButton
 @onready var multiplayer_button: Button = $NavPanel/NavMargin/VBoxContainer/MultiplayerButton
 @onready var settings_button: Button = $NavPanel/NavMargin/VBoxContainer/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/VBoxContainer/CreditsButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/VBoxContainer/QuitButton
-@onready var credits_panel:   Panel  = $CreditsPanel
-@onready var close_credits:   Button = $CreditsPanel/CloseCreditsButton
-@onready var legal_button:    Button = $CreditsPanel/LegalButton
-@onready var legal_panel:     Panel  = $LegalPanel
-@onready var close_legal:     Button = $LegalPanel/CloseLegalButton
-@onready var legal_title_label: Label = $LegalPanel/LegalTitleLabel
-@onready var legal_label:     Label  = $LegalPanel/LegalScroll/LegalLabel
-@onready var decks_button:    Button = $NavPanel/NavMargin/VBoxContainer/DecksButton
-@onready var packs_button:    Button = $NavPanel/NavMargin/VBoxContainer/PacksButton
-@onready var pack_shop:       Control = $PackShop
 @onready var replay_tutorial_button: Button = $NavPanel/NavMargin/VBoxContainer/ReplayTutorialButton
-@onready var deck_list:       Control = $DeckList
 @onready var subtitle_label:  Label  = $SubtitleLabel
-@onready var credits_label:   Label  = $CreditsPanel/CreditsLabel
+
+@onready var play_panel:      PanelContainer = $PlayPanel
+@onready var mode_select_view: VBoxContainer = $PlayPanel/PlayMargin/PlayStack/ModeSelectView
+@onready var mode_title_label: Label = $PlayPanel/PlayMargin/PlayStack/ModeSelectView/ModeTitleLabel
+@onready var solo_mode_button: Button = $PlayPanel/PlayMargin/PlayStack/ModeSelectView/SoloModeButton
+@onready var multi_mode_button: Button = $PlayPanel/PlayMargin/PlayStack/ModeSelectView/MultiModeButton
+@onready var deck_select_view: VBoxContainer = $PlayPanel/PlayMargin/PlayStack/DeckSelectView
+@onready var play_back_button: Button = $PlayPanel/PlayMargin/PlayStack/DeckSelectView/DeckSelectHeader/PlayBackButton
+@onready var deck_select_title_label: Label = $PlayPanel/PlayMargin/PlayStack/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
+@onready var play_decks_container: VBoxContainer = $PlayPanel/PlayMargin/PlayStack/DeckSelectView/PlayDeckScroll/PlayDecksContainer
+@onready var launch_button: Button = $PlayPanel/PlayMargin/PlayStack/DeckSelectView/LaunchButton
+
 @onready var steam_profile:   Control = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
 @onready var match_stats_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/MatchStatsLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
-@onready var profile_panel: Control = $ProfilePanel
-@onready var news_title_label: Label = $NewsPanel/NewsMargin/NewsVBox/NewsTitleLabel
-@onready var news_list_vbox: VBoxContainer = $NewsPanel/NewsMargin/NewsVBox/NewsScroll/NewsListVBox
+
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var offline_banner: PanelContainer = $OfflineBanner
 @onready var offline_banner_label: Label = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerLabel
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
-# Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
-@onready var settings_menu = $SettingsMenu
 
-var _news_entries: Array[NewsEntry] = []
+@onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
+@onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
+@onready var pack_shop:       Control = $PackShop
+
+@onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
+@onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
+@onready var news_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsScroll/NewsListVBox
+
+@onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
+@onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleLabel
+@onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompScroll/DeckCompListVBox
+@onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
+
+@onready var profile_panel: Control = $InfoPanel/InfoMargin/ViewsRoot/ProfilePanel
+
+@onready var credits_view:    Control = $InfoPanel/InfoMargin/ViewsRoot/CreditsView
+@onready var credits_panel:   Panel  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsPanel
+@onready var legal_button:    Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsPanel/LegalButton
+@onready var legal_panel:     Panel  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel
+@onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel/CloseLegalButton
+@onready var legal_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel/LegalTitleLabel
+@onready var legal_label:     Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/LegalPanel/LegalScroll/LegalLabel
+@onready var credits_label:   Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsPanel/CreditsLabel
+
+# Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
+@onready var settings_menu = $InfoPanel/InfoMargin/ViewsRoot/SettingsMenu
+@onready var deck_list:       DeckList = $InfoPanel/InfoMargin/ViewsRoot/DeckList
+
+@onready var shop_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
+@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
+@onready var shop_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopDescLabel
+@onready var shop_open_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopOpenButton
+
+var _local_news_entries: Array[NewsEntry] = []
+var _remote_news_entries: Array = []
+var _use_remote_news := false
+
+var _current_info_view: InfoView = InfoView.NEWS
+var _play_mode: int = PlayMode.SOLO
+var _play_selected_deck_index: int = -1
+var _composition_deck_index: int = -1
 
 func _ready() -> void:
 	AudioManager.play_menu_music()
@@ -49,7 +101,7 @@ func _ready() -> void:
 	_retranslate()
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
-	multiplayer_button.pressed.connect(_on_multiplayer)
+	multiplayer_button.pressed.connect(_on_multiplayer_nav)
 	credits_button.pressed.connect(_on_credits)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
@@ -57,26 +109,32 @@ func _ready() -> void:
 	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	discord_button.pressed.connect(_on_discord_pressed)
 	profile_button.set_meta("no_click_sound", true)
-	profile_button.pressed.connect(profile_panel.open)
-	# Le son de fermeture remplace le clic générique
-	close_credits.set_meta("no_click_sound", true)
-	close_credits.pressed.connect(func():
-		AudioManager.play(AudioManager.CLOSE_MENU)
-		credits_panel.hide()
-	)
+	profile_button.pressed.connect(_on_profile_button_pressed)
+
+	solo_mode_button.pressed.connect(_on_solo_mode_selected)
+	multi_mode_button.pressed.connect(_on_multi_mode_selected)
+	play_back_button.pressed.connect(_on_play_back_pressed)
+	launch_button.pressed.connect(_on_launch_pressed)
+	edit_deck_button.pressed.connect(_on_edit_composition_deck)
+	shop_open_button.pressed.connect(_on_shop_open_pressed)
+	play_panel.hide()
+
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
 	close_legal.pressed.connect(func():
 		AudioManager.play(AudioManager.CLOSE_MENU)
 		legal_panel.hide()
+		credits_panel.show()
 	)
 	legal_panel.hide()
+	credits_panel.show()
+	# Le bouton "Retour" interne à DeckList (voir DeckList._on_back) ne fait
+	# que se cacher lui-même : on ramène en plus la fenêtre actualités sur
+	# les actus, pour ne pas la laisser vide.
+	deck_list.back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	# settings_menu peut légitimement être absent
-	if settings_menu:
-		settings_button.pressed.connect(settings_menu.open)
-	else:
+	if not settings_menu:
 		push_error("SettingsMenu introuvable !")
-	credits_panel.hide()
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
 	offline_banner_close.pressed.connect(offline_banner.hide)
@@ -99,6 +157,7 @@ func _ready() -> void:
 	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_load_news()
 	_start_backend_sync()
+	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
 	_wire_nav_hover_pop()
 
@@ -137,16 +196,16 @@ func _wire_nav_hover_pop() -> void:
 			tween.tween_property(button, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		)
 
-# Fondu d'apparition pour les panneaux plein écran (Decks/Packs), qui portent
-# déjà leur propre voile d'assombrissement en fond — un simple fondu du
-# contrôle entier évite tout artefact de bord lié à un scale.
+# Fondu d'apparition pour les panneaux plein écran (Packs), qui portent déjà
+# leur propre voile d'assombrissement en fond — un simple fondu du contrôle
+# entier évite tout artefact de bord lié à un scale.
 func _fade_in_overlay(panel: Control) -> void:
 	panel.modulate.a = 0.0
 	var tween := create_tween()
 	tween.tween_property(panel, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 # Pop d'apparition (fondu + léger zoom depuis 92%) pour les petits panneaux
-# centrés sans voile de fond (Crédits/Mentions légales).
+# centrés sans voile de fond (Crédits/Mentions légales) et pour le panneau Jouer.
 func _pop_in_panel(panel: Control) -> void:
 	panel.pivot_offset = panel.size / 2.0
 	panel.modulate.a = 0.0
@@ -215,26 +274,276 @@ func _launch_backend_syncs() -> void:
 			CurrencyManager.sync_from_backend()
 	)
 
+# --- Fenêtre "Actualités" multi-vues -----------------------------------
+# Le panneau de droite affiche une seule vue à la fois (Actualités par
+# défaut, composition de deck pendant le flux Jouer, Profil/Crédits/
+# Paramètres/Mes Decks/Boutique selon le bouton cliqué).
+
+func _show_info_view(view: InfoView) -> void:
+	_current_info_view = view
+	news_view.visible = view == InfoView.NEWS
+	deck_composition_view.visible = view == InfoView.DECK_COMPOSITION
+	credits_view.visible = view == InfoView.CREDITS
+	shop_view.visible = view == InfoView.SHOP
+	profile_panel.visible = view == InfoView.PROFILE
+	settings_menu.visible = view == InfoView.SETTINGS
+	deck_list.visible = view == InfoView.DECKS_MANAGE
+	if view == InfoView.PROFILE:
+		profile_panel.open()
+	elif view == InfoView.SETTINGS:
+		settings_menu.open()
+	elif view == InfoView.DECKS_MANAGE:
+		deck_list._refresh()
+
+func _on_profile_button_pressed() -> void:
+	_show_info_view(InfoView.PROFILE)
+
+func _on_credits() -> void:
+	credits_panel.show()
+	legal_panel.hide()
+	_show_info_view(InfoView.CREDITS)
+
+func _on_legal_pressed() -> void:
+	credits_panel.hide()
+	legal_panel.show()
+	AudioManager.play(AudioManager.OPEN_MENU)
+
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
 		push_warning("CardLibrary pas encore chargé !")
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
-	deck_list.visible = true
-	_fade_in_overlay(deck_list)
-	if deck_list.has_method("_refresh"):
-		deck_list._refresh()
+	_show_info_view(InfoView.DECKS_MANAGE)
 
-func _on_packs_button_pressed() -> void:
+# Ouvre le shop plein écran existant (animations d'ouverture de pack, non
+# adaptées à l'espace réduit de la fenêtre actualités — voir PackShop.gd).
+# La vue "Boutique" de la fenêtre actualités sert de point d'entrée en
+# attendant une vraie boutique multi-articles (prévue plus tard).
+func _on_shop_open_pressed() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	pack_shop.visible = true
 	_fade_in_overlay(pack_shop)
 	if pack_shop.has_method("refresh"):
 		pack_shop.refresh()
 
+func _on_packs_button_pressed() -> void:
+	_show_info_view(InfoView.SHOP)
+
+# --- Flux "Jouer" : mode puis deck ---------------------------------------
+
 func _on_play() -> void:
-	TutorialContext.active = not SettingsManager.tutorial_completed
-	get_tree().change_scene_to_file(BATTLE_SCENE)
+	if not SettingsManager.tutorial_completed:
+		TutorialContext.active = true
+		get_tree().change_scene_to_file(BATTLE_SCENE)
+		return
+	AudioManager.play(AudioManager.OPEN_MENU)
+	play_panel.show()
+	_pop_in_panel(play_panel)
+	_show_mode_select()
+
+# Le bouton "Multijoueur" de la barre de nav saute directement à la
+# sélection de deck en mode multi (le mode est déjà choisi par ce bouton).
+func _on_multiplayer_nav() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	play_panel.show()
+	_pop_in_panel(play_panel)
+	_play_mode = PlayMode.MULTI
+	_show_deck_select()
+
+func _show_mode_select() -> void:
+	mode_select_view.visible = true
+	deck_select_view.visible = false
+	_show_info_view(InfoView.NEWS)
+
+func _on_solo_mode_selected() -> void:
+	_play_mode = PlayMode.SOLO
+	_show_deck_select()
+
+func _on_multi_mode_selected() -> void:
+	_play_mode = PlayMode.MULTI
+	_show_deck_select()
+
+func _show_deck_select() -> void:
+	mode_select_view.visible = false
+	deck_select_view.visible = true
+	_play_selected_deck_index = -1
+	launch_button.disabled = true
+	_refresh_play_deck_list()
+	_show_info_view(InfoView.NEWS)
+
+func _on_play_back_pressed() -> void:
+	_show_mode_select()
+
+func _refresh_play_deck_list() -> void:
+	for child in play_decks_container.get_children():
+		child.queue_free()
+	if DeckManager.decks.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = SettingsManager.t("decklist.empty")
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", 16)
+		play_decks_container.add_child(empty_lbl)
+		return
+	for i in range(DeckManager.decks.size()):
+		play_decks_container.add_child(_make_play_deck_row(DeckManager.decks[i], i))
+
+## Couleur de la race la plus représentée dans le deck (même logique que
+## DeckList._dominant_race_color).
+func _dominant_race_color(deck: DeckData) -> Color:
+	var counts: Dictionary = {}
+	for card in deck.get_cards():
+		counts[card.race] = counts.get(card.race, 0) + 1
+	var best_race := -1
+	var best_count := 0
+	for race in counts:
+		if counts[race] > best_count:
+			best_race = race
+			best_count = counts[race]
+	return RACE_ACCENTS.get(best_race, NEUTRAL_ACCENT)
+
+## Ligne simplifiée (choix uniquement, pas d'édition) pour le flux Jouer.
+func _make_play_deck_row(deck: DeckData, index: int) -> Control:
+	var is_selected := index == _play_selected_deck_index
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
+	bg.border_color = Color(0.78, 0.58, 0.10, 0.9) if is_selected else Color(0.30, 0.24, 0.10, 0.5)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(5)
+	bg.content_margin_left   = 12
+	bg.content_margin_right  = 10
+	bg.content_margin_top    = 8
+	bg.content_margin_bottom = 8
+
+	var bg_hover := bg.duplicate() as StyleBoxFlat
+	bg_hover.bg_color     = Color(0.18, 0.15, 0.10, 1)
+	bg_hover.border_color = Color(0.78, 0.58, 0.10, 1)
+
+	var button := Button.new()
+	button.flat = true
+	button.custom_minimum_size = Vector2(0, 52)
+	button.add_theme_stylebox_override("normal", bg)
+	button.add_theme_stylebox_override("hover", bg_hover)
+	button.add_theme_stylebox_override("pressed", bg_hover)
+	button.pressed.connect(_on_play_deck_selected.bind(index))
+
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 10)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.add_child(row)
+
+	var race_strip := ColorRect.new()
+	race_strip.color = _dominant_race_color(deck)
+	race_strip.custom_minimum_size = Vector2(5, 0)
+	row.add_child(race_strip)
+
+	var select_indicator := Label.new()
+	select_indicator.text = "●" if is_selected else "○"
+	select_indicator.custom_minimum_size = Vector2(28, 0)
+	select_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	select_indicator.add_theme_font_size_override("font_size", 18)
+	select_indicator.add_theme_color_override("font_color",
+		Color(0.94, 0.75, 0.25, 1) if is_selected else Color(0.91, 0.835, 0.639, 0.35))
+	row.add_child(select_indicator)
+
+	var name_lbl := Label.new()
+	name_lbl.text = SettingsManager.t(deck.name)
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.add_theme_font_size_override("font_size", 17)
+	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	row.add_child(name_lbl)
+
+	var count_lbl := Label.new()
+	count_lbl.text = "%d/40" % deck.size()
+	count_lbl.custom_minimum_size = Vector2(56, 0)
+	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	count_lbl.add_theme_font_size_override("font_size", 13)
+	count_lbl.add_theme_color_override("font_color",
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= 40 else Color(1, 0.4, 0.4, 1))
+	row.add_child(count_lbl)
+
+	return button
+
+func _on_play_deck_selected(index: int) -> void:
+	_play_selected_deck_index = index
+	launch_button.disabled = false
+	_refresh_play_deck_list()
+	_show_deck_composition(index)
+
+func _on_launch_pressed() -> void:
+	if _play_selected_deck_index < 0:
+		return
+	DeckManager.set_active_deck(_play_selected_deck_index)
+	play_panel.hide()
+	if _play_mode == PlayMode.SOLO:
+		TutorialContext.active = false
+		get_tree().change_scene_to_file(BATTLE_SCENE)
+	else:
+		AudioManager.play(AudioManager.OPEN_MENU)
+		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
+
+func _on_multiplayer() -> void:
+	# Conservé pour compatibilité : redirige vers le nouveau flux si jamais
+	# appelé directement (aucune connexion restante vers cette fonction).
+	_on_multiplayer_nav()
+
+# --- Composition du deck sélectionné (vue "actualités") -----------------
+
+func _show_deck_composition(deck_index: int) -> void:
+	_composition_deck_index = deck_index
+	var deck: DeckData = DeckManager.decks[deck_index]
+	deck_comp_title_label.text = "%s : %s" % [SettingsManager.t("MENU_DECK_COMPOSITION_TITLE"), SettingsManager.t(deck.name)]
+	for child in deck_comp_list_vbox.get_children():
+		child.queue_free()
+
+	var counts: Dictionary = {}
+	var order: Array[CardData] = []
+	for card in deck.get_cards():
+		if not counts.has(card.resource_path):
+			order.append(card)
+		counts[card.resource_path] = counts.get(card.resource_path, 0) + 1
+
+	for card in order:
+		var line := HBoxContainer.new()
+		line.add_theme_constant_override("separation", 8)
+
+		var count_lbl := Label.new()
+		count_lbl.text = "x%d" % counts[card.resource_path]
+		count_lbl.custom_minimum_size = Vector2(32, 0)
+		count_lbl.add_theme_font_size_override("font_size", 14)
+		count_lbl.add_theme_color_override("font_color", Color(0.94, 0.75, 0.25, 1))
+		line.add_child(count_lbl)
+
+		var name_lbl := Label.new()
+		name_lbl.text = SettingsManager.t(card.card_name)
+		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+		line.add_child(name_lbl)
+
+		deck_comp_list_vbox.add_child(line)
+
+	_show_info_view(InfoView.DECK_COMPOSITION)
+
+func _on_edit_composition_deck() -> void:
+	if _composition_deck_index < 0 or _composition_deck_index >= DeckManager.decks.size():
+		return
+	var scene := load(DECK_BUILDER_SCENE) as PackedScene
+	if scene == null:
+		return
+	var builder = scene.instantiate()
+	get_tree().current_scene.add_child(builder)
+	builder.load_deck(DeckManager.decks[_composition_deck_index])
+	play_panel.hide()
+	builder.tree_exited.connect(func():
+		if _play_selected_deck_index >= 0:
+			play_panel.show()
+			_refresh_play_deck_list()
+			_show_deck_composition(_composition_deck_index)
+	)
 
 # Bouton temporaire de debug/test : force le rejeu du tutoriel obligatoire
 # sans avoir à éditer le fichier de config à la main (voir
@@ -246,19 +555,18 @@ func _on_replay_tutorial_pressed() -> void:
 	TutorialContext.active = true
 	get_tree().change_scene_to_file(BATTLE_SCENE)
 
-func _on_multiplayer() -> void:
-	if DeckManager.get_active_deck() == null:
-		push_warning("Aucun deck actif : crée/sélectionne un deck avant de jouer en ligne.")
-		return
-	AudioManager.play(AudioManager.OPEN_MENU)
-	get_tree().change_scene_to_file(NET_LOBBY_SCENE)
-
-# Charge toutes les ressources NewsEntry (res://resources/news/*.tres), triées
-# par date décroissante (format YYYY-MM-DD, comparable directement en string),
-# puis peuple le panneau. Aucune dépendance backend : contenu embarqué au build,
-# comme les cartes.
+# Charge le panneau d'actualités : les devlogs/actus créés sur le site
+# (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
+# chaque déploiement depuis src/content/news + src/content/devlog — voir son
+# scripts/generate-feed.mjs). Les ressources locales (res://resources/news/*.tres)
+# ne servent plus que de repli si le site est injoignable (même logique de
+# dégradation que CollectionManager/CurrencyManager).
 func _load_news() -> void:
-	_news_entries.clear()
+	_load_local_news()
+	_fetch_remote_news()
+
+func _load_local_news() -> void:
+	_local_news_entries.clear()
 	var dir := DirAccess.open(NEWS_DIR)
 	if dir == null:
 		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
@@ -269,55 +577,73 @@ func _load_news() -> void:
 		if file_name.ends_with(".tres"):
 			var entry := load(NEWS_DIR + file_name) as NewsEntry
 			if entry:
-				_news_entries.append(entry)
+				_local_news_entries.append(entry)
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
+	_local_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
 	_populate_news()
+
+func _fetch_remote_news() -> void:
+	var http := HTTPRequest.new()
+	add_child(http)
+	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
+		http.queue_free()
+		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
+			push_warning("Impossible de récupérer les actualités du site (résultat %d, code %d)" % [result, response_code])
+			return
+		var parsed = JSON.parse_string(body.get_string_from_utf8())
+		if typeof(parsed) != TYPE_ARRAY:
+			push_warning("Format de flux d'actualités invalide")
+			return
+		_remote_news_entries = parsed
+		_use_remote_news = true
+		_populate_news()
+	)
+	var err := http.request(NEWS_FEED_URL)
+	if err != OK:
+		push_warning("Échec de la requête d'actualités : %d" % err)
+		http.queue_free()
 
 func _populate_news() -> void:
 	for child in news_list_vbox.get_children():
 		child.queue_free()
-	for entry in _news_entries:
-		var item := VBoxContainer.new()
-		item.add_theme_constant_override("separation", 4)
+	if _use_remote_news:
+		for entry in _remote_news_entries:
+			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
+			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
+			_add_news_item(entry.get("date", ""), title, body)
+	else:
+		for entry in _local_news_entries:
+			_add_news_item(entry.date, entry.display_title(), entry.display_body())
 
-		var date_label := Label.new()
-		date_label.text = entry.date
-		date_label.add_theme_font_size_override("font_size", 13)
-		date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
-		item.add_child(date_label)
+func _add_news_item(date: String, title: String, body: String) -> void:
+	var item := VBoxContainer.new()
+	item.add_theme_constant_override("separation", 4)
 
-		var title_label := Label.new()
-		title_label.text = entry.display_title()
-		title_label.add_theme_font_size_override("font_size", 18)
-		title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-		title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		item.add_child(title_label)
+	var date_label := Label.new()
+	date_label.text = date
+	date_label.add_theme_font_size_override("font_size", 13)
+	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
+	item.add_child(date_label)
 
-		var body_label := Label.new()
-		body_label.text = entry.display_body()
-		body_label.add_theme_font_size_override("font_size", 15)
-		body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
-		body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-		item.add_child(body_label)
+	var title_label := Label.new()
+	title_label.text = title
+	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	item.add_child(title_label)
 
-		news_list_vbox.add_child(item)
+	var body_label := Label.new()
+	body_label.text = body
+	body_label.add_theme_font_size_override("font_size", 15)
+	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
+	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	item.add_child(body_label)
+
+	news_list_vbox.add_child(item)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
-
-func _on_credits() -> void:
-	credits_panel.visible = not credits_panel.visible
-	AudioManager.play(AudioManager.OPEN_MENU if credits_panel.visible else AudioManager.CLOSE_MENU)
-	if credits_panel.visible:
-		_pop_in_panel(credits_panel)
-
-func _on_legal_pressed() -> void:
-	credits_panel.hide()
-	legal_panel.visible = true
-	AudioManager.play(AudioManager.OPEN_MENU)
-	_pop_in_panel(legal_panel)
 
 func _on_quit() -> void:
 	get_tree().quit()
@@ -342,7 +668,6 @@ func _retranslate() -> void:
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
-	close_credits.text  = SettingsManager.t("MENU_CLOSE")
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
 	legal_title_label.text = SettingsManager.t("MENU_LEGAL")
 	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
@@ -352,3 +677,16 @@ func _retranslate() -> void:
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
 	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
+
+	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
+	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
+	multi_mode_button.text = SettingsManager.t("MENU_PLAY_MULTI")
+	play_back_button.text = SettingsManager.t("ui.back")
+	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")
+	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
+	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
+	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
+	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
+	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
+	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
+		_show_deck_composition(_composition_deck_index)

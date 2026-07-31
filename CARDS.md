@@ -671,7 +671,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 ## Table de Mutation
 
 | Résultat | Probabilité | Effet |
-|---|---|---|
+|---|---|---|-  -
 | Croissance | 40% | +2/+0 permanent |
 | Renforcement | 40% | +0/+2 permanent |
 | Dégénérescence | 20% | -1/-1 permanent (si les HP tombent à 0, le serviteur meurt) |

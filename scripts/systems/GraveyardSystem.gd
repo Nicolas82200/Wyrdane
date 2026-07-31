@@ -2,9 +2,9 @@
 extends Node
 class_name GraveyardSystem
 
-var battle: Node
+var battle
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 	# Labels récupérés via les @onready de GameBoard
 	_setup(
