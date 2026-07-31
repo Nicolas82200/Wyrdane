@@ -592,7 +592,7 @@ Toutes les cartes proviennent d'un pool commun aux 8 joueurs.
 #### Règle de verrouillage
 - Toute carte en **main ou sur le plateau** d'un joueur est retirée du pool partagé (indisponible pour les autres).
 - Elle **retourne au pool** quand elle est vendue (main ou plateau), **ou quand son possesseur est éliminé** (voir Ghost Board ci-dessous — l'élimination libère les cartes réelles, le fantôme n'est qu'une copie/simulation indépendante).
-- **Fusion 2★/3★** : les copies fusionnées restent **verrouillées hors du pool tant que la carte fusionnée existe**. Vendre (ou perdre à l'élimination) la carte fusionnée rend **toutes les copies de base l'ayant constituée** au pool — 3 pour une 2★, 9 pour une 3★ (3 cartes 2★, soit 3×3) — comme si elle n'avait jamais été fusionnée, pas une seule copie.
+- **Fusion 2★** (un seul palier, pas de 3★ — voir « Upgrade de cartes ») : les 3 copies fusionnées restent **verrouillées hors du pool tant que la carte 2★ existe**. Vendre (ou perdre à l'élimination) la 2★ rend **les 3 copies de base** au pool, comme si elle n'avait jamais été fusionnée — pas une seule copie.
 
 #### Tirage en boutique : deux étapes indépendantes
 Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étapes :
@@ -628,7 +628,7 @@ Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étape
 - 3 copies identiques → version améliorée (**stats renforcées uniquement, texte/effet inchangé**).
 - **Bonus de stats** : addition des stats des 3 cartes fusionnées (donc une base 2/2 + 2/2 + 2/2 → 6/6 sur la carte 2★, pas un simple +1/+1 fixe ni un doublement).
 - **Buffs permanents accumulés** (ex: NÉCROPHAGE) sur une ou plusieurs des 3 copies avant fusion : **conservés et additionnés** sur la carte 2★ résultante — aucune perte de progression en fusionnant.
-- **Vente d'une carte 2★/3★** : le remboursement en **or** reste calculé comme pour une seule copie normale (pas de bonus lié aux cartes investies), mais **toutes les copies de base** (3 pour une 2★, 9 pour une 3★) retournent au **pool partagé** — voir « Règle de verrouillage » ci-dessus.
+- **Vente d'une carte 2★** : le remboursement en **or** reste calculé comme pour une seule copie normale (pas de bonus lié aux 3 cartes investies), mais **les 3 copies de base** retournent au **pool partagé** — voir « Règle de verrouillage » ci-dessus. Pas de palier au-delà du 2★ (pas de carte 3★) : 3 copies d'une 2★ ne fusionnent jamais entre elles.
 - Choix fait pour rester simple à générer sur les ~150 cartes existantes sans réécrire de texte par carte.
 
 #### Affichage et déclenchement de la fusion (validé)

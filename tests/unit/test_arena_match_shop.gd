@@ -100,20 +100,6 @@ func test_selling_a_merged_2_star_card_returns_all_3_base_copies_to_the_pool() -
 	assert_eq(m.pool.copies_remaining(card), copies_before + 3,
 		"vendre une 2★ doit rendre 3 copies de base au pool")
 
-func test_selling_a_merged_3_star_card_returns_all_9_base_copies_to_the_pool() -> void:
-	var card := _make_card("Merged3", 2, "res://fake/shop_merged_3star.tres")
-	var m := _make_match([card])
-	var player := m.players[0]
-	for i in 9:
-		m.pool.take(card)
-	var copies_before: int = m.pool.copies_remaining(card)
-	var merged := Minion.new(card, true, "Front")
-	merged.star_level = 3
-	player.hand.append(merged)
-	m.sell_card(player, merged, false)
-	assert_eq(m.pool.copies_remaining(card), copies_before + 9,
-		"vendre une 3★ doit rendre 9 copies de base au pool (3×3)")
-
 func test_hand_overflow_is_discarded_at_end_of_shop_phase() -> void:
 	var card := _make_card("Filler", 1, "res://fake/shop_filler.tres")
 	var m := _make_match([card])

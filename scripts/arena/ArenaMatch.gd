@@ -129,11 +129,11 @@ func sell_card(player: ArenaPlayerState, minion: Minion, from_board: bool) -> bo
 	player.gold += ArenaEconomy.sell_refund(minion.card_data.cost, from_board)
 	return true
 
-# Nombre de copies de base (1★) qu'une carte de ce niveau représente (voir
-# README « Upgrade de cartes ») : 1 pour une carte normale, 3 pour une 2★
-# (3 copies fusionnées), 9 pour une 3★ (3 cartes 2★, soit 3×3 copies de base).
+# Nombre de copies de base qu'une carte représente (voir README « Upgrade de
+# cartes ») : 1 pour une carte normale, 3 pour une 2★ dorée (3 copies
+# fusionnées) — il n'existe pas de palier au-delà du 2★.
 func _base_copies_for_star_level(star_level: int) -> int:
-	return int(round(pow(3, star_level - 1)))
+	return 3 if star_level >= 2 else 1
 
 # Une Incantation non lancée reste en main jusqu'à être vendue (100%, comme
 # n'importe quelle carte en main) ou lancée (cast_spell).

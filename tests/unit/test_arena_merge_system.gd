@@ -79,3 +79,19 @@ func test_merge_detects_a_copy_sitting_in_suspended() -> void:
 	assert_true(player.suspended.is_empty(), "la copie suspendue source doit être consommée par la fusion")
 	var merged: Array[Minion] = player.hand.filter(func(m: Minion): return m.star_level == 2)
 	assert_eq(merged.size(), 1, "les 3 copies (main+suspens) doivent fusionner en une carte 2★")
+
+func test_three_copies_of_an_already_2_star_card_never_merge_further() -> void:
+	# Pas de carte 3★ dans ce jeu : la 2★ dorée est déjà la version maximale.
+	# Un cas rare (3 copies 2★ de la même carte réunies) ne doit jamais
+	# produire une "3★" — elles restent 3 cartes 2★ séparées.
+	var card := _make_card("Grunt", 1, "res://fake/merge_already_2star.tres")
+	var player := ArenaPlayerState.new("Player")
+	for i in 3:
+		var m := Minion.new(card, true, "Front")
+		m.star_level = 2
+		player.hand.append(m)
+	var merge := ArenaMergeSystem.new()
+	merge.try_merge_all(player)
+	assert_eq(player.hand.size(), 3, "3 copies déjà 2★ ne doivent jamais fusionner entre elles")
+	for m in player.hand:
+		assert_eq((m as Minion).star_level, 2, "aucune carte 3★ ne doit apparaître")
