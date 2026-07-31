@@ -317,3 +317,41 @@ func test_maybe_activate_sacrifice_rituals_ignores_non_sacrifice_enchantments() 
 	battle.trigger_system.active_enchantments[false] = [{"card_data": enchantment}]
 	await ai_system._maybe_activate_sacrifice_rituals()
 	assert_true(battle.trigger_system.activated_rituals.is_empty())
+
+# ─── Fusion (Abomination) ────────────────────────────────────────────────────
+# Même bug que les Rituels de Sacrifice : sans contrepartie IA, un serviteur
+# FUSION posé par l'IA n'aurait jamais absorbé de voisin.
+
+func _fusion_minion(attack: int, health: int) -> Minion:
+	var m := _minion(attack, health, false)
+	m.add_abomination_keyword(KeywordAbomination.Type.FUSION)
+	return m
+
+func test_pick_fusion_victim_prefers_the_weakest_neighbor() -> void:
+	var source := _fusion_minion(3, 3)
+	var weak := _minion(1, 1, false)
+	assert_eq(ai_system._pick_fusion_victim(source), weak)
+
+func test_pick_fusion_victim_ignores_enemy_neighbors() -> void:
+	var source := _fusion_minion(3, 3)
+	_minion(1, 1, true)
+	assert_null(ai_system._pick_fusion_victim(source))
+
+func test_maybe_activate_fusion_fuses_with_the_weakest_neighbor() -> void:
+	var source := _fusion_minion(3, 3)
+	var victim := _minion(1, 1, false)
+	await ai_system._maybe_activate_fusion()
+	assert_eq(battle.fusion_system.applied_fusions.size(), 1)
+	assert_eq(battle.fusion_system.applied_fusions[0]["source"], source)
+	assert_eq(battle.fusion_system.applied_fusions[0]["victim"], victim)
+
+func test_maybe_activate_fusion_skips_minions_without_a_valid_neighbor() -> void:
+	_fusion_minion(3, 3)
+	await ai_system._maybe_activate_fusion()
+	assert_true(battle.fusion_system.applied_fusions.is_empty())
+
+func test_maybe_activate_fusion_ignores_minions_without_the_keyword() -> void:
+	_minion(3, 3, false)
+	_minion(1, 1, false)
+	await ai_system._maybe_activate_fusion()
+	assert_true(battle.fusion_system.applied_fusions.is_empty())

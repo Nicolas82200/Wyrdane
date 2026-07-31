@@ -17,6 +17,7 @@ var card_popup_system: FakeCardPopupSystem = FakeCardPopupSystem.new()
 var death_system: FakeDeathSystem = FakeDeathSystem.new()
 var aura_system: FakeAuraSystem = FakeAuraSystem.new()
 var trigger_system: FakeTriggerSystem = FakeTriggerSystem.new()
+var fusion_system: FakeFusionSystem = FakeFusionSystem.new()
 var network_manager = null
 var hand = null
 var game_over: bool = false
@@ -223,6 +224,25 @@ class FakeTriggerSystem:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
 	func reset_once_per_turn(_is_local_turn: bool) -> void:
 		pass
+
+
+class FakeFusionSystem:
+	var applied_fusions: Array = []
+	func _collect_keyword_choices(victim: Minion) -> Array:
+		var out: Array = []
+		for kw in victim.keywords:
+			out.append({"pool": "keywords", "keyword": kw, "label": ""})
+		for kw in victim.human_keywords:
+			out.append({"pool": "human_keywords", "keyword": kw, "label": ""})
+		for kw in victim.undead_keywords:
+			out.append({"pool": "undead_keywords", "keyword": kw, "label": ""})
+		for kw in victim.demon_keywords:
+			out.append({"pool": "demon_keywords", "keyword": kw, "label": ""})
+		for kw in victim.abomination_keywords:
+			out.append({"pool": "abomination_keywords", "keyword": kw, "label": ""})
+		return out
+	func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:
+		applied_fusions.append({"source": source, "victim": victim, "pool": pool, "keyword": keyword})
 
 
 class FakeAnimationSystem:

@@ -91,6 +91,7 @@ func take_turn() -> void:
 	_start_of_turn_phase()
 	var played_cards := await _play_cards_phase()
 	await _maybe_activate_sacrifice_rituals()
+	await _maybe_activate_fusion()
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
@@ -356,6 +357,34 @@ func _pick_sacrifice_victims(card: CardData) -> Array[Minion]:
 		return []
 	pool.sort_custom(func(a: Minion, b: Minion) -> bool: return a.health + a.attack < b.health + b.attack)
 	return pool.slice(0, card.sacrifice_count)
+
+# ─── Fusion (Abomination) ──────────────────────────────────────────────────────
+# Même bug que les Rituels de Sacrifice ci-dessus : FUSION n'a d'interaction
+# que côté joueur (FusionSystem.try_begin exige owner_is_player). Fusionne
+# chaque serviteur FUSION éligible avec son voisin le plus faible, en
+# absorbant le premier mot-clé disponible du sacrifié (l'IA n'évalue pas la
+# valeur relative des mots-clés, choix arbitraire mais fonctionnel).
+func _maybe_activate_fusion() -> void:
+	for source in battle.enemy_minions.duplicate():
+		if source.is_dead() or not source.has_abomination_keyword(KeywordAbomination.Type.FUSION):
+			continue
+		var victim: Minion = _pick_fusion_victim(source)
+		if victim == null:
+			continue
+		var options: Array = battle.fusion_system._collect_keyword_choices(victim)
+		var pool: String = options[0]["pool"] if not options.is_empty() else ""
+		var keyword: int = options[0]["keyword"] if not options.is_empty() else -1
+		await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+		battle.board_visual_system.refresh_board()
+
+func _pick_fusion_victim(source: Minion) -> Minion:
+	var candidates: Array[Minion] = battle.effect_manager._get_adjacent_minions(battle, source).filter(
+		func(m: Minion) -> bool: return m.owner_is_player == source.owner_is_player and not m.is_dead())
+	var best: Minion = null
+	for m in candidates:
+		if best == null or m.health + m.attack < best.health + best.attack:
+			best = m
+	return best
 
 # Existe-t-il une cible valide pour le premier effet de cette carte ? Les
 # effets à cible automatique (coût de sacrifice) n'ont besoin que d'un allié
