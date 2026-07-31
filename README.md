@@ -818,7 +818,7 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 
 - **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
-- Les cartes-ressource sont **exemptées de la limite de 4 copies** (`MAX_COPIES_PER_CARD`) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum.
+- Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
@@ -852,7 +852,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
-- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée).
 - `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
