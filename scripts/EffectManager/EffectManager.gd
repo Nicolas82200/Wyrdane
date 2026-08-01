@@ -54,6 +54,7 @@ func execute_effect(
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
+		"ProtectFrontLine": _protect_front_line(battle, source_minion, effect)
 		"GainMana":         _gain_mana(battle, source_minion, effect)
 		"DestroyRandomEnchantment": await _destroy_random_enchantment(battle, source_minion, effect)
 		"DrawCardDiscount": _draw_card_discount(battle, source_minion, effect)
@@ -527,6 +528,8 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 	for target in targets:
 		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
 			continue
+		if _is_front_line_protected(battle, source_minion, target):
+			continue
 		# Retour en main = retrait du plateau SANS passer par la mort
 		# (pas de cimetière, pas de Dernier Souffle)
 		_remove_from_board(battle, target)
@@ -556,6 +559,8 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		# transformé change donc aussi de camp, comme _steal_minion — y compris
 		# l'immunité au contrôle mental, qui bloque alors tout l'effet.
 		if target.is_mind_control_immune():
+			continue
+		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
 			continue
 		target.card_data        = effect.transform_card
 		target.base_attack      = effect.transform_card.attack
@@ -612,6 +617,10 @@ func _move_row(battle, source_minion, effect: CardEffect, selected_target: Minio
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
+		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
+			continue
+		if _is_front_line_protected(battle, source_minion, target):
+			continue
 		var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
 		if not battle.can_summon_to_row(target.owner_is_player, other_row):
 			continue
@@ -1094,6 +1103,14 @@ func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	battle.counter_offensive[is_player] = true
 
+# Protège la rangée Avant du camp lanceur du renvoi en main et du déplacement par
+# des effets ennemis, jusqu'au prochain Éveil du camp (Ordre de Tenir). Le flag
+# est réarmé chaque tour tant que le rituel vit, remis à zéro par TurnSystem.
+# Vérifié dans _return_to_hand et _move_row.
+func _protect_front_line(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	battle.front_line_protected[is_player] = true
+
 # Détruit un enchantement ou rituel ennemi actif aléatoire (La Grande
 # Inquisitrice, Éveil). Tirage via le RNG partagé pour rester synchronisé en réseau.
 func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEffect) -> void:
@@ -1395,8 +1412,17 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 	if not has_trigger(minion, trigger_name):
 		return false
 	for effect in minion.card_data.effects:
+		if effect.trigger != "" and effect.trigger != trigger_name:
+			continue
 		await execute_effect(battle, minion, effect, selected_target)
 	return true
+
+# Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
+# contre un effet hostile (renvoi en main / déplacement).
+func _is_front_line_protected(battle, source_minion: Minion, target: Minion) -> bool:
+	return target.board_row == battle.ROW_FRONT \
+		and battle.front_line_protected.get(target.owner_is_player, false) \
+		and _is_hostile_to(source_minion, target)
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:
 	if source_minion != null:

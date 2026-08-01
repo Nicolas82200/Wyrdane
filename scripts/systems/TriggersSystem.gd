@@ -164,6 +164,8 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 	# défenseur d'une attaque pour OnResonance), sinon la source de l'évènement.
 	var context_target: Minion = ctx.extra.get("target", ctx.source_minion)
 	for effect in card_data.effects:
+		if effect.trigger != "" and effect.trigger != ctx.trigger_name:
+			continue
 		await battle.effect_manager.execute_effect(battle, proxy, effect, context_target)
 
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
