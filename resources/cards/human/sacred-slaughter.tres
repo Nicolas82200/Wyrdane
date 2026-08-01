@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_5lhvq"]
 script = ExtResource("1_xs656")
+effect_id = "Damage"
 target = "AllEnemies"
 value = 3
 race_filter = "Undead"
