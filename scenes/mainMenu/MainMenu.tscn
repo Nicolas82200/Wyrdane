@@ -605,6 +605,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(216, 324)
 
 [node name="DeckCompPreviewHint" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox"]
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.45)
 theme_override_font_sizes/font_size = 14
