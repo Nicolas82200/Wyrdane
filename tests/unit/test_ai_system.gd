@@ -255,7 +255,6 @@ func test_pick_attack_target_returns_best_trade_when_hero_is_not_attackable() ->
 	var blocker := _minion(2, 2, true, "Front")
 	assert_eq(ai_system._pick_attack_target(attacker), blocker)
 
-<<<<<<< HEAD
 # ─── Rituels de Sacrifice ────────────────────────────────────────────────────
 # L'IA doit activer d'elle-même les Rituels de Sacrifice qu'elle possède
 # (contrairement au joueur, elle n'a pas de clic pour choisir ses victimes) :
@@ -356,7 +355,7 @@ func test_maybe_activate_fusion_ignores_minions_without_the_keyword() -> void:
 	_minion(1, 1, false)
 	await ai_system._maybe_activate_fusion()
 	assert_true(battle.fusion_system.applied_fusions.is_empty())
-=======
+
 # ─── BLACK_WINGS (Infiltration) : formule de ciblage de battle.get_attackable_
 # enemy_minions/_can_attack_hero, dupliquée depuis Battle.gd dans FakeBattle
 # (voir son commentaire "Mêmes formules que Battle.gd") — testée ici via
@@ -398,4 +397,3 @@ func test_pick_attack_target_with_black_wings_can_reach_a_safe_back_row_kill() -
 	var attacker := _minion(3, 5, false)
 	attacker.add_keyword(Keyword.Type.BLACK_WINGS)
 	assert_eq(ai_system._pick_attack_target(attacker), safe_back)
->>>>>>> dev
