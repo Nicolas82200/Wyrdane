@@ -251,7 +251,10 @@ func get_effect_popup_tip() -> Vector2:
 # laisse visible un court instant (pour que le joueur voie qui est touché),
 # lance un projectile de sort le long de la même courbe (AnimationSystem),
 # puis rend la main à l'appelant qui applique alors l'effet.
-func show_effect_arrows(target_positions: Array, hold: float = 0.35) -> void:
+# skip_missile : true quand VFXManager a déjà joué un vrai projectile pour ce
+# sort (résolution immédiate d'un Éphémère/Rituel joué, voir CardSystem.gd) —
+# évite d'afficher les deux projectiles en double sur la même carte.
+func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false) -> void:
 	var from: Vector2 = get_effect_popup_tip()
 	if from == Vector2.ZERO or target_positions.is_empty():
 		return
@@ -259,8 +262,8 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35) -> void:
 	for p in target_positions:
 		pts.append(p)
 	_effect_arrow.show_arrows(from, pts)
-	if battle.get("animation_system") and _effect_card != null and is_instance_valid(_effect_card) \
-			and _effect_card.data != null:
+	if not skip_missile and battle.get("animation_system") and _effect_card != null \
+			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
 	await battle.get_tree().create_timer(hold).timeout

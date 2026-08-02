@@ -28,6 +28,10 @@ func process_deaths(silent: Array = []) -> void:
 	# VIRULENT (Abomination) : capture les cibles AVANT retrait du plateau, la
 	# recherche d'adjacence se fait sur les listes de serviteurs encore en jeu.
 	var virulent_adjacent: Array[Minion] = _collect_virulent_adjacent(dead_all)
+	# Idem pour le Deuil (Serment du Sang) : chaque mort mémorise ses voisins
+	# actuels avant d'être retiré des tableaux du plateau.
+	for dead in dead_all:
+		dead.grief_adjacent_hint = battle.effect_manager._get_adjacent_minions(battle, dead)
 	await _animate_deaths(dead_all, silent)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
@@ -105,6 +109,13 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 		return
 	var same_camp: Array[Minion]  = battle.player_minions if dead_were_player else battle.enemy_minions
 	var other_camp: Array[Minion] = battle.enemy_minions if dead_were_player else battle.player_minions
+
+	# Suivi "Morts-Vivants alliés morts ce tour" (Dernier Soupir)
+	var undead_deaths: int = dead_minions.filter(
+		func(m: Minion): return m.card_data.race == Race.Type.UNDEAD
+	).size()
+	if undead_deaths > 0:
+		battle.undead_ally_deaths_this_turn[dead_were_player] = int(battle.undead_ally_deaths_this_turn.get(dead_were_player, 0)) + undead_deaths
 
 	# NÉCROPHAGE : chaque survivant du camp gagne +1/+1 permanent par allié mort
 	for minion in same_camp:

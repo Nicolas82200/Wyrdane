@@ -61,6 +61,7 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_hand_display: EnemyHandDisplay      = $EnemyHandDisplay
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
+@onready var help_button: Button                       = $HelpButton
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -86,6 +87,11 @@ var net_registry := NetRegistry.new()
 var net_emitter: NetEmitter = null
 # En mode réseau : true si c'est le joueur local qui commence la partie.
 var net_local_first: bool = true
+# En mode réseau : id backend de l'adversaire et identifiant de match partagé,
+# utilisés pour rapporter le résultat au backend (voir _show_game_over). 0/""
+# si l'un des deux camps n'était pas authentifié au moment du handshake.
+var net_opponent_backend_id: int = 0
+var net_client_match_id: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -95,13 +101,20 @@ var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
+var fusion_system := FusionSystem.new()
 var combat_log := CombatLogSystem.new()
+# Overlay de VFX 3D (impacts de coup, projectiles de sort), créé en code (voir
+# VFXManager) — pas de nœud dans Battle.tscn.
+var vfx_manager: VFXManager
 # Bannière de transition de tour (« À vous de jouer » / « Tour adverse »),
 # créée en code pour ne pas toucher Battle.tscn.
 var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
+# Glossaire des mots-clés/déclencheurs consultable via le bouton "❔", créé en
+# code pour ne pas toucher Battle.tscn (voir KeywordGlossaryPanel).
+var glossary_panel: KeywordGlossaryPanel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
 var turn_timer: TurnTimer
 # Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
@@ -149,6 +162,11 @@ var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
 var counter_offensive: Dictionary = {true: false, false: false}
+# Rangée Avant protégée du renvoi/déplacement ennemi, par camp (Ordre de Tenir).
+var front_line_protected: Dictionary = {true: false, false: false}
+# Nombre de Morts-Vivants alliés morts ce tour, par camp (clé = owner_is_player)
+# — Dernier Soupir : "pioche 1 carte par Mort-Vivant allié mort ce tour".
+var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
 # Phase de mulligan en cours (avant le tour 1) : le bouton Fin du tour devient
 # "Commencer" et un clic sur une carte de la main la remplace au lieu de la jouer.
 var _mulligan_active: bool = false
@@ -213,12 +231,18 @@ func _init_systems() -> void:
 	temp_effect_system.init(self)
 	cost_system.init(self)
 	sacrifice_system.init(self)
+	fusion_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
+	vfx_manager = VFXManager.new()
+	add_child(vfx_manager)
 	combat_log.init(self)
 	combat_log_panel = CombatLogPanel.new()
 	combat_log_panel.init(self, combat_log)
 	add_child(combat_log_panel)
+	glossary_panel = KeywordGlossaryPanel.new()
+	add_child(glossary_panel)
+	help_button.pressed.connect(glossary_panel.toggle)
 	reconnect_overlay = ReconnectOverlay.new()
 	add_child(reconnect_overlay)
 	turn_timer = TurnTimer.new()
@@ -230,6 +254,7 @@ func _init_systems() -> void:
 	add_child(trigger_system)
 	add_child(targeting_system)
 	add_child(sacrifice_system)
+	add_child(fusion_system)
 	hand.display_cost = get_card_cost
 
 # Bascule la bataille en mode réseau : l'adversaire devient un joueur distant
@@ -243,6 +268,8 @@ func _setup_network() -> void:
 	game_rng.seed = setup.get("seed", 0)
 	net_registry.configure(setup.get("parity_start", 1), setup.get("parity_stride", 1))
 	net_local_first = setup.get("local_first", true)
+	net_opponent_backend_id = setup.get("opponent_backend_id", 0)
+	net_client_match_id = setup.get("client_match_id", "")
 	net_emitter = NetEmitter.new(net)
 	net.connection_lost.connect(_on_net_connection_lost)
 	net.connection_restored.connect(_on_net_connection_restored)
@@ -431,6 +458,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		if event.is_action_pressed("ui_cancel"):
 			sacrifice_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+
+	if fusion_system.is_active():
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_RIGHT \
+				and event.pressed:
+			fusion_system.cancel()
+			get_viewport().set_input_as_handled()
+			return
+		if event.is_action_pressed("ui_cancel"):
+			fusion_system.cancel()
 			get_viewport().set_input_as_handled()
 			return
 
@@ -658,13 +697,18 @@ func has_enemy_taunt(attacker: Minion) -> bool:
 			return true
 	return false
 
+# Généralisé pour un attaquant de n'importe quel camp (joueur ou IA/réseau) :
+# la rangée/le camp "en face" se déduit de la propriété de l'attaquant plutôt
+# que d'être toujours le camp ennemi du joueur local.
 func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	var defending_is_player: bool = attacker != null and not attacker.owner_is_player
+	var defenders: Array[Minion] = player_minions if defending_is_player else enemy_minions
 	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
-		return enemy_minions
-	var front: Array[Minion] = get_front_minions(false)
+		return defenders
+	var front: Array[Minion] = get_front_minions(defending_is_player)
 	if not front.is_empty():
 		return front
-	return enemy_minions
+	return defenders
 
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
@@ -674,8 +718,8 @@ func destroy_minion(target: Minion) -> void:
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
 	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
 		return
-	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice
-	if sacrifice_system.is_active():
+	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice/FUSION
+	if sacrifice_system.is_active() or fusion_system.is_active():
 		return
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
@@ -798,6 +842,7 @@ func _player_has_no_actions() -> bool:
 
 # Met à jour les libellés fixes de la bataille dans la langue courante.
 func _retranslate_battle() -> void:
+	help_button.tooltip_text = SettingsManager.t("GLOSSARY_TITLE")
 	if _mulligan_active:
 		end_turn_button.text = SettingsManager.t("mulligan.start_button")
 		return
@@ -815,12 +860,16 @@ func _can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
 		return false
 	return true
 
+# Généralisé pour un attaquant de n'importe quel camp : utilisé par
+# SelectionSystem (joueur local), AISystem et NetworkOpponent (revalidation
+# des commandes distantes).
 func _can_attack_hero(attacker: Minion) -> bool:
 	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
 		return false
 	if has_enemy_taunt(attacker):
 		return false
-	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(false).is_empty()
+	var defending_is_player: bool = not attacker.owner_is_player
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
@@ -839,13 +888,15 @@ func _show_game_over(result: String) -> void:
 	if tutorial_active and result == "victory":
 		await tutorial_manager.notify_victory()
 		return
+	if result == "victory" or result == "defeat":
+		SettingsManager.record_match_result(result == "victory")
 	game_over_screen.show_result(result, network_manager == null)
 
-	# Un match réseau/ranked est crédité côté serveur au moment du rapport de
-	# match (voir rankedModel.confirmMatch côté backend) — hors scope ici tant
-	# que ce rapport n'est pas encore envoyé par le client. Un match solo/IA
-	# n'a pas de second client pour faire foi : le client déclare directement
-	# son résultat, plafonné par jour côté serveur contre l'abus.
+	# Un match réseau/ranked est crédité côté serveur uniquement quand les deux
+	# rapports concordent (voir rankedModel.confirmMatch côté backend) : chaque
+	# camp rapporte indépendamment son propre résultat. Un match solo/IA n'a pas
+	# de second client pour faire foi : le client déclare directement son
+	# résultat, plafonné par jour côté serveur contre l'abus.
 	if network_manager == null:
 		var won := result == "victory"
 		CurrencyManager.report_solo_match_result(won, func(credited: bool):
@@ -853,6 +904,9 @@ func _show_game_over(result: String) -> void:
 				var reward := CurrencyManager.SOLO_WIN_REWARD_DISPLAY if won else CurrencyManager.SOLO_DEFEAT_REWARD_DISPLAY
 				game_over_screen.show_reward(reward)
 		)
+	elif (result == "victory" or result == "defeat") and net_client_match_id != "" and net_opponent_backend_id > 0 and BackendClient.local_user_id() > 0:
+		var winner_id := BackendClient.local_user_id() if result == "victory" else net_opponent_backend_id
+		BackendClient.report_ranked_match(net_client_match_id, net_opponent_backend_id, winner_id)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 

@@ -81,6 +81,28 @@ func test_token_cards_have_no_chaining_effects() -> void:
 		assert_true(card.is_token, "%s devrait avoir is_token=true" % path)
 		assert_eq(card.effects.size(), 0, "%s : un jeton ne doit porter aucun effect (risque de réaction en chaîne)" % path)
 
+func test_summon_minion_effects_target_a_valid_token() -> void:
+	# Règle CLAUDE.md « Jetons d'invocation » : un effet SummonMinion ne doit
+	# jamais cibler une vraie carte collectionnable (ré-déclencherait ses
+	# propres triggers/effets), seulement un jeton dédié sans effects.
+	for card in library.all_cards:
+		for effect in card.effects:
+			if effect.effect_id != "SummonMinion":
+				continue
+			assert_not_null(effect.summon_card, "%s : effet SummonMinion sans summon_card assignée (no-op silencieux en jeu)" % card.card_name)
+			if effect.summon_card == null:
+				continue
+			assert_true(effect.summon_card.is_token,
+				"%s (SummonMinion) cible %s, qui n'est pas un jeton (is_token=false)" % [card.card_name, effect.summon_card.card_name])
+			assert_eq(effect.summon_card.effects.size(), 0,
+				"%s : le jeton ciblé %s porte des effects (risque de réaction en chaîne)" % [card.card_name, effect.summon_card.card_name])
+
+func test_transform_effects_have_a_transform_card_assigned() -> void:
+	for card in library.all_cards:
+		for effect in card.effects:
+			if effect.effect_id == "Transform":
+				assert_not_null(effect.transform_card, "%s : effet Transform sans transform_card assignée (no-op silencieux en jeu)" % card.card_name)
+
 func _collect_token_paths(path: String, out: Array[String]) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:

@@ -136,7 +136,7 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 			continue
 
 		match ctx.trigger_name:
-			"OnAwaken", "OnTurnStart":
+			"OnAwaken":
 				return enchantment_owner_is_player == ctx.is_player_event
 			"OnResonance":
 				if ctx.source_minion == null:
@@ -152,13 +152,7 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 				return enchantment_owner_is_player != ctx.is_player_event
 			"OnAura":
 				return true
-			"OnRally":
-				if ctx.source_minion == null:
-					return false
-				return enchantment_owner_is_player == ctx.is_player_event
 			"OnSummon":
-				return enchantment_owner_is_player == ctx.is_player_event
-			"OnTurnEnd":
 				return enchantment_owner_is_player == ctx.is_player_event
 			_:
 				return enchantment_owner_is_player == ctx.is_player_event
@@ -170,6 +164,8 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 	# défenseur d'une attaque pour OnResonance), sinon la source de l'évènement.
 	var context_target: Minion = ctx.extra.get("target", ctx.source_minion)
 	for effect in card_data.effects:
+		if effect.trigger != "" and effect.trigger != ctx.trigger_name:
+			continue
 		await battle.effect_manager.execute_effect(battle, proxy, effect, context_target)
 
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
@@ -204,6 +200,10 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 			continue
 		if not cancel_effect.race_filter.is_empty() \
 				and target.card_data.race != Race.from_string(cancel_effect.race_filter):
+			continue
+		# Mur Infranchissable : "un serviteur Humain allié en rangée Avant".
+		if not cancel_effect.row_filter.is_empty() \
+				and target.board_row != cancel_effect.row_filter:
 			continue
 		var proxy := _make_proxy(card_data, owner_is_player)
 		for effect in card_data.effects:

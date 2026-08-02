@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_w0w18"]
 script = ExtResource("1_vfw1h")
+effect_id = "Damage"
 target = "RandomEnemy"
 value = 1
 row_filter = "Front"

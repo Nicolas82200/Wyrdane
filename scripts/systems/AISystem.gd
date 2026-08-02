@@ -84,28 +84,26 @@ func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
+	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
+	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
+	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
+	await battle.turn_system.run_turn_start_triggers(false)
 	_start_of_turn_phase()
-	battle.trigger_system.reset_once_per_turn(false)
-	# Miroir de TurnSystem._begin_player_turn : Éveil pour le camp qui commence
-	# son tour, Déclin pour le camp adverse
-	for minion in battle.enemy_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnAwaken")
-	await battle.trigger_system.fire("OnAwaken", null, false)
-	for minion in battle.player_minions.duplicate():
-		await battle.effect_manager.trigger_effects(battle, minion, "OnDecline")
 	var played_cards := await _play_cards_phase()
+	await _maybe_activate_sacrifice_rituals()
+	await _maybe_activate_fusion()
 	await _attack_phase(played_cards)
+	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
+	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
+	await battle.turn_system.run_turn_end_triggers(false)
 	battle.set_enemy_turn(false)
 
-# Miroir de TurnSystem._begin_player_turn/_finish_turn_start : recharge les
-# pools de ressource à leur maximum et pioche une carte, plus de choix Mana/Pioche.
+# Miroir de TurnSystem._finish_turn_start : recharge les pools de ressource à
+# leur maximum et pioche une carte, plus de choix Mana/Pioche. Le reste du
+# début de tour est géré par run_turn_start_triggers ci-dessus (partagé).
 func _start_of_turn_phase() -> void:
-	battle.cost_system.on_turn_started(false)
-	battle.resource_played_this_turn[false] = false
 	battle.refill_mana_pool(false)
 	_draw_card()
-	for minion in battle.enemy_minions:
-		minion.refresh_attacks()
 	battle.update_enemy_mana_ui()
 
 # Pause AVANT chaque action sauf la première : une action isolée reste fluide
@@ -135,7 +133,7 @@ func _attack_phase(already_acted: bool) -> void:
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
 			var target: Minion = _pick_attack_target(attacker)
-			if target == null and not _can_attack_player_hero(attacker):
+			if target == null and not battle._can_attack_hero(attacker):
 				break
 			if attacked:
 				await battle.pace_actions()
@@ -304,6 +302,15 @@ func _cast_spell(card: CardData) -> void:
 		battle.enemy_graveyard.add_spell(card)
 		battle.board_visual_system.refresh_board()
 		return
+	var shows_popup: bool = card.card_type != "Enchantment" \
+		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
+	if shows_popup:
+		await battle.card_popup_system.show_card_popup(card)
+	if card.card_type == "Instant" or card.card_type == "Ritual":
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
+	# Sortilège — enchantements du joueur réagissent (miroir de CardSystem)
+	await battle.trigger_system.fire("OnSpell", null, true)
 	for ally in battle.enemy_minions.duplicate():
 		await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 	if card.card_type == "Enchantment":
@@ -322,6 +329,62 @@ func _cast_spell(card: CardData) -> void:
 		for effect in card.effects:
 			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
 	battle.board_visual_system.refresh_board()
+
+# ─── Rituels de Sacrifice ──────────────────────────────────────────────────────
+# Contrairement au joueur (clic sur le rituel puis sur les victimes, voir
+# SacrificeSystem), l'IA n'a aucune interaction : elle active d'elle-même tout
+# Rituel de Sacrifice qu'elle possède dès qu'elle peut se le permettre, en
+# sacrifiant ses serviteurs les plus faibles (garde toujours au moins un
+# serviteur en jeu après coup).
+func _maybe_activate_sacrifice_rituals() -> void:
+	for entry in battle.trigger_system.get_active_enchantments(false).duplicate():
+		var card: CardData = entry["card_data"]
+		if card.sacrifice_count <= 0 or not card.get_trigger_names().has("OnSacrifice"):
+			continue
+		var victims: Array[Minion] = _pick_sacrifice_victims(card)
+		if victims.is_empty():
+			continue
+		await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
+		battle.board_visual_system.refresh_board()
+
+func _pick_sacrifice_victims(card: CardData) -> Array[Minion]:
+	if battle.enemy_minions.size() <= card.sacrifice_count:
+		return []
+	var pool: Array[Minion] = battle.enemy_minions.filter(func(m: Minion) -> bool:
+		return card.sacrifice_max_hp < 0 or m.health <= card.sacrifice_max_hp
+	)
+	if pool.size() < card.sacrifice_count:
+		return []
+	pool.sort_custom(func(a: Minion, b: Minion) -> bool: return a.health + a.attack < b.health + b.attack)
+	return pool.slice(0, card.sacrifice_count)
+
+# ─── Fusion (Abomination) ──────────────────────────────────────────────────────
+# Même bug que les Rituels de Sacrifice ci-dessus : FUSION n'a d'interaction
+# que côté joueur (FusionSystem.try_begin exige owner_is_player). Fusionne
+# chaque serviteur FUSION éligible avec son voisin le plus faible, en
+# absorbant le premier mot-clé disponible du sacrifié (l'IA n'évalue pas la
+# valeur relative des mots-clés, choix arbitraire mais fonctionnel).
+func _maybe_activate_fusion() -> void:
+	for source in battle.enemy_minions.duplicate():
+		if source.is_dead() or not source.has_abomination_keyword(KeywordAbomination.Type.FUSION):
+			continue
+		var victim: Minion = _pick_fusion_victim(source)
+		if victim == null:
+			continue
+		var options: Array = battle.fusion_system._collect_keyword_choices(victim)
+		var pool: String = options[0]["pool"] if not options.is_empty() else ""
+		var keyword: int = options[0]["keyword"] if not options.is_empty() else -1
+		await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+		battle.board_visual_system.refresh_board()
+
+func _pick_fusion_victim(source: Minion) -> Minion:
+	var candidates: Array[Minion] = battle.effect_manager._get_adjacent_minions(battle, source).filter(
+		func(m: Minion) -> bool: return m.owner_is_player == source.owner_is_player and not m.is_dead())
+	var best: Minion = null
+	for m in candidates:
+		if best == null or m.health + m.attack < best.health + best.attack:
+			best = m
+	return best
 
 # Existe-t-il une cible valide pour le premier effet de cette carte ? Les
 # effets à cible automatique (coût de sacrifice) n'ont besoin que d'un allié
@@ -398,14 +461,14 @@ func _best_friendly_target(candidates: Array[Minion]) -> Minion:
 
 # null = attaquer le héros (si autorisé), sinon aucune action possible
 func _pick_attack_target(attacker: Minion) -> Minion:
-	var candidates: Array[Minion] = _attackable_player_minions(attacker)
+	var candidates: Array[Minion] = battle.get_attackable_enemy_minions(attacker)
 	if candidates.is_empty():
 		return null
 	var taunts: Array[Minion] = candidates.filter(
 		func(m: Minion) -> bool: return m.has_keyword(Keyword.Type.TAUNT))
 	if not taunts.is_empty():
 		return _choose_trade(attacker, taunts)
-	if _can_attack_player_hero(attacker):
+	if battle._can_attack_hero(attacker):
 		# Létal disponible → tout sur le héros
 		if _ready_attack_total() >= battle.player_hero.health:
 			return null
@@ -422,25 +485,6 @@ func _choose_trade(attacker: Minion, pool: Array[Minion]) -> Minion:
 	if _is_mistake():
 		return pool.pick_random()
 	return _best_trade(attacker, pool)
-
-# Miroir de Battle.get_attackable_enemy_minions pour un attaquant ennemi
-func _attackable_player_minions(attacker: Minion) -> Array[Minion]:
-	if attacker.has_keyword(Keyword.Type.BLACK_WINGS):
-		return battle.player_minions.duplicate()
-	var front: Array[Minion] = battle.get_front_minions(true)
-	if not front.is_empty():
-		return front
-	return battle.player_minions.duplicate()
-
-# Miroir de Battle._can_attack_hero pour un attaquant ennemi
-func _can_attack_player_hero(attacker: Minion) -> bool:
-	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
-		return false
-	for minion in _attackable_player_minions(attacker):
-		if minion.has_keyword(Keyword.Type.TAUNT):
-			return false
-	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) \
-		or battle.get_front_minions(true).is_empty()
 
 func _best_trade(attacker: Minion, candidates: Array[Minion]) -> Minion:
 	var killable: Array[Minion] = candidates.filter(

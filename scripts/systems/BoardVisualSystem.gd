@@ -50,10 +50,14 @@ func _place_visual_in_row(container: Control, visual: BoardMinion, minion: Minio
 func _wire_visual_signals(visual: BoardMinion, is_player: bool) -> void:
 	for connection in visual.minion_clicked.get_connections():
 		visual.minion_clicked.disconnect(connection.callable)
+	for connection in visual.fusion_requested.get_connections():
+		visual.fusion_requested.disconnect(connection.callable)
 	if is_player:
 		visual.minion_clicked.connect(battle.selection_system.on_player_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_ally_minion_clicked(m, v))
 		visual.minion_clicked.connect(func(m, v): battle.sacrifice_system.on_ally_minion_clicked(m, v))
+		visual.minion_clicked.connect(func(m, v): battle.fusion_system.on_ally_minion_clicked(m, v))
+		visual.fusion_requested.connect(func(m): battle.fusion_system.try_begin(m))
 	else:
 		visual.minion_clicked.connect(battle.selection_system.on_enemy_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_enemy_minion_clicked(m, v))

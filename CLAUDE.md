@@ -95,7 +95,7 @@ Une fois jouée, la carte-ressource n'est posée dans aucune zone du plateau ni 
 - Max 10 serviteurs par rangée, 20 en jeu au total
 
 ### Triggers (déclencheurs d'effets)
-`Invocation`, `Dernier Souffle`, `Assaut`, `Blessure`, `Éveil` (début de tour), `Déclin` (fin de tour), `Ralliement` (unité alliée arrive), `Deuil` (unité alliée meurt), `Sortilège` (sort allié lancé), `Sacrifice`, `Exécution` (unité ennemie meurt), `Carnage` (n'importe quelle unité meurt).
+`Arrivée`, `Dernier Souffle`, `Assaut`, `Blessure`, `Éveil` (début de tour), `Déclin` (fin de tour), `Renfort` (unité alliée arrive), `Deuil` (unité alliée meurt), `Sortilège` (sort allié lancé), `Sacrifice`, `Exécution` (unité ennemie meurt), `Carnage` (n'importe quelle unité meurt).
 
 Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/data/TriggerType.gd`) et sont déclenchés par nom via `EffectManager.trigger_effects(battle, minion, "OnAwaken")` ou `TriggerSystem.fire("OnSummon", minion, is_player)`. Les effets eux-mêmes sont **data-driven** : chaque carte (`CardData.effects`) porte des ressources `CardEffect` (effect_id, cible, valeur) exécutées par `EffectManager.execute_effect()` — rien n'est codé en dur dans les serviteurs. **Avant d'ajouter un effet, vérifier si son `effect_id` existe déjà dans le `match` de `EffectManager.gd`.**
 
@@ -129,11 +129,17 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
 
 ### Backend (`wyrdane-backend`, dépôt séparé)
-`BackendClient` (autoload, `scripts/net/BackendClient.gd`) parle en HTTP à un backend Node/Express séparé (dépôt local `E:\wyrdane-backend`, hébergé sur Render — `API_URL` en dur dans le script). Authentification par ticket de session Steamworks (`POST /api/auth/steam`), cookie de session porté manuellement sur chaque requête suivante (`request()` générique, callback `(code, parsed_body)`). Toute la progression joueur (collection de cartes possédées, monnaie molle, packs) est **autoritaire côté serveur** : `CollectionManager`/`CurrencyManager` ne mettent jamais en cache hors-ligne, seule la dernière sync fait foi ; tant qu'aucune sync n'a réussi, le deck builder considère le joueur comme ne possédant aucune carte (comportement prudent, pas un bug).
+`BackendClient` (autoload, `scripts/net/BackendClient.gd`) parle en HTTP à un backend Node/Express séparé (dépôt local `E:\wyrdane-backend`, hébergé en prod sur un **VPS OVH** (`137.74.163.226`, `api.wyrdane.com`) via Docker Compose + Nginx — `API_URL` en dur dans le script, voir « Infra & déploiement (VPS) » ci-dessous pour le détail). Authentification par ticket de session Steamworks (`POST /api/auth/steam`), cookie de session porté manuellement sur chaque requête suivante (`request()` générique, callback `(code, parsed_body)`). Toute la progression joueur (collection de cartes possédées, monnaie molle, packs) est **autoritaire côté serveur** : `CollectionManager`/`CurrencyManager` ne mettent jamais en cache hors-ligne, seule la dernière sync fait foi ; tant qu'aucune sync n'a réussi, le deck builder considère le joueur comme ne possédant aucune carte (comportement prudent, pas un bug).
 - `MainMenu._start_backend_sync()` lance `BackendClient.login_with_steam()` à l'ouverture du menu, puis déclenche `CollectionManager.sync_from_backend()` et `CurrencyManager.sync_from_backend()` une fois connecté.
 - `PackShop.gd` (`scripts/shop/`) est l'écran d'ouverture de packs : dépense la monnaie molle (`CurrencyManager.open_pack`, coût affiché `CurrencyManager.PACK_COST`) contre des cartes aléatoires pondérées par rareté, résolues via `CardLibrary.card_by_backend_id`.
-- Le backend local (`E:\wyrdane-backend`, branche `dev`) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `dev` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
+- Le backend local (`E:\wyrdane-backend`, branche **`main`** — `dev` est gelée) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `main` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
 - Dégradation attendue si le backend est injoignable : les managers restent `is_synced = false`, l'UI affiche les valeurs par défaut (solde 0, collection vide) sans bloquer le joueur.
+
+### Panneau d'actualités (menu principal)
+Le panneau « Actualités » de `MainMenu` (`scripts/mainMenu/MainMenu.gd`, `_fetch_remote_news`) récupère les devlogs/actus créées sur le site (`wyrdane-website`) via `NEWS_FEED_URL = "https://wyrdane.com/feed.json"` — un manifeste JSON bilingue (fr/en) régénéré à chaque build/déploiement du site (`scripts/generate-feed.mjs`, appelé en `predev`/`prebuild`) à partir de `src/content/news/*.json` et `src/content/devlog/*.json`. Aucune action manuelle : ajouter un fichier JSON côté site puis déployer suffit à le faire apparaître en jeu. Si le fetch échoue (site injoignable), repli sur les ressources locales `res://resources/news/*.tres` (`NewsEntry.gd`, conservées pour ce cas).
+
+### Infra & déploiement (VPS)
+Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck builder web) sont hébergés ensemble sur un **VPS OVH** (`137.74.163.226`, Ubuntu, Docker) — plus sur Render. Domaines : `wyrdane.com`/`www.wyrdane.com` (site) et `api.wyrdane.com` (API). Détail complet de la stack (Docker Compose, Nginx, sécurité, CI/CD) documenté dans le `CLAUDE.md` de `wyrdane-backend`. Rien à faire côté `card-game` pour cette infra sinon garder `API_URL` dans `BackendClient.gd` synchronisé si le domaine change.
 
 ### Tutoriel guidé obligatoire
 `TutorialManager` (`scripts/tutorial/TutorialManager.gd`, ~700 lignes) orchestre un tutoriel scripté séquentiel (popups + attentes d'action réelle via `_popup`/`_popup_wait_action`/`_wait_for`) déclenché par `Battle._start_tutorial` avec un deck dédié (`TutorialDeck.gd`) et un adversaire scripté (`TutorialOpponent.gd`, implémente `OpponentDriver`). Couvre notamment une phase de mulligan guidée (`intro_mulligan`/`guided_mulligan`, appelée par `Battle._run_mulligan()`) et se termine par `notify_victory()` : marque le tutoriel complété (`SettingsManager.set_tutorial_completed()`) puis réclame côté backend les 4 decks préfaits + cartes associées (`POST /api/collection/claim-starter`) avant de retourner au menu principal.
@@ -203,7 +209,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
 - ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
 
 ## Notes pour les agents
@@ -211,4 +217,25 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 - Avant d'implémenter une nouvelle carte : lire son entrée exacte dans `CARDS.md`, identifier son trigger, vérifier s'il existe déjà un `effect_id` similaire dans `scripts/EffectManager/EffectManager.gd` pour réutiliser le pattern, et créer la ressource `.tres` dans `resources/cards/<race>/`
 - Ne pas inventer de nouveau mot-clé ou trigger sans qu'il soit d'abord ajouté à `README.md`
 - Le projet est en français dans sa documentation et son contenu visible par le joueur (noms de cartes, effets, UI, tooltips) — garder cette langue pour tout ce qui est visible en jeu. Le code (variables, fonctions) peut rester en anglais sauf convention contraire déjà en place. **Seuls les noms de branches et les commits sont toujours en anglais** (voir Workflow Git ci-dessus).
+
+## Maintenir la documentation à jour
+
+`CLAUDE.md`, `README.md`, `TODO.md` et `CARDS.md` doivent toujours refléter l'état réel du projet. À chaque tâche modifiant le code, avant de considérer le travail terminé (et donc avant tout commit/push) :
+
+- **`CARDS.md`** : toute carte ajoutée, supprimée ou dont les stats/coût/rareté/trigger/texte d'effet changent doit voir son entrée mise à jour dans le tableau de sa race.
+- **`README.md`** : toute règle, mot-clé, trigger, mécanique de race ou système de jeu nouveau ou modifié doit être documenté ici (c'est la référence des règles complètes).
+- **`TODO.md`** : cocher/retirer les tâches terminées par ce travail, ajouter les nouvelles tâches ou suivis identifiés en cours de route.
+- **`CLAUDE.md`** : si la tâche change la structure du projet (nouveau dossier/autoload/système), la roadmap (section « Roadmap actuelle »), ou une convention de travail, mettre à jour la section concernée.
+
+Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, correctif visuel sans impact sur les règles), il n'y a rien à mettre à jour — ne pas modifier les `.md` par réflexe. Mais ne jamais laisser la doc devenir obsolète par oubli.
+
+## Devlog hebdomadaire
+
+Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé :
+
+- Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi** à venir (créer le fichier s'il n'existe pas — voir `devlogs/README.md` pour le format).
+- Ajouter une entrée en fin de fichier, sous la date du jour (`## YYYY-MM-DD`), avec une liste à puces brute des changements faits pendant la session — pas de mise en forme, pas de ton marketing, juste les faits (ce qui a été ajouté/corrigé/changé et pourquoi si pertinent).
+- Ne pas réécrire ou reformuler les entrées des sessions précédentes dans ce fichier : c'est un journal brut destiné à être relu et transformé en vrai devlog le lundi, avec l'utilisateur.
+- Ne rien ajouter pour des tâches sans impact utilisateur/projet perceptible (ex. simple refactor interne sans changement de comportement) — même logique que pour les autres docs ci-dessus.
+- Une fois le vrai devlog écrit le lundi, le fichier draft est archivé (`devlogs/archive/`) ou supprimé, et un nouveau draft est créé pour la semaine suivante.
 

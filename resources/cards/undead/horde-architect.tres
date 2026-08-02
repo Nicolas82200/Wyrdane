@@ -20,7 +20,7 @@ type = "OnSummon"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Architecte de la Horde"
-description = "Appel : invoque un Rampant 1/1 en rangée Avant."
+description = "Renfort : invoque un Rampant 1/1 en rangée Avant."
 flavour_text = "Il ne construit pas d'armée. Il la sécrète."
 texture = ExtResource("3_texture")
 cost = 3

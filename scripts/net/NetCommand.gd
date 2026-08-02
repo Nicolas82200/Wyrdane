@@ -19,10 +19,12 @@ const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
+const ACTIVATE_FUSION := "ACTIVATE_FUSION"  # activation volontaire du mot-clé FUSION
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
+const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -70,16 +72,32 @@ static func activate_ritual(card_path: String, victim_ids: Array, ids: Array = [
 		"ids": ids,
 	}
 
+# Activation volontaire de FUSION : source/victime désignées par net_id, le
+# mot-clé absorbé par son pool ("keywords"/"human_keywords"/"undead_keywords"/
+# "demon_keywords"/"abomination_keywords") et son nom (Type.keys()[value]),
+# résolu via le from_name() de l'enum correspondant.
+static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String) -> Dictionary:
+	return {
+		"type": ACTIVATE_FUSION,
+		"source": source_id,
+		"victim": victim_id,
+		"pool": keyword_pool,
+		"keyword": keyword_name,
+	}
+
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).
 # seed : graine RNG partagée pour que les tirages aléatoires soient identiques.
-static func hello(deck_paths: Array, start_id: int, stride: int, seed: int) -> Dictionary:
+# backend_id : id utilisateur backend local (0 si non authentifié), utilisé
+# côté profil/ranked pour rapporter le résultat du match (voir NetHandshake).
+static func hello(deck_paths: Array, start_id: int, stride: int, seed: int, backend_id: int = 0) -> Dictionary:
 	return {
 		"type": HELLO,
 		"deck": deck_paths,
 		"start_id": start_id,
 		"stride": stride,
 		"seed": seed,
+		"backend_id": backend_id,
 	}
 
 # Accusé de réception du HELLO : garantit à l'émetteur que son deck est bien
@@ -99,6 +117,11 @@ static func mulligan_done() -> Dictionary:
 # viendra jamais (voir NetworkManager._on_packet_received).
 static func leave_match() -> Dictionary:
 	return {"type": LEAVE_MATCH}
+
+# Signale que ce client a fini le handshake et son chargement local, et
+# n'attend plus que le pair pour entrer dans Battle.tscn (voir NetBattleSync).
+static func battle_ready() -> Dictionary:
+	return {"type": BATTLE_READY}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

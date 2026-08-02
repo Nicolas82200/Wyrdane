@@ -7,7 +7,6 @@ const ALL_CARDS_PATH := "res://resources/cards"
 # comptées séparément bien que mélangées dans le même paquet.
 const MIN_CARDS := 40
 const MIN_RESOURCE_CARDS := 10
-const MAX_COPIES := 4
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
@@ -264,18 +263,28 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	_stock_labels[card_data.resource_path] = badge_label
 	_update_stock_label(card_data, badge_label)
 
-## Texte du badge de stock : quantité possédée moins les copies déjà dans le
-## deck en cours (jamais négatif).
+## Texte du badge de stock : quantité possédée (plafonnée à DeckManager.MAX_COPIES_PER_CARD pour
+## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
+## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
+## deck en cours (jamais négatif). Les cartes-ressource sont illimitées : le
+## badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
 func _update_stock_label(card_data: CardData, label: Label) -> void:
-	var owned := CollectionManager.owned_quantity(card_data)
+	if card_data.card_type == "Resource":
+		label.text = "∞"
+		return
+	var owned: int = mini(CollectionManager.owned_quantity(card_data), DeckManager.MAX_COPIES_PER_CARD)
 	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
 	label.text = SettingsManager.t("deck.stock_format") % remaining
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
-## débloquée (les cartes-ressource ne sont pas vendables à l'unité — voir
+## encore possédée à DeckManager.MAX_COPIES_PER_CARD (qu'elle soit à 0 ou partiellement possédée :
+## on peut toujours compléter jusqu'au plafond utilisable en deck) — les
+## cartes-ressource ne sont pas vendables à l'unité (voir
 ## CollectionManager.buy_card, qui reflète le même refus côté serveur).
 func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
-	if not _is_card_locked(card_data) or card_data.card_type == "Resource":
+	if card_data.card_type == "Resource":
+		return
+	if CollectionManager.owned_quantity(card_data) >= DeckManager.MAX_COPIES_PER_CARD:
 		return
 	var price := CurrencyManager.card_price(card_data.rarity)
 	if price <= 0:
@@ -302,8 +311,13 @@ func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
 		if not is_instance_valid(buy_button):
 			return
 		if success:
-			_buy_buttons.erase(card_data.resource_path)
-			buy_button.queue_free()
+			# Le plafond peut ne pas être encore atteint (achat partiel) : le
+			# bouton reste alors disponible pour compléter la collection.
+			if CollectionManager.owned_quantity(card_data) >= DeckManager.MAX_COPIES_PER_CARD:
+				_buy_buttons.erase(card_data.resource_path)
+				buy_button.queue_free()
+			else:
+				buy_button.disabled = false
 			_update_grid_maxed_states()
 		else:
 			buy_button.disabled = false
@@ -747,10 +761,11 @@ func _count_in_deck(path: String) -> int:
 	return count
 
 func _is_card_maxed(card_data: CardData) -> bool:
-	var owned := CollectionManager.owned_quantity(card_data)
+	# Cartes-ressource : jamais au maximum, quantité illimitée dans le deck.
 	if card_data.card_type == "Resource":
-		return _count_in_deck(card_data.resource_path) >= owned
-	return _count_in_deck(card_data.resource_path) >= min(MAX_COPIES, owned)
+		return false
+	var owned := CollectionManager.owned_quantity(card_data)
+	return _count_in_deck(card_data.resource_path) >= min(DeckManager.MAX_COPIES_PER_CARD, owned)
 
 ## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
 ## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
@@ -764,7 +779,7 @@ func _is_card_locked(card_data: CardData) -> bool:
 
 ## Grise les cartes de la grille dont le deck contient déjà le max de copies
 ## possédées (voir _is_card_maxed — inclut désormais les cartes-ressource,
-## bornées par la quantité réellement débloquée plutôt que par MAX_COPIES).
+## bornées par la quantité réellement débloquée plutôt que par DeckManager.MAX_COPIES_PER_CARD).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
@@ -854,6 +869,17 @@ func _position_hover_tooltips() -> void:
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
 
+	# Hauteur totale de la pile de panneaux : si elle dépasse le bas de l'écran,
+	# on remonte le point de départ (ou on le limite en haut) pour que la pile
+	# entière reste visible plutôt que de déborder sous la fenêtre.
+	var stack_height := 0.0
+	for panel in _keyword_tooltips:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
@@ -903,12 +929,13 @@ func _build_filter_bar() -> void:
 
 	var all_label := SettingsManager.t("deck.filter_all")
 
-	# Race
+	# Race (seules les races dotées de cartes sont proposées comme filtre)
 	var race_values: Array = [-1]
 	var race_labels: Array[String] = [all_label]
-	for key in Race.Type.keys():
-		race_values.append(Race.Type[key])
-		race_labels.append(SettingsManager.t("RACE_" + key))
+	var race_keys := Race.Type.keys()
+	for race_value in Race.get_implemented_races():
+		race_values.append(race_value)
+		race_labels.append(SettingsManager.t("RACE_" + race_keys[race_value]))
 	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
 	_add_filter_group(filter_bar, race_values,
 		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),

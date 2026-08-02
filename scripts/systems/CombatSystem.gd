@@ -30,7 +30,6 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
 	# sur les serviteurs adjacents à la cible).
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
 	# Résonance — enchantements réagissent quand un allié de la même race attaque.
 	# La cible de l'attaque est transmise pour les effets qui la visent
 	# (Aura de Corruption, Idole du Grand Pacte).
@@ -123,8 +122,6 @@ func perform_hero_attack(attacker: Minion) -> void:
 		await battle.animation_system.play_attack_lunge(visual, hero_panel)
 	AudioManager.play(AudioManager.HIT)
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
-	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:

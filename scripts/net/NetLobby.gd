@@ -34,6 +34,7 @@ const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
 var _net: NetworkManager
 var _handshake: NetHandshake
+var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 
 func _ready() -> void:
@@ -104,25 +105,37 @@ func _on_peer_connected() -> void:
 	_quick_matching = false
 	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
 	_log_line("✓ Pair connecté — handshake…")
+	_set_actions_enabled(false)
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
 	_handshake.completed.connect(_on_handshake_ready)
 	_handshake.progress.connect(_log_line)
 	_handshake.start()
 
+# Boutons de lancement de partie désactivés dès qu'une connexion pair-à-pair
+# est en cours (handshake/synchronisation) : les relancer casserait l'état de
+# _net. Le bouton Retour reste actif pour permettre d'annuler.
+func _set_actions_enabled(enabled: bool) -> void:
+	host_button.disabled = not enabled
+	quick_match_button.disabled = not enabled
+	invite_button.disabled = not enabled
+
 func _on_peer_disconnected(reason: String) -> void:
 	match reason:
 		"steam_same_account":
 			_quick_matching = false
+			_set_actions_enabled(true)
 			_log_line(SettingsManager.t("NET_STEAM_SAME_ACCOUNT"))
 		"steam_no_lobby_found":
 			if _quick_matching:
 				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY_HOSTING"))
 				_start_quick_match_host()
 			else:
+				_set_actions_enabled(true)
 				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY"))
 		_:
 			_quick_matching = false
+			_set_actions_enabled(true)
 			_log_line("✗ Pair déconnecté (%s)" % [reason])
 
 # Partie rapide sans adversaire trouvé : on héberge à la place plutôt que de
@@ -157,13 +170,26 @@ func _local_deck_paths() -> Array:
 
 func _on_handshake_ready(setup: Dictionary) -> void:
 	print("[NetLobby] _on_handshake_ready  self=%s  in_tree=%s" % [self, is_inside_tree()])
-	_log_line("Handshake OK — lancement de la bataille réseau…")
-	# Le NetworkManager doit survivre au changement de scène : on le reparente
-	# sous la racine de l'arbre avant de charger Battle.
-	_net.get_parent().remove_child(_net)
-	get_tree().root.add_child(_net)
+	_log_line(SettingsManager.t("NET_WAITING_OPPONENT"))
+	status_title_label.text = SettingsManager.t("NET_STATUS_SYNCING")
 	NetContext.active = true
 	NetContext.net = _net
 	NetContext.is_host = _net.is_host
 	NetContext.setup = setup
+	# Sans cette étape, chaque client basculerait sur Battle.tscn dès que SON
+	# handshake local est fini, indépendamment du pair — un joueur pouvait
+	# démarrer son mulligan pendant que l'autre était encore au lobby. On
+	# n'entre en bataille qu'une fois les deux prêts (voir NetBattleSync).
+	_battle_sync = NetBattleSync.new(_net)
+	add_child(_battle_sync)
+	_battle_sync.completed.connect(_on_battle_sync_ready)
+	_battle_sync.progress.connect(_log_line)
+	_battle_sync.start()
+
+func _on_battle_sync_ready() -> void:
+	_log_line("Adversaire prêt — lancement de la bataille réseau…")
+	# Le NetworkManager doit survivre au changement de scène : on le reparente
+	# sous la racine de l'arbre avant de charger Battle.
+	_net.get_parent().remove_child(_net)
+	get_tree().root.add_child(_net)
 	get_tree().change_scene_to_file(BATTLE_SCENE)

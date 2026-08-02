@@ -24,23 +24,14 @@ func end_turn() -> void:
 	if battle.game_over:
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
 
-# Phase de fin de tour (OnTurnEnd des deux camps + Infection). is_local_turn :
-# true si c'est le tour du joueur local. L'ordre est relatif au joueur du tour
-# (identique sur les deux clients) pour un rejeu déterministe.
+# Phase de fin de tour (Infection). is_local_turn : true si c'est le tour du
+# joueur local. Le déclencheur "fin de tour" côté cartes est porté par Déclin
+# (OnDecline, déclenché juste après pour le camp dont le tour vient de finir).
 func run_turn_end_triggers(is_local_turn: bool = true) -> void:
-	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
-	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
-	var acted := false
-	# Fin de tour — serviteurs du joueur du tour
-	acted = await _trigger_minions_paced(turn_minions, "OnTurnEnd", acted)
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, is_local_turn, {}, true, acted)
-	# Fin de tour — serviteurs adverses
-	acted = await _trigger_minions_paced(other_minions, "OnTurnEnd", acted)
-	acted = await battle.trigger_system.fire("OnTurnEnd", null, not is_local_turn, {}, true, acted)
-
 	# Blocage de soin (Rituel de la Terreur) : expire à la fin du tour du héros
 	# dont c'est le tour ("jusqu'à la fin de son prochain tour").
 	var turn_hero: Hero = battle.player_hero if is_local_turn else battle.enemy_hero
@@ -58,7 +49,7 @@ func _begin_player_turn() -> void:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.turn_start(ids)
 	_finish_turn_start()
-	draw_card()
+	battle.deck_system.draw_card()
 	if battle.tutorial_active:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_player_turn_began()
@@ -66,14 +57,17 @@ func _begin_player_turn() -> void:
 		battle.turn_timer.start()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
-# OnTurnStart est symétrique (tous les serviteurs) ; OnAwaken vise le camp dont
-# c'est le tour, OnDecline le camp adverse — d'où le paramétrage pour le rejeu.
+# OnAwaken vise le camp dont c'est le tour, OnDecline le camp adverse (dont le
+# tour vient de finir) — d'où le paramétrage pour le rejeu.
 func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.aura_system.recompute_all()
 	await battle.death_system.process_deaths()
 	battle.cost_system.on_turn_started(is_local_turn)
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	battle.resource_played_this_turn[is_local_turn] = false
+	battle.undead_ally_deaths_this_turn[is_local_turn] = 0
+	# Réarmé par Ordre de Tenir (OnAwaken) si le rituel est encore actif.
+	battle.front_line_protected[is_local_turn] = false
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():
@@ -81,9 +75,6 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	var acted := false
 	# Ordre relatif au joueur du tour (identique sur les deux clients) plutôt que
 	# player/enemy relatif au client, pour un tirage RNG déterministe.
-	acted = await _trigger_minions_paced(turn_minions + other_minions, "OnTurnStart", acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, is_local_turn, {}, true, acted)
-	acted = await battle.trigger_system.fire("OnTurnStart", null, not is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(turn_minions, "OnAwaken", acted)
 	acted = await battle.trigger_system.fire("OnAwaken", null, is_local_turn, {}, true, acted)
 	acted = await _trigger_minions_paced(other_minions, "OnDecline", acted)
@@ -124,12 +115,3 @@ func _finish_turn_start() -> void:
 	battle.refill_mana_pool(true)
 	battle.update_mana_ui()
 	battle.board_visual_system.refresh_board()
-
-func draw_card() -> void:
-	if battle.deck.is_empty():
-		return
-	battle.hand_cards.append(battle.deck.pop_back())
-	var deck_pos: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
-	AudioManager.play(AudioManager.DRAW)
-	battle.hand.set_hand(battle.hand_cards, true, deck_pos)
-	battle.deck_system.update_deck_ui()

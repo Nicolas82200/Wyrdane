@@ -23,7 +23,7 @@ type = "OnSummon"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fosse Commune"
-description = "Appel : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.)"
+description = "Renfort : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.)"
 flavour_text = "Plus elle se remplit, plus elle déborde."
 texture = ExtResource("3_texture")
 cost = 4

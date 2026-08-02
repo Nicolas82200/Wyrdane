@@ -1,5 +1,7 @@
 Wyrdane est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
+**Licence** : projet propriétaire, tous droits réservés — voir [`LICENSE.md`](./LICENSE.md). Aucune réutilisation, copie ou redistribution du code ou des assets n'est autorisée sans accord écrit préalable de l'auteur.
+
 ---
 
 ## 🧠 Architecture interne (dev)
@@ -49,7 +51,7 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 3.  Application des dégâts simultanés.
 4.  Effets spéciaux :
     *   Poison / Deadly
-    *   Lifesteal
+    *   Harvest
 5.  Trigger `OnDamaged` (géré par `EffectManager`)
 6.  Mise à jour UI
 7.  `remove_dead_minions()` (dans `DeathSystem`)
@@ -98,16 +100,17 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 | Mot-clé | Effet | Implémentation |
 |---|---|---|
 | `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
-| `FUSION` | Sacrifice un allié adjacent : absorbe ses stats restantes ET un mot-clé au choix. | Mot-clé affiché ; **aucune UI d'activation n'est câblée** (voir limitation ci-dessous) |
+| `FUSION` | Activation volontaire : sacrifie un allié adjacent, absorbe ses stats restantes ET un de ses mots-clés au choix. | `FusionSystem.gd` — bouton dédié sur le serviteur, ciblage de la victime puis popup de choix du mot-clé ; synchronisé réseau (`NetCommand.ACTIVATE_FUSION`) |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
 | `ASSIMILATION` | Dévoration : gagne +1/+1 permanent (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
 | `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
 
 - **Table de Mutation** (`EffectManager.roll_mutation`) : tirage sur le RNG de jeu partagé (déterministe/synchronisé réseau) — 40 % Croissance (+2/+0 permanent), 40 % Renforcement (+0/+2 permanent), 20 % Dégénérescence (-1/-1 permanent, peut tuer si les dégâts déjà subis dépassent le nouveau maximum). `Minion.mutation_stacks` / `Minion.mutations` gardent une trace pour l'affichage.
-- **Trigger `OnMutation`** (« Résonance » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
+- **Trigger `OnMutation`** (« Mutation » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
 - **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
 - **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
+- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
@@ -182,13 +185,12 @@ EffectManager.execute_targeted_effect()
 
 Triggers disponibles (`TriggerType.gd`) :
 
-*   `ONPLAY` (Invocation) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
-*   `OnDamaged` (Blessure) / `OnAttack` / `OnExecution` (Exécution)
-*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire
-*   `OnTurnStart` / `OnTurnEnd`
-*   `OnRally` (Ralliement) / `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
-*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage)
-*   `OnSummon` (Appel) / `OnAura` (Présence) / `OnResonance` (Résonance)
+*   `ONPLAY` (Arrivée) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
+*   `OnDamaged` (Blessure) / `OnAttack` (Attaque — fusionne l'ancien `OnRally`/Ralliement) / `OnExecution` (Exécution)
+*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire (plus de `OnTurnStart`/`OnTurnEnd` symétriques, retirés)
+*   `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
+*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage — une fois, sous 50% HP max)
+*   `OnSummon` (Renfort) / `OnAura` (Présence) / `OnResonance` (Résonance)
 *   `OnSelfDamage` (Sacrifice du sang — le héros du camp perd des HP à cause de ses propres cartes)
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
@@ -264,6 +266,10 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Triggers de début/fin de tour (Éveil/Déclin) et infection synchronisés entre clients ; les effets d'invocation ciblés sont rejoués côté distant.
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
+
+### 🗄️ Backend & progression persistante
+
+La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
 
 ### 🌍 Internationalisation (i18n)
 
@@ -737,8 +743,8 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 | Mort-rage (OnDeathRage) | ✅ Oui |
 | Blessure (OnDamaged) | ✅ Oui |
 | Exécution (OnExecution) | ✅ Oui |
-| Ralliement (OnRally) | ✅ Oui |
-| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Appel / Présence / Résonance | ✅ Oui |
+| Attaque (OnAttack) | ✅ Oui |
+| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Renfort / Présence / Résonance | ✅ Oui |
 
 #### Règle NÉCROPHAGE (et effets similaires)
 - Les morts sont traitées **dans l'ordre chronologique** pendant la simulation (comme `DeathSystem` actuel en batch).
@@ -825,7 +831,7 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 
 - **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
-- Les cartes-ressource sont **exemptées de la limite de 4 copies** (`MAX_COPIES_PER_CARD`) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum.
+- Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
@@ -859,7 +865,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
-- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée).
 - `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
