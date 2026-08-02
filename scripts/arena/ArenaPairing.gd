@@ -14,7 +14,7 @@ class_name ArenaPairing
 static func compute_pairings(participants: Array, history: Dictionary, round_number: int, rng: RandomNumberGenerator = null) -> Array:
 	var unpaired: Array = participants.duplicate()
 	if rng != null:
-		unpaired.shuffle()
+		_seeded_shuffle(unpaired, rng)
 	var cooldown: int = int(ArenaConstants.PAIRING_COOLDOWN_BY_PARTICIPANTS.get(unpaired.size(), 0))
 	var pairs: Array = []
 
@@ -30,6 +30,18 @@ static func compute_pairings(participants: Array, history: Dictionary, round_num
 	if unpaired.size() == 1:
 		pairs.append([unpaired[0], null])  # bye : ne devrait survenir qu'en garde-fou (effectif impair sans fantôme)
 	return pairs
+
+# Array.shuffle() n'accepte pas de RandomNumberGenerator : il mélange avec le
+# RNG global de Godot, pas `rng`, ce qui casserait le déterminisme (seed
+# partagée) que le reste du moteur (game_rng du combat, RNG de la boutique...)
+# respecte scrupuleusement — nécessaire dès que l'Arena passera en réseau
+# synchronisé, pas seulement un détail de test. Fisher-Yates manuel à la place.
+static func _seeded_shuffle(array: Array, rng: RandomNumberGenerator) -> void:
+	for i in range(array.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var tmp = array[i]
+		array[i] = array[j]
+		array[j] = tmp
 
 static func _is_allowed(a, b, history: Dictionary, round_number: int, cooldown: int) -> bool:
 	var last: int = _last_faced(a, b, history)
