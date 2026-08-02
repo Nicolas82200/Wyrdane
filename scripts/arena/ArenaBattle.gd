@@ -1011,6 +1011,18 @@ func _on_phase_timer_timeout() -> void:
 		_advance_round()
 
 func _resolve_combat_phase() -> void:
+	# Verrouille immédiatement la boutique humaine (current_phase gate dans
+	# _refresh_ui) : sans ça, tout le temps que prennent les bots à jouer leur
+	# manche + match_.end_shop_phase() + le combat animé (plusieurs secondes
+	# réelles via les vrais timers d'AnimationSystem, voir live_setup plus bas)
+	# restait fenêtre où reroll/achat/pose humains passaient encore alors que
+	# la manche est déjà close côté moteur (match_.end_shop_phase() déjà
+	# appelé plus bas). _start_combat_phase_timer(), appelé en fin de fonction,
+	# ne fait que (re)positionner cet état et démarrer le vrai minuteur
+	# d'affichage du résultat — l'appel ici ne le concurrence pas.
+	current_phase = Phase.COMBAT
+	phase_label.text = SettingsManager.t("ARENA_PHASE_COMBAT")
+	_refresh_ui()
 	for bot in bots:
 		if not bot.is_alive():
 			continue
