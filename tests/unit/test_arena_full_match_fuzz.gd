@@ -68,6 +68,31 @@ func _assert_pool_conservation(pool: ArenaCardPool, players: Array[ArenaPlayerSt
 			"%s : total de copies de %s doit rester %d (pool=%d + en jeu=%d)" % [
 				context, path, expected_total, int(pool.remaining_copies.get(path, 0)), int(in_play.get(path, 0))])
 
+# Chaque Minion (hors GhostBoard, une copie indépendante par construction —
+# voir GhostBoard._clone) doit appartenir à un seul joueur à la fois. Un objet
+# partagé par erreur entre deux joueurs (ex: mauvais alias au lieu d'un clone
+# quelque part) ferait qu'une action sur l'un (dégât, vente, fusion) affecte
+# silencieusement l'autre.
+func _assert_no_shared_minion_references(players: Array[ArenaPlayerState], context: String) -> void:
+	var seen: Dictionary = {}  # instance id (int) -> nom du joueur qui le détient déjà
+	for player in players:
+		for minion in player.all_owned_minions():
+			var id: int = minion.get_instance_id()
+			assert_false(seen.has(id), "%s : un Minion est partagé entre %s et %s" % [context, seen.get(id, "?"), player.display_name])
+			seen[id] = player.display_name
+
+# elimination_order ne doit jamais contenir de doublon ni un joueur encore en
+# vie, et son effectif doit rester cohérent avec le nombre de joueurs éliminés.
+func _assert_elimination_order_consistent(match_: ArenaMatch, context: String) -> void:
+	var seen: Dictionary = {}
+	for player in match_.elimination_order:
+		assert_true(player.is_eliminated, "%s : %s figure dans elimination_order sans être éliminé" % [context, player.display_name])
+		assert_false(seen.has(player), "%s : %s apparaît deux fois dans elimination_order" % [context, player.display_name])
+		seen[player] = true
+	var eliminated_count: int = match_.players.filter(func(p: ArenaPlayerState): return p.is_eliminated).size()
+	assert_eq(match_.elimination_order.size(), eliminated_count,
+		"%s : elimination_order (%d) doit lister exactement les joueurs éliminés (%d)" % [context, match_.elimination_order.size(), eliminated_count])
+
 func test_full_matches_run_to_completion_without_crashing() -> void:
 	for seed_value in range(SEED_COUNT):
 		var source_cards: Array[CardData] = _make_pool_cards(seed_value)
@@ -106,6 +131,8 @@ func test_full_matches_run_to_completion_without_crashing() -> void:
 			for path in pool.remaining_copies:
 				assert_gte(int(pool.remaining_copies[path]), 0, "seed=%d round=%d : pool négatif pour %s" % [seed_value, rounds, path])
 			_assert_pool_conservation(pool, players, path_to_card, "seed=%d round=%d" % [seed_value, rounds])
+			_assert_no_shared_minion_references(players, "seed=%d round=%d" % [seed_value, rounds])
+			_assert_elimination_order_consistent(match_, "seed=%d round=%d" % [seed_value, rounds])
 
 			if not match_.is_match_over():
 				match_.advance_round()
