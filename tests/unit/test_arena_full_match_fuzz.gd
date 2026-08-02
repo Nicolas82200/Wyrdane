@@ -12,7 +12,14 @@ extends GutTest
 const MAX_ROUNDS := 40
 const SEED_COUNT := 10
 
-func _make_pool_cards() -> Array[CardData]:
+# `seed_value` entre dans resource_path (propriété native `Resource`, pas un
+# champ maison) : le réutiliser tel quel entre plusieurs itérations de la
+# boucle de graines ferait collisionner des `CardData.new()` distincts sur le
+# même chemin dans le registre interne de ressources de Godot, ce qui peut
+# vider silencieusement resource_path sur l'un des deux — repéré via un faux
+# positif de _assert_pool_conservation (chemin vide) à seed=6/round=27 avant
+# ce correctif, pas un vrai bug du mode Arena.
+func _make_pool_cards(seed_value: int) -> Array[CardData]:
 	var cards: Array[CardData] = []
 	var rarities := ["Common", "Rare", "Epic", "Legendary"]
 	var positions := ["Front", "Back", ""]
@@ -27,13 +34,47 @@ func _make_pool_cards() -> Array[CardData]:
 				data.attack = max(1, cost + variant - 1)
 				data.health = max(1, cost + variant)
 				data.board_position = positions[variant % positions.size()]
-				data.resource_path = "res://fake/arena_fuzz/%s.tres" % data.card_name
+				data.resource_path = "res://fake/arena_fuzz/seed%d_%s.tres" % [seed_value, data.card_name]
 				cards.append(data)
 	return cards
 
+# 1 pour une copie normale, 3 pour une 2★ (fusion de 3 copies de base) — même
+# règle que ArenaMatch._base_copies_for_star_level, dupliquée ici pour ne pas
+# dépendre d'une méthode interne de la classe testée.
+func _base_copies_for_star_level(star_level: int) -> int:
+	return 3 if star_level >= 2 else 1
+
+# Loi de conservation : à tout instant, pool + (copies possédées par tous les
+# joueurs, une 2★ comptant pour 3) doit égaler le total de copies de rareté
+# pour cette carte — aucune copie ne doit apparaître ou disparaître "de nulle
+# part". Une carte affichée en boutique (shop_offer) n'est PAS retirée du pool
+# tant qu'elle n'est pas achetée (voir ArenaMatch.buy_card), donc ne compte pas
+# ici. Détecterait un bug de comptage (perte/duplication de copie) qu'un simple
+# "jamais négatif" ne peut pas voir.
+func _assert_pool_conservation(pool: ArenaCardPool, players: Array[ArenaPlayerState], path_to_card: Dictionary, context: String) -> void:
+	var in_play: Dictionary = {}
+	for player in players:
+		for minion in player.all_owned_minions():
+			var path: String = minion.card_data.resource_path
+			in_play[path] = int(in_play.get(path, 0)) + _base_copies_for_star_level(minion.star_level)
+		for card_data in player.spell_hand:
+			var spath: String = card_data.resource_path
+			in_play[spath] = int(in_play.get(spath, 0)) + 1
+	for path in path_to_card:
+		var card: CardData = path_to_card[path]
+		var expected_total: int = int(ArenaConstants.POOL_COPIES_BY_RARITY.get(card.rarity, 0))
+		var actual_total: int = int(pool.remaining_copies.get(path, 0)) + int(in_play.get(path, 0))
+		assert_eq(actual_total, expected_total,
+			"%s : total de copies de %s doit rester %d (pool=%d + en jeu=%d)" % [
+				context, path, expected_total, int(pool.remaining_copies.get(path, 0)), int(in_play.get(path, 0))])
+
 func test_full_matches_run_to_completion_without_crashing() -> void:
 	for seed_value in range(SEED_COUNT):
-		var pool := ArenaCardPool.new(_make_pool_cards())
+		var source_cards: Array[CardData] = _make_pool_cards(seed_value)
+		var path_to_card: Dictionary = {}
+		for c in source_cards:
+			path_to_card[c.resource_path] = c
+		var pool := ArenaCardPool.new(source_cards)
 		var rng := RandomNumberGenerator.new()
 		rng.seed = seed_value
 		var driver := ArenaBotDriver.new(rng)
@@ -64,6 +105,7 @@ func test_full_matches_run_to_completion_without_crashing() -> void:
 					"seed=%d round=%d : main de %s au-delà de la limite après discard_overflow" % [seed_value, rounds, player.display_name])
 			for path in pool.remaining_copies:
 				assert_gte(int(pool.remaining_copies[path]), 0, "seed=%d round=%d : pool négatif pour %s" % [seed_value, rounds, path])
+			_assert_pool_conservation(pool, players, path_to_card, "seed=%d round=%d" % [seed_value, rounds])
 
 			if not match_.is_match_over():
 				match_.advance_round()
