@@ -37,6 +37,12 @@ var reconnecting: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
 var counter_offensive: Dictionary = {true: false, false: false}
+# Ajoutés côté 1v1 après la divergence de cette branche (Ordre de Tenir /
+# Dernier Soupir, voir FakeBattle et Battle.gd) : DeathSystem/EffectManager
+# y accèdent inconditionnellement dès qu'un serviteur Mort-Vivant meurt ou
+# qu'un Dernier Souffle pose REMPART_TEMPORAIRE, même en combat simulé Arena.
+var front_line_protected: Dictionary = {true: false, false: false}
+var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
 var game_rng := RandomNumberGenerator.new()
 
 # Non utilisés en Arena v1 (pas de pioche/deck/enchantements pendant le combat
@@ -264,6 +270,15 @@ func _apply_chair_adaptative(minion: Minion) -> void:
 
 func race_mana_pool(_is_player: bool) -> Dictionary:
 	return {}
+
+# Pas de pools de mana en Arena v1 (économie or/boutique séparée, voir
+# race_mana_pool ci-dessus) : no-op plutôt qu'un plantage si un effet de
+# carte (ex: don de mana temporaire) se déclenche pendant le combat simulé.
+func update_mana_ui() -> void:
+	pass
+
+func update_enemy_mana_ui() -> void:
+	pass
 
 func check_game_end() -> void:
 	if game_over:
