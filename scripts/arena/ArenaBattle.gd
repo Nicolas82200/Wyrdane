@@ -718,6 +718,8 @@ func _on_hand_drag_ended() -> void:
 # visée : boutique = vente, plateau = pose (serviteur) ou lancer (Incantation,
 # cible toujours soi/ses alliés — voir ArenaMatch.cast_spell).
 func _on_hand_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	if row == ArenaDropSystem.ROW_SHOP:
 		for minion in human.hand:
 			if minion.card_data == card_data:
@@ -810,6 +812,8 @@ func _refresh_shop(in_shop_phase: bool = true) -> void:
 		slot.setup(card, i)
 
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	# L'achat par glisser-déposer rejoint la main (comme un achat au clic) ;
 	# la pose sur le plateau reste une action séparée et volontaire du joueur
 	# (boutons Avant/Arrière dans la main), pas automatique au moment du drop.
@@ -959,26 +963,45 @@ func _make_participant_button(target, _label_name: String, eliminated: bool, is_
 
 # ─── Actions joueur ──────────────────────────────────────────────────────────
 
+# Verrou d'action, indépendant de l'état (déjà désactivé/vidé) des contrôles
+# eux-mêmes : _refresh_ui() ne s'exécute pas forcément avant qu'un signal en
+# vol (clic déjà en cours, ou drop dont le payload a été capturé avant la fin
+# de la manche, voir _resolve_combat_phase) n'atteigne son handler — sans ce
+# garde-fou explicite ici, une action pouvait encore passer entre l'expiration
+# du minuteur et le prochain rafraîchissement de l'UI.
+func _is_shop_interaction_allowed() -> bool:
+	return not game_over and current_phase == Phase.SHOP
+
 func _on_reroll_pressed() -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	match_.reroll(human)
 	_refresh_ui()
 
 func _on_buy_xp_pressed() -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	match_.buy_xp(human)
 	_refresh_ui()
 
 func _on_place_pressed(minion: Minion, is_front: bool, index: int = -1) -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	human.place_on_board(minion, is_front, index)
 	_refresh_ui()
 
 # Repositionnement (même ligne ou changement de ligne) d'un serviteur déjà
 # posé — voir ArenaBoardMinionSlot/ArenaBoardRow.on_reposition.
 func _on_board_minion_dropped(minion: Minion, is_front: bool, index: int) -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	human.move_on_board(minion, is_front, index)
 	_refresh_ui()
 
 # Vente en glissant un serviteur du plateau sur la boutique — voir ArenaSellZone.
 func _on_board_minion_sold(minion: Minion) -> void:
+	if not _is_shop_interaction_allowed():
+		return
 	match_.sell_card(human, minion, true)
 	_refresh_ui()
 
