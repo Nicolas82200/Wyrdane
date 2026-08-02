@@ -139,6 +139,50 @@ func test_shop_is_only_interactable_during_the_shop_phase() -> void:
 	if not scene.game_over:
 		assert_true(scene.reroll_button.disabled, "la boutique doit être désactivée pendant l'affichage du combat")
 
+# Régression : _is_shop_interaction_allowed() doit rejeter toute action joueur
+# hors phase Boutique, pas seulement désactiver visuellement les boutons — un
+# drop dont le payload a été capturé juste avant la fin de la manche pouvait
+# encore atteindre ces handlers après le basculement de phase (voir le
+# correctif de _resolve_combat_phase / _is_shop_interaction_allowed).
+func test_action_handlers_are_no_ops_outside_the_shop_phase() -> void:
+	# ArenaBattle.gd est un script de scène racine sans `class_name` : son enum
+	# `Phase { SHOP, COMBAT }` n'est pas accessible par nom depuis l'extérieur
+	# (référencer `ArenaBattle.Phase.COMBAT` ici ferait échouer le parsing de
+	# tout ce fichier de test). 1 = Phase.COMBAT.
+	scene.current_phase = 1
+
+	var gold_before: int = scene.human.gold
+	scene._on_reroll_pressed()
+	assert_eq(scene.human.gold, gold_before, "reroll hors phase Boutique ne doit pas débiter d'or")
+
+	scene._on_buy_xp_pressed()
+	assert_eq(scene.human.gold, gold_before, "achat d'XP hors phase Boutique ne doit pas débiter d'or")
+
+	var affordable_index := -1
+	for i in scene.human.shop_offer.size():
+		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
+			affordable_index = i
+			break
+	if affordable_index >= 0:
+		var hand_size_before: int = scene.human.hand.size()
+		scene._on_shop_card_dropped(affordable_index, true)
+		assert_eq(scene.human.hand.size(), hand_size_before, "achat en boutique hors phase Boutique ne doit rien ajouter à la main")
+		assert_eq(scene.human.gold, gold_before, "achat en boutique hors phase Boutique ne doit pas débiter d'or")
+
+	var card := CardData.new()
+	card.card_name = "Filler"
+	var minion := Minion.new(card, true, "Front")
+	scene.human.hand.append(minion)
+	scene._on_place_pressed(minion, true)
+	assert_true(scene.human.hand.has(minion), "poser un serviteur hors phase Boutique ne doit pas le retirer de la main")
+	assert_false(scene.human.board_front.has(minion), "poser un serviteur hors phase Boutique ne doit pas l'ajouter au plateau")
+
+	scene.human.hand.erase(minion)
+	scene.human.board_front.append(minion)
+	scene._on_board_minion_sold(minion)
+	assert_true(scene.human.board_front.has(minion), "vendre un serviteur hors phase Boutique ne doit pas le retirer du plateau")
+	assert_eq(scene.human.gold, gold_before, "vendre un serviteur hors phase Boutique ne doit pas rapporter d'or")
+
 func test_hand_contains_both_minions_and_purchased_spells_together() -> void:
 	# Une seule main : pas de zone séparée pour les Incantations achetées.
 	var minion_card := CardData.new()
