@@ -13,12 +13,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 ## P2 — Fichiers Steam parasites non ignorés par git
 
-`git status` fait apparaître :
-```
-addons/godotsteam/win64/~libgodotsteam.windows.template_debug.x86_64.dll
-addons/godotsteam/win64/~libgodotsteam.windows.template_debug.x86_64.dll~RFacf7d8.TMP
-```
-Ce sont des résidus d'extraction de l'archive GodotSteam (fichiers temporaires préfixés `~`). **Fait dans cette branche** : ajout de `addons/godotsteam/**/~*` et `*.TMP` à `.gitignore`. Reste à faire : supprimer ces deux fichiers du working directory local (pas fait ici pour ne pas toucher à l'installation Steam de quelqu'un d'autre sans confirmation).
+**Résolu.** Résidus d'extraction de l'archive GodotSteam (fichiers temporaires préfixés `~`/`.TMP`). `addons/godotsteam/**/~*` et `*.TMP` ajoutés à `.gitignore`, et les fichiers parasites supprimés du working directory local.
 
 ## P3 — Steam : passage en production
 
@@ -38,7 +33,7 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 ## P6 — Ordre de Tenir (Humain, H53) : effet non implémenté
 
-`resources/cards/human/hold-the-line.tres` a un `trigger_types` (Éveil) mais un tableau `effects` vide : le rituel ne fait rien à l'heure actuelle malgré sa description ("tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis"). Contrairement aux autres bugs corrigés dans cette branche, celui-ci demande un nouveau statut de protection (vérifié dans `ReturnToHand`/`MoveRow`/`StealMinion`, uniquement quand la source de l'effet appartient au camp adverse à celui du protégé) plutôt qu'un simple champ de filtrage — non fait ici par prudence (risque de mécanique bâclée sans tests dédiés). À reprendre dans une branche dédiée.
+**Résolu.** Corrigé dans le commit `8e75cc8` (« fix: make non-functional cards work ») avec Fortification (déplacement/transformation), l'appariement de trigger de War Priest et l'`effect_id` de dégâts explicite. Le rituel applique désormais bien la protection contre le renvoi en main / déplacement par effet ennemi pour les serviteurs alliés en rangée Avant.
 
 ## Non-problèmes vérifiés pendant cette revue
 
