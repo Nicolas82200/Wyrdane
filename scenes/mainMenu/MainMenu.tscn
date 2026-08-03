@@ -234,11 +234,6 @@ custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Credits"
 
-[node name="ReportButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000013]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Signaler un probleme"
-
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
 
@@ -429,6 +424,20 @@ theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_font_sizes/font_size = 14
 text = "0V - 0D"
+
+[node name="ReportButton" type="Button" parent="." unique_id=300000073]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 304.0
+offset_top = -166.0
+offset_right = 360.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+tooltip_text = "Signaler un problème"
+text = "🚩"
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
