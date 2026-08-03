@@ -39,6 +39,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
+@onready var report_button:   Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
 @onready var replay_tutorial_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/ReplayTutorialButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
@@ -126,6 +127,7 @@ func _ready() -> void:
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
 	credits_button.pressed.connect(_on_credits)
+	report_button.pressed.connect(_on_report_pressed)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
@@ -409,6 +411,9 @@ func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
 	_show_info_view(InfoView.CREDITS)
+
+func _on_report_pressed() -> void:
+	ReportDialog.open_on(self, false)
 
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
@@ -920,6 +925,7 @@ func _retranslate() -> void:
 	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
+	report_button.text  = SettingsManager.t("MENU_REPORT")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
