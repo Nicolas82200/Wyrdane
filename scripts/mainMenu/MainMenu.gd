@@ -3,6 +3,7 @@ extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
+const ARENA_SCENE := "res://scenes/arena/ArenaBattle.tscn"
 const NEWS_DIR := "res://resources/news/"
 const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
 const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
@@ -48,6 +49,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var mode_title_label: Label = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeTitleLabel
 @onready var solo_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/SoloModeButton
 @onready var multi_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/MultiModeButton
+@onready var arena_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ArenaModeButton
 @onready var mode_back_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeBackButton
 @onready var deck_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView
 @onready var play_back_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/PlayBackButton
@@ -147,6 +149,7 @@ func _ready() -> void:
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
 	multi_mode_button.pressed.connect(_on_multi_mode_selected)
+	arena_mode_button.pressed.connect(_on_arena_mode_selected)
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
@@ -468,6 +471,13 @@ func _on_solo_mode_selected() -> void:
 func _on_multi_mode_selected() -> void:
 	_play_mode = PlayMode.MULTI
 	_show_deck_select()
+
+# L'Arena n'utilise pas le deck du joueur (pool de cartes partagé, voir
+# scripts/arena/) : contrairement à Solo/Multi, saute directement le choix
+# de deck et lance la scène dédiée.
+func _on_arena_mode_selected() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	get_tree().change_scene_to_file(ARENA_SCENE)
 
 func _show_deck_select() -> void:
 	_show_nav_view(NavView.DECK_SELECT)
@@ -927,6 +937,7 @@ func _retranslate() -> void:
 	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
 	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
 	multi_mode_button.text = SettingsManager.t("MENU_PLAY_MULTI")
+	arena_mode_button.text = SettingsManager.t("MENU_ARENA")
 	mode_back_button.text = SettingsManager.t("ui.back")
 	play_back_button.text = SettingsManager.t("ui.back")
 	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")
