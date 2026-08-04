@@ -31,6 +31,7 @@ Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. T
 
 ```
 scenes/
+├── arena/           # Prototype Arena/Battle Royale solo local (ArenaBattle.tscn)
 ├── battle/          # Scène de bataille
 ├── card/            # Affichage d'une carte (+ cartes enchantement)
 ├── deck/            # Deck builder et liste des decks
@@ -44,6 +45,7 @@ scenes/
 
 scripts/
 ├── EffectManager/   # Moteur d'exécution des effets de cartes
+├── arena/           # Mode Arena/Battle Royale (prototype solo local) : ArenaMatch (orchestrateur), SimulatedBattle (combat headless réutilisant CombatSystem/DeathSystem 1v1), ArenaCardPool, ArenaMergeSystem, ArenaPairing, GhostBoard, ArenaBotDriver...
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
 ├── card/            # CardData, Card (UI), CardEffect, styles
@@ -209,8 +211,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
-- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions), prototype Arena/Battle Royale jouable en solo local (8 participants : 1 joueur + 7 bots, `scripts/arena/`, `scenes/arena/ArenaBattle.tscn` — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design, combat auto-résolu réutilisant `CombatSystem`/`DeathSystem` 1v1 via `SimulatedBattle`, voir « État actuel du prototype » dans `README.md`)
+- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, étendre le prototype Arena au réseau à 8 joueurs, animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
 
 ## Notes pour les agents
 
