@@ -231,7 +231,7 @@ Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, co
 
 ## Devlog hebdomadaire
 
-Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé :
+Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé. Le dossier `devlogs/` est local uniquement (`.gitignore`) — notes de session brutes, il n'apparaît pas sur GitHub :
 
 - Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi** à venir (créer le fichier s'il n'existe pas — voir `devlogs/README.md` pour le format).
 - Ajouter une entrée en fin de fichier, sous la date du jour (`## YYYY-MM-DD`), avec une liste à puces brute des changements faits pendant la session — pas de mise en forme, pas de ton marketing, juste les faits (ce qui a été ajouté/corrigé/changé et pourquoi si pertinent).
