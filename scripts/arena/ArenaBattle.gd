@@ -31,8 +31,12 @@ const HERO_ARTS := [
 	preload("res://assets/heros_art/azhar-the-fallen.jpg"),
 ]
 # Gemme réutilisée depuis assets/icons/ (aucune icône dédiée "vendre" n'existe
-# encore dans le projet) : représente l'or, pour le solde en en-tête.
+# encore dans le projet) : représente l'or, affiché à côté du portrait du héros.
 const ICON_GEM := preload("res://assets/icons/gem.png")
+
+# Même taille que PlayerHeroPanel/EnemyHeroPanel en 1v1 (Battle.tscn) — voir
+# _make_hero_portrait.
+const HERO_PORTRAIT_SIZE := Vector2(135, 187)
 
 # Même vocabulaire de lignes que Battle.gd — requis tel quel par DropSystem.gd
 # (battle.ROW_FRONT/battle.ROW_BACK) pour pouvoir le réutiliser sans changement.
@@ -192,14 +196,16 @@ func _build_ui() -> void:
 	shop_back_row.add_theme_constant_override("separation", 8)
 	shop_back_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_add_lane_indicator(board_root, -330.0, -180.0, 0)
-	board_root.add_child(_make_lane_panel(shop_back_row, -330.0, -180.0))
+	board_root.add_child(_make_lane_background(-330.0, -180.0))
+	board_root.add_child(_place_row(shop_back_row, -330.0, -180.0))
 
 	shop_front_row = ArenaSellZone.new()
 	shop_front_row.on_sell = _on_board_minion_sold
 	shop_front_row.add_theme_constant_override("separation", 8)
 	shop_front_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_add_lane_indicator(board_root, -160.0, -10.0, 1)
-	board_root.add_child(_make_lane_panel(shop_front_row, -160.0, -10.0))
+	board_root.add_child(_make_lane_background(-160.0, -10.0))
+	board_root.add_child(_place_row(shop_front_row, -160.0, -10.0))
 
 	front_row = ArenaBoardRow.new()
 	front_row.is_front = true
@@ -207,7 +213,8 @@ func _build_ui() -> void:
 	front_row.add_theme_constant_override("separation", 8)
 	front_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_add_lane_indicator(board_root, 10.0, 160.0, 0)
-	board_root.add_child(_make_lane_panel(front_row, 10.0, 160.0))
+	board_root.add_child(_make_lane_background(10.0, 160.0))
+	board_root.add_child(_place_row(front_row, 10.0, 160.0))
 
 	back_row = ArenaBoardRow.new()
 	back_row.is_front = false
@@ -215,7 +222,8 @@ func _build_ui() -> void:
 	back_row.add_theme_constant_override("separation", 8)
 	back_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_add_lane_indicator(board_root, 180.0, 330.0, 1)
-	board_root.add_child(_make_lane_panel(back_row, 180.0, 330.0))
+	board_root.add_child(_make_lane_background(180.0, 330.0))
+	board_root.add_child(_place_row(back_row, 180.0, 330.0))
 
 	player_front_container = front_row
 	player_back_container = back_row
@@ -225,28 +233,49 @@ func _build_ui() -> void:
 	drop_system.init(self)
 
 	# ─ Héros du joueur : tout en bas de l'écran, centré — mêmes ancrages que
-	# PlayerHeroPanel en 1v1 (anchor_top=anchor_bottom=1.0, offset_top négatif).
+	# PlayerHeroPanel en 1v1 (Battle.tscn : 135x187, anchor_top=anchor_bottom=1.0,
+	# offset_left/right ±67.5, offset_top -187, collé au bord bas de l'écran) —
+	# reproduit ici à l'identique (voir HERO_PORTRAIT_SIZE), au lieu de la
+	# taille réduite (90x125) utilisée jusqu'ici.
 	hero_portrait = _make_hero_portrait(HERO_ARTS[0])
 	hero_hp_overlay = hero_portrait.get_child(0)
 	hero_portrait.anchor_left = 0.5
 	hero_portrait.anchor_right = 0.5
 	hero_portrait.anchor_top = 1.0
 	hero_portrait.anchor_bottom = 1.0
-	hero_portrait.offset_left = -45.0
-	hero_portrait.offset_right = 45.0
-	hero_portrait.offset_top = -135.0
-	hero_portrait.offset_bottom = -10.0
+	hero_portrait.offset_left = -HERO_PORTRAIT_SIZE.x / 2.0
+	hero_portrait.offset_right = HERO_PORTRAIT_SIZE.x / 2.0
+	hero_portrait.offset_top = -HERO_PORTRAIT_SIZE.y
+	hero_portrait.offset_bottom = 0.0
 	add_child(hero_portrait)
+
+	# ─ Or disponible : à côté du portrait du héros (demande explicite du
+	# joueur), pas dans l'en-tête avec le reste des statistiques — seule
+	# ressource que le joueur dépense activement pendant la phase Boutique,
+	# elle doit rester visible au même endroit du regard que son héros.
+	var gold_box := HBoxContainer.new()
+	gold_box.add_theme_constant_override("separation", 4)
+	var gold_panel := _make_panel_background(gold_box)
+	gold_label = _make_stat(gold_box, null, ICON_GEM)
+	gold_panel.anchor_left = 0.5
+	gold_panel.anchor_right = 0.5
+	gold_panel.anchor_top = 1.0
+	gold_panel.anchor_bottom = 1.0
+	gold_panel.offset_right = -HERO_PORTRAIT_SIZE.x / 2.0 - 10.0
+	gold_panel.offset_left = gold_panel.offset_right - 70.0
+	gold_panel.offset_top = -HERO_PORTRAIT_SIZE.y / 2.0 - 20.0
+	gold_panel.offset_bottom = gold_panel.offset_top + 40.0
+	add_child(gold_panel)
 
 	suspended_label = Label.new()
 	suspended_label.anchor_left = 0.5
 	suspended_label.anchor_right = 0.5
 	suspended_label.anchor_top = 1.0
 	suspended_label.anchor_bottom = 1.0
-	suspended_label.offset_left = 55.0
-	suspended_label.offset_right = 155.0
-	suspended_label.offset_top = -80.0
-	suspended_label.offset_bottom = -50.0
+	suspended_label.offset_left = HERO_PORTRAIT_SIZE.x / 2.0 + 10.0
+	suspended_label.offset_right = HERO_PORTRAIT_SIZE.x / 2.0 + 110.0
+	suspended_label.offset_top = -HERO_PORTRAIT_SIZE.y / 2.0 - 20.0
+	suspended_label.offset_bottom = -HERO_PORTRAIT_SIZE.y / 2.0 + 10.0
 	add_child(suspended_label)
 
 	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot) et
@@ -264,18 +293,22 @@ func _build_ui() -> void:
 	header.add_theme_constant_override("separation", 20)
 	# Fond façon ManaDisplay (1v1, scenes/battle/Battle.tscn) : un panneau
 	# discret derrière les statistiques plutôt qu'une rangée nue posée
-	# directement sur le décor — même famille visuelle que les rangées.
+	# directement sur le décor — même famille visuelle que les rangées. L'or
+	# n'y figure plus (voir plus haut : affiché à côté du portrait du héros).
 	top_bar.add_child(_make_panel_background(header))
 	round_label = _make_stat(header, ArenaIcon.Kind.FORWARD, null)
 	hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null)
-	gold_label = _make_stat(header, null, ICON_GEM)
 	level_label = _make_stat(header, ArenaIcon.Kind.STAR, null)
 	xp_label = _make_label(header)
 	xp_label.add_theme_font_size_override("font_size", 12)
 
+	# Structure dédiée pour les deux actions de boutique (actualiser/reroll,
+	# acheter XP) : même panneau discret que le reste (_make_panel_background)
+	# plutôt que deux boutons nus posés directement sur le décor, pour former
+	# un groupe visuellement identifiable au premier coup d'œil.
 	var shop_controls := HBoxContainer.new()
 	shop_controls.add_theme_constant_override("separation", 8)
-	top_bar.add_child(shop_controls)
+	top_bar.add_child(_make_panel_background(shop_controls))
 	reroll_button = Button.new()
 	reroll_button.pressed.connect(_on_reroll_pressed)
 	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
@@ -382,8 +415,8 @@ func _build_combat_banner() -> void:
 	enemy_hp_overlay = enemy_hero_panel.get_child(0)
 	enemy_hero_panel.anchor_left = 0.5
 	enemy_hero_panel.anchor_right = 0.5
-	enemy_hero_panel.offset_left = -27.0
-	enemy_hero_panel.offset_right = 27.0
+	enemy_hero_panel.offset_left = -HERO_PORTRAIT_SIZE.x * 0.6 / 2.0
+	enemy_hero_panel.offset_right = HERO_PORTRAIT_SIZE.x * 0.6 / 2.0
 	enemy_hero_panel.offset_top = 74.0
 	enemy_hero_panel.visible = false
 	enemy_hero_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -487,7 +520,7 @@ func _make_stat(parent: Node, vector_kind, image_icon: Texture2D) -> Label:
 
 func _make_hero_portrait(art: Texture2D, scale_factor: float = 1.0) -> TextureRect:
 	var tex := TextureRect.new()
-	var size := Vector2(90, 125) * scale_factor
+	var size := HERO_PORTRAIT_SIZE * scale_factor
 	tex.texture = art
 	tex.custom_minimum_size = size
 	tex.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
@@ -564,11 +597,18 @@ func _make_drop_highlight(parent: Control, offset_top: float, offset_bottom: flo
 	parent.add_child(highlight)
 	return highlight
 
-# Positionnée exactement comme une ligne du plateau 1v1 (Battle.tscn, lignes
-# 345-411) : ancrée au centre de l'écran (anchor 0.5/0.5), décalages fixes en
-# pixels par rapport à ce centre — jamais dans un flux qui la ferait bouger
-# selon ce qu'il y a au-dessus. `offset_top`/`offset_bottom` reproduisent
-# ceux d'EnemyBackLine/EnemyFrontLine/PlayerFrontLine/PlayerBackLine.
+# Positionnées exactement comme une ligne du plateau 1v1 (Battle.tscn, lignes
+# 158-213 pour le fond / 345-411 pour la rangée) : ancrées au centre de
+# l'écran (anchor 0.5/0.5), décalages fixes en pixels par rapport à ce centre
+# — jamais dans un flux qui les ferait bouger selon ce qu'il y a au-dessus.
+# `offset_top`/`offset_bottom` reproduisent ceux d'EnemyBackLine/EnemyFrontLine/
+# PlayerFrontLine/PlayerBackLine. Comme en 1v1, le fond (`_make_lane_background`,
+# un `Panel` nu) et la rangée de serviteurs (`_place_row`) sont deux nœuds
+# SÉPARÉS superposés aux mêmes coordonnées — jamais la rangée nichée dans un
+# `PanelContainer` (marges de contenu) : un `BoardMinion` fait 100x150 de haut
+# (voir BoardMinion.tscn), pile la hauteur d'une rangée (150) ; l'imbrication
+# dans un conteneur à marges le comprimait artificiellement, plus petit qu'en
+# 1v1 à l'écran alors que c'est la même scène.
 # Style commun aux panneaux discrets Arena (rangées, en-tête) : fond gris
 # foncé translucide, bordure claire fine, coins arrondis.
 func _lane_style() -> StyleBoxFlat:
@@ -589,10 +629,12 @@ func _lane_style() -> StyleBoxFlat:
 	style.content_margin_bottom = 8
 	return style
 
-func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> PanelContainer:
-	var panel := PanelContainer.new()
+# Fond seul (un `Panel` nu, jamais un `PanelContainer` : pas de contenu à lui
+# imposer de marges) — voir note ci-dessus.
+func _make_lane_background(offset_top: float, offset_bottom: float) -> Panel:
+	var panel := Panel.new()
 	panel.add_theme_stylebox_override("panel", _lane_style())
-	panel.custom_minimum_size = Vector2(1200, offset_bottom - offset_top)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.anchor_left = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_top = 0.5
@@ -601,8 +643,21 @@ func _make_lane_panel(row: Control, offset_top: float, offset_bottom: float) -> 
 	panel.offset_right = 600.0
 	panel.offset_top = offset_top
 	panel.offset_bottom = offset_bottom
-	panel.add_child(row)
 	return panel
+
+# Positionne la rangée elle-même directement aux coordonnées de la ligne
+# (aucun conteneur intermédiaire) — retournée pour être ajoutée par l'appelant.
+func _place_row(row: Control, offset_top: float, offset_bottom: float) -> Control:
+	row.custom_minimum_size = Vector2(1200, offset_bottom - offset_top)
+	row.anchor_left = 0.5
+	row.anchor_right = 0.5
+	row.anchor_top = 0.5
+	row.anchor_bottom = 0.5
+	row.offset_left = -600.0
+	row.offset_right = 600.0
+	row.offset_top = offset_top
+	row.offset_bottom = offset_bottom
+	return row
 
 # Fond discret façon ManaDisplay (1v1) pour un contenu flottant (en-tête de
 # statistiques) — même style que les rangées, sans coordonnées de plateau.
@@ -792,10 +847,12 @@ func _refresh_ui() -> void:
 	_refresh_board()
 	_refresh_portraits()
 
-# La boutique occupe la position "adverse" du plateau : chaque offre est une
-# vraie `Card` (voir ArenaShopCardSlot), rangée dans shop_front_row ou
-# shop_back_row selon son propre board_position ("Back" -> Arrière, sinon
-# Avant), achetable en la glissant vers son propre plateau (front_row/back_row,
+# La boutique occupe la position "adverse" du plateau : chaque offre est un
+# vrai `BoardMinion` (même visuel qu'un serviteur posé, sans texte — voir
+# ArenaShopCardSlot ; survoler affiche le détail complet, comme en 1v1), rangée
+# dans shop_front_row ou shop_back_row selon son propre board_position ("Back"
+# -> Arrière, sinon Avant), achetable en la glissant vers son propre plateau
+# (front_row/back_row,
 # voir ArenaBoardRow). Un emplacement déjà acheté (carte nulle) n'affiche
 # simplement rien jusqu'au prochain reroll. Verrouillable via le cadenas de
 # chaque case (voir ArenaShopCardSlot/_on_shop_lock_toggled) : préservé au

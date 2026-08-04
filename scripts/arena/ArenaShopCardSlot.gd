@@ -1,14 +1,20 @@
 extends Control
 class_name ArenaShopCardSlot
 
-# Enveloppe autour d'une `Card` non-interactive (voir Card.set_non_interactive,
-# scripts/card/Card.gd lignes 419-421) : la carte elle-même ignore la souris,
-# c'est CE Control qui gère le drag pour acheter (API standard Godot
-# _get_drag_data/set_drag_preview), sans dépendre du pipeline de jeu 1v1
-# (Card.gd/DropSystem.gd, pensé pour le coût de mana et le ciblage, pas pour
-# une économie en or — voir plan Arena « Refonte visuelle »).
+# Enveloppe autour d'un `BoardMinion` (le même visuel qu'un serviteur déjà
+# posé en 1v1/Arena — voir ArenaBoardMinionSlot) plutôt que la `Card` de main
+# utilisée jusqu'ici : aucun texte visible sur la case boutique elle-même
+# (demande explicite du joueur), le survol déclenche le même aperçu détaillé
+# (Card agrandie) que n'importe quel serviteur posé — voir BoardMinion.
+# _on_mouse_entered, qui sonde la position de la souris à chaque frame
+# indépendamment de `mouse_filter` (voir plus bas). CE Control gère le drag
+# pour acheter (API standard Godot _get_drag_data/set_drag_preview), sans
+# dépendre du pipeline de jeu 1v1 (Card.gd/DropSystem.gd, pensé pour le mana/
+# ciblage, pas pour une économie en or — voir plan Arena « Refonte visuelle »).
 
-const CARD_SCENE := preload("res://scenes/card/Card.tscn")
+const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
+# Même vocabulaire de lignes que ArenaBattle/Battle.gd.
+const ROW_FRONT := "Front"
 
 var card_data: CardData
 var shop_index: int = -1
@@ -18,30 +24,28 @@ var on_lock_toggled: Callable
 func setup(data: CardData, index: int, locked: bool = false) -> void:
 	card_data = data
 	shop_index = index
-	# Doit tenir dans la hauteur nominale d'une rangée (150, moins les marges
-	# internes du panneau — content_margin_top/bottom = 8 chacune, voir
-	# ArenaBattle._make_lane_panel) : à l'échelle 0.7 utilisée auparavant, la
-	# carte (260x390 native) dépassait largement — le panneau grandissait donc
-	# réellement pendant la boutique et se rétractait en combat (la boutique
-	# vidée de ses offres tient, elle, dans les 150), décalant tout le
-	# plateau du joueur en dessous à chaque passage boutique -> combat.
-	custom_minimum_size = Vector2(88, 132)
 	for child in get_children():
 		child.queue_free()
 	if data == null:
 		return
-	var card: Card = CARD_SCENE.instantiate()
-	add_child(card)
-	card.scale = Vector2(0.34, 0.34)
-	card.set_data(data)
-	card.set_non_interactive()
-	# Le prix affiché doit être le coût en or de la boutique, pas la
-	# répartition race/générique du mana 1v1 (sans objet en Arena).
-	card.cost_label.text = str(data.cost)
-	card.generic_cost_label.visible = false
+	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
+	add_child(visual)
+	visual.set_minion(Minion.new(data, true, ROW_FRONT))
+	if data.card_type != "Minion":
+		visual.attack_label.visible = false
+		visual.health_label.visible = false
+	# IGNORE (pas le STOP par défaut posé par BoardMinion._ready()) : laisse
+	# les événements souris remonter jusqu'à CE Control pour le drag d'achat
+	# (_get_drag_data plus bas), sans empêcher l'aperçu au survol de
+	# BoardMinion — qui sonde la position de la souris lui-même à chaque
+	# frame (voir BoardMinion._process), pas via les signaux natifs
+	# mouse_entered/exited que IGNORE désactiverait. Même pattern que
+	# ArenaBoardMinionSlot pour les serviteurs déjà posés.
+	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	custom_minimum_size = visual.custom_minimum_size
 	_add_lock_button(locked)
 
-# Petit bouton cadenas en coin haut-gauche, au-dessus de la `Card` (dernier
+# Petit bouton cadenas en coin haut-gauche, au-dessus du `BoardMinion` (dernier
 # enfant ajouté = dessiné par-dessus) ; `mouse_filter` STOP par défaut sur un
 # Button intercepte le clic avant qu'il n'atteigne _get_drag_data() du
 # parent, donc verrouiller ne déclenche jamais un achat par erreur.
