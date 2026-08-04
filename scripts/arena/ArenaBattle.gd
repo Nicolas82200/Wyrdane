@@ -788,7 +788,9 @@ func _refresh_ui() -> void:
 # shop_back_row selon son propre board_position ("Back" -> Arrière, sinon
 # Avant), achetable en la glissant vers son propre plateau (front_row/back_row,
 # voir ArenaBoardRow). Un emplacement déjà acheté (carte nulle) n'affiche
-# simplement rien jusqu'au prochain reroll. Pas de verrouillage (retiré).
+# simplement rien jusqu'au prochain reroll. Verrouillable via le cadenas de
+# chaque case (voir ArenaShopCardSlot/_on_shop_lock_toggled) : préservé au
+# reroll, remis à zéro à la manche suivante (ArenaMatch._refresh_shop_offer).
 # Hors phase Boutique, les rangées restent vides (pas d'offre affichée) mais
 # gardent leur hauteur (voir _refresh_ui) pour ne pas déplacer le plateau.
 func _refresh_shop(in_shop_phase: bool = true) -> void:
@@ -809,7 +811,9 @@ func _refresh_shop(in_shop_phase: bool = true) -> void:
 		# de Card ne sont peuplés qu'une fois le nœud réellement entré dans
 		# l'arbre (voir Hand.gd : add_child() puis set_data(), jamais l'inverse).
 		target_row.add_child(slot)
-		slot.setup(card, i)
+		var locked: bool = i < human.shop_locked.size() and human.shop_locked[i]
+		slot.setup(card, i, locked)
+		slot.on_lock_toggled = _on_shop_lock_toggled
 
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	if not _is_shop_interaction_allowed():
@@ -976,6 +980,12 @@ func _on_reroll_pressed() -> void:
 	if not _is_shop_interaction_allowed():
 		return
 	match_.reroll(human)
+	_refresh_ui()
+
+func _on_shop_lock_toggled(shop_index: int) -> void:
+	if not _is_shop_interaction_allowed():
+		return
+	human.toggle_shop_lock(shop_index)
 	_refresh_ui()
 
 func _on_buy_xp_pressed() -> void:

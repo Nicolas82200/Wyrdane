@@ -6,7 +6,7 @@ class_name ArenaIcon
 # ArenaBattle._style_button) pour les quelques actions sans image dédiée dans
 # assets/icons/ (reroll, XP, cadenas, prêt, round suivant, retour au menu).
 
-enum Kind { REROLL, STAR, PLAY, FORWARD, HOME, HEART }
+enum Kind { REROLL, STAR, PLAY, FORWARD, HOME, HEART, LOCK }
 
 @export var kind: Kind = Kind.PLAY
 @export var line_color: Color = Color(0.92, 0.85, 0.65)
@@ -62,6 +62,9 @@ func _draw() -> void:
 				c + Vector2(r * 0.7, r * 0.1),
 			], line_color)
 			draw_rect(Rect2(c + Vector2(-r * 0.45, r * 0.05), Vector2(r * 0.9, r * 0.65)), line_color, false, r * 0.12)
+		Kind.LOCK:
+			draw_arc(c + Vector2(0.0, -r * 0.15), r * 0.42, PI, TAU, 16, line_color, r * 0.16)
+			draw_rect(Rect2(c + Vector2(-r * 0.55, r * 0.05), Vector2(r * 1.1, r * 0.75)), line_color)
 
 static func make(icon_kind: Kind, extent: float = 32.0) -> ArenaIcon:
 	var icon := ArenaIcon.new()
