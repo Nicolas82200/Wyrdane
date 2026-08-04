@@ -15,6 +15,14 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 10
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_typebg"]
+bg_color = Color(0.3, 0.3, 0.3, 0.85)
+corner_radius_top_left = 75
+corner_radius_top_right = 75
+corner_radius_bottom_right = 75
+corner_radius_bottom_left = 75
+corner_detail = 32
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3dwn4"]
 bg_color = Color(0.22745098, 0.14901961, 0.09411765, 0.78431374)
 border_width_left = 1
@@ -117,6 +125,16 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
+
+[node name="TypeIconBg" type="Panel" parent="." unique_id=1153858897]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 0
+offset_left = 42.5
+offset_top = 171.0
+offset_right = 192.5
+offset_bottom = 321.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_typebg")
 
 [node name="LaneIcon" type="TextureRect" parent="." unique_id=1153858896]
 modulate = Color(0, 0, 0, 0.68)

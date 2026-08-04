@@ -1,17 +1,13 @@
 extends Control
 
-signal back_requested
-
-@onready var end_turn_button:       Button = $PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnButton
-@onready var graveyard_button:      Button = $PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardButton
-@onready var enemy_graveyard_button: Button = $PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardButton
-@onready var reset_button:     Button = $PanelContainer/VBox/BtnsMargin/BtnsRow/ResetButton
-@onready var back_button:      Button = $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton
-@onready var title_label:      Label  = $PanelContainer/VBox/TitleMargin/Title
-@onready var hint_label:       Label  = $PanelContainer/VBox/HintMargin/HintLabel
-@onready var end_turn_label:   Label  = $PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnLabel
-@onready var graveyard_label:  Label  = $PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardLabel
-@onready var enemy_graveyard_label: Label = $PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardLabel
+@onready var end_turn_button:       Button = $VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnButton
+@onready var graveyard_button:      Button = $VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardButton
+@onready var enemy_graveyard_button: Button = $VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardButton
+@onready var reset_button:     Button = $VBox/BtnsMargin/BtnsRow/ResetButton
+@onready var hint_label:       Label  = $VBox/HintMargin/HintLabel
+@onready var end_turn_label:   Label  = $VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnLabel
+@onready var graveyard_label:  Label  = $VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardLabel
+@onready var enemy_graveyard_label: Label = $VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardLabel
 @onready var conflict_label:   Label  = %ConflictLabel
 
 # Action InputMap <-> bouton associé.
@@ -24,7 +20,6 @@ signal back_requested
 var listening_action: String = ""
 
 func _ready() -> void:
-	back_button.pressed.connect(func(): back_requested.emit(); hide())
 	reset_button.pressed.connect(_reset_defaults)
 	for action in _action_buttons:
 		var btn: Button = _action_buttons[action]
@@ -35,13 +30,11 @@ func _ready() -> void:
 
 # Met à jour les libellés fixes du menu dans la langue courante.
 func _retranslate() -> void:
-	title_label.text          = SettingsManager.t("controls.title")
 	hint_label.text           = SettingsManager.t("controls.hint")
 	end_turn_label.text       = SettingsManager.t("controls.end_turn")
 	graveyard_label.text      = SettingsManager.t("controls.toggle_graveyard")
 	enemy_graveyard_label.text = SettingsManager.t("controls.toggle_enemy_graveyard")
 	reset_button.text         = SettingsManager.t("controls.reset")
-	back_button.text          = SettingsManager.t("controls.back")
 
 func _refresh_buttons() -> void:
 	for action in _action_buttons:
