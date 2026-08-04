@@ -2,7 +2,6 @@
 MENU_SUBTITLE,"Un jeu de cartes stratégique","A strategic card game"
 MENU_PLAY,"Jouer","Play"
 MENU_DECKS,"Mes Decks","My Decks"
-MENU_REPLAY_TUTORIAL_DEBUG,"Refaire le tutoriel (debug)","Replay tutorial (debug)"
 MENU_PACKS,"Packs","Packs"
 MENU_CURRENCY,"%d 🪙","%d 🪙"
 MENU_NEWS_TITLE,"Actualités","News"
