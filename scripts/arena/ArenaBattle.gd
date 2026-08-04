@@ -112,8 +112,17 @@ var _live_sim: SimulatedBattle = null
 # suivant", la partie s'enchaîne automatiquement à l'expiration du minuteur
 # (voir _start_shop_phase_timer/_on_phase_timer_timeout/_resolve_combat_phase/
 # _advance_round).
+# SHOP_PHASE_DURATION ne contraint que le joueur humain : les bots jouent
+# leur propre manche plus tard, dans _resolve_combat_phase() (après
+# l'expiration de ce minuteur), donc l'allonger n'a aucun effet sur eux.
+# 10s (valeur d'origine) laissait à peine le temps de lire l'offre avant
+# l'achat, plus serré encore avec le verrouillage de case (voir
+# ArenaPlayerState.shop_locked) qui ajoute une décision par carte. 25s reste
+# loin des 45s du design (pensées pour 8 vrais joueurs humains en
+# compétition d'achat, pas le cas ici), mais donne le temps de parcourir
+# l'offre, reroll/verrouiller et positionner sans se presser à chaque round.
 enum Phase { SHOP, COMBAT }
-const SHOP_PHASE_DURATION := 10.0
+const SHOP_PHASE_DURATION := 25.0
 const COMBAT_PHASE_DURATION := 15.0
 var current_phase: Phase = Phase.SHOP
 var phase_timer: Timer
