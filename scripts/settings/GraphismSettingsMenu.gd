@@ -1,34 +1,29 @@
 extends Control
 
-signal back_requested
-
-@onready var resolution_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionOption
-@onready var fullscreen_check:  CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenCheck
-@onready var vsync_check:       CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow/VSyncCheck
-@onready var quality_option:    OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityOption
-@onready var highlight_check:   CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightCheck
-@onready var language_option:   OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageOption
-@onready var difficulty_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyOption
-@onready var text_scale_slider: HSlider      = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleSlider
-@onready var text_scale_value_label: Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleValueLabel
-@onready var colorblind_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindOption
-@onready var apply_button:      Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton
-@onready var back_button:       Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton
+@onready var resolution_option: OptionButton = $VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionOption
+@onready var fullscreen_check:  CheckButton  = $VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenCheck
+@onready var vsync_check:       CheckButton  = $VBox/RowsMargin/RowsVBox/VSyncRow/VSyncCheck
+@onready var quality_option:    OptionButton = $VBox/RowsMargin/RowsVBox/QualityRow/QualityOption
+@onready var highlight_check:   CheckButton  = $VBox/RowsMargin/RowsVBox/HighlightRow/HighlightCheck
+@onready var language_option:   OptionButton = $VBox/RowsMargin/RowsVBox/LanguageRow/LanguageOption
+@onready var difficulty_option: OptionButton = $VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyOption
+@onready var text_scale_slider: HSlider      = $VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleSlider
+@onready var text_scale_value_label: Label   = $VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleValueLabel
+@onready var colorblind_option: OptionButton = $VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindOption
+@onready var apply_button:      Button       = $VBox/BtnsMargin/BtnsRow/ApplyButton
 
 # Libellés localisés (clé de traduction → nœud à mettre à jour).
 @onready var _localized_labels := {
-	"graphics.title":       $PanelContainer/VBox/Margin/Title,
-	"graphics.resolution":  $PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionLabel,
-	"graphics.fullscreen":  $PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenLabel,
-	"graphics.vsync":       $PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow/VSyncLabel,
-	"graphics.quality":     $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityLabel,
-	"graphics.highlights":  $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightLabel,
-	"graphics.language":    $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageLabel,
-	"graphics.difficulty":  $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyLabel,
-	"graphics.text_scale":  $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleLabel,
-	"graphics.colorblind":  $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindLabel,
-	"graphics.apply":       $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton,
-	"graphics.back":        $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton,
+	"graphics.resolution":  $VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionLabel,
+	"graphics.fullscreen":  $VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenLabel,
+	"graphics.vsync":       $VBox/RowsMargin/RowsVBox/VSyncRow/VSyncLabel,
+	"graphics.quality":     $VBox/RowsMargin/RowsVBox/QualityRow/QualityLabel,
+	"graphics.highlights":  $VBox/RowsMargin/RowsVBox/HighlightRow/HighlightLabel,
+	"graphics.language":    $VBox/RowsMargin/RowsVBox/LanguageRow/LanguageLabel,
+	"graphics.difficulty":  $VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyLabel,
+	"graphics.text_scale":  $VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleLabel,
+	"graphics.colorblind":  $VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindLabel,
+	"graphics.apply":       $VBox/BtnsMargin/BtnsRow/ApplyButton,
 }
 
 # Nom d'affichage de chaque locale dans le sélecteur de langue.
@@ -92,7 +87,6 @@ func _ready() -> void:
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
 
 	apply_button.pressed.connect(_apply)
-	back_button.pressed.connect(func(): back_requested.emit(); hide())
 
 	SettingsManager.language_changed.connect(_on_language_changed)
 	_retranslate()

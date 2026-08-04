@@ -242,12 +242,6 @@ text = "Signaler un probleme"
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
 
-[node name="ReplayTutorialButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000012]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "Refaire le tutoriel (debug)"
-
 [node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -434,13 +428,6 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_font_sizes/font_size = 18
 text = "0"
-
-[node name="MatchStatsLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000072]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 14
-text = "0V - 0D"
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -676,6 +663,15 @@ theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 22
 text = "Pseudo Steam"
 vertical_alignment = 1
+
+[node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+
+[node name="ProfileMatchStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "0V - 0D"
 
 [node name="ProfileMemberSinceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
 layout_mode = 2

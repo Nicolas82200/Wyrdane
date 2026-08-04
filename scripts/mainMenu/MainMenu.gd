@@ -42,7 +42,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
 @onready var report_button:   Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
-@onready var replay_tutorial_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/ReplayTutorialButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
@@ -62,7 +61,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
-@onready var match_stats_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/MatchStatsLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -91,6 +89,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
 @onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileAvatar
 @onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileNameLabel
+@onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMatchStatsLabel
 @onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMemberSinceLabel
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileSoloStatsLabel
@@ -133,7 +132,6 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
-	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -197,9 +195,8 @@ func _ready() -> void:
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
-		match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
+		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_load_news()
 	_start_backend_sync()
 	_show_info_view(InfoView.NEWS)
@@ -344,6 +341,7 @@ func _open_profile_view() -> void:
 		var tex := SteamService.local_avatar_texture()
 		if tex:
 			profile_avatar.texture = tex
+	profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_show_profile_placeholders()
 	_fetch_profile()
 
@@ -801,16 +799,6 @@ func _on_edit_composition_deck() -> void:
 			_show_deck_composition(_composition_deck_index)
 	)
 
-# Bouton temporaire de debug/test : force le rejeu du tutoriel obligatoire
-# sans avoir à éditer le fichier de config à la main (voir
-# SettingsManager.reset_tutorial_completed). À retirer une fois le tutoriel
-# validé.
-func _on_replay_tutorial_pressed() -> void:
-	SettingsManager.reset_tutorial_completed()
-	_apply_tutorial_lock()
-	TutorialContext.active = true
-	get_tree().change_scene_to_file(BATTLE_SCENE)
-
 # Charge le panneau d'actualités : les devlogs/actus créés sur le site
 # (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
 # chaque déploiement depuis src/content/news + src/content/devlog — voir son
@@ -932,7 +920,6 @@ func _retranslate() -> void:
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
-	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	report_button.text  = SettingsManager.t("MENU_REPORT")
@@ -946,7 +933,6 @@ func _retranslate() -> void:
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
-	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 
 	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
 	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
