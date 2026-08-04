@@ -731,7 +731,27 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 
 **Bilan** : sur 26 sorts, 19 éligibles (dont 7 à adapter sur la formulation durée/cible), 5 exclus (pioche×3, retour en main×1, Sacrifice×1, enchantement×1), 1 exclu par obsolescence.
 
-**Note** : cette passe d'éligibilité n'a pas encore été refaite pour la race Démon (ajoutée depuis, voir `CARDS.md`) — plusieurs de ses Incantations ciblent explicitement "ton héros" plutôt qu'un serviteur, un cas de figure qui n'existait pas encore lors de cette analyse.
+**Verdict carte par carte — Démon (D40-D52)**
+
+| ID | Nom | Verdict | Raison |
+|:---:|---|:---:|---|
+| D40 | Flamme Infernale | ✅ Éligible | Dégât ciblé, direct |
+| D41 | Pacte Hâtif | ❌ Exclu | Pioche de carte |
+| D42 | Vague de Corruption | ✅ Éligible | Effet de zone, ciblage adversaire résolu |
+| D43 | Rite de Sang | ❌ Exclu | Sacrifice (trigger exclu du mode) |
+| D44 | Étreinte du Gouffre | ✅ Adapté | "1 tour" → "ce combat" |
+| D45 | Marque du Pacte | ✅ Adapté | "Jusqu'à fin de tour" → "ce combat" |
+| D46 | Hurlement Écarlate | ✅ Adapté | "Ce tour" → "ce combat" |
+| D47 | Emprise Écarlate | ✅ Adapté | Prise de contrôle temporaire puis destruction — durée recadrée sur "ce combat", ciblage adversaire révélé résolu |
+| D48 | Communion Écarlate | ❌ Exclu | Pioche de carte |
+| D49 | Ultime Sacrifice | ❌ Exclu | Sacrifice (trigger exclu du mode) et pioche de carte |
+| D50 | Absolution Écarlate | ✅ Adapté | "Ce tour" → "ce combat" |
+| D51 | Souffle Corrupteur | ✅ Éligible | Debuff permanent ciblé — cohérent avec les règles de buffs/debuffs persistants |
+| D52 | Doigt Écarlate | ❌ Exclu | Pioche de carte |
+
+**Bilan Démon** : sur 13 sorts, 8 éligibles (dont 5 à adapter sur la formulation durée/cible), 5 exclus (pioche×4 — dont Ultime Sacrifice qui cumule pioche et Sacrifice —, Sacrifice×2).
+
+**Note** : passe d'éligibilité Démon désormais faite (voir tableau ci-dessus). Les Incantations ciblant explicitement "ton héros" plutôt qu'un serviteur (perte/regain de HP en contrepartie de l'effet) ne posent aucun problème de recadrage : les PV de héros sont une ressource persistante entre rounds (contrairement au plateau, restauré à chaque round), donc ces effets s'appliquent tels quels sans réinterprétation de durée ou de cible.
 
 ### 🔥 Triggers en combat simulé
 
@@ -775,7 +795,6 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 ### 📋 Points encore à trancher (mode BR)
 
 1. Réseau/lobby pour 8 joueurs — hébergement, simulation centralisée vs déterministe (voir section Réseau ci-dessus).
-2. Passe d'éligibilité des Incantations à refaire pour la race Démon (non couverte lors de l'analyse initiale, voir note ci-dessus).
 
 ---
 
@@ -796,7 +815,6 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 ### À faire
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
-*   Cartes Démon : passe d'éligibilité des Incantations (non couverte lors de l'analyse initiale)
 *   Nouvelles races : Elfe, Nain
 *   Mode campagne et collection de cartes
 *   Animations shaders

@@ -24,6 +24,10 @@ var aura_damage_reduction: int = 0
 var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
+# Verrou de ré-entrance : posé pendant la résolution d'une attaque (CombatSystem)
+# pour empêcher qu'un effet déclenché en chaîne (ex. OnAttack, attaque immédiate)
+# ne relance une attaque avec ce serviteur avant que la précédente soit terminée.
+var is_attacking: bool = false
 var keywords: Array[int] = []
 var human_keywords: Array[int] = []
 var undead_keywords: Array[int] = []
@@ -111,7 +115,7 @@ var health: int:
 
 # ─── Combat (inchangé) ──────────────────────────────────────────────────────
 func can_attack() -> bool:
-	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0
+	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0 and not is_attacking
 
 func refresh_attacks() -> void:
 	extra_attack_used_this_turn = false
