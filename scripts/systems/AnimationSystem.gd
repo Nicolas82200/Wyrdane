@@ -152,16 +152,14 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		attacker_visual.z_index = 0
 
 ## Absorption d'une carte-ressource jouée : la carte se désintègre en fragments
-## dispersés aléatoirement, puis une boule de lumière part du point de
-## désintégration vers le pool de mana de sa race (`target`, teintée `color`).
-## Libère `card` (queue_free) une fois les fragments envolés.
-func play_resource_absorb(card: Card, target: Vector2, color: Color) -> void:
+## dispersés aléatoirement (teintés `color`). Libère `card` (queue_free) une
+## fois les fragments envolés.
+func play_resource_absorb(card: Card, color: Color) -> void:
 	if not is_instance_valid(card):
 		return
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.z_index = 100
 
-	var burst_center: Vector2 = card.global_position + card.size * 0.5
 	_shatter_card_art(card, color)
 
 	# Le reste de la carte (bordure, labels, coût...) s'efface pendant que
@@ -172,9 +170,6 @@ func play_resource_absorb(card: Card, target: Vector2, color: Color) -> void:
 		if is_instance_valid(card):
 			card.queue_free()
 	)
-
-	await battle.get_tree().create_timer(0.14).timeout
-	_travel_light_orb(burst_center, target, color)
 
 ## Découpe `card.art` en une grille de fragments qui s'envolent dans des
 ## directions aléatoires (biaisées vers l'extérieur) en tournant et en s'effaçant.
@@ -322,110 +317,6 @@ func _missile_impact(pos: Vector2, color: Color) -> void:
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(flash, "modulate:a", 0.0, 0.22)
 	tween.chain().tween_callback(flash.queue_free)
-
-## Boule de gaz qui voyage de `start` à `target` avec un halo double
-## (respirant pendant le trajet) et une traînée d'après-images, façon "âme"
-## absorbée vers le pool de mana.
-func _travel_light_orb(start: Vector2, target: Vector2, color: Color) -> void:
-	var glow_color: Color = color.lightened(0.5)
-
-	# Nuage à trois couches (haze très diffus, glow, cœur) au lieu d'un simple
-	# point de lumière : donne un effet de boule de gaz plutôt épaisse.
-	var haze := Panel.new()
-	var haze_style := StyleBoxFlat.new()
-	haze_style.bg_color = Color(glow_color.r, glow_color.g, glow_color.b, 0.14)
-	haze_style.set_corner_radius_all(26)
-	haze.add_theme_stylebox_override("panel", haze_style)
-	haze.size = Vector2(52, 52)
-	haze.pivot_offset = haze.size / 2.0
-	haze.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	haze.z_index = 99
-
-	var glow := Panel.new()
-	var glow_style := StyleBoxFlat.new()
-	glow_style.bg_color = Color(glow_color.r, glow_color.g, glow_color.b, 0.32)
-	glow_style.set_corner_radius_all(19)
-	glow.add_theme_stylebox_override("panel", glow_style)
-	glow.size = Vector2(38, 38)
-	glow.pivot_offset = glow.size / 2.0
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	glow.z_index = 100
-
-	var core := Panel.new()
-	var core_style := StyleBoxFlat.new()
-	core_style.bg_color = glow_color
-	core_style.set_corner_radius_all(10)
-	core.add_theme_stylebox_override("panel", core_style)
-	core.size = Vector2(20, 20)
-	core.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	core.z_index = 101
-
-	battle.add_child(haze)
-	battle.add_child(glow)
-	battle.add_child(core)
-	haze.global_position = start - haze.size / 2.0
-	glow.global_position = start - glow.size / 2.0
-	core.global_position = start - core.size / 2.0
-
-	var duration := 0.42
-	var perp: Vector2 = (target - start).orthogonal().normalized()
-	var trail_spawned := {}
-
-	var step := func(t: float):
-		if not is_instance_valid(core) or not is_instance_valid(glow) or not is_instance_valid(haze):
-			return
-		var pos_t: float = t * t * (3.0 - 2.0 * t)
-		var arc: float = sin(t * PI) * 18.0
-		var pos: Vector2 = start.lerp(target, pos_t) + perp * arc
-		# Le nuage "respire" (se dilate/contracte légèrement) pendant le trajet,
-		# comme du gaz en mouvement plutôt qu'un projectile rigide.
-		var breathe: float = 1.0 + sin(t * TAU * 3.0) * 0.12
-		core.global_position = pos - core.size / 2.0
-		glow.scale = Vector2.ONE * breathe
-		glow.global_position = pos - glow.size / 2.0
-		haze.scale = Vector2.ONE * breathe
-		haze.global_position = pos - haze.size / 2.0
-		# Traînée : quelques après-images fantômes déposées le long du trajet.
-		var step10: int = int(t * 10.0)
-		if step10 % 2 == 0 and not trail_spawned.has(step10):
-			trail_spawned[step10] = true
-			_travel_spark(pos, pos, glow_color, 0.0, 0.22, 10.0)
-
-	var tween: Tween = battle.create_tween()
-	tween.tween_method(step, 0.0, 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	tween.tween_callback(func():
-		_puff_dissipate(target, glow_color)
-		if is_instance_valid(core):
-			core.queue_free()
-		if is_instance_valid(glow):
-			glow.queue_free()
-		if is_instance_valid(haze):
-			haze.queue_free()
-	)
-
-## Petit "pouf" gazeux à l'arrivée sur le pool de mana : un halo qui gonfle
-## puis se dissipe en fondu, pour vendre l'absorption du nuage plutôt qu'une
-## simple disparition instantanée.
-func _puff_dissipate(pos: Vector2, color: Color) -> void:
-	var puff := Panel.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(color.r, color.g, color.b, 0.45)
-	style.set_corner_radius_all(20)
-	puff.add_theme_stylebox_override("panel", style)
-	puff.size = Vector2(40, 40)
-	puff.pivot_offset = puff.size / 2.0
-	puff.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	puff.z_index = 102
-	battle.add_child(puff)
-	puff.global_position = pos - puff.size / 2.0
-	puff.scale = Vector2(0.4, 0.4)
-
-	var tween: Tween = battle.create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(puff, "scale", Vector2(1.6, 1.6), 0.28)\
-		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(puff, "modulate:a", 0.0, 0.28)
-	tween.chain().tween_callback(puff.queue_free)
 
 # ─── Primitives réutilisées par les animations de mots-clés ───────────────────
 

@@ -651,7 +651,6 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	if RESOURCE_ZONE_ENABLED:
 		enchantment_system.add_resource(card_data, is_player)
 	combat_log.card_played(card_data, is_player)
-	AudioManager.play(AudioManager.RESOURCE_PLAYED)
 	if is_player:
 		update_mana_ui()
 		mana_display.pulse_max()

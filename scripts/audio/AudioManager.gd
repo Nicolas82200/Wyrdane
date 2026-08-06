@@ -14,7 +14,6 @@ const DRAW := "draw"
 const PLAY_CARD := "play_card"
 const SPELL_CAST := "spell_cast"
 const SPELL_CAST_FREEZE := "spell_cast_freeze"
-const RESOURCE_PLAYED := "resource_played"
 
 # Tour
 const TURN_START := "turn_start"
@@ -132,12 +131,6 @@ func load_sounds() -> void:
 		],
 		SHUFFLE: [
 			preload("res://assets/audio/sound-effect/interface/shuffle_cards.mp3")
-		],
-		# Carte-ressource jouée : absorbée dans le pool de mana de sa race
-		# (voir Battle.play_resource_card) — chime de confirmation, cohérent
-		# avec le fait qu'aucun effet de sort n'est réellement lancé.
-		RESOURCE_PLAYED: [
-			preload("res://assets/audio/sound-effect/interface/confirm.wav")
 		],
 		DRAW: [
 			preload("res://assets/audio/sound-effect/global/draw-card-01.mp3"),
