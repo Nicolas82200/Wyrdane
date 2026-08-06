@@ -14,3 +14,7 @@ addons/godotsteam/**/~*
 # sans changement de contenu (diffs fantômes, conflits binaires non fusionnables)
 translations/*.translation
 .devlog/
+
+# Brouillons/archives de devlog hebdomadaire : notes de session brutes,
+# usage interne uniquement — ne doit pas apparaître sur GitHub.
+/devlogs/
