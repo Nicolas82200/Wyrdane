@@ -31,6 +31,13 @@ const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 # constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
+# Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
+# preview garde cette taille réelle et n'est réduite que visuellement via
+# `scale`, car plusieurs de ses enfants (labels, icônes) sont positionnés en
+# offsets fixes calibrés pour cette taille — redimensionner `size` directement
+# désaligne le contenu par rapport à la bordure.
+const CARD_BASE_SIZE := Vector2(250, 375)
+const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
 const CURVE_BAR_HEIGHT := 60.0
 const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
@@ -80,7 +87,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
 @onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleLabel
 @onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
-@onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewCard
+@onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHolder/DeckCompPreviewCard
 @onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
 @onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompStatsScroll/DeckCompStatsPanel
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
@@ -139,12 +146,17 @@ func _ready() -> void:
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
-	# Taille figée dès le départ (et pas seulement au survol) : la carte est
-	# masquée tant qu'aucune ligne n'est survolée, mais son gabarit ne doit
-	# jamais changer, sinon le CenterContainer autour recalcule sa mise en
-	# page et l'aperçu "saute" entre les deux états.
-	deck_comp_preview_card.custom_minimum_size = DECK_COMP_PREVIEW_SIZE
-	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
+	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
+	# positionnés en offsets fixes calibrés pour elle — la redimensionner
+	# directement désaligne le contenu par rapport à la bordure) et n'est
+	# réduite que visuellement via `scale`. Elle est placée dans un Control
+	# simple (DeckCompPreviewHolder), pas directement dans le CenterContainer :
+	# un Container réinitialise `scale`/`rotation` de ses enfants directs à
+	# chaque tri de layout (ex. au show()/hide()), ce qui annulerait le scale.
+	# Le holder, lui, garde un gabarit figé (216x324) pour que le
+	# CenterContainer autour ne recalcule jamais sa mise en page au survol.
+	deck_comp_preview_card.custom_minimum_size = CARD_BASE_SIZE
+	deck_comp_preview_card.scale = DECK_COMP_PREVIEW_SCALE
 	deck_comp_preview_card.hide()
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
@@ -655,7 +667,6 @@ func _show_deck_composition(deck_index: int) -> void:
 ## Aperçu de carte à droite au survol d'une ligne de la composition.
 func _on_deck_comp_card_hover(card: CardData) -> void:
 	deck_comp_preview_hint.hide()
-	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
 	deck_comp_preview_card.set_data(card)
 	deck_comp_preview_card.show()
 
