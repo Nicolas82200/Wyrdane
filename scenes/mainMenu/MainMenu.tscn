@@ -600,12 +600,6 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(0, 340)
 layout_mode = 2
 
-<<<<<<< HEAD
-[node name="DeckCompPreviewCard" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox" unique_id=993380596 instance=ExtResource("11_card")]
-visible = false
-custom_minimum_size = Vector2(216, 324)
-layout_mode = 2
-=======
 [node name="DeckCompPreviewHolder" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox"]
 custom_minimum_size = Vector2(216, 324)
 layout_mode = 2
@@ -615,7 +609,6 @@ visible = false
 layout_mode = 0
 offset_right = 250.0
 offset_bottom = 375.0
->>>>>>> bf2b73303932abaef5e832561383b2858cc49567
 
 [node name="DeckCompPreviewHint" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox" unique_id=911695935]
 custom_minimum_size = Vector2(240, 0)
