@@ -8,6 +8,12 @@ signal concede_requested
 # lui, est masqué en partie : on ferme le menu via la croix en haut à droite.
 @export var show_quit: bool = false
 
+# Activé quand ce menu est intégré dans le panneau Actualités du menu principal
+# (au lieu d'être une popup plein écran par-dessus la bataille) : le panneau
+# doit alors se fondre dans le panneau parent plutôt que dessiner son propre
+# fond/bordure par-dessus (effet "panneau dans un panneau").
+@export var embedded_in_panel: bool = false
+
 @onready var panel                 = $Panel
 @onready var audio_menu             = %AudioSettingsMenu
 @onready var graphism_menu          = %GraphismSettingsMenu
@@ -39,6 +45,8 @@ func _ready() -> void:
 	_style_danger_button(concede_button)
 	_style_danger_button(confirm_yes_button)
 	_style_close_x_button()
+	if embedded_in_panel:
+		panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
 	var tab_group := ButtonGroup.new()
 	for tab_button in _tabs:
