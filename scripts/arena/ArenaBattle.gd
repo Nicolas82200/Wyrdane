@@ -23,6 +23,7 @@ extends Control
 
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
 const HAND_SCENE := preload("res://scenes/hand/Hand.tscn")
+const SETTINGS_MENU_SCENE := preload("res://scenes/settings/SettingsMenu.tscn")
 const BACKGROUND_ART := preload("res://assets/background/background-05.jpg")
 const ROUNDED_CORNERS_SHADER := preload("res://resources/shaders/rounded_corners.gdshader")
 const UI_FONT := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
@@ -88,6 +89,11 @@ var portraits_column: VBoxContainer
 # cliquer un portrait remplace la vue par le sien, en lecture seule.
 var viewed_target = null
 var back_to_menu_button: Button
+# Même SettingsMenu.tscn que le 1v1 (Battle.tscn), avec show_quit = true :
+# le bouton Fermer y est remplacé par Concéder (retour au menu principal, la
+# seule façon de quitter une partie Arena en cours — pas de reprise).
+var settings_button: Button
+var settings_menu: Control
 var end_game_overlay: ColorRect
 var end_game_screen_panel: PanelContainer
 var end_game_title_label: Label
@@ -332,6 +338,26 @@ func _build_ui() -> void:
 	portraits_column.add_theme_constant_override("separation", 2)
 	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(portraits_column)
+
+	# ─ Paramètres/quitter : coin haut-droit (le coin haut-gauche est déjà pris
+	# par l'en-tête round/PV/niveau/XP) — même SettingsMenu.tscn que le 1v1,
+	# avec show_quit = true (bouton Concéder à la place de Fermer, seule façon
+	# de quitter une partie en cours).
+	settings_button = Button.new()
+	settings_button.anchor_left = 1.0
+	settings_button.anchor_right = 1.0
+	settings_button.offset_left = -64.0
+	settings_button.offset_right = -12.0
+	settings_button.offset_top = 10.0
+	settings_button.offset_bottom = 62.0
+	settings_button.pressed.connect(func(): settings_menu.open())
+	_style_button(settings_button, null, ArenaIcon.Kind.GEAR)
+	add_child(settings_button)
+
+	settings_menu = SETTINGS_MENU_SCENE.instantiate()
+	settings_menu.show_quit = true
+	settings_menu.concede_requested.connect(_on_settings_quit)
+	add_child(settings_menu)
 
 	_build_game_over_screen()
 
@@ -1015,8 +1041,11 @@ func _refresh_portraits() -> void:
 func _make_participant_button(target, _label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
 	var btn := Button.new()
 	# Assez petit pour que les 8 participants tiennent dans la colonne de
-	# gauche sans dépasser (voir portraits_column, ancrée en fraction d'écran).
-	btn.custom_minimum_size = Vector2(52, 64)
+	# gauche sans dépasser (voir portraits_column, ancrée en fraction d'écran :
+	# 0.12-0.88, ~630px dispo à 1080p pour 8 boutons + séparation — cette
+	# taille (64x78) laisse une bonne marge, contrairement à 52x64 jugée trop
+	# petite par le joueur).
+	btn.custom_minimum_size = Vector2(64, 78)
 	btn.icon = _art_for_target(target)
 	btn.expand_icon = true
 	btn.disabled = eliminated
@@ -1190,4 +1219,11 @@ func _advance_round() -> void:
 	_start_shop_phase_timer()
 
 func _on_back_to_menu_pressed() -> void:
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+# Concéder depuis le menu Paramètres (voir settings_menu.concede_requested) :
+# pas de réseau à fermer côté Arena (solo local), contrairement à
+# Battle._on_quit_match — juste retourner au menu, la partie en cours est perdue.
+func _on_settings_quit() -> void:
+	settings_menu.close()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)

@@ -34,14 +34,17 @@ func setup(data: CardData, index: int, locked: bool = false) -> void:
 	if data.card_type != "Minion":
 		visual.attack_label.visible = false
 		visual.health_label.visible = false
-	# IGNORE (pas le STOP par défaut posé par BoardMinion._ready()) : laisse
-	# les événements souris remonter jusqu'à CE Control pour le drag d'achat
-	# (_get_drag_data plus bas), sans empêcher l'aperçu au survol de
-	# BoardMinion — qui sonde la position de la souris lui-même à chaque
-	# frame (voir BoardMinion._process), pas via les signaux natifs
-	# mouse_entered/exited que IGNORE désactiverait. Même pattern que
-	# ArenaBoardMinionSlot pour les serviteurs déjà posés.
-	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (ni le STOP par défaut posé par BoardMinion._ready(), ni IGNORE) :
+	# laisse les événements souris remonter jusqu'à CE Control pour le drag
+	# d'achat (_get_drag_data plus bas) SANS désactiver l'aperçu au survol de
+	# BoardMinion. BoardMinion._process sonde lui-même la position de la
+	# souris à chaque frame (pas via les signaux natifs mouse_entered/exited),
+	# mais sa condition `mouse_filter != MOUSE_FILTER_IGNORE` exclut
+	# explicitement IGNORE de ce sondage — l'utiliser ici désactivait donc le
+	# survol au lieu de le préserver comme prévu. PASS reste différent
+	# d'IGNORE pour ce test tout en laissant l'événement de drag continuer
+	# vers le parent (STOP l'aurait bloqué avant qu'il n'atteigne ce Control).
+	visual.mouse_filter = Control.MOUSE_FILTER_PASS
 	custom_minimum_size = visual.custom_minimum_size
 	_add_lock_button(locked)
 
