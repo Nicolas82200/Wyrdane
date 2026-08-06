@@ -37,8 +37,8 @@ func test_card_played_uses_plus_icon_for_minion_and_sparkle_for_others() -> void
 	minion_data.card_type = "Minion"
 	combat_log.card_played(minion_data, true)
 	combat_log.card_played(_spell(), true)
-	assert_eq(combat_log.entries[0]["icon"], "➕")
-	assert_eq(combat_log.entries[1]["icon"], "✨")
+	assert_eq(combat_log.entries[0]["icon"], "+")
+	assert_eq(combat_log.entries[1]["icon"], "*")
 
 func test_attack_appends_entry_with_damage_segment() -> void:
 	var attacker := _minion(true)
@@ -74,11 +74,11 @@ func test_attack_hero_logs_target_camp() -> void:
 
 func test_minion_died_appends_skull_icon() -> void:
 	combat_log.minion_died(_minion(true))
-	assert_eq(combat_log.entries[0]["icon"], "💀")
+	assert_eq(combat_log.entries[0]["icon"], "X")
 
 func test_infection_tick_appends_entry() -> void:
 	combat_log.infection_tick(_minion(true))
-	assert_eq(combat_log.entries[0]["icon"], "🧪")
+	assert_eq(combat_log.entries[0]["icon"], "Inf.")
 
 func test_self_damage_skips_when_zero() -> void:
 	combat_log.self_damage(true, 0)
@@ -94,7 +94,7 @@ func test_entry_added_signal_emits_with_new_entry() -> void:
 	combat_log.entry_added.connect(func(entry: Dictionary): received.append(entry))
 	combat_log.minion_died(_minion(true))
 	assert_eq(received.size(), 1)
-	assert_eq(received[0]["icon"], "💀")
+	assert_eq(received[0]["icon"], "X")
 
 func test_max_entries_evicts_oldest_entry() -> void:
 	for i in CombatLogSystem.MAX_ENTRIES:

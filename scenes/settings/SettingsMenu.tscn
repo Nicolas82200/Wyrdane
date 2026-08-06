@@ -47,11 +47,26 @@ grow_vertical = 2
 theme = ExtResource("6_theme")
 script = ExtResource("5_script")
 
-[node name="Panel" type="PanelContainer" parent="." unique_id=100000002]
+[node name="Overlay" type="ColorRect" parent="." unique_id=100000029]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=100000002]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -380.0
+offset_top = -290.0
+offset_right = 380.0
+offset_bottom = 290.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -112,21 +127,21 @@ custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 toggle_mode = true
 button_pressed = true
-text = "🔊  Audio"
+text = "Audio"
 
 [node name="GraphismTabButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/NavBar" unique_id=100000010]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 toggle_mode = true
-text = "🖥  Graphismes"
+text = "Graphismes"
 
 [node name="ControlTabButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/NavBar" unique_id=100000011]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 toggle_mode = true
-text = "🎮  Contrôles"
+text = "Contrôles"
 
 [node name="NavSep" type="VSeparator" parent="Panel/VBox/BodyMargin/BodyRow" unique_id=100000032]
 layout_mode = 2
@@ -195,7 +210,7 @@ text = "Fermer"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-text = "🏳  Concéder"
+text = "Concéder"
 
 [node name="ConfirmPanel" type="PanelContainer" parent="." unique_id=100000022]
 visible = false
@@ -248,4 +263,4 @@ text = "Annuler"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(140, 44)
 layout_mode = 2
-text = "🏳  Concéder"
+text = "Concéder"
