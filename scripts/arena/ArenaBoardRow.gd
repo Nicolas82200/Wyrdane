@@ -3,9 +3,12 @@ class_name ArenaBoardRow
 
 # Rangée du plateau joueur (Avant ou Arrière) : reçoit soit le drop d'une carte
 # de boutique (voir ArenaShopCardSlot -> `on_drop`, achat+pose), soit le drop
-# d'un serviteur déjà sur CETTE MÊME ligne (voir ArenaBoardMinionSlot ->
-# `on_reposition`) pour changer son emplacement au sein de la ligne — pas de
-# changement de ligne (le joueur choisit la ligne à la pose, pas ensuite).
+# d'un serviteur déjà posé (voir ArenaBoardMinionSlot -> `on_reposition`) pour
+# changer son emplacement — au sein de sa ligne pour n'importe quel serviteur
+# (réordonner), ou d'une ligne à l'autre en plus pour un serviteur Hybride
+# (`CardData.board_position == "Hybrid"`, demande explicite du joueur : un
+# Hybride reste repositionnable Avant/Arrière après la pose, contrairement aux
+# serviteurs Avant/Arrière stricts dont la ligne est fixée à la pose).
 # Délégués à ArenaBattle plutôt que de connaître ArenaMatch/ArenaPlayerState
 # directement.
 
@@ -21,7 +24,8 @@ func _can_drop_data(_at_position: Vector2, data) -> bool:
 	if data.has("arena_board_minion"):
 		var dragged: Minion = data["arena_board_minion"]
 		var own_row: bool = dragged.board_row == ("Front" if is_front else "Back")
-		return on_reposition.is_valid() and own_row
+		var can_change_row: bool = dragged.card_data.board_position == "Hybrid"
+		return on_reposition.is_valid() and (own_row or can_change_row)
 	return false  # plateau d'un autre joueur consulté en lecture seule (scoutage)
 
 func _drop_data(at_position: Vector2, data) -> void:

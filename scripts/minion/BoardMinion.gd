@@ -600,6 +600,14 @@ func _on_mouse_exited() -> void:
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
 	if _hover_preview:
+		# `visible = false` synchrone AVANT queue_free() : la destruction
+		# réelle du nœud est différée à la fin de la frame (voir SceneTree),
+		# donc en passant rapidement d'une carte à sa voisine directe (ex. en
+		# boutique, cartes serrées côte à côte), l'ancienne preview restait
+		# affichée un instant pendant que la nouvelle apparaissait déjà —
+		# deux previews visibles en même temps. Masquer explicitement supprime
+		# cette fenêtre, sans dépendre de l'ordre exact des suppressions différées.
+		_hover_preview.visible = false
 		_hover_preview.queue_free()
 		_hover_preview = null
 
