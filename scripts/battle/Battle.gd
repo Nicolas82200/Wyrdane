@@ -113,7 +113,7 @@ var turn_banner: TurnBanner
 # Journal de combat repliable, créé en code pour ne pas toucher Battle.tscn
 # (voir CombatLogPanel).
 var combat_log_panel: CombatLogPanel
-# Glossaire des mots-clés/déclencheurs consultable via le bouton "❔", créé en
+# Glossaire des mots-clés/déclencheurs consultable via le bouton "?", créé en
 # code pour ne pas toucher Battle.tscn (voir KeywordGlossaryPanel).
 var glossary_panel: KeywordGlossaryPanel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
@@ -852,6 +852,7 @@ func _player_has_no_actions() -> bool:
 
 # Met à jour les libellés fixes de la bataille dans la langue courante.
 func _retranslate_battle() -> void:
+	settings_button.tooltip_text = SettingsManager.t("settings.title")
 	help_button.tooltip_text = SettingsManager.t("GLOSSARY_TITLE")
 	report_button.tooltip_text = SettingsManager.t("REPORT_TITLE")
 	if _mulligan_active:
