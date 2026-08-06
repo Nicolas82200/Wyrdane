@@ -76,7 +76,7 @@ func _apply_revenant(minions: Array[Minion]) -> bool:
 func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:
 		# Les morts déjà représentées dans une entrée de log dédiée (ex : attaque
-		# fusionnée attaquant/défenseur) ne dupliquent pas de ligne 💀 séparée.
+		# fusionnée attaquant/défenseur) ne dupliquent pas de ligne de mort séparée.
 		if not silent.has(minion):
 			battle.combat_log.minion_died(minion)
 		var visual = battle.board_visual_system.get_visual(minion)

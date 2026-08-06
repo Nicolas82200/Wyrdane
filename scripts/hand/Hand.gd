@@ -296,6 +296,25 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 	_battle.add_child(_tooltip_layer)
 	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
 	await get_tree().process_frame
+
+	var vp := get_viewport_rect().size
+
+	# Reste sur l'écran : bascule à gauche de la preview si la pile déborde à
+	# droite, et remonte le point de départ si elle déborde en bas.
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
+	var panel_width := 220.0
+	if panels.size() > 0 and is_instance_valid(panels[0]):
+		panel_width = panels[0].size.x
+	if base_x + panel_width > vp.x - 4.0:
+		base_x = maxf(4.0, preview.global_position.x - panel_width - 15)
+
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue

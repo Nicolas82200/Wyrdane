@@ -287,12 +287,13 @@ func _build_ui() -> void:
 	suspended_label.offset_bottom = -HERO_PORTRAIT_SIZE.y / 2.0 + 10.0
 	add_child(suspended_label)
 
-	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot) et
-	# contrôles boutique, superposés en haut de l'écran (jamais dans le flux
-	# du plateau, pour ne jamais influencer sa position).
+	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot),
+	# superposé en haut de l'écran (jamais dans le flux du plateau, pour ne
+	# jamais influencer sa position). Décalé à droite du bouton Paramètres
+	# (voir plus bas, toujours coin haut-gauche) pour ne pas le chevaucher.
 	var top_bar := VBoxContainer.new()
 	top_bar.anchor_right = 1.0
-	top_bar.offset_left = 12.0
+	top_bar.offset_left = 72.0
 	top_bar.offset_top = 10.0
 	top_bar.offset_right = -12.0
 	top_bar.add_theme_constant_override("separation", 4)
@@ -312,47 +313,7 @@ func _build_ui() -> void:
 	xp_label.add_theme_font_size_override("font_size", 12)
 	xp_label.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_XP")
 
-	# Structure dédiée pour les actions de boutique (actualiser/reroll, geler,
-	# acheter XP, prêt) : même panneau discret que le reste
-	# (_make_panel_background) plutôt que des boutons nus posés directement
-	# sur le décor, pour former un groupe visuellement identifiable au premier
-	# coup d'œil. Chaque bouton porte un tooltip (fonction + prix), seul
-	# élément d'info sur un bouton par ailleurs sans texte.
-	var shop_controls := HBoxContainer.new()
-	shop_controls.add_theme_constant_override("separation", 8)
-	top_bar.add_child(_make_panel_background(shop_controls))
-	reroll_button = Button.new()
-	reroll_button.pressed.connect(_on_reroll_pressed)
-	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
-	reroll_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_REROLL") % ArenaConstants.REROLL_COST
-	shop_controls.add_child(reroll_button)
-	# Gel de la boutique (façon TFT, README « État actuel du prototype ») :
-	# préserve l'offre ENTIÈRE (pas une carte à la fois, voir ArenaShopCardSlot
-	# — le verrouillage par carte a été retiré) pour la manche suivante.
-	# toggle_mode : reste visuellement enfoncé tant que le gel est actif.
-	freeze_button = Button.new()
-	freeze_button.toggle_mode = true
-	freeze_button.pressed.connect(_on_freeze_pressed)
-	_style_button(freeze_button, null, ArenaIcon.Kind.SNOWFLAKE)
-	freeze_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_FREEZE")
-	shop_controls.add_child(freeze_button)
-	buy_xp_button = Button.new()
-	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
-	_style_button(buy_xp_button, null, ArenaIcon.Kind.STAR)
-	buy_xp_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_BUY_XP") % ArenaConstants.GOLD_TO_XP_RATE
-	shop_controls.add_child(buy_xp_button)
-	# Prêt : termine la phase Boutique immédiatement plutôt que d'attendre la
-	# fin du décompte (les bots ne "attendent" jamais réellement — ils jouent
-	# leur propre manche juste après, voir _resolve_combat_phase — donc rien
-	# n'empêche de lancer le combat dès que le joueur humain, seul participant
-	# réellement freiné par le minuteur, se déclare prêt).
-	ready_button = Button.new()
-	ready_button.pressed.connect(_on_ready_pressed)
-	_style_button(ready_button, null, ArenaIcon.Kind.PLAY)
-	ready_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_READY")
-	shop_controls.add_child(ready_button)
-
-	# Nom du plateau consulté (voir portraits_column) : sous les contrôles boutique.
+	# Nom du plateau consulté (voir portraits_column) : sous l'en-tête.
 	viewing_label = _make_label(top_bar)
 
 	# ─ Colonne de gauche : portraits cliquables de tous les participants (façon
@@ -367,15 +328,14 @@ func _build_ui() -> void:
 	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(portraits_column)
 
-	# ─ Paramètres/quitter : coin haut-droit (le coin haut-gauche est déjà pris
-	# par l'en-tête round/PV/niveau/XP) — même SettingsMenu.tscn que le 1v1,
-	# avec show_quit = true (bouton Concéder à la place de Fermer, seule façon
-	# de quitter une partie en cours).
+	# ─ Paramètres/quitter : coin haut-gauche, toujours au même endroit (demande
+	# explicite du joueur) — même SettingsMenu.tscn que le 1v1, avec
+	# show_quit = true (bouton Concéder à la place de Fermer, seule façon de
+	# quitter une partie en cours). L'en-tête round/PV/niveau/XP (top_bar) est
+	# décalé à sa droite (offset_left = 72) pour ne pas le chevaucher.
 	settings_button = Button.new()
-	settings_button.anchor_left = 1.0
-	settings_button.anchor_right = 1.0
-	settings_button.offset_left = -64.0
-	settings_button.offset_right = -12.0
+	settings_button.offset_left = 12.0
+	settings_button.offset_right = 64.0
 	settings_button.offset_top = 10.0
 	settings_button.offset_bottom = 62.0
 	settings_button.pressed.connect(func(): settings_menu.open())
@@ -438,6 +398,74 @@ func _build_ui() -> void:
 	phase_timer.one_shot = true
 	phase_timer.timeout.connect(_on_phase_timer_timeout)
 	add_child(phase_timer)
+
+	# ─ Actualiser/Geler : juste au-dessus du panneau minuteur (même colonne
+	# x, coin droit) — demande explicite du joueur, plutôt que regroupés avec
+	# Acheter XP/Prêt dans un seul bloc sous l'en-tête. Chaque bouton porte un
+	# tooltip (fonction + prix), seul élément d'info sur un bouton par
+	# ailleurs sans texte.
+	var reroll_row := HBoxContainer.new()
+	reroll_row.add_theme_constant_override("separation", 8)
+	var reroll_panel := _make_panel_background(reroll_row)
+	reroll_panel.anchor_left = 1.0
+	reroll_panel.anchor_right = 1.0
+	reroll_panel.anchor_top = 0.5
+	reroll_panel.anchor_bottom = 0.5
+	reroll_panel.offset_left = -150.0
+	reroll_panel.offset_right = -20.0
+	reroll_panel.offset_bottom = -48.0
+	reroll_panel.offset_top = -116.0
+	add_child(reroll_panel)
+	reroll_button = Button.new()
+	reroll_button.pressed.connect(_on_reroll_pressed)
+	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
+	reroll_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_REROLL") % ArenaConstants.REROLL_COST
+	reroll_row.add_child(reroll_button)
+	# Gel de la boutique (façon TFT, README « État actuel du prototype ») :
+	# préserve l'offre ENTIÈRE (pas une carte à la fois, voir ArenaShopCardSlot
+	# — le verrouillage par carte a été retiré) pour la manche suivante.
+	# toggle_mode : reste visuellement enfoncé tant que le gel est actif.
+	freeze_button = Button.new()
+	freeze_button.toggle_mode = true
+	freeze_button.pressed.connect(_on_freeze_pressed)
+	_style_button(freeze_button, null, ArenaIcon.Kind.SNOWFLAKE)
+	freeze_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_FREEZE")
+	reroll_row.add_child(freeze_button)
+
+	# ─ Acheter XP : juste en dessous du panneau minuteur, même colonne x.
+	buy_xp_button = Button.new()
+	buy_xp_button.anchor_left = 1.0
+	buy_xp_button.anchor_right = 1.0
+	buy_xp_button.anchor_top = 0.5
+	buy_xp_button.anchor_bottom = 0.5
+	buy_xp_button.offset_left = -111.0
+	buy_xp_button.offset_right = -59.0
+	buy_xp_button.offset_top = 48.0
+	buy_xp_button.offset_bottom = 100.0
+	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
+	_style_button(buy_xp_button, null, ArenaIcon.Kind.STAR)
+	buy_xp_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_BUY_XP") % ArenaConstants.GOLD_TO_XP_RATE
+	add_child(buy_xp_button)
+
+	# ─ Prêt : juste en dessous du pool d'or (voir gold_panel plus haut, coin
+	# bas-droit) — termine la phase Boutique immédiatement plutôt que
+	# d'attendre la fin du décompte (les bots ne "attendent" jamais réellement
+	# — ils jouent leur propre manche juste après, voir _resolve_combat_phase
+	# — donc rien n'empêche de lancer le combat dès que le joueur humain, seul
+	# participant réellement freiné par le minuteur, se déclare prêt).
+	ready_button = Button.new()
+	ready_button.anchor_left = 1.0
+	ready_button.anchor_right = 1.0
+	ready_button.anchor_top = 1.0
+	ready_button.anchor_bottom = 1.0
+	ready_button.offset_left = -171.0
+	ready_button.offset_right = -119.0
+	ready_button.offset_top = -104.0
+	ready_button.offset_bottom = -52.0
+	ready_button.pressed.connect(_on_ready_pressed)
+	_style_button(ready_button, null, ArenaIcon.Kind.PLAY)
+	ready_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_READY")
+	add_child(ready_button)
 
 	_build_combat_banner()
 

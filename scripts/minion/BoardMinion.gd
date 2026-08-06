@@ -628,7 +628,25 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		_hide_keyword_tooltips()
 		return
 
+	var vp := get_viewport_rect().size
 	var base_y := base_y_override if base_y_override >= 0.0 else get_screen_position().y
+
+	# Reste sur l'écran : bascule à gauche de la carte si la pile déborde à
+	# droite, et remonte le point de départ si elle déborde en bas.
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
+	var panel_width := 220.0
+	if panels.size() > 0 and is_instance_valid(panels[0]):
+		panel_width = panels[0].size.x
+	if base_x + panel_width > vp.x - 4.0:
+		base_x = maxf(4.0, global_position.x - panel_width - 15)
+
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
@@ -646,10 +664,12 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		if is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
 			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * 0.9
 			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * 0.9) / 2.0
-			race_panel.global_position = Vector2(
-				preview_center_x - race_panel.size.x / 2.0,
-				preview_bottom + 6
-			)
+			var rx: float = clampf(
+				preview_center_x - race_panel.size.x / 2.0, 4.0, vp.x - race_panel.size.x - 4.0)
+			var ry := preview_bottom + 6
+			if ry + race_panel.size.y > vp.y - 4.0:
+				ry = _hover_preview.global_position.y - race_panel.size.y - 6
+			race_panel.global_position = Vector2(rx, ry)
 			_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:

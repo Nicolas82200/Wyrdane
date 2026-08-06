@@ -207,6 +207,7 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ### Push
 
+- Avant tout push, mettre `dev` à jour (`git fetch origin dev` ou `git checkout dev && git pull`), puis la merger dans la branche courante (`git merge dev`) et résoudre les conflits éventuels avant de continuer
 - Toujours demander confirmation avant de push
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
