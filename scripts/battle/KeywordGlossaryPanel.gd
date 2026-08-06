@@ -1,7 +1,7 @@
 extends Control
 class_name KeywordGlossaryPanel
 
-## Glossaire consultable à tout moment pendant un match (bouton "❔" du HUD) :
+## Glossaire consultable à tout moment pendant un match (bouton "?" du HUD) :
 ## liste tous les mots-clés (communs + par race) et déclencheurs déjà décrits
 ## dans TooltipData (même source que les tooltips de carte), regroupés par
 ## section. Simple overlay centré, ne met pas la partie en pause — juste une

@@ -63,7 +63,7 @@ func _ready() -> void:
 	_build_panel()
 
 	_toggle_button = Button.new()
-	_toggle_button.text = "📜"
+	_toggle_button.text = "≡"
 	_toggle_button.custom_minimum_size = TOGGLE_SIZE
 	_toggle_button.size = TOGGLE_SIZE
 	_toggle_button.position = Vector2(0.0, _panel_top_left.y + _panel_height / 2.0 - TOGGLE_SIZE.y / 2.0)
@@ -245,7 +245,7 @@ func _make_card_thumb(segment: Dictionary) -> Control:
 
 	if is_dead:
 		var skull := Label.new()
-		skull.text = "💀"
+		skull.text = "X"
 		skull.add_theme_font_size_override("font_size", int(THUMB_SIZE.y * 0.65))
 		skull.set_anchors_preset(Control.PRESET_FULL_RECT)
 		skull.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

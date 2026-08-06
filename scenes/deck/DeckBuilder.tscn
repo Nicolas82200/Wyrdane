@@ -104,7 +104,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "🔍  Rechercher une carte..."
+placeholder_text = "Rechercher une carte..."
 
 [node name="FilterBar" type="HFlowContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000016]
 unique_name_in_owner = true
