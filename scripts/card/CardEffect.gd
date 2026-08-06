@@ -13,7 +13,7 @@ class_name CardEffect
 	"DamageAllMinions", "ReturnFromGrave",
 	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
 	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
-	"SacrificeAlly", "GrantCounterOffensive",
+	"SacrificeAlly", "GrantCounterOffensive", "ProtectFrontLine",
 	"GainMana", "DrawCardDiscount",
 	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
 	"DestroyRandomEnchantment",
@@ -36,6 +36,13 @@ class_name CardEffect
 ) var target: String = "Self"
 
 @export_enum("Permanent", "UntilEndOfTurn", "UntilEndOfEnemyTurn") var duration: String = "Permanent"
+
+# Trigger d'appartenance. Vide = l'effet se déclenche pour n'importe lequel des
+# trigger_types de la carte (cas général). Renseigné = l'effet n'est joué que
+# pour ce trigger précis, utile aux cartes portant plusieurs déclencheurs
+# distincts avec des effets différents (ex: Prêtre de Guerre, Éveil vs Dernier
+# Souffle). Filtré par EffectManager.trigger_effects et le chemin enchantement.
+@export var trigger: String = ""
 
 @export var value: int = 0
 @export var value_2: int = 0

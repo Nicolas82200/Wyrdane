@@ -4,23 +4,16 @@ Liste priorisée issue d'une revue transversale du projet (voir aussi la section
 
 ## P1 — Couverture de tests quasi nulle en dehors des cartes
 
-**Mis à jour dans cette branche.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem` (`TriggersSystem.gd`), `DeathSystem`, la mutation Abomination et le timer de tour, en plus des tests `Minion`/`CardLibrary` d'origine (121 tests, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
+**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_apply_infection_damage`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (521 tests, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
 
-Restent non couverts :
-- `CombatSystem` (`scripts/systems/CombatSystem.gd`) — `resolve_combat`/`_execute_damage` appellent directement `AudioManager.play(...)` (autoload non fiable en runner `-s`, voir convention ci-dessous) et `battle.get_tree().create_timer(...)` (nécessite un arbre de scène réel). Untestable en l'état sans un double `SceneTree` déjà utilisé pour `DeathSystem`/`TriggersSystem`, *et* un contournement de l'appel `AudioManager` — soit en l'extrayant derrière une interface injectable, soit en acceptant de tester uniquement la logique privée (`_execute_damage`) en species-casing l'appel audio. À trancher avant de s'y attaquer.
-- `TurnSystem` (`scripts/systems/TurnSystem.gd`) — orchestration de tour complète (`end_turn`/`_begin_player_turn`) trop couplée à la scène (`battle.opponent`, `turn_timer`, `tutorial_manager`, `hand`, `deck_button`, `AudioManager.play` dans `draw_card`) pour un test unitaire direct ; seule la sous-logique pure (`_apply_infection_damage`, `run_turn_start_triggers` hors phases UI) serait raisonnablement testable avec un double étendu.
-- Le protocole réseau (`scripts/net/`) — sérialisation des commandes, rejeu côté `NetworkOpponent`
+Restent non couverts, jugés hors de portée d'un test unitaire raisonnable (couplage à la scène réelle/Steam plutôt qu'un manque d'effort) :
+- `NetworkManager`/`SteamTransport`/`NetworkOpponent` (`scripts/net/`) — dépendent de GodotSteam (P2P réel), d'un `SceneTree` réseau, et rejouent des commandes sur un `Battle` complet ; testable uniquement via un test d'intégration à deux instances Steam, pas un test unitaire.
 
 Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le script cible directement (`load(...).new()`), éviter la dépendance aux autoloads globaux dans le runner GUT `-s`, et étendre `FakeBattle` plutôt que d'en créer un nouveau par système quand c'est raisonnable (RefCounted réels comme `Graveyard`/`NetRegistry` réutilisés tels quels ; `Node`-based comme `SacrificeSystem`/`TriggerSystem` libérés explicitement via `free()` en `after_each()` pour éviter les nœuds orphelins).
 
 ## P2 — Fichiers Steam parasites non ignorés par git
 
-`git status` fait apparaître :
-```
-addons/godotsteam/win64/~libgodotsteam.windows.template_debug.x86_64.dll
-addons/godotsteam/win64/~libgodotsteam.windows.template_debug.x86_64.dll~RFacf7d8.TMP
-```
-Ce sont des résidus d'extraction de l'archive GodotSteam (fichiers temporaires préfixés `~`). **Fait dans cette branche** : ajout de `addons/godotsteam/**/~*` et `*.TMP` à `.gitignore`. Reste à faire : supprimer ces deux fichiers du working directory local (pas fait ici pour ne pas toucher à l'installation Steam de quelqu'un d'autre sans confirmation).
+**Résolu.** Résidus d'extraction de l'archive GodotSteam (fichiers temporaires préfixés `~`/`.TMP`). `addons/godotsteam/**/~*` et `*.TMP` ajoutés à `.gitignore`, et les fichiers parasites supprimés du working directory local.
 
 ## P3 — Steam : passage en production
 
@@ -40,7 +33,7 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 ## P6 — Ordre de Tenir (Humain, H53) : effet non implémenté
 
-`resources/cards/human/hold-the-line.tres` a un `trigger_types` (Éveil) mais un tableau `effects` vide : le rituel ne fait rien à l'heure actuelle malgré sa description ("tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis"). Contrairement aux autres bugs corrigés dans cette branche, celui-ci demande un nouveau statut de protection (vérifié dans `ReturnToHand`/`MoveRow`/`StealMinion`, uniquement quand la source de l'effet appartient au camp adverse à celui du protégé) plutôt qu'un simple champ de filtrage — non fait ici par prudence (risque de mécanique bâclée sans tests dédiés). À reprendre dans une branche dédiée.
+**Résolu.** Corrigé dans le commit `8e75cc8` (« fix: make non-functional cards work ») avec Fortification (déplacement/transformation), l'appariement de trigger de War Priest et l'`effect_id` de dégâts explicite. Le rituel applique désormais bien la protection contre le renvoi en main / déplacement par effet ennemi pour les serviteurs alliés en rangée Avant.
 
 ## Non-problèmes vérifiés pendant cette revue
 

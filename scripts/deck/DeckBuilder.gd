@@ -266,11 +266,13 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 ## Texte du badge de stock : quantité possédée (plafonnée à DeckManager.MAX_COPIES_PER_CARD pour
 ## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
 ## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
-## deck en cours (jamais négatif).
+## deck en cours (jamais négatif). Les cartes-ressource sont illimitées : le
+## badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
 func _update_stock_label(card_data: CardData, label: Label) -> void:
-	var owned := CollectionManager.owned_quantity(card_data)
-	if card_data.card_type != "Resource":
-		owned = mini(owned, DeckManager.MAX_COPIES_PER_CARD)
+	if card_data.card_type == "Resource":
+		label.text = "∞"
+		return
+	var owned: int = mini(CollectionManager.owned_quantity(card_data), DeckManager.MAX_COPIES_PER_CARD)
 	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
 	label.text = SettingsManager.t("deck.stock_format") % remaining
 
@@ -759,9 +761,10 @@ func _count_in_deck(path: String) -> int:
 	return count
 
 func _is_card_maxed(card_data: CardData) -> bool:
-	var owned := CollectionManager.owned_quantity(card_data)
+	# Cartes-ressource : jamais au maximum, quantité illimitée dans le deck.
 	if card_data.card_type == "Resource":
-		return _count_in_deck(card_data.resource_path) >= owned
+		return false
+	var owned := CollectionManager.owned_quantity(card_data)
 	return _count_in_deck(card_data.resource_path) >= min(DeckManager.MAX_COPIES_PER_CARD, owned)
 
 ## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
@@ -865,6 +868,17 @@ func _position_hover_tooltips() -> void:
 	card_preview.global_position = Vector2(preview_x, preview_y)
 	var card_center := card_preview.global_position + preview_size / 2.0
 	var base_y       := card_preview.global_position.y
+
+	# Hauteur totale de la pile de panneaux : si elle dépasse le bas de l'écran,
+	# on remonte le point de départ (ou on le limite en haut) pour que la pile
+	# entière reste visible plutôt que de déborder sous la fenêtre.
+	var stack_height := 0.0
+	for panel in _keyword_tooltips:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):

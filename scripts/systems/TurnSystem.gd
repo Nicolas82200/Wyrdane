@@ -66,6 +66,8 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	battle.resource_played_this_turn[is_local_turn] = false
 	battle.undead_ally_deaths_this_turn[is_local_turn] = 0
+	# Réarmé par Ordre de Tenir (OnAwaken) si le rituel est encore actif.
+	battle.front_line_protected[is_local_turn] = false
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
 	var other_minions: Array = battle.enemy_minions if is_local_turn else battle.player_minions
 	for minion in turn_minions.duplicate():

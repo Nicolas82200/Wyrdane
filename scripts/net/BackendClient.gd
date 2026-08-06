@@ -136,7 +136,7 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 
 # Profil agrégé du joueur connecté (GET /api/profile) : date de création de
 # compte, nombre de cartes en collection, stats solo/ranked — voir
-# ProfilePanel.gd. on_profile est appelé avec (success: bool, data: Dictionary).
+# MainMenu._show_info_view(PROFILE). on_profile est appelé avec (success: bool, data: Dictionary).
 func get_profile(on_profile: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/profile", {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
@@ -155,3 +155,14 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 	}, on_complete)
+
+# Signale un bug ou un joueur pour triche (POST /api/reports) — voir
+# ReportDialog. Pas de table dédiée côté backend : le signalement part par
+# mail à l'équipe (même mécanisme que le formulaire de contact du site).
+func report_issue(type: String, description: String, reported_user_id: int = 0, match_id: String = "", on_complete: Callable = Callable()) -> void:
+	var body := {"type": type, "description": description}
+	if reported_user_id > 0:
+		body["reportedUserId"] = reported_user_id
+	if match_id != "":
+		body["matchId"] = match_id
+	request(HTTPClient.METHOD_POST, "/api/reports", body, on_complete)

@@ -31,6 +31,7 @@ Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. T
 
 ```
 scenes/
+├── arena/           # Prototype Arena/Battle Royale solo local (ArenaBattle.tscn)
 ├── battle/          # Scène de bataille
 ├── card/            # Affichage d'une carte (+ cartes enchantement)
 ├── deck/            # Deck builder et liste des decks
@@ -44,6 +45,7 @@ scenes/
 
 scripts/
 ├── EffectManager/   # Moteur d'exécution des effets de cartes
+├── arena/           # Mode Arena/Battle Royale (prototype solo local) : ArenaMatch (orchestrateur), SimulatedBattle (combat headless réutilisant CombatSystem/DeathSystem 1v1), ArenaCardPool, ArenaMergeSystem, ArenaPairing, GhostBoard, ArenaBotDriver...
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
 ├── card/            # CardData, Card (UI), CardEffect, styles
@@ -135,6 +137,9 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Le backend local (`E:\wyrdane-backend`, branche **`main`** — `dev` est gelée) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `main` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
 - Dégradation attendue si le backend est injoignable : les managers restent `is_synced = false`, l'UI affiche les valeurs par défaut (solde 0, collection vide) sans bloquer le joueur.
 
+### Panneau d'actualités (menu principal)
+Le panneau « Actualités » de `MainMenu` (`scripts/mainMenu/MainMenu.gd`, `_fetch_remote_news`) récupère les devlogs/actus créées sur le site (`wyrdane-website`) via `NEWS_FEED_URL = "https://wyrdane.com/feed.json"` — un manifeste JSON bilingue (fr/en) régénéré à chaque build/déploiement du site (`scripts/generate-feed.mjs`, appelé en `predev`/`prebuild`) à partir de `src/content/news/*.json` et `src/content/devlog/*.json`. Aucune action manuelle : ajouter un fichier JSON côté site puis déployer suffit à le faire apparaître en jeu. Si le fetch échoue (site injoignable), repli sur les ressources locales `res://resources/news/*.tres` (`NewsEntry.gd`, conservées pour ce cas).
+
 ### Infra & déploiement (VPS)
 Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck builder web) sont hébergés ensemble sur un **VPS OVH** (`137.74.163.226`, Ubuntu, Docker) — plus sur Render. Domaines : `wyrdane.com`/`www.wyrdane.com` (site) et `api.wyrdane.com` (API). Détail complet de la stack (Docker Compose, Nginx, sécurité, CI/CD) documenté dans le `CLAUDE.md` de `wyrdane-backend`. Rien à faire côté `card-game` pour cette infra sinon garder `API_URL` dans `BackendClient.gd` synchronisé si le domaine change.
 
@@ -206,8 +211,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
-- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions), prototype Arena/Battle Royale jouable en solo local (8 participants : 1 joueur + 7 bots, `scripts/arena/`, `scenes/arena/ArenaBattle.tscn` — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design, combat auto-résolu réutilisant `CombatSystem`/`DeathSystem` 1v1 via `SimulatedBattle`, voir « État actuel du prototype » dans `README.md`)
+- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, étendre le prototype Arena au réseau à 8 joueurs, animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
 
 ## Notes pour les agents
 
@@ -225,4 +230,14 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 - **`CLAUDE.md`** : si la tâche change la structure du projet (nouveau dossier/autoload/système), la roadmap (section « Roadmap actuelle »), ou une convention de travail, mettre à jour la section concernée.
 
 Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, correctif visuel sans impact sur les règles), il n'y a rien à mettre à jour — ne pas modifier les `.md` par réflexe. Mais ne jamais laisser la doc devenir obsolète par oubli.
+
+## Devlog hebdomadaire
+
+Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé. Le dossier `devlogs/` est local uniquement (`.gitignore`) — notes de session brutes, il n'apparaît pas sur GitHub :
+
+- Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi** à venir (créer le fichier s'il n'existe pas — voir `devlogs/README.md` pour le format).
+- Ajouter une entrée en fin de fichier, sous la date du jour (`## YYYY-MM-DD`), avec une liste à puces brute des changements faits pendant la session — pas de mise en forme, pas de ton marketing, juste les faits (ce qui a été ajouté/corrigé/changé et pourquoi si pertinent).
+- Ne pas réécrire ou reformuler les entrées des sessions précédentes dans ce fichier : c'est un journal brut destiné à être relu et transformé en vrai devlog le lundi, avec l'utilisateur.
+- Ne rien ajouter pour des tâches sans impact utilisateur/projet perceptible (ex. simple refactor interne sans changement de comportement) — même logique que pour les autres docs ci-dessus.
+- Une fois le vrai devlog écrit le lundi, le fichier draft est archivé (`devlogs/archive/`) ou supprimé, et un nouveau draft est créé pour la semaine suivante.
 

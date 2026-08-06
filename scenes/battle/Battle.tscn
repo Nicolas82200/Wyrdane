@@ -595,6 +595,7 @@ mouse_filter = 2
 alignment = 1
 
 [node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -611,6 +612,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -629,6 +631,7 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -645,6 +648,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -982,6 +986,13 @@ offset_left = 46.0
 offset_right = 54.0
 offset_bottom = 8.0
 text = "❔"
+
+[node name="ReportButton" type="Button" parent="." unique_id=1329099649]
+layout_mode = 0
+offset_left = 92.0
+offset_right = 100.0
+offset_bottom = 8.0
+text = "🚩"
 
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 1
