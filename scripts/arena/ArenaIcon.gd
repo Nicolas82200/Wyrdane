@@ -4,9 +4,10 @@ class_name ArenaIcon
 # Icône vectorielle simple dessinée à la volée (au lieu d'un glyphe Unicode,
 # dont le rendu dépend de la police active et n'est pas garanti — voir
 # ArenaBattle._style_button) pour les quelques actions sans image dédiée dans
-# assets/icons/ (reroll, XP, cadenas, prêt, round suivant, retour au menu).
+# assets/icons/ (reroll, XP, gel de boutique, prêt, round suivant, retour au
+# menu, paramètres).
 
-enum Kind { REROLL, STAR, PLAY, FORWARD, HOME, HEART, LOCK }
+enum Kind { REROLL, STAR, PLAY, FORWARD, HOME, HEART, GEAR, SNOWFLAKE }
 
 @export var kind: Kind = Kind.PLAY
 @export var line_color: Color = Color(0.92, 0.85, 0.65)
@@ -62,9 +63,24 @@ func _draw() -> void:
 				c + Vector2(r * 0.7, r * 0.1),
 			], line_color)
 			draw_rect(Rect2(c + Vector2(-r * 0.45, r * 0.05), Vector2(r * 0.9, r * 0.65)), line_color, false, r * 0.12)
-		Kind.LOCK:
-			draw_arc(c + Vector2(0.0, -r * 0.15), r * 0.42, PI, TAU, 16, line_color, r * 0.16)
-			draw_rect(Rect2(c + Vector2(-r * 0.55, r * 0.05), Vector2(r * 1.1, r * 0.75)), line_color)
+		Kind.SNOWFLAKE:
+			for i in 3:
+				var ang: float = i * PI / 3.0
+				var dir: Vector2 = Vector2(cos(ang), sin(ang))
+				draw_line(c - dir * r * 0.85, c + dir * r * 0.85, line_color, r * 0.14)
+				for sign_ in [-1.0, 1.0]:
+					var branch_point: Vector2 = c + dir * r * 0.55
+					var side: Vector2 = Vector2(-dir.y, dir.x) * sign_ * r * 0.28
+					draw_line(branch_point, branch_point + (dir * r * 0.22 + side), line_color, r * 0.1)
+					draw_line(branch_point, branch_point + (-dir * r * 0.22 + side), line_color, r * 0.1)
+		Kind.GEAR:
+			var teeth := 8
+			for i in teeth:
+				var ang: float = i * TAU / teeth
+				var dir: Vector2 = Vector2(cos(ang), sin(ang))
+				var tooth_center: Vector2 = c + dir * r * 0.72
+				draw_rect(Rect2(tooth_center - Vector2(r * 0.14, r * 0.14), Vector2(r * 0.28, r * 0.28)), line_color)
+			draw_arc(c, r * 0.55, 0.0, TAU, 24, line_color, r * 0.22, true)
 
 static func make(icon_kind: Kind, extent: float = 32.0) -> ArenaIcon:
 	var icon := ArenaIcon.new()

@@ -23,6 +23,7 @@ extends Control
 
 const BOARD_MINION_SCENE := preload("res://scenes/minion/BoardMinion.tscn")
 const HAND_SCENE := preload("res://scenes/hand/Hand.tscn")
+const SETTINGS_MENU_SCENE := preload("res://scenes/settings/SettingsMenu.tscn")
 const BACKGROUND_ART := preload("res://assets/background/background-05.jpg")
 const ROUNDED_CORNERS_SHADER := preload("res://resources/shaders/rounded_corners.gdshader")
 const UI_FONT := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
@@ -65,6 +66,8 @@ var shop_front_row: ArenaSellZone
 var shop_back_row: ArenaSellZone
 var reroll_button: Button
 var buy_xp_button: Button
+var freeze_button: Button
+var ready_button: Button
 var suspended_label: Label
 # Main du joueur — la même Hand.tscn/Hand.gd que le mode 1v1 (voir en-tête de
 # fichier), pas une approximation construite à la main.
@@ -88,6 +91,11 @@ var portraits_column: VBoxContainer
 # cliquer un portrait remplace la vue par le sien, en lecture seule.
 var viewed_target = null
 var back_to_menu_button: Button
+# Même SettingsMenu.tscn que le 1v1 (Battle.tscn), avec show_quit = true :
+# le bouton Fermer y est remplacé par Concéder (retour au menu principal, la
+# seule façon de quitter une partie Arena en cours — pas de reprise).
+var settings_button: Button
+var settings_menu: Control
 var end_game_overlay: ColorRect
 var end_game_screen_panel: PanelContainer
 var end_game_title_label: Label
@@ -112,19 +120,18 @@ var enemy_hp_overlay: Label
 # ne fait rien, voir _process) — remis à null une fois le combat terminé.
 var _live_sim: SimulatedBattle = null
 
-# ─── Minuteur de phase (Boutique/Combat) : plus de bouton "prêt"/"round
-# suivant", la partie s'enchaîne automatiquement à l'expiration du minuteur
-# (voir _start_shop_phase_timer/_on_phase_timer_timeout/_resolve_combat_phase/
-# _advance_round).
+# ─── Minuteur de phase (Boutique/Combat) : la partie s'enchaîne
+# automatiquement à l'expiration du minuteur (voir _start_shop_phase_timer/
+# _on_phase_timer_timeout/_resolve_combat_phase/_advance_round), ou plus tôt
+# si le joueur clique Prêt (ready_button, voir _on_ready_pressed) — pas
+# besoin d'attendre la fin du décompte quand on a fini d'acheter/positionner.
 # SHOP_PHASE_DURATION ne contraint que le joueur humain : les bots jouent
 # leur propre manche plus tard, dans _resolve_combat_phase() (après
-# l'expiration de ce minuteur), donc l'allonger n'a aucun effet sur eux.
-# 10s (valeur d'origine) laissait à peine le temps de lire l'offre avant
-# l'achat, plus serré encore avec le verrouillage de case (voir
-# ArenaPlayerState.shop_locked) qui ajoute une décision par carte. 25s reste
-# loin des 45s du design (pensées pour 8 vrais joueurs humains en
-# compétition d'achat, pas le cas ici), mais donne le temps de parcourir
-# l'offre, reroll/verrouiller et positionner sans se presser à chaque round.
+# l'expiration de ce minuteur ou le clic Prêt), donc l'allonger n'a aucun
+# effet sur eux. 25s donne le temps de parcourir l'offre, reroll/geler et
+# positionner sans se presser à chaque round — loin des 45s du design
+# (pensées pour 8 vrais joueurs humains en compétition d'achat, pas le cas
+# ici), mais le bouton Prêt permet d'accélérer un round déjà terminé plus tôt.
 enum Phase { SHOP, COMBAT }
 const SHOP_PHASE_DURATION := 25.0
 const COMBAT_PHASE_DURATION := 15.0
@@ -249,22 +256,24 @@ func _build_ui() -> void:
 	hero_portrait.offset_bottom = 0.0
 	add_child(hero_portrait)
 
-	# ─ Or disponible : à côté du portrait du héros (demande explicite du
-	# joueur), pas dans l'en-tête avec le reste des statistiques — seule
-	# ressource que le joueur dépense activement pendant la phase Boutique,
-	# elle doit rester visible au même endroit du regard que son héros.
+	# ─ Or disponible : à l'emplacement exact du pool de mana en 1v1
+	# (`ManaDisplay`, Battle.tscn : anchor 1/1/1/1, 170x60, coin bas-droit) —
+	# demande explicite du joueur, pas dans l'en-tête avec le reste des
+	# statistiques (seule ressource activement dépensée en phase Boutique).
 	var gold_box := HBoxContainer.new()
 	gold_box.add_theme_constant_override("separation", 4)
+	gold_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	var gold_panel := _make_panel_background(gold_box)
-	gold_label = _make_stat(gold_box, null, ICON_GEM)
-	gold_panel.anchor_left = 0.5
-	gold_panel.anchor_right = 0.5
+	gold_label = _make_stat(gold_box, null, ICON_GEM, SettingsManager.t("ARENA_TOOLTIP_GOLD"))
+	gold_panel.size_flags_horizontal = Control.SIZE_FILL
+	gold_panel.anchor_left = 1.0
+	gold_panel.anchor_right = 1.0
 	gold_panel.anchor_top = 1.0
 	gold_panel.anchor_bottom = 1.0
-	gold_panel.offset_right = -HERO_PORTRAIT_SIZE.x / 2.0 - 10.0
-	gold_panel.offset_left = gold_panel.offset_right - 70.0
-	gold_panel.offset_top = -HERO_PORTRAIT_SIZE.y / 2.0 - 20.0
-	gold_panel.offset_bottom = gold_panel.offset_top + 40.0
+	gold_panel.offset_left = -230.0
+	gold_panel.offset_right = -60.0
+	gold_panel.offset_top = -172.0
+	gold_panel.offset_bottom = -112.0
 	add_child(gold_panel)
 
 	suspended_label = Label.new()
@@ -278,12 +287,13 @@ func _build_ui() -> void:
 	suspended_label.offset_bottom = -HERO_PORTRAIT_SIZE.y / 2.0 + 10.0
 	add_child(suspended_label)
 
-	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot) et
-	# contrôles boutique, superposés en haut de l'écran (jamais dans le flux
-	# du plateau, pour ne jamais influencer sa position).
+	# ─ Bandeau du haut : en-tête tout en icônes + chiffres (aucun mot),
+	# superposé en haut de l'écran (jamais dans le flux du plateau, pour ne
+	# jamais influencer sa position). Décalé à droite du bouton Paramètres
+	# (voir plus bas, toujours coin haut-gauche) pour ne pas le chevaucher.
 	var top_bar := VBoxContainer.new()
 	top_bar.anchor_right = 1.0
-	top_bar.offset_left = 12.0
+	top_bar.offset_left = 72.0
 	top_bar.offset_top = 10.0
 	top_bar.offset_right = -12.0
 	top_bar.add_theme_constant_override("separation", 4)
@@ -296,29 +306,14 @@ func _build_ui() -> void:
 	# directement sur le décor — même famille visuelle que les rangées. L'or
 	# n'y figure plus (voir plus haut : affiché à côté du portrait du héros).
 	top_bar.add_child(_make_panel_background(header))
-	round_label = _make_stat(header, ArenaIcon.Kind.FORWARD, null)
-	hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null)
-	level_label = _make_stat(header, ArenaIcon.Kind.STAR, null)
+	round_label = _make_stat(header, ArenaIcon.Kind.FORWARD, null, SettingsManager.t("ARENA_TOOLTIP_ROUND"))
+	hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null, SettingsManager.t("ARENA_TOOLTIP_HERO_HP"))
+	level_label = _make_stat(header, ArenaIcon.Kind.STAR, null, SettingsManager.t("ARENA_TOOLTIP_LEVEL"))
 	xp_label = _make_label(header)
 	xp_label.add_theme_font_size_override("font_size", 12)
+	xp_label.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_XP")
 
-	# Structure dédiée pour les deux actions de boutique (actualiser/reroll,
-	# acheter XP) : même panneau discret que le reste (_make_panel_background)
-	# plutôt que deux boutons nus posés directement sur le décor, pour former
-	# un groupe visuellement identifiable au premier coup d'œil.
-	var shop_controls := HBoxContainer.new()
-	shop_controls.add_theme_constant_override("separation", 8)
-	top_bar.add_child(_make_panel_background(shop_controls))
-	reroll_button = Button.new()
-	reroll_button.pressed.connect(_on_reroll_pressed)
-	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
-	shop_controls.add_child(reroll_button)
-	buy_xp_button = Button.new()
-	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
-	_style_button(buy_xp_button, null, ArenaIcon.Kind.STAR)
-	shop_controls.add_child(buy_xp_button)
-
-	# Nom du plateau consulté (voir portraits_column) : sous les contrôles boutique.
+	# Nom du plateau consulté (voir portraits_column) : sous l'en-tête.
 	viewing_label = _make_label(top_bar)
 
 	# ─ Colonne de gauche : portraits cliquables de tous les participants (façon
@@ -332,6 +327,26 @@ func _build_ui() -> void:
 	portraits_column.add_theme_constant_override("separation", 2)
 	portraits_column.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(portraits_column)
+
+	# ─ Paramètres/quitter : coin haut-gauche, toujours au même endroit (demande
+	# explicite du joueur) — même SettingsMenu.tscn que le 1v1, avec
+	# show_quit = true (bouton Concéder à la place de Fermer, seule façon de
+	# quitter une partie en cours). L'en-tête round/PV/niveau/XP (top_bar) est
+	# décalé à sa droite (offset_left = 72) pour ne pas le chevaucher.
+	settings_button = Button.new()
+	settings_button.offset_left = 12.0
+	settings_button.offset_right = 64.0
+	settings_button.offset_top = 10.0
+	settings_button.offset_bottom = 62.0
+	settings_button.pressed.connect(func(): settings_menu.open())
+	_style_button(settings_button, null, ArenaIcon.Kind.GEAR)
+	settings_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_SETTINGS")
+	add_child(settings_button)
+
+	settings_menu = SETTINGS_MENU_SCENE.instantiate()
+	settings_menu.show_quit = true
+	settings_menu.concede_requested.connect(_on_settings_quit)
+	add_child(settings_menu)
 
 	_build_game_over_screen()
 
@@ -383,6 +398,74 @@ func _build_ui() -> void:
 	phase_timer.one_shot = true
 	phase_timer.timeout.connect(_on_phase_timer_timeout)
 	add_child(phase_timer)
+
+	# ─ Actualiser/Geler : juste au-dessus du panneau minuteur (même colonne
+	# x, coin droit) — demande explicite du joueur, plutôt que regroupés avec
+	# Acheter XP/Prêt dans un seul bloc sous l'en-tête. Chaque bouton porte un
+	# tooltip (fonction + prix), seul élément d'info sur un bouton par
+	# ailleurs sans texte.
+	var reroll_row := HBoxContainer.new()
+	reroll_row.add_theme_constant_override("separation", 8)
+	var reroll_panel := _make_panel_background(reroll_row)
+	reroll_panel.anchor_left = 1.0
+	reroll_panel.anchor_right = 1.0
+	reroll_panel.anchor_top = 0.5
+	reroll_panel.anchor_bottom = 0.5
+	reroll_panel.offset_left = -150.0
+	reroll_panel.offset_right = -20.0
+	reroll_panel.offset_bottom = -48.0
+	reroll_panel.offset_top = -116.0
+	add_child(reroll_panel)
+	reroll_button = Button.new()
+	reroll_button.pressed.connect(_on_reroll_pressed)
+	_style_button(reroll_button, null, ArenaIcon.Kind.REROLL)
+	reroll_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_REROLL") % ArenaConstants.REROLL_COST
+	reroll_row.add_child(reroll_button)
+	# Gel de la boutique (façon TFT, README « État actuel du prototype ») :
+	# préserve l'offre ENTIÈRE (pas une carte à la fois, voir ArenaShopCardSlot
+	# — le verrouillage par carte a été retiré) pour la manche suivante.
+	# toggle_mode : reste visuellement enfoncé tant que le gel est actif.
+	freeze_button = Button.new()
+	freeze_button.toggle_mode = true
+	freeze_button.pressed.connect(_on_freeze_pressed)
+	_style_button(freeze_button, null, ArenaIcon.Kind.SNOWFLAKE)
+	freeze_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_FREEZE")
+	reroll_row.add_child(freeze_button)
+
+	# ─ Acheter XP : juste en dessous du panneau minuteur, même colonne x.
+	buy_xp_button = Button.new()
+	buy_xp_button.anchor_left = 1.0
+	buy_xp_button.anchor_right = 1.0
+	buy_xp_button.anchor_top = 0.5
+	buy_xp_button.anchor_bottom = 0.5
+	buy_xp_button.offset_left = -111.0
+	buy_xp_button.offset_right = -59.0
+	buy_xp_button.offset_top = 48.0
+	buy_xp_button.offset_bottom = 100.0
+	buy_xp_button.pressed.connect(_on_buy_xp_pressed)
+	_style_button(buy_xp_button, null, ArenaIcon.Kind.STAR)
+	buy_xp_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_BUY_XP") % ArenaConstants.GOLD_TO_XP_RATE
+	add_child(buy_xp_button)
+
+	# ─ Prêt : juste en dessous du pool d'or (voir gold_panel plus haut, coin
+	# bas-droit) — termine la phase Boutique immédiatement plutôt que
+	# d'attendre la fin du décompte (les bots ne "attendent" jamais réellement
+	# — ils jouent leur propre manche juste après, voir _resolve_combat_phase
+	# — donc rien n'empêche de lancer le combat dès que le joueur humain, seul
+	# participant réellement freiné par le minuteur, se déclare prêt).
+	ready_button = Button.new()
+	ready_button.anchor_left = 1.0
+	ready_button.anchor_right = 1.0
+	ready_button.anchor_top = 1.0
+	ready_button.anchor_bottom = 1.0
+	ready_button.offset_left = -171.0
+	ready_button.offset_right = -119.0
+	ready_button.offset_top = -104.0
+	ready_button.offset_bottom = -52.0
+	ready_button.pressed.connect(_on_ready_pressed)
+	_style_button(ready_button, null, ArenaIcon.Kind.PLAY)
+	ready_button.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_READY")
+	add_child(ready_button)
 
 	_build_combat_banner()
 
@@ -503,9 +586,14 @@ func _make_label(parent: Node) -> Label:
 	return label
 
 # Icône (dessinée ou image réelle) + chiffre, pour l'en-tête sans aucun mot.
-func _make_stat(parent: Node, vector_kind, image_icon: Texture2D) -> Label:
+# `tooltip` (optionnel) : posé sur le HBox entier (icône + chiffre), pas
+# seulement le chiffre, pour que survoler l'icône l'affiche aussi — seule
+# façon de comprendre un en-tête tout en pictogrammes sans texte (demande
+# explicite du joueur, « UI claire, on comprend tout ce qu'on voit »).
+func _make_stat(parent: Node, vector_kind, image_icon: Texture2D, tooltip: String = "") -> Label:
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
+	box.tooltip_text = tooltip
 	parent.add_child(box)
 	if image_icon != null:
 		var tex := TextureRect.new()
@@ -839,6 +927,9 @@ func _refresh_ui() -> void:
 	var in_shop_phase: bool = not game_over and current_phase == Phase.SHOP
 	reroll_button.disabled = not in_shop_phase or human.gold < ArenaConstants.REROLL_COST
 	buy_xp_button.disabled = not in_shop_phase or not ArenaEconomy.can_buy_xp(match_.round_number) or human.gold < ArenaConstants.GOLD_TO_XP_RATE or human.level >= 8
+	freeze_button.disabled = not in_shop_phase
+	freeze_button.button_pressed = human.shop_frozen
+	ready_button.disabled = not in_shop_phase
 
 	suspended_label.text = str(human.suspended.size()) if not human.suspended.is_empty() else ""
 
@@ -852,11 +943,9 @@ func _refresh_ui() -> void:
 # ArenaShopCardSlot ; survoler affiche le détail complet, comme en 1v1), rangée
 # dans shop_front_row ou shop_back_row selon son propre board_position ("Back"
 # -> Arrière, sinon Avant), achetable en la glissant vers son propre plateau
-# (front_row/back_row,
-# voir ArenaBoardRow). Un emplacement déjà acheté (carte nulle) n'affiche
-# simplement rien jusqu'au prochain reroll. Verrouillable via le cadenas de
-# chaque case (voir ArenaShopCardSlot/_on_shop_lock_toggled) : préservé au
-# reroll, remis à zéro à la manche suivante (ArenaMatch._refresh_shop_offer).
+# (front_row/back_row, voir ArenaBoardRow). Un emplacement déjà acheté (carte
+# nulle) n'affiche simplement rien jusqu'au prochain reroll. Pas de
+# verrouillage par carte (voir bouton flocon, geler TOUTE l'offre à la fois).
 # Hors phase Boutique, les rangées restent vides (pas d'offre affichée) mais
 # gardent leur hauteur (voir _refresh_ui) pour ne pas déplacer le plateau.
 func _refresh_shop(in_shop_phase: bool = true) -> void:
@@ -877,9 +966,7 @@ func _refresh_shop(in_shop_phase: bool = true) -> void:
 		# de Card ne sont peuplés qu'une fois le nœud réellement entré dans
 		# l'arbre (voir Hand.gd : add_child() puis set_data(), jamais l'inverse).
 		target_row.add_child(slot)
-		var locked: bool = i < human.shop_locked.size() and human.shop_locked[i]
-		slot.setup(card, i, locked)
-		slot.on_lock_toggled = _on_shop_lock_toggled
+		slot.setup(card, i)
 
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	if not _is_shop_interaction_allowed():
@@ -1015,8 +1102,11 @@ func _refresh_portraits() -> void:
 func _make_participant_button(target, _label_name: String, eliminated: bool, is_self: bool, hp: int) -> Button:
 	var btn := Button.new()
 	# Assez petit pour que les 8 participants tiennent dans la colonne de
-	# gauche sans dépasser (voir portraits_column, ancrée en fraction d'écran).
-	btn.custom_minimum_size = Vector2(52, 64)
+	# gauche sans dépasser (voir portraits_column, ancrée en fraction d'écran :
+	# 0.12-0.88, ~630px dispo à 1080p pour 8 boutons + séparation — cette
+	# taille (64x78) laisse une bonne marge, contrairement à 52x64 jugée trop
+	# petite par le joueur).
+	btn.custom_minimum_size = Vector2(64, 78)
 	btn.icon = _art_for_target(target)
 	btn.expand_icon = true
 	btn.disabled = eliminated
@@ -1048,10 +1138,10 @@ func _on_reroll_pressed() -> void:
 	match_.reroll(human)
 	_refresh_ui()
 
-func _on_shop_lock_toggled(shop_index: int) -> void:
+func _on_freeze_pressed() -> void:
 	if not _is_shop_interaction_allowed():
 		return
-	human.toggle_shop_lock(shop_index)
+	human.toggle_shop_freeze()
 	_refresh_ui()
 
 func _on_buy_xp_pressed() -> void:
@@ -1059,6 +1149,14 @@ func _on_buy_xp_pressed() -> void:
 		return
 	match_.buy_xp(human)
 	_refresh_ui()
+
+# Prêt : termine la phase Boutique tout de suite, sans attendre l'expiration
+# du minuteur — voir le commentaire sur `ready_button` dans _build_ui().
+func _on_ready_pressed() -> void:
+	if not _is_shop_interaction_allowed():
+		return
+	phase_timer.stop()
+	await _resolve_combat_phase()
 
 func _on_place_pressed(minion: Minion, is_front: bool, index: int = -1) -> void:
 	if not _is_shop_interaction_allowed():
@@ -1086,8 +1184,10 @@ func _on_view_board_pressed(target) -> void:
 	_refresh_ui()
 
 # ─── Phase Combat ────────────────────────────────────────────────────────────
-# Plus de bouton "prêt"/"round suivant" : le minuteur enchaîne automatiquement
-# Boutique -> Combat -> Boutique du round suivant, jusqu'à la fin de partie.
+# Pas de bouton "round suivant" (le minuteur enchaîne automatiquement Boutique
+# -> Combat -> Boutique du round suivant jusqu'à la fin de partie), mais un
+# bouton Prêt (ready_button, voir _on_ready_pressed) permet de terminer la
+# phase Boutique en avance sans attendre l'expiration du minuteur.
 
 func _start_shop_phase_timer() -> void:
 	current_phase = Phase.SHOP
@@ -1190,4 +1290,11 @@ func _advance_round() -> void:
 	_start_shop_phase_timer()
 
 func _on_back_to_menu_pressed() -> void:
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+# Concéder depuis le menu Paramètres (voir settings_menu.concede_requested) :
+# pas de réseau à fermer côté Arena (solo local), contrairement à
+# Battle._on_quit_match — juste retourner au menu, la partie en cours est perdue.
+func _on_settings_quit() -> void:
+	settings_menu.close()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)

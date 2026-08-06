@@ -100,65 +100,58 @@ func test_selling_a_merged_2_star_card_returns_all_3_base_copies_to_the_pool() -
 	assert_eq(m.pool.copies_remaining(card), copies_before + 3,
 		"vendre une 2★ doit rendre 3 copies de base au pool")
 
-func test_reroll_keeps_locked_slot_untouched() -> void:
-	var kept := _make_card("Kept", 2, "res://fake/shop_kept.tres")
-	var other := _make_card("Other", 3, "res://fake/shop_other.tres")
-	var m := _make_match([kept, other, other, other, other, other])
-	var player := m.players[0]
-	player.gold = 10
-	player.shop_offer = [kept, other, other, other, other]
-	player.toggle_shop_lock(0)
-	assert_true(player.shop_locked[0])
-	m.reroll(player)
-	assert_eq(player.shop_offer[0], kept, "la case verrouillée doit garder exactement la même carte")
-	assert_true(player.shop_locked[0], "le verrou doit survivre au reroll")
+func test_toggle_shop_freeze_flips_the_flag() -> void:
+	var player := ArenaPlayerState.new("Player")
+	assert_false(player.shop_frozen)
+	player.toggle_shop_freeze()
+	assert_true(player.shop_frozen)
+	player.toggle_shop_freeze()
+	assert_false(player.shop_frozen)
 
-func test_reroll_replaces_unlocked_slots() -> void:
-	# Pool délibérément vidé (draw_card() ne peut plus rien proposer) : une
-	# case NON verrouillée doit donc être effacée par le reroll, alors qu'une
-	# case verrouillée n'est jamais redemandée au pool et garde sa carte —
-	# c'est ce qui distingue "verrouillé" de "juste retombé sur la même carte
-	# par hasard" (il n'y a qu'une seule carte possible dans ce pool).
-	var kept := _make_card("Kept", 2, "res://fake/shop_kept2.tres")
+func test_frozen_shop_is_preserved_at_the_next_round() -> void:
+	# Pool délibérément vidé (draw_card() ne peut plus rien proposer) : si
+	# start_shop_phase() redemandait quand même une offre malgré le gel, les
+	# cases deviendraient null — les retrouver inchangées prouve que le gel a
+	# bien empêché le nouveau tirage plutôt que de "retomber sur la même
+	# carte par hasard" (il n'y a qu'une seule carte possible dans ce pool).
+	var kept := _make_card("Kept", 2, "res://fake/shop_frozen_kept.tres")
 	var pool := ArenaCardPool.new([kept])
 	var players: Array[ArenaPlayerState] = [ArenaPlayerState.new("Player")]
-	var match_ := ArenaMatch.new(players, pool)
-	var player := match_.players[0]
-	player.gold = 10
+	var m := ArenaMatch.new(players, pool)
+	var player := m.players[0]
 	while pool.copies_remaining(kept) > 0:
 		pool.take(kept)
 	player.shop_offer = [kept, kept, kept, kept, kept]
-	player.shop_locked = [true, false, false, false, false]
-	match_.reroll(player)
-	assert_eq(player.shop_offer[0], kept, "la case verrouillée doit garder sa carte même si le pool est vide")
-	assert_null(player.shop_offer[1], "une case non verrouillée doit être rafraîchie (et vidée si le pool n'a plus rien à offrir)")
+	player.shop_frozen = true
+	m.start_shop_phase()
+	for card in player.shop_offer:
+		assert_eq(card, kept, "l'offre entière doit être préservée quand la boutique est gelée")
 
-func test_new_round_clears_all_locks() -> void:
-	var kept := _make_card("Kept", 2, "res://fake/shop_kept3.tres")
-	var m := _make_match([kept, kept, kept, kept, kept, kept])
+func test_freeze_is_consumed_after_one_round() -> void:
+	var kept := _make_card("Kept", 2, "res://fake/shop_freeze_consumed.tres")
+	var m := _make_match([kept, kept])
 	var player := m.players[0]
 	player.shop_offer = [kept, kept, kept, kept, kept]
-	player.toggle_shop_lock(0)
-	assert_true(player.shop_locked[0])
+	player.shop_frozen = true
 	m.start_shop_phase()
-	assert_false(player.shop_locked[0], "une nouvelle manche doit repartir d'une offre entièrement déverrouillée")
+	assert_false(player.shop_frozen, "le gel ne doit durer qu'une seule manche, pas rester actif indéfiniment")
 
-func test_buying_a_locked_slot_clears_its_lock() -> void:
-	var card := _make_card("C1", 2, "res://fake/shop_lockbuy.tres")
-	var m := _make_match([card])
+func test_reroll_while_frozen_unfreezes_and_draws_a_fresh_offer() -> void:
+	# Un reroll manuel rejette explicitement le gel : payer un reroll ne doit
+	# jamais aboutir à garder la même offre inchangée.
+	var kept := _make_card("Kept", 2, "res://fake/shop_freeze_reroll.tres")
+	var pool := ArenaCardPool.new([kept])
+	var players: Array[ArenaPlayerState] = [ArenaPlayerState.new("Player")]
+	var m := ArenaMatch.new(players, pool)
 	var player := m.players[0]
 	player.gold = 5
-	player.toggle_shop_lock(0)
-	assert_true(player.shop_locked[0])
-	m.buy_card(player, 0)
-	assert_false(player.shop_locked[0], "acheter une case verrouillée doit lever le verrou (case désormais vide)")
-
-func test_cannot_lock_an_empty_slot() -> void:
-	var card := _make_card("C1", 2, "res://fake/shop_lockempty.tres")
-	var m := _make_match([card])
-	var player := m.players[0]
-	player.toggle_shop_lock(1)  # case vide (null) dans _make_match
-	assert_eq(player.shop_locked.size(), 0, "aucun redimensionnement/verrou ne doit se produire sur une case vide")
+	while pool.copies_remaining(kept) > 0:
+		pool.take(kept)
+	player.shop_offer = [kept, kept, kept, kept, kept]
+	player.shop_frozen = true
+	m.reroll(player)
+	assert_false(player.shop_frozen, "reroll doit dégeler la boutique")
+	assert_null(player.shop_offer[0], "reroll doit redemander une offre fraîche même si la boutique était gelée")
 
 func test_hand_overflow_is_discarded_at_end_of_shop_phase() -> void:
 	var card := _make_card("Filler", 1, "res://fake/shop_filler.tres")

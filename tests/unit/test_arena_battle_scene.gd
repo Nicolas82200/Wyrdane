@@ -139,6 +139,14 @@ func test_shop_is_only_interactable_during_the_shop_phase() -> void:
 	if not scene.game_over:
 		assert_true(scene.reroll_button.disabled, "la boutique doit être désactivée pendant l'affichage du combat")
 
+# Prêt (README « État actuel du prototype ») : termine la phase Boutique tout
+# de suite au lieu d'attendre l'expiration du minuteur (voir _on_ready_pressed).
+func test_ready_button_ends_the_shop_phase_immediately() -> void:
+	assert_eq(scene.current_phase, 0, "phase Boutique au départ (0 = Phase.SHOP)")
+	await scene._on_ready_pressed()
+	if not scene.game_over:
+		assert_eq(scene.current_phase, 1, "cliquer Prêt doit basculer en phase Combat sans attendre le minuteur (1 = Phase.COMBAT)")
+
 # Régression : _is_shop_interaction_allowed() doit rejeter toute action joueur
 # hors phase Boutique, pas seulement désactiver visuellement les boutons — un
 # drop dont le payload a été capturé juste avant la fin de la manche pouvait
@@ -157,6 +165,14 @@ func test_action_handlers_are_no_ops_outside_the_shop_phase() -> void:
 
 	scene._on_buy_xp_pressed()
 	assert_eq(scene.human.gold, gold_before, "achat d'XP hors phase Boutique ne doit pas débiter d'or")
+
+	var frozen_before: bool = scene.human.shop_frozen
+	scene._on_freeze_pressed()
+	assert_eq(scene.human.shop_frozen, frozen_before, "geler la boutique hors phase Boutique ne doit rien changer")
+
+	var phase_before = scene.current_phase
+	scene._on_ready_pressed()
+	assert_eq(scene.current_phase, phase_before, "cliquer Prêt hors phase Boutique ne doit pas déclencher de résolution de combat")
 
 	var affordable_index := -1
 	for i in scene.human.shop_offer.size():
