@@ -2,8 +2,8 @@ extends RefCounted
 class_name ArenaMatch
 
 # Orchestrateur headless d'une partie Arena (voir README « Structure d'un
-# round »). Round : start_shop_phase() -> achats/reroll/verrouillage via
-# buy_card/sell_card/reroll/buy_xp/ArenaPlayerState.toggle_shop_lock ->
+# round »). Round : start_shop_phase() -> achats/reroll/gel via
+# buy_card/sell_card/reroll/buy_xp/ArenaPlayerState.toggle_shop_freeze ->
 # positionnement (place_on_board côté ArenaPlayerState) -> end_shop_phase()
 # -> start_combat_phase() -> advance_round().
 #
@@ -53,31 +53,24 @@ func start_shop_phase() -> void:
 		player.gold = ArenaEconomy.compute_gold_for_round(round_number, player.gold)
 		player.xp += ArenaEconomy.compute_xp_gain(round_number)
 		player.level = ArenaEconomy.hero_level_for_xp(player.xp)
+		# Boutique gelée (voir ArenaPlayerState.shop_frozen) : offre entière
+		# préservée pour CETTE manche, geste consommé une fois (façon TFT —
+		# il faut regeler à chaque manche pour la garder plus longtemps).
+		if player.shop_frozen:
+			player.shop_frozen = false
+			if player.shop_offer.size() == ArenaConstants.SHOP_SIZE:
+				continue
 		_refresh_shop_offer(player)
 
-# `keep_locked` (reroll) préserve la carte des cases verrouillées telles
-# quelles ; une nouvelle manche (start_shop_phase) repart toujours d'une
-# offre entièrement fraîche et déverrouillée (voir README « Structure d'un
-# round » : le verrouillage ne survit qu'aux reroll d'une même manche).
-func _refresh_shop_offer(player: ArenaPlayerState, keep_locked: bool = false) -> void:
+func _refresh_shop_offer(player: ArenaPlayerState) -> void:
 	if player.shop_offer.size() != ArenaConstants.SHOP_SIZE:
 		player.shop_offer.resize(ArenaConstants.SHOP_SIZE)
-	if player.shop_locked.size() != ArenaConstants.SHOP_SIZE:
-		player.shop_locked.resize(ArenaConstants.SHOP_SIZE)
 	for i in ArenaConstants.SHOP_SIZE:
-		if keep_locked and player.shop_locked[i] and player.shop_offer[i] != null:
-			continue
 		player.shop_offer[i] = pool.draw_card(player.level, rng)
-		player.shop_locked[i] = false
 
 func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	if shop_index < 0 or shop_index >= player.shop_offer.size():
 		return false
-	# `shop_locked` peut être plus court que `shop_offer` (offre posée
-	# directement sans passer par _refresh_shop_offer, voir tests) : redimensionné
-	# ici pour que les écritures plus bas restent toujours dans les bornes.
-	if player.shop_locked.size() < player.shop_offer.size():
-		player.shop_locked.resize(player.shop_offer.size())
 	var card_data: CardData = player.shop_offer[shop_index]
 	if card_data == null or player.gold < card_data.cost or player.is_hand_full():
 		return false
@@ -91,12 +84,10 @@ func buy_card(player: ArenaPlayerState, shop_index: int) -> bool:
 	# devenue indisponible.
 	if pool.copies_remaining(card_data) <= 0:
 		player.shop_offer[shop_index] = null
-		player.shop_locked[shop_index] = false
 		return false
 	player.gold -= card_data.cost
 	pool.take(card_data)
 	player.shop_offer[shop_index] = null
-	player.shop_locked[shop_index] = false
 	if card_data.card_type == "Minion":
 		var minion := Minion.new(card_data, true, "Front")
 		player.add_to_hand(minion)
@@ -166,7 +157,10 @@ func reroll(player: ArenaPlayerState) -> bool:
 	if player.gold < ArenaConstants.REROLL_COST:
 		return false
 	player.gold -= ArenaConstants.REROLL_COST
-	_refresh_shop_offer(player, true)
+	# Un reroll manuel rejette explicitement l'offre gelée : dégeler plutôt que
+	# de la préserver, sans quoi le joueur paierait un reroll pour rien.
+	player.shop_frozen = false
+	_refresh_shop_offer(player)
 	return true
 
 func buy_xp(player: ArenaPlayerState) -> bool:
