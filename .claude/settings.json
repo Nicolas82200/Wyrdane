@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "cmd=$(node -e \"let d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write((d.tool_input&&d.tool_input.command)||'')\" 2>/dev/null); case \"$cmd\" in *\"git push\"*) ;; *) exit 0 ;; esac; cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$cur\" = \"dev\" ] || ! git rev-parse --verify dev >/dev/null 2>&1 || git merge-base --is-ancestor dev HEAD 2>/dev/null; then exit 0; fi; node -e \"process.stdout.write(JSON.stringify({hookSpecificOutput:{hookEventName:'PreToolUse',permissionDecision:'deny',permissionDecisionReason:'La branche dev n a pas encore ete mergee dans '+process.argv[1]+'. Lance git merge dev, resous les conflits, commite, puis reessaie le push (voir CLAUDE.md, Workflow Git > Push).'}}))\" \"$cur\"",
+            "statusMessage": "Vérification que dev est mergée avant le push..."
+          }
+        ]
+      }
+    ],
     "WorktreeCreate": [
       {
         "hooks": [
