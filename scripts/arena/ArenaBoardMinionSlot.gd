@@ -20,7 +20,12 @@ func setup(m: Minion) -> void:
 	var visual: BoardMinion = BOARD_MINION_SCENE.instantiate()
 	add_child(visual)
 	visual.set_minion(m)
-	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS, pas IGNORE : BoardMinion._process exclut explicitement IGNORE de
+	# son sondage de survol (condition `mouse_filter != MOUSE_FILTER_IGNORE`)
+	# — IGNORE ici désactivait donc l'aperçu au survol des serviteurs posés,
+	# tout en laissant quand même remonter le drag de repositionnement/vente
+	# vers ce Control (voir ArenaShopCardSlot pour le même correctif détaillé).
+	visual.mouse_filter = Control.MOUSE_FILTER_PASS
 	custom_minimum_size = visual.custom_minimum_size
 	# Étoile de fusion (README « Affichage et déclenchement de la fusion » :
 	# étoile dorée en overlay, coin haut) : BoardMinion.gd est le script 1v1,

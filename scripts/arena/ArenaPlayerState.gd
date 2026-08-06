@@ -27,9 +27,11 @@ var suspended: Array[Minion] = []
 var spell_hand: Array[CardData] = []
 
 var shop_offer: Array[CardData] = []
-# Case boutique verrouillée : préservée par un reroll (voir ArenaMatch.reroll),
-# remise à zéro à chaque nouvelle manche (voir ArenaMatch.start_shop_phase).
-var shop_locked: Array[bool] = []
+# Boutique gelée (façon TFT, un seul bouton flocon — pas de verrou par carte) :
+# préserve l'offre ENTIÈRE au round suivant (voir ArenaMatch.start_shop_phase),
+# levé automatiquement dès qu'il a servi une fois ou qu'un reroll manuel est
+# demandé (voir ArenaMatch.reroll).
+var shop_frozen: bool = false
 
 func _init(name: String, bot: bool = false) -> void:
 	display_name = name
@@ -92,13 +94,8 @@ func discard_overflow(rng: RandomNumberGenerator) -> Array[Minion]:
 		pool.remove_at(index)
 	return discarded
 
-# Ne verrouille jamais une case vide (rien à préserver au reroll).
-func toggle_shop_lock(shop_index: int) -> void:
-	if shop_index < 0 or shop_index >= shop_offer.size() or shop_offer[shop_index] == null:
-		return
-	if shop_locked.size() < shop_offer.size():
-		shop_locked.resize(shop_offer.size())
-	shop_locked[shop_index] = not shop_locked[shop_index]
+func toggle_shop_freeze() -> void:
+	shop_frozen = not shop_frozen
 
 func board_row(is_front: bool) -> Array[Minion]:
 	return board_front if is_front else board_back

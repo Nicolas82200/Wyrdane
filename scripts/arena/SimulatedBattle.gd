@@ -487,6 +487,40 @@ class SimAnimationSystem:
 		pass
 	func play_freeze(_v) -> void:
 		pass
+	# Méthodes ajoutées côté 1v1 (AnimationSystem.gd) après l'écriture initiale
+	# de ce stub, jamais reportées ici — un effet les appelant plantait tout le
+	# combat simulé (`Nonexistent function` en `Invalid call`, ex. play_damage
+	# via le pipeline de dégâts auto-infligés PACTE, EffectManager._damage).
+	func play_damage(_visual, _amount: int) -> void:
+		pass
+	func play_heal(_visual, _amount: int) -> void:
+		pass
+	func play_summon(_visual) -> void:
+		pass
+	func play_appear(_visual) -> void:
+		pass
+	func play_disappear(_visual) -> Tween:
+		return null
+	func play_generic_buff(_visual, _attack_gain: int, _health_gain: int) -> void:
+		pass
+	func play_generic_debuff(_visual, _attack_loss: int, _health_loss: int) -> void:
+		pass
+	func play_infection_tick(_visual, _amount: int) -> void:
+		pass
+	func play_commandement_buff(_visual) -> void:
+		pass
+	func play_sang_noir_buff(_visual) -> void:
+		pass
+	func play_pact_drain(_hero_panel, _minion_visual) -> void:
+		pass
+	func play_chair_adaptative_copy(_source_visual, _target_visual) -> void:
+		pass
+	func play_charge_ready(_visual) -> void:
+		pass
+	func play_resource_absorb(_card, _target: Vector2, _color: Color) -> void:
+		pass
+	func play_spell_missile(_from: Vector2, _targets: Array, _color: Color) -> void:
+		pass
 
 
 # Aucune pioche pendant le combat simulé (README « Contenu jouable v1 » /

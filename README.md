@@ -483,11 +483,12 @@ Le projet utilise des singletons pour des systèmes globaux :
 Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
 
 - **8 participants, solo local uniquement** (1 joueur humain + 7 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels, mais chacun sur sa propre machine/session ; ici tous simulés localement pour tester les conditions réelles d'une partie complète).
-- **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board, anti-répétition d'appariement et verrouillage de case boutique au reroll (cadenas sur chaque case, préservé au reroll, remis à zéro à la manche suivante) : tout ça est implémenté tel que décrit plus bas.
-- **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 25 secondes (seul le joueur humain y est contraint, les bots jouent après coup), phase Combat 15 secondes (affichage du résultat), enchaînement entièrement automatique — pas de bouton "prêt"/"round suivant" à cliquer.
+- **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board, anti-répétition d'appariement et gel de la boutique façon TFT (bouton flocon, préserve l'offre ENTIÈRE — pas une carte à la fois — pour la manche suivante, dégelé automatiquement dès qu'il a servi une fois ou qu'un reroll manuel est demandé) : tout ça est implémenté tel que décrit plus bas.
+- **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 25 secondes (seul le joueur humain y est contraint, les bots jouent après coup), phase Combat 15 secondes (affichage du résultat), enchaînement automatique par défaut, mais un bouton Prêt permet de terminer la phase Boutique en avance sans attendre l'expiration du minuteur.
 - **Combat du joueur humain rejoué avec animation** (réutilise telle quelle `CombatSystem`/`AnimationSystem`/`BoardVisualSystem`/`DeathSystem` du 1v1, sur les propres rangées Avant/Arrière du joueur + les rangées de la boutique reconverties en plateau adverse le temps du combat) — contrairement à la note « pas de ralenti visuel » plus bas, qui décrivait l'intention initiale avant que l'animation ne soit ajoutée. Les combats bots-contre-bots que le joueur ne voit pas restent résolus headless et instantanément (`SimulatedBattle`).
 - **Une seule main** pour les serviteurs ET les Incantations achetées (`Hand.gd`/`Hand.tscn`, réutilisé tel quel), pas deux zones séparées.
 - **Cartes Arena-only** (`CardData.arena_only`) : quelques serviteurs et Incantations exclusifs à ce mode existent déjà en plus du pool 1v1 normal, voir `CardLibrary.arena_only_cards`.
+- **Repositionnement d'un serviteur déjà posé** (glisser-déposer, phase Boutique) : réordonner au sein de sa ligne, toujours possible ; changer de ligne (Avant ↔ Arrière) après la pose n'est permis que pour un serviteur Hybride (`CardData.board_position == "Hybrid"`) — un serviteur Avant/Arrière strict garde la ligne choisie à la pose (`ArenaBoardRow._can_drop_data`).
 - **UI calquée sur le plateau 1v1** (mêmes coordonnées de rangées/héros que `Battle.tscn`, mêmes indicateurs de rangée et surlignage de dépôt, écran de fin de partie stylé pareil) — pas d'emplacements Rituel/Enchantement, pas de deck/cimetière (inutiles ici : pas de pioche, pas de mort permanente hors combat).
 
 ### 🎯 Concept général
@@ -496,7 +497,7 @@ Mode autobattler à 8 joueurs mêlant TFT (boutique, pool partagé, économie) e
 
 ### ⚔️ Structure d'un round
 
-1. **Phase Boutique** — achat/reroll/verrouillage de cartes.
+1. **Phase Boutique** — achat/reroll/gel de la boutique.
 2. **Phase Positionnement** — organisation du plateau (Avant/Arrière).
 3. **Phase Combat** — appariement aléatoire contre un adversaire, combat résolu automatiquement (`CombatSystem`, sans input joueur).
 4. Le perdant du combat perd des PV de héros (montant fonction des survivants du gagnant).
