@@ -80,6 +80,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
 @onready var pack_shop:       Control = $PackShop
 
+@onready var info_panel:      PanelContainer = $InfoPanel
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
 @onready var news_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsScroll/NewsListVBox
@@ -323,6 +324,19 @@ func _launch_backend_syncs() -> void:
 # défaut, composition de deck pendant le flux Jouer, Profil/Crédits/
 # Paramètres/Mes Decks/Boutique selon le bouton cliqué).
 
+# Offsets par défaut du panneau (valeurs d'origine de InfoPanel dans la scène) :
+# [left, top, right, bottom].
+const INFO_PANEL_DEFAULT_OFFSETS := [-900.0, -330.0, -64.0, 330.0]
+# La vue Actualités a besoin de plus de place (liste de devlogs) : panneau
+# plus large et un peu plus haut que les autres vues.
+const INFO_PANEL_NEWS_OFFSETS := [-1080.0, -390.0, -64.0, 390.0]
+
+func _apply_info_panel_offsets(offsets: Array) -> void:
+	info_panel.offset_left = offsets[0]
+	info_panel.offset_top = offsets[1]
+	info_panel.offset_right = offsets[2]
+	info_panel.offset_bottom = offsets[3]
+
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	news_view.visible = view == InfoView.NEWS
@@ -332,6 +346,7 @@ func _show_info_view(view: InfoView) -> void:
 	profile_view.visible = view == InfoView.PROFILE
 	settings_menu.visible = view == InfoView.SETTINGS
 	deck_list.visible = view == InfoView.DECKS_MANAGE
+	_apply_info_panel_offsets(INFO_PANEL_NEWS_OFFSETS if view == InfoView.NEWS else INFO_PANEL_DEFAULT_OFFSETS)
 	if view == InfoView.PROFILE:
 		_open_profile_view()
 	elif view == InfoView.SETTINGS:
