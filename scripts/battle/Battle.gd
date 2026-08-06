@@ -653,7 +653,6 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	combat_log.card_played(card_data, is_player)
 	if is_player:
 		update_mana_ui()
-		mana_display.pulse_max()
 	else:
 		update_enemy_mana_ui()
 		enemy_mana_display.pulse_max()

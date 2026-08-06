@@ -151,86 +151,25 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 	if is_instance_valid(attacker_visual):
 		attacker_visual.z_index = 0
 
-## Absorption d'une carte-ressource jouée : la carte se désintègre en fragments
-## dispersés aléatoirement (teintés `color`). Libère `card` (queue_free) une
-## fois les fragments envolés.
+## Absorption d'une carte-ressource jouée : la carte se dissout simplement sur
+## place (fondu + léger rétrécissement, teintée `color` en cours de route) au
+## lieu de se déchirer. Libère `card` (queue_free) une fois dissoute.
 func play_resource_absorb(card: Card, color: Color) -> void:
 	if not is_instance_valid(card):
 		return
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.z_index = 100
+	card.pivot_offset = card.size * 0.5
 
-	_shatter_card_art(card, color)
-
-	# Le reste de la carte (bordure, labels, coût...) s'efface pendant que
-	# l'illustration part en éclats, pour que la transition reste homogène.
-	var fade_tween: Tween = battle.create_tween()
-	fade_tween.tween_property(card, "modulate:a", 0.0, 0.16)
-	fade_tween.tween_callback(func():
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(card, "modulate", Color(color.r, color.g, color.b, 0.0), 0.35)
+	tween.tween_property(card, "scale", card.scale * 0.75, 0.35)
+	tween.chain().tween_callback(func():
 		if is_instance_valid(card):
 			card.queue_free()
 	)
-
-## Découpe `card.art` en une grille de fragments qui s'envolent dans des
-## directions aléatoires (biaisées vers l'extérieur) en tournant et en s'effaçant.
-func _shatter_card_art(card: Card, color: Color) -> void:
-	var art: TextureRect = card.art
-	if art == null or art.texture == null:
-		return
-	var texture: Texture2D = art.texture
-	var art_rect: Rect2 = Rect2(art.global_position, art.size)
-	if art_rect.size.x <= 0.0 or art_rect.size.y <= 0.0:
-		return
-
-	const COLS := 5
-	const ROWS := 6
-	var tex_size: Vector2 = texture.get_size()
-	var cell_tex: Vector2 = tex_size / Vector2(COLS, ROWS)
-	var cell_screen: Vector2 = art_rect.size / Vector2(COLS, ROWS)
-	var center: Vector2 = art_rect.position + art_rect.size * 0.5
-
-	for row in range(ROWS):
-		for col in range(COLS):
-			var atlas := AtlasTexture.new()
-			atlas.atlas = texture
-			atlas.region = Rect2(Vector2(col, row) * cell_tex, cell_tex)
-
-			var piece := TextureRect.new()
-			piece.texture = atlas
-			piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			piece.stretch_mode = TextureRect.STRETCH_SCALE
-			piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			piece.size = cell_screen
-			piece.z_index = 100
-			var piece_pos: Vector2 = art_rect.position + Vector2(col, row) * cell_screen
-			piece.global_position = piece_pos
-			piece.pivot_offset = cell_screen * 0.5
-			battle.add_child(piece)
-
-			var piece_center: Vector2 = piece_pos + cell_screen * 0.5
-			var outward: Vector2 = piece_center - center
-			if outward.length() < 1.0:
-				outward = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
-			outward = outward.normalized()
-			var jitter := Vector2(randf_range(-0.6, 0.6), randf_range(-0.6, 0.6))
-			var travel: Vector2 = (outward + jitter).normalized() * randf_range(35.0, 95.0)
-			var spin: float = randf_range(-260.0, 260.0)
-			var delay: float = randf_range(0.0, 0.06)
-			var duration: float = randf_range(0.32, 0.5)
-
-			var tween: Tween = battle.create_tween()
-			tween.set_parallel(true)
-			if delay > 0.0:
-				tween.tween_interval(delay)
-			tween.tween_property(piece, "global_position", piece_pos + travel, duration)\
-				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tween.tween_property(piece, "rotation_degrees", spin, duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(piece, "scale", Vector2(0.35, 0.35), duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.tween_property(piece, "modulate", Color(color.r, color.g, color.b, 0.0), duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.chain().tween_callback(piece.queue_free)
 
 ## SORT : projectile qui file de la popup d'effet (`from`) vers chaque cible
 ## touchée (`targets`), en suivant la même courbe que la flèche de ciblage
