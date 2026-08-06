@@ -6,19 +6,26 @@ class_name PackShop
 # pondérées par rareté — voir POST /api/packs/open côté wyrdane-backend).
 #
 # Plein écran (pas de fenêtre encadrée) : un voile assombrit tout le menu et
-# le paquet, un empilement de dos de carte au centre (PackVisual), tourne sur
-# lui-même. Chaque tour du paquet fait apparaître une carte qui s'envole vers
-# une place disposée en cercle autour du paquet, à la taille "survol" utilisée
-# ailleurs dans le jeu (voir Hand.gd, preview.scale). Les tirages
-# Épique/Légendaire ont un flourish renforcé (VFXManager, flash plein écran,
-# secousse d'écran, son distinct).
+# le paquet, un empilement de dos de carte à gauche de l'écran (PackVisual),
+# tourne sur lui-même. Chaque tour du paquet fait apparaître une carte qui
+# s'envole vers une place en grille du côté droit de l'écran, à une taille
+# adaptée au nombre de cartes révélées (voir Hand.gd, preview.scale, pour la
+# référence de zoom "survol" quand une seule carte est révélée). Le joueur
+# peut ouvrir plusieurs packs d'affilée (x1/x3/x5) : l'API backend n'ouvrant
+# qu'un pack par requête, le client enchaîne les appels puis révèle toutes
+# les cartes dans une seule séquence. Les tirages Épique/Légendaire ont un
+# flourish renforcé (flash plein écran, son distinct) — volontairement sans
+# particules ni secousse d'écran.
 
 @export var card_scene: PackedScene
 
 const CARD_SIZE := Vector2(250, 375)
-# Taille de repos d'une carte révélée, alignée sur le zoom de survol utilisé
-# dans la main (voir Hand.gd::_on_card_hover, preview.scale = 1.1).
+# Taille de repos maximale d'une carte révélée quand une seule est affichée,
+# alignée sur le zoom de survol utilisé dans la main (voir Hand.gd,
+# _on_card_hover, preview.scale = 1.1). Réduite dynamiquement si la grille de
+# révélation contient plusieurs cartes (voir _compute_grid_slots).
 const HOVER_SCALE := 1.1
+const GRID_MIN_SCALE := 0.55
 const PACK_SCALE := 1.3
 const PACK_LAYER_COUNT := 4
 const PACK_LAYER_OFFSET := 6.0
@@ -28,14 +35,17 @@ const FIRST_REVEAL_DELAY := 0.25
 const REVEAL_STAGGER := 0.85
 const RARE_RARITIES := ["Epic", "Legendary"]
 const ODDS_TOOLTIP_DURATION := 4.0
-const SHAKE_STRENGTH := {"Epic": 6.0, "Legendary": 13.0}
 const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
-# Rayon (fraction de la plus petite dimension de l'écran) du cercle sur lequel
-# les cartes révélées se placent autour du paquet — calculé à l'ouverture pour
-# rester correct quelle que soit la résolution.
-const FAN_RADIUS_RATIO := 0.30
-const FAN_RADIUS_MIN := 220.0
-const FAN_RADIUS_MAX := 380.0
+# Zone de révélation : partie droite de l'écran, à droite du paquet (voir
+# PackCenter dans PackShop.tscn, ancré sur les ~34% gauches de l'écran).
+const GRID_AREA_LEFT_RATIO := 0.34
+const GRID_AREA_SIDE_MARGIN := 40.0
+const GRID_AREA_TOP := 150.0
+const GRID_AREA_BOTTOM := 170.0
+const GRID_MAX_COLUMNS := 5
+# Fraction de chaque cellule de grille effectivement occupée par la carte (le
+# reste forme l'espacement entre cartes).
+const GRID_CELL_PADDING := 0.86
 
 @onready var shake_layer: Control = $ShakeLayer
 @onready var title_label: Label = $ShakeLayer/TitleLabel
@@ -46,7 +56,9 @@ const FAN_RADIUS_MAX := 380.0
 @onready var pack_stage: Control = $ShakeLayer/PackStage
 @onready var pack_center: CenterContainer = $ShakeLayer/PackStage/PackCenter
 @onready var free_button: Button = $ShakeLayer/FreeButtonRow/FreeButton
-@onready var open_button: Button = $ShakeLayer/BottomBar/OpenButton
+@onready var open_x1_button: Button = $ShakeLayer/BottomBar/OpenX1Button
+@onready var open_x3_button: Button = $ShakeLayer/BottomBar/OpenX3Button
+@onready var open_x5_button: Button = $ShakeLayer/BottomBar/OpenX5Button
 @onready var odds_button: Button = $ShakeLayer/BottomBar/OddsButton
 @onready var skip_hint_label: Label = $ShakeLayer/SkipHintLabel
 @onready var flash_rect: ColorRect = $FlashRect
@@ -55,27 +67,29 @@ var _revealing: bool = false
 var _skip_requested: bool = false
 var _pack_visual: Control = null
 var _idle_spin_tween: Tween = null
-# Overlay VFX (impacts thématiques par race) réutilisé du combat pour le
-# flourish des tirages rares — voir VFXManager.spawn_hit_impact.
-var _vfx_manager: VFXManager
+# Échelle de repos utilisée pour la révélation en cours, recalculée à chaque
+# séquence selon le nombre de cartes (voir _compute_grid_slots).
+var _reveal_scale: float = HOVER_SCALE
+
+signal _pack_request_completed(code: int, cards: Array)
 
 func _ready() -> void:
 	hide()
 	status_label.hide()
 	skip_hint_label.hide()
-	_vfx_manager = VFXManager.new()
-	add_child(_vfx_manager)
 	_resize_shake_layer()
 	get_viewport().size_changed.connect(_resize_shake_layer)
 	_pack_visual = _build_pack_visual(pack_center)
 	_style_close_x_button()
-	open_button.pressed.connect(_on_open_pressed)
+	open_x1_button.pressed.connect(func(): _open_pack(false, 1))
+	open_x3_button.pressed.connect(func(): _open_pack(false, 3))
+	open_x5_button.pressed.connect(func(): _open_pack(false, 5))
 	odds_button.pressed.connect(_on_odds_pressed)
 	# Bouton d'ouverture gratuite : outil de test, réservé aux builds debug
 	# (l'export release ne l'affiche pas) et refusé côté serveur (403) tant
 	# que DEV_FREE_PACKS n'est pas activé sur le backend.
 	free_button.get_parent().visible = OS.is_debug_build()
-	free_button.pressed.connect(func(): _open_pack(true))
+	free_button.pressed.connect(func(): _open_pack(true, 1))
 	close_x_button.set_meta("no_click_sound", true)
 	close_x_button.pressed.connect(func(): AudioManager.play(AudioManager.CLOSE_MENU); hide())
 	skip_hint_label.gui_input.connect(_on_skip_input)
@@ -140,21 +154,44 @@ func _stop_spin() -> void:
 	if is_instance_valid(_pack_visual):
 		_pack_visual.scale = Vector2(PACK_SCALE, PACK_SCALE)
 
-func _on_open_pressed() -> void:
-	_open_pack(false)
+func _set_action_buttons_disabled(disabled: bool) -> void:
+	open_x1_button.disabled = disabled
+	open_x3_button.disabled = disabled
+	open_x5_button.disabled = disabled
+	free_button.disabled = disabled
 
-func _open_pack(free: bool) -> void:
-	open_button.disabled = true
-	free_button.disabled = true
+## Ouvre `quantity` packs d'affilée (l'API backend n'en ouvre qu'un par
+## requête) puis révèle toutes les cartes tirées dans une seule séquence. Si
+## un appel échoue en cours de route (solde épuisé après les premiers packs
+## payés, par ex.), les cartes déjà obtenues sont tout de même révélées.
+func _open_pack(free: bool, quantity: int) -> void:
+	_set_action_buttons_disabled(true)
 	status_label.hide()
-	CurrencyManager.open_pack(func(code: int, cards: Array): _on_pack_opened(code, cards), free)
 
-func _on_pack_opened(code: int, cards: Array) -> void:
+	var all_cards: Array = []
+	var last_code := 200
+	for i in quantity:
+		var result: Dictionary = await _request_single_pack(free)
+		if not is_instance_valid(self):
+			return
+		last_code = result["code"]
+		var cards: Array = result["cards"]
+		if last_code != 200 or cards.is_empty():
+			break
+		all_cards.append_array(cards)
+
+	_on_packs_opened(last_code, all_cards)
+
+func _request_single_pack(free: bool) -> Dictionary:
+	CurrencyManager.open_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards), free)
+	var result: Array = await _pack_request_completed
+	return {"code": result[0], "cards": result[1]}
+
+func _on_packs_opened(code: int, cards: Array) -> void:
 	_clear_cards()
 
-	if code != 200 or cards.is_empty():
-		open_button.disabled = false
-		free_button.disabled = false
+	if cards.is_empty():
+		_set_action_buttons_disabled(false)
 		status_label.text = SettingsManager.t("pack_shop.error")
 		status_label.show()
 		_start_idle_spin()
@@ -176,32 +213,58 @@ func _on_pack_opened(code: int, cards: Array) -> void:
 			"gold": int(card_row.get("goldEarned", 0)),
 		})
 
+	if code != 200:
+		status_label.text = SettingsManager.t("pack_shop.error")
+		status_label.show()
+
 	_reveal_sequence(entries)
 
-## Place N points en cercle autour du centre actuel du paquet, en partant du
-## haut. Le rayon s'adapte à la résolution pour ne jamais sortir de l'écran.
-func _compute_fan_slots(count: int) -> Array:
+## Calcule une grille de positions (côté droit de l'écran, à droite du
+## paquet) pour `count` cartes, ainsi que l'échelle de repos à leur appliquer
+## pour qu'elles restent toutes visibles sans déborder du cadre.
+func _compute_grid_slots(count: int) -> Dictionary:
 	var viewport_size: Vector2 = get_viewport_rect().size
-	var min_dim: float = min(viewport_size.x, viewport_size.y)
-	var radius: float = clamp(min_dim * FAN_RADIUS_RATIO, FAN_RADIUS_MIN, FAN_RADIUS_MAX)
-	var center: Vector2 = _pack_visual.get_global_rect().get_center()
+	var area_left: float = viewport_size.x * GRID_AREA_LEFT_RATIO + GRID_AREA_SIDE_MARGIN
+	var area_right: float = viewport_size.x - GRID_AREA_SIDE_MARGIN
+	var area_top: float = GRID_AREA_TOP
+	var area_bottom: float = viewport_size.y - GRID_AREA_BOTTOM
+	var area_size := Vector2(max(area_right - area_left, 1.0), max(area_bottom - area_top, 1.0))
+
+	var columns: int = clamp(count, 1, GRID_MAX_COLUMNS)
+	var rows: int = int(ceil(float(count) / columns))
+	var cell_size := Vector2(area_size.x / columns, area_size.y / rows)
+
+	var scale_x: float = cell_size.x * GRID_CELL_PADDING / CARD_SIZE.x
+	var scale_y: float = cell_size.y * GRID_CELL_PADDING / CARD_SIZE.y
+	var reveal_scale: float = clamp(min(scale_x, scale_y, HOVER_SCALE), GRID_MIN_SCALE, HOVER_SCALE)
+
+	var cols_in_last_row: int = count - (rows - 1) * columns
 	var slots: Array = []
 	for i in count:
-		var angle: float = deg_to_rad(-90.0 + i * (360.0 / count))
-		slots.append(center + radius * Vector2(cos(angle), sin(angle)))
-	return slots
+		var row: int = i / columns
+		var cols_in_row: int = columns if row < rows - 1 else cols_in_last_row
+		var row_left: float = area_left + (area_size.x - cols_in_row * cell_size.x) / 2.0
+		var col: int = i % columns
+		slots.append(Vector2(
+			row_left + (col + 0.5) * cell_size.x,
+			area_top + (row + 0.5) * cell_size.y
+		))
+
+	return {"slots": slots, "scale": reveal_scale}
 
 ## Révèle les cartes tirées une par une : à chaque tour du paquet, une carte
-## en jaillit et vole vers sa place autour du paquet en se retournant. Cliquer
-## sur l'indice "passer" affiché pendant la séquence saute directement le
-## reste des cartes sans animation.
+## en jaillit et vole vers sa place en grille à droite en se retournant.
+## Cliquer sur l'indice "passer" affiché pendant la séquence saute directement
+## le reste des cartes sans animation.
 func _reveal_sequence(entries: Array) -> void:
 	_revealing = true
 	_skip_requested = false
 	skip_hint_label.show()
 	_stop_spin()
 
-	var slots: Array = _compute_fan_slots(entries.size())
+	var grid: Dictionary = _compute_grid_slots(entries.size())
+	var slots: Array = grid["slots"]
+	_reveal_scale = grid["scale"]
 
 	for i in range(entries.size()):
 		var skip_now := _skip_requested
@@ -217,8 +280,7 @@ func _reveal_sequence(entries: Array) -> void:
 
 	skip_hint_label.hide()
 	_revealing = false
-	open_button.disabled = false
-	free_button.disabled = false
+	_set_action_buttons_disabled(false)
 	_update_progress_label()
 	_start_idle_spin()
 
@@ -265,7 +327,7 @@ func _spawn_pack_card() -> Control:
 	card_instance.global_position = center - CARD_SIZE / 2.0
 	return card_instance
 
-## Envol vers la place assignée en cercle, avec un flip (façon pièce qui
+## Envol vers la place assignée en grille, avec un flip (façon pièce qui
 ## tourne) au passage qui révèle la carte à mi-chemin.
 func _fly_and_reveal(card_instance: Control, entry: Dictionary, slot_pos: Vector2) -> void:
 	var card_data: CardData = entry["data"]
@@ -273,7 +335,7 @@ func _fly_and_reveal(card_instance: Control, entry: Dictionary, slot_pos: Vector
 
 	var move_tween := create_tween()
 	move_tween.tween_property(card_instance, "global_position", target_position, CARD_FLY_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	move_tween.parallel().tween_property(card_instance, "scale:y", HOVER_SCALE, CARD_FLY_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	move_tween.parallel().tween_property(card_instance, "scale:y", _reveal_scale, CARD_FLY_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 	var flip_tween := create_tween()
 	flip_tween.tween_property(card_instance, "scale:x", 0.0, CARD_FLY_DURATION * 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
@@ -288,7 +350,7 @@ func _fly_and_reveal(card_instance: Control, entry: Dictionary, slot_pos: Vector
 			_add_dust_badge(card_instance, entry["gold"])
 		AudioManager.play(AudioManager.DRAW)
 	)
-	flip_tween.tween_property(card_instance, "scale:x", HOVER_SCALE, CARD_FLY_DURATION * 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	flip_tween.tween_property(card_instance, "scale:x", _reveal_scale, CARD_FLY_DURATION * 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 	await move_tween.finished
 	if not is_instance_valid(self) or not is_instance_valid(card_instance):
@@ -297,9 +359,9 @@ func _fly_and_reveal(card_instance: Control, entry: Dictionary, slot_pos: Vector
 	if RARE_RARITIES.has(card_data.rarity):
 		await _play_rare_flourish(card_instance, entry)
 
-## Flourish de tirage rare : impact VFX thématique par race (réutilise le
-## système déjà employé en combat), flash plein écran, secousse d'écran et
-## son distinct, plus marqués sur Légendaire que sur Épique.
+## Flourish de tirage rare : flash plein écran et son distinct, plus marqués
+## sur Légendaire que sur Épique. Volontairement discret (pas de particules ni
+## de secousse d'écran).
 func _play_rare_flourish(card_instance: Control, entry: Dictionary) -> void:
 	if not is_instance_valid(card_instance):
 		return
@@ -318,18 +380,15 @@ func _play_rare_flourish(card_instance: Control, entry: Dictionary) -> void:
 			AudioManager.play_with_pitch(AudioManager.CONFIRM, 1.05, 1.15)
 
 	_flash_screen(glow_color, FLASH_ALPHA.get(rarity, 0.2))
-	_shake_screen(SHAKE_STRENGTH.get(rarity, 6.0))
-	if is_instance_valid(_vfx_manager):
-		_vfx_manager.spawn_hit_impact(card_instance.get_global_rect().get_center(), card_data.race, legendary)
 
 	var final_modulate: Color = Color(0.6, 0.6, 0.6, 1) if entry["dusted"] else Color.WHITE
 	card_instance.modulate = Color(glow_color.r * 1.6, glow_color.g * 1.6, glow_color.b * 1.6, 1.0)
 
 	var flourish := create_tween()
-	flourish.tween_property(card_instance, "scale", Vector2(HOVER_SCALE, HOVER_SCALE) * 1.18, 0.16) \
+	flourish.tween_property(card_instance, "scale", Vector2(_reveal_scale, _reveal_scale) * 1.18, 0.16) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	flourish.parallel().tween_property(card_instance, "modulate", final_modulate, 0.4)
-	flourish.tween_property(card_instance, "scale", Vector2(HOVER_SCALE, HOVER_SCALE), 0.14).set_trans(Tween.TRANS_LINEAR)
+	flourish.tween_property(card_instance, "scale", Vector2(_reveal_scale, _reveal_scale), 0.14).set_trans(Tween.TRANS_LINEAR)
 	await flourish.finished
 
 ## Flash coloré plein écran (teinte de la rareté), léger et bref.
@@ -341,22 +400,7 @@ func _flash_screen(color: Color, peak_alpha: float) -> void:
 	tween.tween_property(flash_rect, "color:a", peak_alpha, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.tween_property(flash_rect, "color:a", 0.0, 0.5).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
-## Secousse d'écran : ShakeLayer n'est pas ancré en étirement (taille fixée
-## manuellement sur la résolution), donc tweener sa position ne déforme rien —
-## contrairement à un Control ancré plein cadre où cela changerait sa taille.
-func _shake_screen(strength: float) -> void:
-	if not is_instance_valid(shake_layer):
-		return
-	var base_pos: Vector2 = shake_layer.position
-	var tween := create_tween()
-	var shakes := 6
-	for i in shakes:
-		var falloff := 1.0 - float(i) / shakes
-		var offset := Vector2(randf_range(-strength, strength), randf_range(-strength, strength)) * falloff
-		tween.tween_property(shake_layer, "position", base_pos + offset, 0.035)
-	tween.tween_property(shake_layer, "position", base_pos, 0.035)
-
-## Miniature statique placée directement à sa place en cercle, sans
+## Miniature statique placée directement à sa place en grille, sans
 ## animation (mode "passer").
 func _place_card_instant(entry: Dictionary, slot_pos: Vector2) -> void:
 	var card_data: CardData = entry["data"]
@@ -365,7 +409,7 @@ func _place_card_instant(entry: Dictionary, slot_pos: Vector2) -> void:
 	card_instance.set_non_interactive()
 	card_instance.size = CARD_SIZE
 	card_instance.pivot_offset = CARD_SIZE / 2.0
-	card_instance.scale = Vector2(HOVER_SCALE, HOVER_SCALE)
+	card_instance.scale = Vector2(_reveal_scale, _reveal_scale)
 	card_instance.global_position = slot_pos - CARD_SIZE / 2.0
 	card_instance.show_back(false)
 	card_instance.set_data(card_data)
@@ -463,7 +507,9 @@ func _style_close_x_button() -> void:
 
 func _retranslate() -> void:
 	title_label.text = SettingsManager.t("pack_shop.title")
-	open_button.text = SettingsManager.t("pack_shop.open_button") % CurrencyManager.PACK_COST
+	open_x1_button.text = SettingsManager.t("pack_shop.open_x1") % (CurrencyManager.PACK_COST * 1)
+	open_x3_button.text = SettingsManager.t("pack_shop.open_x3") % (CurrencyManager.PACK_COST * 3)
+	open_x5_button.text = SettingsManager.t("pack_shop.open_x5") % (CurrencyManager.PACK_COST * 5)
 	odds_button.text = SettingsManager.t("pack_shop.odds_button")
 	free_button.text = SettingsManager.t("pack_shop.open_free_button")
 	close_x_button.tooltip_text = SettingsManager.t("pack_shop.close")
