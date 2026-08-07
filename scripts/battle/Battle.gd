@@ -328,7 +328,7 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
 	_style_settings_button()
-	report_button.pressed.connect(_on_report_pressed)
+	settings_menu.report_requested.connect(_on_report_pressed)
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
