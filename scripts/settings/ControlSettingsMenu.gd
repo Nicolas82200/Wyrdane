@@ -1,13 +1,13 @@
 extends Control
 
-@onready var end_turn_button:       Button = $VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnButton
-@onready var graveyard_button:      Button = $VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardButton
-@onready var enemy_graveyard_button: Button = $VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardButton
+@onready var end_turn_button:       Button = $VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow/EndTurnButton
+@onready var graveyard_button:      Button = $VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow/ToggleGraveyardButton
+@onready var enemy_graveyard_button: Button = $VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardButton
 @onready var reset_button:     Button = $VBox/BtnsMargin/BtnsRow/ResetButton
 @onready var hint_label:       Label  = $VBox/HintMargin/HintLabel
-@onready var end_turn_label:   Label  = $VBox/BindsMargin/BindsVBox/EndTurnRow/EndTurnLabel
-@onready var graveyard_label:  Label  = $VBox/BindsMargin/BindsVBox/ToggleGraveyardRow/ToggleGraveyardLabel
-@onready var enemy_graveyard_label: Label = $VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardLabel
+@onready var end_turn_label:   Label  = $VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow/EndTurnLabel
+@onready var graveyard_label:  Label  = $VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow/ToggleGraveyardLabel
+@onready var enemy_graveyard_label: Label = $VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow/ToggleEnemyGraveyardLabel
 @onready var conflict_label:   Label  = %ConflictLabel
 
 # Action InputMap <-> bouton associé.
