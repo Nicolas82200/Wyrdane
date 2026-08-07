@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Marché de Sang"
-description = "Deuil : ton héros perd 1 HP ; invoque une Larve Infernale 2/1 dotée de PACTE."
+description = "Deuil : ton héros perd 1 HP ; invoque une Larve Infernale 2/1."
 flavour_text = "Chaque offrande en appelle une autre, encore, et encore."
 texture = ExtResource("3_texture")
 cost = 4

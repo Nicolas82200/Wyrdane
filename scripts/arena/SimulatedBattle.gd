@@ -538,7 +538,7 @@ class SimAnimationSystem:
 		pass
 	func play_charge_ready(_visual) -> void:
 		pass
-	func play_resource_absorb(_card, _target: Vector2, _color: Color) -> void:
+	func play_resource_absorb(_card, _color: Color) -> void:
 		pass
 	func play_spell_missile(_from: Vector2, _targets: Array, _color: Color) -> void:
 		pass
