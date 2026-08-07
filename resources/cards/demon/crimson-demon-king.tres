@@ -14,12 +14,10 @@ keyword_type = 1
 script = ExtResource("5_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_8jfgi"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("4_kwd")
+keyword_type = 0
 value = 3
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_km39a"]
 script = ExtResource("1_cardeffect")
@@ -31,7 +29,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Roi Démon Écarlate"
-description = "CORRUPTION. Arrivée : ton héros perd 3 HP ; inflige Corruption à tous les serviteurs ennemis."
+description = "CORRUPTION.
+Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis."
 flavour_text = "Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter."
 texture = ExtResource("3_texture")
 cost = 7
@@ -39,9 +38,9 @@ race = 5
 unit_style = 15
 attack = 6
 health = 8
-demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_2p5fc")])
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_2p5fc"), SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_dwc4r")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_8jfgi"), SubResource("Resource_km39a")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_km39a")])
 rarity = "Legendary"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

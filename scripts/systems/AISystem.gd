@@ -278,14 +278,13 @@ func _find_priority_removal(cards: Array[CardData]) -> CardData:
 	return null
 
 # PACTE : l'IA paie le coût en PV dès qu'il lui reste une marge de sécurité
-# confortable après paiement, sans quoi elle pose la carte sans l'effet.
-const PACT_SAFE_HEALTH_MARGIN := 6
-
+# confortable après paiement (PactChoiceSystem.heuristic_decision), sans quoi
+# elle pose la carte sans l'effet.
 func _decide_pact_payment(card: CardData) -> bool:
 	var value: int = card.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 	if value <= 0:
 		return false
-	return battle.enemy_hero.health - value >= PACT_SAFE_HEALTH_MARGIN
+	return battle.pact_choice_system.heuristic_decision(false, value)
 
 # Rangée autorisée avec de la place ; les hybrides fragiles vont derrière
 func _pick_row_for(card: CardData) -> String:

@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Berserker du Pacte"
-description = "Pacte 4 : FRÉNÉSIE."
+description = "Pacte 4 : Arrivée : FRÉNÉSIE."
 flavour_text = "Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable."
 texture = ExtResource("3_texture")
 cost = 4

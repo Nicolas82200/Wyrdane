@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Émissaire du Pacte"
-description = "Pacte 2 : Piochez une carte."
+description = "Pacte 2 : Arrivée : Piochez une carte."
 flavour_text = "Il apporte toujours plus qu'il ne semble offrir, dans les deux sens."
 texture = ExtResource("3_texture")
 cost = 3

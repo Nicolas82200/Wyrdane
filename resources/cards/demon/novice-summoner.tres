@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Invocateur Novice"
-description = "Pacte 2 : REMPART."
+description = "Pacte 2 : Arrivée : REMPART."
 flavour_text = "Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps."
 texture = ExtResource("3_texture")
 cost = 1

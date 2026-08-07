@@ -5,17 +5,16 @@
 [ext_resource type="Texture2D" uid="uid://gb2rwpjr48my" path="res://assets/card_art/demon/summoning-circle.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 [ext_resource type="Resource" path="res://resources/cards/demon/hellspawn-larva-token.tres" id="5_summon"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="6_kwd"]
 
 [sub_resource type="Resource" id="Resource_aag7v"]
 script = ExtResource("4_trig")
 type = "OnAwaken"
 
-[sub_resource type="Resource" id="Resource_gr256"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("6_kwd")
+keyword_type = 0
 value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_ffr91"]
 script = ExtResource("1_cardeffect")
@@ -27,14 +26,15 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rituel du Pacte Éternel"
-description = "Éveil : ton héros perd 1 HP ; invoque une Larve Infernale 2/1 en rangée Avant."
+description = "Pacte 1 : Éveil : Invoque une Larve Infernale 2/1 en rangée Avant."
 flavour_text = "Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites."
 texture = ExtResource("3_texture")
 cost = 5
 race = 5
 card_type = "Ritual"
 ritual_duration = 3
+demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_aag7v")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_gr256"), SubResource("Resource_ffr91")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ffr91")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

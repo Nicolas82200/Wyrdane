@@ -10,29 +10,22 @@ effect_id = "SacrificeAlly"
 count = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_xruwe"]
-script = ExtResource("1_cardeffect")
-effect_id = "HealHero"
-value = 3
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
 [sub_resource type="Resource" id="Resource_403d4"]
 script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "EnemyHero"
-value = 3
+effect_id = "StealHealthFromHero"
+value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rite de Sang"
-description = "Sacrifice (un serviteur allié) : ton héros regagne 3 HP ; inflige 3 dégâts au héros ennemi."
+description = "Sacrifice 1 : Votre héros vole 1 point de vie au héros adverse."
 flavour_text = "Un sang pour un autre. L'échange est rarement équitable, sauf pour toi, cette fois."
 texture = ExtResource("3_texture")
 cost = 2
 race = 5
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_t6cwp"), SubResource("Resource_xruwe"), SubResource("Resource_403d4")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_t6cwp"), SubResource("Resource_403d4")])
 requires_target = true
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

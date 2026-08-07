@@ -82,7 +82,18 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 				continue
 			if paced and acted:
 				await battle.pace_actions()
-			await _execute_enchantment_effects_with_proxy(proxy, card_data, is_player, ctx)
+			# PACTE sur Rituel/Enchantement : contrairement à un serviteur (choix
+			# unique à la pose), le paiement est redemandé à CHAQUE déclenchement
+			# effectif du trigger ; la charge est consommée que le joueur paie ou
+			# non (voir PactChoiceSystem.resolve_trigger).
+			var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+			var pact_paid: bool = true
+			if pact_value > 0:
+				pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
+				if pact_paid:
+					await battle.hero_system.self_damage(is_player, pact_value)
+			if pact_paid:
+				await _execute_enchantment_effects_with_proxy(proxy, card_data, is_player, ctx)
 			acted = true
 			if card_data.trigger_once_per_turn:
 				entry["triggered_this_turn"] = true
@@ -105,8 +116,15 @@ func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Ar
 		victim.health = 0
 	await battle.death_system.process_deaths()
 	var proxy := _make_proxy(card_data, is_player)
-	for effect in card_data.effects:
-		await battle.effect_manager.execute_effect(battle, proxy, effect)
+	var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+	var pact_paid: bool = true
+	if pact_value > 0:
+		pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
+		if pact_paid:
+			await battle.hero_system.self_damage(is_player, pact_value)
+	if pact_paid:
+		for effect in card_data.effects:
+			await battle.effect_manager.execute_effect(battle, proxy, effect)
 	_consume_ritual_charge(entry, is_player)
 	battle.board_visual_system.refresh_board()
 
@@ -205,6 +223,16 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 		if not cancel_effect.row_filter.is_empty() \
 				and target.board_row != cancel_effect.row_filter:
 			continue
+		# PACTE : le paiement (par annulation) conditionne l'annulation elle-même ;
+		# refusé, le sort n'est pas annulé par CE rituel mais la charge est quand
+		# même consommée (il a réagi à l'évènement).
+		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+		if pact_value > 0:
+			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(card_data, owner_is_player)
+			if not pact_paid:
+				_consume_ritual_charge(entry, owner_is_player)
+				continue
+			await battle.hero_system.self_damage(owner_is_player, pact_value)
 		var proxy := _make_proxy(card_data, owner_is_player)
 		for effect in card_data.effects:
 			if effect.effect_id == "CancelSpellOnRaceTarget":
