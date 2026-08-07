@@ -68,6 +68,7 @@ var sacrifice_system := SacrificeSystem.new()
 var fusion_system := FusionSystem.new()
 var temp_effect_system := TempEffectSystem.new()
 var effect_manager := EffectManager.new()
+var pact_choice_system: PactChoiceSystem
 # Instance IA réutilisée uniquement pour ses méthodes pures de décision
 # d'attaque (_pick_attack_target, _attack_phase...) — jamais setup()/_build_deck().
 var ai_system: AISystem
@@ -129,6 +130,8 @@ func _init_systems() -> void:
 	temp_effect_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
+	pact_choice_system = PactChoiceSystem.new()
+	pact_choice_system.init(self)
 	# Même sous-ensemble que Battle.gd::_init_systems() : seuls ces systèmes
 	# sont réellement ajoutés à l'arbre (les autres, Node ou RefCounted, ne
 	# font jamais appel à self.get_tree()/self._ready(), juste battle.get_tree()).
@@ -151,12 +154,12 @@ func _start_game() -> void:
 	var stat_multiplier := CampaignOpponentFactory.stat_multiplier_for(_run, _node)
 
 	for entry in _run.board_with_rows():
-		await board_system.summon_minion(entry["card"], true, entry["row"], -1, true)
+		await _place_card_on_board(entry["card"], true, entry["row"])
 
 	for card in enemy_board:
 		var allowed := get_allowed_rows_for_card(card)
 		var row: String = allowed[game_rng.randi_range(0, allowed.size() - 1)]
-		await board_system.summon_minion(card, false, row, -1, true)
+		await _place_card_on_board(card, false, row)
 	for minion in enemy_minions:
 		minion.base_attack = int(ceil(minion.base_attack * stat_multiplier))
 		minion.base_max_health = int(ceil(minion.base_max_health * stat_multiplier))
@@ -166,6 +169,36 @@ func _start_game() -> void:
 	check_game_end()
 	if not game_over:
 		await _run_combat_loop()
+
+# Pose une carte du plateau de la run avant combat : un Serviteur devient une
+# unité (comme avant), mais un Enchantement/Rituel (Relique, voir
+# CAMPAIGN.md « Reliques ») doit rejoindre sa propre zone plutôt que d'être
+# sommé comme serviteur — même routage que CardSystem.handle_card_played en
+# partie rapide/solo (register_enchantment + add_enchantment/add_ritual),
+# juste sans main ni popup de pose (silencieux, pré-combat).
+func _place_card_on_board(card_data: CardData, is_player: bool, row: String) -> void:
+	match card_data.card_type:
+		"Enchantment":
+			trigger_system.register_enchantment(card_data, is_player, -1)
+			enchantment_system.add_enchantment(card_data, is_player)
+			aura_system.recompute_all()
+			await death_system.process_deaths()
+		"Ritual":
+			if card_data.ritual_duration != 0:
+				trigger_system.register_enchantment(card_data, is_player, card_data.ritual_duration)
+				enchantment_system.add_ritual(card_data, is_player, card_data.ritual_duration)
+				aura_system.recompute_all()
+				await death_system.process_deaths()
+			else:
+				# Rituel sans durée = résolution immédiate façon Éphémère (voir
+				# CardSystem.handle_card_played) : la carte n'a pas de plateau,
+				# ses effets se jouent une fois puis elle part au cimetière.
+				var graveyard: Graveyard = player_graveyard if is_player else enemy_graveyard
+				graveyard.add_spell(card_data)
+				for effect in card_data.effects:
+					await effect_manager.execute_effect(self, null, effect)
+		_:
+			await board_system.summon_minion(card_data, is_player, row, -1, true)
 
 # ─── Boucle de combat : alternance stricte, 1 tour = 1 attaque (+ CHARGE) ─────
 func _run_combat_loop() -> void:
