@@ -354,7 +354,7 @@ func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = nu
 		return
 	var positions: Array[Vector2] = []
 	for t in targets:
-		var v = battle.board_vsual_system.get_visual(t)
+		var v = battle.board_visual_system.get_visual(t)
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():
@@ -453,7 +453,7 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 			battle.animation_system.play_generic_debuff(visual, effect.value, effect.value_2)
 
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
-	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
+	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "RandomAlly", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
