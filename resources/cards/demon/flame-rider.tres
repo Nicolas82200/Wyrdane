@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://dli1yui1u2gnb" path="res://assets/card_art/demon/flame-rider.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="6_kwd"]
 
 [sub_resource type="Resource" id="Resource_lrfiu"]
 script = ExtResource("4_kw")
@@ -14,12 +15,10 @@ name_fr = "Assaut"
 script = ExtResource("5_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_xkmmw"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("6_kwd")
+keyword_type = 0
 value = 2
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_mffi5"]
 script = ExtResource("1_cardeffect")
@@ -33,7 +32,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cavalier des Flammes"
-description = "ASSAUT. Arrivée : ton héros perd 2 HP ; ce serviteur gagne +2/+0 de façon permanente."
+description = "ASSAUT.
+Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente."
 flavour_text = "Sa monture est morte au premier galop. Il n'a pas ralenti pour autant."
 texture = ExtResource("3_texture")
 cost = 4
@@ -42,8 +42,9 @@ unit_style = 15
 attack = 4
 health = 3
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_lrfiu")])
+demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_luqzs")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_xkmmw"), SubResource("Resource_mffi5")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_mffi5")])
 rarity = "Rare"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

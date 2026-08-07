@@ -6,7 +6,7 @@ extends RefCounted
 class_name KeywordDemon
 
 enum Type {
-	PACTE,            # "Pacte X" — à l'arrivée en jeu, le joueur choisit de payer X PV pour activer l'effet d'Arrivée de la carte, ou de la poser sans payer ni effet.
+	PACTE,            # "Pacte X" — le joueur choisit de payer X PV pour activer l'effet de la carte à son déclenchement : choix unique à l'Arrivée pour un serviteur, redemandé à chaque déclenchement pour tout autre trigger (voir PactChoiceSystem).
 	CORRUPTION,       # Les attaques infligent Corruption en plus des dégâts (-1 ATK permanent, cumulable).
 	TERREUR,          # Quand ce serviteur attaque, la cible ne peut pas attaquer au prochain tour adverse.
 	RANG_INFERNAL,    # +1/+0 par tranche de 10 HP manquants sur ton héros (aura recalculée).

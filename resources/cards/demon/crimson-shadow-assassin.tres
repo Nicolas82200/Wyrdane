@@ -32,7 +32,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Assassin des Ombres Rouges"
-description = "INFILTRATION. Pacte 3 : ÉGIDE."
+description = "INFILTRATION.
+Pacte 3 : Arrivée : ÉGIDE."
 flavour_text = "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri."
 texture = ExtResource("3_texture")
 cost = 3

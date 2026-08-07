@@ -1406,6 +1406,17 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
+	# PACTE sur un trigger répétable (Exécution, Blessure, Dernier Souffle...) :
+	# contrairement à l'Arrivée (paiement unique, déjà géré par
+	# BoardSystem.summon_minion_return avant l'appel ONPLAY ci-dessous), le
+	# paiement est redemandé à CHAQUE déclenchement effectif.
+	if trigger_name != "ONPLAY":
+		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+		if pact_value > 0:
+			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+			if not pact_paid:
+				return false
+			await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
 	for effect in minion.card_data.effects:
 		if effect.trigger != "" and effect.trigger != trigger_name:
 			continue

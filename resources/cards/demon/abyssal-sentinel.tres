@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://c4cgx7yanma8s" path="res://assets/card_art/demon/abyssal-sentinel.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="6_kwd"]
 
 [sub_resource type="Resource" id="Resource_ope86"]
 script = ExtResource("4_kw")
@@ -14,12 +15,10 @@ name_fr = "Rempart"
 script = ExtResource("5_trig")
 type = "OnDamaged"
 
-[sub_resource type="Resource" id="Resource_vj0rq"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("6_kwd")
+keyword_type = 0
 value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_v41k1"]
 script = ExtResource("1_cardeffect")
@@ -31,7 +30,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Sentinelle du Gouffre"
-description = "REMPART. Blessure : ton héros perd 1 HP ; ce serviteur regagne 1 HP."
+description = "REMPART.
+Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie."
 flavour_text = "Elle boit la douleur des autres. La tienne fera l'affaire."
 texture = ExtResource("3_texture")
 cost = 3
@@ -40,8 +40,9 @@ unit_style = 15
 attack = 1
 health = 4
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_ope86")])
+demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_phxlk")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_vj0rq"), SubResource("Resource_v41k1")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v41k1")])
 rarity = "Common"
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

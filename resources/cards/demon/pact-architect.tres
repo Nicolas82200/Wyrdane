@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Architecte du Pacte"
-description = "Pacte 2 : Invoque une Larve Infernale 2/1 en rangée Avant."
+description = "Pacte 2 : Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant."
 flavour_text = "Chaque contrat qu'il signe en engendre un autre, sans fin."
 texture = ExtResource("3_texture")
 cost = 3

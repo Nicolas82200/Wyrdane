@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Suppôt du Répit"
-description = "Blessure : ton héros regagne 1 HP."
+description = "Blessure : Votre héros regagne 1 point de vie."
 flavour_text = "Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège."
 texture = ExtResource("3_texture")
 cost = 3
