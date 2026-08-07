@@ -49,7 +49,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var campaign_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CampaignButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
-@onready var report_button:   Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
@@ -71,6 +70,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
+@onready var report_button:  Button = $ReportButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -945,7 +945,7 @@ func _retranslate() -> void:
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
-	report_button.text  = SettingsManager.t("MENU_REPORT")
+	report_button.tooltip_text = SettingsManager.t("REPORT_TITLE")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")

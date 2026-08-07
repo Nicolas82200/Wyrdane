@@ -24,7 +24,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Grand Prophète Écarlate"
-description = "CORRUPTION. Arrivée : inflige Corruption à un serviteur ennemi ciblé."
+description = "CORRUPTION.
+Arrivée : Inflige Corruption à un serviteur ennemi ciblé."
 flavour_text = "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser."
 texture = ExtResource("3_texture")
 cost = 4

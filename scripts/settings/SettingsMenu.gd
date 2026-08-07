@@ -2,6 +2,10 @@ extends Control
 
 # Émis quand le joueur confirme le bouton Concéder (visible uniquement en jeu).
 signal concede_requested
+# Émis quand le joueur clique sur Signaler (visible uniquement en jeu, voir
+# report_button.visible ci-dessous — dans le menu principal, le signalement
+# passe par un bouton dédié à côté du profil, pas par ce menu).
+signal report_requested
 
 # Affiche le bouton Concéder rouge. Activé depuis la bataille pour permettre de
 # concéder la partie ; laissé à false dans le menu principal. Le bouton Fermer,
@@ -21,6 +25,7 @@ signal concede_requested
 @onready var audio_tab_button       = %AudioTabButton
 @onready var graphism_tab_button    = %GraphismTabButton
 @onready var control_tab_button     = %ControlTabButton
+@onready var report_button          = %ReportButton
 @onready var close_button          = $Panel/VBox/CloseMargin/CloseVBox/CloseButton
 @onready var concede_button        = $Panel/VBox/CloseMargin/CloseVBox/ConcedeButton
 @onready var close_x_button        = $Panel/VBox/TitleMargin/TitleRow/CloseXButton
@@ -45,6 +50,7 @@ func _ready() -> void:
 	_style_danger_button(concede_button)
 	_style_danger_button(confirm_yes_button)
 	_style_close_x_button()
+	report_button.pressed.connect(func(): report_requested.emit())
 	if embedded_in_panel:
 		panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 
@@ -64,6 +70,9 @@ func _ready() -> void:
 	# En partie : pas de bouton Fermer (la croix suffit), et Concéder remplace Quitter.
 	close_button.visible = not show_quit
 	concede_button.visible = show_quit
+	# Dans le menu principal, le signalement passe par un bouton dédié à côté
+	# du profil (voir MainMenu.tscn) — inutile de le dupliquer ici.
+	report_button.visible = show_quit
 	concede_button.pressed.connect(_on_concede_pressed)
 	confirm_cancel_button.pressed.connect(_on_confirm_cancel)
 	confirm_yes_button.pressed.connect(_on_confirm_yes)
@@ -117,9 +126,10 @@ func _retranslate() -> void:
 	confirm_message.text       = SettingsManager.t("settings.concede_confirm_message")
 	confirm_cancel_button.text = SettingsManager.t("settings.concede_confirm_cancel")
 	confirm_yes_button.text    = SettingsManager.t("settings.concede_confirm_yes")
+	report_button.text         = "🚩  " + SettingsManager.t("REPORT_TITLE")
 
 func _style_all_buttons() -> void:
-	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, close_button, confirm_cancel_button]:
+	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, close_button, confirm_cancel_button]:
 		_style_button(btn)
 
 # Boutons dangereux (Concéder, confirmation) : même forme que les autres mais habillage rouge sang.

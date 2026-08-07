@@ -14,12 +14,10 @@ keyword_type = 3
 script = ExtResource("5_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_0ercw"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("4_kwd")
+keyword_type = 0
 value = 5
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_rkxqk"]
 script = ExtResource("1_cardeffect")
@@ -34,7 +32,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Apocalypse Infernale"
-description = "RANG INFERNAL. Arrivée : ton héros perd 5 HP ; tous tes serviteurs Démons gagnent +2/+2 de façon permanente."
+description = "RANG INFERNAL.
+Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente."
 flavour_text = "Ce n'était pas une invasion. C'était le prix qu'il fallait payer."
 texture = ExtResource("3_texture")
 cost = 8
@@ -42,9 +41,9 @@ race = 5
 unit_style = 15
 attack = 9
 health = 9
-demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_7fjf4")])
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_7fjf4"), SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_esfk0")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0ercw"), SubResource("Resource_rkxqk")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_rkxqk")])
 rarity = "Legendary"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

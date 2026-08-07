@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cercle de Corruption"
-description = "Éveil : inflige Corruption à un serviteur ennemi aléatoire."
+description = "Éveil : Inflige Corruption à un serviteur ennemi aléatoire."
 flavour_text = "Le cercle ne choisit pas. Il se contente de continuer."
 texture = ExtResource("3_texture")
 cost = 5

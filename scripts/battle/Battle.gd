@@ -62,7 +62,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var help_button: Button                       = $HelpButton
-@onready var report_button: Button                     = $ReportButton
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -558,14 +557,16 @@ func _handle_cancel() -> bool:
 	settings_menu.open()
 	return true
 
-# Quitte la partie en cours et revient au menu principal.
-# Signaler un bug ou l'adversaire (triche) — l'option "Triche" n'apparaît que
-# si la partie est en réseau et que l'id backend de l'adversaire est connu
-# (voir net_opponent_backend_id, alimenté par NetHandshake).
+# Signaler un bug ou l'adversaire (triche), depuis le menu Échap (voir
+# SettingsMenu.report_requested) — l'option "Triche" n'apparaît que si la
+# partie est en réseau et que l'id backend de l'adversaire est connu (voir
+# net_opponent_backend_id, alimenté par NetHandshake).
 func _on_report_pressed() -> void:
+	settings_menu.close()
 	var allow_cheating := network_manager != null and net_opponent_backend_id > 0
 	ReportDialog.open_on(self, allow_cheating, net_opponent_backend_id, net_client_match_id)
 
+# Quitte la partie en cours et revient au menu principal.
 func _on_quit_match() -> void:
 	settings_menu.close()
 	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
@@ -875,7 +876,6 @@ func _player_has_no_actions() -> bool:
 func _retranslate_battle() -> void:
 	settings_button.tooltip_text = SettingsManager.t("settings.title")
 	help_button.tooltip_text = SettingsManager.t("GLOSSARY_TITLE")
-	report_button.tooltip_text = SettingsManager.t("REPORT_TITLE")
 	if _mulligan_active:
 		end_turn_button.text = SettingsManager.t("mulligan.start_button")
 		return

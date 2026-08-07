@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Grand Pacte"
-description = "Pacte 4 : Détruit un serviteur ennemi ciblé."
+description = "Pacte 4 : Arrivée : Détruit un serviteur ennemi ciblé."
 flavour_text = "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre."
 texture = ExtResource("3_texture")
 cost = 7

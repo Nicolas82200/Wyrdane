@@ -4,17 +4,16 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://bgs48860bf44" path="res://assets/card_art/demon/whisperfiend.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 
 [sub_resource type="Resource" id="Resource_gdbim"]
 script = ExtResource("4_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_egpru"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("5_kwd")
+keyword_type = 0
 value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_ti0fh"]
 script = ExtResource("1_cardeffect")
@@ -25,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Chuchoteur Malin"
-description = "Arrivée : ton héros perd 1 HP ; pioche 1 carte."
+description = "Pacte 1 : Arrivée : Piochez une carte."
 flavour_text = "Il murmure une vérité. Elle a toujours un prix."
 texture = ExtResource("3_texture")
 cost = 2
@@ -33,8 +32,9 @@ race = 5
 unit_style = 14
 attack = 2
 health = 2
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_gdbim")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_egpru"), SubResource("Resource_ti0fh")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ti0fh")])
 rarity = "Common"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

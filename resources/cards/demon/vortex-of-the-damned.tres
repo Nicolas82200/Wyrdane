@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://bxmk84vqnewvo" path="res://assets/card_art/demon/vortex-of-the-damned.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 
 [sub_resource type="Resource" id="Resource_tr8dt"]
 script = ExtResource("4_trig")
@@ -15,23 +16,22 @@ effect_id = "GainMana"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_0dd4h"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("5_kwd")
+keyword_type = 0
 value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Vortex des Damnés"
-description = "Carnage : gagne 1 mana temporaire ce tour ; ton héros perd 1 HP."
+description = "Pacte 1 : Carnage : Gagnez 1 mana temporaire ce tour."
 flavour_text = "Les âmes qui s'y perdent paient toujours un peu plus que prévu."
 texture = ExtResource("3_texture")
 cost = 6
 race = 5
 card_type = "Enchantment"
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_tr8dt")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_064t9"), SubResource("Resource_0dd4h")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_064t9")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
