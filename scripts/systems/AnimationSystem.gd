@@ -13,13 +13,28 @@ var battle
 func init(_battle) -> void:
 	battle = _battle
 
+# Angle de départ de play_summon (bascule autour du bas de la carte) : le bas
+# est déjà planté à sa position finale, le haut est encore basculé en arrière
+# et "tombe" ensuite jusqu'à être à plat.
+const SUMMON_TILT_DEGREES := 62.0
+
+## Pose d'un serviteur : le bas de la carte se plante d'abord à sa position
+## finale (pivot ancré en bas), puis le haut bascule vers l'avant jusqu'à
+## être à plat — comme une trappe qui claque au sol plutôt qu'un simple pop.
 func play_summon(visual: BoardMinion) -> void:
-	visual.scale = Vector2(0.2, 0.2)
+	var base_pivot: Vector2 = visual.pivot_offset
+	visual.pivot_offset = Vector2(visual.size.x / 2.0, visual.size.y)
+	visual.rotation_degrees = SUMMON_TILT_DEGREES
+	visual.scale = Vector2.ONE
 	visual.modulate.a = 0.0
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(visual, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(visual, "modulate:a", 1.0, 0.25)
+	tween.tween_property(visual, "modulate:a", 1.0, 0.1)
+	tween.tween_property(visual, "rotation_degrees", 0.0, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_callback(func():
+		if is_instance_valid(visual):
+			visual.pivot_offset = base_pivot
+	)
 
 ## Mort d'un serviteur : l'illustration se déchire en deux moitiés selon une
 ## ligne diagonale irrégulière (pas une coupe nette), qui s'écartent à peine

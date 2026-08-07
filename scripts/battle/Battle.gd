@@ -978,6 +978,7 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 		preview.health_label.visible = false
 	preview.scale    = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
+	Card.add_drag_shadow(preview)
 	return preview
 
 func is_dragging_card() -> bool:
