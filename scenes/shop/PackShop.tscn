@@ -100,8 +100,8 @@ mouse_filter = 2
 
 [node name="PackCenter" type="CenterContainer" parent="ShakeLayer/PackStage"]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = -1
+anchor_right = 0.34
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -137,10 +137,20 @@ grow_vertical = 0
 alignment = 1
 theme_override_constants/separation = 8
 
-[node name="OpenButton" type="Button" parent="ShakeLayer/BottomBar"]
-custom_minimum_size = Vector2(260, 52)
+[node name="OpenX1Button" type="Button" parent="ShakeLayer/BottomBar"]
+custom_minimum_size = Vector2(140, 52)
 layout_mode = 2
-text = "Ouvrir un pack"
+text = "x1"
+
+[node name="OpenX3Button" type="Button" parent="ShakeLayer/BottomBar"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+text = "x3"
+
+[node name="OpenX5Button" type="Button" parent="ShakeLayer/BottomBar"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+text = "x5"
 
 [node name="OddsButton" type="Button" parent="ShakeLayer/BottomBar"]
 custom_minimum_size = Vector2(44, 52)

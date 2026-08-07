@@ -127,6 +127,17 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 	if not _hovering:
 		_hide_keyword_tooltips()
 		return
+
+	# Remonte le point de départ si la pile déborde en bas de l'écran.
+	var vp := get_viewport_rect().size
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
@@ -137,10 +148,13 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 	if race_panel != null and is_instance_valid(race_panel) and is_instance_valid(wrapper):
 		# Calé sous le bord visuel de la carte agrandie (pivot en haut-gauche)
 		var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
-		race_panel.global_position = Vector2(
+		var rx: float = clampf(
 			wrapper.global_position.x + card_size.x / 2.0 - race_panel.size.x / 2.0,
-			wrapper.global_position.y + card_size.y + 4
-		)
+			4.0, vp.x - race_panel.size.x - 4.0)
+		var ry := wrapper.global_position.y + card_size.y + 4
+		if ry + race_panel.size.y > vp.y - 4.0:
+			ry = wrapper.global_position.y - race_panel.size.y - 4
+		race_panel.global_position = Vector2(rx, ry)
 		_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:

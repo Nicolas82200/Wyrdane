@@ -476,7 +476,20 @@ Le projet utilise des singletons pour des systèmes globaux :
 ---
 
 ## 🎮 Mode Battle Royale (8 joueurs) — Design (v1)
-*Document de design — en cours de discussion*
+*Document de design — cible visée à terme (réseau, 8 joueurs). Voir « État actuel du prototype » ci-dessous pour ce qui existe réellement en jeu aujourd'hui.*
+
+### 🚧 État actuel du prototype (`scripts/arena/`, scène `scenes/arena/ArenaBattle.tscn`)
+
+Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
+
+- **8 participants, solo local uniquement** (1 joueur humain + 7 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels, mais chacun sur sa propre machine/session ; ici tous simulés localement pour tester les conditions réelles d'une partie complète).
+- **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board, anti-répétition d'appariement et gel de la boutique façon TFT (bouton flocon, préserve l'offre ENTIÈRE — pas une carte à la fois — pour la manche suivante, dégelé automatiquement dès qu'il a servi une fois ou qu'un reroll manuel est demandé) : tout ça est implémenté tel que décrit plus bas.
+- **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 25 secondes (seul le joueur humain y est contraint, les bots jouent après coup), phase Combat 15 secondes (affichage du résultat), enchaînement automatique par défaut, mais un bouton Prêt permet de terminer la phase Boutique en avance sans attendre l'expiration du minuteur.
+- **Combat du joueur humain rejoué avec animation** (réutilise telle quelle `CombatSystem`/`AnimationSystem`/`BoardVisualSystem`/`DeathSystem` du 1v1, sur les propres rangées Avant/Arrière du joueur + les rangées de la boutique reconverties en plateau adverse le temps du combat) — contrairement à la note « pas de ralenti visuel » plus bas, qui décrivait l'intention initiale avant que l'animation ne soit ajoutée. Les combats bots-contre-bots que le joueur ne voit pas restent résolus headless et instantanément (`SimulatedBattle`).
+- **Une seule main** pour les serviteurs ET les Incantations achetées (`Hand.gd`/`Hand.tscn`, réutilisé tel quel), pas deux zones séparées.
+- **Cartes Arena-only** (`CardData.arena_only`) : quelques serviteurs et Incantations exclusifs à ce mode existent déjà en plus du pool 1v1 normal, voir `CardLibrary.arena_only_cards`.
+- **Repositionnement d'un serviteur déjà posé** (glisser-déposer, phase Boutique) : réordonner au sein de sa ligne, toujours possible ; changer de ligne (Avant ↔ Arrière) après la pose n'est permis que pour un serviteur Hybride (`CardData.board_position == "Hybrid"`) — un serviteur Avant/Arrière strict garde la ligne choisie à la pose (`ArenaBoardRow._can_drop_data`).
+- **UI calquée sur le plateau 1v1** (mêmes coordonnées de rangées/héros que `Battle.tscn`, mêmes indicateurs de rangée et surlignage de dépôt, écran de fin de partie stylé pareil) — pas d'emplacements Rituel/Enchantement, pas de deck/cimetière (inutiles ici : pas de pioche, pas de mort permanente hors combat).
 
 ### 🎯 Concept général
 
@@ -484,7 +497,7 @@ Mode autobattler à 8 joueurs mêlant TFT (boutique, pool partagé, économie) e
 
 ### ⚔️ Structure d'un round
 
-1. **Phase Boutique** — achat/reroll/verrouillage de cartes.
+1. **Phase Boutique** — achat/reroll/gel de la boutique.
 2. **Phase Positionnement** — organisation du plateau (Avant/Arrière).
 3. **Phase Combat** — appariement aléatoire contre un adversaire, combat résolu automatiquement (`CombatSystem`, sans input joueur).
 4. Le perdant du combat perd des PV de héros (montant fonction des survivants du gagnant).
@@ -585,7 +598,7 @@ Toutes les cartes proviennent d'un pool commun aux 8 joueurs.
 #### Règle de verrouillage
 - Toute carte en **main ou sur le plateau** d'un joueur est retirée du pool partagé (indisponible pour les autres).
 - Elle **retourne au pool** quand elle est vendue (main ou plateau), **ou quand son possesseur est éliminé** (voir Ghost Board ci-dessous — l'élimination libère les cartes réelles, le fantôme n'est qu'une copie/simulation indépendante).
-- **Fusion 2★** : les 3 copies fusionnées restent **verrouillées hors du pool tant que la carte 2★ existe**. Vendre la 2★ ne remet qu'**une seule copie** au pool (cohérent avec son remboursement à prix d'1 copie) — les 2 autres copies investies sont définitivement perdues pour le pool commun, comme dans TFT.
+- **Fusion 2★** (un seul palier, pas de 3★ — voir « Upgrade de cartes ») : les 3 copies fusionnées restent **verrouillées hors du pool tant que la carte 2★ existe**. Vendre (ou perdre à l'élimination) la 2★ rend **les 3 copies de base** au pool, comme si elle n'avait jamais été fusionnée — pas une seule copie.
 
 #### Tirage en boutique : deux étapes indépendantes
 Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étapes :
@@ -621,7 +634,7 @@ Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étape
 - 3 copies identiques → version améliorée (**stats renforcées uniquement, texte/effet inchangé**).
 - **Bonus de stats** : addition des stats des 3 cartes fusionnées (donc une base 2/2 + 2/2 + 2/2 → 6/6 sur la carte 2★, pas un simple +1/+1 fixe ni un doublement).
 - **Buffs permanents accumulés** (ex: NÉCROPHAGE) sur une ou plusieurs des 3 copies avant fusion : **conservés et additionnés** sur la carte 2★ résultante — aucune perte de progression en fusionnant.
-- **Vente d'une carte 2★** : remboursement calculé comme pour **une seule copie normale** (pas de bonus lié aux 3 cartes investies) — la fusion est donc un choix engageant, pas juste un "stockage de valeur" réversible sans perte.
+- **Vente d'une carte 2★** : le remboursement en **or** reste calculé comme pour une seule copie normale (pas de bonus lié aux 3 cartes investies), mais **les 3 copies de base** retournent au **pool partagé** — voir « Règle de verrouillage » ci-dessus. Pas de palier au-delà du 2★ (pas de carte 3★) : 3 copies d'une 2★ ne fusionnent jamais entre elles.
 - Choix fait pour rester simple à générer sur les ~150 cartes existantes sans réécrire de texte par carte.
 
 #### Affichage et déclenchement de la fusion (validé)
@@ -782,7 +795,6 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 ### 📋 Points encore à trancher (mode BR)
 
 1. Réseau/lobby pour 8 joueurs — hébergement, simulation centralisée vs déterministe (voir section Réseau ci-dessus).
-2. Passe d'éligibilité des Incantations à refaire pour la race Démon (non couverte lors de l'analyse initiale, voir note ci-dessus).
 
 ---
 
@@ -798,12 +810,12 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
-*   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
-*   **Mode Campagne** — run roguelite solo façon Slay the Spire (voir section dédiée ci-dessous)
+*   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
+*   **Mode Campagne** — run roguelite solo sans fin façon Slay the Spire (voir section dédiée ci-dessous)
 
 ### À faire
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
-*   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
+*   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Mode Campagne : contenu d'événements à étoffer, articulation exacte de l'amélioration de carte en boutique (mot-clé vs stats — point ouvert, voir `CAMPAIGN.md`), tables de rareté Élite/Boss par nombre de victoires à chiffrer plus finement
 *   Animations shaders

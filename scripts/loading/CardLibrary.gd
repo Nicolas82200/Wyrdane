@@ -3,6 +3,11 @@ extends Node
 const ALL_CARDS_PATH := "res://resources/cards"
 
 var all_cards: Array[CardData] = []
+# Cartes marquées CardData.arena_only = true : jamais dans all_cards (donc
+# invisibles du deckbuilder/pool IA/SummonRandom), mais réservées au pool du
+# mode Arena (voir scripts/arena/ArenaCardPool.gd). Même principe d'exclusion
+# que is_token, dans l'autre sens (exclues du 1v1, incluses en Arena).
+var arena_only_cards: Array[CardData] = []
 var is_loaded: bool = false
 
 # Correspondance carte ↔ id numérique côté wyrdane-backend (table `cards`).
@@ -19,6 +24,7 @@ func load_all_cards() -> void:
 	if is_loaded:
 		return
 	all_cards.clear()
+	arena_only_cards.clear()
 	_scan_recursive(ALL_CARDS_PATH)
 	all_cards.sort_custom(func(a: CardData, b: CardData) -> bool: return a.cost < b.cost)
 	is_loaded = true
@@ -92,6 +98,9 @@ func _scan_recursive(path: String) -> void:
 		elif file_name.ends_with(".tres"):
 			var res := load(full_path)
 			if res is CardData and not (res as CardData).is_token:
-				all_cards.append(res as CardData)
+				if (res as CardData).arena_only:
+					arena_only_cards.append(res as CardData)
+				else:
+					all_cards.append(res as CardData)
 		file_name = dir.get_next()
 	dir.list_dir_end()

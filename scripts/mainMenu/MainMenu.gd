@@ -3,6 +3,7 @@ extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
+const ARENA_SCENE := "res://scenes/arena/ArenaBattle.tscn"
 const NEWS_DIR := "res://resources/news/"
 const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
 const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
@@ -31,6 +32,13 @@ const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 # constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
+# Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
+# preview garde cette taille réelle et n'est réduite que visuellement via
+# `scale`, car plusieurs de ses enfants (labels, icônes) sont positionnés en
+# offsets fixes calibrés pour cette taille — redimensionner `size` directement
+# désaligne le contenu par rapport à la bordure.
+const CARD_BASE_SIZE := Vector2(250, 375)
+const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
 const CURVE_BAR_HEIGHT := 60.0
 const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
@@ -43,7 +51,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
 @onready var report_button:   Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
-@onready var replay_tutorial_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/ReplayTutorialButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
@@ -51,6 +58,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var mode_title_label: Label = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeTitleLabel
 @onready var solo_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/SoloModeButton
 @onready var multi_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/MultiModeButton
+@onready var arena_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ArenaModeButton
 @onready var mode_back_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeBackButton
 @onready var deck_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView
 @onready var play_back_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/PlayBackButton
@@ -62,7 +70,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
-@onready var match_stats_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/MatchStatsLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -82,7 +89,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
 @onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleLabel
 @onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
-@onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewCard
+@onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHolder/DeckCompPreviewCard
 @onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
 @onready var deck_comp_stats_panel: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompStatsScroll/DeckCompStatsPanel
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
@@ -91,6 +98,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
 @onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileAvatar
 @onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileNameLabel
+@onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMatchStatsLabel
 @onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMemberSinceLabel
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileSoloStatsLabel
@@ -134,7 +142,6 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
-	replay_tutorial_button.pressed.connect(_on_replay_tutorial_pressed)
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -142,16 +149,22 @@ func _ready() -> void:
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
-	# Taille figée dès le départ (et pas seulement au survol) : la carte est
-	# masquée tant qu'aucune ligne n'est survolée, mais son gabarit ne doit
-	# jamais changer, sinon le CenterContainer autour recalcule sa mise en
-	# page et l'aperçu "saute" entre les deux états.
-	deck_comp_preview_card.custom_minimum_size = DECK_COMP_PREVIEW_SIZE
-	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
+	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
+	# positionnés en offsets fixes calibrés pour elle — la redimensionner
+	# directement désaligne le contenu par rapport à la bordure) et n'est
+	# réduite que visuellement via `scale`. Elle est placée dans un Control
+	# simple (DeckCompPreviewHolder), pas directement dans le CenterContainer :
+	# un Container réinitialise `scale`/`rotation` de ses enfants directs à
+	# chaque tri de layout (ex. au show()/hide()), ce qui annulerait le scale.
+	# Le holder, lui, garde un gabarit figé (216x324) pour que le
+	# CenterContainer autour ne recalcule jamais sa mise en page au survol.
+	deck_comp_preview_card.custom_minimum_size = CARD_BASE_SIZE
+	deck_comp_preview_card.scale = DECK_COMP_PREVIEW_SCALE
 	deck_comp_preview_card.hide()
 
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
 	multi_mode_button.pressed.connect(_on_multi_mode_selected)
+	arena_mode_button.pressed.connect(_on_arena_mode_selected)
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
@@ -197,9 +210,8 @@ func _ready() -> void:
 	)
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
-		match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
+		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_load_news()
 	_start_backend_sync()
 	_show_info_view(InfoView.NEWS)
@@ -348,6 +360,7 @@ func _open_profile_view() -> void:
 		var tex := SteamService.local_avatar_texture()
 		if tex:
 			profile_avatar.texture = tex
+	profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_show_profile_placeholders()
 	_fetch_profile()
 
@@ -481,6 +494,13 @@ func _on_solo_mode_selected() -> void:
 func _on_multi_mode_selected() -> void:
 	_play_mode = PlayMode.MULTI
 	_show_deck_select()
+
+# L'Arena n'utilise pas le deck du joueur (pool de cartes partagé, voir
+# scripts/arena/) : contrairement à Solo/Multi, saute directement le choix
+# de deck et lance la scène dédiée.
+func _on_arena_mode_selected() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	get_tree().change_scene_to_file(ARENA_SCENE)
 
 func _show_deck_select() -> void:
 	_show_nav_view(NavView.DECK_SELECT)
@@ -658,7 +678,6 @@ func _show_deck_composition(deck_index: int) -> void:
 ## Aperçu de carte à droite au survol d'une ligne de la composition.
 func _on_deck_comp_card_hover(card: CardData) -> void:
 	deck_comp_preview_hint.hide()
-	deck_comp_preview_card.size = DECK_COMP_PREVIEW_SIZE
 	deck_comp_preview_card.set_data(card)
 	deck_comp_preview_card.show()
 
@@ -802,16 +821,6 @@ func _on_edit_composition_deck() -> void:
 			_show_deck_composition(_composition_deck_index)
 	)
 
-# Bouton temporaire de debug/test : force le rejeu du tutoriel obligatoire
-# sans avoir à éditer le fichier de config à la main (voir
-# SettingsManager.reset_tutorial_completed). À retirer une fois le tutoriel
-# validé.
-func _on_replay_tutorial_pressed() -> void:
-	SettingsManager.reset_tutorial_completed()
-	_apply_tutorial_lock()
-	TutorialContext.active = true
-	get_tree().change_scene_to_file(BATTLE_SCENE)
-
 # Charge le panneau d'actualités : les devlogs/actus créés sur le site
 # (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
 # chaque déploiement depuis src/content/news + src/content/devlog — voir son
@@ -934,7 +943,6 @@ func _retranslate() -> void:
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
-	replay_tutorial_button.text = SettingsManager.t("MENU_REPLAY_TUTORIAL_DEBUG")
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	report_button.text  = SettingsManager.t("MENU_REPORT")
@@ -948,11 +956,11 @@ func _retranslate() -> void:
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
-	match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 
 	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
 	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
 	multi_mode_button.text = SettingsManager.t("MENU_PLAY_MULTI")
+	arena_mode_button.text = SettingsManager.t("MENU_ARENA")
 	mode_back_button.text = SettingsManager.t("ui.back")
 	play_back_button.text = SettingsManager.t("ui.back")
 	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")

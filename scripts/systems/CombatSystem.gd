@@ -7,6 +7,12 @@ func init(_battle) -> void:
 	battle = _battle
 
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
+	# Verrou de ré-entrance : empêche un effet déclenché en chaîne pendant cette
+	# attaque (OnAttack, OnResonance, attaque immédiate...) de relancer une attaque
+	# avec ce même serviteur avant que celle-ci soit terminée.
+	if attacker.is_attacking:
+		return
+	attacker.is_attacking = true
 	# Émission réseau : uniquement les attaques initiées par le joueur LOCAL.
 	# Les attaques rejouées du pair (serviteur ennemi) ne réémettent pas.
 	if battle.net_emitter != null and attacker.owner_is_player:
@@ -25,6 +31,7 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	battle.combat_log.attack(attacker, defender, dealt_to_defender, attacker.is_dead(), defender.is_dead())
 	battle.hero_system.update_ui()
 	battle.check_game_end()
+	attacker.is_attacking = false
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
@@ -113,6 +120,10 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	return dealt_to_defender
 
 func perform_hero_attack(attacker: Minion) -> void:
+	# Voir resolve_combat : même verrou de ré-entrance.
+	if attacker.is_attacking:
+		return
+	attacker.is_attacking = true
 	if battle.net_emitter != null and attacker.owner_is_player:
 		battle.net_emitter.attack_hero(attacker)
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
@@ -130,3 +141,4 @@ func perform_hero_attack(attacker: Minion) -> void:
 			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)
 	attacker.consume_attack()
+	attacker.is_attacking = false

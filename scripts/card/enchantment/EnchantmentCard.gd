@@ -135,11 +135,23 @@ func _show_keyword_tooltips(anchor_x: float, base_y: float, align_right: bool) -
 		_hide_keyword_tooltips()
 		return
 
+	# Remonte le point de départ si la pile déborde en bas de l'écran, pour
+	# qu'elle reste entièrement visible plutôt que de couler hors du cadre.
+	var vp := get_viewport_rect().size
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
 	var y := base_y
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
 		var panel_x := anchor_x - panel.size.x if align_right else anchor_x
+		panel_x = clampf(panel_x, 4.0, vp.x - panel.size.x - 4.0)
 		panel.global_position = Vector2(panel_x, y)
 		y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
@@ -154,10 +166,12 @@ func _show_keyword_tooltips(anchor_x: float, base_y: float, align_right: bool) -
 		if is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
 			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * PREVIEW_SCALE
 			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * PREVIEW_SCALE) / 2.0
-			race_panel.global_position = Vector2(
-				preview_center_x - race_panel.size.x / 2.0,
-				preview_bottom + 6
-			)
+			var rx: float = clampf(
+				preview_center_x - race_panel.size.x / 2.0, 4.0, vp.x - race_panel.size.x - 4.0)
+			var ry := preview_bottom + 6
+			if ry + race_panel.size.y > vp.y - 4.0:
+				ry = _hover_preview.global_position.y - race_panel.size.y - 6
+			race_panel.global_position = Vector2(rx, ry)
 			_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:
