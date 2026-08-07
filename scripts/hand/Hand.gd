@@ -19,6 +19,12 @@ const MULLIGAN_SCALE_MULTIPLIER := 1.5
 # Hauteur verticale (fraction de l'écran) du centre de la main pendant le
 # mulligan — fixe, laisse la place à la bannière au-dessus et au bouton en dessous.
 const MULLIGAN_CENTER_Y_RATIO   := 0.52
+# Durée totale de l'animation de pioche de la main de départ (une carte après
+# l'autre depuis le deck) avant que le mulligan ne devienne interactif.
+const OPENING_DRAW_DURATION       := 3.0
+# Durée totale de la transition d'entrée en mulligan (chaque carte anime vers
+# sa position centrée/agrandie, l'une après l'autre plutôt que toutes en même temps).
+const MULLIGAN_TRANSITION_DURATION := 3.0
 # Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
 # main est repliée — le reste dépasse sous le bas de l'écran
 const COLLAPSED_PEEK_RATIO := 0.22
@@ -152,6 +158,82 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 		card.visible = true
 	_update_hand_layout(false)
 
+# Anime la pioche de la main de départ, une carte après l'autre depuis le
+# deck (même effet visuel qu'une pioche normale, voir _set_hand_animated),
+# étalée sur total_duration au total. À appeler avant le mulligan, dont
+# l'entrée est elle-même animée séparément (voir set_mulligan_mode).
+func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_duration: float = OPENING_DRAW_DURATION) -> void:
+	for c in container.get_children():
+		c.queue_free()
+	_base_positions.clear()
+	_hand_order.clear()
+	_hovered_card = null
+	await get_tree().process_frame
+
+	var valid_cards: Array[CardData] = []
+	for card_data in cards:
+		if card_data == null:
+			push_warning("Hand: carte nulle ignorée")
+			continue
+		valid_cards.append(card_data)
+	if valid_cards.is_empty():
+		return
+
+	var gap: float = total_duration / float(valid_cards.size())
+	for card_data in valid_cards:
+		var card: Card = CARD_SCENE.instantiate()
+		card.visible = false
+		container.add_child(card)
+		card.set_data(card_data)
+		card.scale = NORMAL_SCALE
+		_connect_card(card)
+		_hand_order.append(card)
+		await get_tree().process_frame
+		card.pivot_offset = Vector2(card.size.x / 2.0, card.size.y)
+		_update_hand_layout(false)
+
+		var final_pos: Vector2 = card.position
+		var final_scale: Vector2 = card.scale
+		AudioManager.play(AudioManager.DRAW)
+		await _fly_ghost_card(card_data, deck_origin, final_pos, final_scale, func(): card.visible = true)
+		await get_tree().create_timer(maxf(gap - 0.5, 0.05)).timeout
+
+# Fait voler une carte fantôme (dos visible) depuis deck_origin (position
+# globale) jusqu'à local_target_pos (dans le repère de Hand), se retourne à
+# mi-chemin, puis appelle on_landed une fois arrivée. Facteur commun entre
+# play_opening_draw et _set_hand_animated.
+func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos: Vector2, target_scale: Vector2, on_landed: Callable) -> void:
+	var ghost: Card = CARD_SCENE.instantiate()
+	_battle.add_child(ghost)
+	ghost.set_data(card_data)
+	ghost.drag_enabled = false
+	ghost.show_back(true)
+	ghost.scale    = target_scale
+	ghost.modulate = Color.WHITE
+	ghost.z_index  = 100
+	ghost.visible  = false
+	await get_tree().process_frame
+	var final_pos: Vector2 = global_position + local_target_pos
+	ghost.global_position = deck_origin - Vector2(
+		ghost.size.x * target_scale.x / 2.0,
+		ghost.size.y * target_scale.y / 2.0
+	)
+	ghost.visible = true
+	var mid_pos := Vector2(
+		(deck_origin.x + final_pos.x) / 2.0,
+		(deck_origin.y + final_pos.y) / 2.0 - 100
+	)
+	var tween := create_tween()
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos,        0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "scale:x",          0.0,           0.1).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(func(): ghost.show_back(false))
+	tween.tween_property(ghost, "scale:x",          target_scale.x, 0.1).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position",  final_pos,     0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	await tween.finished
+	on_landed.call()
+	ghost.queue_free()
+
 func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	var new_card_data: CardData = cards.back()
 	var new_card: Card = CARD_SCENE.instantiate()
@@ -172,54 +254,55 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 		tween_existing.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween_existing.tween_property(card, "scale",    card.scale,            0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-	var final_pos   := new_card.global_position
-	var final_scale := new_card.scale
-	var ghost: Card = CARD_SCENE.instantiate()
-	_battle.add_child(ghost)
-	ghost.set_data(new_card_data)
-	ghost.drag_enabled = false
-	ghost.show_back(true)
-	ghost.scale    = final_scale
-	ghost.modulate = Color.WHITE
-	ghost.z_index  = 100
-	ghost.visible  = false
-	await get_tree().process_frame
-	ghost.global_position = deck_origin - Vector2(
-		ghost.size.x * final_scale.x / 2.0,
-		ghost.size.y * final_scale.y / 2.0
-	)
-	ghost.visible = true
-	var mid_pos := Vector2(
-		(deck_origin.x + final_pos.x) / 2.0,
-		(deck_origin.y + final_pos.y) / 2.0 - 100
-	)
-	var tween := create_tween()
-	tween.set_parallel(false)
-	tween.tween_property(ghost, "global_position", mid_pos,       0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(ghost, "scale:x",         0.0,           0.1).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_callback(func(): ghost.show_back(false))
-	tween.tween_property(ghost, "scale:x",         final_scale.x, 0.1).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_property(ghost, "global_position", final_pos,     0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_callback(func():
-		new_card.visible = true
-		ghost.queue_free()
-	)
+	await _fly_ghost_card(new_card_data, deck_origin, new_card.position, new_card.scale, func(): new_card.visible = true)
 
 
 func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: int = -1) -> void:
 	card_played.emit(card_data, row, insert_index)
 
 
-func set_mulligan_mode(active: bool) -> void:
+# transition_duration > 0 : à l'entrée en mulligan, étale l'animation des
+# cartes vers leur position centrée sur cette durée totale (une carte après
+# l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
+func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	_mulligan_mode = active
 	if active and not _hand_expanded:
 		_hand_expanded = true
-		_update_hand_layout(true)
+		if transition_duration > 0.0:
+			_update_hand_layout_staggered(transition_duration)
+		else:
+			_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
 			if not active:
 				card.set_mulligan_swapped(false)
+
+# Variante de _update_hand_layout qui étale le déplacement/agrandissement de
+# chaque carte sur total_duration au total (delay croissant par carte) au
+# lieu de toutes les animer en parallèle sur LAYOUT_TWEEN_DURATION.
+func _update_hand_layout_staggered(total_duration: float) -> void:
+	_prune_hand_order()
+	var cards := _layout_cards()
+	if cards.is_empty():
+		return
+	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
+	var count := cards.size()
+	var gap: float = total_duration / float(count)
+	var leg_duration: float = minf(gap * 1.3, 0.6)
+	for i in range(count):
+		var card = cards[i]
+		var norm := _card_norm(i, count)
+		var pos  := _card_position(i, layout, card, norm, hovered_index)
+		_base_positions[card] = pos
+		card.z_index = i
+		var delay: float = i * gap
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_sync_tree_order(hovered_index)
 
 func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
 	if index < 0 or index >= _hand_order.size():

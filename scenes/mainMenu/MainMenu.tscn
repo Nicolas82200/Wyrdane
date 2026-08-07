@@ -233,6 +233,11 @@ custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Parametres"
 
+[node name="ReportButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000073]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Signalement"
+
 [node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=444085026]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
@@ -426,20 +431,6 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
-
-[node name="ReportButton" type="Button" parent="." unique_id=300000073]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 304.0
-offset_top = -166.0
-offset_right = 360.0
-offset_bottom = -16.0
-grow_vertical = 0
-theme_override_font_sizes/font_size = 22
-tooltip_text = "Signaler un problème"
-text = "🚩"
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -749,15 +740,17 @@ theme_override_constants/separation = 14
 
 [node name="CreditsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1897122271]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 22
 text = "Credits
 
 Developpe par Nico
 Musique : The Tavern at Oakhaven
 
 Merci d'avoir joue !"
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="LegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1141914077]
@@ -794,9 +787,69 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 19
 text = "Mentions légales"
+horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="ReportView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=300000074]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="ReportTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000075]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Signalement"
+
+[node name="ReportSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000076]
+layout_mode = 2
+
+[node name="ReportCategoryLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000077]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Catégorie :"
+
+[node name="ReportCategorySelect" type="OptionButton" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000078]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="ReportDescLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000079]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Description :"
+
+[node name="ReportTextEdit" type="TextEdit" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000080]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+wrap_mode = 1
+
+[node name="ReportStatusLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000081]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.3, 1)
+theme_override_font_sizes/font_size = 15
+text = ""
+autowrap_mode = 3
+
+[node name="ReportSubmitButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000082]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 16
+text = "Envoyer"
 
 [node name="SettingsMenu" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=2017956977 instance=ExtResource("1_settings")]
 layout_mode = 1

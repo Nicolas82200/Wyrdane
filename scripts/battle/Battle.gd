@@ -328,7 +328,7 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
 	_style_settings_button()
-	report_button.pressed.connect(_on_report_pressed)
+	settings_menu.report_requested.connect(_on_report_pressed)
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
@@ -378,7 +378,8 @@ func _start_game() -> void:
 		hand_cards = TutorialDeck.player_hand()
 	else:
 		deck_system.deal_opening_hand()
-	hand.set_hand(hand_cards, false)
+	var deck_origin: Vector2 = deck_button.global_position + deck_button.size / 2.0
+	await hand.play_opening_draw(hand_cards, deck_origin)
 	if tutorial_active:
 		await tutorial_manager.intro_mulligan()
 	await _run_mulligan()
@@ -410,7 +411,10 @@ func _run_mulligan() -> void:
 	_mulligan_active = true
 	_mulligan_swap_count = 0
 	_mulligan_swapped_indices.clear()
-	hand.set_mulligan_mode(true)
+	# Transition étalée réservée à la partie normale : le tutoriel guidé mesure
+	# la position des cartes très tôt (voir TutorialManager.guided_mulligan) et
+	# a besoin qu'elles soient déjà stables à cet instant.
+	hand.set_mulligan_mode(true, -1.0 if tutorial_active else Hand.MULLIGAN_TRANSITION_DURATION)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	mulligan_dim_overlay.visible = true
 	turn_banner.show_banner_persistent(
@@ -974,6 +978,7 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 		preview.health_label.visible = false
 	preview.scale    = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
+	Card.add_drag_shadow(preview)
 	return preview
 
 func is_dragging_card() -> bool:
