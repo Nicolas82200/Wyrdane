@@ -12,8 +12,11 @@ class_name SteamService
 #    https://github.com/GodotSteam/GodotSteam/releases (asset "gdextension")
 # 2. Extraire le dossier `addons/godotsteam/` à la racine du projet
 # 3. Lancer le client Steam et être connecté
-# 4. L'AppID de test 480 (Spacewar) est utilisé par défaut ci-dessous —
-#    à remplacer par le vrai AppID Wyrdane une fois la page Steam créée
+# 4. L'AppID Wyrdane (5052390) est utilisé ci-dessous. La page Steam est en
+#    attente de validation par Valve : en attendant, seuls les comptes ajoutés
+#    comme testeurs dans Steamworks (onglet « Users with access ») peuvent
+#    s'authentifier avec cet AppID — les autres comptes doivent temporairement
+#    repasser sur l'AppID de test public 480 (Spacewar) pour développer.
 #
 # ⚠ Le backend Steam NE PEUT PAS se tester avec deux instances locales du jeu :
 # elles partagent le même compte Steam, or les lobbies/P2P Steamworks exigent
@@ -25,7 +28,7 @@ class_name SteamService
 # Le singleton n'existant pas à la compilation, tous les appels sont dynamiques
 # (aucun typage Steam ici ni dans SteamTransport).
 
-const APP_ID := 480  # Spacewar (AppID de test public Steam)
+const APP_ID := 5052390  # AppID Wyrdane (page en attente de validation Valve)
 
 static var _initialized := false
 static var _join_requested_callback := Callable()
