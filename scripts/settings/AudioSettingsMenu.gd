@@ -9,9 +9,9 @@ const SAVE_PATH := "user://audio_settings.cfg"
 @onready var master_label:  Label   = %MasterValueLabel
 @onready var music_label:   Label   = %MusicValueLabel
 @onready var sfx_label:     Label   = %SFXValueLabel
-@onready var master_name:   Label   = $RowsMargin/RowsVBox/MasterRow/MasterLabel
-@onready var music_name:    Label   = $RowsMargin/RowsVBox/MusicRow/MusicLabel
-@onready var sfx_name:      Label   = $RowsMargin/RowsVBox/SFXRow/SFXLabel
+@onready var master_name:   Label   = $RowsMargin/RowsScroll/RowsVBox/MasterRow/MasterLabel
+@onready var music_name:    Label   = $RowsMargin/RowsScroll/RowsVBox/MusicRow/MusicLabel
+@onready var sfx_name:      Label   = $RowsMargin/RowsScroll/RowsVBox/SFXRow/SFXLabel
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS

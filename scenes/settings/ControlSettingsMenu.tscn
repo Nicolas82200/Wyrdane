@@ -46,24 +46,30 @@ text = "Clique sur une touche pour la modifier"
 
 [node name="BindsMargin" type="MarginContainer" parent="VBox" unique_id=700000009]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/margin_top = 4
 
-[node name="BindsVBox" type="VBoxContainer" parent="VBox/BindsMargin" unique_id=700000010]
+[node name="BindsScroll" type="ScrollContainer" parent="VBox/BindsMargin" unique_id=700000027]
 layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="BindsVBox" type="VBoxContainer" parent="VBox/BindsMargin/BindsScroll" unique_id=700000010]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
-[node name="EndTurnRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsVBox" unique_id=700000014]
+[node name="EndTurnRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=700000014]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="EndTurnLabel" type="Label" parent="VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000015]
+[node name="EndTurnLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow" unique_id=700000015]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 17
 text = "Fin de tour"
 
-[node name="EndTurnButton" type="Button" parent="VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000016]
+[node name="EndTurnButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow" unique_id=700000016]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -73,18 +79,18 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "Espace"
 
-[node name="ToggleGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsVBox" unique_id=700000017]
+[node name="ToggleGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=700000017]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ToggleGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000018]
+[node name="ToggleGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow" unique_id=700000018]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 17
 text = "Cimetière allié"
 
-[node name="ToggleGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
+[node name="ToggleGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -94,18 +100,18 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "G"
 
-[node name="ToggleEnemyGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsVBox" unique_id=986537293]
+[node name="ToggleEnemyGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=986537293]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ToggleEnemyGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=185130313]
+[node name="ToggleEnemyGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow" unique_id=185130313]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 17
 text = "Cimetière ennemi"
 
-[node name="ToggleEnemyGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
+[node name="ToggleEnemyGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2

@@ -18,6 +18,7 @@ signal report_requested
 # fond/bordure par-dessus (effet "panneau dans un panneau").
 @export var embedded_in_panel: bool = false
 
+@onready var overlay                = $Overlay
 @onready var panel                 = $Panel
 @onready var audio_menu             = %AudioSettingsMenu
 @onready var graphism_menu          = %GraphismSettingsMenu
@@ -26,6 +27,7 @@ signal report_requested
 @onready var graphism_tab_button    = %GraphismTabButton
 @onready var control_tab_button     = %ControlTabButton
 @onready var report_button          = %ReportButton
+@onready var apply_button           = %ApplyButton
 @onready var close_button          = $Panel/VBox/CloseMargin/CloseVBox/CloseButton
 @onready var concede_button        = $Panel/VBox/CloseMargin/CloseVBox/ConcedeButton
 @onready var close_x_button        = $Panel/VBox/TitleMargin/TitleRow/CloseXButton
@@ -52,7 +54,16 @@ func _ready() -> void:
 	_style_close_x_button()
 	report_button.pressed.connect(func(): report_requested.emit())
 	if embedded_in_panel:
+		# Intégré dans le panneau Actualités : pas de voile ni de popup centrée
+		# de taille fixe, le panneau doit occuper tout l'espace disponible du
+		# conteneur parent (voir CLAUDE.md, principe UX lisibilité).
 		panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+		overlay.visible = false
+		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	apply_button.pressed.connect(graphism_menu.apply_changes)
+	graphism_menu.dirty_changed.connect(_style_apply_button)
+	_style_apply_button(graphism_menu.has_pending_changes())
 
 	var tab_group := ButtonGroup.new()
 	for tab_button in _tabs:
@@ -127,6 +138,7 @@ func _retranslate() -> void:
 	confirm_cancel_button.text = SettingsManager.t("settings.concede_confirm_cancel")
 	confirm_yes_button.text    = SettingsManager.t("settings.concede_confirm_yes")
 	report_button.text         = "🚩  " + SettingsManager.t("REPORT_TITLE")
+	apply_button.text          = SettingsManager.t("graphics.apply")
 
 func _style_all_buttons() -> void:
 	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, close_button, confirm_cancel_button]:
@@ -157,6 +169,44 @@ func _style_danger_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_color",       Color("f0b0b0"))
 	btn.add_theme_color_override("font_hover_color", Color("fff0f0"))
 	btn.add_theme_font_size_override("font_size", 20)
+
+# Bouton Appliquer (résolution/plein écran/V-Sync/qualité, seuls réglages non
+# appliqués en direct) : sombre et inerte tant qu'aucun changement n'attend
+# d'être appliqué, coloré et cliquable dès qu'il y en a un (voir
+# GraphismSettingsMenu.dirty_changed).
+func _style_apply_button(active: bool) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.border_width_left          = 2
+	normal.border_width_right         = 2
+	normal.border_width_top           = 2
+	normal.border_width_bottom        = 2
+	normal.corner_radius_top_left     = 6
+	normal.corner_radius_top_right    = 6
+	normal.corner_radius_bottom_left  = 6
+	normal.corner_radius_bottom_right = 6
+	if active:
+		normal.bg_color     = Color("4a3a0dcc")
+		normal.border_color = Color("f0c040")
+	else:
+		normal.bg_color     = Color("1a1a1a66")
+		normal.border_color = Color("3a3a3a")
+	apply_button.add_theme_stylebox_override("normal", normal)
+	apply_button.add_theme_stylebox_override("disabled", normal)
+	var hover := normal.duplicate() as StyleBoxFlat
+	if active:
+		hover.bg_color     = Color("6a5412dd")
+		hover.border_color = Color("ffd966")
+	apply_button.add_theme_stylebox_override("hover", hover)
+	var pressed_style := normal.duplicate() as StyleBoxFlat
+	if active:
+		pressed_style.bg_color     = Color("362a08ee")
+		pressed_style.border_color = Color("fff0b0")
+	apply_button.add_theme_stylebox_override("pressed", pressed_style)
+	var font_color := Color("f0c040") if active else Color("6a6a6a")
+	apply_button.add_theme_color_override("font_color", font_color)
+	apply_button.add_theme_color_override("font_hover_color", font_color)
+	apply_button.add_theme_color_override("font_disabled_color", font_color)
+	apply_button.disabled = not active
 
 # Petite croix discrète en haut à droite de la popup.
 func _style_close_x_button() -> void:
