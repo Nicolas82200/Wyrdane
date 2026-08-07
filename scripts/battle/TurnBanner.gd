@@ -9,6 +9,9 @@ const FONT_BOLD := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const SHOW_TIME  := 0.25  # apparition (fondu + léger zoom)
 const HOLD_TIME  := 0.9   # durée de lecture
 const HIDE_TIME  := 0.35  # disparition
+# Position verticale (fraction de l'écran) utilisée pour la bannière de
+# mulligan, au-dessus de la main centrée plutôt qu'au centre de l'écran.
+const MULLIGAN_Y_RATIO := 0.20
 
 var _panel: PanelContainer
 var _label: Label
@@ -75,10 +78,11 @@ func show_banner(text: String) -> void:
 
 # Affiche le texte donné avec un sous-texte optionnel et reste visible tant que
 # hide_banner() n'est pas appelé explicitement (mulligan : dure jusqu'à confirmation).
-func show_banner_persistent(text: String, hint: String = "") -> void:
+# y_ratio : position verticale en fraction de l'écran (-1 = centrage habituel).
+func show_banner_persistent(text: String, hint: String = "", y_ratio: float = -1.0) -> void:
 	_hint_label.text = hint
 	_hint_label.visible = not hint.is_empty()
-	await _show(text, true)
+	await _show(text, true, y_ratio)
 
 # Fait disparaître une bannière affichée en mode persistant.
 func hide_banner() -> void:
@@ -90,7 +94,7 @@ func hide_banner() -> void:
 		_panel.visible = false
 		_hint_label.visible = false)
 
-func _show(text: String, persistent: bool) -> void:
+func _show(text: String, persistent: bool, y_ratio: float = -1.0) -> void:
 	_label.text = text
 	if not persistent:
 		_hint_label.visible = false
@@ -103,7 +107,11 @@ func _show(text: String, persistent: bool) -> void:
 	# premier affichage (début de bataille), le layout de ce Control
 	# ancré en plein écran peut ne pas encore avoir propagé sa taille,
 	# ce qui plaçait le panneau dans le coin haut-gauche, coupé.
-	_panel.position = (get_viewport_rect().size - _panel.size) / 2.0
+	var viewport_size := get_viewport_rect().size
+	var target_y: float = (viewport_size.y - _panel.size.y) / 2.0
+	if y_ratio >= 0.0:
+		target_y = viewport_size.y * y_ratio - _panel.size.y / 2.0
+	_panel.position = Vector2((viewport_size.x - _panel.size.x) / 2.0, target_y)
 	_panel.pivot_offset = _panel.size / 2.0
 	_panel.visible = true
 	_panel.scale = Vector2(1.15, 1.15)

@@ -7,13 +7,18 @@ signal drag_ended
 signal mulligan_card_clicked(index: int, card_data: CardData)
 
 @onready var container = $CardsContainer
-@onready var preview   = $CardPreview
 
 const CARD_SCENE      := preload("res://scenes/card/Card.tscn")
 const NORMAL_SCALE    := Vector2(0.75, 0.75)
 const SPACING         := 100.0
 const COMPACT_SPACING := 20.0
 const ARC_STRENGTH    := 20.0
+# Échelle des cartes pendant le mulligan (main centrée à l'écran), relative à
+# NORMAL_SCALE.
+const MULLIGAN_SCALE_MULTIPLIER := 1.5
+# Hauteur verticale (fraction de l'écran) du centre de la main pendant le
+# mulligan — fixe, laisse la place à la bannière au-dessus et au bouton en dessous.
+const MULLIGAN_CENTER_Y_RATIO   := 0.52
 # Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
 # main est repliée — le reste dépasse sous le bas de l'écran
 const COLLAPSED_PEEK_RATIO := 0.22
@@ -60,7 +65,6 @@ var _collapse_elapsed:  float          = 0.0
 var _battle: Node = null
 
 func _ready() -> void:
-	preview.hide()
 	_battle = get_tree().current_scene
 
 func _process(delta: float) -> void:
@@ -258,36 +262,28 @@ func _on_card_hover(card: Card) -> void:
 	if _hovered_card != card:
 		_hovered_card = card
 		_update_hand_layout(true)
-	preview.set_data(card.data)
-	if display_cost.is_valid():
-		preview.set_display_cost(display_cost.call(card.data))
-	preview.scale   = Vector2(1.1, 1.1)
-	preview.z_index = 100
-	var pos := card.global_position
-	preview.global_position = Vector2(
-		pos.x - preview.size.x * 0.25,
-		pos.y - preview.size.y * 1.0
-	)
-	preview.show()
-	card.drag_started.connect(func(): preview.hide())
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if not _hovering or not is_instance_valid(card) or card.dragging:
 		return
-	var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
-	var tooltip_y: float = preview.global_position.y
-	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y)
+	# La carte survolée se décale déjà (voir HOVER_LIFT/_card_position) : les
+	# tooltips de mots-clés s'ancrent directement sur son rectangle réel plutôt
+	# que sur une preview zoomée séparée.
+	var card_rect := card.get_global_rect()
+	var scaled_width: float = card_rect.size.x * card.scale.x
+	var tooltip_x: float = card_rect.position.x + scaled_width + 15
+	var tooltip_y: float = card_rect.position.y
+	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y, card_rect.position.x)
 
 func _on_card_unhover() -> void:
 	_hovering = false
-	preview.hide()
 	_hide_keyword_tooltips()
 	if _hovered_card != null:
 		_hovered_card = null
 		_update_hand_layout(true)
 
 
-func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
+func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float, fallback_left_x: float = -1.0) -> void:
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
@@ -299,8 +295,8 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 
 	var vp := get_viewport_rect().size
 
-	# Reste sur l'écran : bascule à gauche de la preview si la pile déborde à
-	# droite, et remonte le point de départ si elle déborde en bas.
+	# Reste sur l'écran : ramène la pile dans la largeur visible si elle déborde
+	# à droite, et remonte le point de départ si elle déborde en bas.
 	var stack_height := 0.0
 	for panel in panels:
 		if is_instance_valid(panel):
@@ -313,7 +309,10 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 	if panels.size() > 0 and is_instance_valid(panels[0]):
 		panel_width = panels[0].size.x
 	if base_x + panel_width > vp.x - 4.0:
-		base_x = maxf(4.0, preview.global_position.x - panel_width - 15)
+		if fallback_left_x >= 0.0:
+			base_x = maxf(4.0, fallback_left_x - panel_width - 15)
+		else:
+			base_x = maxf(4.0, vp.x - 4.0 - panel_width)
 
 	for panel in panels:
 		if not is_instance_valid(panel):
@@ -343,7 +342,9 @@ func _layout_cards() -> Array:
 
 func _compute_layout(cards: Array) -> Dictionary:
 	var count := cards.size()
-	var viewport           := get_viewport_rect().size
+	var viewport := get_viewport_rect().size
+	if _mulligan_mode:
+		return _compute_mulligan_layout(cards, viewport)
 	var max_width          := viewport.x * 0.3
 	var reduction_per_card := 0.04
 	var scale_factor       :float= clamp(1.0 - (count - 1) * reduction_per_card, 0.55, 1.2)
@@ -354,6 +355,28 @@ func _compute_layout(cards: Array) -> Dictionary:
 		"scale":       Vector2(scale_factor, scale_factor),
 		"spacing":     spacing,
 		"hand_bottom": size.y - 30.0,
+	}
+
+# Disposition de la main pendant le mulligan : cartes agrandies, centrées à
+# l'écran (horizontalement et verticalement) plutôt qu'alignées en bas.
+func _compute_mulligan_layout(cards: Array, viewport: Vector2) -> Dictionary:
+	var count := cards.size()
+	var mscale := NORMAL_SCALE * MULLIGAN_SCALE_MULTIPLIER
+	var spacing: float = SPACING * MULLIGAN_SCALE_MULTIPLIER
+	var card_w: float = cards[0].size.x if count > 0 else 0.0
+	var max_width: float = viewport.x * 0.85
+	if count > 1:
+		var natural_width: float = (count - 1) * spacing + card_w * mscale.x
+		if natural_width > max_width:
+			spacing = max((max_width - card_w * mscale.x) / float(count - 1), SPACING * 0.5)
+	var total_width: float = (count - 1) * spacing + card_w * mscale.x if count > 0 else 0.0
+	var start_x_global: float = (viewport.x - total_width) / 2.0
+	var center_y_global: float = viewport.y * MULLIGAN_CENTER_Y_RATIO
+	return {
+		"scale":    mscale,
+		"spacing":  spacing,
+		"start_x":  start_x_global - global_position.x,
+		"center_y": center_y_global - global_position.y,
 	}
 
 func set_compact(compact: bool) -> void:
@@ -436,10 +459,25 @@ func _card_norm(index: int, count: int) -> float:
 	return offset / max(float(count - 1) / 2.0, 1.0)
 
 func _card_position(index: int, layout: Dictionary, card: Control, norm: float, hovered_index: int = -1) -> Vector2:
+	if _mulligan_mode:
+		return _mulligan_card_position(index, layout, card, norm, hovered_index)
 	var y: float = layout["hand_bottom"] - card.size.y + (norm * norm) * ARC_STRENGTH
 	if not _hand_expanded:
 		y += card.size.y * layout["scale"].y * (1.0 - COLLAPSED_PEEK_RATIO)
 	var x: float = HAND_START_X + index * layout["spacing"]
+	if hovered_index != -1:
+		if index == hovered_index:
+			y -= HOVER_LIFT
+		else:
+			var dist   := index - hovered_index
+			var steps  := absi(dist) - 1
+			var push   := HOVER_PUSH_MAX * pow(HOVER_PUSH_DECAY, steps)
+			x += signf(dist) * push
+	return Vector2(x, y)
+
+func _mulligan_card_position(index: int, layout: Dictionary, card: Control, norm: float, hovered_index: int = -1) -> Vector2:
+	var y: float = layout["center_y"] - card.size.y * layout["scale"].y / 2.0 + (norm * norm) * ARC_STRENGTH
+	var x: float = layout["start_x"] + index * layout["spacing"]
 	if hovered_index != -1:
 		if index == hovered_index:
 			y -= HOVER_LIFT

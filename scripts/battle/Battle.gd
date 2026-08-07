@@ -49,6 +49,7 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_ritual_zone: HBoxContainer          = $Board/EnemyRitualZone
 @onready var player_resource_zone: HBoxContainer       = $Board/PlayerResourceZone
 @onready var enemy_resource_zone: HBoxContainer        = $Board/EnemyResourceZone
+@onready var mulligan_dim_overlay: ColorRect           = $Board/MulliganDimOverlay
 @onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
 @onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
 @onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
@@ -411,8 +412,10 @@ func _run_mulligan() -> void:
 	_mulligan_swapped_indices.clear()
 	hand.set_mulligan_mode(true)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
+	mulligan_dim_overlay.visible = true
 	turn_banner.show_banner_persistent(
-		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"))
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"),
+		TurnBanner.MULLIGAN_Y_RATIO)
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
@@ -431,6 +434,7 @@ func _run_mulligan() -> void:
 	turn_banner.hide_banner()
 	end_turn_button.disabled = true
 	end_turn_button.set_ready_hint(false)
+	mulligan_dim_overlay.visible = false
 	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
 	hand.set_mulligan_mode(false)
 	_mulligan_active = false
