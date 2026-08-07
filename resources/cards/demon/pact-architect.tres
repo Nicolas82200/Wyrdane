@@ -10,10 +10,11 @@
 [sub_resource type="Resource" id="Resource_4egxs"]
 script = ExtResource("4_kwd")
 keyword_type = 0
+value = 2
 
 [sub_resource type="Resource" id="Resource_5zrmt"]
 script = ExtResource("5_trig")
-type = "OnAttack"
+type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_zvwtj"]
 script = ExtResource("1_cardeffect")
@@ -25,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Architecte du Pacte"
-description = "PACTE. Attaque : invoque une Larve Infernale 2/1 en rangée Avant."
+description = "Pacte 2 : Invoque une Larve Infernale 2/1 en rangée Avant."
 flavour_text = "Chaque contrat qu'il signe en engendre un autre, sans fin."
 texture = ExtResource("3_texture")
 cost = 3

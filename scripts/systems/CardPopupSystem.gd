@@ -211,18 +211,18 @@ func _play_popup(entry: Dictionary) -> void:
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card)
 
-# Remplace le fondu habituel par la désintégration en fragments de
-# AnimationSystem, depuis la position de la popup vers le pool de mana de la
-# race de la carte — la même animation que Card.gd utilisait auparavant depuis
-# la main, désormais déclenchée depuis l'emplacement de la popup.
+# Remplace le fondu habituel par la dissolution de AnimationSystem, depuis la
+# position de la popup — la même animation que Card.gd utilisait auparavant
+# depuis la main, désormais déclenchée depuis l'emplacement de la popup. Le
+# pool de mana du joueur "respire" (pulse_max) au même instant, pour que le
+# gain de mana soit visuellement associé à la disparition de la carte.
 func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
 	var color: Color = Color.WHITE
-	var target: Vector2 = card.global_position + card.size * 0.5
 	if battle.get("mana_display"):
-		color  = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
-		target = battle.mana_display.get_race_anchor_global_position(card_data.race)
+		color = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
+		battle.mana_display.pulse_max()
 	if battle.get("animation_system"):
-		battle.animation_system.play_resource_absorb(card, target, color)
+		battle.animation_system.play_resource_absorb(card, color)
 	else:
 		card.queue_free()
 

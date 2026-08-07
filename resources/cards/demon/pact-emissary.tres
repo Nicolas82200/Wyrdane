@@ -9,6 +9,7 @@
 [sub_resource type="Resource" id="Resource_nux0y"]
 script = ExtResource("4_kwd")
 keyword_type = 0
+value = 2
 
 [sub_resource type="Resource" id="Resource_wp5dt"]
 script = ExtResource("5_trig")
@@ -23,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Émissaire du Pacte"
-description = "PACTE. Arrivée : pioche 1 carte."
+description = "Pacte 2 : Piochez une carte."
 flavour_text = "Il apporte toujours plus qu'il ne semble offrir, dans les deux sens."
 texture = ExtResource("3_texture")
 cost = 3

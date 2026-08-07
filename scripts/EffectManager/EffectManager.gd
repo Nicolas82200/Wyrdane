@@ -354,7 +354,7 @@ func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = nu
 		return
 	var positions: Array[Vector2] = []
 	for t in targets:
-		var v = battle.board_visual_system.get_visual(t)
+		var v = battle.board_vsual_system.get_visual(t)
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():
@@ -1019,11 +1019,6 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_demon_keyword(kw)
 			battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
-			# PACTE octroyé après l'arrivée : donne aussi ASSAUT (le coût en HP ne
-			# s'applique qu'à l'entrée en jeu, pas rétroactivement)
-			if kw == KeywordDemon.Type.PACTE and not target.has_keyword(Keyword.Type.CHARGE):
-				target.add_keyword(Keyword.Type.CHARGE)
-				battle.temp_effect_system.add_temp_keyword(target, Keyword.Type.CHARGE, false, effect.duration)
 			battle.aura_system.recompute_all()
 		else:
 			var kw: int = Keyword.from_name(effect.granted_keyword)
