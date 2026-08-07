@@ -17,9 +17,9 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 ## P3 — Steam : passage en production
 
-Le backend fonctionne avec l'AppID de test 480 (Spacewar), documenté et volontairement temporaire (`scripts/net/SteamService.gd`). Reste :
-- Créer la page Steamworks et obtenir le vrai AppID
-- Remplacer `SteamService.APP_ID`
+`SteamService.APP_ID` pointe maintenant sur le vrai AppID Wyrdane (5052390) — la page Steamworks est créée mais **en attente de validation par Valve**. Reste :
+- Attendre la validation Valve de la page Steam
+- D'ici là, seuls les comptes ajoutés comme testeurs Steamworks (« Users with access ») peuvent s'authentifier avec cet AppID ; les autres doivent repasser temporairement sur l'AppID de test 480 (Spacewar) en local
 - Invitations d'amis, pipeline de build/dépôt Steam
 - Effort : moyen mais surtout administratif (hors code).
 
