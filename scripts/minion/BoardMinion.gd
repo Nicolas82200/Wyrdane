@@ -16,11 +16,48 @@ var is_selected := false
 @onready var keyword_icons: HBoxContainer = $KeywordIcons
 
 const KEYWORD_ICONS := {
-	Keyword.Type.TAUNT: preload("res://assets/icons/taunt-icon.png"),
-	Keyword.Type.AEGIS: preload("res://assets/icons/aegis-icon.png"),
-	Keyword.Type.DEADLY_POISON: preload("res://assets/icons/poison-icon.png"),
-	Keyword.Type.CHARGE: preload("res://assets/icons/charge-icon.png"),
-	Keyword.Type.FURY: preload("res://assets/icons/fury-icon.png")
+	Keyword.Type.TAUNT:         preload("res://assets/icons/keyword/dragon-shield.svg"),
+	Keyword.Type.CHARGE:        preload("res://assets/icons/keyword/axe-swing.svg"),
+	Keyword.Type.AEGIS:         preload("res://assets/icons/keyword/shield-reflect.svg"),
+	Keyword.Type.LIFESTEAL:     preload("res://assets/icons/keyword/pretty-fangs.svg"),
+	Keyword.Type.FURY:          preload("res://assets/icons/keyword/sword-clash.svg"),
+	Keyword.Type.DEADLY_POISON: preload("res://assets/icons/keyword/foamy-disc.svg"),
+	Keyword.Type.RAVAGE:        preload("res://assets/icons/keyword/gooey-impact.svg"),
+	Keyword.Type.BLACK_WINGS:   preload("res://assets/icons/keyword/hood.svg"),
+}
+
+const HUMAN_KEYWORD_ICONS := {
+	KeywordHuman.Type.DISCIPLINE:     preload("res://assets/icons/keyword/suspicious.svg"),
+	KeywordHuman.Type.FORMATION:      preload("res://assets/icons/keyword/rally-the-troops.svg"),
+	KeywordHuman.Type.CONTRE_ATTAQUE: preload("res://assets/icons/keyword/riposte.svg"),
+	KeywordHuman.Type.COMMANDEMENT:   preload("res://assets/icons/keyword/knight-banner.svg"),
+	KeywordHuman.Type.FORTIFICATION:  preload("res://assets/icons/keyword/crenulated-shield.svg"),
+}
+
+const UNDEAD_KEYWORD_ICONS := {
+	KeywordUndead.Type.PESTIFERE:   preload("res://assets/icons/keyword/bird-mask.svg"),
+	KeywordUndead.Type.NECROPHAGE:  preload("res://assets/icons/keyword/carrion.svg"),
+	KeywordUndead.Type.HORDE:       preload("res://assets/icons/keyword/dark-squad.svg"),
+	KeywordUndead.Type.REVENANT:    preload("res://assets/icons/keyword/raise-zombie.svg"),
+	KeywordUndead.Type.CHAIR_MORTE: preload("res://assets/icons/keyword/lost-limb.svg"),
+}
+
+const DEMON_KEYWORD_ICONS := {
+	KeywordDemon.Type.PACTE:           preload("res://assets/icons/keyword/death-juice.svg"),
+	KeywordDemon.Type.CORRUPTION:      preload("res://assets/icons/keyword/evil-comet.svg"),
+	KeywordDemon.Type.TERREUR:         preload("res://assets/icons/keyword/terror.svg"),
+	KeywordDemon.Type.RANG_INFERNAL:   preload("res://assets/icons/keyword/daemon-skull.svg"),
+	KeywordDemon.Type.CHAIR_DE_SOUFRE: preload("res://assets/icons/keyword/fire-silhouette.svg"),
+	KeywordDemon.Type.SANG_NOIR:       preload("res://assets/icons/keyword/blood.svg"),
+}
+
+const ABOMINATION_KEYWORD_ICONS := {
+	KeywordAbomination.Type.MUTATION:         preload("res://assets/icons/keyword/dna1.svg"),
+	KeywordAbomination.Type.FUSION:           preload("res://assets/icons/keyword/swallow.svg"),
+	KeywordAbomination.Type.VIRULENT:         preload("res://assets/icons/keyword/poison-gas.svg"),
+	KeywordAbomination.Type.CHAIR_ADAPTATIVE: preload("res://assets/icons/keyword/mucous-pillar.svg"),
+	KeywordAbomination.Type.ASSIMILATION:     preload("res://assets/icons/keyword/lightning-electron.svg"),
+	KeywordAbomination.Type.INSTABLE:         preload("res://assets/icons/keyword/unstable-orb.svg"),
 }
 
 const BORDER_RACE_COLORS := {
@@ -700,13 +737,23 @@ func _refresh_keyword_icons() -> void:
 		return
 	for child in keyword_icons.get_children():
 		child.queue_free()
-	for keyword in minion.keywords:
-		if not KEYWORD_ICONS.has(keyword):
-			continue
-		var icon := TextureRect.new()
-		icon.texture             = KEYWORD_ICONS[keyword]
-		icon.custom_minimum_size = Vector2(22, 22)
-		icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter        = Control.MOUSE_FILTER_PASS
-		keyword_icons.add_child(icon)
+	var pools := [
+		[minion.keywords, KEYWORD_ICONS],
+		[minion.human_keywords, HUMAN_KEYWORD_ICONS],
+		[minion.undead_keywords, UNDEAD_KEYWORD_ICONS],
+		[minion.demon_keywords, DEMON_KEYWORD_ICONS],
+		[minion.abomination_keywords, ABOMINATION_KEYWORD_ICONS],
+	]
+	for pool in pools:
+		var pool_keywords: Array = pool[0]
+		var pool_icons: Dictionary = pool[1]
+		for keyword in pool_keywords:
+			if not pool_icons.has(keyword):
+				continue
+			var icon := TextureRect.new()
+			icon.texture             = pool_icons[keyword]
+			icon.custom_minimum_size = Vector2(22, 22)
+			icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter        = Control.MOUSE_FILTER_PASS
+			keyword_icons.add_child(icon)
