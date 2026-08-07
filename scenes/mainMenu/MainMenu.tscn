@@ -220,6 +220,11 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Jouer"
 
+[node name="CampaignButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Campagne"
+
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
 
