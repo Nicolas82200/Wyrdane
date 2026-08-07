@@ -94,6 +94,18 @@ var _tooltip_layer: CanvasLayer = null
 # Référence Battle mise en cache
 var _battle: Node = null
 
+# Filet de sécurité : si CE nœud est détruit (queue_free) pendant qu'il
+# affiche un aperçu de survol — ex. la boutique Arena se reconstruit
+# entièrement après un achat (voir ArenaBattle._refresh_shop), y compris la
+# case qu'on vient de glisser-déposer, encore "survolée" au moment du drop —
+# rien n'appelle jamais _on_mouse_exited() (le sondage de survol dans
+# _process() ne tourne plus, ce nœud n'existe déjà plus) et l'aperçu (`Card`
+# ajoutée à `_battle`, PAS un enfant de ce nœud) reste affiché indéfiniment,
+# orphelin. _exit_tree() est le seul point garanti d'être appelé quelle que
+# soit la raison de la destruction (queue_free, changement de scène...).
+func _exit_tree() -> void:
+	_cleanup_hover()
+
 func _ready() -> void:
 	_battle = get_tree().current_scene
 
