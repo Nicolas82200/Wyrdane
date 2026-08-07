@@ -445,6 +445,28 @@ func _restore_in_hand() -> void:
 
 # ─── Utilitaires ──────────────────────────────────────────────────────────────
 
+# Décalage de l'ombre portée sous une carte/aperçu en cours de glisser-déposer
+const DRAG_SHADOW_OFFSET := Vector2(10, 14)
+const DRAG_SHADOW_COLOR  := Color(0, 0, 0, 0.45)
+
+# Ajoute une ombre portée derrière `preview` (aperçu de carte suivant la
+# souris pendant un drag, voir Battle._create_card_drag_preview) : détache
+# visuellement la carte glissée du plateau, comme si elle flottait au-dessus.
+# Statique et réutilisable par toutes les scènes ayant leur propre aperçu de
+# glisser-déposer (Battle, ArenaBattle...).
+static func add_drag_shadow(preview: Control) -> void:
+	var shadow := Panel.new()
+	shadow.name = "DragShadow"
+	var style := StyleBoxFlat.new()
+	style.bg_color = DRAG_SHADOW_COLOR
+	style.set_corner_radius_all(10)
+	shadow.add_theme_stylebox_override("panel", style)
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shadow.position = DRAG_SHADOW_OFFSET
+	shadow.size = BOARD_MINION_SIZE
+	preview.add_child(shadow)
+	preview.move_child(shadow, 0)
+
 func _set_children_mouse_filter(filter: int) -> void:
 	for child in get_children():
 		if child is Control:
