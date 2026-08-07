@@ -120,6 +120,13 @@ func get_demon_keyword_values() -> Array[int]:
 		values.append(kw.keyword_type)
 	return values
 
+# Coût en PV (X) du mot-clé PACTE porté par cette carte, 0 si absent ou non-Pacte.
+func get_demon_keyword_value(type: int) -> int:
+	for kw in demon_keywords:
+		if kw.keyword_type == type:
+			return kw.value
+	return 0
+
 func get_abomination_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in abomination_keywords:

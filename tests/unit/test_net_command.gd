@@ -7,7 +7,7 @@ extends GutTest
 # sérialisé via var_to_bytes — jamais d'objets arbitraires).
 
 func test_play_card_builds_expected_dictionary() -> void:
-	var cmd := NetCommand.play_card("res://resources/cards/undead/bloated-giant.tres", "Front", 2, [5, 6], 3)
+	var cmd := NetCommand.play_card("res://resources/cards/undead/bloated-giant.tres", "Front", 2, [5, 6], 3, true)
 	assert_eq(cmd, {
 		"type": NetCommand.PLAY_CARD,
 		"card": "res://resources/cards/undead/bloated-giant.tres",
@@ -15,12 +15,14 @@ func test_play_card_builds_expected_dictionary() -> void:
 		"index": 2,
 		"ids": [5, 6],
 		"target": 3,
+		"pact_paid": true,
 	})
 
 func test_play_card_defaults_to_no_ids_and_no_target() -> void:
 	var cmd := NetCommand.play_card("res://card.tres", "Back", -1)
 	assert_eq(cmd["ids"], [])
 	assert_eq(cmd["target"], NetCommand.TARGET_NONE)
+	assert_eq(cmd["pact_paid"], false)
 
 func test_attack_builds_expected_dictionary() -> void:
 	assert_eq(NetCommand.attack(7, 9), {"type": NetCommand.ATTACK, "attacker": 7, "defender": 9})

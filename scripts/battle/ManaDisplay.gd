@@ -164,16 +164,6 @@ func set_mana_pools(pool: Dictionary, max_pool: Dictionary) -> void:
 		_pulse()
 	_last_total = total_current
 
-## Point d'ancrage global de la rangée d'une race (centre du swatch coloré),
-## utilisé par les animations qui doivent converger vers le pool de mana
-## correspondant (ex. absorption d'une carte-ressource jouée). Si la rangée
-## n'existe pas encore, retombe sur le centre du panneau entier.
-func get_race_anchor_global_position(race: int) -> Vector2:
-	if _rows.has(race):
-		var swatch: ColorRect = _rows[race]["swatch"]
-		return swatch.global_position + swatch.size / 2.0
-	return global_position + size / 2.0
-
 func _pulse() -> void:
 	pivot_offset = size / 2.0
 	if _pulse_tween:
