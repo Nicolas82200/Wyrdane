@@ -58,6 +58,27 @@ func sync_backend_catalog(on_complete: Callable = Callable()) -> void:
 			on_complete.call(true)
 	)
 
+## Cartes jouables d'une race donnée. Les jetons (is_token) ne peuvent jamais
+## apparaître ici : déjà exclus en amont de all_cards par _scan_recursive.
+func get_cards_by_race(race: int, include_resources: bool = false) -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card in all_cards:
+		if card.race != race:
+			continue
+		if not include_resources and card.card_type == "Resource":
+			continue
+		result.append(card)
+	return result
+
+## Cartes jouables d'une race et d'une rareté données (exclut toujours les
+## cartes-ressource).
+func get_cards_by_race_and_rarity(race: int, rarity: String) -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card in get_cards_by_race(race, false):
+		if card.rarity == rarity:
+			result.append(card)
+	return result
+
 func _scan_recursive(path: String) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:

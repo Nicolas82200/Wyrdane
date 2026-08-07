@@ -533,6 +533,11 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 		# Retour en main = retrait du plateau SANS passer par la mort
 		# (pas de cimetière, pas de Dernier Souffle)
 		_remove_from_board(battle, target)
+		# Mode Campagne (CampaignBattle.gd) : pas de main — la carte est
+		# simplement retirée du combat plutôt que rendue injouable pour le
+		# reste de la partie (pas de crash sur hand/hand_cards absents).
+		if battle.get("hand_cards") == null:
+			continue
 		if target.owner_is_player:
 			battle.hand_cards.append(target.card_data)
 			battle.hand.set_hand(battle.hand_cards)
@@ -595,6 +600,10 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 # OpponentDriver (IA : vrai deck local ; réseau : compteurs cosmétiques, le
 # pair distant pioche réellement de son côté).
 func _draw_cards(battle, source_minion: Minion, count: int) -> void:
+	# Mode Campagne (CampaignBattle.gd) : pas de deck/pioche — sans intérêt,
+	# no-op plutôt qu'un crash sur deck_system/opponent absents.
+	if battle.get("deck_system") == null:
+		return
 	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	for i in range(count):
 		if is_player:
@@ -938,6 +947,10 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 			break
 	if card_data == null:
 		return
+	# Mode Campagne (CampaignBattle.gd) : pas de main — la carte reste au
+	# cimetière plutôt qu'un crash sur hand/hand_cards absents.
+	if battle.get("hand_cards") == null:
+		return
 	if is_player:
 		battle.hand_cards.append(card_data)
 		battle.hand.set_hand(battle.hand_cards)
@@ -1126,6 +1139,10 @@ func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEff
 # toucher au mana maximum — le surplus non dépensé est perdu au tour suivant
 # (Vortex des Âmes : Carnage -> +1 mana ce tour).
 func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
+	# Mode Campagne (CampaignBattle.gd) : pas de mana en combat — sans
+	# intérêt, no-op plutôt qu'un crash sur race_mana_pool absent.
+	if not battle.has_method("race_mana_pool"):
+		return
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var amount: int = maxi(1, effect.value)
 	# Bucket hors-race (Race.Type.NONE) : compte comme surplus générique dans
@@ -1145,6 +1162,10 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 # réelle du pair distant est inconnue localement donc seule la pioche
 # cosmétique a lieu, sans remise (que le pair applique de son côté).
 func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
+	# Mode Campagne (CampaignBattle.gd) : pas de deck/coût — sans intérêt,
+	# no-op plutôt qu'un crash sur deck_system/cost_system absents.
+	if battle.get("deck_system") == null:
+		return
 	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	var count: int = maxi(1, effect.value)
 	var discount: int = maxi(1, effect.value_2)

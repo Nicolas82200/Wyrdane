@@ -32,6 +32,7 @@ Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. T
 ```
 scenes/
 ├── battle/          # Scène de bataille
+├── campaign/        # Mode Campagne (sélection de race, construction du plateau, carte de run, combat auto-battler dédié, récompense, boutique, relique, repos, événement, fin de run)
 ├── card/            # Affichage d'une carte (+ cartes enchantement)
 ├── deck/            # Deck builder et liste des decks
 ├── graveyard/       # Vue du cimetière
@@ -46,6 +47,7 @@ scripts/
 ├── EffectManager/   # Moteur d'exécution des effets de cartes
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
+├── campaign/        # Mode Campagne (run roguelite solo sans fin, voir CAMPAIGN.md) — CampaignContext (contexte statique), CampaignRun/CampaignMapNode/CampaignMapGenerator (état + carte par fenêtre glissante), CampaignBoardBuild, CampaignBattle (moteur de combat auto-battler dédié, ne passe jamais par Battle.gd), CampaignOpponentFactory, CampaignRewardPicker, CampaignGold, CampaignEvents, CampaignConsolationReward, CampaignSaveService (sauvegarde locale user://)
 ├── card/            # CardData, Card (UI), CardEffect, styles
 ├── collection/      # CollectionManager, CurrencyManager (autoloads) — sync backend
 ├── data/            # Énumérations (EffectType, Keyword, KeywordHuman, KeywordUndead, Race, TargetType, TriggerType...)
@@ -209,8 +211,8 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
-- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, mode Campagne (run roguelite solo sans fin avec combat auto-battler dédié, or/boutique/reliques, sauvegarde de run locale — voir README.md « Mode Campagne » et `CAMPAIGN.md`), backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
+- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode Campagne (points ouverts listés dans `CAMPAIGN.md` — contenu d'événements, articulation exacte de l'amélioration de carte en boutique, tables de rareté Élite/Boss par victoire à affiner), mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
 
 ## Notes pour les agents
 
