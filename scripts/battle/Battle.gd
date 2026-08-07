@@ -97,6 +97,7 @@ var net_client_match_id: String = ""
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
 var card_popup_system: CardPopupSystem
+var pact_choice_system: PactChoiceSystem
 var trigger_system: TriggerSystem
 var aura_system := AuraSystem.new()
 var temp_effect_system := TempEffectSystem.new()
@@ -228,6 +229,8 @@ func _init_systems() -> void:
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
 	card_popup_system.init(self)
+	pact_choice_system = PactChoiceSystem.new()
+	pact_choice_system.init(self)
 	aura_system.init(self)
 	temp_effect_system.init(self)
 	cost_system.init(self)

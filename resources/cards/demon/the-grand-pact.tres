@@ -9,17 +9,11 @@
 [sub_resource type="Resource" id="Resource_qe3aa"]
 script = ExtResource("4_kwd")
 keyword_type = 0
+value = 4
 
 [sub_resource type="Resource" id="Resource_561u4"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
-
-[sub_resource type="Resource" id="Resource_oiv2t"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
-value = 3
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_zgqtz"]
 script = ExtResource("1_cardeffect")
@@ -30,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Grand Pacte"
-description = "PACTE. Arrivée : ton héros perd 3 HP supplémentaires ; détruit un serviteur ennemi ciblé."
+description = "Pacte 4 : Détruit un serviteur ennemi ciblé."
 flavour_text = "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre."
 texture = ExtResource("3_texture")
 cost = 7
@@ -40,7 +34,7 @@ attack = 7
 health = 6
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_qe3aa")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_561u4")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_oiv2t"), SubResource("Resource_zgqtz")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_zgqtz")])
 requires_target = true
 rarity = "Legendary"
 board_position = "Front"

@@ -95,9 +95,6 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	undead_keywords   = data.get_undead_keyword_values()
 	demon_keywords    = data.get_demon_keyword_values()
 	abomination_keywords = data.get_abomination_keyword_values()
-	# PACTE accorde ASSAUT (le coût en HP du héros est appliqué par BoardSystem à l'arrivée)
-	if has_demon_keyword(KeywordDemon.Type.PACTE):
-		add_keyword(Keyword.Type.CHARGE)
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
 	spell_immune = data.spell_immune_until_attack
 
