@@ -1,18 +1,8 @@
 extends Control
 class_name CombatLogPanel
 
-## Panneau repliable affichant l'historique du CombatLogSystem : le joueur peut
-## le consulter à tout moment pour comprendre un enchaînement d'effets ou
-## rattraper ce qui s'est passé pendant le tour adverse. Panneau collé au bord
-## gauche de l'écran (x=0), avec une extension verticale calculée dynamiquement
-## entre le bas de l'affichage de mana adverse et le haut de la main du joueur
-## (VERTICAL_GAP de marge de chaque côté pour ne recouvrir ni l'un ni l'autre).
-## Le bouton toggle est un onglet flottant à x=0, centré verticalement sur la
-## hauteur du panneau, dessiné par-dessus son bord gauche. Au clic, le panneau
-## se déploie vers la droite (largeur animée). Chaque ligne = une icône + de
-## courtes miniatures d'illustration de carte (bordure verte = vous, rouge =
-## adversaire) et quelques segments texte pour les nombres/flèches — pas de
-## phrase. Créé entièrement en code par Battle (aucun nœud dans Battle.tscn).
+## Panneau repliable affichant l'historique du CombatLogSystem, créé
+## entièrement en code par Battle (aucun nœud dans Battle.tscn).
 ##
 ## Positionnement en pixels ABSOLUS (position/size), pas via anchors : les
 ## enfants ancrés hérités de la taille du parent au moment de leur création
