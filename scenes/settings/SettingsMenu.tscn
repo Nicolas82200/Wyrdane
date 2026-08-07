@@ -219,6 +219,19 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 text = "Concéder"
 
+[node name="ApplyMargin" type="MarginContainer" parent="Panel/VBox" unique_id=300000074]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 20
+
+[node name="ApplyButton" type="Button" parent="Panel/VBox/ApplyMargin" unique_id=300000075]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Appliquer"
+
 [node name="ConfirmPanel" type="PanelContainer" parent="." unique_id=100000022]
 visible = false
 layout_mode = 1
