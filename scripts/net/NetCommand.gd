@@ -35,8 +35,12 @@ const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
 # (la carte elle-même puis ses jetons d'effet), telle que capturée par l'émetteur.
 # Vide pour une carte qui ne crée aucun serviteur. Le pair impose ces ids dans le
 # même ordre (NetRegistry.set_imposed_ids) pour rester parfaitement synchronisé.
+# pact_paid : choix du joueur local d'avoir payé (ou non) le coût en PV du
+# mot-clé PACTE de la carte, à rejouer tel quel côté pair (voir
+# NetworkOpponent._apply_play_card et CardSystem.handle_card_played). Sans
+# incidence pour une carte sans PACTE.
 static func play_card(card_path: String, row: String, insert_index: int,
-		ids: Array = [], target_net_id: int = TARGET_NONE) -> Dictionary:
+		ids: Array = [], target_net_id: int = TARGET_NONE, pact_paid: bool = false) -> Dictionary:
 	return {
 		"type": PLAY_CARD,
 		"card": card_path,
@@ -44,6 +48,7 @@ static func play_card(card_path: String, row: String, insert_index: int,
 		"index": insert_index,
 		"ids": ids,
 		"target": target_net_id,
+		"pact_paid": pact_paid,
 	}
 
 static func attack(attacker_net_id: int, defender_net_id: int) -> Dictionary:
