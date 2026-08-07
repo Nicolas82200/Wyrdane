@@ -5,6 +5,10 @@
 export_preserts.cfg
 .tmp
 
+# Build de sortie (export Windows), local uniquement — a copier ensuite dans
+# sdk/tools/ContentBuilder/content/ pour la publication Steam
+/build/
+
 # GodotSteam extension download/extraction leftovers (Windows temp files)
 addons/godotsteam/**/~*
 *.TMP
