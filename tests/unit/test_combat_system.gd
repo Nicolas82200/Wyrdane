@@ -151,6 +151,15 @@ func test_ravage_deals_excess_to_enemy_hero() -> void:
 	assert_true(defender.is_dead())
 	assert_eq(battle.enemy_hero.health, 16, "excédent = attaque(6) - max_health(2) = 4")
 
+func test_ravage_excess_uses_health_before_hit_not_max_health() -> void:
+	battle.enemy_hero.health = 20
+	var attacker := _minion(6, 5, true, Race.Type.UNDEAD, Keyword.Type.RAVAGE)
+	var defender := _minion(1, 10, false)
+	defender.health = 2
+	await combat_system.resolve_combat(attacker, defender)
+	assert_true(defender.is_dead())
+	assert_eq(battle.enemy_hero.health, 16, "excédent = attaque(6) - PV avant le coup(2) = 4, pas attaque - max_health(10)")
+
 func test_ravage_blocked_by_blocks_overkill() -> void:
 	battle.enemy_hero.health = 20
 	var attacker := _minion(6, 5, true, Race.Type.UNDEAD, Keyword.Type.RAVAGE)
