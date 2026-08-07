@@ -134,9 +134,14 @@ static func _pick_card(run: CampaignRun, rarity: String) -> CardData:
 	while current != "":
 		# Cartes à effet incompatible (pioche/mana/main) exclues aussi côté
 		# adversaire : neutralisées en no-op par EffectManager de toute façon,
-		# autant ne pas faire "perdre" une carte à l'IA.
+		# autant ne pas faire "perdre" une carte à l'IA. Incantations (Instant)
+		# exclues aussi : CampaignBattle._place_card_on_board ne sait poser
+		# qu'un Serviteur ou une Relique (Enchantement/Rituel), une Incantation
+		# n'a pas d'emplacement de plateau et serait invoquée à tort comme
+		# serviteur.
 		var pool: Array[CardData] = CampaignCardFilter.filter_compatible(
-			CardLibrary.get_cards_by_race_and_rarity(run.tier_race, current))
+			CardLibrary.get_cards_by_race_and_rarity(run.tier_race, current).filter(
+				func(c: CardData) -> bool: return c.card_type != "Instant"))
 		if not pool.is_empty():
 			return pool[run.rng.randi_range(0, pool.size() - 1)]
 		current = RARITY_FALLBACK.get(current, "")

@@ -84,11 +84,13 @@ static func apply_effect(effect: String, run: CampaignRun) -> void:
 			pass
 
 static func _add_random_card(run: CampaignRun, rarity: String) -> void:
-	# Hors Enchantement/Rituel (Reliques) : comme la récompense de combat et la
+	# Uniquement des créatures : comme la récompense de combat et la
 	# construction du plateau, ce choix n'est jamais une source de Relique
-	# (CAMPAIGN.md « Reliques » : uniquement nœud dédié/Boutique).
+	# (Enchantement/Rituel, CAMPAIGN.md « Reliques » : uniquement nœud
+	# dédié/Boutique) ni d'Incantation (Instant, sans emplacement de plateau
+	# propre dans l'auto-battler de Campagne).
 	var pool: Array[CardData] = CampaignCardFilter.filter_compatible(
 		CardLibrary.get_cards_by_race_and_rarity(run.race, rarity).filter(
-			func(c: CardData) -> bool: return c.card_type != "Enchantment" and c.card_type != "Ritual"))
+			func(c: CardData) -> bool: return c.card_type == "Minion"))
 	if not pool.is_empty():
 		run.add_card_to_board(pool[run.rng.randi_range(0, pool.size() - 1)])

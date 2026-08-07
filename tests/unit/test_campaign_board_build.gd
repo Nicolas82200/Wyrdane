@@ -12,9 +12,7 @@ func test_pick_candidates_returns_three_common_cards_of_the_race() -> void:
 		for card in candidates:
 			assert_eq(card.race, race)
 			assert_eq(card.rarity, "Common")
-			assert_ne(card.card_type, "Resource", "pas de ressource en Campagne (pas de pioche/mana)")
-			assert_ne(card.card_type, "Enchantment", "les Enchantements sont des Reliques, jamais un choix de plateau de départ")
-			assert_ne(card.card_type, "Ritual", "les Rituels sont des Reliques, jamais un choix de plateau de départ")
+			assert_eq(card.card_type, "Minion", "le plateau de départ ne doit être composé que de créatures")
 			assert_false(card.is_token)
 
 func test_pick_candidates_avoids_already_chosen_cards_when_pool_is_large_enough() -> void:
@@ -22,7 +20,7 @@ func test_pick_candidates_avoids_already_chosen_cards_when_pool_is_large_enough(
 	rng.seed = 11
 	var race := Race.Type.UNDEAD
 	var already: Array[CardData] = CardLibrary.get_cards_by_race_and_rarity(race, "Common").filter(
-		func(c: CardData) -> bool: return c.card_type != "Resource" and not c.is_token)
+		func(c: CardData) -> bool: return c.card_type == "Minion" and not c.is_token)
 	# On "consomme" tout sauf 3 cartes : les candidats doivent forcément être ces 3-là.
 	var kept := already.slice(0, max(0, already.size() - 3))
 	var candidates: Array[CardData] = CampaignBoardBuild.pick_candidates(race, rng, kept)

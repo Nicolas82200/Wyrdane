@@ -26,9 +26,7 @@ func test_pick_three_returns_cards_of_the_requested_race() -> void:
 		assert_eq(cards.size(), CampaignRewardPicker.CANDIDATE_COUNT, "race %d : nombre de candidats inattendu" % race)
 		for card in cards:
 			assert_eq(card.race, race)
-			assert_ne(card.card_type, "Resource", "une récompense ne doit jamais être une carte-ressource")
-			assert_ne(card.card_type, "Enchantment", "les Enchantements sont des Reliques, hors tirage standard")
-			assert_ne(card.card_type, "Ritual", "les Rituels sont des Reliques, hors tirage standard")
+			assert_eq(card.card_type, "Minion", "une récompense de Campagne ne doit être qu'une créature")
 			assert_false(card.is_token)
 
 func test_pick_relic_returns_an_enchantment_or_ritual() -> void:

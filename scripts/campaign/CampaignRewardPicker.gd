@@ -67,11 +67,14 @@ static func _pick_one(race: int, rarity: String, rng: RandomNumberGenerator) -> 
 	while current_rarity != "":
 		# Enchantements/Rituels exclus du tirage standard : ce sont les
 		# Reliques de CAMPAIGN.md, obtenues uniquement via le nœud Relique ou
-		# la Boutique, jamais via un choix 1-parmi-3 classique. Cartes à effet
-		# incompatible (pioche/mana/main, sans intérêt en Campagne) exclues aussi.
+		# la Boutique, jamais via un choix 1-parmi-3 classique. Incantations
+		# (Instant) exclues aussi : le plateau de Campagne est un
+		# auto-battler, seules des créatures peuvent y être posées. Cartes à
+		# effet incompatible (pioche/mana/main, sans intérêt en Campagne)
+		# exclues aussi.
 		var pool: Array[CardData] = CampaignCardFilter.filter_compatible(
 			CardLibrary.get_cards_by_race_and_rarity(race, current_rarity).filter(
-				func(c: CardData) -> bool: return c.card_type != "Enchantment" and c.card_type != "Ritual"))
+				func(c: CardData) -> bool: return c.card_type == "Minion"))
 		if not pool.is_empty():
 			return pool[rng.randi_range(0, pool.size() - 1)]
 		current_rarity = RARITY_FALLBACK.get(current_rarity, "")
