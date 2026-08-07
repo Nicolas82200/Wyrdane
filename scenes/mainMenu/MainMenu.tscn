@@ -220,6 +220,11 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Jouer"
 
+[node name="CampaignButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Campagne"
+
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
 
@@ -232,11 +237,6 @@ text = "Parametres"
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Credits"
-
-[node name="ReportButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000013]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Signaler un probleme"
 
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
@@ -426,6 +426,20 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
+
+[node name="ReportButton" type="Button" parent="." unique_id=300000073]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 304.0
+offset_top = -166.0
+offset_right = 360.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+tooltip_text = "Signaler un problème"
+text = "🚩"
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1

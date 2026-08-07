@@ -62,7 +62,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var settings_menu: Control                    = $SettingsMenu
 @onready var settings_button: Button                   = $SettingsButton
 @onready var help_button: Button                       = $HelpButton
-@onready var report_button: Button                     = $ReportButton
 @onready var game_over_screen: GameOverScreen          = $GameOverScreen
 
 var combat_system       := _CombatSystemScript.new()
@@ -327,6 +326,7 @@ func _connect_signals() -> void:
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
+	_style_settings_button()
 	report_button.pressed.connect(_on_report_pressed)
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
@@ -334,6 +334,25 @@ func _connect_signals() -> void:
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
+
+# Remplace le texte "S" par la même icône engrenage dessinée à la volée que
+# le bouton Réglages de l'Arena (ArenaIcon.Kind.GEAR, voir ArenaBattle.gd
+# _style_button) : cohérence visuelle entre les deux modes, et un glyphe
+# vectoriel garanti au lieu d'un rendu dépendant de la police active.
+func _style_settings_button() -> void:
+	settings_button.custom_minimum_size = Vector2(36, 36)
+	settings_button.text = ""
+	var gear := ArenaIcon.make(ArenaIcon.Kind.GEAR, 22.0)
+	gear.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gear.anchor_left = 0.5
+	gear.anchor_top = 0.5
+	gear.anchor_right = 0.5
+	gear.anchor_bottom = 0.5
+	gear.offset_left = -11.0
+	gear.offset_top = -11.0
+	gear.offset_right = 11.0
+	gear.offset_bottom = 11.0
+	settings_button.add_child(gear)
 
 func _start_game() -> void:
 	update_mana_ui()
@@ -538,14 +557,16 @@ func _handle_cancel() -> bool:
 	settings_menu.open()
 	return true
 
-# Quitte la partie en cours et revient au menu principal.
-# Signaler un bug ou l'adversaire (triche) — l'option "Triche" n'apparaît que
-# si la partie est en réseau et que l'id backend de l'adversaire est connu
-# (voir net_opponent_backend_id, alimenté par NetHandshake).
+# Signaler un bug ou l'adversaire (triche), depuis le menu Échap (voir
+# SettingsMenu.report_requested) — l'option "Triche" n'apparaît que si la
+# partie est en réseau et que l'id backend de l'adversaire est connu (voir
+# net_opponent_backend_id, alimenté par NetHandshake).
 func _on_report_pressed() -> void:
+	settings_menu.close()
 	var allow_cheating := network_manager != null and net_opponent_backend_id > 0
 	ReportDialog.open_on(self, allow_cheating, net_opponent_backend_id, net_client_match_id)
 
+# Quitte la partie en cours et revient au menu principal.
 func _on_quit_match() -> void:
 	settings_menu.close()
 	# En réseau : ferme la connexion et libère le transport reparenté sous la racine.
@@ -654,10 +675,8 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	if RESOURCE_ZONE_ENABLED:
 		enchantment_system.add_resource(card_data, is_player)
 	combat_log.card_played(card_data, is_player)
-	AudioManager.play(AudioManager.RESOURCE_PLAYED)
 	if is_player:
 		update_mana_ui()
-		mana_display.pulse_max()
 	else:
 		update_enemy_mana_ui()
 		enemy_mana_display.pulse_max()
@@ -857,7 +876,6 @@ func _player_has_no_actions() -> bool:
 func _retranslate_battle() -> void:
 	settings_button.tooltip_text = SettingsManager.t("settings.title")
 	help_button.tooltip_text = SettingsManager.t("GLOSSARY_TITLE")
-	report_button.tooltip_text = SettingsManager.t("REPORT_TITLE")
 	if _mulligan_active:
 		end_turn_button.text = SettingsManager.t("mulligan.start_button")
 		return
