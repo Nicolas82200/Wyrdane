@@ -36,10 +36,12 @@ func test_full_round_loop_does_not_crash() -> void:
 	for minion in scene.human.hand.duplicate():
 		scene._on_place_pressed(minion, true)
 	await scene._resolve_combat_phase()
-	assert_true(scene.match_.round_number == 1, "le round n'avance qu'après la phase Combat")
+	# Le combat terminé enchaîne désormais tout de suite sur la manche
+	# suivante (demande explicite du joueur : plus d'attente du reste du
+	# décompte après un combat déjà résolu) — round_number avance donc DANS
+	# le même await, sans appel manuel à _advance_round().
 	if not scene.game_over:
-		scene._advance_round()
-		assert_eq(scene.match_.round_number, 2)
+		assert_eq(scene.match_.round_number, 2, "le combat terminé doit enchaîner immédiatement sur la manche suivante")
 
 func test_shop_card_drop_buys_into_hand_without_placing() -> void:
 	var affordable_index := -1
@@ -136,16 +138,28 @@ func test_shop_is_only_interactable_during_the_shop_phase() -> void:
 	assert_eq(scene.reroll_button.disabled, scene.human.gold < ArenaConstants.REROLL_COST,
 		"en phase Boutique, seul l'or manquant doit désactiver le reroll")
 	await scene._resolve_combat_phase()
+	# Le combat résolu enchaîne directement sur la phase Boutique de la manche
+	# suivante (voir _resolve_combat_phase) : la boutique redevient donc
+	# interactive dans la foulée, plus de pause "affichage du combat" à
+	# observer séparément depuis un test synchrone.
 	if not scene.game_over:
-		assert_true(scene.reroll_button.disabled, "la boutique doit être désactivée pendant l'affichage du combat")
+		assert_eq(scene.current_phase, 0, "le combat terminé doit ramener directement en phase Boutique (0 = Phase.SHOP)")
+		assert_eq(scene.reroll_button.disabled, scene.human.gold < ArenaConstants.REROLL_COST,
+			"la boutique de la manche suivante doit être normalement interactive")
 
 # Prêt (README « État actuel du prototype ») : termine la phase Boutique tout
 # de suite au lieu d'attendre l'expiration du minuteur (voir _on_ready_pressed).
 func test_ready_button_ends_the_shop_phase_immediately() -> void:
 	assert_eq(scene.current_phase, 0, "phase Boutique au départ (0 = Phase.SHOP)")
+	var round_before: int = scene.match_.round_number
 	await scene._on_ready_pressed()
+	# Le combat déclenché par Prêt enchaîne lui aussi directement sur la
+	# manche suivante (voir _resolve_combat_phase) — round_number avance donc
+	# dans le même await, current_phase repasse à SHOP plutôt que de rester
+	# bloqué en COMBAT en attendant le reste du décompte.
 	if not scene.game_over:
-		assert_eq(scene.current_phase, 1, "cliquer Prêt doit basculer en phase Combat sans attendre le minuteur (1 = Phase.COMBAT)")
+		assert_eq(scene.match_.round_number, round_before + 1,
+			"cliquer Prêt doit lancer le combat puis enchaîner directement sur la manche suivante, sans attendre le minuteur")
 
 # Régression : _is_shop_interaction_allowed() doit rejeter toute action joueur
 # hors phase Boutique, pas seulement désactiver visuellement les boutons — un
@@ -324,8 +338,13 @@ func test_resolving_combat_shows_the_enemy_board_and_banner_then_hides_them() ->
 	assert_false(scene.combat_banner_label.visible, "la banderole doit être re-cachée une fois le combat résolu")
 	assert_false(scene.enemy_hero_panel.visible, "le portrait adverse doit être re-caché une fois le combat résolu")
 	assert_null(scene._live_sim, "la référence au combat en direct doit être nettoyée après résolution")
-	assert_eq(scene.shop_front_row.get_child_count(), 0, "la boutique doit rester vide après le combat (hors phase Boutique)")
-	assert_eq(scene.shop_back_row.get_child_count(), 0, "la boutique doit rester vide après le combat (hors phase Boutique)")
+	# Le combat résolu enchaîne directement sur la phase Boutique de la manche
+	# suivante (voir _resolve_combat_phase) : une nouvelle offre y est donc
+	# déjà affichée, plus une boutique vide comme du temps où le minuteur
+	# post-combat retardait le retour en phase Boutique.
+	if not scene.game_over:
+		var shown_cards: int = scene.shop_front_row.get_child_count() + scene.shop_back_row.get_child_count()
+		assert_eq(shown_cards, ArenaConstants.SHOP_SIZE, "une nouvelle offre de boutique doit être affichée pour la manche suivante")
 
 func test_game_over_shows_the_styled_end_screen() -> void:
 	assert_false(scene.end_game_overlay.visible, "l'écran de fin ne doit pas être visible en cours de partie")

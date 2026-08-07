@@ -132,6 +132,14 @@ var _live_sim: SimulatedBattle = null
 # positionner sans se presser à chaque round — loin des 45s du design
 # (pensées pour 8 vrais joueurs humains en compétition d'achat, pas le cas
 # ici), mais le bouton Prêt permet d'accélérer un round déjà terminé plus tôt.
+# COMBAT_PHASE_DURATION, à l'inverse, ne bloque plus rien : démarré dès
+# l'entrée en combat (_resolve_combat_phase), il tourne EN PARALLÈLE de
+# l'animation (plutôt qu'après, comme c'était le cas avant — demande
+# explicite du joueur) et n'est qu'un affichage indicatif du temps qui passe.
+# Dès que le combat est réellement terminé, on enchaîne tout de suite sur la
+# manche suivante (phase_timer.stop()), sans attendre le reste du décompte —
+# son expiration naturelle (Phase.COMBAT dans _on_phase_timer_timeout) ne
+# déclenche donc plus rien.
 enum Phase { SHOP, COMBAT }
 const SHOP_PHASE_DURATION := 25.0
 const COMBAT_PHASE_DURATION := 15.0
@@ -1206,22 +1214,26 @@ func _on_phase_timer_timeout() -> void:
 		return
 	if current_phase == Phase.SHOP:
 		await _resolve_combat_phase()
-	else:
-		_advance_round()
+	# Rien à faire pour Phase.COMBAT : depuis le correctif ci-dessous, le
+	# minuteur y est purement cosmétique (juste l'affichage du temps restant
+	# pendant que le combat se déroule) — l'enchaînement vers la manche
+	# suivante est déclenché dès que le combat est réellement terminé (voir
+	# _resolve_combat_phase), jamais par l'expiration de ce minuteur.
 
 func _resolve_combat_phase() -> void:
-	# Verrouille immédiatement la boutique humaine (current_phase gate dans
+	# Démarre le décompte dès l'entrée en combat (demande explicite du
+	# joueur) : le combat se déroule PENDANT le décompte plutôt qu'après (le
+	# minuteur ne fait plus qu'afficher un temps indicatif en parallèle de
+	# l'animation, voir _on_phase_timer_timeout) — dès que le combat est
+	# réellement fini (plus bas), on enchaîne immédiatement sur la manche
+	# suivante sans attendre le reste du décompte. _start_combat_phase_timer()
+	# verrouille aussi la boutique humaine (current_phase gate dans
 	# _refresh_ui) : sans ça, tout le temps que prennent les bots à jouer leur
 	# manche + match_.end_shop_phase() + le combat animé (plusieurs secondes
 	# réelles via les vrais timers d'AnimationSystem, voir live_setup plus bas)
 	# restait fenêtre où reroll/achat/pose humains passaient encore alors que
-	# la manche est déjà close côté moteur (match_.end_shop_phase() déjà
-	# appelé plus bas). _start_combat_phase_timer(), appelé en fin de fonction,
-	# ne fait que (re)positionner cet état et démarrer le vrai minuteur
-	# d'affichage du résultat — l'appel ici ne le concurrence pas.
-	current_phase = Phase.COMBAT
-	phase_label.text = SettingsManager.t("ARENA_PHASE_COMBAT")
-	_refresh_ui()
+	# la manche est déjà close côté moteur.
+	_start_combat_phase_timer()
 	for bot in bots:
 		if not bot.is_alive():
 			continue
@@ -1264,11 +1276,14 @@ func _resolve_combat_phase() -> void:
 	await match_.start_combat_phase(live_setup)
 	enemy_hero_panel.visible = false
 	_live_sim = null
+	# Combat réellement terminé : plus besoin du reste du décompte cosmétique
+	# démarré en entrée de fonction, on enchaîne tout de suite.
+	phase_timer.stop()
 
 	if match_.is_match_over() or human.is_eliminated:
 		_show_game_over()
 	else:
-		_start_combat_phase_timer()
+		_advance_round()
 
 func _show_game_over() -> void:
 	game_over = true
