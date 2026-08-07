@@ -324,6 +324,7 @@ func _connect_signals() -> void:
 	$EnemyHeroPanel.hero_clicked.connect(targeting_system.on_enemy_hero_clicked)
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
+	_style_settings_button()
 	report_button.pressed.connect(_on_report_pressed)
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
@@ -331,6 +332,25 @@ func _connect_signals() -> void:
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
+
+# Remplace le texte "S" par la même icône engrenage dessinée à la volée que
+# le bouton Réglages de l'Arena (ArenaIcon.Kind.GEAR, voir ArenaBattle.gd
+# _style_button) : cohérence visuelle entre les deux modes, et un glyphe
+# vectoriel garanti au lieu d'un rendu dépendant de la police active.
+func _style_settings_button() -> void:
+	settings_button.custom_minimum_size = Vector2(36, 36)
+	settings_button.text = ""
+	var gear := ArenaIcon.make(ArenaIcon.Kind.GEAR, 22.0)
+	gear.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gear.anchor_left = 0.5
+	gear.anchor_top = 0.5
+	gear.anchor_right = 0.5
+	gear.anchor_bottom = 0.5
+	gear.offset_left = -11.0
+	gear.offset_top = -11.0
+	gear.offset_right = 11.0
+	gear.offset_bottom = 11.0
+	settings_button.add_child(gear)
 
 func _start_game() -> void:
 	update_mana_ui()
