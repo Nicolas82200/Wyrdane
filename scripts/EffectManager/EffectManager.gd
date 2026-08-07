@@ -354,7 +354,7 @@ func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = nu
 		return
 	var positions: Array[Vector2] = []
 	for t in targets:
-		var v = battle.board_visual_system.get_visual(t)
+		var v = battle.board_vsual_system.get_visual(t)
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():

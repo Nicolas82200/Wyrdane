@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" path="res://assets/card_art/abomination/shapeshifting-whisper.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://c85woqh2ck2sx" path="res://scripts/card/KeywordChoiceAbomination.gd" id="3_kwa"]
+
+[sub_resource type="Resource" id="Resource_kwa1"]
+script = ExtResource("3_kwa")
+keyword_type = 0
+metadata/_custom_type_script = "uid://c85woqh2ck2sx"
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Prototype Instable"
+description = "MUTATION."
+flavour_text = "Sa forme n'est jamais tout à fait la même deux combats de suite."
+texture = ExtResource("2_texture")
+cost = 3
+race = 6
+attack = 2
+health = 4
+unit_style = 20
+abomination_keywords = Array[ExtResource("3_kwa")]([SubResource("Resource_kwa1")])
+rarity = "Rare"
+arena_only = true
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

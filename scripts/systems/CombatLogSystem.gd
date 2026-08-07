@@ -36,15 +36,15 @@ func _add(icon: String, segments: Array) -> void:
 	entry_added.emit(entry)
 
 func card_played(card_data: CardData, is_player: bool) -> void:
-	var icon := "➕" if card_data.card_type == "Minion" else "✨"
+	var icon := "+" if card_data.card_type == "Minion" else "*"
 	_add(icon, [_seg_card(card_data, is_player)])
 
 func attack(attacker: Minion, defender: Minion, dmg: int, attacker_dead: bool = false, defender_dead: bool = false) -> void:
 	if dmg <= 0 and not attacker_dead and not defender_dead:
 		return
-	_add("⚔️", [
+	_add(">", [
 		_seg_card(attacker.card_data, attacker.owner_is_player, attacker_dead),
-		_seg_text("⚔️"),
+		_seg_text(">"),
 		_seg_card(defender.card_data, defender.owner_is_player, defender_dead),
 		_seg_text("-%d" % dmg),
 	])
@@ -52,20 +52,20 @@ func attack(attacker: Minion, defender: Minion, dmg: int, attacker_dead: bool = 
 func attack_hero(attacker: Minion, target_is_player: bool, dmg: int) -> void:
 	if dmg <= 0:
 		return
-	_add("⚔️", [
+	_add(">", [
 		_seg_card(attacker.card_data, attacker.owner_is_player),
-		_seg_text("⚔️"),
-		_seg_text("👑", target_is_player),
+		_seg_text(">"),
+		_seg_text("H", target_is_player),
 		_seg_text("-%d" % dmg),
 	])
 
 func minion_died(minion: Minion) -> void:
-	_add("💀", [_seg_card(minion.card_data, minion.owner_is_player)])
+	_add("X", [_seg_card(minion.card_data, minion.owner_is_player)])
 
 func infection_tick(minion: Minion) -> void:
-	_add("🧪", [_seg_card(minion.card_data, minion.owner_is_player), _seg_text("-1")])
+	_add("Inf.", [_seg_card(minion.card_data, minion.owner_is_player), _seg_text("-1")])
 
 func self_damage(is_player: bool, dmg: int) -> void:
 	if dmg <= 0:
 		return
-	_add("🩸", [_seg_text("👑", is_player), _seg_text("-%d" % dmg)])
+	_add("!", [_seg_text("H", is_player), _seg_text("-%d" % dmg)])
