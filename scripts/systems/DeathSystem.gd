@@ -158,16 +158,22 @@ func _collect_virulent_adjacent(dead_minions: Array[Minion]) -> Array[Minion]:
 # Dévoration (Abomination) : se déclenche quand N'IMPORTE QUEL serviteur meurt,
 # allié ou ennemi — contrairement à Deuil/Carnage qui sont scindés par camp.
 # ASSIMILATION (mot-clé) est traité ici en dur, sur le même modèle que
-# NÉCROPHAGE ci-dessus : +1/+1 permanent par vague de morts (pas par mort
-# individuelle, pour éviter qu'une mort groupée ne cumule démesurément).
+# NÉCROPHAGE ci-dessus, mais +1/+1 seulement jusqu'au début du prochain tour
+# (une fois par vague de morts, pas par mort individuelle) : enregistré via
+# TempEffectSystem plutôt qu'en dur pour être réverti automatiquement. La
+# vague entière partage la même échéance ("UntilEndOfTurn" si c'est le tour
+# du joueur local, "UntilEndOfEnemyTurn" si c'est le tour adverse), afin que
+# le retrait coïncide avec le tout début du prochain tour, quel qu'il soit.
 func _trigger_devoration(dead_minions: Array[Minion]) -> void:
 	if dead_minions.is_empty():
 		return
 	var survivors: Array[Minion] = battle.player_minions + battle.enemy_minions
+	var duration: String = "UntilEndOfEnemyTurn" if battle.enemy_turn_active else "UntilEndOfTurn"
 	for minion in survivors:
 		if minion.has_abomination_keyword(KeywordAbomination.Type.ASSIMILATION):
 			minion.base_attack     += 1
 			minion.base_max_health += 1
+			battle.temp_effect_system.add_temp_stat_change(minion, 1, 1, duration)
 			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 			if visual:
 				battle.animation_system.play_assimilation_buff(visual)
