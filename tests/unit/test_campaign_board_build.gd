@@ -13,6 +13,8 @@ func test_pick_candidates_returns_three_common_cards_of_the_race() -> void:
 			assert_eq(card.race, race)
 			assert_eq(card.rarity, "Common")
 			assert_ne(card.card_type, "Resource", "pas de ressource en Campagne (pas de pioche/mana)")
+			assert_ne(card.card_type, "Enchantment", "les Enchantements sont des Reliques, jamais un choix de plateau de départ")
+			assert_ne(card.card_type, "Ritual", "les Rituels sont des Reliques, jamais un choix de plateau de départ")
 			assert_false(card.is_token)
 
 func test_pick_candidates_avoids_already_chosen_cards_when_pool_is_large_enough() -> void:
