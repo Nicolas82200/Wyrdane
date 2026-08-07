@@ -22,22 +22,27 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_top = 4
 
-[node name="RowsVBox" type="VBoxContainer" parent="RowsMargin" unique_id=800000008]
+[node name="RowsScroll" type="ScrollContainer" parent="RowsMargin" unique_id=800000009]
 layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="RowsVBox" type="VBoxContainer" parent="RowsMargin/RowsScroll" unique_id=800000008]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 24
 
-[node name="MasterRow" type="HBoxContainer" parent="RowsMargin/RowsVBox" unique_id=44777394]
+[node name="MasterRow" type="HBoxContainer" parent="RowsMargin/RowsScroll/RowsVBox" unique_id=44777394]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MasterLabel" type="Label" parent="RowsMargin/RowsVBox/MasterRow" unique_id=1984125135]
+[node name="MasterLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/MasterRow" unique_id=1984125135]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Général"
 
-[node name="MasterSlider" type="HSlider" parent="RowsMargin/RowsVBox/MasterRow" unique_id=108009142]
+[node name="MasterSlider" type="HSlider" parent="RowsMargin/RowsScroll/RowsVBox/MasterRow" unique_id=108009142]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -46,7 +51,7 @@ max_value = 1.0
 step = 0.01
 value = 0.5
 
-[node name="MasterValueLabel" type="Label" parent="RowsMargin/RowsVBox/MasterRow" unique_id=155987397]
+[node name="MasterValueLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/MasterRow" unique_id=155987397]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
@@ -55,18 +60,18 @@ theme_override_font_sizes/font_size = 16
 text = "50%"
 horizontal_alignment = 2
 
-[node name="MusicRow" type="HBoxContainer" parent="RowsMargin/RowsVBox" unique_id=339655400]
+[node name="MusicRow" type="HBoxContainer" parent="RowsMargin/RowsScroll/RowsVBox" unique_id=339655400]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="MusicLabel" type="Label" parent="RowsMargin/RowsVBox/MusicRow" unique_id=1888182980]
+[node name="MusicLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/MusicRow" unique_id=1888182980]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Musique"
 
-[node name="MusicSlider" type="HSlider" parent="RowsMargin/RowsVBox/MusicRow" unique_id=1517730513]
+[node name="MusicSlider" type="HSlider" parent="RowsMargin/RowsScroll/RowsVBox/MusicRow" unique_id=1517730513]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -75,7 +80,7 @@ max_value = 1.0
 step = 0.01
 value = 0.5
 
-[node name="MusicValueLabel" type="Label" parent="RowsMargin/RowsVBox/MusicRow" unique_id=1283754011]
+[node name="MusicValueLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/MusicRow" unique_id=1283754011]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
@@ -84,18 +89,18 @@ theme_override_font_sizes/font_size = 16
 text = "50%"
 horizontal_alignment = 2
 
-[node name="SFXRow" type="HBoxContainer" parent="RowsMargin/RowsVBox" unique_id=37574540]
+[node name="SFXRow" type="HBoxContainer" parent="RowsMargin/RowsScroll/RowsVBox" unique_id=37574540]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="SFXLabel" type="Label" parent="RowsMargin/RowsVBox/SFXRow" unique_id=381909752]
+[node name="SFXLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/SFXRow" unique_id=381909752]
 custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Effets"
 
-[node name="SFXSlider" type="HSlider" parent="RowsMargin/RowsVBox/SFXRow" unique_id=691936087]
+[node name="SFXSlider" type="HSlider" parent="RowsMargin/RowsScroll/RowsVBox/SFXRow" unique_id=691936087]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -104,7 +109,7 @@ max_value = 1.0
 step = 0.01
 value = 0.5
 
-[node name="SFXValueLabel" type="Label" parent="RowsMargin/RowsVBox/SFXRow" unique_id=485521975]
+[node name="SFXValueLabel" type="Label" parent="RowsMargin/RowsScroll/RowsVBox/SFXRow" unique_id=485521975]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(52, 0)
 layout_mode = 2

@@ -60,6 +60,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 
 	var a_dmg: int = attacker.attack
 	var d_dmg: int = defender.attack
+	var defender_health_before: int = defender.health
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
 	_play_hit_sound()
@@ -116,7 +117,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	if defender.is_dead():
 		await battle.effect_manager.trigger_effects(battle, attacker, "OnExecution")
 		if attacker.has_keyword(Keyword.Type.RAVAGE) and not defender.card_data.blocks_overkill:
-			var excess: int = a_dmg - defender.max_health
+			var excess: int = a_dmg - defender_health_before
 			if excess > 0:
 				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
 				var enemy_hero_panel: Control = battle.get_node("EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel")

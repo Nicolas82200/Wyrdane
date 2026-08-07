@@ -623,18 +623,6 @@ func race_mana_pool(is_player: bool) -> Dictionary:
 func race_max_mana_pool(is_player: bool) -> Dictionary:
 	return race_max_mana if is_player else opponent.race_max_mana
 
-func total_mana(is_player: bool = true) -> int:
-	var total := 0
-	for v in race_mana_pool(is_player).values():
-		total += int(v)
-	return total
-
-func total_max_mana(is_player: bool = true) -> int:
-	var total := 0
-	for v in race_max_mana_pool(is_player).values():
-		total += int(v)
-	return total
-
 # Recharge le pool courant de chaque race à son maximum (début de tour) et
 # efface tout mana temporaire hors-race (GainMana) : "le surplus non dépensé
 # est perdu au tour suivant" (Vortex des Âmes).

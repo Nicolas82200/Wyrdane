@@ -17,10 +17,12 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 ## P3 — Steam : passage en production
 
-Le backend fonctionne avec l'AppID de test 480 (Spacewar), documenté et volontairement temporaire (`scripts/net/SteamService.gd`). Reste :
-- Créer la page Steamworks et obtenir le vrai AppID
-- Remplacer `SteamService.APP_ID`
-- Invitations d'amis, pipeline de build/dépôt Steam
+`SteamService.APP_ID` pointe maintenant sur le vrai AppID Wyrdane (5052390) — la page Steamworks est créée mais **en attente de validation par Valve**. Reste :
+- Attendre la validation Valve de la page Steam
+- D'ici là, seuls les comptes ajoutés comme testeurs Steamworks (« Users with access ») peuvent s'authentifier avec cet AppID ; les autres doivent repasser temporairement sur l'AppID de test 480 (Spacewar) en local
+- Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
+- Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
+- Invitations d'amis
 - Effort : moyen mais surtout administratif (hors code).
 
 ## P4 — Incohérence mineure de comptage de cartes

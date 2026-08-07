@@ -27,135 +27,141 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/margin_top = 4
 
-[node name="RowsVBox" type="VBoxContainer" parent="VBox/RowsMargin" unique_id=600000008]
+[node name="RowsScroll" type="ScrollContainer" parent="VBox/RowsMargin" unique_id=600000042]
 layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RowsVBox" type="VBoxContainer" parent="VBox/RowsMargin/RowsScroll" unique_id=600000008]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="ResolutionRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000009]
+[node name="ResolutionRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000009]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ResolutionLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/ResolutionRow" unique_id=600000010]
+[node name="ResolutionLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow" unique_id=600000010]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Résolution"
 
-[node name="ResolutionOption" type="OptionButton" parent="VBox/RowsMargin/RowsVBox/ResolutionRow" unique_id=600000011]
+[node name="ResolutionOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow" unique_id=600000011]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
-[node name="FullscreenRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000012]
+[node name="FullscreenRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000012]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="FullscreenLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/FullscreenRow" unique_id=600000013]
+[node name="FullscreenLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/FullscreenRow" unique_id=600000013]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Plein écran"
 
-[node name="FullscreenCheck" type="CheckButton" parent="VBox/RowsMargin/RowsVBox/FullscreenRow" unique_id=600000014]
+[node name="FullscreenCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/FullscreenRow" unique_id=600000014]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="VSyncRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000015]
+[node name="VSyncRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000015]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="VSyncLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/VSyncRow" unique_id=600000016]
+[node name="VSyncLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/VSyncRow" unique_id=600000016]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "V-Sync"
 
-[node name="VSyncCheck" type="CheckButton" parent="VBox/RowsMargin/RowsVBox/VSyncRow" unique_id=600000017]
+[node name="VSyncCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/VSyncRow" unique_id=600000017]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="QualityRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000018]
+[node name="QualityRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000018]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="QualityLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/QualityRow" unique_id=600000019]
+[node name="QualityLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow" unique_id=600000019]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Qualité effets"
 
-[node name="QualityOption" type="OptionButton" parent="VBox/RowsMargin/RowsVBox/QualityRow" unique_id=600000020]
+[node name="QualityOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow" unique_id=600000020]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
-[node name="HighlightRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000026]
+[node name="HighlightRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000026]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="HighlightLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/HighlightRow" unique_id=600000027]
+[node name="HighlightLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighlightRow" unique_id=600000027]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Surbrillance zones"
 
-[node name="HighlightCheck" type="CheckButton" parent="VBox/RowsMargin/RowsVBox/HighlightRow" unique_id=600000028]
+[node name="HighlightCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighlightRow" unique_id=600000028]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LanguageRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000029]
+[node name="LanguageRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000029]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LanguageLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/LanguageRow" unique_id=600000030]
+[node name="LanguageLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow" unique_id=600000030]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Langue"
 
-[node name="LanguageOption" type="OptionButton" parent="VBox/RowsMargin/RowsVBox/LanguageRow" unique_id=600000031]
+[node name="LanguageOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow" unique_id=600000031]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
-[node name="DifficultyRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000032]
+[node name="DifficultyRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000032]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="DifficultyLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/DifficultyRow" unique_id=600000033]
+[node name="DifficultyLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow" unique_id=600000033]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Difficulté IA"
 
-[node name="DifficultyOption" type="OptionButton" parent="VBox/RowsMargin/RowsVBox/DifficultyRow" unique_id=600000034]
+[node name="DifficultyOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow" unique_id=600000034]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
-[node name="TextScaleRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000035]
+[node name="TextScaleRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000035]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TextScaleLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/TextScaleRow" unique_id=600000036]
+[node name="TextScaleLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow" unique_id=600000036]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Taille de l'interface"
 
-[node name="TextScaleSlider" type="HSlider" parent="VBox/RowsMargin/RowsVBox/TextScaleRow" unique_id=600000037]
+[node name="TextScaleSlider" type="HSlider" parent="VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow" unique_id=600000037]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -164,7 +170,7 @@ max_value = 1.3
 step = 0.05
 value = 1.0
 
-[node name="TextScaleValueLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/TextScaleRow" unique_id=600000038]
+[node name="TextScaleValueLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow" unique_id=600000038]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
@@ -173,36 +179,19 @@ theme_override_font_sizes/font_size = 16
 text = "100%"
 horizontal_alignment = 2
 
-[node name="ColorblindRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsVBox" unique_id=600000039]
+[node name="ColorblindRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000039]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ColorblindLabel" type="Label" parent="VBox/RowsMargin/RowsVBox/ColorblindRow" unique_id=600000040]
+[node name="ColorblindLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow" unique_id=600000040]
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
 text = "Assistance daltonisme"
 
-[node name="ColorblindOption" type="OptionButton" parent="VBox/RowsMargin/RowsVBox/ColorblindRow" unique_id=600000041]
+[node name="ColorblindOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow" unique_id=600000041]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
-
-[node name="BtnsMargin" type="MarginContainer" parent="VBox" unique_id=600000022]
-layout_mode = 2
-theme_override_constants/margin_bottom = 4
-
-[node name="BtnsRow" type="HBoxContainer" parent="VBox/BtnsMargin" unique_id=600000023]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="ApplyButton" type="Button" parent="VBox/BtnsMargin/BtnsRow" unique_id=600000024]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
-text = "Appliquer"
