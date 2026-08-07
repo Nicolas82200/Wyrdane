@@ -11,6 +11,7 @@ const WEBSITE_URL := "https://wyrdane.com"
 const WEBSITE_NEWS_PATH := "/news"
 const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
+const CAMPAIGN_RACE_SELECT_SCENE := "res://scenes/campaign/CampaignRaceSelect.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
@@ -45,6 +46,7 @@ const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
 const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
+@onready var campaign_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CampaignButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
 @onready var report_button:   Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
@@ -134,6 +136,7 @@ func _ready() -> void:
 	_retranslate()
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
+	campaign_button.pressed.connect(_on_campaign_pressed)
 	credits_button.pressed.connect(_on_credits)
 	report_button.pressed.connect(_on_report_pressed)
 	quit_button.pressed.connect(_on_quit)
@@ -285,9 +288,13 @@ func _apply_tutorial_lock() -> void:
 	multi_mode_button.disabled = locked
 	decks_button.disabled = locked
 	packs_button.disabled = locked
+	# La campagne réutilise le système de cartes/deck : pas de sens de l'ouvrir
+	# avant la fin du tutoriel obligatoire (même logique que decks/packs).
+	campaign_button.disabled = locked
 	multi_mode_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	packs_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	campaign_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 # Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
 # en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
@@ -432,6 +439,10 @@ func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
 	AudioManager.play(AudioManager.OPEN_MENU)
+
+func _on_campaign_pressed() -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	get_tree().change_scene_to_file(CAMPAIGN_RACE_SELECT_SCENE)
 
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
@@ -928,6 +939,7 @@ func _show_offline_banner() -> void:
 func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
+	campaign_button.text = SettingsManager.t("MENU_CAMPAIGN")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance

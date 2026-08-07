@@ -812,14 +812,34 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
+*   **Mode Campagne** — run roguelite solo sans fin façon Slay the Spire (voir section dédiée ci-dessous)
 
 ### À faire
 *   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
-*   Mode campagne et collection de cartes
+*   Mode Campagne : contenu d'événements à étoffer, articulation exacte de l'amélioration de carte en boutique (mot-clé vs stats — point ouvert, voir `CAMPAIGN.md`), tables de rareté Élite/Boss par nombre de victoires à chiffrer plus finement
 *   Animations shaders
 *   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
+---
+
+## 🗡️ Mode Campagne
+
+Run roguelite solo **sans fin** (design complet dans `CAMPAIGN.md`), distincte de la « partie rapide » (deck construit au préalable) et du multijoueur : le joueur part avec un plateau prêt à combattre (pas de deck ni de pioche) et progresse sur une carte à embranchements dont la difficulté grimpe sans plafond, jusqu'à sa mort.
+
+*   **Choix de race** puis **constitution du plateau** — 5 choix successifs parmi 3 cartes Commune de la race choisie forment les 5 premières cartes du plateau (pas de deck classique).
+*   **Carte de run à embranchements, sans fin** — générée par fenêtre glissante (jamais un graphe illimité stocké d'un coup), 1 à 3 chemins tirés à chaque palier. Types de nœuds : Combat, Élite, Boss (un seul nœud, imposé tous les 10 paliers — un jalon récurrent, plus une fin de run), Relique, Boutique, Repos, Événement. Densité d'Élites/Événements croissante avec la profondeur, Repos/Boutique stables ; un Repos est toujours garanti juste avant chaque Boss.
+*   **Combat auto-battler tour par tour** — pas de main ni de mana en combat : les plateaux sont déjà posés, alternance stricte joueur/adversaire, le joueur choisit librement quelle carte attaque quelle cible (CHARGE offre une attaque bonus par serviteur vivant qui le porte). Mort en combat définitive. Un plateau vide rend le héros directement attaquable.
+*   **Scaling de la difficulté** — Normal : x1,5 (PV/stats) tous les 10 paliers, +1 carte tous les 2 paliers (jusqu'à 20). Élite/Boss : x1,5 après chaque victoire contre ce type précis (compteurs séparés), pas par palier. Rareté des cartes adverses croissante avec la profondeur (table par tranche de 10 paliers).
+*   **Or de run et Boutique** — or gagné après chaque combat (base croissante par tranche de 5 paliers, x1/x1,5/x3 selon Normal/Élite/Boss), dépensable en Boutique : achat de carte (prix fixe par rareté), amélioration d'une carte du plateau (buff de stats), soin (30 % des PV manquants), retrait d'une carte (coût croissant). Monnaie propre à la run, perdue à la mort.
+*   **Reliques** — des cartes Enchantement/Rituel ordinaires, obtenues uniquement via le nœud dédié (imposées, sans choix) ou en Boutique — jamais via la récompense de combat classique (réservée aux Serviteurs).
+*   **Récompense de combat** — après une victoire (hors Boss), choix de 1 carte parmi 3 (Serviteurs uniquement), tirées avec les mêmes poids de rareté que l'ouverture de pack.
+*   **PV persistants** entre combats ; un nœud Repos rend 30 % des PV manquants.
+*   **Sauvegarde de run locale** (fichier `user://`) — sauvegardée juste avant d'engager un combat (adversaire déjà figé) et juste après une victoire (y compris si le choix de récompense n'est pas encore fait). Au lancement du mode, une run interrompue propose Reprendre/Nouvelle run.
+*   **Défaite** — mort du héros = fin de run immédiate, récompense de consolation en monnaie molle proportionnelle à la profondeur atteinte.
+
+Implémentation : `scripts/campaign/` (logique pure : `CampaignContext`/`CampaignRun`/`CampaignMapNode`, `CampaignMapGenerator`, `CampaignBoardBuild`, `CampaignOpponentFactory`, `CampaignRewardPicker`, `CampaignGold`, `CampaignEvents`, `CampaignConsolationReward`, `CampaignSaveService`) + `scenes/campaign/` (10 écrans : sélection de race, construction du plateau, carte de run, combat (`CampaignBattle.tscn`, moteur auto-battler dédié — ne passe jamais par `Battle.tscn`), récompense, boutique, relique, repos, événement, fin de run). `CampaignBattle.gd` réutilise directement `CombatSystem`/`DeathSystem`/`TriggerSystem`/`EnchantmentSystem`/`SelectionSystem` du moteur de combat classique (déjà indépendants de la main/du mana) sans jamais instancier `DeckSystem`/`CardSystem`/`CostSystem`.
+
 ---
 
 ## 💠 Système de Ressources par Race

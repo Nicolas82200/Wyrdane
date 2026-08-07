@@ -103,6 +103,30 @@ func test_transform_effects_have_a_transform_card_assigned() -> void:
 			if effect.effect_id == "Transform":
 				assert_not_null(effect.transform_card, "%s : effet Transform sans transform_card assignée (no-op silencieux en jeu)" % card.card_name)
 
+func test_get_cards_by_race_excludes_resources_by_default() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race(Race.Type.UNDEAD)
+	assert_gt(cards.size(), 0, "aucune carte Mort-Vivant trouvée")
+	for card in cards:
+		assert_eq(card.race, Race.Type.UNDEAD)
+		assert_ne(card.card_type, "Resource", "%s : ressource incluse alors que include_resources=false" % card.card_name)
+
+func test_get_cards_by_race_can_include_resources() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race(Race.Type.UNDEAD, true)
+	var has_resource := false
+	for card in cards:
+		if card.card_type == "Resource":
+			has_resource = true
+			break
+	assert_true(has_resource, "la carte-ressource Mort-Vivant devrait apparaître avec include_resources=true")
+
+func test_get_cards_by_race_and_rarity_filters_correctly() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race_and_rarity(Race.Type.HUMAN, "Common")
+	assert_gt(cards.size(), 0, "aucune carte Humain Common trouvée")
+	for card in cards:
+		assert_eq(card.race, Race.Type.HUMAN)
+		assert_eq(card.rarity, "Common")
+		assert_ne(card.card_type, "Resource")
+
 func _collect_token_paths(path: String, out: Array[String]) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
