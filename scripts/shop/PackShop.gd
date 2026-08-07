@@ -1,21 +1,11 @@
 extends Control
 class_name PackShop
 
-# Écran d'ouverture de packs (première itération du système de progression :
-# monnaie gagnée en jouant, dépensée ici contre des cartes aléatoires
-# pondérées par rareté — voir POST /api/packs/open côté wyrdane-backend).
-#
-# Plein écran (pas de fenêtre encadrée) : un voile assombrit tout le menu et
-# le paquet, un empilement de dos de carte à gauche de l'écran (PackVisual),
-# tourne sur lui-même. Chaque tour du paquet fait apparaître une carte qui
-# s'envole vers une place en grille du côté droit de l'écran, à une taille
-# adaptée au nombre de cartes révélées (voir Hand.gd, preview.scale, pour la
-# référence de zoom "survol" quand une seule carte est révélée). Le joueur
-# peut ouvrir plusieurs packs d'affilée (x1/x3/x5) : l'API backend n'ouvrant
-# qu'un pack par requête, le client enchaîne les appels puis révèle toutes
-# les cartes dans une seule séquence. Les tirages Épique/Légendaire ont un
-# flourish renforcé (flash plein écran, son distinct) — volontairement sans
-# particules ni secousse d'écran.
+# Écran d'ouverture de packs : monnaie gagnée en jouant, dépensée ici contre
+# des cartes aléatoires pondérées par rareté (voir POST /api/packs/open côté
+# wyrdane-backend). Le joueur peut ouvrir plusieurs packs d'affilée (x1/x3/x5) :
+# l'API n'ouvrant qu'un pack par requête, le client enchaîne les appels puis
+# révèle toutes les cartes dans une seule séquence.
 
 @export var card_scene: PackedScene
 
