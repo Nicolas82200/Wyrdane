@@ -446,7 +446,16 @@ func _travel_spark(start: Vector2, target: Vector2, color: Color, delay: float =
 	var tween: Tween = battle.create_tween()
 	if delay > 0.0:
 		tween.tween_interval(delay)
-	tween.tween_callback(func(): spark.modulate.a = 1.0)
+	# Gardé (contrairement au reste de la traînée, déjà protégé) : cet appel
+	# est le tout premier de la séquence, avant même que `duration`/`delay`
+	# ne se soient écoulés — la fenêtre la plus longue pendant laquelle
+	# `spark` peut être libéré ailleurs (ex. transition de manche Arena) avant
+	# que ce callback ne s'exécute, provoquant sinon un crash "Lambda capture
+	# ... was freed" en tentant d'accéder à `.modulate` sur une référence nulle.
+	tween.tween_callback(func():
+		if is_instance_valid(spark):
+			spark.modulate.a = 1.0
+	)
 	tween.tween_property(spark, "global_position", target - spark.size / 2.0, duration)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.parallel().tween_property(spark, "modulate:a", 0.0, duration)

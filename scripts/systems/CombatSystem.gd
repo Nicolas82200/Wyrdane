@@ -6,6 +6,17 @@ var battle
 func init(_battle) -> void:
 	battle = _battle
 
+# `"play_sfx" in battle` : duck-typing, seul `SimulatedBattle` (combat Arena)
+# porte cette propriété — absente sur le vrai `Battle` (1v1), qui joue donc
+# toujours son son. `SimulatedBattle.play_sfx` reste faux par défaut (combat
+# bot-contre-bot headless, jamais montré) et n'est mis à true que pour le
+# combat réellement affiché au joueur (voir SimulatedBattle.enable_live_visuals)
+# — sans ce garde-fou, chaque combat simulé en parallèle (jusqu'à 3-4 à
+# 8 joueurs) ferait sonner ses propres coups en plus de celui qu'on regarde.
+func _play_hit_sound() -> void:
+	if not ("play_sfx" in battle) or battle.play_sfx:
+		AudioManager.play(AudioManager.HIT)
+
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	# Verrou de ré-entrance : empêche un effet déclenché en chaîne pendant cette
 	# attaque (OnAttack, OnResonance, attaque immédiate...) de relancer une attaque
@@ -51,7 +62,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	var d_dmg: int = defender.attack
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
-	AudioManager.play(AudioManager.HIT)
+	_play_hit_sound()
 
 	if defender_had_aegis and not defender.has_keyword(Keyword.Type.AEGIS):
 		battle.animation_system.play_aegis_break(defender_visual)
@@ -131,7 +142,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 	if visual:
 		var hero_panel: Control = battle.get_node(panel_name)
 		await battle.animation_system.play_attack_lunge(visual, hero_panel)
-	AudioManager.play(AudioManager.HIT)
+	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)

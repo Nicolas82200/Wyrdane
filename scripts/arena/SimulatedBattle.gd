@@ -73,6 +73,14 @@ var hero_system: SimHeroSystem
 var board_visual_system = SimBoardVisualSystem.new()
 var card_popup_system := SimCardPopupSystem.new()
 var animation_system = SimAnimationSystem.new()
+# Faux par défaut (combat bot-contre-bot headless, jamais montré au joueur) :
+# CombatSystem.gd, réutilisé tel quel par le combat simulé, joue des sons via
+# le singleton global AudioManager sans savoir si ce combat précis est visible
+# — sans ce garde-fou, chaque paire bot-contre-bot résolue la même manche
+# (jusqu'à 3-4 en simultané à 8 joueurs) fait sonner ses propres coups, en
+# plus de ceux du combat réellement affiché. Passé à true par
+# enable_live_visuals() : seul le combat du joueur humain doit s'entendre.
+var play_sfx: bool = false
 var combat_log := SimCombatLog.new()
 var _tree := SimSceneTree.new()
 var _firing_on_summon: bool = false
@@ -140,6 +148,7 @@ func enable_live_visuals(
 	enemy_back_container = e_back
 	_live_player_hero_panel = p_hero_panel
 	_live_enemy_hero_panel = e_hero_panel
+	play_sfx = true
 
 	board_visual_system = BoardVisualSystem.new()
 	board_visual_system.init(self)
@@ -442,11 +451,23 @@ class SimBoardVisualSystem:
 class SimCardPopupSystem:
 	func show_card_popup(_card_data: CardData, _source_minion: Minion = null) -> void:
 		pass
-	func show_effect_arrows(_positions: Array, _hold: float = 0.35) -> void:
+	# `skip_missile` ajouté côté 1v1 (CardPopupSystem.gd) après l'écriture
+	# initiale de ce stub, jamais reportée ici : un appel à 3 arguments (voir
+	# EffectManager._point_arrows_to) plantait le combat simulé (mauvais
+	# nombre d'arguments) — même défaut de synchronisation que SimAnimationSystem.
+	func show_effect_arrows(_positions: Array, _hold: float = 0.35, _skip_missile: bool = false) -> void:
 		pass
 	func show_targeting_popup(_card_data: CardData) -> void:
 		pass
 	func hide_targeting_popup() -> void:
+		pass
+	func show_resource_popup(_card_data: CardData) -> void:
+		pass
+	func get_effect_popup_tip() -> Vector2:
+		return Vector2.ZERO
+	func get_targeting_popup_tip() -> Vector2:
+		return Vector2.ZERO
+	func clear_effect_arrows() -> void:
 		pass
 
 
