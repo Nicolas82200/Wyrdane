@@ -122,7 +122,8 @@ func _play_cards_phase() -> bool:
 		refresh_ui()
 		if card.card_type == "Minion":
 			var row: String = _pick_row_for(card)
-			await battle.board_system.summon_minion(card, false, row)
+			var pact_paid: bool = _decide_pact_payment(card)
+			await battle.board_system.summon_minion(card, false, row, -1, false, pact_paid)
 		else:
 			await _cast_spell(card)
 		played = true
@@ -275,6 +276,16 @@ func _find_priority_removal(cards: Array[CardData]) -> CardData:
 		if effect.effect_id in REMOVAL_EFFECTS and effect.target in ["EnemyMinion", "AnyMinion"]:
 			return card
 	return null
+
+# PACTE : l'IA paie le coût en PV dès qu'il lui reste une marge de sécurité
+# confortable après paiement, sans quoi elle pose la carte sans l'effet.
+const PACT_SAFE_HEALTH_MARGIN := 6
+
+func _decide_pact_payment(card: CardData) -> bool:
+	var value: int = card.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+	if value <= 0:
+		return false
+	return battle.enemy_hero.health - value >= PACT_SAFE_HEALTH_MARGIN
 
 # Rangée autorisée avec de la place ; les hybrides fragiles vont derrière
 func _pick_row_for(card: CardData) -> String:

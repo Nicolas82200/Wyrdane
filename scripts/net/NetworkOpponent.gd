@@ -219,9 +219,13 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
-		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index)
+		# pact_paid : choix du pair distant pour le mot-clé PACTE de cette carte
+		# (sans incidence si la carte n'a pas PACTE) — voir NetCommand.play_card.
+		var pact_paid: bool = cmd.get("pact_paid", false)
+		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index, false, pact_paid)
 		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : on rejoue la
 		# boucle d'effets avec la cible résolue par net_id, comme côté émetteur.
+		# Un Pacte refusé n'a jamais de cible envoyée (voir CardSystem.handle_card_played).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
 		if target_id != NetCommand.TARGET_NONE and summoned != null:
 			var target: Minion = battle.net_registry.resolve(target_id)

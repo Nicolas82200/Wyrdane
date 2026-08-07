@@ -18,10 +18,10 @@ func _init(net: NetworkManager) -> void:
 # ids : net_id de tous les serviteurs créés par l'action (capturés via NetRegistry).
 # target : cible choisie de l'effet, null si aucune.
 func play_card(card_data: CardData, row: String, insert_index: int,
-		ids: Array = [], target: Minion = null) -> void:
+		ids: Array = [], target: Minion = null, pact_paid: bool = false) -> void:
 	var target_id: int = target.net_id if target != null else NetCommand.TARGET_NONE
 	_net.send_command(NetCommand.play_card(
-		card_data.resource_path, row, insert_index, ids, target_id))
+		card_data.resource_path, row, insert_index, ids, target_id, pact_paid))
 
 func attack(attacker: Minion, defender: Minion) -> void:
 	_net.send_command(NetCommand.attack(attacker.net_id, defender.net_id))
