@@ -13,7 +13,7 @@ type = "OnAwaken"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 1
+value = 2
 
 [sub_resource type="Resource" id="Resource_307vr"]
 script = ExtResource("1_cardeffect")
@@ -21,10 +21,18 @@ effect_id = "DrawCard"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Marchand d'Âmes"
-description = "Pacte 1 : Éveil : Piochez une carte."
+description = "Éveil : Piochez une carte.
+Pacte 2 : Piochez une carte supplémentaire."
 flavour_text = "Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour."
 texture = ExtResource("3_texture")
 cost = 6
@@ -34,7 +42,7 @@ attack = 0
 health = 4
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_s2ahb")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_307vr")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_307vr"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

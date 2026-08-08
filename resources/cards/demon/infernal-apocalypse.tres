@@ -29,11 +29,23 @@ value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+duration = "Permanent"
+race_filter = "Demon"
+value = 2
+value_2 = 2
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Apocalypse Infernale"
 description = "RANG INFERNAL
-Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente."
+Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente.
+Pacte 5 : +2/+2 de plus."
 flavour_text = "Ce n'était pas une invasion. C'était le prix qu'il fallait payer."
 texture = ExtResource("3_texture")
 cost = 8
@@ -43,7 +55,7 @@ attack = 9
 health = 9
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_7fjf4"), SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_esfk0")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_rkxqk")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_rkxqk"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

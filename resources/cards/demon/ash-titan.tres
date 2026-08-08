@@ -24,14 +24,23 @@ value = 2
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
 target = "EnemyHero"
-value = 3
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "EnemyHero"
+value = 1
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Titan de Cendres"
 description = "REMPART
-Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse."
+Dernier Souffle : Inflige 2 dégâts au héros adverse.
+Pacte 2 : Inflige 1 dégât de plus."
 flavour_text = "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs."
 texture = ExtResource("3_texture")
 cost = 5
@@ -42,7 +51,7 @@ health = 6
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_7rom5")])
 demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_83b09")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ytcn7")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ytcn7"), SubResource("Resource_bonus")])
 rarity = "Rare"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -9,14 +9,14 @@ var _firing_on_summon: bool = false
 func init(_battle) -> void:
 	battle = _battle
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, pact_paid := false) -> void:
-	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay, pact_paid)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
 func _has_row_overflow_ally(is_player: bool) -> bool:
 	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
 	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
 
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, pact_paid := false) -> Minion:
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target: Minion = null) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
@@ -44,20 +44,8 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		battle.animation_system.play_charge_ready(minion_visual)
 
 
-	# PACTE : le joueur a choisi (ou non) de payer le coût en PV de la carte
-	# (KeywordChoiceDemon.value) au moment de la jouer — voir
-	# CardSystem.handle_card_played. S'il refuse, ni le coût en PV ni l'effet
-	# d'Arrivée (ONPLAY) ne s'appliquent ; la carte est posée comme un vanille.
-	var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-	var pact_declined: bool = pact_value > 0 and not pact_paid
-	if pact_value > 0 and pact_paid:
-		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if is_player else "EnemyHeroPanel")
-		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-		await battle.hero_system.self_damage(is_player, pact_value)
-
-
-	if not skip_onplay and not pact_declined:
-		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
+	if not skip_onplay:
+		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY", onplay_target)
 
 
 	if not _firing_on_summon:

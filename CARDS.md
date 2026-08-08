@@ -484,7 +484,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 
 | Mot-clé | Effet |
 |---|---|
-| `PACTE X` | Le joueur choisit de payer X PV pour activer l'effet de la carte à son déclenchement. Pour un serviteur, se joue une seule fois à l'Arrivée. Pour tout autre trigger (Exécution, Blessure, Dernier Souffle, Éveil, Deuil, Renfort, Résonance, Carnage, Sacrifice, Sortilège), le paiement est redemandé à chaque déclenchement. |
+| `PACTE X` | L'effet de la carte se déclenche toujours gratuitement. En plus, le joueur peut payer X PV pour activer un effet bonus qui s'ajoute au (ou remplace le) résultat de base. Redemandé à chaque déclenchement — une seule fois à l'Arrivée pour un serviteur, à chaque occurrence pour tout autre trigger. |
 | `CORRUPTION` | Les attaques de ce serviteur infligent Corruption en plus des dégâts (la cible perd 1 ATK de façon permanente, cumulable). |
 | `TERREUR` | Quand ce serviteur attaque, la cible ne peut pas attaquer lors du prochain tour adverse. |
 | `RANG INFERNAL` | Ce serviteur gagne +1/+0 pour chaque tranche de 10 HP manquants sur ton héros. |
@@ -536,17 +536,17 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Arrivée : Ce serviteur gagne +1/+1 de façon permanente. | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
+| D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
 | D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
 | D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART, CHAIR DE SOUFRE | *Elle a regardé brûler des cathédrales entières sans ciller.* |
-| D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 3 : Arrivée : Inflige 2 dégâts à un serviteur ennemi ciblé. | *Chaque morsure lui coûte, à toi aussi.* |
-| D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Piochez une carte. | *Il murmure une vérité. Elle a toujours un prix.* |
-| D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Regagnez 2 points de vie supplémentaires. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
+| D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 3 : Inflige 2 dégâts à un serviteur ennemi ciblé. | *Chaque morsure lui coûte, à toi aussi.* |
+| D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Arrivée : Piochez une carte. Pacte 4 : Piochez une carte supplémentaire. | *Il murmure une vérité. Elle a toujours un prix.* |
+| D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Arrivée : Regagnez 2 points de vie. Pacte 1 : Regagnez 2 points de vie supplémentaires. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
 | D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Attaque : La cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
 | D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR | *Son cri ne blesse pas. Il paralyse.* |
-| D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Pacte 1 : Exécution : Ce serviteur gagne +1/+1 de façon permanente. | *Chaque exécution le nourrit — et te vide un peu.* |
+| D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Exécution : Ce serviteur gagne +1/+0 de façon permanente. Pacte 1 : Il gagne aussi +0/+1. | *Chaque exécution le nourrit — et te vide un peu.* |
 | D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART. Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
-| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Arrivée : REMPART | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
+| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Ce serviteur acquiert REMPART. | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
 
 ### Rares
 
@@ -554,16 +554,16 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D12 | Chasseur des Abysses | ⚔️ | 2 | 3 | 2 | CORRUPTION | *Il ne tue pas toujours. Parfois, il préfère laisser pourrir.* |
 | D13 | Buveur de Souffrance | ⚔️ | 3 | 2 | 3 | SANG NOIR | *Il ne ressent pas ta douleur. Il l'absorbe, littéralement.* |
-| D14 | Émissaire du Pacte | ↕️ | 3 | 2 | 3 | Pacte 2 : Arrivée : Piochez une carte. | *Il apporte toujours plus qu'il ne semble offrir — dans les deux sens.* |
+| D14 | Émissaire du Pacte | ↕️ | 3 | 2 | 3 | Arrivée : Piochez une carte. Pacte 3 : Piochez une carte supplémentaire. | *Il apporte toujours plus qu'il ne semble offrir — dans les deux sens.* |
 | D15 | Bourreau des Flammes | ⚔️ | 4 | 5 | 3 | RAVAGE | *Ce qu'il ne peut pas tuer, il l'incendie derrière lui.* |
 | D16 | Larve Ascendante | ↕️ | 2 | 1 | 2 | RANG INFERNAL | *Elle grandit dans les cicatrices, pas dans la lumière.* |
-| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART. Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
+| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART. Dernier Souffle : Inflige 2 dégâts au héros adverse. Pacte 2 : Inflige 1 dégât de plus. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
 | D18 | Suppôt du Répit | 🛡️ | 3 | 2 | 3 | Blessure : Votre héros regagne 1 point de vie. | *Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.* |
-| D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Arrivée : INFILTRATION. | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
+| D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Ce serviteur acquiert INFILTRATION. | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
 | D20 | Banshee des Abysses | 🛡️ | 4 | 2 | 5 | Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.* |
 | D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT, TERREUR | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
-| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT. Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
-| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART. Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
+| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : Ce serviteur gagne +2/+0 de façon permanente. Pacte 2 : +2/+0 supplémentaires. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
+| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART. Dernier Souffle : Invoque une Larve Infernale 2/1. Pacte 2 : Invoque une Larve Ascendante 1/2 (RANG INFERNAL) en Avant à la place. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
 
 ### Épiques
 
@@ -571,25 +571,25 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D24 | Le Corrupteur | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu. | *Il n'a pas besoin de convaincre. Il lui suffit de rester assez longtemps.* |
 | D25 | Ravageur des Flammes | ⚔️ | 5 | 6 | 4 | RAVAGE, RANG INFERNAL | *Plus ton héros saigne, plus il brûle fort.* |
-| D26 | Architecte du Pacte | 🛡️ | 3 | 2 | 3 | Pacte 2 : Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant. | *Chaque contrat qu'il signe en engendre un autre, sans fin.* |
+| D26 | Architecte du Pacte | 🛡️ | 3 | 2 | 3 | Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant. Pacte 2 : Invoque une Larve Ascendante 1/2 (RANG INFERNAL) en Avant à la place. | *Chaque contrat qu'il signe en engendre un autre, sans fin.* |
 | D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR, RANG INFERNAL | *Plus tu payes, plus il devient difficile à ignorer.* |
-| D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
+| D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 4 points de vie au héros ennemi. Pacte 3 : Vole 2 points de vie supplémentaires. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
-| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Pacte 2 : Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
+| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. Pacte 2 : Seuil porté à 5 points de vie. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
-| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Arrivée : ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
-| D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | Pacte 4 : Arrivée : FRÉNÉSIE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
+| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Ce serviteur acquiert ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
+| D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. Pacte 3 : Ce serviteur acquiert ASSAUT. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
 | D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART, RANG INFERNAL | *Il siège sur ce que ton héros a déjà perdu.* |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| D35 | Le Marchand d'Âmes | 🛡️ | 6 | 0 | 4 | Pacte 1 : Éveil : Piochez une carte. | *Il ne se bat pas. Il n'en a pas besoin — le contrat travaille pour lui, tour après tour.* |
-| D36 | Roi Démon Écarlate | ⚔️ | 7 | 6 | 8 | CORRUPTION. Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis. | *Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.* |
-| D37 | Apocalypse Infernale | ⚔️ | 8 | 9 | 9 | RANG INFERNAL. Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente. | *Ce n'était pas une invasion. C'était le prix qu'il fallait payer.* |
+| D35 | Le Marchand d'Âmes | 🛡️ | 6 | 0 | 4 | Éveil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *Il ne se bat pas. Il n'en a pas besoin — le contrat travaille pour lui, tour après tour.* |
+| D36 | Roi Démon Écarlate | ⚔️ | 7 | 6 | 8 | CORRUPTION. Arrivée : Inflige Corruption à tous les serviteurs ennemis. Pacte 3 : Une marque de Corruption supplémentaire. | *Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.* |
+| D37 | Apocalypse Infernale | ⚔️ | 8 | 9 | 9 | RANG INFERNAL. Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente. Pacte 5 : +2/+2 de plus. | *Ce n'était pas une invasion. C'était le prix qu'il fallait payer.* |
 | D38 | Le Gardien du Pacte Brisé | 🛡️ | 6 | 5 | 7 | Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés. | *Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus.* |
-| D39 | Le Grand Pacte | ⚔️ | 7 | 7 | 6 | Pacte 4 : Arrivée : Détruit un serviteur ennemi ciblé. | *Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.* |
+| D39 | Le Grand Pacte | ⚔️ | 7 | 7 | 6 | Pacte 4 : Détruit un serviteur ennemi ciblé. | *Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.* |
 
 ---
 
@@ -636,18 +636,18 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| D53 | Rituel du Pacte Éternel | 5 | Épique | 3 charges | Pacte 1 : Éveil : Invoque une Larve Infernale 2/1 en rangée Avant. | *Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.* |
-| D54 | Marché de Sang | 4 | Épique | 3 charges | Pacte 1 : Deuil : Invoque une Larve Infernale 2/1. | *Chaque offrande en appelle une autre, encore, et encore.* |
+| D53 | Rituel du Pacte Éternel | 5 | Épique | 3 charges | Éveil : Invoque une Larve Infernale 2/1 en rangée Avant. Pacte 2 : Invoque une Larve Ascendante 1/2 (RANG INFERNAL) en Avant à la place. | *Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.* |
+| D54 | Marché de Sang | 4 | Épique | 3 charges | Deuil : Invoque une Larve Infernale 2/1. Pacte 2 : Invoque une Larve Ascendante 1/2 (RANG INFERNAL) en Avant à la place. | *Chaque offrande en appelle une autre, encore, et encore.* |
 | D55 | Cercle de Corruption | 5 | Épique | 3 charges | Éveil : Inflige Corruption à un serviteur ennemi aléatoire. | *Le cercle ne choisit pas. Il se contente de continuer.* |
-| D56 | Communion Infernale | 3 | Rare | 4 charges | Pacte 1 : Deuil : Piochez une carte. | *Chaque mort te parle. Écouter a un coût, à chaque fois.* |
+| D56 | Communion Infernale | 3 | Rare | 4 charges | Deuil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *Chaque mort te parle. Écouter a un coût, à chaque fois.* |
 | D57 | Cercle de Guérison Infernale | 4 | Rare | 3 charges | Éveil : Votre héros regagne 2 points de vie. | *Même les Abysses savent qu'un pacte mort ne rapporte plus rien.* |
-| D58 | Cercle du Grand Pacte | 6 | Légendaire | 2 charges | Sacrifice 1 : Pacte 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. | *Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande.* |
+| D58 | Cercle du Grand Pacte | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. Pacte 1 : +1/+1 supplémentaire. | *Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande.* |
 | D59 | Rituel de la Terreur | 4 | Épique | 3 charges | Deuil : Le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour. | *La peur ne referme aucune plaie. C'est précisément le but, encore et encore.* |
-| D60 | Invasion Écarlate | 7 | Légendaire | 3 charges | Pacte 1 : Éveil : Invoque un Démon aléatoire de coût 4 ou moins. | *Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour.* |
-| D61 | Rituel de l'Éclipse Rouge | 6 | Légendaire | 3 charges | Pacte 1 : Sortilège ennemi : Annulé s'il cible un de vos Démons. | *Sous cette éclipse, même se protéger a un prix, à répétition.* |
+| D60 | Invasion Écarlate | 7 | Légendaire | 3 charges | Éveil : Invoque un Démon aléatoire de coût 4 ou moins. Pacte 4 : Invoque à la place un Démon aléatoire de coût 6 ou moins. | *Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour.* |
+| D61 | Rituel de l'Éclipse Rouge | 6 | Légendaire | 3 charges | Sortilège ennemi : Annulé s'il cible un de vos Démons. | *Sous cette éclipse, même se protéger a un prix, à répétition.* |
 | D62 | Rituel du Gouffre Sans Fond | 6 | Épique | 2 charges | Sacrifice 1 : Piochez une carte. Votre héros regagne 1 point de vie. | *Le seul rituel démoniaque qui rend plus qu'il ne prend — tant qu'il reste des charges.* |
-| D63 | Fléau Écarlate | 4 | Épique | 2 charges | Pacte 1 : Éveil : Les serviteurs ennemis non Démons subissent -1/-1. | *Le fléau ne fait pas de tri. Il revient juste, patiemment.* |
-| D64 | Grand Rituel du Pacte | 8 | Légendaire | 3 charges | Pacte 1 : Deuil : Ramène en main le Démon allié le plus récemment mort. | *"Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."* |
+| D63 | Fléau Écarlate | 4 | Épique | 2 charges | Éveil : Les serviteurs ennemis non Démons subissent -1/-1. Pacte 2 : -1/-1 supplémentaire. | *Le fléau ne fait pas de tri. Il revient juste, patiemment.* |
+| D64 | Grand Rituel du Pacte | 8 | Légendaire | 3 charges | Deuil : Ramène en main le Démon allié le plus récemment mort. Pacte 2 : Ramène aussi le suivant. | *"Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."* |
 
 ---
 
@@ -655,15 +655,15 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| D65 | Autel des Sacrifices | 3 | Rare | Pacte 1 : Deuil : Piochez une carte. | *L'autel ne demande jamais deux fois. Il attend, c'est tout.* |
+| D65 | Autel des Sacrifices | 3 | Rare | Deuil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *L'autel ne demande jamais deux fois. Il attend, c'est tout.* |
 | D66 | Fosse Écarlate | 4 | Rare | Renfort : Si 3 Démons alliés ou plus sont en jeu, invoque une Larve Infernale 2/1. | *Plus elle se remplit, plus elle déborde de quelque chose d'affamé.* |
 | D67 | Aura de Corruption | 3 | Rare | Résonance : Ce Démon attaquant inflige Corruption supplémentaire à sa cible. | *La corruption ne recule jamais. Elle s'accumule, discrètement.* |
-| D68 | Cœur du Gouffre | 5 | Épique | Pacte 1 : Éveil : Tous vos serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour. | *Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.* |
+| D68 | Cœur du Gouffre | 5 | Épique | Éveil : Tous vos serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour. Pacte 2 : +1/+0 supplémentaire. | *Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.* |
 | D69 | Sceau du Répit | 3 | Rare | Deuil : Votre héros regagne 1 point de vie si le serviteur mort était un Démon allié. | *Chaque perte laisse une trace. Celle-ci, au moins, te profite.* |
 | D70 | Symbiose Infernale | 5 | Épique | Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur Démon allié en rangée Avant. | *Ceux de devant brûlent. Ceux de derrière se nourrissent de la chaleur.* |
-| D71 | Idole du Grand Pacte | 6 | Légendaire | Pacte 1 : Résonance : Le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible. | *On ne l'a pas sculptée. Elle a simplement accepté de rester.* |
+| D71 | Idole du Grand Pacte | 6 | Légendaire | Résonance : Le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible. Pacte 2 : +1 dégât splash supplémentaire. | *On ne l'a pas sculptée. Elle a simplement accepté de rester.* |
 | D72 | Sanctuaire Écarlate | 4 | Épique | Présence : Vos sorts alliés coûtent 1 de moins (minimum 1). Votre héros perd 1 point de vie la première fois que ce rabais s'applique chaque tour. | *Dans ses murs, la magie coule librement. Rien n'est jamais vraiment gratuit.* |
-| D73 | Vortex des Damnés | 6 | Légendaire | Pacte 1 : Carnage : Gagnez 1 mana temporaire ce tour. | *Les âmes qui s'y perdent paient toujours un peu plus que prévu.* |
+| D73 | Vortex des Damnés | 6 | Légendaire | Carnage : Gagnez 1 mana temporaire ce tour. Pacte 2 : Gagnez 1 mana temporaire supplémentaire. | *Les âmes qui s'y perdent paient toujours un peu plus que prévu.* |
 | D74 | Autel de la Souffrance | 4 | Épique | Sacrifice du sang : Vos serviteurs Démons en jeu gagnent +0/+1 jusqu'à la fin du tour. | *L'autel ne juge pas ce que tu sacrifies. Il se contente d'en redistribuer la force.* |
 | D75 | Sceau de Préservation | 3 | Rare | Présence : Réduit de 1 (minimum 0) les dégâts que vos propres cartes infligent à votre héros, à chaque occurrence. | *Une clause discrète, glissée dans les petits caractères — en ta faveur, pour une fois.* |
 
@@ -684,6 +684,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D77 | Larve Infernale (jeton) | ⚔️ | — | 2 | 1 | Aucun mot-clé (jeton vanille, invoqué par : Rituel du Pacte Éternel, Architecte du Pacte, Garde Infernal, Fosse Écarlate, Marché de Sang). | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
+| D78 | Larve Ascendante (jeton) | ↕️ | — | 1 | 2 | RANG INFERNAL (jeton, invoqué en payant Pacte sur : Rituel du Pacte Éternel, Architecte du Pacte, Garde Infernal, Marché de Sang, à la place de la Larve Infernale). | *Elle grandit dans les cicatrices, pas dans la lumière.* |
 
 ---
 
