@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Porte-Bannière Royal"
-description = "COMMANDEMENT."
+description = "COMMANDEMENT"
 flavour_text = "Chaque recrue qui rejoint sa bannière se tient un peu plus droite."
 texture = ExtResource("2_texture")
 cost = 4

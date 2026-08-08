@@ -16,7 +16,8 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Défenseur Juré"
-description = "REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1)."
+description = "REMPART
+Blessure : Les dégâts reçus sont réduits de 1 (minimum 1)."
 flavour_text = "Il n'esquive pas. Il absorbe. Ce n'est pas pareil."
 texture = ExtResource("3_texture")
 cost = 2

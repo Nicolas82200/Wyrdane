@@ -23,7 +23,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Porte-Étendard"
-description = "Arrivée : invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3)."
+description = "Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3)."
 flavour_text = "L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi."
 texture = ExtResource("3_texture")
 cost = 3

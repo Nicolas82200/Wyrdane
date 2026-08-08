@@ -86,7 +86,7 @@ Positionnement (Lane Types)
 | 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Inflige Infection à un serviteur ennemi ciblé. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
 | 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Attaque : Vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | Il ne commande pas. Il pousse. Et ça suffit. |
-| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
+| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
 | 09 | Horde Mineure | ⚔️ | 3 | 1 | 1 | Arrivée : Invoque 2 Rampants 1/1 en rangée Avant. | Un seul ne fait pas peur. Mais il n'est jamais seul. |
 | 10 | Mort-Vivant Enchaîné | ⚔️ | 3 | 3 | 3 | HORDE. | Les chaînes ne le retiennent plus. Elles font partie de lui. |
 | 11 | Larve Cadavérique | ↕️ | 1 | 1 | 1 | NÉCROPHAGE. | Elle n'est pas née de la vie. Elle est née de ce qui reste. |
@@ -96,7 +96,7 @@ Positionnement (Lane Types)
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 12 | Pestilent | ↕️ | 2 | 1 | 2 | PESTIFÉRÉ. | Son souffle est une condamnation à retardement. |
-| 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART. Blessure : Réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
+| 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART Blessure : Réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
 | 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : Serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à la fin du tour. | Son cri ne terrorise plus. Il réveille. |
 | 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : Peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
 | 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : Invoque un Cadavre Errant en rangée Avant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
@@ -105,8 +105,8 @@ Positionnement (Lane Types)
 | 19 | Soldat Réanimé | ⚔️ | 3 | 4 | 3 | REVENANT. | La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience. |
 | 20 | Banshee Zombie | 🛡️ | 4 | 2 | 5 | Arrivée : Silence un serviteur ennemi ciblé jusqu'à la fin du prochain tour adverse. | Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler. |
 | 21 | Possédé Hurlant | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Retiré du jeu (ne va pas au cimetière). | Même les morts refusent de le reprendre. |
-| 22 | Cavalier Zombie | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points de vie. | Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte. |
-| 23 | Garde du Charnier | ⚔️ | 2 | 1 | 4 | REMPART. Dernier Souffle : Piochez 1 carte. | Il gardait les vivants. Il garde désormais ce qui reste. |
+| 22 | Cavalier Zombie | ⚔️ | 4 | 4 | 3 | ASSAUT Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points de vie. | Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte. |
+| 23 | Garde du Charnier | ⚔️ | 2 | 1 | 4 | REMPART Dernier Souffle : Piochez 1 carte. | Il gardait les vivants. Il garde désormais ce qui reste. |
 
 ### Épiques
 
@@ -122,7 +122,7 @@ Positionnement (Lane Types)
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
 | 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
-| 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
+| 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
 ### Légendaires
 
@@ -131,7 +131,7 @@ Positionnement (Lane Types)
 | 35 | Le Médecin de la Peste | 🛡️ | 6 | 0 | 4 | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant. | Il soignait les vivants autrefois. Il a simplement changé de patientèle. |
 | 36 | Roi Liche Zombie | ⚔️ | 7 | 6 | 8 | Arrivée : Ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 point de vie en rangée Avant. | Son royaume n'a pas de frontières. Il s'étend à mesure que ses sujets meurent. |
 | 37 | Apocalypse Zombie | ⚔️ | 8 | 9 | 9 | Arrivée : Transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous votre contrôle. | Ce n'était pas une invasion. C'était une conversion. |
-| 38 | Léviathan Putréfié | ⚔️ | 7 | 8 | 10 | REMPART. Arrivée : Serviteurs Mort-Vivants alliés +2/+2. | Les mers l'ont recraché. Elles non plus ne voulaient plus de lui. |
+| 38 | Léviathan Putréfié | ⚔️ | 7 | 8 | 10 | REMPART Arrivée : Serviteurs Mort-Vivants alliés +2/+2. | Les mers l'ont recraché. Elles non plus ne voulaient plus de lui. |
 | 39 | La Faucheuse | ⚔️ | 7 | 7 | 6 | Arrivée : Détruit un serviteur ennemi ciblé et le ressuscite sous votre contrôle sans ses effets. | Elle ne prend pas les âmes. Elle redistribue les corps. |
 
 ---
@@ -302,59 +302,59 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H01 | Conscrit | ⚔️ | 1 | 1 | 2 | — | *Il n'a pas choisi de venir. Il est venu quand même.* |
-| H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
-| H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART. | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
-| H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *Seul, il tient. Ensemble, ils avancent.* |
-| H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant. | *Il ne rate pas. Il attend juste le bon moment.* |
-| H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT. Arrivée : pioche 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
-| H07 | Vétéran des Marches | ⚔️ | 3 | 2 | 4 | Blessure : gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
-| H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Attaque : le serviteur allié adjacent gagne +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
-| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
-| H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : restaure 1 HP à un serviteur Humain allié aléatoire. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
-| H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
+| H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
+| H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
+| H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. | *Seul, il tient. Ensemble, ils avancent.* |
+| H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant. | *Il ne rate pas. Il attend juste le bon moment.* |
+| H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT Arrivée : Piochez 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
+| H07 | Vétéran des Marches | ⚔️ | 3 | 2 | 4 | Blessure : Gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
+| H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Attaque : Le serviteur allié adjacent gagne +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
+| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
+| H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : Restaure 1 point de vie à un serviteur Humain allié aléatoire. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
+| H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H12 | Chevalier du Mur | ⚔️ | 3 | 2 | 5 | REMPART. CONTRE-ATTAQUE. | *Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
+| H12 | Chevalier du Mur | ⚔️ | 3 | 2 | 5 | REMPART, CONTRE-ATTAQUE | *Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
 | H13 | Inquisiteur de Fer | ↕️ | 3 | 3 | 2 | Arrivée : Silence un serviteur ennemi ciblé jusqu'à la fin du prochain tour adverse. | *Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle.* |
-| H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
-| H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Attaque** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
-| H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
-| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
-| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : restaure 2 HP à un serviteur Humain allié aléatoire. Dernier Souffle : invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
-| H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
-| H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
+| H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT Arrivée : Invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
+| H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Attaque** : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
+| H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART, FORTIFICATION | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
+| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION : Peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
+| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : Restaure 2 HP à un serviteur Humain allié aléatoire. Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
+| H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : Gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
+| H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : Les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
 | H21 | Éclaireur Infiltré | ⚔️ | 3 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant.* |
-| H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : gagne REMPART jusqu'à fin de tour. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
-| H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
+| H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : Gagne REMPART jusqu'à la fin du tour. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
+| H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H24 | Maréchal de Campagne | 🛡️ | 5 | 2 | 5 | COMMANDEMENT. Éveil : tous les serviteurs Humains alliés gagnent +1/+0 jusqu'à fin de tour. | *Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.* |
-| H25 | Champion du Peuple | ⚔️ | 4 | 5 | 4 | Exécution : soigne le héros allié de 2 HP. | *Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
-| H26 | Paladin de l'Aube | ⚔️ | 5 | 4 | 5 | ÉGIDE. MOISSON. Arrivée : invoque un Éclaireur Rapide 1/1 en rangée Avant. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
-| H27 | Brise-Mort | ⚔️ | 4 | 4 | 3 | Arrivée : détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé. | *"Tu es déjà mort une fois. Je vais m'assurer que tu ne l'oublies pas."* |
-| H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART. FORMATION. Carnage : inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
-| H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
-| H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL. DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
-| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Arrivée : invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
-| H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE. ASSAUT. Blessure : gagne +2/+0 jusqu'à fin de tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
-| H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : annule tous les effets Infection sur tes serviteurs alliés. Immunise tes serviteurs à l'Infection ce tour. | *La corruption s'arrête là où il pose le regard.* |
-| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT. Éveil : invoque un Fantassin Aguerri 2/2 en rangée Avant si tu as 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
+| H24 | Maréchal de Campagne | 🛡️ | 5 | 2 | 5 | COMMANDEMENT Éveil : Tous les serviteurs Humains alliés gagnent +1/+0 jusqu'à la fin du tour. | *Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.* |
+| H25 | Champion du Peuple | ⚔️ | 4 | 5 | 4 | Exécution : Soigne le héros allié de 2 points de vie. | *Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
+| H26 | Paladin de l'Aube | ⚔️ | 5 | 4 | 5 | ÉGIDE, MOISSON. Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
+| H27 | Brise-Mort | ⚔️ | 4 | 4 | 3 | Arrivée : Détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé. | *"Tu es déjà mort une fois. Je vais m'assurer que tu ne l'oublies pas."* |
+| H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Carnage : Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
+| H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
+| H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL, DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
+| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
+| H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE, ASSAUT Blessure : Gagne +2/+0 jusqu'à la fin du tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
+| H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : Annule tous les effets Infection sur vos serviteurs alliés. Immunise tes serviteurs à l'Infection ce tour. | *La corruption s'arrête là où il pose le regard.* |
+| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT Éveil : Invoque un Fantassin Aguerri 2/2 en rangée Avant si vous avez 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H35 | Le Roi Soldat | ⚔️ | 7 | 6 | 8 | COMMANDEMENT. ÉGIDE. Arrivée : tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente. | *Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts.* |
-| H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif aléatoire. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
-| H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART. | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
-| H38 | Commandant des Derniers | 🛡️ | 7 | 5 | 6 | COMMANDEMENT. Dernier Souffle : ressuscite tous les serviteurs Humains alliés morts ce tour avec 1 HP en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
-| H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART. ÉGIDE. DISCIPLINE. Arrivée : tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour adverse. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
+| H35 | Le Roi Soldat | ⚔️ | 7 | 6 | 8 | COMMANDEMENT, ÉGIDE. Arrivée : Tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente. | *Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts.* |
+| H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
+| H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART, FORTIFICATION, CONTRE-ATTAQUE. Blessure : Invoque un Porteur de Bouclier 1/4 REMPART | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
+| H38 | Commandant des Derniers | 🛡️ | 7 | 5 | 6 | COMMANDEMENT. Dernier Souffle : Ressuscite jusqu'à 5 serviteurs Humains alliés morts avec 1 point de vie en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
+| H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART, ÉGIDE, DISCIPLINE. Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour adverse. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
 
 ---
 
@@ -364,14 +364,14 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
-| Porte-Bannière Royal | 🛡️ | 4 | 3 | 5 | COMMANDEMENT. | Chaque recrue qui rejoint sa bannière se tient un peu plus droite. |
-| Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION : tant qu'un allié est adjacent, ce serviteur gagne +1/+1. | Seule, une lance plie. En ligne, elle ne recule plus. |
+| Porte-Bannière Royal | 🛡️ | 4 | 3 | 5 | COMMANDEMENT | Chaque recrue qui rejoint sa bannière se tient un peu plus droite. |
+| Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION : Tant qu'un allié est adjacent, ce serviteur gagne +1/+1. | Seule, une lance plie. En ligne, elle ne recule plus. |
 
 **Incantations Arena** :
 
 | Nom | ⬡ | Rareté | Effet | Flavour |
 |---|:---:|---|---|---|
-| Bénédiction du Front | 3 | Rare | Tous tes serviteurs alliés en rangée Avant gagnent ÉGIDE. | La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon. |
+| Bénédiction du Front | 3 | Rare | Tous vos serviteurs alliés en rangée Avant gagnent ÉGIDE. | La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon. |
 
 ---
 
@@ -379,19 +379,19 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H40 | Cri de Ralliement | 1 | Commune | Humains alliés +0/+1 jusqu'à fin de tour. | *Un seul cri. Toute la ligne se souvient pourquoi elle est là.* |
+| H40 | Cri de Ralliement | 1 | Commune | Humains alliés +0/+1 jusqu'à la fin du tour. | *Un seul cri. Toute la ligne se souvient pourquoi elle est là.* |
 | H41 | Frappe Coordonnée | 2 | Commune | Deux serviteurs Humains alliés ciblés attaquent immédiatement le même serviteur ennemi ciblé. | *Deux hommes, un seul endroit. L'ennemi n'a pas le temps de choisir lequel regarder.* |
 | H42 | Purification | 2 | Commune | Annule tous les effets Infection et marqueurs négatifs sur un serviteur allié ciblé. | *Le mal recule. Pas loin. Mais pour l'instant, ça suffit.* |
 | H43 | Repli Tactique | 1 | Commune | Déplace un serviteur allié de la rangée Avant vers la rangée Arrière (ou inversement). Il conserve ses effets. | *Reculer n'est pas fuir. C'est choisir où mourir.* |
 | H44 | Volée de Flèches | 3 | Commune | Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 dégâts à la place. | *Plus ils sont nombreux, plus ça fait de cibles.* |
-| H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un serviteur Humain allié ciblé jusqu'à fin du prochain tour adverse. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
+| H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un serviteur Humain allié ciblé jusqu'à la fin du prochain tour adverse. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
 | H46 | Jugement Divin | 3 | Rare | Détruit un serviteur ennemi ayant 2 ATK ou moins. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
 | H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Arrière gagnent +1 ATK de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
-| H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
-| H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si ta rangée Avant est vide : invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
+| H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : Chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
+| H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
 | H51 | Massacre Sacré | 4 | Épique | Inflige 3 dégâts à tous les serviteurs Mort-Vivants ennemis en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
-| H52 | Formation Défensive | 3 | Épique | Tous tes serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à fin du tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
+| H52 | Formation Défensive | 3 | Épique | Tous vos serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
 
 ---
 
@@ -399,18 +399,18 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : tes serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
-| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
-| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : si ta rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à fin de tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
+| H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Vos serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
+| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
+| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
 | H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : quand un Humain allié meurt, **le serviteur allié qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
-| H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
-| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : tous les serviteurs Humains alliés gagnent CONTRE-ATTAQUE jusqu'à fin de tour. | *Chaque coup reçu est une réponse en attente.* |
-| H59 | Code du Chevalier | 5 | Épique | 3 charges | **Résonance** : chaque fois qu'un serviteur Humain allié attaque, tous tes serviteurs alliés gagnent +1 ATK de façon permanente. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
-| H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
-| H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : si tu as un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
+| H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
+| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les serviteurs Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Chaque coup reçu est une réponse en attente.* |
+| H59 | Code du Chevalier | 5 | Épique | 3 charges | **Résonance** : Chaque fois qu'un serviteur Humain allié attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
+| H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : Annulé s'il cible un serviteur Humain allié en rangée Avant. | *La magie s'arrête là où la volonté commence.* |
+| H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
 | H62 | Résistance Acharnée | 4 | Épique | 3 charges | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
-| H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : détruit un serviteur Mort-Vivant ennemi ayant 3 HP ou moins. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
-| H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
+| H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : Détruit les serviteurs Mort-Vivants ennemis ayant 3 points de vie ou moins. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
+| H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
 
 ---
 
@@ -418,16 +418,16 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H65 | Citadelle des Hommes | 4 | Rare | Présence : tes serviteurs en rangée Avant ont +0/+1 HP de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
-| H66 | Lignée des Braves | 3 | Rare | Deuil : quand un Humain allié meurt, pioche 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
-| H67 | Pacte de Résistance | 3 | Rare | Présence : les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
-| H68 | Temple de Guerre | 5 | Épique | Renfort : chaque serviteur allié invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
-| H69 | Cercle de Commandement | 4 | Épique | Éveil : si tu as un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
-| H70 | Forteresse Imprenable | 5 | Épique | Carnage : chaque fois qu'un serviteur ennemi meurt, tes serviteurs en rangée Avant gagnent +0/+1 jusqu'à fin de tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
+| H65 | Citadelle des Hommes | 4 | Rare | Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
+| H66 | Lignée des Braves | 3 | Rare | Deuil : Quand un Humain allié meurt, piochez 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
+| H67 | Pacte de Résistance | 3 | Rare | Présence : Les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
+| H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque serviteur allié invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
+| H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
+| H70 | Forteresse Imprenable | 5 | Épique | Carnage ennemi : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0). | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
-| H72 | Ordre des Anciens | 5 | Épique | Éveil : si tu as 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
+| H72 | Ordre des Anciens | 5 | Épique | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
 | H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
-| H74 | Décret Royal | 6 | Légendaire | Éveil : tous tes serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
+| H74 | Décret Royal | 6 | Légendaire | Éveil : Tous vos serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : tous tes serviteurs alliés sont immunisés à tous les effets néfastes ennemis (Infection, poison, peur, silence, contrôle mental, et toute réduction de stats ou débuff). Les effets néfastes déjà présents sont retirés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
 
 ---
@@ -446,11 +446,11 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION : tant qu'un allié est adjacent, gagne +1/+1. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
-| H78 | Éclaireur Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT. (jeton, invoqué par : Marche Forcée, Prêtre de Guerre, Porte-Étendard, Paladin de l'Aube, Milicien du Bourg). | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
-| H79 | Porteur de Bouclier (jeton) | ⚔️ | — | 1 | 4 | REMPART. (jeton, invoqué par : Le Rempart Vivant). | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
+| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
+| H78 | Éclaireur Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT (jeton, invoqué par : Marche Forcée, Prêtre de Guerre, Porte-Étendard, Paladin de l'Aube, Milicien du Bourg). | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
+| H79 | Porteur de Bouclier (jeton) | ⚔️ | — | 1 | 4 | REMPART (jeton, invoqué par : Le Rempart Vivant). | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
 | H80 | Milicien du Bourg (jeton) | ⚔️ | — | 2 | 1 | — (jeton vanille, invoqué par : Mémorial des Héros, Appel aux Armes, Capitaine de Milice, Soldat de la Foi). | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
-| H81 | Capitaine de Milice (jeton) | ↕️ | — | 3 | 3 | COMMANDEMENT. (jeton, invoqué par : Ordre des Anciens). | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
+| H81 | Capitaine de Milice (jeton) | ↕️ | — | 3 | 3 | COMMANDEMENT (jeton, invoqué par : Ordre des Anciens). | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 
 ---
 
@@ -538,15 +538,15 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Arrivée : Ce serviteur gagne +1/+1 de façon permanente. | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
 | D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION. | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
-| D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART. CHAIR DE SOUFRE. | *Elle a regardé brûler des cathédrales entières sans ciller.* |
+| D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART CHAIR DE SOUFRE. | *Elle a regardé brûler des cathédrales entières sans ciller.* |
 | D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 3 : Arrivée : Inflige 2 dégâts à un serviteur ennemi ciblé. | *Chaque morsure lui coûte, à toi aussi.* |
 | D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Piochez une carte. | *Il murmure une vérité. Elle a toujours un prix.* |
 | D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Regagnez 2 points de vie supplémentaires. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
 | D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Attaque : La cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
 | D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR. | *Son cri ne blesse pas. Il paralyse.* |
 | D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Pacte 1 : Exécution : Ce serviteur gagne +1/+1 de façon permanente. | *Chaque exécution le nourrit — et te vide un peu.* |
-| D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART. Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
-| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Arrivée : REMPART. | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
+| D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
+| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Arrivée : REMPART | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
 
 ### Rares
 
@@ -557,13 +557,13 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D14 | Émissaire du Pacte | ↕️ | 3 | 2 | 3 | Pacte 2 : Arrivée : Piochez une carte. | *Il apporte toujours plus qu'il ne semble offrir — dans les deux sens.* |
 | D15 | Bourreau des Flammes | ⚔️ | 4 | 5 | 3 | RAVAGE. | *Ce qu'il ne peut pas tuer, il l'incendie derrière lui.* |
 | D16 | Larve Ascendante | ↕️ | 2 | 1 | 2 | RANG INFERNAL. | *Elle grandit dans les cicatrices, pas dans la lumière.* |
-| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART. Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
+| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
 | D18 | Suppôt du Répit | 🛡️ | 3 | 2 | 3 | Blessure : Votre héros regagne 1 point de vie. | *Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.* |
 | D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Arrivée : INFILTRATION. | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
 | D20 | Banshee des Abysses | 🛡️ | 4 | 2 | 5 | Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.* |
-| D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT. TERREUR. | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
-| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT. Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
-| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART. Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
+| D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT TERREUR. | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
+| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
+| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
 
 ### Épiques
 
@@ -579,7 +579,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
 | D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Arrivée : ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | Pacte 4 : Arrivée : FRÉNÉSIE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
-| D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART. RANG INFERNAL. | *Il siège sur ce que ton héros a déjà perdu.* |
+| D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART RANG INFERNAL. | *Il siège sur ce que ton héros a déjà perdu.* |
 
 ### Légendaires
 
@@ -600,7 +600,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
 | Bourreau Corrompu | ⚔️ | 4 | 4 | 4 | CORRUPTION. | Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait. |
-| Émissaire Zélé | ⚔️ | 2 | 3 | 2 | ASSAUT. | Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse. |
+| Émissaire Zélé | ⚔️ | 2 | 3 | 2 | ASSAUT | Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse. |
 
 **Incantations Arena** :
 
@@ -769,7 +769,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | A01 | Amas Informe | ⚔️ | 1 | 1 | 2 | MUTATION. | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
 | A02 | Cœur Sans Corps | ↕️ | 1 | 2 | 1 | ASSIMILATION. | *Il bat pour quelque chose qui n'existe plus.* |
-| A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART. INSTABLE. | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
+| A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART INSTABLE. | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
 | A04 | Nœud de Chair | ⚔️ | 2 | 2 | 2 | MUTATION. | *Chaque coup reçu le noue un peu plus serré.* |
 | A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : le serviteur allié adjacent gagne +1/+1 permanent. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
 | A06 | Regard Détaché | 🛡️ | 2 | 1 | 2 | Arrivée : regarde la carte du dessus de ton deck, tu peux la remettre au fond. | *Il ne cligne jamais. Il n'a plus rien à protéger.* |
@@ -783,18 +783,18 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A12 | Masse-Qui-Ne-Cesse | ⚔️ | 4 | 4 | 5 | MUTATION. REMPART. | *Elle a arrêté de compter les formes qu'elle a portées.* |
+| A12 | Masse-Qui-Ne-Cesse | ⚔️ | 4 | 4 | 5 | MUTATION. REMPART | *Elle a arrêté de compter les formes qu'elle a portées.* |
 | A13 | Bouche-Mère | ⚔️ | 3 | 3 | 3 | ASSIMILATION. | *Elle ne distingue pas allié et ennemi. Seulement mort et pas-encore-mort.* |
 | A14 | Second Regard | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE. Arrivée : pioche 1 carte. | *Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes.* |
 | A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
 | A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION. | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
-| A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART. MUTATION. | *On l'a vu changer trois fois dans la même bataille.* |
+| A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART MUTATION. | *On l'a vu changer trois fois dans la même bataille.* |
 | A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : le serviteur allié adjacent gagne CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
 | A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION. INSTABLE. | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
 | A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : réduit l'ATK d'un serviteur ennemi ciblé de 1 jusqu'à la fin du prochain tour adverse. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
-| A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT. VENIN MORTEL. Dernier Souffle : se reforme en Amas Informe 2/2 sous ton contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
-| A22 | Monture-et-Cavalier-Ne-Font-Qu'Un | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP, puis mute. | *On ne sait plus lequel des deux dirige encore l'autre.* |
-| A23 | Le Reste-Qui-Veille | ⚔️ | 2 | 1 | 4 | REMPART. ASSIMILATION. | *Il grandit à chaque garde tombée, la sienne comme celle d'en face.* |
+| A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT VENIN MORTEL. Dernier Souffle : se reforme en Amas Informe 2/2 sous ton contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
+| A22 | Monture-et-Cavalier-Ne-Font-Qu'Un | ⚔️ | 4 | 4 | 3 | ASSAUT Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP, puis mute. | *On ne sait plus lequel des deux dirige encore l'autre.* |
+| A23 | Le Reste-Qui-Veille | ⚔️ | 2 | 1 | 4 | REMPART ASSIMILATION. | *Il grandit à chaque garde tombée, la sienne comme celle d'en face.* |
 
 ### Épiques
 
@@ -803,14 +803,14 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A24 | Le Premier Écart | ↕️ | 4 | 3 | 3 | Arrivée : tous tes serviteurs Abomination alliés mutent immédiatement. | *Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis.* |
 | A25 | La Faim Cuirassée | ⚔️ | 5 | 6 | 4 | RAVAGE. ASSIMILATION. | *Chaque mort autour d'elle l'épaissit un peu plus.* |
 | A26 | Semeur de Nœuds | 🛡️ | 3 | 2 | 3 | FUSION. Attaque : invoque un Amas Informe 1/2 en rangée Avant. | *Il ne construit rien. Il fait pousser.* |
-| A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART. INSTABLE. MUTATION. | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
+| A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART INSTABLE. MUTATION. | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
 | A28 | Faim Sans Fond | ↕️ | 4 | 4 | 4 | MOISSON. ASSIMILATION. | *Elle ne prend pas la vie. Elle l'intègre.* |
 | A29 | Poussière Qui Change | ↕️ | 3 | 1 | 2 | VIRULENT. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Là où elle se dépose, quelque chose commence toujours à changer.* |
 | A30 | Le Trieur de Chairs | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins, puis mute. | *Il ne choisit pas ses proies. Il choisit ce qu'il veut devenir ensuite.* |
 | A31 | Le Sculpteur Sans Mains | 🛡️ | 4 | 2 | 4 | Arrivée : un serviteur allié ciblé gagne un mot-clé Abomination de ton choix, de façon permanente. | *"La forme n'est qu'une suggestion. Je préfère négocier."* |
 | A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | AILES NOIRES. FUSION. | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
 | A33 | Fureur Sans Forme Fixe | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. MUTATION. | *Plus il frappe, moins il ressemble à ce qu'il était en arrivant.* |
-| A34 | Ce-Qui-A-Cessé-de-S'arrêter | ⚔️ | 5 | 3 | 8 | REMPART. ASSIMILATION. Dernier Souffle : invoque 3 Amas Informes 1/2 en rangée Avant. | *Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.* |
+| A34 | Ce-Qui-A-Cessé-de-S'arrêter | ⚔️ | 5 | 3 | 8 | REMPART ASSIMILATION. Dernier Souffle : invoque 3 Amas Informes 1/2 en rangée Avant. | *Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.* |
 
 ### Légendaires
 
@@ -819,7 +819,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A35 | L'Éternel Recommencement | 🛡️ | 6 | 0 | 4 | Éveil : invoque une Abomination aléatoire de coût ≤3 en rangée Avant ; elle mute immédiatement. | *Il ne se soigne plus. Il se réinvente, sans fin.* |
 | A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : fusionne avec les 2 derniers serviteurs alliés morts ce match — absorbe leurs stats restantes cumulées et un mot-clé de chacun. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
-| A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART. Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
+| A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
 | A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : choisis un serviteur ennemi ciblé — il devient une copie exacte (stats et mots-clés) sous ton contrôle jusqu'à la fin de la partie. | *Il n'a pas de visage. Il porte le tien, à présent.* |
 
 ---
