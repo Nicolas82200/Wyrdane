@@ -28,9 +28,10 @@ const NAME_LABEL_MAX_GROWTH     := 34.0
 
 # DescLabel (voir Card.tscn) : position/hauteur par defaut (le haut est decale
 # par la croissance de NameLabel, voir ci-dessus), et jusqu'ou on peut
-# l'agrandir vers le BAS (avant de recouvrir TypeLabel juste en-dessous) si
-# le texte (effet + flavour) deborde toujours de sa case. TypeLabel /
-# AttackLabel / HealthLabel sont alors decales d'autant.
+# l'agrandir vers le BAS (avant de recouvrir AttackLabel/HealthLabel juste
+# en-dessous) si le texte (effet + flavour) deborde toujours de sa case.
+# AttackLabel / HealthLabel sont alors decales d'autant. TypeLabel (bandeau de
+# type) est desormais fixe en haut de carte (voir Card.tscn), independant.
 const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 312.0
 const DESC_LABEL_MAX_GROWTH     := 3.0
@@ -50,22 +51,22 @@ const RARITY_COLORS := {
 }
 
 const RACE_COLORS := {
-	Race.Type.UNDEAD: Color("#0d0b09b5"),
-	Race.Type.ABOMINATION: Color("040f00b5"),
-	Race.Type.HUMAN:  Color("#3a2c12c0"),
-	Race.Type.ELF:    Color("#2f5d5096"),
-	Race.Type.DWARF:  Color("#5a3a2296"),
-	Race.Type.DEMON:  Color("#2a0a10c0"),
+	Race.Type.UNDEAD: Color("#0a0806d6"),
+	Race.Type.ABOMINATION: Color("020a00d6"),
+	Race.Type.HUMAN:  Color("#28200cd6"),
+	Race.Type.ELF:    Color("#1f4038b0"),
+	Race.Type.DWARF:  Color("#3f280fb0"),
+	Race.Type.DEMON:  Color("#1e0308d6"),
 }
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#929292"),
-	Race.Type.ABOMINATION: Color("#829872"),
-	Race.Type.HUMAN:  Color("#af9d72"),
-	Race.Type.ELF:    Color("#79928c"),
-	Race.Type.DWARF:  Color("#928274"),
-	Race.Type.DEMON:  Color("#9d6f78"),
+	Race.Type.UNDEAD: Color("#bebebe"),
+	Race.Type.ABOMINATION: Color("#9bd76e"),
+	Race.Type.HUMAN:  Color("#e8c56d"),
+	Race.Type.ELF:    Color("#7bd3c1"),
+	Race.Type.DWARF:  Color("#d7a46f"),
+	Race.Type.DEMON:  Color("#e87587"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -228,13 +229,13 @@ func update_display() -> void:
 		if lane_icon.visible:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
 	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#4a4a4a"))
+		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=12][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=11][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
-		desc_label.text += "\n[font_size=12][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text += "\n[font_size=11][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
@@ -277,8 +278,8 @@ func _fit_name_label() -> float:
 	return growth
 
 # Agrandit DescLabel vers le BAS si le texte (effet + flavour) deborde de sa
-# case par defaut, et decale TypeLabel/AttackLabel/HealthLabel d'autant pour
-# eviter que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
+# case par defaut, et decale AttackLabel/HealthLabel d'autant pour eviter
+# que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
 # marge avant le bas de la carte) : au-dela, le texte redevient legerement
 # rogne plutot que de faire deborder les stats hors de la carte.
 # name_growth : decalage vers le bas deja applique a NameLabel (voir
@@ -287,9 +288,6 @@ func _fit_name_label() -> float:
 func _fit_desc_label(name_growth: float) -> void:
 	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
-	if type_label:
-		type_label.offset_top = 320.0
-		type_label.offset_bottom = 334.0
 	if attack_label:
 		attack_label.offset_top = 336.0
 		attack_label.offset_bottom = 370.0
@@ -301,9 +299,6 @@ func _fit_desc_label(name_growth: float) -> void:
 		return
 	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
 	desc_label.offset_bottom += growth
-	if type_label:
-		type_label.offset_top += growth
-		type_label.offset_bottom += growth
 	if attack_label:
 		attack_label.offset_top += growth
 		attack_label.offset_bottom += growth
@@ -383,7 +378,8 @@ func _apply_type_style() -> void:
 	var bg := rarity_color
 	bg.a = 0.85
 	_type_style.bg_color = bg
-	_type_style.border_color = rarity_color
+	_type_style.border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.9)
+	_type_style.set_border_width_all(2)
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
