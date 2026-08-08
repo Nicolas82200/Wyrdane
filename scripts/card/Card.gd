@@ -17,10 +17,6 @@ const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
 const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
-# Ligne fine centree entre l'effet et le flavour text, a la place d'un simple
-# saut de ligne (plus compacte, et distingue visuellement les deux blocs).
-const DESC_FLAVOUR_SEPARATOR := "[color=#a08050aa]------------[/color]"
-
 # NameLabel (voir Card.tscn) : hauteur par defaut et limite haute au-dela de
 # laquelle on arrete de l'agrandir vers le haut (pour ne pas manger tout
 # l'artwork) quand un nom de carte trop long deborderait sinon de sa case.
@@ -30,10 +26,10 @@ const NAME_LABEL_MIN_TOP     := 128.0
 
 # DescLabel (voir Card.tscn) : hauteur par defaut, et jusqu'ou on peut
 # l'agrandir vers le BAS (avant de recouvrir TypeLabel juste en-dessous) si
-# le texte (effet + separateur + flavour) deborde toujours malgre la ligne de
-# separation. TypeLabel/AttackLabel/HealthLabel sont alors decales d'autant.
-const DESC_LABEL_DEFAULT_BOTTOM := 306.0
-const DESC_LABEL_MAX_GROWTH      := 20.0
+# le texte (effet + flavour) deborde toujours de sa case. TypeLabel /
+# AttackLabel / HealthLabel sont alors decales d'autant.
+const DESC_LABEL_DEFAULT_BOTTOM := 312.0
+const DESC_LABEL_MAX_GROWTH      := 3.0
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -231,11 +227,10 @@ func update_display() -> void:
 		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#4a4a4a"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=12][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
-		desc_label.text += "\n[center]" + DESC_FLAVOUR_SEPARATOR + "[/center]\n"
-		desc_label.text += "[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text += "\n[font_size=12][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
@@ -273,23 +268,22 @@ func _fit_name_label() -> void:
 	var new_top: float = NAME_LABEL_BOTTOM - needed
 	name_label.offset_top = max(new_top, NAME_LABEL_MIN_TOP)
 
-# Agrandit DescLabel vers le BAS si le texte (effet + separateur + flavour)
-# deborde toujours de sa case par defaut malgre DESC_FLAVOUR_SEPARATOR, et
-# decale TypeLabel/AttackLabel/HealthLabel d'autant pour eviter que la
-# case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de marge avant
-# le bas de la carte) : au-dela, le texte redevient legerement rogne plutot
-# que de faire deborder les stats hors de la carte.
+# Agrandit DescLabel vers le BAS si le texte (effet + flavour) deborde de sa
+# case par defaut, et decale TypeLabel/AttackLabel/HealthLabel d'autant pour
+# eviter que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
+# marge avant le bas de la carte) : au-dela, le texte redevient legerement
+# rogne plutot que de faire deborder les stats hors de la carte.
 func _fit_desc_label() -> void:
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
 	if type_label:
-		type_label.offset_top = 310.0
-		type_label.offset_bottom = 328.0
+		type_label.offset_top = 316.0
+		type_label.offset_bottom = 334.0
 	if attack_label:
-		attack_label.offset_top = 330.0
-		attack_label.offset_bottom = 364.0
+		attack_label.offset_top = 336.0
+		attack_label.offset_bottom = 370.0
 	if health_label:
-		health_label.offset_top = 330.0
-		health_label.offset_bottom = 364.0
+		health_label.offset_top = 336.0
+		health_label.offset_bottom = 370.0
 	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
 	if overflow <= 0.0:
 		return
