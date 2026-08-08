@@ -232,10 +232,10 @@ func update_display() -> void:
 		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=11][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=12][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
-		desc_label.text += "\n[font_size=11][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text += "\n[font_size=12][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
