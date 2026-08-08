@@ -138,7 +138,7 @@ Positionnement (Lane Types)
 
 ## Cartes exclusives Arena
 
-`CardData.arena_only = true` : jamais dans le deckbuilder, le pool IA ou `SummonRandom` (1v1) — uniquement dans le pool partagé du mode Arena (`CardLibrary.arena_only_cards`, voir `scripts/arena/ArenaCardPool.gd`). Introduites pour diversifier les archétypes de l'Arena au-delà de NÉCROPHAGE/ASSIMILATION (buffs permanents qui accumulent sans limite sur la durée d'une partie Arena).
+`CardData.arena_only = true` : jamais dans le deckbuilder, le pool IA ou `SummonRandom` (1v1) — uniquement dans le pool partagé du mode Arena (`CardLibrary.arena_only_cards`, voir `scripts/arena/ArenaCardPool.gd`). Introduites pour diversifier les archétypes de l'Arena au-delà de NÉCROPHAGE (buff permanent qui accumule sans limite sur la durée d'une partie Arena).
 
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
@@ -717,7 +717,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | `FUSION` | Sacrifice un serviteur allié adjacent : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur adjacent (allié ou ennemi), de façon permanente. |
-| `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 de façon permanente (une fois par mort). |
+| `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
 
 ## Table de Mutation

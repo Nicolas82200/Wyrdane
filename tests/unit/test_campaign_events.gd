@@ -38,6 +38,8 @@ func test_gain_card_rare_adds_a_rare_card_of_the_run_race() -> void:
 	assert_eq(run.board.size(), before + 1)
 	assert_eq(run.board[0].race, Race.Type.HUMAN)
 	assert_eq(run.board[0].rarity, "Rare")
+	assert_ne(run.board[0].card_type, "Enchantment", "les Enchantements sont des Reliques, jamais une récompense d'événement")
+	assert_ne(run.board[0].card_type, "Ritual", "les Rituels sont des Reliques, jamais une récompense d'événement")
 
 func test_nothing_leaves_the_run_untouched() -> void:
 	var run := _run(Race.Type.UNDEAD, 20, 30)

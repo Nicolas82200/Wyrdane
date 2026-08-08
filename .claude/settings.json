@@ -11,16 +11,15 @@
             "statusMessage": "Vérification que dev est mergée avant le push..."
           }
         ]
-      }
-    ],
-    "WorktreeCreate": [
+      },
       {
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "shell": "bash",
-            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); case \"$cur\" in worktree-*) new=\"${cur#worktree-}\"; git branch -m \"$new\" 2>/dev/null && echo \"{\\\"systemMessage\\\":\\\"Branche renommee $cur -> $new (convention NNNN-slug de CLAUDE.md)\\\"}\";; esac",
-            "statusMessage": "Vérification du nom de branche du worktree..."
+            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$cur\" = \"dev\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"Tu es sur la branche dev. Avant de modifier des fichiers pour une nouvelle fonctionnalite ou tache independante : git fetch origin dev && git checkout dev && git pull, puis git checkout -b NNNN-slug (convention de CLAUDE.md, Workflow Git) en partant de ce dev a jour. Pas de worktree : travaille directement sur cette nouvelle branche dans le dossier courant.\\\"}}\\\"; fi",
+            "statusMessage": "Vérification de la branche avant modification..."
           }
         ]
       }
@@ -31,11 +30,14 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "uncommitted=$(git status --porcelain 2>/dev/null | grep -v 'devlogs/'); if [ -n \"$uncommitted\" ]; then devlog_touched=$(git status --porcelain 2>/dev/null | grep 'devlogs/'); if [ -z \"$devlog_touched\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"Stop\\\",\\\"additionalContext\\\":\\\"Rappel devlog : des changements non commites existent hors de devlogs/, et aucune entree de devlog n a ete ajoutee cette session. Avant de considerer le travail termine, ajoute une entree brute dans devlogs/<prochain-lundi>-draft.md (voir CLAUDE.md, section Devlog hebdomadaire).\\\"}}\"; fi; fi",
+            "command": "uncommitted=$(git status --porcelain 2>/dev/null | grep -v \"devlogs/\"); if [ -n \"$uncommitted\" ]; then touched_today=$(find devlogs -type f -newermt \"$(date +%Y-%m-%d) 00:00:00\" 2>/dev/null); if [ -z \"$touched_today\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"Stop\\\",\\\"additionalContext\\\":\\\"Rappel devlog : des changements non commites existent hors de devlogs/, et aucun fichier de devlogs/ n a ete modifie aujourd hui. Avant de considerer le travail termine, ajoute une entree brute dans devlogs/<prochain-lundi>-draft.md (voir CLAUDE.md, section Devlog hebdomadaire).\\\"}}\"; fi; fi",
             "statusMessage": "Vérification du devlog hebdomadaire..."
           }
         ]
       }
     ]
+  },
+  "worktree": {
+    "bgIsolation": "none"
   }
 }

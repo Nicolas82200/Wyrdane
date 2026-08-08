@@ -120,26 +120,12 @@ var enemy_hp_overlay: Label
 # ne fait rien, voir _process) — remis à null une fois le combat terminé.
 var _live_sim: SimulatedBattle = null
 
-# ─── Minuteur de phase (Boutique/Combat) : la partie s'enchaîne
-# automatiquement à l'expiration du minuteur (voir _start_shop_phase_timer/
-# _on_phase_timer_timeout/_resolve_combat_phase/_advance_round), ou plus tôt
-# si le joueur clique Prêt (ready_button, voir _on_ready_pressed) — pas
-# besoin d'attendre la fin du décompte quand on a fini d'acheter/positionner.
-# SHOP_PHASE_DURATION ne contraint que le joueur humain : les bots jouent
-# leur propre manche plus tard, dans _resolve_combat_phase() (après
-# l'expiration de ce minuteur ou le clic Prêt), donc l'allonger n'a aucun
-# effet sur eux. 25s donne le temps de parcourir l'offre, reroll/geler et
-# positionner sans se presser à chaque round — loin des 45s du design
-# (pensées pour 8 vrais joueurs humains en compétition d'achat, pas le cas
-# ici), mais le bouton Prêt permet d'accélérer un round déjà terminé plus tôt.
-# COMBAT_PHASE_DURATION, à l'inverse, ne bloque plus rien : démarré dès
-# l'entrée en combat (_resolve_combat_phase), il tourne EN PARALLÈLE de
-# l'animation (plutôt qu'après, comme c'était le cas avant — demande
-# explicite du joueur) et n'est qu'un affichage indicatif du temps qui passe.
-# Dès que le combat est réellement terminé, on enchaîne tout de suite sur la
-# manche suivante (phase_timer.stop()), sans attendre le reste du décompte —
-# son expiration naturelle (Phase.COMBAT dans _on_phase_timer_timeout) ne
-# déclenche donc plus rien.
+# Minuteur de phase (Boutique/Combat) : la manche s'enchaîne à l'expiration,
+# ou plus tôt via ready_button. SHOP_PHASE_DURATION ne contraint que le joueur
+# humain (25s, réduit des 45s du design pensé pour 8 joueurs humains). Le
+# minuteur de combat, lui, ne bloque plus rien : il tourne en parallèle de
+# l'animation à titre indicatif, et le combat réellement terminé enchaîne
+# aussitôt sur la manche suivante sans attendre son expiration.
 enum Phase { SHOP, COMBAT }
 const SHOP_PHASE_DURATION := 25.0
 const COMBAT_PHASE_DURATION := 15.0
@@ -693,18 +679,11 @@ func _make_drop_highlight(parent: Control, offset_top: float, offset_bottom: flo
 	parent.add_child(highlight)
 	return highlight
 
-# Positionnées exactement comme une ligne du plateau 1v1 (Battle.tscn, lignes
-# 158-213 pour le fond / 345-411 pour la rangée) : ancrées au centre de
-# l'écran (anchor 0.5/0.5), décalages fixes en pixels par rapport à ce centre
-# — jamais dans un flux qui les ferait bouger selon ce qu'il y a au-dessus.
-# `offset_top`/`offset_bottom` reproduisent ceux d'EnemyBackLine/EnemyFrontLine/
-# PlayerFrontLine/PlayerBackLine. Comme en 1v1, le fond (`_make_lane_background`,
-# un `Panel` nu) et la rangée de serviteurs (`_place_row`) sont deux nœuds
-# SÉPARÉS superposés aux mêmes coordonnées — jamais la rangée nichée dans un
-# `PanelContainer` (marges de contenu) : un `BoardMinion` fait 100x150 de haut
-# (voir BoardMinion.tscn), pile la hauteur d'une rangée (150) ; l'imbrication
-# dans un conteneur à marges le comprimait artificiellement, plus petit qu'en
-# 1v1 à l'écran alors que c'est la même scène.
+# Le fond (`_make_lane_background`, un `Panel` nu) et la rangée de serviteurs
+# (`_place_row`) sont deux nœuds SÉPARÉS superposés aux mêmes coordonnées —
+# jamais la rangée nichée dans un `PanelContainer` (marges de contenu) : un
+# `BoardMinion` fait pile la hauteur d'une rangée (150), et l'imbrication dans
+# un conteneur à marges le comprimait artificiellement.
 # Style commun aux panneaux discrets Arena (rangées, en-tête) : fond gris
 # foncé translucide, bordure claire fine, coins arrondis.
 func _lane_style() -> StyleBoxFlat:
@@ -849,6 +828,7 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 		preview.health_label.visible = false
 	preview.scale = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
+	Card.add_drag_shadow(preview)
 	return preview
 
 func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
@@ -946,16 +926,10 @@ func _refresh_ui() -> void:
 	_refresh_board()
 	_refresh_portraits()
 
-# La boutique occupe la position "adverse" du plateau : chaque offre est un
-# vrai `BoardMinion` (même visuel qu'un serviteur posé, sans texte — voir
-# ArenaShopCardSlot ; survoler affiche le détail complet, comme en 1v1), rangée
-# dans shop_front_row ou shop_back_row selon son propre board_position ("Back"
-# -> Arrière, sinon Avant), achetable en la glissant vers son propre plateau
-# (front_row/back_row, voir ArenaBoardRow). Un emplacement déjà acheté (carte
-# nulle) n'affiche simplement rien jusqu'au prochain reroll. Pas de
-# verrouillage par carte (voir bouton flocon, geler TOUTE l'offre à la fois).
-# Hors phase Boutique, les rangées restent vides (pas d'offre affichée) mais
-# gardent leur hauteur (voir _refresh_ui) pour ne pas déplacer le plateau.
+# Chaque offre de la boutique est un vrai `BoardMinion` (même visuel qu'un
+# serviteur posé, sans texte), rangée dans shop_front_row/shop_back_row selon
+# son board_position, achetable en la glissant vers son propre plateau. Pas de
+# verrouillage par carte (le bouton flocon gèle TOUTE l'offre à la fois).
 func _refresh_shop(in_shop_phase: bool = true) -> void:
 	for child in shop_front_row.get_children():
 		child.queue_free()

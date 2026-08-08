@@ -40,7 +40,6 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
-var _is_loading_grid: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []

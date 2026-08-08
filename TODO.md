@@ -17,10 +17,12 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 ## P3 — Steam : passage en production
 
-Le backend fonctionne avec l'AppID de test 480 (Spacewar), documenté et volontairement temporaire (`scripts/net/SteamService.gd`). Reste :
-- Créer la page Steamworks et obtenir le vrai AppID
-- Remplacer `SteamService.APP_ID`
-- Invitations d'amis, pipeline de build/dépôt Steam
+`SteamService.APP_ID` pointe maintenant sur le vrai AppID Wyrdane (5052390) — la page Steamworks est créée mais **en attente de validation par Valve**. Reste :
+- Attendre la validation Valve de la page Steam
+- D'ici là, seuls les comptes ajoutés comme testeurs Steamworks (« Users with access ») peuvent s'authentifier avec cet AppID ; les autres doivent repasser temporairement sur l'AppID de test 480 (Spacewar) en local
+- Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
+- Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
+- Invitations d'amis
 - Effort : moyen mais surtout administratif (hors code).
 
 ## P4 — Incohérence mineure de comptage de cartes
@@ -52,6 +54,10 @@ Hypothèses prises sur des points explicitement laissés ouverts par `CAMPAIGN.m
 - Récompense de fin de run (consolation défaite) réutilise `CurrencyManager.report_solo_match_result()` tel quel — pas de route backend dédiée à la campagne.
 
 **Résolu après premier retour utilisateur.** Plusieurs cartes de la partie rapide s'appuient sur la main/le deck/le mana en combat (pioche, retour en main, gain de mana) — concepts inexistants dans l'auto-battler de Campagne (`EffectManager._draw_cards`/`_return_to_hand`/`_return_from_grave`/`_gain_mana`/`_draw_card_discount` plantaient sur `battle.hand`/`deck_system`/`race_mana_pool` absents). `EffectManager.gd` neutralise désormais ces effets en no-op quand ces propriétés n'existent pas sur `battle` (détection par duck-typing `battle.get(...)`/`battle.has_method(...)`, sans impact sur la partie rapide/le multijoueur qui les ont toujours). En complément, `CampaignCardFilter.gd` (nouveau) exclut ces cartes "sans intérêt" des pools de choix du joueur (construction du plateau, récompense, boutique, relique) et du plateau adverse — elles ne sont donc plus proposées du tout, pas seulement neutralisées.
+
+**Résolu après deuxième retour utilisateur (2 bugs distincts, branche `0322-campaign-pact-and-enchantment-fixes`, née après le merge de `0301-campaign-mode` dans `dev` — `dev` avait entre-temps ajouté PACTE "repeatable" et `PactChoiceSystem`).**
+- `CampaignBattle.gd` n'avait pas de `pact_choice_system` (nouveau système ajouté à `Battle.gd` par la branche `0311-pact-optional-hp-cost`, mergée dans `dev` après `0301-campaign-mode`) : tout trigger sur un serviteur PACTE en combat de campagne plantait (`EffectManager.trigger_effects` accède maintenant à `battle.pact_choice_system.resolve_trigger()` à chaque déclenchement, pas seulement à la pose). Ajouté `pact_choice_system` à `CampaignBattle.gd` (même init que `Battle.gd`) — fonctionne à l'identique (popup de confirmation pour le joueur, décision heuristique pour l'IA, voir `PactChoiceSystem.gd`).
+- Les Enchantements/Rituels (Reliques) posés sur le plateau de campagne étaient sommés comme des serviteurs (`board_system.summon_minion`) au lieu de rejoindre leur zone dédiée, comme en partie rapide. Nouvelle méthode `CampaignBattle._place_card_on_board()` qui route par `card_type` (Enchantement/Rituel à durée → `register_enchantment` + `add_enchantment`/`add_ritual` ; Rituel sans durée → résolution immédiate façon Éphémère ; Serviteur → inchangé), même pattern que `CardSystem.handle_card_played`. En complément, `CampaignBoardBuild.pick_candidates` et `CampaignEvents._add_random_card` excluent désormais aussi les Enchantements/Rituels (cohérent avec `CampaignRewardPicker` qui les excluait déjà) — les Reliques ne viennent plus que du nœud Relique/de la Boutique, jamais d'un choix générique.
 
 ## Non-problèmes vérifiés pendant cette revue
 

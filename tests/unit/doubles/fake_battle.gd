@@ -105,6 +105,7 @@ func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_
 
 func _init() -> void:
 	deck_system.battle = self
+	temp_effect_system.init(self)
 
 func update_enemy_hand_ui() -> void:
 	pass
