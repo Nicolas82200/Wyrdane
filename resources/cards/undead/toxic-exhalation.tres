@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Exhalation Toxique"
-description = "1 dégât à tous les serviteurs en jeu."
+description = "Inflige 1 dégât à tous les serviteurs en jeu."
 flavour_text = "Même ses alliés évitent de respirer trop près."
 texture = ExtResource("3_texture")
 card_type = "Instant"
