@@ -40,24 +40,14 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#2a0a10c0"),
 }
 
-# Fond du badge circulaire derrière le logo de type/rangée (couleur sombre de la race)
-const RACE_ICON_BG_COLORS := {
-	Race.Type.UNDEAD: Color("#4a4a4ad9"),
-	Race.Type.ABOMINATION: Color("#2f5314d9"),
-	Race.Type.HUMAN:  Color("#7a5c14d9"),
-	Race.Type.ELF:    Color("#1f4a40d9"),
-	Race.Type.DWARF:  Color("#4a2f18d9"),
-	Race.Type.DEMON:  Color("#5c0f1ed9"),
-}
-
-# Teinte du logo lui-même (plus vive que le fond, pour ressortir dessus)
+# Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#c9c9c9"),
-	Race.Type.ABOMINATION: Color("#8fe25a"),
-	Race.Type.HUMAN:  Color("#ffd54a"),
-	Race.Type.ELF:    Color("#5ad1c0"),
-	Race.Type.DWARF:  Color("#e0a366"),
-	Race.Type.DEMON:  Color("#ff3b30"),
+	Race.Type.UNDEAD: Color("#4a4a4a"),
+	Race.Type.ABOMINATION: Color("#2f5314"),
+	Race.Type.HUMAN:  Color("#7a5c14"),
+	Race.Type.ELF:    Color("#1f4a40"),
+	Race.Type.DWARF:  Color("#4a2f18"),
+	Race.Type.DEMON:  Color("#5c0f1e"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -93,7 +83,6 @@ const TYPE_ICONS := {
 @onready var border: TextureRect       = $BorderFrame
 @onready var type_label: Label         = $TypeLabel
 @onready var lane_icon: TextureRect    = $LaneIcon
-@onready var type_icon_bg: Panel       = $TypeIconBg
 
 var data: CardData
 var drag_enabled := true
@@ -126,7 +115,6 @@ var _name_bg_style: StyleBoxFlat
 var _desc_bg_style: StyleBoxFlat
 var _cost_bg_style: StyleBoxFlat
 var _type_style    := StyleBoxFlat.new()
-var _type_icon_bg_style: StyleBoxFlat
 
 var _playable_glow: Panel = null
 var _playable_style: StyleBoxFlat = null
@@ -141,8 +129,6 @@ func _ready() -> void:
 	desc_label.add_theme_stylebox_override("normal", _desc_bg_style)
 	_cost_bg_style = (cost_label.get_theme_stylebox("normal") as StyleBoxFlat).duplicate()
 	cost_label.add_theme_stylebox_override("normal", _cost_bg_style)
-	_type_icon_bg_style = (type_icon_bg.get_theme_stylebox("panel") as StyleBoxFlat).duplicate()
-	type_icon_bg.add_theme_stylebox_override("panel", _type_icon_bg_style)
 	_type_style.set_corner_radius_all(8)
 	_type_style.set_border_width_all(1)
 	_type_style.content_margin_left = 8.0
@@ -214,7 +200,7 @@ func update_display() -> void:
 	health_label.visible = is_minion
 
 	# Filigrane central : icône de rangée (serviteurs) ou de type (cartes non-serviteur),
-	# sur un badge circulaire coloré par race pour ressortir davantage
+	# teintée par race (plus de badge circulaire en fond)
 	if is_minion:
 		lane_icon.visible = LANE_ICONS.has(data.board_position)
 		if lane_icon.visible:
@@ -223,10 +209,8 @@ func update_display() -> void:
 		lane_icon.visible = TYPE_ICONS.has(data.card_type)
 		if lane_icon.visible:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
-	type_icon_bg.visible = lane_icon.visible
 	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("c9c9c9"))
-		_type_icon_bg_style.bg_color = RACE_ICON_BG_COLORS.get(data.race, Color("#4a4a4ad9"))
+		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#4a4a4a"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
@@ -487,7 +471,6 @@ func show_back(show_card_back: bool) -> void:
 		desc_label.hide()
 		border.hide()
 		lane_icon.hide()
-		type_icon_bg.hide()
 		type_label.hide()
 	else:
 		if data:
