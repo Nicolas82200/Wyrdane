@@ -4,6 +4,7 @@
 [ext_resource type="FontFile" uid="uid://c2dxyg6e7mc6w" path="res://assets/fonts/CinzelDecorative-Black.otf" id="2_u4wdl"]
 [ext_resource type="FontFile" uid="uid://c6ta1tbu0oeb6" path="res://assets/fonts/Cinzel-Black.otf" id="3_wcykg"]
 [ext_resource type="FontFile" uid="uid://cthx272rbm3cd" path="res://assets/fonts/CrimsonText-SemiBold.ttf" id="4_wcykg"]
+[ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
 
@@ -178,7 +179,9 @@ offset_right = 235.0
 offset_bottom = 306.0
 theme_override_colors/default_color = Color(1, 1, 1, 0.85490197)
 theme_override_fonts/normal_font = ExtResource("4_wcykg")
+theme_override_fonts/bold_font = ExtResource("7_boldfont")
 theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
 bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
