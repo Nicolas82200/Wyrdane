@@ -157,15 +157,15 @@ Positionnement (Lane Types)
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 40 | Souffle Nécrotique | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé. | Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien. |
+| 40 | Souffle Nécrotique | 2 | Commune | Inflige 2 dégâts à un serviteur ennemi ciblé. | Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien. |
 | 41 | Réveil Soudain | 1 | Commune | Ressuscite le dernier serviteur allié mort avec 1 point de vie en rangée Avant. | Il n'y a pas de repos pour ceux qu'on rappelle. |
-| 42 | Vague de Putréfaction | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant. | La peste ne choisit pas. Elle couvre. |
+| 42 | Vague de Putréfaction | 3 | Commune | Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. | La peste ne choisit pas. Elle couvre. |
 | 43 | Don de Chair | 2 | Rare | Sacrifice 1 : Inflige 3 dégâts au héros ennemi. | Il a donné son corps. Il n'avait plus besoin de consentir. |
 | 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
 | 45 | Morsure Infectieuse | 3 | Rare | Transforme un serviteur ennemi non-Légendaire en Zombie 1/1 sous votre contrôle. | Une seule morsure suffit. Le reste, c'est une question de temps. |
 | 46 | Cri des Damnés | 3 | Rare | Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place. | Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain. |
 | 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
-| 48 | Exhalation Toxique | 1 | Commune | 1 dégât à tous les serviteurs en jeu. | Même ses alliés évitent de respirer trop près. |
+| 48 | Exhalation Toxique | 1 | Commune | Inflige 1 dégât à tous les serviteurs en jeu. | Même ses alliés évitent de respirer trop près. |
 | 49 | Dernier Soupir | 3 | Épique | Piochez 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
 | 50 | Éclat de Putréfaction | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : invoque un Rampant 1/1. | La corruption ne respecte pas la magie. Elle la digère. |
 | 51 | Souffle du Charnier | 1 | Commune | Un Mort-Vivant allié ciblé gagne +0/+2. | Ce qui ne peut pas mourir davantage peut encore endurcir. |
@@ -846,15 +846,15 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A40 | Morsure de l'Air | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé. S'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
+| A40 | Morsure de l'Air | 2 | Commune | Inflige 2 dégâts à un serviteur ennemi ciblé. S'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
 | A41 | Premier Tressaut | 1 | Commune | Un serviteur allié ciblé déclenche immédiatement une mutation. | *Il n'a pas eu le temps de choisir. Peu importe.* |
-| A42 | Pluie Qui Change | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant. Les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
+| A42 | Pluie Qui Change | 3 | Commune | Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. Les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
 | A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Le serviteur allié adjacent absorbe ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
 | A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. À la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
 | A45 | Appétit Ciblé | 3 | Rare | Détruit un serviteur ennemi ayant 2 HP ou moins ; un serviteur Abomination allié ciblé gagne +1/+1 permanent. | *Rien ne se jette. Tout se digère.* |
 | A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : Elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
 | A47 | Étau de Chair Neuve | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire, réduit à une copie 1/1 sans mots-clés et coûtant 1. | *Il revient. Mais ce n'est plus vraiment lui.* |
-| A48 | Respir Qui Change Tout | 1 | Commune | 1 dégât à tous les serviteurs en jeu. Les Abominations alliées touchées mutent à la place de perdre des points de vie. | *Même tes alliés changent, un peu, à chaque respiration.* |
+| A48 | Respir Qui Change Tout | 1 | Commune | Inflige 1 dégât à tous les serviteurs en jeu. Les Abominations alliées touchées mutent à la place de perdre des points de vie. | *Même tes alliés changent, un peu, à chaque respiration.* |
 | A49 | Sursaut Final | 3 | Épique | Carnage : le prochain serviteur Abomination allié qui meurt ce tour ressuscite comme Amas Informe 1/1 (une seule fois). | *Une dernière contraction. Ça suffit parfois à repartir.* |
 | A50 | Fracture Vivante | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : un serviteur Abomination allié ciblé mute immédiatement. | *La corruption ne respecte pas la magie. Elle la digère aussi.* |
 | A51 | Emprunt Instantané | 1 | Commune | Un serviteur Abomination allié ciblé copie un mot-clé présent sur n'importe quel autre serviteur en jeu (allié ou ennemi). | *Il n'a rien inventé. Il a juste regardé, et pris.* |

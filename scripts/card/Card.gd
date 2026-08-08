@@ -17,6 +17,24 @@ const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
 const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
+# Ligne fine centree entre l'effet et le flavour text, a la place d'un simple
+# saut de ligne (plus compacte, et distingue visuellement les deux blocs).
+const DESC_FLAVOUR_SEPARATOR := "[color=#a08050aa]------------[/color]"
+
+# NameLabel (voir Card.tscn) : hauteur par defaut et limite haute au-dela de
+# laquelle on arrete de l'agrandir vers le haut (pour ne pas manger tout
+# l'artwork) quand un nom de carte trop long deborderait sinon de sa case.
+const NAME_LABEL_DEFAULT_TOP := 158.0
+const NAME_LABEL_BOTTOM      := 183.0
+const NAME_LABEL_MIN_TOP     := 128.0
+
+# DescLabel (voir Card.tscn) : hauteur par defaut, et jusqu'ou on peut
+# l'agrandir vers le BAS (avant de recouvrir TypeLabel juste en-dessous) si
+# le texte (effet + separateur + flavour) deborde toujours malgre la ligne de
+# separation. TypeLabel/AttackLabel/HealthLabel sont alors decales d'autant.
+const DESC_LABEL_DEFAULT_BOTTOM := 306.0
+const DESC_LABEL_MAX_GROWTH      := 20.0
+
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
 	Race.Type.UNDEAD: preload("res://assets/borders/undead-border-card.png"),
@@ -215,9 +233,11 @@ func update_display() -> void:
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
-		desc_label.text = data.display_description() + "\n\n[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text = bold_keywords_and_triggers(data.display_description())
+		desc_label.text += "\n[center]" + DESC_FLAVOUR_SEPARATOR + "[/center]\n"
+		desc_label.text += "[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
-		desc_label.text = data.display_description()
+		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
 	if data.texture:
 		art.texture = data.texture
@@ -227,9 +247,98 @@ func update_display() -> void:
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
 
+	_fit_name_label()
+	_fit_desc_label()
+
 	_apply_race_style()
 	_apply_type_style()
 	update_playable_highlight()
+
+# Agrandit NameLabel vers le HAUT (offset_bottom fixe) quand le nom de la
+# carte, une fois retourne a la ligne dans la largeur de la case, prend plus
+# de hauteur que la case par defaut. Evite ainsi d'empieter sur DescLabel,
+# juste en-dessous. Plafonne a NAME_LABEL_MIN_TOP pour ne pas trop manger
+# l'artwork au-dessus sur les titres extremement longs.
+func _fit_name_label() -> void:
+	name_label.offset_top = NAME_LABEL_DEFAULT_TOP
+	var font: Font = name_label.get_theme_font("font")
+	var font_size: int = name_label.get_theme_font_size("font_size")
+	if font == null:
+		return
+	var line_count: int = maxi(name_label.get_line_count(), 1)
+	var needed: float = line_count * font.get_height(font_size)
+	var default_height: float = NAME_LABEL_BOTTOM - NAME_LABEL_DEFAULT_TOP
+	if needed <= default_height:
+		return
+	var new_top: float = NAME_LABEL_BOTTOM - needed
+	name_label.offset_top = max(new_top, NAME_LABEL_MIN_TOP)
+
+# Agrandit DescLabel vers le BAS si le texte (effet + separateur + flavour)
+# deborde toujours de sa case par defaut malgre DESC_FLAVOUR_SEPARATOR, et
+# decale TypeLabel/AttackLabel/HealthLabel d'autant pour eviter que la
+# case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de marge avant
+# le bas de la carte) : au-dela, le texte redevient legerement rogne plutot
+# que de faire deborder les stats hors de la carte.
+func _fit_desc_label() -> void:
+	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
+	if type_label:
+		type_label.offset_top = 310.0
+		type_label.offset_bottom = 328.0
+	if attack_label:
+		attack_label.offset_top = 330.0
+		attack_label.offset_bottom = 364.0
+	if health_label:
+		health_label.offset_top = 330.0
+		health_label.offset_bottom = 364.0
+	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
+	if overflow <= 0.0:
+		return
+	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
+	desc_label.offset_bottom += growth
+	if type_label:
+		type_label.offset_top += growth
+		type_label.offset_bottom += growth
+	if attack_label:
+		attack_label.offset_top += growth
+		attack_label.offset_bottom += growth
+	if health_label:
+		health_label.offset_top += growth
+		health_label.offset_bottom += growth
+
+# Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
+# ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
+# VENIN MORTEL...). Ignore les sigles courts (ATK) pour ne pas les mettre en
+# gras par erreur.
+static func bold_keywords_and_triggers(text: String) -> String:
+	var trigger_re := RegEx.new()
+	trigger_re.compile("^([^\n:]{2,40}) : (.*)$")
+	var out: PackedStringArray = []
+	for line in text.split("\n"):
+		var m := trigger_re.search(line)
+		if m:
+			out.append("[b]" + m.get_string(1) + "[/b] : " + _bold_caps_words(m.get_string(2)))
+		else:
+			out.append(_bold_caps_words(line))
+	return "\n".join(out)
+
+# Met en gras les suites de majuscules (mots-cles) d'au moins 4 lettres,
+# espaces/tirets internes toleres (ex: "VENIN MORTEL", "RANG INFERNAL").
+static func _bold_caps_words(line: String) -> String:
+	var caps_re := RegEx.new()
+	caps_re.compile("[À-ÝA-Z][À-ÝA-Z\\-]*(?: [À-ÝA-Z][À-ÝA-Z\\-]*)*")
+	var result := ""
+	var pos := 0
+	for m in caps_re.search_all(line):
+		var matched: String = m.get_string()
+		var letters_only: String = matched.replace(" ", "").replace("-", "")
+		result += line.substr(pos, m.get_start() - pos)
+		if letters_only.length() >= 4:
+			result += "[b]" + matched + "[/b]"
+		else:
+			result += matched
+		pos = m.get_end()
+	result += line.substr(pos)
+	return result
 
 # Recalcule si la carte est jouable (mana + conditions) et bascule le halo vert.
 # À appeler chaque fois qu'un état pouvant changer la jouabilité évolue (mana,
