@@ -11,16 +11,15 @@
             "statusMessage": "Vérification que dev est mergée avant le push..."
           }
         ]
-      }
-    ],
-    "WorktreeCreate": [
+      },
       {
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "shell": "bash",
-            "command": "root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$root/.claude/hooks/worktree-create.sh\"",
-            "statusMessage": "Création du worktree..."
+            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$cur\" = \"dev\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"Tu es sur la branche dev. Avant de modifier des fichiers pour une nouvelle fonctionnalite ou tache independante : git fetch origin dev && git checkout dev && git pull, puis git checkout -b NNNN-slug (convention de CLAUDE.md, Workflow Git) en partant de ce dev a jour. Pas de worktree : travaille directement sur cette nouvelle branche dans le dossier courant.\\\"}}\\\"; fi",
+            "statusMessage": "Vérification de la branche avant modification..."
           }
         ]
       }
@@ -37,5 +36,8 @@
         ]
       }
     ]
+  },
+  "worktree": {
+    "bgIsolation": "none"
   }
 }
