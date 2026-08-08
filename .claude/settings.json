@@ -19,8 +19,8 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); case \"$cur\" in worktree-*) new=\"${cur#worktree-}\"; git branch -m \"$new\" 2>/dev/null && echo \"{\\\"systemMessage\\\":\\\"Branche renommee $cur -> $new (convention NNNN-slug de CLAUDE.md)\\\"}\";; esac",
-            "statusMessage": "Vérification du nom de branche du worktree..."
+            "command": "root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); bash \"$root/.claude/hooks/worktree-create.sh\"",
+            "statusMessage": "Création du worktree..."
           }
         ]
       }
