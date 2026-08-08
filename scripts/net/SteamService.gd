@@ -28,7 +28,7 @@ class_name SteamService
 # Le singleton n'existant pas à la compilation, tous les appels sont dynamiques
 # (aucun typage Steam ici ni dans SteamTransport).
 
-const APP_ID := 5052390  # AppID Wyrdane (page en attente de validation Valve)
+const APP_ID := 480  # TEMP: repli sur Spacewar (480) en attendant validation Valve du vrai AppID (5052390, page Steamworks en attente)
 
 static var _initialized := false
 static var _join_requested_callback := Callable()
