@@ -22,7 +22,7 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Chevalier du Mur"
-description = "REMPART. CONTRE-ATTAQUE."
+description = "REMPART, CONTRE-ATTAQUE"
 flavour_text = "Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais."
 texture = ExtResource("3_texture")
 cost = 3

@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Puits Qui Avale Tout"
-description = "Dévoration : gagne 1 mana temporaire ce tour (une seule fois par tour)."
+description = "Dévoration : Gagne 1 mana temporaire ce tour (une seule fois par tour)."
 flavour_text = "Tout ce qui meurt ici finit par nourrir autre chose."
 texture = ExtResource("2_texture")
 cost = 6

@@ -21,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Arrivée de Masse"
-description = "Éveil : invoque un Mort-Vivant aléatoire de coût ≤4."
+description = "Éveil : Invoque un Mort-Vivant aléatoire de coût ≤4."
 flavour_text = "Il n'a pas ouvert une porte. Il a retiré le mur."
 texture = ExtResource("3_texture")
 cost = 7

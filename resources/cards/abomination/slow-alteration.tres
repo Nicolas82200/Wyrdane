@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Lente Altération"
-description = "Éveil : les serviteurs ennemis -1/-1 de façon permanente."
+description = "Éveil : Les serviteurs ennemis -1/-1 de façon permanente."
 flavour_text = "Elle ne prépare pas une invasion. Elle prépare une transformation."
 texture = ExtResource("2_texture")
 cost = 4

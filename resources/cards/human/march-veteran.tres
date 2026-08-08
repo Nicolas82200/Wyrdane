@@ -20,7 +20,7 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Vétéran des Marches"
-description = "Blessure : gagne +1/+0 de façon permanente."
+description = "Blessure : Gagne +1/+0 de façon permanente."
 flavour_text = "Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris."
 texture = ExtResource("3_texture")
 cost = 3

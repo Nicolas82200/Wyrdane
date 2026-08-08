@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel de l'Œil Sans Sommeil"
-description = "Sortilège ennemi : annulé s'il cible un de tes Abominations."
+description = "Sortilège ennemi : Annulé s'il cible un de vos Abominations."
 flavour_text = "Il ne dort jamais. Il voit venir la magie adverse avant qu'elle n'arrive."
 texture = ExtResource("2_texture")
 cost = 6

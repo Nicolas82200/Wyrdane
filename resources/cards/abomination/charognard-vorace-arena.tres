@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Charognard Vorace"
-description = "RAVAGE. VENIN MORTEL."
+description = "RAVAGE, VENIN MORTEL"
 flavour_text = "Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé."
 texture = ExtResource("2_texture")
 cost = 4

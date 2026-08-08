@@ -27,7 +27,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Chant Qui Déforme"
-description = "Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : elles mutent aussi immédiatement."
+description = "Abominations alliées +1/+0 ce tour.
+Si 5 ou plus en jeu : Elles mutent aussi immédiatement."
 flavour_text = "Un seul chant, mille chairs qui répondent en changeant de forme."
 texture = ExtResource("2_texture")
 cost = 3

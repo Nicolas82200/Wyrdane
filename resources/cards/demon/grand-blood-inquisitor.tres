@@ -16,7 +16,7 @@ keyword_type = 3
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Grand Inquisiteur du Sang"
-description = "SANG NOIR. RANG INFERNAL."
+description = "SANG NOIR, RANG INFERNAL"
 flavour_text = "Plus tu payes, plus il devient difficile à ignorer."
 texture = ExtResource("3_texture")
 cost = 5

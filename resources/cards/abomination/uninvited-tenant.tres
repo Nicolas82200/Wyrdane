@@ -11,7 +11,7 @@ keyword_type = 1
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Locataire Sans Bail"
-description = "FUSION."
+description = "FUSION"
 flavour_text = "Il ne demande jamais la permission de s'installer dans un autre corps."
 texture = ExtResource("2_texture")
 cost = 2

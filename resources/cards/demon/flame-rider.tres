@@ -42,7 +42,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cavalier des Flammes"
-description = "ASSAUT.
+description = "ASSAUT
 Arrivée : Ce serviteur gagne +2/+0 de façon permanente.
 Pacte 2 : Ce serviteur gagne +2/+0 supplémentaires."
 flavour_text = "Sa monture est morte au premier galop. Il n'a pas ralenti pour autant."

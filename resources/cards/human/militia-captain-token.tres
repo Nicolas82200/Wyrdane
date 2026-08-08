@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Capitaine de Milice"
-description = "COMMANDEMENT."
+description = "COMMANDEMENT"
 flavour_text = "Il n'avait pas prévu de commander. Mais quelqu'un devait le faire."
 texture = ExtResource("2_texture")
 cost = 4

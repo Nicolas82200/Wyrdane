@@ -20,7 +20,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Volée de Flèches"
-description = "Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 dégâts à la place."
+description = "Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
+Si 4 ou plus en rangée Avant : 2 dégâts à la place."
 flavour_text = "Plus ils sont nombreux, plus ça fait de cibles."
 texture = ExtResource("3_texture")
 cost = 3

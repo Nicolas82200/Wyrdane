@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Bénédiction du Front"
-description = "Tous tes serviteurs alliés en rangée Avant gagnent ÉGIDE."
+description = "Tous vos serviteurs alliés en rangée Avant gagnent ÉGIDE."
 flavour_text = "La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon."
 texture = ExtResource("2_texture")
 cost = 3

@@ -12,7 +12,7 @@ keyword_type = 3
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Larve Ascendante"
-description = "RANG INFERNAL."
+description = "RANG INFERNAL"
 flavour_text = "Elle grandit dans les cicatrices, pas dans la lumière."
 texture = ExtResource("3_texture")
 cost = 2
