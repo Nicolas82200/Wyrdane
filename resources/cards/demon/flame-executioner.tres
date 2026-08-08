@@ -12,7 +12,7 @@ name_fr = "Ravage"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Bourreau des Flammes"
-description = "RAVAGE."
+description = "RAVAGE"
 flavour_text = "Ce qu'il ne peut pas tuer, il l'incendie derrière lui."
 texture = ExtResource("3_texture")
 cost = 4

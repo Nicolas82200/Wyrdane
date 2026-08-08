@@ -113,7 +113,7 @@ Positionnement (Lane Types)
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
-| 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE. Mort-rage : Serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
+| 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE Mort-rage : Serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
 | 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : Invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
 | 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE. Immunisé au débordement de RAVAGE : Les dégâts excédentaires ne se propagent jamais sur votre héros. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
 | 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 2 points de vie au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
@@ -537,49 +537,49 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Arrivée : Ce serviteur gagne +1/+1 de façon permanente. | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
-| D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION. | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
-| D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART CHAIR DE SOUFRE. | *Elle a regardé brûler des cathédrales entières sans ciller.* |
+| D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
+| D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART, CHAIR DE SOUFRE | *Elle a regardé brûler des cathédrales entières sans ciller.* |
 | D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 3 : Arrivée : Inflige 2 dégâts à un serviteur ennemi ciblé. | *Chaque morsure lui coûte, à toi aussi.* |
 | D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Piochez une carte. | *Il murmure une vérité. Elle a toujours un prix.* |
 | D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Pacte 1 : Arrivée : Regagnez 2 points de vie supplémentaires. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
 | D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Attaque : La cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
-| D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR. | *Son cri ne blesse pas. Il paralyse.* |
+| D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR | *Son cri ne blesse pas. Il paralyse.* |
 | D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Pacte 1 : Exécution : Ce serviteur gagne +1/+1 de façon permanente. | *Chaque exécution le nourrit — et te vide un peu.* |
-| D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
+| D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART. Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
 | D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Arrivée : REMPART | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| D12 | Chasseur des Abysses | ⚔️ | 2 | 3 | 2 | CORRUPTION. | *Il ne tue pas toujours. Parfois, il préfère laisser pourrir.* |
-| D13 | Buveur de Souffrance | ⚔️ | 3 | 2 | 3 | SANG NOIR. | *Il ne ressent pas ta douleur. Il l'absorbe, littéralement.* |
+| D12 | Chasseur des Abysses | ⚔️ | 2 | 3 | 2 | CORRUPTION | *Il ne tue pas toujours. Parfois, il préfère laisser pourrir.* |
+| D13 | Buveur de Souffrance | ⚔️ | 3 | 2 | 3 | SANG NOIR | *Il ne ressent pas ta douleur. Il l'absorbe, littéralement.* |
 | D14 | Émissaire du Pacte | ↕️ | 3 | 2 | 3 | Pacte 2 : Arrivée : Piochez une carte. | *Il apporte toujours plus qu'il ne semble offrir — dans les deux sens.* |
-| D15 | Bourreau des Flammes | ⚔️ | 4 | 5 | 3 | RAVAGE. | *Ce qu'il ne peut pas tuer, il l'incendie derrière lui.* |
-| D16 | Larve Ascendante | ↕️ | 2 | 1 | 2 | RANG INFERNAL. | *Elle grandit dans les cicatrices, pas dans la lumière.* |
-| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
+| D15 | Bourreau des Flammes | ⚔️ | 4 | 5 | 3 | RAVAGE | *Ce qu'il ne peut pas tuer, il l'incendie derrière lui.* |
+| D16 | Larve Ascendante | ↕️ | 2 | 1 | 2 | RANG INFERNAL | *Elle grandit dans les cicatrices, pas dans la lumière.* |
+| D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART. Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
 | D18 | Suppôt du Répit | 🛡️ | 3 | 2 | 3 | Blessure : Votre héros regagne 1 point de vie. | *Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.* |
 | D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Arrivée : INFILTRATION. | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
 | D20 | Banshee des Abysses | 🛡️ | 4 | 2 | 5 | Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.* |
-| D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT TERREUR. | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
-| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
-| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
+| D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT, TERREUR | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
+| D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT. Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
+| D23 | Garde Infernal | ⚔️ | 2 | 1 | 4 | REMPART. Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1. | *Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.* |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D24 | Le Corrupteur | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu. | *Il n'a pas besoin de convaincre. Il lui suffit de rester assez longtemps.* |
-| D25 | Ravageur des Flammes | ⚔️ | 5 | 6 | 4 | RAVAGE. RANG INFERNAL. | *Plus ton héros saigne, plus il brûle fort.* |
+| D25 | Ravageur des Flammes | ⚔️ | 5 | 6 | 4 | RAVAGE, RANG INFERNAL | *Plus ton héros saigne, plus il brûle fort.* |
 | D26 | Architecte du Pacte | 🛡️ | 3 | 2 | 3 | Pacte 2 : Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant. | *Chaque contrat qu'il signe en engendre un autre, sans fin.* |
-| D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR. RANG INFERNAL. | *Plus tu payes, plus il devient difficile à ignorer.* |
+| D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR, RANG INFERNAL | *Plus tu payes, plus il devient difficile à ignorer.* |
 | D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
 | D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Pacte 2 : Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
 | D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Arrivée : ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | Pacte 4 : Arrivée : FRÉNÉSIE. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
-| D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART RANG INFERNAL. | *Il siège sur ce que ton héros a déjà perdu.* |
+| D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART, RANG INFERNAL | *Il siège sur ce que ton héros a déjà perdu.* |
 
 ### Légendaires
 
@@ -599,7 +599,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
-| Bourreau Corrompu | ⚔️ | 4 | 4 | 4 | CORRUPTION. | Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait. |
+| Bourreau Corrompu | ⚔️ | 4 | 4 | 4 | CORRUPTION | Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait. |
 | Émissaire Zélé | ⚔️ | 2 | 3 | 2 | ASSAUT | Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse. |
 
 **Incantations Arena** :
@@ -801,7 +801,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | A24 | Le Premier Écart | ↕️ | 4 | 3 | 3 | Arrivée : tous tes serviteurs Abomination alliés mutent immédiatement. | *Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis.* |
-| A25 | La Faim Cuirassée | ⚔️ | 5 | 6 | 4 | RAVAGE. ASSIMILATION. | *Chaque mort autour d'elle l'épaissit un peu plus.* |
+| A25 | La Faim Cuirassée | ⚔️ | 5 | 6 | 4 | RAVAGE ASSIMILATION. | *Chaque mort autour d'elle l'épaissit un peu plus.* |
 | A26 | Semeur de Nœuds | 🛡️ | 3 | 2 | 3 | FUSION. Attaque : invoque un Amas Informe 1/2 en rangée Avant. | *Il ne construit rien. Il fait pousser.* |
 | A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART INSTABLE. MUTATION. | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
 | A28 | Faim Sans Fond | ↕️ | 4 | 4 | 4 | MOISSON. ASSIMILATION. | *Elle ne prend pas la vie. Elle l'intègre.* |
@@ -831,7 +831,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
 | Prototype Instable | ⚔️ | 3 | 2 | 4 | MUTATION. | Sa forme n'est jamais tout à fait la même deux combats de suite. |
-| Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE. VENIN MORTEL. | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
+| Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE VENIN MORTEL. | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
 
 **Incantations Arena** :
 

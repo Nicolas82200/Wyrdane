@@ -29,7 +29,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Suceur d'Âmes"
-description = "MOISSON.
+description = "MOISSON
 Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi."
 flavour_text = "Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui."
 texture = ExtResource("3_texture")

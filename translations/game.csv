@@ -877,10 +877,10 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "Pacte 1 : Arrivée : Ce serviteur gagne +1/+1 de façon permanente.","Pacte 1 : Arrivée : Ce serviteur gagne +1/+1 de façon permanente.","Pact 1: Arrival: This minion permanently gains +1/+1."
 "Elle ne demande rien. Elle prend juste sa part avant même d'arriver.","Elle ne demande rien. Elle prend juste sa part avant même d'arriver.","It asks for nothing. It simply takes its due before it even arrives."
 "Suppôt des Abysses","Suppôt des Abysses","Abyssal Thrall"
-"CORRUPTION.","CORRUPTION.","CORRUPTION."
+"CORRUPTION","CORRUPTION","CORRUPTION"
 "Une simple morsure, et déjà quelque chose s'effrite en toi.","Une simple morsure, et déjà quelque chose s'effrite en toi.","One small bite, and something in you is already crumbling."
 "Gargouille de Cendres","Gargouille de Cendres","Ashen Gargoyle"
-"REMPART. CHAIR DE SOUFRE.","REMPART. CHAIR DE SOUFRE.","TAUNT. SULFUR FLESH."
+"REMPART, CHAIR DE SOUFRE","REMPART, CHAIR DE SOUFRE","TAUNT, SULFUR FLESH"
 "Elle a regardé brûler des cathédrales entières sans ciller.","Elle a regardé brûler des cathédrales entières sans ciller.","It has watched entire cathedrals burn without so much as a flinch."
 "Croc de Braise","Croc de Braise","Embermaw"
 "Pacte 3 : Arrivée : Inflige 2 dégâts à un serviteur ennemi ciblé.","Pacte 3 : Arrivée : Inflige 2 dégâts à un serviteur ennemi ciblé.","Pact 3: Arrival: Deal 2 damage to target enemy minion."
@@ -895,7 +895,7 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "Attaque : La cible perd 1 ATK de façon permanente (Corruption).","Attaque : La cible perd 1 ATK de façon permanente (Corruption).","Attack: The target permanently loses 1 ATK (Corruption)."
 "Il ne promet rien. Il se contente de prendre, doucement.","Il ne promet rien. Il se contente de prendre, doucement.","It promises nothing. It simply takes, quietly."
 "Harpie Carmine","Harpie Carmine","Carmine Harpy"
-"TERREUR.","TERREUR.","TERROR."
+"TERREUR","TERREUR","TERROR"
 "Son cri ne blesse pas. Il paralyse.","Son cri ne blesse pas. Il paralyse.","Its shriek does not wound. It paralyzes."
 "Bourreau Mineur","Bourreau Mineur","Hellbound Executioner"
 "Exécution : ton héros perd 1 HP ; ce serviteur gagne +1/+1 de façon permanente.","Exécution : ton héros perd 1 HP ; ce serviteur gagne +1/+1 de façon permanente.","Execution: your hero loses 1 HP; this minion permanently gains +1/+1."
@@ -907,24 +907,24 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "Pacte 2 : Arrivée : REMPART.","Pacte 2 : Arrivée : REMPART.","Pact 2: Arrival: TAUNT."
 "Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.","Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.","Its first pact. It has no idea yet what the toll will be, over time."
 "Chasseur des Abysses","Chasseur des Abysses","Abyssal Stalker"
-"CORRUPTION.","CORRUPTION.","CORRUPTION."
+"CORRUPTION","CORRUPTION","CORRUPTION"
 "Il ne tue pas toujours. Parfois, il préfère laisser pourrir.","Il ne tue pas toujours. Parfois, il préfère laisser pourrir.","It does not always kill. Sometimes it prefers to let things rot."
 "Buveur de Souffrance","Buveur de Souffrance","Pain Drinker"
-"SANG NOIR.","SANG NOIR.","BLACK BLOOD."
+"SANG NOIR","SANG NOIR","BLACK BLOOD"
 "Il ne ressent pas ta douleur. Il l'absorbe, littéralement.","Il ne ressent pas ta douleur. Il l'absorbe, littéralement.","It does not feel your pain. It absorbs it, quite literally."
 "Émissaire du Pacte","Émissaire du Pacte","Pact Emissary"
 "Pacte 2 : Arrivée : Piochez une carte.","Pacte 2 : Arrivée : Piochez une carte.","Pact 2: Arrival: Draw a card."
 "Il apporte toujours plus qu'il ne semble offrir, dans les deux sens.","Il apporte toujours plus qu'il ne semble offrir, dans les deux sens.","It always brings more than it seems to offer, in both directions."
 "Bourreau des Flammes","Bourreau des Flammes","Flame Executioner"
-"RAVAGE.","RAVAGE.","RAVAGE."
+"RAVAGE","RAVAGE","RAVAGE"
 "Ce qu'il ne peut pas tuer, il l'incendie derrière lui.","Ce qu'il ne peut pas tuer, il l'incendie derrière lui.","What it cannot kill, it burns down behind it."
 "Larve Ascendante","Larve Ascendante","Ascending Hellspawn"
-"RANG INFERNAL.","RANG INFERNAL.","INFERNAL RANK."
+"RANG INFERNAL","RANG INFERNAL","INFERNAL RANK"
 "Elle grandit dans les cicatrices, pas dans la lumière.","Elle grandit dans les cicatrices, pas dans la lumière.","It grows in scar tissue, not in light."
 "Titan de Cendres","Titan de Cendres","Ash Titan"
-"REMPART.
-Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse.","REMPART.
-Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse.","TAUNT.
+"REMPART
+Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse.","REMPART
+Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse.","TAUNT
 Pact 2: Deathrattle: Deal 3 damage to the enemy hero."
 "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.","Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.","Its fall extinguishes nothing. It simply spreads the fire elsewhere."
 "Suppôt du Répit","Suppôt du Répit","Harbinger of Respite"
@@ -937,78 +937,78 @@ Pact 2: Deathrattle: Deal 3 damage to the enemy hero."
 "Arrivée : inflige Corruption à un serviteur ennemi ciblé.","Arrivée : inflige Corruption à un serviteur ennemi ciblé.","Arrival: inflict Corruption on target enemy minion."
 "Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.","Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.","Its song kills no one. It simply rots whatever hears it."
 "Possédé Écarlate","Possédé Écarlate","Crimson Possessed"
-"ASSAUT. TERREUR.","ASSAUT. TERREUR.","CHARGE. TERROR."
+"ASSAUT, TERREUR","ASSAUT, TERREUR","CHARGE, TERROR"
 "Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.","Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.","It no longer thinks. Something thinks in its place, and it thinks fast."
 "Cavalier des Flammes","Cavalier des Flammes","Flame Rider"
-"ASSAUT.
-Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente.","ASSAUT.
-Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente.","CHARGE.
+"ASSAUT
+Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente.","ASSAUT
+Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente.","CHARGE
 Pact 2: Arrival: This minion permanently gains +2/+0."
 "Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.","Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.","His steed died at the first gallop. He never slowed down for it."
 "Garde Infernal","Garde Infernal","Infernal Warden"
-"REMPART.
-Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1.","REMPART.
-Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1.","TAUNT.
+"REMPART
+Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1.","REMPART
+Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1.","TAUNT
 Pact 1: Deathrattle: Summon a 2/1 Hellspawn Larva."
 "Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.","Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.","It never truly dies alone. Something always rises after it."
 "Le Corrupteur","Le Corrupteur","The Corrupter"
 "Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu.","Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu.","Arrival: Inflict Corruption on all enemy minions in play."
 "Il n'a pas besoin de convaincre. Il lui suffit de rester assez longtemps.","Il n'a pas besoin de convaincre. Il lui suffit de rester assez longtemps.","It does not need to convince. It only needs to stay long enough."
 "Ravageur des Flammes","Ravageur des Flammes","Inferno Ravager"
-"RAVAGE. RANG INFERNAL.","RAVAGE. RANG INFERNAL.","RAVAGE. INFERNAL RANK."
+"RAVAGE, RANG INFERNAL","RAVAGE, RANG INFERNAL","RAVAGE, INFERNAL RANK"
 "Plus ton héros saigne, plus il brûle fort.","Plus ton héros saigne, plus il brûle fort.","The more your hero bleeds, the fiercer it burns."
 "Architecte du Pacte","Architecte du Pacte","Pact Architect"
 "Pacte 2 : Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant.","Pacte 2 : Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant.","Pact 2: Arrival: Summon a 2/1 Hellspawn Larva to the Front row."
 "Chaque contrat qu'il signe en engendre un autre, sans fin.","Chaque contrat qu'il signe en engendre un autre, sans fin.","Every contract it signs spawns another, endlessly."
 "Grand Inquisiteur du Sang","Grand Inquisiteur du Sang","Grand Blood Inquisitor"
-"SANG NOIR. RANG INFERNAL.","SANG NOIR. RANG INFERNAL.","BLACK BLOOD. INFERNAL RANK."
+"SANG NOIR, RANG INFERNAL","SANG NOIR, RANG INFERNAL","BLACK BLOOD, INFERNAL RANK"
 "Plus tu payes, plus il devient difficile à ignorer.","Plus tu payes, plus il devient difficile à ignorer.","The more you pay, the harder it becomes to ignore."
 "Suceur d'Âmes","Suceur d'Âmes","Soul Devourer"
-"MOISSON.
-Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi.","MOISSON.
-Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi.","HARVEST.
+"MOISSON
+Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi.","MOISSON
+Pacte 2 : Arrivée : Vole 4 points de vie au héros ennemi.","HARVEST
 Pact 2: Arrival: Steal 4 HP from the enemy hero."
 "Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","It takes from both sides. That is what makes the deal worthwhile, for it."
 "Nuée de Tourments","Nuée de Tourments","Swarm of Torments"
-"TERREUR.
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERREUR.
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERROR.
+"TERREUR
+Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERREUR
+Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERROR
 Arrival: Deal 1 damage to all enemy minions in play."
 "Elle ne mord pas fort. Elle mord partout, et longtemps.","Elle ne mord pas fort. Elle mord partout, et longtemps.","It does not bite hard. It bites everywhere, and for a long time."
 "Faucheur des Abysses","Faucheur des Abysses","Abyss Reaper"
 "Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP.","Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins ; ton héros perd 2 HP.","Arrival: destroy an enemy minion with 3 HP or less; your hero loses 2 HP."
 "Il choisit les plus faibles. Toi, tu paies pour son jugement.","Il choisit les plus faibles. Toi, tu paies pour son jugement.","It picks off the weakest. You are the one who pays for its judgment."
 "Grand Prophète Écarlate","Grand Prophète Écarlate","Black Flame Prophet"
-"CORRUPTION.
-Arrivée : Inflige Corruption à un serviteur ennemi ciblé.","CORRUPTION.
-Arrivée : Inflige Corruption à un serviteur ennemi ciblé.","CORRUPTION.
+"CORRUPTION
+Arrivée : Inflige Corruption à un serviteur ennemi ciblé.","CORRUPTION
+Arrivée : Inflige Corruption à un serviteur ennemi ciblé.","CORRUPTION
 Arrival: Inflict Corruption on target enemy minion."
 "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Its visions never lie. They simply make sure they come true."
 "Assassin des Ombres Rouges","Assassin des Ombres Rouges","Crimson Shadow Assassin"
-"INFILTRATION.
-Pacte 3 : Arrivée : ÉGIDE.","INFILTRATION.
-Pacte 3 : Arrivée : ÉGIDE.","INFILTRATION.
+"INFILTRATION
+Pacte 3 : Arrivée : ÉGIDE.","INFILTRATION
+Pacte 3 : Arrivée : ÉGIDE.","INFILTRATION
 Pact 3: Arrival: AEGIS."
 "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.","Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.","It never strikes what is guarded. It strikes what you thought was safe."
 "Berserker du Pacte","Berserker du Pacte","Pact Berserker"
 "Pacte 4 : Arrivée : FRÉNÉSIE.","Pacte 4 : Arrivée : FRÉNÉSIE.","Pact 4: Arrival: FURY."
 "Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.","Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.","Every contract it signs makes it faster, and you more vulnerable."
 "Trône de Cendres","Trône de Cendres","Ashen Throne"
-"REMPART. RANG INFERNAL.","REMPART. RANG INFERNAL.","TAUNT. INFERNAL RANK."
+"REMPART, RANG INFERNAL","REMPART, RANG INFERNAL","TAUNT, INFERNAL RANK"
 "Il siège sur ce que ton héros a déjà perdu.","Il siège sur ce que ton héros a déjà perdu.","It sits upon everything your hero has already lost."
 "Le Marchand d'Âmes","Le Marchand d'Âmes","The Soul Merchant"
 "Pacte 1 : Éveil : Piochez une carte.","Pacte 1 : Éveil : Piochez une carte.","Pact 1: Awaken: Draw a card."
 "Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour.","Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour.","It does not fight. It does not need to, the contract works for it, turn after turn."
 "Roi Démon Écarlate","Roi Démon Écarlate","Crimson Demon King"
-"CORRUPTION.
-Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis.","CORRUPTION.
-Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis.","CORRUPTION.
+"CORRUPTION
+Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis.","CORRUPTION
+Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis.","CORRUPTION
 Pact 3: Arrival: Inflict Corruption on all enemy minions."
 "Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.","Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.","His kingdom does not grow through conquest. It grows through what it makes you accept."
 "Apocalypse Infernale","Apocalypse Infernale","Infernal Apocalypse"
-"RANG INFERNAL.
-Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente.","RANG INFERNAL.
-Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente.","INFERNAL RANK.
+"RANG INFERNAL
+Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente.","RANG INFERNAL
+Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente.","INFERNAL RANK
 Pact 5: Arrival: All your Demon minions permanently gain +2/+2."
 "Ce n'était pas une invasion. C'était le prix qu'il fallait payer.","Ce n'était pas une invasion. C'était le prix qu'il fallait payer.","It was not an invasion. It was the price that had to be paid."
 "Le Gardien du Pacte Brisé","Le Gardien du Pacte Brisé","Keeper of the Broken Pact"
@@ -1584,3 +1584,7 @@ PACT_CONFIRM_NO,"Refuser","Decline"
 "Tous vos serviteurs alliés en rangée Avant gagnent ÉGIDE.","Tous vos serviteurs alliés en rangée Avant gagnent ÉGIDE.","All your allied minions in the Front row gain AEGIS."
 "Arrivée : Vos serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide.","Arrivée : Vos serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide.","Arrival: Your minions can attack the enemy Back row directly this turn, even if its Front row is not empty."
 "FORMATION : Tant qu'un allié est adjacent, ce serviteur gagne +1/+1.","FORMATION : Tant qu'un allié est adjacent, ce serviteur gagne +1/+1.","FORMATION: While an ally is adjacent, this minion gains +1/+1."
+"REMPART
+Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie.","REMPART
+Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie.","TAUNT
+Pact 1: Wounded: This minion regains 1 HP."

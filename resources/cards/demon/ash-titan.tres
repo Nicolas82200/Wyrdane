@@ -30,7 +30,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Titan de Cendres"
-description = "REMPART.
+description = "REMPART
 Pacte 2 : Dernier Souffle : Inflige 3 dégâts au héros adverse."
 flavour_text = "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs."
 texture = ExtResource("3_texture")

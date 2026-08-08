@@ -31,7 +31,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Garde Infernal"
-description = "REMPART.
+description = "REMPART
 Pacte 1 : Dernier Souffle : Invoque une Larve Infernale 2/1."
 flavour_text = "Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui."
 texture = ExtResource("3_texture")

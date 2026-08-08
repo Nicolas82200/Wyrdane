@@ -32,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Apocalypse Infernale"
-description = "RANG INFERNAL.
+description = "RANG INFERNAL
 Pacte 5 : Arrivée : Tous vos serviteurs Démons gagnent +2/+2 de façon permanente."
 flavour_text = "Ce n'était pas une invasion. C'était le prix qu'il fallait payer."
 texture = ExtResource("3_texture")
