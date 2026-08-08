@@ -26,11 +26,20 @@ target = "AllEnemies"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Corrupt"
+target = "AllEnemies"
+value = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Roi Démon Écarlate"
 description = "CORRUPTION.
-Pacte 3 : Arrivée : Inflige Corruption à tous les serviteurs ennemis."
+Arrivée : Inflige Corruption à tous les serviteurs ennemis.
+Pacte 3 : Inflige une marque de Corruption supplémentaire."
 flavour_text = "Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter."
 texture = ExtResource("3_texture")
 cost = 7
@@ -40,7 +49,7 @@ attack = 6
 health = 8
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_2p5fc"), SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_dwc4r")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_km39a")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_km39a"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

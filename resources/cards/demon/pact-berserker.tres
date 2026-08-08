@@ -6,11 +6,12 @@
 [ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_trig"]
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="7_cardeffect"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="8_kw"]
 
 [sub_resource type="Resource" id="Resource_5ilfq"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 4
+value = 3
 
 [sub_resource type="Resource" id="Resource_9j2wn"]
 script = ExtResource("6_trig")
@@ -21,13 +22,19 @@ script = ExtResource("7_cardeffect")
 effect_id = "GrantKeyword"
 target = "Self"
 duration = "Permanent"
-granted_keyword = "FURY"
+granted_keyword = "CHARGE"
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_furie"]
+script = ExtResource("8_kw")
+name_fr = "Frénésie"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Berserker du Pacte"
-description = "Pacte 4 : Arrivée : FRÉNÉSIE."
+description = "FRÉNÉSIE.
+Pacte 3 : Ce serviteur acquiert ASSAUT."
 flavour_text = "Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable."
 texture = ExtResource("3_texture")
 cost = 4
@@ -35,6 +42,7 @@ race = 5
 unit_style = 15
 attack = 5
 health = 4
+keywords = Array[ExtResource("8_kw")]([SubResource("Resource_furie")])
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_5ilfq")])
 trigger_types = Array[ExtResource("6_trig")]([SubResource("Resource_9j2wn")])
 effects = Array[ExtResource("7_cardeffect")]([SubResource("Resource_hn4kp")])

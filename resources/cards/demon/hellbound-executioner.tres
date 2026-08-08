@@ -21,13 +21,24 @@ effect_id = "Buff"
 target = "Self"
 duration = "Permanent"
 value = 1
+value_2 = 0
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "Self"
+duration = "Permanent"
+value = 0
 value_2 = 1
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Bourreau Mineur"
-description = "Pacte 1 : Exécution : Ce serviteur gagne +1/+1 de façon permanente."
+description = "Exécution : Ce serviteur gagne +1/+0 de façon permanente.
+Pacte 1 : Ce serviteur gagne aussi +0/+1."
 flavour_text = "Chaque exécution le nourrit, et te vide un peu."
 texture = ExtResource("3_texture")
 cost = 3
@@ -37,7 +48,7 @@ attack = 3
 health = 3
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_cpq1g")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_fnw1o")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_fnw1o"), SubResource("Resource_bonus")])
 rarity = "Common"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
