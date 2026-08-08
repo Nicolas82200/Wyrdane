@@ -46,22 +46,22 @@ const RARITY_COLORS := {
 }
 
 const RACE_COLORS := {
-	Race.Type.UNDEAD: Color("#0d0b09b5"),
-	Race.Type.ABOMINATION: Color("040f00b5"),
-	Race.Type.HUMAN:  Color("#3a2c12c0"),
-	Race.Type.ELF:    Color("#2f5d5096"),
-	Race.Type.DWARF:  Color("#5a3a2296"),
-	Race.Type.DEMON:  Color("#2a0a10c0"),
+	Race.Type.UNDEAD: Color("#0a0806d6"),
+	Race.Type.ABOMINATION: Color("020a00d6"),
+	Race.Type.HUMAN:  Color("#28200cd6"),
+	Race.Type.ELF:    Color("#1f4038b0"),
+	Race.Type.DWARF:  Color("#3f280fb0"),
+	Race.Type.DEMON:  Color("#1e0308d6"),
 }
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#4a4a4a"),
-	Race.Type.ABOMINATION: Color("#2f5314"),
-	Race.Type.HUMAN:  Color("#7a5c14"),
-	Race.Type.ELF:    Color("#1f4a40"),
-	Race.Type.DWARF:  Color("#4a2f18"),
-	Race.Type.DEMON:  Color("#5c0f1e"),
+	Race.Type.UNDEAD: Color("#a8a8a8"),
+	Race.Type.ABOMINATION: Color("#79c93e"),
+	Race.Type.HUMAN:  Color("#e0b23c"),
+	Race.Type.ELF:    Color("#4fc4ac"),
+	Race.Type.DWARF:  Color("#c9863f"),
+	Race.Type.DEMON:  Color("#e0475f"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -224,13 +224,13 @@ func update_display() -> void:
 		if lane_icon.visible:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
 	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#4a4a4a"))
+		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#a8a8a8"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=12][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=11][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
-		desc_label.text += "\n[font_size=12][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text += "\n[font_size=11][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
 		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
@@ -269,15 +269,12 @@ func _fit_name_label() -> void:
 	name_label.offset_top = max(new_top, NAME_LABEL_MIN_TOP)
 
 # Agrandit DescLabel vers le BAS si le texte (effet + flavour) deborde de sa
-# case par defaut, et decale TypeLabel/AttackLabel/HealthLabel d'autant pour
-# eviter que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
+# case par defaut, et decale AttackLabel/HealthLabel d'autant pour eviter
+# que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
 # marge avant le bas de la carte) : au-dela, le texte redevient legerement
 # rogne plutot que de faire deborder les stats hors de la carte.
 func _fit_desc_label() -> void:
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
-	if type_label:
-		type_label.offset_top = 316.0
-		type_label.offset_bottom = 334.0
 	if attack_label:
 		attack_label.offset_top = 336.0
 		attack_label.offset_bottom = 370.0
@@ -289,9 +286,6 @@ func _fit_desc_label() -> void:
 		return
 	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
 	desc_label.offset_bottom += growth
-	if type_label:
-		type_label.offset_top += growth
-		type_label.offset_bottom += growth
 	if attack_label:
 		attack_label.offset_top += growth
 		attack_label.offset_bottom += growth
@@ -371,7 +365,8 @@ func _apply_type_style() -> void:
 	var bg := rarity_color
 	bg.a = 0.85
 	_type_style.bg_color = bg
-	_type_style.border_color = rarity_color
+	_type_style.border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.9)
+	_type_style.set_border_width_all(2)
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
