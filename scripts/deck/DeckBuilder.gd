@@ -899,9 +899,11 @@ func _position_hover_tooltips() -> void:
 	# À droite de la carte par défaut (place généralement disponible dans la
 	# grille), replié à gauche seulement si ça déborderait du panneau courant
 	# (empêche d'empiéter sur la liste du deck voisine).
+	var preview_on_left := false
 	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
 	if preview_x + preview_size.x > panel_bounds.position.x + panel_bounds.size.x - 4.0:
 		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+		preview_on_left = true
 	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
 	card_preview.global_position = Vector2(preview_x, preview_y)
@@ -919,12 +921,16 @@ func _position_hover_tooltips() -> void:
 		stack_height -= 6.0
 		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
+	# Toujours du même côté que la preview, en s'en éloignant davantage —
+	# jamais entre la preview et la carte survolée (sinon ils la recouvrent).
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		var px := card_preview.global_position.x + preview_size.x + 12.0
-		if px + panel.size.x > panel_bounds.position.x + panel_bounds.size.x - 4.0:
+		var px: float
+		if preview_on_left:
 			px = card_preview.global_position.x - panel.size.x - 12.0
+		else:
+			px = card_preview.global_position.x + preview_size.x + 12.0
 		px = clampf(px, 4.0, vp.x - panel.size.x - 4.0)
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6

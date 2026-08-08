@@ -17,19 +17,24 @@ const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
 const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
-# NameLabel (voir Card.tscn) : hauteur par defaut et limite haute au-dela de
-# laquelle on arrete de l'agrandir vers le haut (pour ne pas manger tout
-# l'artwork) quand un nom de carte trop long deborderait sinon de sa case.
-const NAME_LABEL_DEFAULT_TOP := 158.0
-const NAME_LABEL_BOTTOM      := 183.0
-const NAME_LABEL_MIN_TOP     := 128.0
+# NameLabel (voir Card.tscn) : hauteur par defaut et croissance maximale vers
+# le BAS (offset_top fixe) quand un nom de carte trop long deborderait sinon
+# de sa case. DescLabel juste en-dessous est alors decale d'autant pour
+# conserver l'espacement d'origine entre titre et description (voir
+# _fit_name_label/_fit_desc_label).
+const NAME_LABEL_DEFAULT_TOP    := 158.0
+const NAME_LABEL_DEFAULT_BOTTOM := 183.0
+const NAME_LABEL_MAX_GROWTH     := 34.0
 
-# DescLabel (voir Card.tscn) : hauteur par defaut, et jusqu'ou on peut
-# l'agrandir vers le BAS (avant de recouvrir TypeLabel juste en-dessous) si
-# le texte (effet + flavour) deborde toujours de sa case. TypeLabel /
-# AttackLabel / HealthLabel sont alors decales d'autant.
+# DescLabel (voir Card.tscn) : position/hauteur par defaut (le haut est decale
+# par la croissance de NameLabel, voir ci-dessus), et jusqu'ou on peut
+# l'agrandir vers le BAS (avant de recouvrir AttackLabel/HealthLabel juste
+# en-dessous) si le texte (effet + flavour) deborde toujours de sa case.
+# AttackLabel / HealthLabel sont alors decales d'autant. TypeLabel (bandeau de
+# type) est desormais fixe en haut de carte (voir Card.tscn), independant.
+const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 312.0
-const DESC_LABEL_MAX_GROWTH      := 3.0
+const DESC_LABEL_MAX_GROWTH     := 3.0
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -56,12 +61,12 @@ const RACE_COLORS := {
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#a8a8a8"),
-	Race.Type.ABOMINATION: Color("#79c93e"),
-	Race.Type.HUMAN:  Color("#e0b23c"),
-	Race.Type.ELF:    Color("#4fc4ac"),
-	Race.Type.DWARF:  Color("#c9863f"),
-	Race.Type.DEMON:  Color("#e0475f"),
+	Race.Type.UNDEAD: Color("#bebebe"),
+	Race.Type.ABOMINATION: Color("#9bd76e"),
+	Race.Type.HUMAN:  Color("#e8c56d"),
+	Race.Type.ELF:    Color("#7bd3c1"),
+	Race.Type.DWARF:  Color("#d7a46f"),
+	Race.Type.DEMON:  Color("#e87587"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -224,7 +229,7 @@ func update_display() -> void:
 		if lane_icon.visible:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
 	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#a8a8a8"))
+		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][font_size=11][i]" + data.display_flavour() + "[/i][/font_size][/center]"
@@ -242,38 +247,46 @@ func update_display() -> void:
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
 
-	_fit_name_label()
-	_fit_desc_label()
+	var name_growth := _fit_name_label()
+	_fit_desc_label(name_growth)
 
 	_apply_race_style()
 	_apply_type_style()
 	update_playable_highlight()
 
-# Agrandit NameLabel vers le HAUT (offset_bottom fixe) quand le nom de la
-# carte, une fois retourne a la ligne dans la largeur de la case, prend plus
-# de hauteur que la case par defaut. Evite ainsi d'empieter sur DescLabel,
-# juste en-dessous. Plafonne a NAME_LABEL_MIN_TOP pour ne pas trop manger
-# l'artwork au-dessus sur les titres extremement longs.
-func _fit_name_label() -> void:
+# Agrandit NameLabel vers le BAS (offset_top fixe) quand le nom de la carte,
+# une fois retourne a la ligne dans la largeur de la case, prend plus de
+# hauteur que la case par defaut — ne mange donc plus l'artwork au-dessus.
+# Plafonne a NAME_LABEL_MAX_GROWTH ; DescLabel juste en-dessous est decale
+# d'autant par l'appelant (voir _fit_desc_label) pour garder le meme
+# espacement entre le titre et la description qu'a l'etat par defaut.
+# Retourne la croissance appliquee (0.0 si le nom tient dans sa case).
+func _fit_name_label() -> float:
 	name_label.offset_top = NAME_LABEL_DEFAULT_TOP
+	name_label.offset_bottom = NAME_LABEL_DEFAULT_BOTTOM
 	var font: Font = name_label.get_theme_font("font")
 	var font_size: int = name_label.get_theme_font_size("font_size")
 	if font == null:
-		return
+		return 0.0
 	var line_count: int = maxi(name_label.get_line_count(), 1)
 	var needed: float = line_count * font.get_height(font_size)
-	var default_height: float = NAME_LABEL_BOTTOM - NAME_LABEL_DEFAULT_TOP
+	var default_height: float = NAME_LABEL_DEFAULT_BOTTOM - NAME_LABEL_DEFAULT_TOP
 	if needed <= default_height:
-		return
-	var new_top: float = NAME_LABEL_BOTTOM - needed
-	name_label.offset_top = max(new_top, NAME_LABEL_MIN_TOP)
+		return 0.0
+	var growth: float = minf(needed - default_height, NAME_LABEL_MAX_GROWTH)
+	name_label.offset_bottom = NAME_LABEL_DEFAULT_BOTTOM + growth
+	return growth
 
 # Agrandit DescLabel vers le BAS si le texte (effet + flavour) deborde de sa
 # case par defaut, et decale AttackLabel/HealthLabel d'autant pour eviter
 # que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
 # marge avant le bas de la carte) : au-dela, le texte redevient legerement
 # rogne plutot que de faire deborder les stats hors de la carte.
-func _fit_desc_label() -> void:
+# name_growth : decalage vers le bas deja applique a NameLabel (voir
+# _fit_name_label) — reporte sur le haut de DescLabel pour preserver
+# l'espacement d'origine entre les deux.
+func _fit_desc_label(name_growth: float) -> void:
+	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
 	if attack_label:
 		attack_label.offset_top = 336.0
