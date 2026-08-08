@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Main-Qui-Choisit"
-description = "Exécution : déclenche immédiatement une mutation."
+description = "Exécution : Déclenche immédiatement une mutation."
 flavour_text = "Chaque mise à mort la change un peu plus."
 texture = ExtResource("2_texture")
 cost = 4

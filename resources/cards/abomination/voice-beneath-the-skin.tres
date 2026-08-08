@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Voix-Sous-la-Peau"
-description = "Arrivée : le serviteur allié adjacent gagne CHAIR ADAPTATIVE de façon permanente."
+description = "Arrivée : Le serviteur allié adjacent gagne CHAIR ADAPTATIVE de façon permanente."
 flavour_text = "Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute."
 texture = ExtResource("2_texture")
 cost = 3

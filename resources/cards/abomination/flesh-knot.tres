@@ -16,7 +16,7 @@ script = ExtResource("1_akw")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Nœud de Chair"
-description = "MUTATION."
+description = "MUTATION"
 flavour_text = "Chaque coup reçu le noue un peu plus serré."
 texture = ExtResource("2_texture")
 cost = 2

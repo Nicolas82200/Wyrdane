@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Émissaire Zélé"
-description = "ASSAUT."
+description = "ASSAUT"
 flavour_text = "Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse."
 texture = ExtResource("2_texture")
 cost = 2

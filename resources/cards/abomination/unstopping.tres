@@ -31,7 +31,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("5_carddata")
 card_name = "Ce-Qui-A-Cessé-de-S'arrêter"
-description = "REMPART. ASSIMILATION. Dernier Souffle : invoque 3 Amas Informes 1/2 en rangée Avant."
+description = "REMPART, ASSIMILATION
+Dernier Souffle : Invoque 3 Amas Informes 1/2 en rangée Avant."
 flavour_text = "Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps."
 texture = ExtResource("4_texture")
 cost = 5

@@ -22,7 +22,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Sergent de Troupe"
-description = "Arrivée : les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à fin de tour."
+description = "Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour."
 flavour_text = "Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie."
 texture = ExtResource("3_texture")
 cost = 3

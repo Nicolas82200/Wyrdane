@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cadavre Errant"
-description = "REMPART. CHAIR MORTE."
+description = "REMPART, CHAIR MORTE"
 flavour_text = "Personne ne se souvient de son nom. Lui non plus."
 texture = ExtResource("3_texture")
 cost = 2

@@ -17,7 +17,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Fantassin Aguerri"
-description = "FORMATION : tant qu'un allié est adjacent, gagne +1/+1."
+description = "FORMATION : Tant qu'un allié est adjacent, gagne +1/+1."
 flavour_text = "Seul, il tient. Ensemble, ils avancent."
 texture = ExtResource("2_texture")
 race = 1

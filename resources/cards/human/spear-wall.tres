@@ -29,7 +29,8 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mur de Lances"
-description = "REMPART. FORMATION. Carnage : inflige 1 dégât à tous les serviteurs ennemis en rangée Avant."
+description = "REMPART, FORMATION
+Carnage : Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant."
 flavour_text = "Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser."
 texture = ExtResource("3_texture")
 cost = 4

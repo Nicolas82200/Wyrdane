@@ -37,7 +37,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Roi Démon Écarlate"
-description = "CORRUPTION.
+description = "CORRUPTION
 Arrivée : Inflige Corruption à tous les serviteurs ennemis.
 Pacte 3 : Inflige une marque de Corruption supplémentaire."
 flavour_text = "Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter."

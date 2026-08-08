@@ -20,7 +20,7 @@ type = "OnExecution"
 [resource]
 script = ExtResource("3_63nii")
 card_name = "Champion du Peuple"
-description = "Exécution : soigne le héros allié de 2 HP."
+description = "Exécution : Soigne le héros allié de 2 points de vie."
 flavour_text = "Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne."
 texture = ExtResource("4_xnueb")
 cost = 4

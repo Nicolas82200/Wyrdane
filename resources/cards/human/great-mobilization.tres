@@ -21,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Grande Mobilisation"
-description = "Éveil : invoque un Humain aléatoire de coût ≤4 en rangée Avant."
+description = "Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant."
 flavour_text = "Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois."
 texture = ExtResource("3_texture")
 cost = 8
