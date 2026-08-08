@@ -15,14 +15,6 @@ var is_selected := false
 @onready var border_color: Panel         = get_node_or_null("BorderColor")
 @onready var keyword_icons: HBoxContainer = $KeywordIcons
 
-const KEYWORD_ICONS := {
-	Keyword.Type.TAUNT: preload("res://assets/icons/taunt-icon.png"),
-	Keyword.Type.AEGIS: preload("res://assets/icons/aegis-icon.png"),
-	Keyword.Type.DEADLY_POISON: preload("res://assets/icons/poison-icon.png"),
-	Keyword.Type.CHARGE: preload("res://assets/icons/charge-icon.png"),
-	Keyword.Type.FURY: preload("res://assets/icons/fury-icon.png")
-}
-
 const BORDER_RACE_COLORS := {
 	Race.Type.UNDEAD: Color("342e1ae1"),
 	Race.Type.HUMAN:  Color("5a4a35e1"),
@@ -700,13 +692,23 @@ func _refresh_keyword_icons() -> void:
 		return
 	for child in keyword_icons.get_children():
 		child.queue_free()
-	for keyword in minion.keywords:
-		if not KEYWORD_ICONS.has(keyword):
-			continue
-		var icon := TextureRect.new()
-		icon.texture             = KEYWORD_ICONS[keyword]
-		icon.custom_minimum_size = Vector2(22, 22)
-		icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter        = Control.MOUSE_FILTER_PASS
-		keyword_icons.add_child(icon)
+	var pools := [
+		[minion.keywords, TooltipData.KEYWORD_ICONS],
+		[minion.human_keywords, TooltipData.KEYWORD_HUMAN_ICONS],
+		[minion.undead_keywords, TooltipData.KEYWORD_UNDEAD_ICONS],
+		[minion.demon_keywords, TooltipData.KEYWORD_DEMON_ICONS],
+		[minion.abomination_keywords, TooltipData.KEYWORD_ABOMINATION_ICONS],
+	]
+	for pool in pools:
+		var pool_keywords: Array = pool[0]
+		var pool_icons: Dictionary = pool[1]
+		for keyword in pool_keywords:
+			if not pool_icons.has(keyword):
+				continue
+			var icon := TextureRect.new()
+			icon.texture             = pool_icons[keyword]
+			icon.custom_minimum_size = Vector2(22, 22)
+			icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter        = Control.MOUSE_FILTER_PASS
+			keyword_icons.add_child(icon)
