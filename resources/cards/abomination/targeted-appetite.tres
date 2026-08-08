@@ -24,7 +24,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Appétit Ciblé"
-description = "Détruit un serviteur ennemi ayant 2 HP ou moins ; un serviteur Abomination allié aléatoire gagne +1/+1 permanent."
+description = "Détruit un serviteur ennemi ayant 2 points de vie ou moins.
+Un serviteur Abomination allié aléatoire gagne +1/+1 permanent."
 flavour_text = "Rien ne se jette. Tout se digère."
 texture = ExtResource("2_texture")
 cost = 3

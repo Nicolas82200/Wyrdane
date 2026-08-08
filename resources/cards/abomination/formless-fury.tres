@@ -16,7 +16,7 @@ keyword_type = 0
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fureur Sans Forme Fixe"
-description = "FRÉNÉSIE. MUTATION."
+description = "FRÉNÉSIE, MUTATION"
 flavour_text = "Plus il frappe, moins il ressemble à ce qu'il était en arrivant."
 texture = ExtResource("3_texture")
 cost = 4

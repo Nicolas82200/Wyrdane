@@ -767,60 +767,60 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A01 | Amas Informe | ⚔️ | 1 | 1 | 2 | MUTATION. | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
-| A02 | Cœur Sans Corps | ↕️ | 1 | 2 | 1 | ASSIMILATION. | *Il bat pour quelque chose qui n'existe plus.* |
-| A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART INSTABLE. | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
-| A04 | Nœud de Chair | ⚔️ | 2 | 2 | 2 | MUTATION. | *Chaque coup reçu le noue un peu plus serré.* |
-| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : le serviteur allié adjacent gagne +1/+1 permanent. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
+| A01 | Amas Informe | ⚔️ | 1 | 1 | 2 | MUTATION | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
+| A02 | Cœur Sans Corps | ↕️ | 1 | 2 | 1 | ASSIMILATION | *Il bat pour quelque chose qui n'existe plus.* |
+| A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART, INSTABLE | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
+| A04 | Nœud de Chair | ⚔️ | 2 | 2 | 2 | MUTATION | *Chaque coup reçu le noue un peu plus serré.* |
+| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Le serviteur allié adjacent gagne +1/+1 permanent. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
 | A06 | Regard Détaché | 🛡️ | 2 | 1 | 2 | Arrivée : regarde la carte du dessus de ton deck, tu peux la remettre au fond. | *Il ne cligne jamais. Il n'a plus rien à protéger.* |
-| A07 | Le Poids-Qui-Marche | ⚔️ | 3 | 2 | 4 | MUTATION. ASSIMILATION. | *On ne sait pas ce qu'il porte. Lui non plus.* |
-| A08 | Emprunt de Peau | ↕️ | 3 | 2 | 3 | CHAIR ADAPTATIVE. | *Elle n'a rien à elle. Elle prend ce qui traîne à côté.* |
-| A09 | Un-Devenu-Plusieurs | ⚔️ | 3 | 1 | 1 | Arrivée : invoque 2 Amas Informes 1/2 en rangée Avant. | *Il n'a jamais compris qu'il était censé rester seul.* |
-| A10 | Visage-Encore-Flou | ⚔️ | 3 | 3 | 3 | FUSION. | *Il essaie plusieurs expressions. Aucune ne lui va tout à fait.* |
-| A11 | Semence Amère | ↕️ | 1 | 1 | 1 | VIRULENT. | *Elle n'attend pas d'être plantée. Elle éclate là où elle tombe.* |
+| A07 | Le Poids-Qui-Marche | ⚔️ | 3 | 2 | 4 | MUTATION, ASSIMILATION | *On ne sait pas ce qu'il porte. Lui non plus.* |
+| A08 | Emprunt de Peau | ↕️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle n'a rien à elle. Elle prend ce qui traîne à côté.* |
+| A09 | Un-Devenu-Plusieurs | ⚔️ | 3 | 1 | 1 | Arrivée : Invoque 2 Amas Informes 1/2 en rangée Avant. | *Il n'a jamais compris qu'il était censé rester seul.* |
+| A10 | Visage-Encore-Flou | ⚔️ | 3 | 3 | 3 | FUSION | *Il essaie plusieurs expressions. Aucune ne lui va tout à fait.* |
+| A11 | Semence Amère | ↕️ | 1 | 1 | 1 | VIRULENT | *Elle n'attend pas d'être plantée. Elle éclate là où elle tombe.* |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A12 | Masse-Qui-Ne-Cesse | ⚔️ | 4 | 4 | 5 | MUTATION. REMPART | *Elle a arrêté de compter les formes qu'elle a portées.* |
-| A13 | Bouche-Mère | ⚔️ | 3 | 3 | 3 | ASSIMILATION. | *Elle ne distingue pas allié et ennemi. Seulement mort et pas-encore-mort.* |
-| A14 | Second Regard | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE. Arrivée : pioche 1 carte. | *Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes.* |
-| A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
-| A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION. | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
-| A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART MUTATION. | *On l'a vu changer trois fois dans la même bataille.* |
-| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : le serviteur allié adjacent gagne CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
-| A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION. INSTABLE. | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
-| A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : réduit l'ATK d'un serviteur ennemi ciblé de 1 jusqu'à la fin du prochain tour adverse. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
-| A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT VENIN MORTEL. Dernier Souffle : se reforme en Amas Informe 2/2 sous ton contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
-| A22 | Monture-et-Cavalier-Ne-Font-Qu'Un | ⚔️ | 4 | 4 | 3 | ASSAUT Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP, puis mute. | *On ne sait plus lequel des deux dirige encore l'autre.* |
-| A23 | Le Reste-Qui-Veille | ⚔️ | 2 | 1 | 4 | REMPART ASSIMILATION. | *Il grandit à chaque garde tombée, la sienne comme celle d'en face.* |
+| A12 | Masse-Qui-Ne-Cesse | ⚔️ | 4 | 4 | 5 | MUTATION, REMPART | *Elle a arrêté de compter les formes qu'elle a portées.* |
+| A13 | Bouche-Mère | ⚔️ | 3 | 3 | 3 | ASSIMILATION | *Elle ne distingue pas allié et ennemi. Seulement mort et pas-encore-mort.* |
+| A14 | Second Regard | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE. Arrivée : Piochez 1 carte. | *Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes.* |
+| A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : Déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
+| A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
+| A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART, MUTATION | *On l'a vu changer trois fois dans la même bataille.* |
+| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : Le serviteur allié adjacent gagne CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
+| A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION, INSTABLE | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
+| A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : Réduit l'ATK d'un serviteur ennemi ciblé de 1 jusqu'à la fin du prochain tour adverse. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
+| A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Se reforme en Amas Informe 2/2 sous votre contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
+| A22 | Monture-et-Cavalier-Ne-Font-Qu'Un | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en HP, puis mute. | *On ne sait plus lequel des deux dirige encore l'autre.* |
+| A23 | Le Reste-Qui-Veille | ⚔️ | 2 | 1 | 4 | REMPART, ASSIMILATION | *Il grandit à chaque garde tombée, la sienne comme celle d'en face.* |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A24 | Le Premier Écart | ↕️ | 4 | 3 | 3 | Arrivée : tous tes serviteurs Abomination alliés mutent immédiatement. | *Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis.* |
-| A25 | La Faim Cuirassée | ⚔️ | 5 | 6 | 4 | RAVAGE ASSIMILATION. | *Chaque mort autour d'elle l'épaissit un peu plus.* |
-| A26 | Semeur de Nœuds | 🛡️ | 3 | 2 | 3 | FUSION. Attaque : invoque un Amas Informe 1/2 en rangée Avant. | *Il ne construit rien. Il fait pousser.* |
-| A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART INSTABLE. MUTATION. | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
-| A28 | Faim Sans Fond | ↕️ | 4 | 4 | 4 | MOISSON. ASSIMILATION. | *Elle ne prend pas la vie. Elle l'intègre.* |
+| A24 | Le Premier Écart | ↕️ | 4 | 3 | 3 | Arrivée : Tous vos serviteurs Abomination alliés mutent immédiatement. | *Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis.* |
+| A25 | La Faim Cuirassée | ⚔️ | 5 | 6 | 4 | RAVAGE, ASSIMILATION | *Chaque mort autour d'elle l'épaissit un peu plus.* |
+| A26 | Semeur de Nœuds | 🛡️ | 3 | 2 | 3 | FUSION. Attaque : Invoque un Amas Informe 1/2 en rangée Avant. | *Il ne construit rien. Il fait pousser.* |
+| A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART, INSTABLE, MUTATION | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
+| A28 | Faim Sans Fond | ↕️ | 4 | 4 | 4 | MOISSON, ASSIMILATION | *Elle ne prend pas la vie. Elle l'intègre.* |
 | A29 | Poussière Qui Change | ↕️ | 3 | 1 | 2 | VIRULENT. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Là où elle se dépose, quelque chose commence toujours à changer.* |
-| A30 | Le Trieur de Chairs | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins, puis mute. | *Il ne choisit pas ses proies. Il choisit ce qu'il veut devenir ensuite.* |
+| A30 | Le Trieur de Chairs | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit un serviteur ennemi ayant 3 points de vie ou moins, puis mute. | *Il ne choisit pas ses proies. Il choisit ce qu'il veut devenir ensuite.* |
 | A31 | Le Sculpteur Sans Mains | 🛡️ | 4 | 2 | 4 | Arrivée : un serviteur allié ciblé gagne un mot-clé Abomination de ton choix, de façon permanente. | *"La forme n'est qu'une suggestion. Je préfère négocier."* |
-| A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | AILES NOIRES. FUSION. | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
-| A33 | Fureur Sans Forme Fixe | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. MUTATION. | *Plus il frappe, moins il ressemble à ce qu'il était en arrivant.* |
-| A34 | Ce-Qui-A-Cessé-de-S'arrêter | ⚔️ | 5 | 3 | 8 | REMPART ASSIMILATION. Dernier Souffle : invoque 3 Amas Informes 1/2 en rangée Avant. | *Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.* |
+| A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | AILES NOIRES. FUSION | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
+| A33 | Fureur Sans Forme Fixe | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, MUTATION | *Plus il frappe, moins il ressemble à ce qu'il était en arrivant.* |
+| A34 | Ce-Qui-A-Cessé-de-S'arrêter | ⚔️ | 5 | 3 | 8 | REMPART, ASSIMILATION. Dernier Souffle : Invoque 3 Amas Informes 1/2 en rangée Avant. | *Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.* |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A35 | L'Éternel Recommencement | 🛡️ | 6 | 0 | 4 | Éveil : invoque une Abomination aléatoire de coût ≤3 en rangée Avant ; elle mute immédiatement. | *Il ne se soigne plus. Il se réinvente, sans fin.* |
+| A35 | L'Éternel Recommencement | 🛡️ | 6 | 0 | 4 | Éveil : Invoque une Abomination aléatoire de coût ≤3 en rangée Avant. Elle mute immédiatement. | *Il ne se soigne plus. Il se réinvente, sans fin.* |
 | A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : fusionne avec les 2 derniers serviteurs alliés morts ce match — absorbe leurs stats restantes cumulées et un mot-clé de chacun. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
 | A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
-| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : choisis un serviteur ennemi ciblé — il devient une copie exacte (stats et mots-clés) sous ton contrôle jusqu'à la fin de la partie. | *Il n'a pas de visage. Il porte le tien, à présent.* |
+| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur ennemi ciblé, il devient une copie exacte (stats et mots-clés) sous votre contrôle jusqu'à la fin de la partie. | *Il n'a pas de visage. Il porte le tien, à présent.* |
 
 ---
 
@@ -830,14 +830,14 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
-| Prototype Instable | ⚔️ | 3 | 2 | 4 | MUTATION. | Sa forme n'est jamais tout à fait la même deux combats de suite. |
-| Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE VENIN MORTEL. | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
+| Prototype Instable | ⚔️ | 3 | 2 | 4 | MUTATION | Sa forme n'est jamais tout à fait la même deux combats de suite. |
+| Charognard Vorace | ⚔️ | 4 | 5 | 3 | RAVAGE, VENIN MORTEL | Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé. |
 
 **Incantations Arena** :
 
 | Nom | ⬡ | Rareté | Effet | Flavour |
 |---|:---:|---|---|---|
-| Chant Dévorant | 4 | Épique | Tous tes serviteurs alliés gagnent VENIN MORTEL. | Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire. |
+| Chant Dévorant | 4 | Épique | Tous vos serviteurs alliés gagnent VENIN MORTEL. | Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire. |
 
 ---
 
@@ -845,15 +845,15 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A40 | Morsure de l'Air | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé ; s'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
+| A40 | Morsure de l'Air | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé. S'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
 | A41 | Premier Tressaut | 1 | Commune | Un serviteur allié ciblé déclenche immédiatement une mutation. | *Il n'a pas eu le temps de choisir. Peu importe.* |
-| A42 | Pluie Qui Change | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant ; les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
-| A43 | Partage Forcé | 2 | Rare | Sacrifice (un serviteur allié) : le serviteur allié adjacent absorbe ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
-| A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ennemi ciblé un tour ; à la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
+| A42 | Pluie Qui Change | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant. Les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
+| A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Le serviteur allié adjacent absorbe ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
+| A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. À la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
 | A45 | Appétit Ciblé | 3 | Rare | Détruit un serviteur ennemi ayant 2 HP ou moins ; un serviteur Abomination allié ciblé gagne +1/+1 permanent. | *Rien ne se jette. Tout se digère.* |
-| A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
+| A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : Elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
 | A47 | Étau de Chair Neuve | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire, réduit à une copie 1/1 sans mots-clés et coûtant 1. | *Il revient. Mais ce n'est plus vraiment lui.* |
-| A48 | Respir Qui Change Tout | 1 | Commune | 1 dégât à tous les serviteurs en jeu ; les Abominations alliées touchées mutent à la place de perdre des HP. | *Même tes alliés changent, un peu, à chaque respiration.* |
+| A48 | Respir Qui Change Tout | 1 | Commune | 1 dégât à tous les serviteurs en jeu. Les Abominations alliées touchées mutent à la place de perdre des points de vie. | *Même tes alliés changent, un peu, à chaque respiration.* |
 | A49 | Sursaut Final | 3 | Épique | Carnage : le prochain serviteur Abomination allié qui meurt ce tour ressuscite comme Amas Informe 1/1 (une seule fois). | *Une dernière contraction. Ça suffit parfois à repartir.* |
 | A50 | Fracture Vivante | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : un serviteur Abomination allié ciblé mute immédiatement. | *La corruption ne respecte pas la magie. Elle la digère aussi.* |
 | A51 | Emprunt Instantané | 1 | Commune | Un serviteur Abomination allié ciblé copie un mot-clé présent sur n'importe quel autre serviteur en jeu (allié ou ennemi). | *Il n'a rien inventé. Il a juste regardé, et pris.* |
@@ -865,15 +865,15 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| A53 | Rituel de la Forme Jamais Fixée | 5 | Épique | 3 charges | Éveil : un serviteur Abomination allié aléatoire mute immédiatement. | *Le cercle ne s'arrête jamais de proposer de nouvelles formes.* |
-| A54 | Accord de la Chair Neuve | 4 | Épique | 3 charges | Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Amas Informe 2/2 doté de MUTATION. | *Chaque offrande revient sous une forme différente.* |
+| A53 | Rituel de la Forme Jamais Fixée | 5 | Épique | 3 charges | Éveil : Un serviteur Abomination allié aléatoire mute immédiatement. | *Le cercle ne s'arrête jamais de proposer de nouvelles formes.* |
+| A54 | Accord de la Chair Neuve | 4 | Épique | 3 charges | Sacrifice 1 (≤2 points de vie) : Invoque un Amas Informe 2/2 doté de MUTATION. | *Chaque offrande revient sous une forme différente.* |
 | A55 | Cercle de l'Assemblage | 5 | Épique | 2 charges | Sacrifice (deux serviteurs alliés adjacents) : fusionne-les en un seul serviteur cumulant leurs stats restantes et tous leurs mots-clés. | *Deux corps entrent. Un seul en ressort — plus grand.* |
-| A56 | Écho des Chutes | 3 | Rare | 4 charges | Dévoration : pioche 1 carte (une seule fois par tour). | *Chaque mort, où qu'elle soit, nourrit le cercle.* |
+| A56 | Écho des Chutes | 3 | Rare | 4 charges | Dévoration : Piochez 1 carte (une seule fois par tour). | *Chaque mort, où qu'elle soit, nourrit le cercle.* |
 | A57 | Rituel de la Chair Qui Recoud | 4 | Rare | 3 charges | Éveil : le serviteur Abomination allié avec le moins de HP restaure 2 HP. | *La chair se répare mal. Elle se répare quand même.* |
-| A58 | Cercle de Dégénérescence | 6 | Légendaire | 2 charges | Sacrifice (un serviteur allié) : tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence. | *Ce que le cercle ne peut pas améliorer, il le corrompt.* |
+| A58 | Cercle de Dégénérescence | 6 | Légendaire | 2 charges | Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence. | *Ce que le cercle ne peut pas améliorer, il le corrompt.* |
 | A59 | Rituel du Fil Sous la Peau | 4 | Épique | 3 charges | Deuil : le serviteur allié adjacent au serviteur mort mute immédiatement. | *Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture.* |
-| A60 | Éclosion Sans Fin | 7 | Légendaire | 3 charges | Éveil : invoque une Abomination aléatoire de coût ≤4 ; elle mute deux fois. | *Elle n'a pas éclos une fois. Elle éclot encore.* |
-| A61 | Rituel de l'Œil Sans Sommeil | 6 | Légendaire | 2 charges | Sortilège ennemi : annulé s'il cible un de tes Abominations. | *Il ne dort jamais. Il voit venir la magie adverse avant qu'elle n'arrive.* |
+| A60 | Éclosion Sans Fin | 7 | Légendaire | 3 charges | Éveil : Invoque une Abomination aléatoire de coût ≤4. Elle mute deux fois. | *Elle n'a pas éclos une fois. Elle éclot encore.* |
+| A61 | Rituel de l'Œil Sans Sommeil | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos Abominations. | *Il ne dort jamais. Il voit venir la magie adverse avant qu'elle n'arrive.* |
 | A62 | Rituel du Ventre Qui Prend Tout | 6 | Épique | 2 charges | Sacrifice (un serviteur allié) : pioche 1 carte ; ton héros regagne des HP égaux aux HP restants du sacrifié. | *Rien ne se perd vraiment. Tout se redistribue, même à toi.* |
 | A63 | Lente Altération | 4 | Épique | 2 charges | Présence : au début de chaque tour adverse, serviteurs non Abomination ennemis -1/-1. | *Elle ne prépare pas une invasion. Elle prépare une transformation.* |
 | A64 | Grand Retour Sous une Autre Forme | 8 | Légendaire | 3 charges | Deuil : ramène en main le serviteur Abomination allié le plus récemment mort ; il coûte 1 de moins et mute dès qu'il est rejoué. | *"Je ne les rappelle pas. Je les laisse simplement finir de devenir autre chose."* |
@@ -882,16 +882,16 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A65 | Autel Qui Ne Reconnaît Rien | 3 | Rare | Deuil : un serviteur Abomination allié aléatoire mute. | *Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois.* |
-| A66 | Nid Débordant | 4 | Rare | Renfort : si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour). | *Plus il se remplit, plus il en sort.* |
-| A67 | Halo Qui Encourage le Changement | 3 | Rare | Mutation : le serviteur qui vient de muter gagne +1/+0 supplémentaire de façon permanente. | *Chaque changement en appelle un autre, plus franc.* |
+| A65 | Autel Qui Ne Reconnaît Rien | 3 | Rare | Deuil : Un serviteur Abomination allié aléatoire mute. | *Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois.* |
+| A66 | Nid Débordant | 4 | Rare | Renfort : Si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour). | *Plus il se remplit, plus il en sort.* |
+| A67 | Halo Qui Encourage le Changement | 3 | Rare | Mutation : Le serviteur qui vient de muter gagne +1/+0 supplémentaire de façon permanente. | *Chaque changement en appelle un autre, plus franc.* |
 | A68 | La Terre Qui Refuse de Garder | 5 | Épique | Deuil : le serviteur allié mort revient en jeu à la fin du tour avec 1 HP, transformé en Abomination (perd sa race d'origine, gagne MUTATION). Une seule fois par serviteur. | *Le sol ici ne garde rien. Il rend, mais jamais tel quel.* |
 | A69 | Vapeur Qui S'Accroche | 3 | Rare | Présence : à chaque début du tour adverse, les serviteurs ennemis affaiblis (débuff actif) perdent 1 HP supplémentaire. | *On ne la voit pas. On sent juste que quelque chose continue de ronger.* |
-| A70 | Lien Sans Membrane | 5 | Épique | Présence : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur Abomination allié en rangée Avant. | *Ceux de devant absorbent. Ceux de derrière en profitent.* |
+| A70 | Lien Sans Membrane | 5 | Épique | Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur Abomination allié en rangée Avant. | *Ceux de devant absorbent. Ceux de derrière en profitent.* |
 | A71 | Effigie Née d'Elle-Même | 6 | Légendaire | Résonance : le serviteur Abomination attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible, qui subissent alors une mutation forcée : Dégénérescence. | *On ne l'a pas sculptée. Elle a poussé, un jour, et personne ne l'a arrêtée.* |
 | A72 | Repaire Qui Digère la Magie | 4 | Épique | Présence : Les sorts alliés coûtent 1 de moins (min 1). | *Dans ses murs, tout se transforme un peu plus vite, même les sorts.* |
-| A73 | Puits Qui Avale Tout | 6 | Légendaire | Dévoration : gagne 1 mana temporaire ce tour (une seule fois par tour). | *Tout ce qui meurt ici finit par nourrir autre chose.* |
-| A74 | Ce Qu'on a Laissé Pousser | 5 | Épique | Deuil : invoque 2 Abominations aléatoires de coût ≤3 ; elles mutent immédiatement. | *On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.* |
+| A73 | Puits Qui Avale Tout | 6 | Légendaire | Dévoration : Gagne 1 mana temporaire ce tour (une seule fois par tour). | *Tout ce qui meurt ici finit par nourrir autre chose.* |
+| A74 | Ce Qu'on a Laissé Pousser | 5 | Épique | Deuil : Invoque 2 Abominations aléatoires de coût ≤3. Elles mutent immédiatement. | *On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.* |
 | A75 | Chuchotement Qui Change la Forme | 1 | Rare | Présence : la première Abomination jouée chaque tour coûte 1 de moins (min 1) et mute dès son entrée en jeu. | *On ne l'entend pas. On sent juste que quelque chose a déjà commencé à changer.* |
 
 ## Ressource
@@ -904,8 +904,8 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| A77 | Amas Informe (jeton) | ⚔️ | — | 1 | 2 | MUTATION. (jeton, invoqué par : Ce-Qui-A-Cessé-de-S'arrêter, Un-Devenu-Plusieurs, Nid Débordant, Semeur de Nœuds). Distinct d'« Amas Informe Reformé »/« Amas Informe Mutant » (jetons dédiés de Vase Brisé/Accord de la Chair Neuve). | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
-| A78 | Amas Informe Mutant (jeton) | ⚔️ | — | 2 | 2 | MUTATION. (jeton, invoqué par : Accord de la Chair Neuve). | *L'offrande revient sous une forme différente.* |
+| A77 | Amas Informe (jeton) | ⚔️ | — | 1 | 2 | MUTATION (jeton, invoqué par : Ce-Qui-A-Cessé-de-S'arrêter, Un-Devenu-Plusieurs, Nid Débordant, Semeur de Nœuds). Distinct d'« Amas Informe Reformé »/« Amas Informe Mutant » (jetons dédiés de Vase Brisé/Accord de la Chair Neuve). | *Il n'a pas de nom parce qu'il n'a pas encore de forme.* |
+| A78 | Amas Informe Mutant (jeton) | ⚔️ | — | 2 | 2 | MUTATION (jeton, invoqué par : Accord de la Chair Neuve). | *L'offrande revient sous une forme différente.* |
 | A79 | Amas Informe Reformé (jeton) | ⚔️ | — | 2 | 2 | (jeton, invoqué par : Vase Brisé, Encore Plein). | *Il se réarrange, tout simplement.* |
 
 ## ✅ Points d'intégration tranchés (Abomination)
