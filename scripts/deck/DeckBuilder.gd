@@ -855,13 +855,14 @@ func _position_hover_tooltips() -> void:
 	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
 	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
 
-	# Preview centrée verticalement sur la carte survolée, à droite si la
-	# place le permet (sinon à gauche), pour ne jamais masquer le curseur.
+	# Preview centrée verticalement sur la carte survolée, à gauche si la
+	# place le permet (sinon à droite), pour ne jamais empiéter sur la
+	# section deck à droite de l'écran.
 	var preview_y: float = clampf(
 		wrapper_center.y - preview_size.y / 2.0, 4.0, vp.y - preview_size.y - 4.0)
-	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
-	if preview_x + preview_size.x > vp.x - 4.0:
-		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+	var preview_x: float = wrapper.global_position.x - preview_size.x - 12.0
+	if preview_x < 4.0:
+		preview_x = wrapper.global_position.x + wrapper.size.x + 12.0
 	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
 	card_preview.global_position = Vector2(preview_x, preview_y)
@@ -882,9 +883,9 @@ func _position_hover_tooltips() -> void:
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		var px := card_preview.global_position.x + preview_size.x + 12.0
-		if px + panel.size.x > vp.x:
-			px = card_preview.global_position.x - panel.size.x - 12.0
+		var px := card_preview.global_position.x - panel.size.x - 12.0
+		if px < 4.0:
+			px = card_preview.global_position.x + preview_size.x + 12.0
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
 	if _race_tooltip != null and is_instance_valid(_race_tooltip):
