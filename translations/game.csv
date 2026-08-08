@@ -506,7 +506,7 @@ Arrivée : Vole 2 points de vie au héros ennemi.","HARVEST
 Arrival: Steal 2 HP from the enemy hero."
 "Il ne prend pas ta vie. Il la déplace, dans les mauvaises mains.","Il ne prend pas ta vie. Il la déplace, dans les mauvaises mains.","It does not take your life. It moves it, into the wrong hands."
 "Exhalation Toxique","Exhalation Toxique","Toxic Exhalation"
-"1 dégât à tous les serviteurs en jeu.","1 dégât à tous les serviteurs en jeu.","1 damage to all minions in play."
+"Inflige 1 dégât à tous les serviteurs en jeu.","Inflige 1 dégât à tous les serviteurs en jeu.","Deal 1 damage to all minions in play."
 "Même ses alliés évitent de respirer trop près.","Même ses alliés évitent de respirer trop près.","Even its allies avoid breathing too close."
 "Fantassin Aguerri","Fantassin Aguerri","Seasoned Footman"
 "FORMATION : Tant qu'un allié est adjacent, gagne +1/+1.","FORMATION : Tant qu'un allié est adjacent, gagne +1/+1.","FORMATION: While an ally is adjacent, gains +1/+1."
@@ -808,7 +808,7 @@ Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant.","AEGIS
 Deathrattle: Summon a Town Militia 2/1 in the Front row."
 "Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","He believed in something. That something protected him, once."
 "Souffle Nécrotique","Souffle Nécrotique","Necrotic Breath"
-"2 dégâts à un serviteur ennemi ciblé.","2 dégâts à un serviteur ennemi ciblé.","2 damage to target enemy minion."
+"Inflige 2 dégâts à un serviteur ennemi ciblé.","Inflige 2 dégâts à un serviteur ennemi ciblé.","Deal 2 damage to target enemy minion."
 "Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien.","Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien.","It is not wind. It is what remains when lungs no longer serve any purpose."
 "Souffle du Charnier","Souffle du Charnier","Charnel Breath"
 "Un Mort-Vivant allié ciblé gagne +0/+2.","Un Mort-Vivant allié ciblé gagne +0/+2.","Target allied Undead gains +0/+2."
@@ -828,7 +828,7 @@ Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant.","TAUNT
 Deathrattle: Summon 3 Crawlers 1/1 in the Front row."
 "Il n'était pas un monstre. Il était une fosse commune.","Il n'était pas un monstre. Il était une fosse commune.","He was not a monster. He was a mass grave."
 "Vague de Putréfaction","Vague de Putréfaction","Wave of Putrefaction"
-"1 dégât à tous les serviteurs ennemis en rangée Avant.","1 dégât à tous les serviteurs ennemis en rangée Avant.","1 damage to all enemy minions in the Front row."
+"Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","Deal 1 damage to all enemy minions in the Front row."
 "La peste ne choisit pas. Elle couvre.","La peste ne choisit pas. Elle couvre.","The plague does not choose. It covers."
 "Volée de Flèches","Volée de Flèches","Arrow Volley"
 "Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
@@ -1255,15 +1255,15 @@ You can only play one resource per turn."
 "Ajoute 1 Âme à votre réserve. Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Âme à votre réserve. Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Soul to your reserve. You can only play one resource per turn."
 "Une clause parmi tant d'autres. Elle aussi se paiera.","Une clause parmi tant d'autres. Elle aussi se paiera.","One clause among many. This one, too, will be paid."
 "Morsure de l'Air","Morsure de l'Air","Air Bite"
-"2 dégâts à un serviteur ennemi ciblé.
-S'il survit, il perd 1 ATK de façon permanente.","2 dégâts à un serviteur ennemi ciblé.
-S'il survit, il perd 1 ATK de façon permanente.","2 damage to target enemy minion.
+"Inflige 2 dégâts à un serviteur ennemi ciblé.
+S'il survit, il perd 1 ATK de façon permanente.","Inflige 2 dégâts à un serviteur ennemi ciblé.
+S'il survit, il perd 1 ATK de façon permanente.","Deal 2 damage to target enemy minion.
 If it survives, it permanently loses 1 ATK."
 "Ce qui ne tue pas ronge quand même.","Ce qui ne tue pas ronge quand même.","What doesn't kill still gnaws."
 "Respir Qui Change Tout","Respir Qui Change Tout","The Breath That Changes Everything"
-"1 dégât à tous les serviteurs en jeu.
-Les Abominations alliées touchées mutent à la place de perdre des points de vie.","1 dégât à tous les serviteurs en jeu.
-Les Abominations alliées touchées mutent à la place de perdre des points de vie.","1 damage to all minions in play.
+"Inflige 1 dégât à tous les serviteurs en jeu.
+Les Abominations alliées touchées mutent à la place de perdre des points de vie.","Inflige 1 dégât à tous les serviteurs en jeu.
+Les Abominations alliées touchées mutent à la place de perdre des points de vie.","Deal 1 damage to all minions in play.
 Allied Abominations hit mutate instead of losing HP."
 "Même tes alliés changent, un peu, à chaque respiration.","Même tes alliés changent, un peu, à chaque respiration.","Even your allies change, a little, with every breath."
 "Rituel du Ventre Qui Prend Tout","Rituel du Ventre Qui Prend Tout","All-Devouring Ritual"
@@ -1420,9 +1420,9 @@ Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points d
 Arrival: Immediately attacks the enemy minion with the lowest HP, then mutates."
 "On ne sait plus lequel des deux dirige encore l'autre.","On ne sait plus lequel des deux dirige encore l'autre.","No one knows anymore which of the two still leads the other."
 "Pluie Qui Change","Pluie Qui Change","Changing Rain"
-"1 dégât à tous les serviteurs ennemis en rangée Avant.
-Les survivants ont -1 ATK jusqu'à la fin du tour.","1 dégât à tous les serviteurs ennemis en rangée Avant.
-Les survivants ont -1 ATK jusqu'à la fin du tour.","1 damage to all enemy Front row minions.
+"Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
+Les survivants ont -1 ATK jusqu'à la fin du tour.","Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
+Les survivants ont -1 ATK jusqu'à la fin du tour.","Deal 1 damage to all enemy Front row minions.
 Survivors have -1 ATK until end of turn."
 "L'air lui-même devient hostile en son sillage.","L'air lui-même devient hostile en son sillage.","The very air turns hostile in its wake."
 "Doigt-Dans-les-Nerfs","Doigt-Dans-les-Nerfs","Finger in the Nerves"
