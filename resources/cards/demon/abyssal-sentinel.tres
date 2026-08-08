@@ -25,6 +25,7 @@ script = ExtResource("1_cardeffect")
 effect_id = "Heal"
 target = "Self"
 value = 1
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

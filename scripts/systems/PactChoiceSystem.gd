@@ -1,15 +1,15 @@
 # PactChoiceSystem.gd
 # Demande au joueur LOCAL s'il accepte de payer le coût en PV du mot-clé PACTE
-# d'une carte. Deux usages :
-# - `ask()` : pose d'un serviteur depuis la main (CardSystem.handle_card_played),
-#   choix unique transporté en réseau par NetCommand.PLAY_CARD.pact_paid.
-# - `resolve_trigger()` : Rituel/Enchantement à trigger répétable (Éveil, Deuil,
-#   Sacrifice...) — le paiement est redemandé à CHAQUE déclenchement effectif
-#   (TriggerSystem._fire_on_enchantments / activate_sacrifice_ritual), la charge
-#   du rituel étant consommée que le joueur paie ou non. Aucun canal réseau
-#   dédié n'existe pour ce choix répété (contrairement à `ask()`) : en partie
-#   réseau, les deux camps décident via la même heuristique déterministe que
-#   l'IA, pour rester synchronisés sans nouveau protocole.
+# pour activer le bonus d'un effet (CardEffect.pact_bonus), à chaque
+# déclenchement effectif du trigger concerné — Arrivée comprise, aucun
+# traitement à part : `resolve_trigger()` est appelé identiquement par
+# EffectManager.trigger_effects (serviteurs) et TriggerSystem
+# (_fire_on_enchantments / activate_sacrifice_ritual / try_cancel_spell pour
+# Rituels/Enchantements). Aucun canal réseau dédié n'existe pour ce choix
+# répété : en partie réseau, les deux camps décident via la même heuristique
+# déterministe que l'IA (`heuristic_decision`), pour rester synchronisés sans
+# nouveau protocole. `ask()` n'affiche la popup que pour le joueur LOCAL hors
+# partie réseau.
 extends RefCounted
 class_name PactChoiceSystem
 

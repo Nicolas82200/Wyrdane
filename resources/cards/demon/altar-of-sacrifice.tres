@@ -13,7 +13,7 @@ type = "OnGrief"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 1
+value = 2
 
 [sub_resource type="Resource" id="Resource_vpfyd"]
 script = ExtResource("1_cardeffect")
@@ -21,10 +21,18 @@ effect_id = "DrawCard"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Autel des Sacrifices"
-description = "Pacte 1 : Deuil : Piochez une carte."
+description = "Deuil : Piochez une carte.
+Pacte 2 : Piochez une carte supplémentaire."
 flavour_text = "L'autel ne demande jamais deux fois. Il attend, c'est tout."
 texture = ExtResource("3_texture")
 cost = 3
@@ -32,6 +40,6 @@ race = 5
 card_type = "Enchantment"
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_acv90")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_vpfyd")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_vpfyd"), SubResource("Resource_bonus")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

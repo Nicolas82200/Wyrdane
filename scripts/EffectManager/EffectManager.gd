@@ -1427,21 +1427,40 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
-	# PACTE sur un trigger répétable (Exécution, Blessure, Dernier Souffle...) :
-	# contrairement à l'Arrivée (paiement unique, déjà géré par
-	# BoardSystem.summon_minion_return avant l'appel ONPLAY ci-dessous), le
-	# paiement est redemandé à CHAQUE déclenchement effectif.
-	if trigger_name != "ONPLAY":
-		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-		if pact_value > 0:
-			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
-			if not pact_paid:
-				return false
-			await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+	# PACTE : l'effet de base (pact_bonus == false) se déclenche toujours,
+	# gratuitement. S'il existe en plus un effet de bonus (pact_bonus == true)
+	# pour CE trigger, le paiement du coût en PV est proposé à chaque
+	# déclenchement (Arrivée comprise — pas de traitement spécial, redemandé à
+	# chaque fois comme n'importe quel autre trigger) ; payé, le bonus s'ajoute
+	# à l'effet de base, ou le remplace si `pact_replaces_base` est vrai.
+	var base_effects: Array[CardEffect] = []
+	var bonus_effects: Array[CardEffect] = []
 	for effect in minion.card_data.effects:
 		if effect.trigger != "" and effect.trigger != trigger_name:
 			continue
-		await execute_effect(battle, minion, effect, selected_target)
+		if effect.pact_bonus:
+			bonus_effects.append(effect)
+		else:
+			base_effects.append(effect)
+
+	var pact_paid: bool = false
+	if not bonus_effects.is_empty():
+		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+		if pact_value > 0:
+			pact_paid = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+			if pact_paid:
+				var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+				var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+				battle.animation_system.play_pact_drain(hero_panel, minion_visual)
+				await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+
+	var replaces_base: bool = pact_paid and bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
+	if not replaces_base:
+		for effect in base_effects:
+			await execute_effect(battle, minion, effect, selected_target)
+	if pact_paid:
+		for effect in bonus_effects:
+			await execute_effect(battle, minion, effect, selected_target)
 	return true
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
