@@ -16,7 +16,8 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Zombie Bouclier"
-description = "REMPART. Blessure : réduit de 1 les dégâts reçus (minimum 1)."
+description = "REMPART
+Blessure : Réduit de 1 les dégâts reçus (minimum 1)."
 flavour_text = "Les lames s'enfoncent dans la chair morte et s'y perdent."
 texture = ExtResource("3_texture")
 cost = 2

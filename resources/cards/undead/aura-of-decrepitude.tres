@@ -21,7 +21,7 @@ type = "OnResonance"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Aura de Décrépitude"
-description = "Résonance : ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente."
+description = "Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente."
 flavour_text = "La décrépitude n'est pas une faiblesse. C'est une accumulation."
 texture = ExtResource("3_texture")
 cost = 3

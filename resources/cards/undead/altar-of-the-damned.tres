@@ -20,7 +20,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Autel des Damnés"
-description = "Deuil : pioche 1 carte."
+description = "Deuil : Piochez 1 carte."
 flavour_text = "Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom."
 texture = ExtResource("3_texture")
 cost = 3

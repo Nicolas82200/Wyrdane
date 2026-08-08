@@ -21,7 +21,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Apocalypse Zombie"
-description = "Arrivée : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle."
+description = "Arrivée : Transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous votre contrôle."
 flavour_text = "Ce n'était pas une invasion. C'était une conversion."
 texture = ExtResource("3_texture")
 cost = 8

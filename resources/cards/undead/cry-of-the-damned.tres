@@ -21,7 +21,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cri des Damnés"
-description = "Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place."
+description = "Mort-Vivants alliés +1/+0 ce tour.
+Si 5 ou plus en jeu : +2/+0 à la place."
 flavour_text = "Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain."
 texture = ExtResource("3_texture")
 cost = 3

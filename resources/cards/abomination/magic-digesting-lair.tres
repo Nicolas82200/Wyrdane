@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Repaire Qui Digère la Magie"
-description = "Présence : les sorts alliés coûtent 1 de moins (min 1)."
+description = "Présence : Les sorts alliés coûtent 1 de moins (min 1)."
 flavour_text = "Dans ses murs, tout se transforme un peu plus vite, même les sorts."
 texture = ExtResource("2_texture")
 cost = 4

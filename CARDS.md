@@ -79,15 +79,15 @@ Positionnement (Lane Types)
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 01 | Rampant en Décomposition | ⚔️ | 1 | 1 | 1 | Dernier Souffle : invoque un Zombie 1/1 sous ton contrôle. | Il ne sait plus pourquoi il avance. Il avance, c'est tout. |
+| 01 | Rampant en Décomposition | ⚔️ | 1 | 1 | 1 | Dernier Souffle : Invoque un Zombie 1/1 sous votre contrôle. | Il ne sait plus pourquoi il avance. Il avance, c'est tout. |
 | 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 | NÉCROPHAGE. | La faim ne disparaît pas avec la mort. Elle empire. |
-| 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART. CHAIR MORTE. | Personne ne se souvient de son nom. Lui non plus. |
+| 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART, CHAIR MORTE | Personne ne se souvient de son nom. Lui non plus. |
 | 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 | HORDE. | Il était enfant. C'était avant. |
-| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : inflige Infection à un serviteur ennemi ciblé. | Même en tombant, il répand ce qui l'a tué. |
+| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Inflige Infection à un serviteur ennemi ciblé. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
-| 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Attaque : tes serviteurs en rangée Avant ont +0/+1 HP jusqu'à fin de tour. | Il ne commande pas. Il pousse. Et ça suffit. |
-| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Attaque : inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
-| 09 | Horde Mineure | ⚔️ | 3 | 1 | 1 | Arrivée : invoque 2 Rampants 1/1 en rangée Avant. | Un seul ne fait pas peur. Mais il n'est jamais seul. |
+| 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Attaque : Vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | Il ne commande pas. Il pousse. Et ça suffit. |
+| 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT. Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
+| 09 | Horde Mineure | ⚔️ | 3 | 1 | 1 | Arrivée : Invoque 2 Rampants 1/1 en rangée Avant. | Un seul ne fait pas peur. Mais il n'est jamais seul. |
 | 10 | Mort-Vivant Enchaîné | ⚔️ | 3 | 3 | 3 | HORDE. | Les chaînes ne le retiennent plus. Elles font partie de lui. |
 | 11 | Larve Cadavérique | ↕️ | 1 | 1 | 1 | NÉCROPHAGE. | Elle n'est pas née de la vie. Elle est née de ce qui reste. |
 
@@ -96,43 +96,43 @@ Positionnement (Lane Types)
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 12 | Pestilent | ↕️ | 2 | 1 | 2 | PESTIFÉRÉ. | Son souffle est une condamnation à retardement. |
-| 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART. Blessure : réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
-| 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à fin de tour. | Son cri ne terrorise plus. Il réveille. |
-| 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
-| 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : invoque un Cadavre Errant en rangée Avant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
-| 17 | Géant Boursouflé | ⚔️ | 5 | 4 | 6 | Dernier Souffle : inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant. | Sa mort est plus dangereuse que sa vie.Rapport de bataille, campagne de la Vallée Grise |
+| 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART. Blessure : Réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
+| 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : Serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à la fin du tour. | Son cri ne terrorise plus. Il réveille. |
+| 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : Peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
+| 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : Invoque un Cadavre Errant en rangée Avant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
+| 17 | Géant Boursouflé | ⚔️ | 5 | 4 | 6 | Dernier Souffle : Inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant. | Sa mort est plus dangereuse que sa vie.Rapport de bataille, campagne de la Vallée Grise |
 | 18 | Émissaire de la Peste | ↕️ | 4 | 3 | 4 | PESTIFÉRÉ. | Il ne vient pas combattre. Il vient annoncer. |
 | 19 | Soldat Réanimé | ⚔️ | 3 | 4 | 3 | REVENANT. | La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience. |
-| 20 | Banshee Zombie | 🛡️ | 4 | 2 | 5 | Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse. | Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler. |
-| 21 | Possédé Hurlant | ⚔️ | 3 | 5 | 1 | ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière). | Même les morts refusent de le reprendre. |
-| 22 | Cavalier Zombie | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP. | Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte. |
-| 23 | Garde du Charnier | ⚔️ | 2 | 1 | 4 | REMPART. Dernier Souffle : pioche 1 carte. | Il gardait les vivants. Il garde désormais ce qui reste. |
+| 20 | Banshee Zombie | 🛡️ | 4 | 2 | 5 | Arrivée : Silence un serviteur ennemi ciblé jusqu'à la fin du prochain tour adverse. | Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler. |
+| 21 | Possédé Hurlant | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Retiré du jeu (ne va pas au cimetière). | Même les morts refusent de le reprendre. |
+| 22 | Cavalier Zombie | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points de vie. | Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte. |
+| 23 | Garde du Charnier | ⚔️ | 2 | 1 | 4 | REMPART. Dernier Souffle : Piochez 1 carte. | Il gardait les vivants. Il garde désormais ce qui reste. |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
-| 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE. Mort-rage : serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
-| 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
-| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART. CHAIR MORTE. Blessure : les dégâts excédentaires ne se propagent pas. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
-| 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : vole 2 HP au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
-| 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
-| 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
-| 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : ressuscite le dernier Mort-Vivant allié mort avec 1 HP en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
+| 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
+| 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE. Mort-rage : Serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
+| 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : Invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
+| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE. Immunisé au débordement de RAVAGE : Les dégâts excédentaires ne se propagent jamais sur votre héros. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
+| 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 2 points de vie au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
+| 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
+| 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
+| 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
-| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
-| 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
+| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
+| 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART. Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 35 | Le Médecin de la Peste | 🛡️ | 6 | 0 | 4 | Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant. | Il soignait les vivants autrefois. Il a simplement changé de patientèle. |
-| 36 | Roi Liche Zombie | ⚔️ | 7 | 6 | 8 | Arrivée : ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 HP en rangée Avant. | Son royaume n'a pas de frontières. Il s'étend à mesure que ses sujets meurent. |
-| 37 | Apocalypse Zombie | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous ton contrôle. | Ce n'était pas une invasion. C'était une conversion. |
-| 38 | Léviathan Putréfié | ⚔️ | 7 | 8 | 10 | REMPART. Arrivée : serviteurs Mort-Vivants alliés +2/+2. | Les mers l'ont recraché. Elles non plus ne voulaient plus de lui. |
-| 39 | La Faucheuse | ⚔️ | 7 | 7 | 6 | Arrivée : détruit un serviteur ennemi ciblé et le ressuscite sous ton contrôle sans ses effets. | Elle ne prend pas les âmes. Elle redistribue les corps. |
+| 35 | Le Médecin de la Peste | 🛡️ | 6 | 0 | 4 | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant. | Il soignait les vivants autrefois. Il a simplement changé de patientèle. |
+| 36 | Roi Liche Zombie | ⚔️ | 7 | 6 | 8 | Arrivée : Ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 point de vie en rangée Avant. | Son royaume n'a pas de frontières. Il s'étend à mesure que ses sujets meurent. |
+| 37 | Apocalypse Zombie | ⚔️ | 8 | 9 | 9 | Arrivée : Transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous votre contrôle. | Ce n'était pas une invasion. C'était une conversion. |
+| 38 | Léviathan Putréfié | ⚔️ | 7 | 8 | 10 | REMPART. Arrivée : Serviteurs Mort-Vivants alliés +2/+2. | Les mers l'ont recraché. Elles non plus ne voulaient plus de lui. |
+| 39 | La Faucheuse | ⚔️ | 7 | 7 | 6 | Arrivée : Détruit un serviteur ennemi ciblé et le ressuscite sous votre contrôle sans ses effets. | Elle ne prend pas les âmes. Elle redistribue les corps. |
 
 ---
 
@@ -143,13 +143,13 @@ Positionnement (Lane Types)
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
 | Légion Décharnée | ⚔️ | 3 | 3 | 3 | HORDE. | Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue. |
-| Colosse Revenant | ⚔️ | 5 | 5 | 6 | REMPART. REVENANT. | Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre. |
+| Colosse Revenant | ⚔️ | 5 | 5 | 6 | REMPART, REVENANT | Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre. |
 
 **Incantations Arena** — achetées en boutique puis lancées séparément depuis la main (pas de ciblage ennemi en v1, voir README « Incantations » et plan Arena) :
 
 | Nom | ⬡ | Rareté | Effet | Flavour |
 |---|:---:|---|---|---|
-| Souffle du Charnier Ancestral | 3 | Rare | Tous tes serviteurs alliés gagnent +1/+1 de façon permanente. | Un seul souffle, et chaque carcasse debout se redresse un peu plus droite. |
+| Souffle du Charnier Ancestral | 3 | Rare | Tous vos serviteurs alliés gagnent +1/+1 de façon permanente. | Un seul souffle, et chaque carcasse debout se redresse un peu plus droite. |
 
 ---
 
@@ -158,18 +158,18 @@ Positionnement (Lane Types)
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | 40 | Souffle Nécrotique | 2 | Commune | 2 dégâts à un serviteur ennemi ciblé. | Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien. |
-| 41 | Réveil Soudain | 1 | Commune | Ressuscite le dernier serviteur allié mort avec 1 HP en rangée Avant. | Il n'y a pas de repos pour ceux qu'on rappelle. |
+| 41 | Réveil Soudain | 1 | Commune | Ressuscite le dernier serviteur allié mort avec 1 point de vie en rangée Avant. | Il n'y a pas de repos pour ceux qu'on rappelle. |
 | 42 | Vague de Putréfaction | 3 | Commune | 1 dégât à tous les serviteurs ennemis en rangée Avant. | La peste ne choisit pas. Elle couvre. |
-| 43 | Don de Chair | 2 | Rare | Sacrifice (un serviteur allié) : inflige 3 dégâts au héros ennemi. | Il a donné son corps. Il n'avait plus besoin de consentir. |
+| 43 | Don de Chair | 2 | Rare | Sacrifice 1 : Inflige 3 dégâts au héros ennemi. | Il a donné son corps. Il n'avait plus besoin de consentir. |
 | 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
-| 45 | Morsure Infectieuse | 3 | Rare | Transforme un serviteur ennemi non-Légendaire en Zombie 1/1 sous ton contrôle. | Une seule morsure suffit. Le reste, c'est une question de temps. |
+| 45 | Morsure Infectieuse | 3 | Rare | Transforme un serviteur ennemi non-Légendaire en Zombie 1/1 sous votre contrôle. | Une seule morsure suffit. Le reste, c'est une question de temps. |
 | 46 | Cri des Damnés | 3 | Rare | Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place. | Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain. |
-| 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur ennemi de 3 HP ou moins dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
+| 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
 | 48 | Exhalation Toxique | 1 | Commune | 1 dégât à tous les serviteurs en jeu. | Même ses alliés évitent de respirer trop près. |
-| 49 | Dernier Soupir | 3 | Épique | Pioche 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
+| 49 | Dernier Soupir | 3 | Épique | Piochez 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
 | 50 | Éclat de Putréfaction | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : invoque un Rampant 1/1. | La corruption ne respecte pas la magie. Elle la digère. |
 | 51 | Souffle du Charnier | 1 | Commune | Un Mort-Vivant allié ciblé gagne +0/+2. | Ce qui ne peut pas mourir davantage peut encore endurcir. |
-| 52 | Doigt Décharné | 1 | Rare | Pioche 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce tour. | Il désigne. Quelque chose, quelque part, répond. |
+| 52 | Doigt Décharné | 1 | Rare | Piochez 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce tour. | Il désigne. Quelque chose, quelque part, répond. |
 
 ---
 
@@ -177,18 +177,18 @@ Positionnement (Lane Types)
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : ressuscite un Mort-Vivant allié mort aléatoire avec 1 HP en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
-| 54 | Pacte Sanglant | 4 | Épique | 3 charges | Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
-| 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
-| 56 | Communion avec les Morts | 3 | Rare | 4 charges | Deuil : pioche 1 carte par Mort-Vivant allié mort ce match (max 4). | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
-| 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : si ton cimetière contient un Mort-Vivant, ramène-le en main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
-| 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice (un serviteur allié) : tes serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
-| 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : inflige 2 dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
-| 60 | Arrivée de Masse | 7 | Légendaire | 3 charges | Éveil : invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
-| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 charges | Sortilège ennemi : annulé s'il cible un de tes Mort-Vivants. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
-| 62 | Rituel de la Fosse Sans Fond | 6 | Épique | 2 charges | Sacrifice (un serviteur allié) : pioche 1 carte. | Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois. |
-| 63 | Épidémie | 4 | Épique | 2 charges | Présence : serviteurs non Mort-Vivants ennemis -1/-1. | Elle ne tue pas. Elle prépare, jour après jour. |
-| 64 | Grand Rituel Nécrotique | 8 | Légendaire | 3 charges | Deuil : ramène en main le Mort-Vivant allié le plus récemment mort. | "Je n'ai perdu personne. Je les rappelle, un par un, chaque fois qu'il le faut."Le Nécromant d'Ossemoor |
+| 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
+| 54 | Pacte Sanglant | 4 | Épique | 3 charges | Sacrifice 1 (≤2 points de vie) : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
+| 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
+| 56 | Communion avec les Morts | 3 | Rare | 4 charges | Deuil : Piochez 1 carte par Mort-Vivant allié mort ce match (max 4). | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
+| 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Si votre cimetière contient un Mort-Vivant, ramenez-le en main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
+| 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
+| 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : Inflige 2 dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
+| 60 | Arrivée de Masse | 7 | Légendaire | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
+| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos Mort-Vivants. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
+| 62 | Rituel de la Fosse Sans Fond | 6 | Épique | 2 charges | Sacrifice 1 : Piochez 1 carte. | Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois. |
+| 63 | Épidémie | 4 | Épique | 2 charges | Présence : Serviteurs non Mort-Vivants ennemis -1/-1. | Elle ne tue pas. Elle prépare, jour après jour. |
+| 64 | Grand Rituel Nécrotique | 8 | Légendaire | 3 charges | Deuil : Ramène en main le Mort-Vivant allié le plus récemment mort. | "Je n'ai perdu personne. Je les rappelle, un par un, chaque fois qu'il le faut."Le Nécromant d'Ossemoor |
 
 ---
 
@@ -196,17 +196,17 @@ Positionnement (Lane Types)
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 65 | Autel des Damnés | 3 | Rare | Deuil : pioche 1 carte. | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
-| 66 | Fosse Commune | 4 | Rare | Renfort : si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
-| 67 | Aura de Décrépitude | 3 | Rare | Résonance : ce Mort-Vivant attaquant gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
-| 68 | Cimetière Vivant | 5 | Épique | Deuil : ce Mort-Vivant revient en jeu à la fin du tour avec 1 HP. (Une seule fois par serviteur.) | Le sol ici ne garde rien. Il régurgite. |
-| 69 | Brouillard Pestilentiel | 3 | Rare | Présence : à chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 HP supplémentaire. | On ne le voit pas. On ne le sent même plus, après un moment. |
-| 70 | Symbiose Cadavérique | 5 | Épique | Présence : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant. | Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste. |
-| 71 | Idole de l'Apocalypse | 6 | Légendaire | Résonance : le Mort-Vivant attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible. | On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines. |
-| 72 | Sanctuaire Nécrotique | 4 | Épique | Présence : les sorts alliés coûtent 1 de moins (min 1). | Dans ses murs, la magie de mort coule comme de l'eau froidenaturellement. |
-| 73 | Vortex des Âmes | 6 | Légendaire | Carnage : gagne 1 mana temporaire ce tour. | Les âmes qui s'y perdent alimentent quelque chose que personne ne comprend vraiment. |
-| 74 | Monument aux Morts | 5 | Épique | Deuil : invoque 2 Mort-Vivants aléatoires de coût ≤3. | On l'a érigé pour honorer les disparus. Il préfère les renvoyer. |
-| 75 | Murmure Funeste | 1 | Rare | Présence : le premier Mort-Vivant joué chaque tour coûte 1 de moins (min 1). | On ne l'entend pas. On sent juste que quelque chose a dit oui. |
+| 65 | Autel des Damnés | 3 | Rare | Deuil : Piochez 1 carte. | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
+| 66 | Fosse Commune | 4 | Rare | Renfort : Si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
+| 67 | Aura de Décrépitude | 3 | Rare | Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
+| 68 | Cimetière Vivant | 5 | Épique | Deuil : Ce Mort-Vivant revient en jeu à la fin du tour avec 1 point de vie. (Une seule fois par serviteur.) | Le sol ici ne garde rien. Il régurgite. |
+| 69 | Brouillard Pestilentiel | 3 | Rare | Présence : À chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 point de vie supplémentaire. | On ne le voit pas. On ne le sent même plus, après un moment. |
+| 70 | Symbiose Cadavérique | 5 | Épique | Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant. | Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste. |
+| 71 | Idole de l'Apocalypse | 6 | Légendaire | Résonance : Chaque Mort-Vivant attaquant inflige 1 dégât aux serviteurs adjacents à la cible. | On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines. |
+| 72 | Sanctuaire Nécrotique | 4 | Épique | Présence : Les sorts alliés coûtent 1 de moins (min 1). | Dans ses murs, la magie de mort coule comme de l'eau froidenaturellement. |
+| 73 | Vortex des Âmes | 6 | Légendaire | Carnage : Gagne 1 mana temporaire ce tour. | Les âmes qui s'y perdent alimentent quelque chose que personne ne comprend vraiment. |
+| 74 | Monument aux Morts | 5 | Épique | Deuil : Invoque 2 Mort-Vivants aléatoires de coût ≤3. | On l'a érigé pour honorer les disparus. Il préfère les renvoyer. |
+| 75 | Murmure Funeste | 1 | Rare | Présence : Le premier Mort-Vivant joué chaque tour coûte 1 de moins (min 1). | On ne l'entend pas. On sent juste que quelque chose a dit oui. |
 
 ### Jetons
 
@@ -215,7 +215,7 @@ Positionnement (Lane Types)
 | 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
 | 78 | Rampant | ⚔️ | — | 1 | 1 | — (jeton vanille, invoqué par : Éclat de Putréfaction, Architecte de la Horde, Fosse Commune, Tombeau Ambulant, Horde Mineure). | Encore un, sans nom cette fois. |
 | 79 | Zombie Mineur (jeton) | ⚔️ | — | 2 | 2 | HORDE. (jeton, invoqué par : Pacte Sanglant). | Il était enfant. C'était avant. |
-| 80 | Cadavre Errant (jeton) | ↕️ | — | 1 | 3 | REMPART. CHAIR MORTE. (jeton, invoqué par : Cultiste Zombifié). | Personne ne se souvient de son nom. Lui non plus. |
+| 80 | Cadavre Errant (jeton) | ↕️ | — | 1 | 3 | REMPART, CHAIR MORTE (jeton, invoqué par : Cultiste Zombifié). | Personne ne se souvient de son nom. Lui non plus. |
 
 ---
 
@@ -318,7 +318,7 @@ Liste complète des cartes de la race **Humain**.
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H12 | Chevalier du Mur | ⚔️ | 3 | 2 | 5 | REMPART. CONTRE-ATTAQUE. | *Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
-| H13 | Inquisiteur de Fer | ↕️ | 3 | 3 | 2 | Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse. | *Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle.* |
+| H13 | Inquisiteur de Fer | ↕️ | 3 | 3 | 2 | Arrivée : Silence un serviteur ennemi ciblé jusqu'à la fin du prochain tour adverse. | *Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle.* |
 | H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT. Arrivée : invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Attaque** : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART. FORTIFICATION. | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
@@ -805,7 +805,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A26 | Semeur de Nœuds | 🛡️ | 3 | 2 | 3 | FUSION. Attaque : invoque un Amas Informe 1/2 en rangée Avant. | *Il ne construit rien. Il fait pousser.* |
 | A27 | Ce-Qui-N'a-Plus-de-Bords | ⚔️ | 6 | 7 | 7 | REMPART. INSTABLE. MUTATION. | *On ne sait plus où il s'arrête, ni s'il s'arrête vraiment.* |
 | A28 | Faim Sans Fond | ↕️ | 4 | 4 | 4 | MOISSON. ASSIMILATION. | *Elle ne prend pas la vie. Elle l'intègre.* |
-| A29 | Poussière Qui Change | ↕️ | 3 | 1 | 2 | VIRULENT. Arrivée : inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Là où elle se dépose, quelque chose commence toujours à changer.* |
+| A29 | Poussière Qui Change | ↕️ | 3 | 1 | 2 | VIRULENT. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Là où elle se dépose, quelque chose commence toujours à changer.* |
 | A30 | Le Trieur de Chairs | ⚔️ | 5 | 5 | 5 | Arrivée : détruit un serviteur ennemi ayant 3 HP ou moins, puis mute. | *Il ne choisit pas ses proies. Il choisit ce qu'il veut devenir ensuite.* |
 | A31 | Le Sculpteur Sans Mains | 🛡️ | 4 | 2 | 4 | Arrivée : un serviteur allié ciblé gagne un mot-clé Abomination de ton choix, de façon permanente. | *"La forme n'est qu'une suggestion. Je préfère négocier."* |
 | A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | AILES NOIRES. FUSION. | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
@@ -852,7 +852,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ennemi ciblé un tour ; à la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
 | A45 | Appétit Ciblé | 3 | Rare | Détruit un serviteur ennemi ayant 2 HP ou moins ; un serviteur Abomination allié ciblé gagne +1/+1 permanent. | *Rien ne se jette. Tout se digère.* |
 | A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
-| A47 | Étau de Chair Neuve | 2 | Rare | Renvoie un serviteur ennemi de 3 HP ou moins dans la main de son propriétaire, réduit à une copie 1/1 sans mots-clés et coûtant 1. | *Il revient. Mais ce n'est plus vraiment lui.* |
+| A47 | Étau de Chair Neuve | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire, réduit à une copie 1/1 sans mots-clés et coûtant 1. | *Il revient. Mais ce n'est plus vraiment lui.* |
 | A48 | Respir Qui Change Tout | 1 | Commune | 1 dégât à tous les serviteurs en jeu ; les Abominations alliées touchées mutent à la place de perdre des HP. | *Même tes alliés changent, un peu, à chaque respiration.* |
 | A49 | Sursaut Final | 3 | Épique | Carnage : le prochain serviteur Abomination allié qui meurt ce tour ressuscite comme Amas Informe 1/1 (une seule fois). | *Une dernière contraction. Ça suffit parfois à repartir.* |
 | A50 | Fracture Vivante | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : un serviteur Abomination allié ciblé mute immédiatement. | *La corruption ne respecte pas la magie. Elle la digère aussi.* |
@@ -889,7 +889,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | A69 | Vapeur Qui S'Accroche | 3 | Rare | Présence : à chaque début du tour adverse, les serviteurs ennemis affaiblis (débuff actif) perdent 1 HP supplémentaire. | *On ne la voit pas. On sent juste que quelque chose continue de ronger.* |
 | A70 | Lien Sans Membrane | 5 | Épique | Présence : tes serviteurs en rangée Arrière gagnent +0/+1 par serviteur Abomination allié en rangée Avant. | *Ceux de devant absorbent. Ceux de derrière en profitent.* |
 | A71 | Effigie Née d'Elle-Même | 6 | Légendaire | Résonance : le serviteur Abomination attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible, qui subissent alors une mutation forcée : Dégénérescence. | *On ne l'a pas sculptée. Elle a poussé, un jour, et personne ne l'a arrêtée.* |
-| A72 | Repaire Qui Digère la Magie | 4 | Épique | Présence : les sorts alliés coûtent 1 de moins (min 1). | *Dans ses murs, tout se transforme un peu plus vite, même les sorts.* |
+| A72 | Repaire Qui Digère la Magie | 4 | Épique | Présence : Les sorts alliés coûtent 1 de moins (min 1). | *Dans ses murs, tout se transforme un peu plus vite, même les sorts.* |
 | A73 | Puits Qui Avale Tout | 6 | Légendaire | Dévoration : gagne 1 mana temporaire ce tour (une seule fois par tour). | *Tout ce qui meurt ici finit par nourrir autre chose.* |
 | A74 | Ce Qu'on a Laissé Pousser | 5 | Épique | Deuil : invoque 2 Abominations aléatoires de coût ≤3 ; elles mutent immédiatement. | *On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.* |
 | A75 | Chuchotement Qui Change la Forme | 1 | Rare | Présence : la première Abomination jouée chaque tour coûte 1 de moins (min 1) et mute dès son entrée en jeu. | *On ne l'entend pas. On sent juste que quelque chose a déjà commencé à changer.* |
