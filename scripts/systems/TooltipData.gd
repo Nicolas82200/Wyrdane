@@ -52,6 +52,54 @@ const KEYWORD_ABOMINATION_DESCRIPTIONS := {
 	KeywordAbomination.Type.INSTABLE:        { "title": "KW_INSTABLE_NAME",        "desc": "KW_INSTABLE_DESC" },
 }
 
+# ─── Icônes de mots-clés ───────────────────────────────────────────────────────
+# Source unique, réutilisée par BoardMinion (icônes sous le serviteur) et par les
+# tooltips (icône dans l'en-tête du panel) pour ne jamais désynchroniser les deux.
+const KEYWORD_ICONS := {
+	Keyword.Type.TAUNT:         preload("res://assets/icons/keyword/dragon-shield.svg"),
+	Keyword.Type.CHARGE:        preload("res://assets/icons/keyword/axe-swing.svg"),
+	Keyword.Type.AEGIS:         preload("res://assets/icons/keyword/shield-reflect.svg"),
+	Keyword.Type.LIFESTEAL:     preload("res://assets/icons/keyword/pretty-fangs.svg"),
+	Keyword.Type.FURY:          preload("res://assets/icons/keyword/sword-clash.svg"),
+	Keyword.Type.DEADLY_POISON: preload("res://assets/icons/keyword/foamy-disc.svg"),
+	Keyword.Type.RAVAGE:        preload("res://assets/icons/keyword/gooey-impact.svg"),
+	Keyword.Type.BLACK_WINGS:   preload("res://assets/icons/keyword/hood.svg"),
+}
+
+const KEYWORD_HUMAN_ICONS := {
+	KeywordHuman.Type.DISCIPLINE:     preload("res://assets/icons/keyword/suspicious.svg"),
+	KeywordHuman.Type.FORMATION:      preload("res://assets/icons/keyword/rally-the-troops.svg"),
+	KeywordHuman.Type.CONTRE_ATTAQUE: preload("res://assets/icons/keyword/riposte.svg"),
+	KeywordHuman.Type.COMMANDEMENT:   preload("res://assets/icons/keyword/knight-banner.svg"),
+	KeywordHuman.Type.FORTIFICATION:  preload("res://assets/icons/keyword/crenulated-shield.svg"),
+}
+
+const KEYWORD_UNDEAD_ICONS := {
+	KeywordUndead.Type.PESTIFERE:   preload("res://assets/icons/keyword/bird-mask.svg"),
+	KeywordUndead.Type.NECROPHAGE:  preload("res://assets/icons/keyword/carrion.svg"),
+	KeywordUndead.Type.HORDE:       preload("res://assets/icons/keyword/dark-squad.svg"),
+	KeywordUndead.Type.REVENANT:    preload("res://assets/icons/keyword/raise-zombie.svg"),
+	KeywordUndead.Type.CHAIR_MORTE: preload("res://assets/icons/keyword/lost-limb.svg"),
+}
+
+const KEYWORD_DEMON_ICONS := {
+	KeywordDemon.Type.PACTE:           preload("res://assets/icons/keyword/death-juice.svg"),
+	KeywordDemon.Type.CORRUPTION:      preload("res://assets/icons/keyword/evil-comet.svg"),
+	KeywordDemon.Type.TERREUR:         preload("res://assets/icons/keyword/terror.svg"),
+	KeywordDemon.Type.RANG_INFERNAL:   preload("res://assets/icons/keyword/daemon-skull.svg"),
+	KeywordDemon.Type.CHAIR_DE_SOUFRE: preload("res://assets/icons/keyword/fire-silhouette.svg"),
+	KeywordDemon.Type.SANG_NOIR:       preload("res://assets/icons/keyword/blood.svg"),
+}
+
+const KEYWORD_ABOMINATION_ICONS := {
+	KeywordAbomination.Type.MUTATION:         preload("res://assets/icons/keyword/dna1.svg"),
+	KeywordAbomination.Type.FUSION:           preload("res://assets/icons/keyword/swallow.svg"),
+	KeywordAbomination.Type.VIRULENT:         preload("res://assets/icons/keyword/poison-gas.svg"),
+	KeywordAbomination.Type.CHAIR_ADAPTATIVE: preload("res://assets/icons/keyword/mucous-pillar.svg"),
+	KeywordAbomination.Type.ASSIMILATION:     preload("res://assets/icons/keyword/lightning-electron.svg"),
+	KeywordAbomination.Type.INSTABLE:         preload("res://assets/icons/keyword/unstable-orb.svg"),
+}
+
 # Les clés de ce dict (String) doivent correspondre EXACTEMENT au champ
 # trigger.type de CardData ; les valeurs pointent vers game.csv.
 const TRIGGER_DESCRIPTIONS := {
@@ -117,7 +165,8 @@ func describe_effect(effect: CardEffect) -> String:
 # ─── Fabrique de panels ───────────────────────────────────────────────────────
 
 func make_tooltip_panel(title: String, desc: String,
-		header_color: Color = Color(0.22, 0.16, 0.07, 1.0)) -> PanelContainer:
+		header_color: Color = Color(0.22, 0.16, 0.07, 1.0),
+		icon: Texture2D = null) -> PanelContainer:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color                   = Color(0.13, 0.10, 0.06, 0.96)
 	bg.border_width_left          = 2
@@ -132,7 +181,7 @@ func make_tooltip_panel(title: String, desc: String,
 
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", bg)
-	panel.custom_minimum_size = Vector2(220, 0)
+	panel.custom_minimum_size = Vector2(195, 0)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var vbox := VBoxContainer.new()
@@ -143,26 +192,57 @@ func make_tooltip_panel(title: String, desc: String,
 	title_bg.bg_color            = header_color
 	title_bg.border_width_bottom = 1
 	title_bg.border_color        = Color(0.55, 0.38, 0.10, 0.8)
+	title_bg.content_margin_top    = 4
+	title_bg.content_margin_bottom = 4
+	title_bg.content_margin_left   = 6
+	title_bg.content_margin_right  = 6
+
+	var title_panel := PanelContainer.new()
+	title_panel.add_theme_stylebox_override("panel", title_bg)
+	title_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(title_panel)
+
+	var title_row := HBoxContainer.new()
+	title_row.add_theme_constant_override("separation", 6)
+	title_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_panel.add_child(title_row)
+
+	if icon != null:
+		var icon_rect := TextureRect.new()
+		icon_rect.texture             = icon
+		icon_rect.custom_minimum_size = Vector2(18, 18)
+		icon_rect.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
+		icon_rect.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.mouse_filter        = Control.MOUSE_FILTER_IGNORE
+		title_row.add_child(icon_rect)
 
 	var title_label := Label.new()
 	title_label.text = title
 	title_label.add_theme_color_override("font_color", Color(0.95, 0.80, 0.35, 1.0))
-	title_label.add_theme_font_size_override("font_size", 15)
-	title_label.add_theme_stylebox_override("normal", title_bg)
+	title_label.add_theme_font_size_override("font_size", 14)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vbox.add_child(title_label)
+	title_row.add_child(title_label)
 
 	var desc_label := Label.new()
 	desc_label.text = desc
 	desc_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.70, 1.0))
-	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_font_size_override("font_size", 12)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	desc_label.add_theme_constant_override("margin_left", 6)
-	desc_label.add_theme_constant_override("margin_right", 6)
-	desc_label.add_theme_constant_override("margin_bottom", 6)
-	vbox.add_child(desc_label)
+
+	# MarginContainer plutôt que des theme overrides "margin_*" posés
+	# directement sur le Label : Label n'a pas de constante de thème de ce nom,
+	# ces overrides n'avaient donc aucun effet (texte collé à la bordure).
+	var desc_margin := MarginContainer.new()
+	desc_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	desc_margin.add_theme_constant_override("margin_left", 8)
+	desc_margin.add_theme_constant_override("margin_right", 8)
+	desc_margin.add_theme_constant_override("margin_top", 2)
+	desc_margin.add_theme_constant_override("margin_bottom", 8)
+	desc_margin.add_child(desc_label)
+	vbox.add_child(desc_margin)
 
 	return panel
 
@@ -190,11 +270,17 @@ func make_race_tooltip(race_key: String) -> PanelContainer:
 	label.add_theme_font_size_override("font_size", 12)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_constant_override("margin_left", 10)
-	label.add_theme_constant_override("margin_right", 10)
-	label.add_theme_constant_override("margin_top", 4)
-	label.add_theme_constant_override("margin_bottom", 4)
-	panel.add_child(label)
+
+	# MarginContainer plutôt qu'un override "margin_*" sur le Label lui-même
+	# (constante de thème inexistante sur Label, donc sans effet).
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_child(label)
+	panel.add_child(margin)
 
 	return panel
 
@@ -208,7 +294,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD, KEYWORD_ICONS.get(keyword))
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -218,7 +304,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_HUMAN_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_HUMAN_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_HUMAN)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_HUMAN, KEYWORD_HUMAN_ICONS.get(keyword))
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -228,7 +314,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_UNDEAD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_UNDEAD_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_UNDEAD)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_UNDEAD, KEYWORD_UNDEAD_ICONS.get(keyword))
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -238,7 +324,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_DEMON_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_DEMON_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_DEMON)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_DEMON, KEYWORD_DEMON_ICONS.get(keyword))
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)
@@ -248,7 +334,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		if not KEYWORD_ABOMINATION_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_ABOMINATION_DESCRIPTIONS[keyword]
-		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_ABOMINATION)
+		var panel := make_tooltip_panel(_tr(info["title"]), _tr(info["desc"]), COLOR_KEYWORD_ABOMINATION, KEYWORD_ABOMINATION_ICONS.get(keyword))
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)

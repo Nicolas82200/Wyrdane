@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b7fp67tct74v4" path="res://assets/card_art/demon/soul-devourer.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="6_kwd"]
 
 [sub_resource type="Resource" id="Resource_kpa1o"]
 script = ExtResource("4_kw")
@@ -14,12 +15,10 @@ name_fr = "Moisson"
 script = ExtResource("5_trig")
 type = "ONPLAY"
 
-[sub_resource type="Resource" id="Resource_axk5r"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
-value = 2
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("6_kwd")
+keyword_type = 0
+value = 3
 
 [sub_resource type="Resource" id="Resource_5c804"]
 script = ExtResource("1_cardeffect")
@@ -27,10 +26,19 @@ effect_id = "StealHealthFromHero"
 value = 4
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "StealHealthFromHero"
+value = 2
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Suceur d'Âmes"
-description = "MOISSON. Arrivée : ton héros perd 2 HP ; vole 4 HP au héros ennemi."
+description = "MOISSON
+Arrivée : Vole 4 points de vie au héros ennemi.
+Pacte 3 : Vole 2 points de vie supplémentaires."
 flavour_text = "Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui."
 texture = ExtResource("3_texture")
 cost = 4
@@ -39,8 +47,9 @@ unit_style = 16
 attack = 4
 health = 4
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_kpa1o")])
+demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_58ozi")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_axk5r"), SubResource("Resource_5c804")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_5c804"), SubResource("Resource_bonus")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

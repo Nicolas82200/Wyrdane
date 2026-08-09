@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Banshee des Abysses"
-description = "Arrivée : inflige Corruption à un serviteur ennemi ciblé."
+description = "Arrivée : Inflige Corruption à un serviteur ennemi ciblé."
 flavour_text = "Son chant ne tue personne. Il fait juste pourrir ce qui l'entend."
 texture = ExtResource("3_texture")
 cost = 4

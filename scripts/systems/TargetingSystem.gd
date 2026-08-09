@@ -10,9 +10,6 @@ var _trigger_mode: bool = false
 var _pending_card: CardData = null
 var _pending_row: String = "Front"
 var _pending_insert_index: int = -1
-# Choix de Pacte déjà résolu (voir CardSystem.handle_card_played) avant même
-# de commencer le ciblage — le ciblage n'est proposé que si le joueur a payé.
-var _pending_pact_paid: bool = true
 var _highlighted: Array[Control] = []
 var _arrow: ArrowOverlay = null
 var _origin_node: Control = null  # nœud de départ de la flèche (la carte jouée)
@@ -47,11 +44,10 @@ func prompt_trigger_target(card_data: CardData) -> Minion:
 	var result = await target_selected
 	return result
 
-func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null, pact_paid: bool = true) -> void:
+func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
 	_pending_card         = card_data
 	_pending_row          = row
 	_pending_insert_index = insert_index
-	_pending_pact_paid    = pact_paid
 	_origin_node          = origin
 	_active               = true
 	_show_valid_targets(card_data)
@@ -134,14 +130,12 @@ func _finish(target) -> void:
 		return
 	# ← Cache la popup de ciblage
 	battle.card_popup_system.hide_targeting_popup()
-	var card       := _pending_card
-	var row        := _pending_row
-	var index      := _pending_insert_index
-	var pact_paid  := _pending_pact_paid
-	_pending_card      = null
-	_pending_pact_paid = true
-	_origin_node       = null
-	battle.card_system.resolve_with_target(card, row, index, target, pact_paid)
+	var card   := _pending_card
+	var row    := _pending_row
+	var index  := _pending_insert_index
+	_pending_card = null
+	_origin_node  = null
+	battle.card_system.resolve_with_target(card, row, index, target)
 	target_selected.emit(target)
 
 func cancel() -> void:
@@ -149,7 +143,6 @@ func cancel() -> void:
 		return
 	_active = false
 	_pending_card = null
-	_pending_pact_paid = true
 	_origin_node  = null
 	_clear_highlights()
 	_arrow.hide_arrow()

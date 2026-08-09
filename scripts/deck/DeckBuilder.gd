@@ -40,7 +40,6 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
-var _is_loading_grid: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []
@@ -414,6 +413,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 
 	var cost_bg := StyleBoxFlat.new()
@@ -423,6 +423,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var cost_panel := PanelContainer.new()
 	cost_panel.add_theme_stylebox_override("panel", cost_bg)
 	cost_panel.custom_minimum_size = Vector2(28, 0)
+	cost_panel.mouse_filter        = Control.MOUSE_FILTER_IGNORE
 	var cost_lbl := Label.new()
 	cost_lbl.text                 = str(card.cost)
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -440,12 +441,13 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_margin.mouse_filter          = Control.MOUSE_FILTER_IGNORE
 	name_margin.add_child(name_lbl)
 	row.add_child(name_margin)
 
 	var qty_lbl := Label.new()
-	qty_lbl.text                 = str(count)
-	qty_lbl.custom_minimum_size  = Vector2(22, 0)
+	qty_lbl.text                 = "x%d" % count
+	qty_lbl.custom_minimum_size  = Vector2(28, 0)
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_size_override("font_size", 13)
@@ -458,11 +460,17 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	del_btn.add_theme_color_override("font_color",       Color(0.6, 0.3, 0.3, 1))
 	del_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.4, 0.4, 1))
 	del_btn.add_theme_font_size_override("font_size", 12)
-	del_btn.pressed.connect(_on_remove_one.bind(path))
+	del_btn.pressed.connect(_on_remove_all.bind(path))
 	row.add_child(del_btn)
 
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
+
+	# Clic sur la ligne (hors croix rouge) : retire une seule copie. La croix
+	# rouge (del_btn, filtre souris par défaut STOP) consomme son propre clic
+	# et ne déclenche donc jamais ce gui_input.
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.gui_input.connect(_on_deck_row_input.bind(path))
 
 	# Preview agrandie au survol d'une carte déjà dans le deck, même mécanisme
 	# que pour la grille de collection (voir _on_card_wrapper_entered/_exited).
@@ -650,12 +658,24 @@ func _on_add_card(card_data: CardData) -> void:
 	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
 		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
+func _on_deck_row_input(event: InputEvent, path: String) -> void:
+	if event is InputEventMouseButton \
+			and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.pressed:
+		_on_remove_one(path)
+
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
 		return
 	var idx := current_deck.card_paths.rfind(path)
 	if idx >= 0:
 		current_deck.remove_card_at(idx)
+	_refresh_deck_list()
+
+func _on_remove_all(path: String) -> void:
+	if current_deck == null:
+		return
+	current_deck.remove_all_copies(path)
 	_refresh_deck_list()
 
 func _on_name_changed(new_name: String) -> void:
@@ -845,6 +865,20 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 	_race_tooltip = race_panel
 	_position_hover_tooltips()
 
+## Trouve le ScrollContainer ancêtre le plus proche du nœud survolé (grille de
+## collection = ScrollCards, liste du deck = ScrollDeck) : sert de référence
+## pour ne jamais faire déborder la preview/les tooltips sur les panneaux
+## voisins (barre de filtres au-dessus, liste du deck à côté). À défaut,
+## replie sur tout l'écran.
+func _hover_panel_bounds(wrapper: Control) -> Rect2:
+	var n: Node = wrapper
+	while n != null and not (n is ScrollContainer):
+		n = n.get_parent()
+	if n == null:
+		return Rect2(Vector2.ZERO, get_viewport_rect().size)
+	var ctrl := n as Control
+	return Rect2(ctrl.global_position, ctrl.size)
+
 ## Repositionne la preview agrandie et les tooltips par rapport à la carte
 ## survolée. Appelé à chaque frame tant que le survol dure, pour que tout
 ## suive le scroll de la grille.
@@ -853,16 +887,23 @@ func _position_hover_tooltips() -> void:
 	if wrapper == null or not is_instance_valid(wrapper):
 		return
 	var vp := get_viewport_rect().size
+	var panel_bounds := _hover_panel_bounds(wrapper)
 	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
-	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
 
-	# Preview centrée verticalement sur la carte survolée, à droite si la
-	# place le permet (sinon à gauche), pour ne jamais masquer le curseur.
+	# Preview alignée sur le haut de la carte survolée quand la place le
+	# permet (sinon ajustée comme en bas d'écran, pour ne jamais chevaucher
+	# la barre de filtres si la carte est coupée en haut de la grille).
 	var preview_y: float = clampf(
-		wrapper_center.y - preview_size.y / 2.0, 4.0, vp.y - preview_size.y - 4.0)
+		wrapper.global_position.y, panel_bounds.position.y, vp.y - preview_size.y - 4.0)
+
+	# À droite de la carte par défaut (place généralement disponible dans la
+	# grille), replié à gauche seulement si ça déborderait du panneau courant
+	# (empêche d'empiéter sur la liste du deck voisine).
+	var preview_on_left := false
 	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
-	if preview_x + preview_size.x > vp.x - 4.0:
+	if preview_x + preview_size.x > panel_bounds.position.x + panel_bounds.size.x - 4.0:
 		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+		preview_on_left = true
 	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
 	card_preview.global_position = Vector2(preview_x, preview_y)
@@ -880,12 +921,17 @@ func _position_hover_tooltips() -> void:
 		stack_height -= 6.0
 		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
+	# Toujours du même côté que la preview, en s'en éloignant davantage —
+	# jamais entre la preview et la carte survolée (sinon ils la recouvrent).
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		var px := card_preview.global_position.x + preview_size.x + 12.0
-		if px + panel.size.x > vp.x:
+		var px: float
+		if preview_on_left:
 			px = card_preview.global_position.x - panel.size.x - 12.0
+		else:
+			px = card_preview.global_position.x + preview_size.x + 12.0
+		px = clampf(px, 4.0, vp.x - panel.size.x - 4.0)
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
 	if _race_tooltip != null and is_instance_valid(_race_tooltip):
@@ -936,15 +982,14 @@ func _build_filter_bar() -> void:
 	for race_value in Race.get_implemented_races():
 		race_values.append(race_value)
 		race_labels.append(SettingsManager.t("RACE_" + race_keys[race_value]))
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
-	_add_filter_group(filter_bar, race_values,
+	_add_labeled_filter_group(filter_bar, SettingsManager.t("deck.filter_race"), race_values,
 		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),
 		func() -> int: return _filter_race,
 		race_labels)
 
 	# Type de carte
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
-	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment", "Resource"],
+	_add_labeled_filter_group(filter_bar, SettingsManager.t("deck.filter_type"),
+		["", "Minion", "Instant", "Ritual", "Enchantment", "Resource"],
 		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
 		func() -> String: return _filter_type,
 		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
@@ -952,15 +997,15 @@ func _build_filter_bar() -> void:
 			SettingsManager.t("cardtype.resource")])
 
 	# Rareté
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))
-	_add_filter_group(filter_bar, ["", "Common", "Rare", "Epic", "Legendary"],
+	_add_labeled_filter_group(filter_bar, SettingsManager.t("deck.filter_rarity"),
+		["", "Common", "Rare", "Epic", "Legendary"],
 		func(v: String) -> void: _filter_rarity = v; _refresh_card_grid(),
 		func() -> String: return _filter_rarity,
 		[all_label, "Common", "Rare", "Epic", "Legendary"])
 
 	# Coût
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_cost")))
-	_add_filter_group(filter_bar, [-1, 0, 1, 2, 3, 4, 5, 6, 7],
+	_add_labeled_filter_group(filter_bar, SettingsManager.t("deck.filter_cost"),
+		[-1, 0, 1, 2, 3, 4, 5, 6, 7],
 		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
 		func() -> int: return _filter_cost,
 		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
@@ -988,20 +1033,23 @@ func _build_sort_bar() -> void:
 
 	var all_label := SettingsManager.t("deck.filter_all")
 
-	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_keyword")))
+	var kw_wrap := HBoxContainer.new()
+	kw_wrap.add_theme_constant_override("separation", 6)
+	kw_wrap.add_child(_make_filter_label(SettingsManager.t("deck.filter_keyword")))
 	var kw_values: Array[String] = [""]
 	var kw_labels: Array[String] = [all_label]
 	for entry in _all_keyword_entries():
 		kw_values.append(entry["id"])
 		kw_labels.append(entry["label"])
-	sort_bar.add_child(_make_keyword_dropdown(kw_values, kw_labels))
+	kw_wrap.add_child(_make_keyword_dropdown(kw_values, kw_labels))
+	sort_bar.add_child(kw_wrap)
 
 	var sort_spacer := Control.new()
 	sort_spacer.custom_minimum_size = Vector2(20, 0)
 	sort_bar.add_child(sort_spacer)
 
-	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.sort_label")))
-	_add_filter_group(sort_bar, ["", "cost", "name", "rarity"],
+	_add_labeled_filter_group(sort_bar, SettingsManager.t("deck.sort_label"),
+		["", "cost", "name", "rarity"],
 		func(v: String) -> void: _sort_mode = v; _refresh_card_grid(),
 		func() -> String: return _sort_mode,
 		[SettingsManager.t("deck.sort_default"), SettingsManager.t("deck.sort_cost"),
@@ -1048,6 +1096,18 @@ func _make_filter_label(text: String) -> Label:
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	return lbl
 
+
+## Comme _add_filter_group, mais enveloppe le libellé et son groupe de boutons
+## dans un seul HBoxContainer — évite qu'une HFlowContainer ne renvoie le
+## libellé seul à la ligne en séparant "Coût :" de ses boutons quand la
+## largeur manque.
+func _add_labeled_filter_group(parent: Control, label_text: String, values: Array,
+		on_select: Callable, get_current: Callable, labels: Array) -> void:
+	var wrap := HBoxContainer.new()
+	wrap.add_theme_constant_override("separation", 6)
+	wrap.add_child(_make_filter_label(label_text))
+	_add_filter_group(wrap, values, on_select, get_current, labels)
+	parent.add_child(wrap)
 
 ## Crée un groupe de boutons radio pour un filtre donné.
 ## values      : tableau de valeurs (String ou int)

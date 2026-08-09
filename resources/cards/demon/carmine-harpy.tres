@@ -12,7 +12,7 @@ keyword_type = 2
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Harpie Carmine"
-description = "TERREUR."
+description = "TERREUR"
 flavour_text = "Son cri ne blesse pas. Il paralyse."
 texture = ExtResource("3_texture")
 cost = 3

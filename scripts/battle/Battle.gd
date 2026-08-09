@@ -49,6 +49,7 @@ const MULLIGAN_DURATION           := 30.0
 @onready var enemy_ritual_zone: HBoxContainer          = $Board/EnemyRitualZone
 @onready var player_resource_zone: HBoxContainer       = $Board/PlayerResourceZone
 @onready var enemy_resource_zone: HBoxContainer        = $Board/EnemyResourceZone
+@onready var mulligan_dim_overlay: ColorRect           = $Board/MulliganDimOverlay
 @onready var player_graveyard_btn: Button              = $PlayerGraveyardButton
 @onready var enemy_graveyard_btn: Button               = $EnemyGraveyardButton
 @onready var player_graveyard_preview: Card            = $PlayerGraveyardButton/CardPreview
@@ -327,7 +328,7 @@ func _connect_signals() -> void:
 	targeting_system.targeting_cancelled.connect(_on_targeting_cancelled)
 	settings_button.pressed.connect(settings_menu.open)
 	_style_settings_button()
-	report_button.pressed.connect(_on_report_pressed)
+	settings_menu.report_requested.connect(_on_report_pressed)
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
@@ -377,7 +378,8 @@ func _start_game() -> void:
 		hand_cards = TutorialDeck.player_hand()
 	else:
 		deck_system.deal_opening_hand()
-	hand.set_hand(hand_cards, false)
+	var deck_origin: Vector2 = deck_button.global_position + deck_button.size / 2.0
+	await hand.play_opening_draw(hand_cards, deck_origin)
 	if tutorial_active:
 		await tutorial_manager.intro_mulligan()
 	await _run_mulligan()
@@ -409,10 +411,15 @@ func _run_mulligan() -> void:
 	_mulligan_active = true
 	_mulligan_swap_count = 0
 	_mulligan_swapped_indices.clear()
-	hand.set_mulligan_mode(true)
+	# Transition étalée réservée à la partie normale : le tutoriel guidé mesure
+	# la position des cartes très tôt (voir TutorialManager.guided_mulligan) et
+	# a besoin qu'elles soient déjà stables à cet instant.
+	hand.set_mulligan_mode(true, -1.0 if tutorial_active else Hand.MULLIGAN_TRANSITION_DURATION)
 	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
+	mulligan_dim_overlay.visible = true
 	turn_banner.show_banner_persistent(
-		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"))
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"),
+		TurnBanner.MULLIGAN_Y_RATIO)
 	_retranslate_battle()
 	end_turn_button.disabled = false
 	end_turn_button.set_ready_hint(true)
@@ -431,6 +438,7 @@ func _run_mulligan() -> void:
 	turn_banner.hide_banner()
 	end_turn_button.disabled = true
 	end_turn_button.set_ready_hint(false)
+	mulligan_dim_overlay.visible = false
 	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
 	hand.set_mulligan_mode(false)
 	_mulligan_active = false
@@ -622,18 +630,6 @@ func race_mana_pool(is_player: bool) -> Dictionary:
 
 func race_max_mana_pool(is_player: bool) -> Dictionary:
 	return race_max_mana if is_player else opponent.race_max_mana
-
-func total_mana(is_player: bool = true) -> int:
-	var total := 0
-	for v in race_mana_pool(is_player).values():
-		total += int(v)
-	return total
-
-func total_max_mana(is_player: bool = true) -> int:
-	var total := 0
-	for v in race_max_mana_pool(is_player).values():
-		total += int(v)
-	return total
 
 # Recharge le pool courant de chaque race à son maximum (début de tour) et
 # efface tout mana temporaire hors-race (GainMana) : "le surplus non dépensé
@@ -982,6 +978,7 @@ func _create_card_drag_preview(card_data: CardData) -> Control:
 		preview.health_label.visible = false
 	preview.scale    = Vector2.ONE
 	preview.modulate = Color(1, 1, 1, 0.85)
+	Card.add_drag_shadow(preview)
 	return preview
 
 func is_dragging_card() -> bool:

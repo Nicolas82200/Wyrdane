@@ -16,7 +16,7 @@ keyword_type = 4
 [resource]
 script = ExtResource("4_carddata")
 card_name = "La Faim Cuirassée"
-description = "RAVAGE. ASSIMILATION."
+description = "RAVAGE, ASSIMILATION"
 flavour_text = "Chaque mort autour d'elle l'épaissit un peu plus."
 texture = ExtResource("3_texture")
 cost = 5

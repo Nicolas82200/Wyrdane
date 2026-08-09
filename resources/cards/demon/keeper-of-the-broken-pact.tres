@@ -7,7 +7,7 @@
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Gardien du Pacte Brisé"
-description = "Tant que ce serviteur est en jeu, les dégâts que tes propres cartes infligent à ton héros sont annulés."
+description = "Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés."
 flavour_text = "Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus."
 texture = ExtResource("3_texture")
 cost = 6

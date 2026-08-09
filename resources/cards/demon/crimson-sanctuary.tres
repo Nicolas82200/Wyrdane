@@ -18,7 +18,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Sanctuaire Écarlate"
-description = "Présence : les sorts alliés coûtent 1 de moins (min 1). Ton héros perd 1 HP la première fois que ce rabais s'applique chaque tour."
+description = "Présence : Vos sorts alliés coûtent 1 de moins (minimum 1).
+Votre héros perd 1 point de vie la première fois que ce rabais s'applique chaque tour."
 flavour_text = "Dans ses murs, la magie coule librement. Rien n'est jamais vraiment gratuit."
 texture = ExtResource("3_texture")
 cost = 4

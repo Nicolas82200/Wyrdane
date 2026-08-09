@@ -23,7 +23,8 @@ script = ExtResource("5_tnu5d")
 [resource]
 script = ExtResource("3_jqnlt")
 card_name = "Soldat de la Foi"
-description = "ÉGIDE. Dernier Souffle : invoque un Milicien du Bourg 2/1 en rangée Avant."
+description = "ÉGIDE
+Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant."
 flavour_text = "Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois."
 texture = ExtResource("4_7q55o")
 cost = 3

@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Sentinelle des Remparts"
-description = "REMPART. FORTIFICATION."
+description = "REMPART, FORTIFICATION"
 flavour_text = "On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné."
 texture = ExtResource("3_texture")
 cost = 2

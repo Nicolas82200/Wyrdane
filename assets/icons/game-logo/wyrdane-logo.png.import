@@ -2,21 +2,20 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ckokn4wuoqmdx"
-path.s3tc="res://.godot/imported/fury-icon.png-51a82932f09b3d7ff0592e772d3c0ba3.s3tc.ctex"
+uid="uid://bftehm45r5q8w"
+path="res://.godot/imported/wyrdane-logo.png-642079b4d38dda2c0b20ca941ac11ceb.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/icons/fury-icon.png"
-dest_files=["res://.godot/imported/fury-icon.png-51a82932f09b3d7ff0592e772d3c0ba3.s3tc.ctex"]
+source_file="res://assets/icons/game-logo/wyrdane-logo.png"
+dest_files=["res://.godot/imported/wyrdane-logo.png-642079b4d38dda2c0b20ca941ac11ceb.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

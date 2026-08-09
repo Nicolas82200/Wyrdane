@@ -20,7 +20,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Murmure Funeste"
-description = "Présence : le premier Mort-Vivant joué chaque tour coûte 1 de moins (min 1)."
+description = "Présence : Le premier Mort-Vivant joué chaque tour coûte 1 de moins (min 1)."
 flavour_text = "On ne l'entend pas. On sent juste que quelque chose a dit oui."
 texture = ExtResource("3_texture")
 card_type = "Enchantment"

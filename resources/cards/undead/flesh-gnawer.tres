@@ -22,7 +22,7 @@ type = "OnExecution"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rongeur de Chair"
-description = "Exécution : peut attaquer à nouveau une fois par tour."
+description = "Exécution : Peut attaquer à nouveau une fois par tour."
 flavour_text = "Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien."
 texture = ExtResource("3_texture")
 cost = 4

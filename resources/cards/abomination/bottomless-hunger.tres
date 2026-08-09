@@ -16,7 +16,7 @@ keyword_type = 4
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Faim Sans Fond"
-description = "MOISSON. ASSIMILATION."
+description = "MOISSON, ASSIMILATION"
 flavour_text = "Elle ne prend pas la vie. Elle l'intègre."
 texture = ExtResource("3_texture")
 cost = 4

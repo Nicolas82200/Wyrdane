@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mur Infranchissable"
-description = "Sortilège ennemi : annulé s'il cible un serviteur Humain allié en rangée Avant."
+description = "Sortilège ennemi : Annulé s'il cible un serviteur Humain allié en rangée Avant."
 flavour_text = "La magie s'arrête là où la volonté commence."
 texture = ExtResource("3_texture")
 cost = 6

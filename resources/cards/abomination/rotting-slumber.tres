@@ -23,7 +23,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Sommeil Qui Ronge"
-description = "Gèle un serviteur ennemi ciblé un tour ; à la fin du gel, il subit une mutation forcée : Dégénérescence."
+description = "Gèle un serviteur ennemi ciblé un tour.
+À la fin du gel, il subit une mutation forcée : Dégénérescence."
 flavour_text = "Le froid ne le tue pas. Il le laisse simplement pourrir sur place."
 texture = ExtResource("2_texture")
 cost = 2

@@ -19,7 +19,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel d'Exhumation"
-description = "Éveil : si ton cimetière contient un Mort-Vivant, ramène-le en main."
+description = "Éveil : Si votre cimetière contient un Mort-Vivant, ramenez-le en main."
 flavour_text = "On ne l'enterre pas. On l'entrepose."
 texture = ExtResource("3_texture")
 cost = 4

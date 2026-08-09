@@ -23,7 +23,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ordre des Anciens"
-description = "Éveil : si tu as 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant."
+description = "Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant."
 flavour_text = "Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux."
 texture = ExtResource("3_texture")
 cost = 5

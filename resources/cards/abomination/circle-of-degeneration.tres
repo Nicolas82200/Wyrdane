@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cercle de Dégénérescence"
-description = "Sacrifice (un serviteur allié) : tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence."
+description = "Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence."
 flavour_text = "Ce que le cercle ne peut pas améliorer, il le corrompt."
 texture = ExtResource("2_texture")
 cost = 6

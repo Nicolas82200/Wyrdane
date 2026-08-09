@@ -10,7 +10,7 @@ script = ExtResource("1_kw")
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Porteur de Bouclier"
-description = "REMPART."
+description = "REMPART"
 flavour_text = "Le bouclier a des marques de griffes. Il ne les compte plus."
 texture = ExtResource("2_texture")
 race = 1

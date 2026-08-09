@@ -15,7 +15,7 @@ const CAMPAIGN_RACE_SELECT_SCENE := "res://scenes/campaign/CampaignRaceSelect.ts
 
 enum PlayMode { SOLO, MULTI }
 enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -48,6 +48,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
 @onready var campaign_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CampaignButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
+@onready var report_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
 @onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
@@ -70,7 +71,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
-@onready var report_button:  Button = $ReportButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -112,6 +112,15 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/CloseLegalButton
 @onready var legal_label:     Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/LegalScroll/LegalLabel
 
+@onready var report_view:     VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ReportView
+@onready var report_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportTitleLabel
+@onready var report_category_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategoryLabel
+@onready var report_category_select: OptionButton = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategorySelect
+@onready var report_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportDescLabel
+@onready var report_text_edit: TextEdit = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportTextEdit
+@onready var report_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportStatusLabel
+@onready var report_submit_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportSubmitButton
+
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $InfoPanel/InfoMargin/ViewsRoot/SettingsMenu
 @onready var deck_list:       DeckList = $InfoPanel/InfoMargin/ViewsRoot/DeckList
@@ -139,6 +148,7 @@ func _ready() -> void:
 	campaign_button.pressed.connect(_on_campaign_pressed)
 	credits_button.pressed.connect(_on_credits)
 	report_button.pressed.connect(_on_report_pressed)
+	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
@@ -339,12 +349,15 @@ func _show_info_view(view: InfoView) -> void:
 	profile_view.visible = view == InfoView.PROFILE
 	settings_menu.visible = view == InfoView.SETTINGS
 	deck_list.visible = view == InfoView.DECKS_MANAGE
+	report_view.visible = view == InfoView.REPORT
 	if view == InfoView.PROFILE:
 		_open_profile_view()
 	elif view == InfoView.SETTINGS:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
 		deck_list._refresh()
+	elif view == InfoView.REPORT:
+		_open_report_view()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -433,7 +446,36 @@ func _on_credits() -> void:
 	_show_info_view(InfoView.CREDITS)
 
 func _on_report_pressed() -> void:
-	ReportDialog.open_on(self, false)
+	_show_info_view(InfoView.REPORT)
+
+func _open_report_view() -> void:
+	report_status_label.text = ""
+	report_text_edit.text = ""
+
+func _populate_report_categories() -> void:
+	var previous := report_category_select.selected
+	report_category_select.clear()
+	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
+	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
+	if previous >= 0 and previous < report_category_select.item_count:
+		report_category_select.selected = previous
+
+func _on_report_submit_pressed() -> void:
+	var description := report_text_edit.text.strip_edges()
+	if description.is_empty():
+		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
+		return
+	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
+	report_status_label.text = ""
+	report_submit_button.disabled = true
+	BackendClient.report_issue(type_id, description, 0, "", func(code: int, _parsed):
+		report_submit_button.disabled = false
+		if code == 200:
+			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
+			report_text_edit.text = ""
+		else:
+			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
+	)
 
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
@@ -945,13 +987,19 @@ func _retranslate() -> void:
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
-	report_button.tooltip_text = SettingsManager.t("REPORT_TITLE")
+	report_button.text  = SettingsManager.t("MENU_REPORT")
 	quit_button.text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
 	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
 	close_legal.text    = SettingsManager.t("ui.back")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
+	report_title_label.text = SettingsManager.t("REPORT_TITLE")
+	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")
+	_populate_report_categories()
+	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
+	report_text_edit.placeholder_text = SettingsManager.t("REPORT_DESCRIPTION_PLACEHOLDER")
+	report_submit_button.text = SettingsManager.t("REPORT_SUBMIT")
 	_populate_news()
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")

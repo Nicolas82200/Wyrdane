@@ -19,6 +19,7 @@ type = "ONPLAY"
 script = ExtResource("1_cardeffect")
 effect_id = "Destroy"
 target = "EnemyMinion"
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

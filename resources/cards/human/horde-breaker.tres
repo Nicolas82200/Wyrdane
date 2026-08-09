@@ -22,7 +22,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Briseur de Horde"
-description = "Assaut : si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires."
+description = "Attaque : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires."
 flavour_text = "Il a perdu son village à la première vague. Il n'a pas perdu la rage."
 texture = ExtResource("3_texture")
 cost = 4

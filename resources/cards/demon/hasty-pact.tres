@@ -26,7 +26,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Pacte Hâtif"
-description = "Ton héros perd 2 HP ; pioche 2 cartes."
+description = "Votre héros perd 2 points de vie.
+Piochez 2 cartes."
 flavour_text = "Signer vite coûte cher. Signer tard coûte pareil."
 texture = ExtResource("3_texture")
 cost = 1

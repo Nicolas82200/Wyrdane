@@ -17,7 +17,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Doigt Décharné"
-description = "Pioche 1 carte. Si c'est un Mort-Vivant, il coûte 1 de moins ce tour."
+description = "Piochez 1 carte.
+Si c'est un Mort-Vivant, il coûte 1 de moins ce tour."
 flavour_text = "Il désigne. Quelque chose, quelque part, répond."
 texture = ExtResource("3_texture")
 card_type = "Instant"
