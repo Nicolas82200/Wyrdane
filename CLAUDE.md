@@ -180,7 +180,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 
 ### Isolation des agents
 
-Quand tu travailles sur une nouvelle feature ou tâche indépendante, crée automatiquement un nouveau worktree (et la branche associée, format NNNN-slug) plutôt que de travailler directement dans le dossier courant.
+Quand tu travailles sur une nouvelle feature ou tâche indépendante, crée une nouvelle branche (format NNNN-slug) à partir de `dev` fraîchement pullée (`git fetch origin dev && git checkout dev && git pull`, puis `git checkout -b NNNN-slug`) — **pas de worktree** : travaille directement dans le dossier courant sur cette nouvelle branche. Un hook `PreToolUse` bloque toute édition tant que tu es encore sur `dev`, pour te le rappeler.
 
 ## Workflow Git
 

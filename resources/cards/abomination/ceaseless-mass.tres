@@ -16,7 +16,7 @@ keyword_type = 0
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Masse-Qui-Ne-Cesse"
-description = "MUTATION. REMPART."
+description = "MUTATION, REMPART"
 flavour_text = "Elle a arrêté de compter les formes qu'elle a portées."
 texture = ExtResource("3_texture")
 cost = 4

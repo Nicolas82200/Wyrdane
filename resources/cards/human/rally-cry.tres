@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cri de Ralliement"
-description = "Humains alliés +0/+1 jusqu'à fin de tour."
+description = "Humains alliés +0/+1 jusqu'à la fin du tour."
 flavour_text = "Un seul cri. Toute la ligne se souvient pourquoi elle est là."
 texture = ExtResource("3_texture")
 race = 1

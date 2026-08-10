@@ -29,11 +29,22 @@ value = 2
 value_2 = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "Self"
+duration = "Permanent"
+value = 2
+value_2 = 0
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cavalier des Flammes"
-description = "ASSAUT.
-Pacte 2 : Arrivée : Ce serviteur gagne +2/+0 de façon permanente."
+description = "ASSAUT
+Arrivée : Ce serviteur gagne +2/+0 de façon permanente.
+Pacte 2 : Ce serviteur gagne +2/+0 supplémentaires."
 flavour_text = "Sa monture est morte au premier galop. Il n'a pas ralenti pour autant."
 texture = ExtResource("3_texture")
 cost = 4
@@ -44,7 +55,7 @@ health = 3
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_lrfiu")])
 demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_luqzs")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_mffi5")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_mffi5"), SubResource("Resource_bonus")])
 rarity = "Rare"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

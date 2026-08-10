@@ -17,6 +17,25 @@ const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
 const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
+# NameLabel (voir Card.tscn) : hauteur par defaut et croissance maximale vers
+# le BAS (offset_top fixe) quand un nom de carte trop long deborderait sinon
+# de sa case. DescLabel juste en-dessous est alors decale d'autant pour
+# conserver l'espacement d'origine entre titre et description (voir
+# _fit_name_label/_fit_desc_label).
+const NAME_LABEL_DEFAULT_TOP    := 158.0
+const NAME_LABEL_DEFAULT_BOTTOM := 183.0
+const NAME_LABEL_MAX_GROWTH     := 34.0
+
+# DescLabel (voir Card.tscn) : position/hauteur par defaut (le haut est decale
+# par la croissance de NameLabel, voir ci-dessus), et jusqu'ou on peut
+# l'agrandir vers le BAS (avant de recouvrir AttackLabel/HealthLabel juste
+# en-dessous) si le texte (effet + flavour) deborde toujours de sa case.
+# AttackLabel / HealthLabel sont alors decales d'autant. TypeLabel (bandeau de
+# type) est desormais fixe en haut de carte (voir Card.tscn), independant.
+const DESC_LABEL_DEFAULT_TOP    := 186.0
+const DESC_LABEL_DEFAULT_BOTTOM := 312.0
+const DESC_LABEL_MAX_GROWTH     := 3.0
+
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
 	Race.Type.UNDEAD: preload("res://assets/borders/undead-border-card.png"),
@@ -32,22 +51,22 @@ const RARITY_COLORS := {
 }
 
 const RACE_COLORS := {
-	Race.Type.UNDEAD: Color("#0d0b09b5"),
-	Race.Type.ABOMINATION: Color("040f00b5"),
-	Race.Type.HUMAN:  Color("#3a2c12c0"),
-	Race.Type.ELF:    Color("#2f5d5096"),
-	Race.Type.DWARF:  Color("#5a3a2296"),
-	Race.Type.DEMON:  Color("#2a0a10c0"),
+	Race.Type.UNDEAD: Color("#0a0806d6"),
+	Race.Type.ABOMINATION: Color("020a00d6"),
+	Race.Type.HUMAN:  Color("#28200cd6"),
+	Race.Type.ELF:    Color("#1f4038b0"),
+	Race.Type.DWARF:  Color("#3f280fb0"),
+	Race.Type.DEMON:  Color("#1e0308d6"),
 }
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#4a4a4a"),
-	Race.Type.ABOMINATION: Color("#2f5314"),
-	Race.Type.HUMAN:  Color("#7a5c14"),
-	Race.Type.ELF:    Color("#1f4a40"),
-	Race.Type.DWARF:  Color("#4a2f18"),
-	Race.Type.DEMON:  Color("#5c0f1e"),
+	Race.Type.UNDEAD: Color("#bebebe"),
+	Race.Type.ABOMINATION: Color("#9bd76e"),
+	Race.Type.HUMAN:  Color("#e8c56d"),
+	Race.Type.ELF:    Color("#7bd3c1"),
+	Race.Type.DWARF:  Color("#d7a46f"),
+	Race.Type.DEMON:  Color("#e87587"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
@@ -210,14 +229,15 @@ func update_display() -> void:
 		if lane_icon.visible:
 			lane_icon.texture = TYPE_ICONS[data.card_type]
 	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#4a4a4a"))
+		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
-		desc_label.text = "[center][font_size=10][i]" + data.display_flavour() + "[/i][/font_size][/center]"
+		desc_label.text = "[center][font_size=12][i]" + data.display_flavour() + "[/i][/font_size][/center]"
 	elif not data.flavour_text.is_empty():
-		desc_label.text = data.display_description() + "\n\n[font_size=10][i]" + data.display_flavour() + "[/i][/font_size]"
+		desc_label.text = bold_keywords_and_triggers(data.display_description())
+		desc_label.text += "\n[font_size=12][i]" + data.display_flavour() + "[/i][/font_size]"
 	else:
-		desc_label.text = data.display_description()
+		desc_label.text = bold_keywords_and_triggers(data.display_description())
 
 	if data.texture:
 		art.texture = data.texture
@@ -227,9 +247,99 @@ func update_display() -> void:
 	else:
 		push_warning("Pas de bordure pour la race: %s" % Race.get_race_name(data.race))
 
+	var name_growth := _fit_name_label()
+	_fit_desc_label(name_growth)
+
 	_apply_race_style()
 	_apply_type_style()
 	update_playable_highlight()
+
+# Agrandit NameLabel vers le BAS (offset_top fixe) quand le nom de la carte,
+# une fois retourne a la ligne dans la largeur de la case, prend plus de
+# hauteur que la case par defaut — ne mange donc plus l'artwork au-dessus.
+# Plafonne a NAME_LABEL_MAX_GROWTH ; DescLabel juste en-dessous est decale
+# d'autant par l'appelant (voir _fit_desc_label) pour garder le meme
+# espacement entre le titre et la description qu'a l'etat par defaut.
+# Retourne la croissance appliquee (0.0 si le nom tient dans sa case).
+func _fit_name_label() -> float:
+	name_label.offset_top = NAME_LABEL_DEFAULT_TOP
+	name_label.offset_bottom = NAME_LABEL_DEFAULT_BOTTOM
+	var font: Font = name_label.get_theme_font("font")
+	var font_size: int = name_label.get_theme_font_size("font_size")
+	if font == null:
+		return 0.0
+	var line_count: int = maxi(name_label.get_line_count(), 1)
+	var needed: float = line_count * font.get_height(font_size)
+	var default_height: float = NAME_LABEL_DEFAULT_BOTTOM - NAME_LABEL_DEFAULT_TOP
+	if needed <= default_height:
+		return 0.0
+	var growth: float = minf(needed - default_height, NAME_LABEL_MAX_GROWTH)
+	name_label.offset_bottom = NAME_LABEL_DEFAULT_BOTTOM + growth
+	return growth
+
+# Agrandit DescLabel vers le BAS si le texte (effet + flavour) deborde de sa
+# case par defaut, et decale AttackLabel/HealthLabel d'autant pour eviter
+# que la case ne les recouvre. Plafonne a DESC_LABEL_MAX_GROWTH (peu de
+# marge avant le bas de la carte) : au-dela, le texte redevient legerement
+# rogne plutot que de faire deborder les stats hors de la carte.
+# name_growth : decalage vers le bas deja applique a NameLabel (voir
+# _fit_name_label) — reporte sur le haut de DescLabel pour preserver
+# l'espacement d'origine entre les deux.
+func _fit_desc_label(name_growth: float) -> void:
+	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
+	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
+	if attack_label:
+		attack_label.offset_top = 336.0
+		attack_label.offset_bottom = 370.0
+	if health_label:
+		health_label.offset_top = 336.0
+		health_label.offset_bottom = 370.0
+	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
+	if overflow <= 0.0:
+		return
+	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
+	desc_label.offset_bottom += growth
+	if attack_label:
+		attack_label.offset_top += growth
+		attack_label.offset_bottom += growth
+	if health_label:
+		health_label.offset_top += growth
+		health_label.offset_bottom += growth
+
+# Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
+# ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
+# VENIN MORTEL...). Ignore les sigles courts (ATK) pour ne pas les mettre en
+# gras par erreur.
+static func bold_keywords_and_triggers(text: String) -> String:
+	var trigger_re := RegEx.new()
+	trigger_re.compile("^([^\n:]{2,40}) : (.*)$")
+	var out: PackedStringArray = []
+	for line in text.split("\n"):
+		var m := trigger_re.search(line)
+		if m:
+			out.append("[b]" + m.get_string(1) + "[/b] : " + _bold_caps_words(m.get_string(2)))
+		else:
+			out.append(_bold_caps_words(line))
+	return "\n".join(out)
+
+# Met en gras les suites de majuscules (mots-cles) d'au moins 4 lettres,
+# espaces/tirets internes toleres (ex: "VENIN MORTEL", "RANG INFERNAL").
+static func _bold_caps_words(line: String) -> String:
+	var caps_re := RegEx.new()
+	caps_re.compile("[À-ÝA-Z][À-ÝA-Z\\-]*(?: [À-ÝA-Z][À-ÝA-Z\\-]*)*")
+	var result := ""
+	var pos := 0
+	for m in caps_re.search_all(line):
+		var matched: String = m.get_string()
+		var letters_only: String = matched.replace(" ", "").replace("-", "")
+		result += line.substr(pos, m.get_start() - pos)
+		if letters_only.length() >= 4:
+			result += "[b]" + matched + "[/b]"
+		else:
+			result += matched
+		pos = m.get_end()
+	result += line.substr(pos)
+	return result
 
 # Recalcule si la carte est jouable (mana + conditions) et bascule le halo vert.
 # À appeler chaque fois qu'un état pouvant changer la jouabilité évolue (mana,
@@ -268,7 +378,8 @@ func _apply_type_style() -> void:
 	var bg := rarity_color
 	bg.a = 0.85
 	_type_style.bg_color = bg
-	_type_style.border_color = rarity_color
+	_type_style.border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.9)
+	_type_style.set_border_width_all(2)
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)

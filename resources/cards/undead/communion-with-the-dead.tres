@@ -19,7 +19,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Communion avec les Morts"
-description = "Deuil : pioche 1 carte par Mort-Vivant allié mort ce match (max 4)."
+description = "Deuil : Piochez 1 carte par Mort-Vivant allié mort ce match (max 4)."
 flavour_text = "Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter."
 texture = ExtResource("3_texture")
 cost = 3

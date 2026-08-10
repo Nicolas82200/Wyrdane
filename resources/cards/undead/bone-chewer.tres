@@ -24,7 +24,8 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mâcheur d'Os"
-description = "ASSAUT. Attaque : inflige 1 dégât splash aux serviteurs adjacents à la cible."
+description = "ASSAUT
+Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible."
 flavour_text = "Le craquement des os est le seul son qu'il comprend encore."
 texture = ExtResource("3_texture")
 cost = 3

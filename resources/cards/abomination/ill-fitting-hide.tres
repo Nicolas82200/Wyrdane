@@ -16,7 +16,7 @@ keyword_type = 5
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Peau-Trop-Grande"
-description = "REMPART. INSTABLE."
+description = "REMPART, INSTABLE"
 flavour_text = "Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie."
 texture = ExtResource("3_texture")
 cost = 2

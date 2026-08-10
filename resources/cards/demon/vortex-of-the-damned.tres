@@ -19,12 +19,20 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
+value = 2
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "GainMana"
 value = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Vortex des Damnés"
-description = "Pacte 1 : Carnage : Gagnez 1 mana temporaire ce tour."
+description = "Carnage : Gagnez 1 mana temporaire ce tour.
+Pacte 2 : Gagnez 1 mana temporaire supplémentaire."
 flavour_text = "Les âmes qui s'y perdent paient toujours un peu plus que prévu."
 texture = ExtResource("3_texture")
 cost = 6
@@ -32,6 +40,6 @@ race = 5
 card_type = "Enchantment"
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_tr8dt")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_064t9")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_064t9"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

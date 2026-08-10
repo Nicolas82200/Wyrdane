@@ -13,7 +13,7 @@ type = "OnAwaken"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 1
+value = 2
 
 [sub_resource type="Resource" id="Resource_d1l54"]
 script = ExtResource("1_cardeffect")
@@ -25,10 +25,22 @@ value = 1
 value_2 = 0
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+duration = "UntilEndOfTurn"
+race_filter = "Demon"
+value = 1
+value_2 = 0
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cœur du Gouffre"
-description = "Pacte 1 : Éveil : Tous vos serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour."
+description = "Éveil : Tous vos serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour.
+Pacte 2 : +1/+0 supplémentaire."
 flavour_text = "Il bat au rythme de ce que tu es prêt à sacrifier chaque matin."
 texture = ExtResource("3_texture")
 cost = 5
@@ -36,6 +48,6 @@ race = 5
 card_type = "Enchantment"
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_bq77o")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_d1l54")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_d1l54"), SubResource("Resource_bonus")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

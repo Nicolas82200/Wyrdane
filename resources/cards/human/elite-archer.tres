@@ -14,7 +14,7 @@ name_fr = "Infiltration"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Archer d'Élite"
-description = "INFILTRATION : peut cibler n'importe quel serviteur ennemi (Avant ou Arrière)."
+description = "INFILTRATION : Peut cibler n'importe quel serviteur ennemi (Avant ou Arrière)."
 flavour_text = "La rangée Avant n'est pas un obstacle. C'est un couloir."
 texture = ExtResource("3_texture")
 cost = 3

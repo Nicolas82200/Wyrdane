@@ -28,7 +28,8 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_e1yr3")
 card_name = "Maréchal de Campagne"
-description = "COMMANDEMENT. Éveil : tous les serviteurs Humains alliés gagnent +1/+0 jusqu'à fin de tour."
+description = "COMMANDEMENT
+Éveil : Tous les serviteurs Humains alliés gagnent +1/+0 jusqu'à la fin du tour."
 flavour_text = "Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit."
 texture = ExtResource("4_h8730")
 cost = 5

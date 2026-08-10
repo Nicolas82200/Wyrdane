@@ -22,7 +22,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Éclaireur Infiltré"
-description = "Arrivée : tes serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide."
+description = "Arrivée : Vos serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide."
 flavour_text = "Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant."
 texture = ExtResource("3_texture")
 cost = 3

@@ -181,7 +181,7 @@ func make_tooltip_panel(title: String, desc: String,
 
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", bg)
-	panel.custom_minimum_size = Vector2(220, 0)
+	panel.custom_minimum_size = Vector2(195, 0)
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var vbox := VBoxContainer.new()
@@ -220,7 +220,7 @@ func make_tooltip_panel(title: String, desc: String,
 	var title_label := Label.new()
 	title_label.text = title
 	title_label.add_theme_color_override("font_color", Color(0.95, 0.80, 0.35, 1.0))
-	title_label.add_theme_font_size_override("font_size", 15)
+	title_label.add_theme_font_size_override("font_size", 14)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_row.add_child(title_label)
@@ -228,13 +228,21 @@ func make_tooltip_panel(title: String, desc: String,
 	var desc_label := Label.new()
 	desc_label.text = desc
 	desc_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.70, 1.0))
-	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_font_size_override("font_size", 12)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	desc_label.add_theme_constant_override("margin_left", 6)
-	desc_label.add_theme_constant_override("margin_right", 6)
-	desc_label.add_theme_constant_override("margin_bottom", 6)
-	vbox.add_child(desc_label)
+
+	# MarginContainer plutôt que des theme overrides "margin_*" posés
+	# directement sur le Label : Label n'a pas de constante de thème de ce nom,
+	# ces overrides n'avaient donc aucun effet (texte collé à la bordure).
+	var desc_margin := MarginContainer.new()
+	desc_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	desc_margin.add_theme_constant_override("margin_left", 8)
+	desc_margin.add_theme_constant_override("margin_right", 8)
+	desc_margin.add_theme_constant_override("margin_top", 2)
+	desc_margin.add_theme_constant_override("margin_bottom", 8)
+	desc_margin.add_child(desc_label)
+	vbox.add_child(desc_margin)
 
 	return panel
 
@@ -262,11 +270,17 @@ func make_race_tooltip(race_key: String) -> PanelContainer:
 	label.add_theme_font_size_override("font_size", 12)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_constant_override("margin_left", 10)
-	label.add_theme_constant_override("margin_right", 10)
-	label.add_theme_constant_override("margin_top", 4)
-	label.add_theme_constant_override("margin_bottom", 4)
-	panel.add_child(label)
+
+	# MarginContainer plutôt qu'un override "margin_*" sur le Label lui-même
+	# (constante de thème inexistante sur Label, donc sans effet).
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 10)
+	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_child(label)
+	panel.add_child(margin)
 
 	return panel
 

@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Un-Devenu-Plusieurs"
-description = "Arrivée : invoque 2 Amas Informes 1/2 en rangée Avant."
+description = "Arrivée : Invoque 2 Amas Informes 1/2 en rangée Avant."
 flavour_text = "Il n'a jamais compris qu'il était censé rester seul."
 texture = ExtResource("2_texture")
 cost = 3
