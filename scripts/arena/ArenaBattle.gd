@@ -64,6 +64,10 @@ var xp_label: Label
 var level_label: Label
 var shop_front_row: ArenaSellZone
 var shop_back_row: ArenaSellZone
+# Offre affichée au dernier _refresh_shop() (mêmes références CardData, voir
+# _animate_slide_in) : sert uniquement à savoir quelles cases sont vraiment
+# nouvelles pour l'animation d'arrivée, jamais lu ailleurs.
+var _last_shop_offer_snapshot: Array = []
 var reroll_button: Button
 var buy_xp_button: Button
 var freeze_button: Button
@@ -129,6 +133,18 @@ var _live_sim: SimulatedBattle = null
 enum Phase { SHOP, COMBAT }
 const SHOP_PHASE_DURATION := 25.0
 const COMBAT_PHASE_DURATION := 15.0
+
+# ─── Transition animée Boutique -> Combat (demande explicite du joueur) :
+# glissement horizontal, voir _animate_slide_out_and_free/_animate_slide_in.
+const EXIT_SLIDE_DURATION := 0.35
+const ENTRY_SLIDE_DURATION := 0.45
+# Budget total de la transition (sortie + tenue de la bannière "Combat" +
+# arrivée), inchangé par rapport à l'ancien délai fixe qu'elle remplace.
+const COMBAT_TRANSITION_TOTAL_DURATION := 2.0
+# Décalage horizontal (px) appliqué en position locale (à l'intérieur même
+# des HBoxContainer de rangée, voir _animate_slide_in) pour simuler une
+# arrivée/sortie hors-écran.
+const SLIDE_OFFSET := 500.0
 var current_phase: Phase = Phase.SHOP
 var phase_timer: Timer
 var phase_label: Label
@@ -926,17 +942,100 @@ func _refresh_ui() -> void:
 	_refresh_board()
 	_refresh_portraits()
 
-# Chaque offre de la boutique est un vrai `BoardMinion` (même visuel qu'un
-# serviteur posé, sans texte), rangée dans shop_front_row/shop_back_row selon
-# son board_position, achetable en la glissant vers son propre plateau. Pas de
-# verrouillage par carte (le bouton flocon gèle TOUTE l'offre à la fois).
+# ─── Animations de glissement horizontal (transition Boutique -> Combat,
+# arrivée de nouvelles cartes en boutique) ─────────────────────────────────
+#
+# `groups` : { direction(float): Array[Control] } — direction = +1.0 (côté
+# droit) ou -1.0 (côté gauche). Les nœuds visés sont des ENFANTS d'un
+# HBoxContainer (rangée de plateau/boutique) : leur `position` y est
+# normalement entièrement gérée par le conteneur (retriée à chaque ajout/
+# retrait d'enfant ou redimensionnement) — mais UNIQUEMENT à ces moments-là,
+# jamais en continu. Décaler manuellement `position.x` juste après que le
+# conteneur ait posé sa position naturelle, puis le tweener, fonctionne donc
+# de façon fiable tant qu'aucun autre tri n'est déclenché pendant l'animation
+# (aucun ajout/retrait/redimensionnement des rangées visées ici pendant ce
+# court laps de temps).
+
+# Glisse hors-écran (vers `direction`) puis libère chaque nœud des groupes
+# fournis — utilisé pour vider le plateau/la boutique juste avant le combat
+# (voir _resolve_combat_phase).
+func _animate_slide_out_and_free(groups: Dictionary, duration: float) -> void:
+	var tween: Tween = null
+	for direction in groups:
+		for node in groups[direction]:
+			if not is_instance_valid(node):
+				continue
+			if tween == null:
+				tween = create_tween()
+				tween.set_parallel(true)
+			tween.tween_property(node, "position:x", node.position.x + direction * SLIDE_OFFSET, duration)\
+				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+			tween.tween_property(node, "modulate:a", 0.0, duration)
+	if tween == null:
+		return
+	await tween.finished
+	for direction in groups:
+		for node in groups[direction]:
+			if not is_instance_valid(node):
+				continue
+			var parent: Node = node.get_parent()
+			if parent != null:
+				parent.remove_child(node)
+			node.queue_free()
+
+# Glisse depuis `direction` (position de départ décalée) jusqu'à la position
+# naturelle déjà posée par le conteneur — utilisé pour l'arrivée des
+# serviteurs en combat (voir _resolve_combat_phase) et des nouvelles cartes
+# en boutique (voir _refresh_shop).
+func _animate_slide_in(groups: Dictionary, duration: float) -> void:
+	var any: bool = false
+	for direction in groups:
+		for node in groups[direction]:
+			if is_instance_valid(node):
+				any = true
+	if not any:
+		return
+	# Laisse le conteneur poser la position naturelle de ses enfants (tri
+	# déclenché par leur ajout, potentiellement différé) avant de la lire.
+	await get_tree().process_frame
+	var tween := create_tween()
+	tween.set_parallel(true)
+	for direction in groups:
+		for node in groups[direction]:
+			if not is_instance_valid(node):
+				continue
+			var target_x: float = node.position.x
+			node.position.x = target_x + direction * SLIDE_OFFSET
+			node.modulate.a = 0.0
+			tween.tween_property(node, "position:x", target_x, duration)\
+				.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+			tween.tween_property(node, "modulate:a", 1.0, duration * 0.7)
+	await tween.finished
+
+# La boutique occupe la position "adverse" du plateau : chaque offre est un
+# vrai `BoardMinion` (même visuel qu'un serviteur posé, sans texte — voir
+# ArenaShopCardSlot ; survoler affiche le détail complet, comme en 1v1), rangée
+# dans shop_front_row ou shop_back_row selon son propre board_position ("Back"
+# -> Arrière, sinon Avant), achetable en la glissant vers son propre plateau
+# (front_row/back_row, voir ArenaBoardRow). Un emplacement déjà acheté (carte
+# nulle) n'affiche simplement rien jusqu'au prochain reroll. Pas de
+# verrouillage par carte (voir bouton flocon, geler TOUTE l'offre à la fois).
+# Hors phase Boutique, les rangées restent vides (pas d'offre affichée) mais
+# gardent leur hauteur (voir _refresh_ui) pour ne pas déplacer le plateau.
+# Les cartes nouvellement arrivées (offre différente de la précédente, voir
+# _last_shop_offer_snapshot) glissent depuis la gauche (demande explicite du
+# joueur) — celles déjà affichées avant ce rafraîchissement ne sont pas
+# ré-animées à chaque petite action (achat d'une autre case, repositionnement...).
 func _refresh_shop(in_shop_phase: bool = true) -> void:
 	for child in shop_front_row.get_children():
 		child.queue_free()
 	for child in shop_back_row.get_children():
 		child.queue_free()
 	if not in_shop_phase:
+		_last_shop_offer_snapshot = []
 		return
+	var previous: Array = _last_shop_offer_snapshot
+	var arrivals: Array = []
 	for i in human.shop_offer.size():
 		var card: CardData = human.shop_offer[i]
 		if card == null:
@@ -949,6 +1048,11 @@ func _refresh_shop(in_shop_phase: bool = true) -> void:
 		# l'arbre (voir Hand.gd : add_child() puis set_data(), jamais l'inverse).
 		target_row.add_child(slot)
 		slot.setup(card, i)
+		if i >= previous.size() or previous[i] != card:
+			arrivals.append(slot)
+	_last_shop_offer_snapshot = human.shop_offer.duplicate()
+	if not arrivals.is_empty():
+		_animate_slide_in({-1.0: arrivals}, ENTRY_SLIDE_DURATION)
 
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	if not _is_shop_interaction_allowed():
@@ -1226,14 +1330,20 @@ func _resolve_combat_phase() -> void:
 	# ("la boutique occupe la position adverse du plateau").
 	var live_setup := func(sim: SimulatedBattle) -> void:
 		_live_sim = sim
-		# Le plateau du joueur affichait ses propres serviteurs (ArenaBoardMinionSlot,
-		# glissables) pendant la boutique : on les retire avant que le combat n'y
-		# pose ses propres visuels (BoardMinion nus, non glissables), sans quoi
-		# les deux se superposeraient.
-		for row in [front_row, back_row, shop_front_row, shop_back_row]:
-			for child in row.get_children().duplicate():
-				row.remove_child(child)
-				child.queue_free()
+		# Transition animée Boutique -> Combat (demande explicite du joueur,
+		# budget total ~2s) : le plateau du joueur affichait ses propres
+		# serviteurs (ArenaBoardMinionSlot, glissables) pendant la boutique —
+		# ils glissent hors-écran vers la DROITE plutôt que de disparaître
+		# instantanément, pendant que la boutique (reconvertie en plateau
+		# adverse le temps du combat) glisse vers la GAUCHE. Une fois l'écran
+		# vidé, les serviteurs qui vont réellement combattre (BoardMinion nus,
+		# non glissables, posés par enable_live_visuals) arrivent en sens
+		# inverse : le plateau du joueur depuis la droite, l'adverse depuis
+		# la gauche — avant que le combat proprement dit ne démarre.
+		await _animate_slide_out_and_free({
+			1.0: front_row.get_children() + back_row.get_children(),
+			-1.0: shop_front_row.get_children() + shop_back_row.get_children(),
+		}, EXIT_SLIDE_DURATION)
 		# Pas d'interaction possible pendant le combat animé (rien à acheter/
 		# poser/vendre) : coupe le drop, restauré par le prochain _refresh_board().
 		front_row.on_drop = Callable()
@@ -1245,7 +1355,17 @@ func _resolve_combat_phase() -> void:
 			hero_portrait, enemy_hero_panel)
 		enemy_hero_panel.visible = true
 		combat_banner_label.visible = true
-		await get_tree().create_timer(2.0).timeout
+		await _animate_slide_in({
+			1.0: front_row.get_children() + back_row.get_children(),
+			-1.0: shop_front_row.get_children() + shop_back_row.get_children(),
+		}, ENTRY_SLIDE_DURATION)
+		# Tient la bannière "Combat" affichée jusqu'à épuiser le budget total
+		# de ~2s (sortie + arrivée déjà écoulées), avant que le vrai combat
+		# ne démarre (voir match_.start_combat_phase, appelé juste après
+		# ce callable).
+		var remaining: float = COMBAT_TRANSITION_TOTAL_DURATION - EXIT_SLIDE_DURATION - ENTRY_SLIDE_DURATION
+		if remaining > 0.0:
+			await get_tree().create_timer(remaining).timeout
 		combat_banner_label.visible = false
 	await match_.start_combat_phase(live_setup)
 	enemy_hero_panel.visible = false
