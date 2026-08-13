@@ -568,11 +568,12 @@ func _handle_cancel() -> bool:
 # Signaler un bug ou l'adversaire (triche), depuis le menu Échap (voir
 # SettingsMenu.report_requested) — l'option "Triche" n'apparaît que si la
 # partie est en réseau et que l'id backend de l'adversaire est connu (voir
-# net_opponent_backend_id, alimenté par NetHandshake).
+# net_opponent_backend_id, alimenté par NetHandshake). Le formulaire s'affiche
+# à même le menu Échap (SettingsMenu.show_report_view), pas dans une nouvelle
+# fenêtre.
 func _on_report_pressed() -> void:
-	settings_menu.close()
 	var allow_cheating := network_manager != null and net_opponent_backend_id > 0
-	ReportDialog.open_on(self, allow_cheating, net_opponent_backend_id, net_client_match_id)
+	settings_menu.show_report_view(allow_cheating, net_opponent_backend_id, net_client_match_id)
 
 # Quitte la partie en cours et revient au menu principal.
 func _on_quit_match() -> void:
