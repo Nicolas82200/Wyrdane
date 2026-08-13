@@ -18,7 +18,7 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$cur\" = \"dev\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"Tu es sur la branche dev. Avant de modifier des fichiers pour une nouvelle fonctionnalite ou tache independante : git fetch origin dev && git checkout dev && git pull, puis git checkout -b NNNN-slug (convention de CLAUDE.md, Workflow Git) en partant de ce dev a jour. Pas de worktree : travaille directement sur cette nouvelle branche dans le dossier courant.\\\"}}\"; fi",
+            "command": "cur=$(git rev-parse --abbrev-ref HEAD 2>/dev/null); if [ \"$cur\" = \"dev\" ]; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"Tu es sur la branche dev. Toute modification pour une nouvelle fonctionnalite ou tache independante doit obligatoirement passer par un worktree : utilise l outil EnterWorktree (name: NNNN-slug, convention de CLAUDE.md, Workflow Git) plutot que de checkout une branche dans ce dossier. Cela cree la branche et le worktree en une fois, a partir de dev a jour.\\\"}}\"; fi",
             "statusMessage": "Vérification de la branche avant modification..."
           }
         ]
