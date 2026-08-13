@@ -235,11 +235,15 @@ expand_mode = 1
 
 [node name="TypeLabel" type="Label" parent="." unique_id=1918273645]
 custom_minimum_size = Vector2(120, 10)
-layout_mode = 0
-offset_left = 65.0
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.0
 offset_top = -5.5
-offset_right = 185.0
+offset_right = 60.0
 offset_bottom = 7.0
+grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 11

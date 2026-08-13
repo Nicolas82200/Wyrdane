@@ -36,6 +36,12 @@ const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 328.5
 const DESC_LABEL_MAX_GROWTH     := 3.0
 
+# LaneIcon (filigrane central) : hauteur fixe (voir Card.tscn), recentree
+# verticalement sur le centre reel de DescLabel par _center_lane_icon (celui-ci
+# se decale selon la croissance de NameLabel/DescLabel, voir _fit_desc_label).
+const LANE_ICON_DEFAULT_TOP    := 176.0
+const LANE_ICON_DEFAULT_BOTTOM := 316.0
+
 # AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
 # _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
 const STATS_LABEL_DEFAULT_TOP    := 330.0
@@ -88,10 +94,14 @@ const TYPE_LABELS := {
 # plutot que fixe, entre ces deux bornes, toujours centre horizontalement.
 # TYPE_LABEL_PADDING doit rester egal a la somme des content_margin_left/right
 # de _type_style (voir _ready) pour que le texte ne touche jamais le bord.
+# Le noeud est ancre a 50% (anchor_left = anchor_right = 0.5, voir Card.tscn)
+# plutot que positionne a un pixel fixe : offset_left/right sont donc relatifs
+# a ce point d'ancrage (0 = centre), pas a une largeur de carte supposee fixe
+# (la carte est etiree a des largeurs differentes selon le contexte : main,
+# grille du deck builder, apercu au survol).
 const TYPE_LABEL_MIN_WIDTH := 55.0
 const TYPE_LABEL_MAX_WIDTH := 200.0
 const TYPE_LABEL_PADDING   := 16.0
-const TYPE_LABEL_CENTER_X  := 125.0
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
 const LANE_ICONS := {
@@ -264,6 +274,7 @@ func update_display() -> void:
 
 	var name_growth := _fit_name_label()
 	_fit_desc_label(name_growth)
+	_center_lane_icon()
 
 	_apply_race_style()
 	_apply_type_style()
@@ -320,6 +331,16 @@ func _fit_desc_label(name_growth: float) -> void:
 	if health_label:
 		health_label.offset_top += growth
 		health_label.offset_bottom += growth
+
+# Recentre verticalement le filigrane (LaneIcon) sur le centre reel de
+# DescLabel : celui-ci se decale (croissance de NameLabel) et peut grandir
+# (croissance de DescLabel), voir _fit_desc_label — appele juste apres pour
+# que le filigrane suive. Hauteur d'icone fixe, seul le centre bouge.
+func _center_lane_icon() -> void:
+	var icon_height: float = LANE_ICON_DEFAULT_BOTTOM - LANE_ICON_DEFAULT_TOP
+	var desc_center_y: float = (desc_label.offset_top + desc_label.offset_bottom) / 2.0
+	lane_icon.offset_top = desc_center_y - icon_height / 2.0
+	lane_icon.offset_bottom = desc_center_y + icon_height / 2.0
 
 # Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
 # ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
@@ -399,7 +420,8 @@ func _apply_type_style() -> void:
 
 # Redimensionne le bandeau TypeLabel a la largeur de son texte (ex. "Rituel •
 # 3 charges" est plus long que "Enchantement"), entre TYPE_LABEL_MIN_WIDTH et
-# TYPE_LABEL_MAX_WIDTH, toujours centre sur TYPE_LABEL_CENTER_X.
+# TYPE_LABEL_MAX_WIDTH, toujours centre sur le point d'ancrage (voir const
+# ci-dessus).
 func _fit_type_label() -> void:
 	var font: Font = type_label.get_theme_font("font")
 	var font_size: int = type_label.get_theme_font_size("font_size")
@@ -407,8 +429,8 @@ func _fit_type_label() -> void:
 		return
 	var text_width: float = font.get_string_size(type_label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x
 	var width: float = clampf(text_width + TYPE_LABEL_PADDING, TYPE_LABEL_MIN_WIDTH, TYPE_LABEL_MAX_WIDTH)
-	type_label.offset_left  = TYPE_LABEL_CENTER_X - width / 2.0
-	type_label.offset_right = TYPE_LABEL_CENTER_X + width / 2.0
+	type_label.offset_left  = -width / 2.0
+	type_label.offset_right = width / 2.0
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
