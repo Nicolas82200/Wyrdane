@@ -223,13 +223,15 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 		(deck_origin.x + final_pos.x) / 2.0,
 		(deck_origin.y + final_pos.y) / 2.0 - 100
 	)
+	# Accessibilité : durée raccourcie si SettingsManager.reduced_motion.
+	var step_duration: float = 0.1 * SettingsManager.motion_scale()
 	var tween := create_tween()
 	tween.set_parallel(false)
-	tween.tween_property(ghost, "global_position", mid_pos,        0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(ghost, "scale:x",          0.0,           0.1).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position", mid_pos,        step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "scale:x",          0.0,           step_duration).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_callback(func(): ghost.show_back(false))
-	tween.tween_property(ghost, "scale:x",          target_scale.x, 0.1).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_property(ghost, "global_position",  final_pos,     0.1).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "scale:x",          target_scale.x, step_duration).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position",  final_pos,     step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	on_landed.call()
 	ghost.queue_free()

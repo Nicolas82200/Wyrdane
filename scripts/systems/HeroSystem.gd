@@ -93,6 +93,17 @@ func _on_self_damage_dealt(is_player: bool) -> void:
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 
+# Accessibilité : au-dessous de ce ratio de HP max, un symbole "⚠" est ajouté
+# devant le nombre de HP du héros — ne pas dépendre uniquement d'une couleur
+# pour signaler un danger (voir _hp_label_text).
+const LOW_HP_RATIO := 0.3
+
 func update_ui() -> void:
-	battle.get_node("PlayerHeroPanel/HealthLabel").text = str(maxi(battle.player_hero.health, 0))
-	battle.get_node("EnemyHeroPanel/HealthLabel").text  = str(maxi(battle.enemy_hero.health, 0))
+	battle.get_node("PlayerHeroPanel/HealthLabel").text = _hp_label_text(battle.player_hero)
+	battle.get_node("EnemyHeroPanel/HealthLabel").text  = _hp_label_text(battle.enemy_hero)
+
+func _hp_label_text(hero: Hero) -> String:
+	var hp: int = maxi(hero.health, 0)
+	if hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0:
+		return "⚠ " + str(hp)
+	return str(hp)

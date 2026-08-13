@@ -61,6 +61,16 @@ const RARITY_COLORS := {
 	"Legendary": Color("f39c12")
 }
 
+# Accessibilité : symbole distinct par rareté, affiché en plus de la couleur
+# du bandeau (voir _apply_type_style) pour ne pas dépendre uniquement de la
+# couleur (daltonisme).
+const RARITY_SYMBOLS := {
+	"Common":    "●",
+	"Rare":      "◆",
+	"Epic":      "▲",
+	"Legendary": "★"
+}
+
 const RACE_COLORS := {
 	Race.Type.UNDEAD: Color("#0a0806d6"),
 	Race.Type.ABOMINATION: Color("020a00d6"),
@@ -408,6 +418,11 @@ func _apply_type_style() -> void:
 			label_text += " • %d charge%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
 		elif data.ritual_duration == -1:
 			label_text += " • Permanent"
+	# Symbole de rareté (accessibilité, voir RARITY_SYMBOLS) en plus de la
+	# couleur du bandeau, pour rester lisible sans distinction de couleur.
+	var rarity_symbol: String = RARITY_SYMBOLS.get(data.rarity, "")
+	if rarity_symbol != "":
+		label_text = rarity_symbol + " " + label_text
 	type_label.text = label_text
 	_fit_type_label()
 

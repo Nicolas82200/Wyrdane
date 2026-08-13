@@ -195,3 +195,33 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
+
+[node name="HighContrastRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000043]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HighContrastLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow" unique_id=600000044]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 18
+text = "Contraste élevé"
+
+[node name="HighContrastCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow" unique_id=600000045]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ReducedMotionRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000046]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReducedMotionLabel" type="Label" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow" unique_id=600000047]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 18
+text = "Réduire les animations"
+
+[node name="ReducedMotionCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow" unique_id=600000048]
+unique_name_in_owner = true
+layout_mode = 2

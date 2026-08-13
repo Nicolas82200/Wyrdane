@@ -282,6 +282,16 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
+### ♿ Accessibilité
+
+Réglages persistants (`SettingsManager.gd`, menu Réglages → onglets Graphismes/Contrôles) :
+
+*   **Échelle de l'interface** (85 %–130 %) et **assistance daltonisme** (protanopie/deutéranopie/tritanopie, via overlay shader qui décale les teintes confondues).
+*   **Contraste élevé** — overlay shader dédié (boost contraste + saturation), cumulable avec l'assistance daltonisme.
+*   **Réduction des animations** — coupe le shake d'écran et raccourcit les tweens de déplacement les plus visibles (pose/mort de serviteur, charge d'attaque, popups d'effet, animation de pioche), sans supprimer les fondus/flashs courts.
+*   **Rebind clavier** des 3 actions ayant un raccourci (fin de tour, cimetière allié/ennemi).
+*   **Indicateurs non basés sur la seule couleur** : symbole de rareté sur le bandeau de type d'une carte (●/◆/▲/★), icône d'alerte devant les HP du héros sous 30 % de ses HP max, mots-clés déjà iconifiés individuellement (`TooltipData`).
+
 ### 🚨 Systèmes de protection anti-bug
 
 Plusieurs garde-fous importants sont en place :
