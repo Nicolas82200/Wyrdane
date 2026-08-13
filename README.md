@@ -848,8 +848,9 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 ### ⚖️ Composition du deck
 
 - **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
-- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
+- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
+- Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
 - Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
@@ -857,7 +858,7 @@ ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums l'est.)*
+*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -883,7 +884,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
-- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée).
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée), avertissements bloquant la sauvegarde en cas d'incohérence race/ressource, dédoublonnage automatique des noms de deck (`DeckManager.make_unique_name`), bouton Sauvegarder désactivé tant que rien n'a changé, confirmation avant de quitter avec des modifications non sauvegardées.
 - `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 

@@ -26,6 +26,7 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
 @onready var card_count_label: Label         = %CardCountLabel
+@onready var warning_label:    Label         = %WarningLabel
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
@@ -40,6 +41,11 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
+
+# true dès que le deck en cours d'édition a été modifié depuis le dernier
+# chargement/sauvegarde — commande l'activation du bouton Sauvegarder et
+# l'avertissement de sortie sans sauvegarde (voir _mark_dirty/_on_back).
+var _dirty: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []
@@ -506,6 +512,70 @@ func _update_count_label() -> void:
 	]
 	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
+	_update_warnings()
+	_update_save_button()
+
+# ─── Warnings ressources de race ───────────────────────────────────────────────
+
+## Deux cas surveillés (voir README « Système de Ressources par Race ») :
+##  - une race a des serviteurs/sorts dans le deck mais pas assez de cartes-
+##    ressource de cette race pour atteindre le coût de race de sa carte la
+##    plus chère (le pool ne pourra jamais monter assez haut) ;
+##  - des cartes-ressource d'une race sont présentes alors qu'aucune carte
+##    jouable de cette race n'en a l'usage (ressources gâchées).
+## Les deux bloquent la sauvegarde (voir _can_save).
+func _race_warnings() -> Array[String]:
+	if current_deck == null:
+		return []
+	var max_race_cost: Dictionary = {}       # Race.Type -> coût de race max requis
+	var playable_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_counts: Dictionary = {}        # Race.Type -> nb de cartes-ressource
+
+	for card in current_deck.get_cards():
+		if card.card_type == "Resource":
+			resource_race_present[card.race] = true
+			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
+		elif card.race != Race.Type.NONE:
+			playable_race_present[card.race] = true
+			var race_cost: int = CostSystem.compute_race_cost(
+				card.cost, card.race, card.rarity, card.race_cost_override)
+			max_race_cost[card.race] = max(int(max_race_cost.get(card.race, 0)), race_cost)
+
+	var warnings: Array[String] = []
+	for race in max_race_cost:
+		var needed: int = max_race_cost[race]
+		var have: int = int(resource_counts.get(race, 0))
+		if have < needed:
+			warnings.append(SettingsManager.t("deck.warning_missing_resource") % [needed, _race_label(race)])
+	for race in resource_race_present:
+		if not playable_race_present.has(race):
+			warnings.append(SettingsManager.t("deck.warning_unused_resource") % _race_label(race))
+	return warnings
+
+func _race_label(race: int) -> String:
+	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
+
+func _update_warnings() -> void:
+	var warnings := _race_warnings()
+	warning_label.visible = not warnings.is_empty()
+	warning_label.text = "\n".join(warnings)
+
+# ─── État du bouton Sauvegarder ────────────────────────────────────────────────
+
+func _can_save() -> bool:
+	return current_deck != null and _dirty \
+		and _playable_count() >= MIN_CARDS and _resource_count() >= MIN_RESOURCE_CARDS \
+		and _race_warnings().is_empty()
+
+func _update_save_button() -> void:
+	save_button.disabled = not _can_save()
+
+## Toute modification du deck en cours (ajout/retrait de carte, renommage,
+## import) passe par ici pour réactiver le bouton Sauvegarder.
+func _mark_dirty() -> void:
+	_dirty = true
+	_update_save_button()
 
 # ─── Statistiques du deck (courbe de mana + répartition) ──────────────────────
 
@@ -645,6 +715,7 @@ func _make_chip(label_text: String, count: int) -> Control:
 func load_deck(deck: DeckData) -> void:
 	current_deck = deck
 	deck_name_edit.text = deck.name
+	_dirty = false
 	_refresh_deck_list()
 
 func _on_add_card(card_data: CardData) -> void:
@@ -653,6 +724,7 @@ func _on_add_card(card_data: CardData) -> void:
 	if not DeckManager.can_add_card(current_deck, card_data):
 		return
 	current_deck.add_card(card_data)
+	_mark_dirty()
 	_refresh_deck_list()
 	# Si on vient d'atteindre le max de copies, feedback immédiat sous le curseur
 	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
@@ -670,30 +742,61 @@ func _on_remove_one(path: String) -> void:
 	var idx := current_deck.card_paths.rfind(path)
 	if idx >= 0:
 		current_deck.remove_card_at(idx)
+		_mark_dirty()
 	_refresh_deck_list()
 
 func _on_remove_all(path: String) -> void:
 	if current_deck == null:
 		return
 	current_deck.remove_all_copies(path)
+	_mark_dirty()
 	_refresh_deck_list()
 
 func _on_name_changed(new_name: String) -> void:
-	if current_deck:
+	if current_deck and current_deck.name != new_name:
 		current_deck.name = new_name
+		_mark_dirty()
 
 func _on_search_changed(text: String) -> void:
 	_filter_text = text
 	_refresh_card_grid()
 
 func _on_save() -> void:
-	if current_deck == null or _playable_count() < MIN_CARDS or _resource_count() < MIN_RESOURCE_CARDS:
+	if not _can_save():
 		return
+	current_deck.name = DeckManager.make_unique_name(current_deck.name, current_deck)
+	deck_name_edit.text = current_deck.name
 	DeckManager.save_decks()
+	_dirty = false
+	_update_save_button()
 
 func _on_back() -> void:
-	DeckManager.save_decks()
-	queue_free()
+	if _dirty:
+		_show_unsaved_changes_dialog()
+	else:
+		queue_free()
+
+## Popup affichée en quittant le deck builder avec des modifications non
+## sauvegardées (voir _dirty) : proposer de sauvegarder plutôt que de perdre
+## les changements silencieusement (comportement précédent).
+func _show_unsaved_changes_dialog() -> void:
+	var dialog := ConfirmationDialog.new()
+	dialog.dialog_text     = SettingsManager.t("deck.unsaved_changes_text")
+	dialog.ok_button_text  = SettingsManager.t("deck.unsaved_changes_save")
+	dialog.cancel_button_text = SettingsManager.t("deck.unsaved_changes_discard")
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(func():
+		# Deck invalide (min de cartes non atteint, warning de ressource de race...) :
+		# on ne peut pas sauvegarder — on referme juste la popup et on laisse le
+		# joueur corriger le deck plutôt que de fermer le builder sans sauver.
+		if _can_save():
+			_on_save()
+			queue_free()
+	)
+	dialog.canceled.connect(func():
+		queue_free()
+	)
 
 # ─── Import / Export ───────────────────────────────────────────────────────────
 
@@ -764,6 +867,7 @@ func _on_import() -> void:
 			current_deck.name = imported.name
 			current_deck.card_paths = imported.card_paths
 			deck_name_edit.text = current_deck.name
+			_mark_dirty()
 			_refresh_deck_list()
 		dialog.queue_free()
 	)

@@ -195,6 +195,15 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
+[node name="WarningLabel" type="Label" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000041]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 3
+
 [node name="IORow" type="HBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000036]
 layout_mode = 2
 theme_override_constants/separation = 8
