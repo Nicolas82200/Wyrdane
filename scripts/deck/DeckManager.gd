@@ -69,10 +69,24 @@ func set_active_deck(index: int) -> void:
 
 func create_deck(deck_name: String = "Nouveau Deck") -> DeckData:
 	var deck := DeckData.new()
-	deck.name = deck_name
+	deck.name = make_unique_name(deck_name, deck)
 	decks.append(deck)
 	save_decks()
 	return deck
+
+## Retourne base_name tel quel s'il n'est déjà pris par aucun autre deck
+## (exclude), sinon lui ajoute le premier suffixe " N" (N = 1, 2, 3...) libre.
+func make_unique_name(base_name: String, exclude: DeckData) -> String:
+	var taken: Array[String] = []
+	for deck in decks:
+		if deck != exclude:
+			taken.append(deck.name)
+	if not (base_name in taken):
+		return base_name
+	var n := 1
+	while ("%s %d" % [base_name, n]) in taken:
+		n += 1
+	return "%s %d" % [base_name, n]
 
 func delete_deck(index: int) -> void:
 	if index < 0 or index >= decks.size():
@@ -94,7 +108,7 @@ func duplicate_deck(index: int) -> DeckData:
 		return null
 	var source := decks[index]
 	var copy := DeckData.new()
-	copy.name = source.name + SettingsManager.t("decklist.copy_suffix")
+	copy.name = make_unique_name(source.name + SettingsManager.t("decklist.copy_suffix"), copy)
 	copy.card_paths = source.card_paths.duplicate()
 	decks.insert(index + 1, copy)
 	save_decks()
@@ -102,6 +116,7 @@ func duplicate_deck(index: int) -> DeckData:
 
 ## Ajoute un deck déjà construit (import) à la liste et le pousse au backend.
 func add_deck(deck: DeckData) -> void:
+	deck.name = make_unique_name(deck.name, deck)
 	decks.append(deck)
 	save_decks()
 
