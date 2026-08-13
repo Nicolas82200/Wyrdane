@@ -3,10 +3,22 @@ class_name TurnSystem
 
 var battle
 
+# Garde de réentrée : le bouton Fin du tour et l'expiration du turn_timer
+# peuvent tous deux appeler end_turn() sans se voir mutuellement désactivés
+# tant que battle.enemy_turn_active n'est pas encore passé à true (ce flag
+# n'est levé qu'à l'intérieur d'opponent.take_turn(), après plusieurs await
+# de ce tour — déclencheurs de fin de tour, Infection, effets temporaires).
+# Un clic juste avant l'expiration du minuteur peut donc déclencher deux
+# end_turn() qui se chevauchent (double tour IA, double pioche du joueur).
+var _ending_turn: bool = false
+
 func init(_battle) -> void:
 	battle = _battle
 
 func end_turn() -> void:
+	if _ending_turn:
+		return
+	_ending_turn = true
 	# Capture les ids des serviteurs créés par les déclencheurs de fin de tour
 	# (ex. Dernier Souffle), pour que le pair les rejoue avec les mêmes ids.
 	if battle.net_emitter != null:
@@ -22,11 +34,13 @@ func end_turn() -> void:
 		battle.net_emitter.end_turn(ids)
 	await battle.opponent.take_turn()
 	if battle.game_over:
+		_ending_turn = false
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
+	_ending_turn = false
 
 # Phase de fin de tour (Infection). is_local_turn : true si c'est le tour du
 # joueur local. Le déclencheur "fin de tour" côté cartes est porté par Déclin
