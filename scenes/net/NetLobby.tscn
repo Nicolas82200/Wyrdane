@@ -228,6 +228,18 @@ custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Partie rapide (Steam)"
 
+[node name="RankedButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000021]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Partie classée (Steam)"
+
+[node name="CancelRankedButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000022]
+visible = false
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "Annuler la recherche"
+
 [node name="InviteButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000011]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
