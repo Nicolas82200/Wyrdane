@@ -33,8 +33,13 @@ const NAME_LABEL_MAX_GROWTH     := 34.0
 # AttackLabel / HealthLabel sont alors decales d'autant. TypeLabel (bandeau de
 # type) est desormais fixe en haut de carte (voir Card.tscn), independant.
 const DESC_LABEL_DEFAULT_TOP    := 186.0
-const DESC_LABEL_DEFAULT_BOTTOM := 312.0
+const DESC_LABEL_DEFAULT_BOTTOM := 328.5
 const DESC_LABEL_MAX_GROWTH     := 3.0
+
+# AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
+# _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
+const STATS_LABEL_DEFAULT_TOP    := 330.0
+const STATS_LABEL_DEFAULT_BOTTOM := 364.0
 
 const BORDER_TEXTURES := {
 	Race.Type.DEMON: preload("res://assets/borders/demon-border-card.png"),
@@ -77,6 +82,16 @@ const TYPE_LABELS := {
 	"Enchantment": "cardtype.enchantment",
 	"Resource":    "cardtype.resource",
 }
+
+# TypeLabel (bandeau sur la bordure dorée, voir Card.tscn) : largeur ajustee
+# au texte affiche (ex. "Rituel • 3 charges" est plus long que "Ritule")
+# plutot que fixe, entre ces deux bornes, toujours centre horizontalement.
+# TYPE_LABEL_PADDING doit rester egal a la somme des content_margin_left/right
+# de _type_style (voir _ready) pour que le texte ne touche jamais le bord.
+const TYPE_LABEL_MIN_WIDTH := 55.0
+const TYPE_LABEL_MAX_WIDTH := 200.0
+const TYPE_LABEL_PADDING   := 16.0
+const TYPE_LABEL_CENTER_X  := 125.0
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
 const LANE_ICONS := {
@@ -289,11 +304,11 @@ func _fit_desc_label(name_growth: float) -> void:
 	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
 	if attack_label:
-		attack_label.offset_top = 336.0
-		attack_label.offset_bottom = 370.0
+		attack_label.offset_top = STATS_LABEL_DEFAULT_TOP
+		attack_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
 	if health_label:
-		health_label.offset_top = 336.0
-		health_label.offset_bottom = 370.0
+		health_label.offset_top = STATS_LABEL_DEFAULT_TOP
+		health_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
 	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
 	if overflow <= 0.0:
 		return
@@ -373,6 +388,7 @@ func _apply_type_style() -> void:
 		elif data.ritual_duration == -1:
 			label_text += " • Permanent"
 	type_label.text = label_text
+	_fit_type_label()
 
 	var rarity_color: Color = RARITY_COLORS.get(data.rarity, Color("808080"))
 	var bg := rarity_color
@@ -380,6 +396,19 @@ func _apply_type_style() -> void:
 	_type_style.bg_color = bg
 	_type_style.border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.9)
 	_type_style.set_border_width_all(2)
+
+# Redimensionne le bandeau TypeLabel a la largeur de son texte (ex. "Rituel •
+# 3 charges" est plus long que "Enchantement"), entre TYPE_LABEL_MIN_WIDTH et
+# TYPE_LABEL_MAX_WIDTH, toujours centre sur TYPE_LABEL_CENTER_X.
+func _fit_type_label() -> void:
+	var font: Font = type_label.get_theme_font("font")
+	var font_size: int = type_label.get_theme_font_size("font_size")
+	if font == null:
+		return
+	var text_width: float = font.get_string_size(type_label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x
+	var width: float = clampf(text_width + TYPE_LABEL_PADDING, TYPE_LABEL_MIN_WIDTH, TYPE_LABEL_MAX_WIDTH)
+	type_label.offset_left  = TYPE_LABEL_CENTER_X - width / 2.0
+	type_label.offset_right = TYPE_LABEL_CENTER_X + width / 2.0
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
