@@ -28,6 +28,14 @@ signal report_requested
 @onready var control_tab_button     = %ControlTabButton
 @onready var report_button          = %ReportButton
 @onready var apply_button           = %ApplyButton
+@onready var report_panel: VBoxContainer          = %ReportPanel
+@onready var report_category_label: Label         = %ReportCategoryLabel
+@onready var report_category_select: OptionButton = %ReportCategorySelect
+@onready var report_desc_label: Label             = %ReportDescLabel
+@onready var report_text_edit: TextEdit           = %ReportTextEdit
+@onready var report_status_label: Label           = %ReportStatusLabel
+@onready var report_back_button: Button           = %ReportBackButton
+@onready var report_submit_button: Button         = %ReportSubmitButton
 @onready var close_button          = $Panel/VBox/CloseMargin/CloseVBox/CloseButton
 @onready var concede_button        = $Panel/VBox/CloseMargin/CloseVBox/ConcedeButton
 @onready var close_x_button        = $Panel/VBox/TitleMargin/TitleRow/CloseXButton
@@ -41,6 +49,12 @@ signal report_requested
 # navbar reste toujours accessible (pas besoin de "retour" pour changer d'onglet).
 @onready var _tabs := {}
 
+# Renseignés par show_report_view() (voir Battle._on_report_pressed) : identité
+# de l'adversaire signalé et de la partie en cours, transmis tels quels à
+# BackendClient.report_issue lors de la soumission.
+var _report_reported_user_id: int = 0
+var _report_match_id: String = ""
+
 func _ready() -> void:
 	_tabs = {
 		audio_tab_button:    audio_menu,
@@ -52,7 +66,17 @@ func _ready() -> void:
 	_style_danger_button(concede_button)
 	_style_danger_button(confirm_yes_button)
 	_style_close_x_button()
+	# Concéder/Signaler/Appliquer : boutons secondaires, taille réduite par
+	# rapport aux onglets de la navbar (voir custom_minimum_size dans la scène).
+	concede_button.add_theme_font_size_override("font_size", 15)
+	report_button.add_theme_font_size_override("font_size", 15)
+	_style_button(report_back_button)
+	_style_button(report_submit_button)
+	report_back_button.add_theme_font_size_override("font_size", 15)
+	report_submit_button.add_theme_font_size_override("font_size", 15)
 	report_button.pressed.connect(func(): report_requested.emit())
+	report_back_button.pressed.connect(func(): _select_tab(audio_tab_button))
+	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	if embedded_in_panel:
 		# Intégré dans le panneau Actualités : pas de voile ni de popup centrée
 		# de taille fixe, le panneau doit occuper tout l'espace disponible du
@@ -93,6 +117,8 @@ func _ready() -> void:
 func open() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	confirm_panel.hide()
+	if report_panel.visible:
+		_select_tab(audio_tab_button)
 	panel.show()
 	show()
 	panel.pivot_offset = panel.size / 2.0
@@ -123,8 +149,49 @@ func _on_confirm_yes() -> void:
 # UX "ne pas masquer les informations utiles à la décision en cours").
 func _select_tab(selected_button: Button) -> void:
 	selected_button.button_pressed = true
+	report_panel.visible = false
 	for tab_button in _tabs:
 		_tabs[tab_button].visible = tab_button == selected_button
+
+# Bascule le contenu du menu vers le formulaire de signalement intégré, sans
+# ouvrir de nouvelle fenêtre (voir Battle._on_report_pressed, qui connaît
+# allow_cheating/reported_user_id/match_id — SettingsMenu n'a pas cette info).
+func show_report_view(allow_cheating: bool, reported_user_id: int, match_id: String) -> void:
+	_report_reported_user_id = reported_user_id
+	_report_match_id = match_id
+	for tab_button in _tabs:
+		tab_button.button_pressed = false
+		_tabs[tab_button].visible = false
+	report_panel.visible = true
+	report_status_label.text = ""
+	report_text_edit.text = ""
+	report_submit_button.disabled = false
+	_populate_report_categories(allow_cheating)
+
+func _populate_report_categories(allow_cheating: bool) -> void:
+	report_category_select.clear()
+	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
+	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
+	if allow_cheating:
+		report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_CHEATING"))
+		report_category_select.set_item_metadata(1, ReportDialog.TYPE_CHEATING)
+
+func _on_report_submit_pressed() -> void:
+	var description := report_text_edit.text.strip_edges()
+	if description.is_empty():
+		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
+		return
+	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
+	report_status_label.text = ""
+	report_submit_button.disabled = true
+	BackendClient.report_issue(type_id, description, _report_reported_user_id, _report_match_id, func(code: int, _parsed):
+		report_submit_button.disabled = false
+		if code == 200:
+			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
+			report_text_edit.text = ""
+		else:
+			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
+	)
 
 # Met à jour les libellés du menu racine dans la langue courante.
 func _retranslate() -> void:
@@ -139,6 +206,11 @@ func _retranslate() -> void:
 	confirm_yes_button.text    = SettingsManager.t("settings.concede_confirm_yes")
 	report_button.text         = "🚩  " + SettingsManager.t("REPORT_TITLE")
 	apply_button.text          = SettingsManager.t("graphics.apply")
+	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")
+	report_desc_label.text     = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
+	report_text_edit.placeholder_text = SettingsManager.t("REPORT_DESCRIPTION_PLACEHOLDER")
+	report_back_button.text    = SettingsManager.t("ui.back")
+	report_submit_button.text  = SettingsManager.t("REPORT_SUBMIT")
 
 func _style_all_buttons() -> void:
 	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, close_button, confirm_cancel_button]:
