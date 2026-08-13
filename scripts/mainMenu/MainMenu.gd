@@ -68,6 +68,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var rank_badge_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -101,6 +102,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileSoloStatsLabel
 @onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankedStatsLabel
+@onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankBadgeLabel
 
 @onready var credits_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView
 @onready var credits_main_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub
@@ -327,6 +329,7 @@ func _launch_backend_syncs() -> void:
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
 	)
+	_fetch_rank_badge()
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
@@ -408,6 +411,7 @@ func _show_profile_placeholders() -> void:
 	profile_collection_label.text = dash
 	profile_solo_stats_label.text = dash
 	profile_ranked_stats_label.text = dash
+	profile_rank_badge_label.text = dash
 
 func _show_profile_unavailable() -> void:
 	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
@@ -415,6 +419,7 @@ func _show_profile_unavailable() -> void:
 	profile_collection_label.text = dash
 	profile_solo_stats_label.text = dash
 	profile_ranked_stats_label.text = dash
+	profile_rank_badge_label.text = dash
 
 func _populate_profile_stats(data: Dictionary) -> void:
 	var created_at: String = str(data.get("created_at", ""))
@@ -432,6 +437,31 @@ func _populate_profile_stats(data: Dictionary) -> void:
 		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
 		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
 	]
+	_apply_rank_badge(profile_rank_badge_label, int(ranked.get("mmr", 0)), true)
+
+# Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
+# (persistant, avec_progress = false) et à celui de la vue Profil (avec la
+# progression vers le palier suivant, plus lisible dans un contexte dédié).
+func _apply_rank_badge(label: Label, mmr: int, with_progress: bool) -> void:
+	var tier := RankTier.from_mmr(mmr)
+	label.add_theme_color_override("font_color", RankTier.color(tier))
+	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [RankTier.symbol(tier), SettingsManager.t(RankTier.tier_key(tier)), mmr]
+	if with_progress:
+		var remaining := RankTier.mmr_to_next_tier(mmr)
+		if remaining >= 0:
+			var next_tier_name := SettingsManager.t(RankTier.tier_key(tier + 1))
+			text += "\n" + SettingsManager.t("RANK_BADGE_PROGRESS") % [remaining, next_tier_name]
+		else:
+			text += "\n" + SettingsManager.t("RANK_BADGE_MAX_TIER")
+	label.text = text
+
+func _fetch_rank_badge() -> void:
+	if not BackendClient.is_authenticated():
+		return
+	BackendClient.get_profile(func(success: bool, data: Dictionary):
+		if success:
+			_apply_rank_badge(rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
+	)
 
 func _on_credits() -> void:
 	credits_main_sub.show()
