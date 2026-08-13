@@ -197,6 +197,46 @@ func queue_report_lobby(ticket_id: String, steam_lobby_id: int, on_complete: Cal
 func queue_cancel(ticket_id: String, on_complete: Callable = Callable()) -> void:
 	request(HTTPClient.METHOD_DELETE, "/api/matchmaking/queue/%s" % ticket_id, {}, on_complete)
 
+# ─── Quêtes quotidiennes & récompense de connexion ─────────────────────────
+# Implémenté côté wyrdane-backend (voir questModel.ts/loginRewardModel.ts).
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, claimed}], resets_at}).
+func get_daily_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/daily", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, reward_currency}).
+func claim_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed_today, streak_day}).
+func get_login_reward_status(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/login-reward/status", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {streak_day, reward_currency, balance}).
+func claim_login_reward(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/login-reward/claim", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # Signale un bug ou un joueur pour triche (POST /api/reports) — voir
 # ReportDialog. Pas de table dédiée côté backend : le signalement part par
 # mail à l'équipe (même mécanisme que le formulaire de contact du site).

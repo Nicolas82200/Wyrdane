@@ -14,7 +14,7 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -79,6 +79,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
 @onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
+@onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var pack_shop:       Control = $PackShop
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
@@ -130,6 +131,17 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var shop_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopDescLabel
 @onready var shop_open_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopOpenButton
 
+@onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
+@onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
+@onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
+@onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
+
+@onready var login_reward_popup: Control = $LoginRewardPopup
+@onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
+@onready var login_reward_streak_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStreakLabel
+@onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
+@onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
+
 var _local_news_entries: Array[NewsEntry] = []
 var _remote_news_entries: Array = []
 var _use_remote_news := false
@@ -151,6 +163,8 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
+	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
+	login_reward_claim_button.pressed.connect(_on_claim_login_reward_pressed)
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -330,6 +344,7 @@ func _launch_backend_syncs() -> void:
 			CurrencyManager.sync_from_backend()
 	)
 	_fetch_rank_badge()
+	_fetch_login_reward_status()
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
@@ -346,6 +361,7 @@ func _show_info_view(view: InfoView) -> void:
 	settings_menu.visible = view == InfoView.SETTINGS
 	deck_list.visible = view == InfoView.DECKS_MANAGE
 	report_view.visible = view == InfoView.REPORT
+	quests_view.visible = view == InfoView.QUESTS
 	if view == InfoView.PROFILE:
 		_open_profile_view()
 	elif view == InfoView.SETTINGS:
@@ -354,6 +370,8 @@ func _show_info_view(view: InfoView) -> void:
 		deck_list._refresh()
 	elif view == InfoView.REPORT:
 		_open_report_view()
+	elif view == InfoView.QUESTS:
+		_open_quests_view()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -463,6 +481,45 @@ func _fetch_rank_badge() -> void:
 			_apply_rank_badge(rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
 	)
 
+# --- Récompense de connexion quotidienne ---------------------------------
+# Popup automatique au chargement du menu (une fois la sync backend faite),
+# uniquement si pas déjà réclamée aujourd'hui — voir BackendClient.get_login_reward_status.
+# Le montant n'est connu qu'une fois réclamé (POST /claim) : /status ne renvoie
+# que le palier, pas la récompense associée — évite de dupliquer la table de
+# récompenses par palier (REWARD_BY_DAY) côté client, où elle pourrait dériver
+# de celle du backend sans que personne ne s'en aperçoive.
+func _fetch_login_reward_status() -> void:
+	if not BackendClient.is_authenticated():
+		return
+	BackendClient.get_login_reward_status(func(success: bool, data: Dictionary):
+		if not success or bool(data.get("claimed_today", true)):
+			return
+		_show_login_reward_popup(int(data.get("streak_day", 1)))
+	)
+
+func _show_login_reward_popup(streak_day: int) -> void:
+	login_reward_title_label.text = SettingsManager.t("LOGIN_REWARD_TITLE")
+	login_reward_streak_label.text = SettingsManager.t("LOGIN_REWARD_STREAK") % streak_day
+	login_reward_amount_label.text = ""
+	login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIM")
+	login_reward_claim_button.disabled = false
+	login_reward_popup.visible = true
+	_fade_in_overlay(login_reward_popup)
+
+func _on_claim_login_reward_pressed() -> void:
+	login_reward_claim_button.disabled = true
+	BackendClient.claim_login_reward(func(success: bool, data: Dictionary):
+		if not success:
+			login_reward_claim_button.disabled = false
+			return
+		AudioManager.play(AudioManager.CONFIRM)
+		CurrencyManager.sync_from_backend()
+		login_reward_amount_label.text = SettingsManager.t("LOGIN_REWARD_AMOUNT") % int(data.get("reward_currency", 0))
+		login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIMED")
+		await get_tree().create_timer(1.4).timeout
+		login_reward_popup.visible = false
+	)
+
 func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
@@ -498,6 +555,96 @@ func _on_report_submit_pressed() -> void:
 			report_text_edit.text = ""
 		else:
 			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
+	)
+
+# --- Quêtes quotidiennes --------------------------------------------------
+
+func _open_quests_view() -> void:
+	if not BackendClient.is_authenticated():
+		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
+		quests_status_label.visible = true
+		return
+	quests_status_label.text = SettingsManager.t("PROFILE_LOADING")
+	quests_status_label.visible = true
+	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
+		if _current_info_view != InfoView.QUESTS:
+			return
+		if not success:
+			quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
+			return
+		_populate_quests(data.get("quests", []))
+	)
+
+func _populate_quests(quests: Array) -> void:
+	quests_status_label.visible = quests.is_empty()
+	if quests.is_empty():
+		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
+	for child in quests_list_vbox.get_children():
+		child.queue_free()
+	for quest in quests:
+		_add_quest_item(quest)
+
+func _add_quest_item(quest: Dictionary) -> void:
+	var quest_id := int(quest.get("id", 0))
+	var progress := int(quest.get("progress", 0))
+	var target := int(quest.get("target", 1))
+	var reward := int(quest.get("reward_currency", 0))
+	var claimed := bool(quest.get("claimed", false))
+	var completed := progress >= target
+
+	var row := PanelContainer.new()
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_bottom", 10)
+	row.add_child(margin)
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	margin.add_child(hbox)
+
+	var text_col := VBoxContainer.new()
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(text_col)
+
+	var desc_label := Label.new()
+	desc_label.text = SettingsManager.t(String(quest.get("description_key", "")))
+	desc_label.add_theme_font_size_override("font_size", 17)
+	desc_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	text_col.add_child(desc_label)
+
+	var progress_label := Label.new()
+	progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
+	progress_label.add_theme_font_size_override("font_size", 14)
+	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
+	text_col.add_child(progress_label)
+
+	var action_button := Button.new()
+	action_button.custom_minimum_size = Vector2(140, 40)
+	action_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if claimed:
+		action_button.text = SettingsManager.t("QUESTS_CLAIMED")
+		action_button.disabled = true
+	elif completed:
+		action_button.text = SettingsManager.t("QUESTS_CLAIM")
+		action_button.pressed.connect(_on_claim_quest_pressed.bind(quest_id, action_button))
+	else:
+		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
+		action_button.disabled = true
+	hbox.add_child(action_button)
+
+	quests_list_vbox.add_child(row)
+
+func _on_claim_quest_pressed(quest_id: int, button: Button) -> void:
+	button.disabled = true
+	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
+		if not success:
+			button.disabled = false
+			return
+		AudioManager.play(AudioManager.CONFIRM)
+		CurrencyManager.sync_from_backend()
+		button.text = SettingsManager.t("QUESTS_CLAIMED")
 	)
 
 func _on_legal_pressed() -> void:
@@ -1037,6 +1184,10 @@ func _retranslate() -> void:
 	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
 	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
+	quests_button.text = SettingsManager.t("MENU_QUESTS")
+	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	if quests_view.visible:
+		_open_quests_view()
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		_show_deck_composition(_composition_deck_index)
 	if profile_view.visible:
