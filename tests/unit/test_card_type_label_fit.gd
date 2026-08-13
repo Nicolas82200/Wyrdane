@@ -2,8 +2,12 @@ extends GutTest
 
 # Couvre Card._fit_type_label (scripts/card/Card.gd) : le bandeau TypeLabel
 # doit s'elargir ou se retrecir selon le texte affiche (ex. un Rituel a
-# charges a un texte plus long qu'un Serviteur), toujours centre sur
-# Card.TYPE_LABEL_CENTER_X et borne par TYPE_LABEL_MIN_WIDTH/MAX_WIDTH.
+# charges a un texte plus long qu'un Serviteur), toujours centre sur son
+# point d'ancrage (anchor_left = anchor_right = 0.5, voir Card.tscn) et
+# borne par TYPE_LABEL_MIN_WIDTH/MAX_WIDTH. Etre centre sur l'ancrage plutot
+# que sur un pixel fixe garantit que le bandeau reste centre meme quand la
+# carte est etiree a une largeur differente (main, grille du deck builder,
+# apercu au survol).
 # Instancie une vraie Card.tscn (pas de mock) car la logique depend de la
 # police reelle de TypeLabel.
 
@@ -29,7 +33,7 @@ func _type_label_width(card: Card) -> float:
 func test_type_label_stays_centered_regardless_of_width() -> void:
 	var card := _make_card("Minion")
 	var center: float = (card.type_label.offset_left + card.type_label.offset_right) / 2.0
-	assert_almost_eq(center, Card.TYPE_LABEL_CENTER_X, 0.5)
+	assert_almost_eq(center, 0.0, 0.5)
 
 func test_type_label_width_never_exceeds_bounds() -> void:
 	var short_card := _make_card("Minion")
