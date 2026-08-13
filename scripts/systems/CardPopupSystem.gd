@@ -298,6 +298,15 @@ func show_targeting_popup(card_data: CardData) -> void:
 	t.tween_property(card, "modulate:a", 1.0, 0.2)
 	await t.finished
 
+# Accès à la popup persistante et à son calque, pour qu'un système appelant
+# (ex. PactChoiceSystem) puisse positionner sa propre UI de choix juste en
+# dessous de la carte affichée par show_targeting_popup.
+func get_persistent_card() -> Card:
+	return _persistent_card
+
+func get_popup_layer() -> CanvasLayer:
+	return _popup_layer
+
 func hide_targeting_popup() -> void:
 	if _persistent_card == null or not is_instance_valid(_persistent_card):
 		_persistent_card = null

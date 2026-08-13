@@ -37,26 +37,70 @@ func heuristic_decision(is_player: bool, value: int) -> bool:
 	var hero: Hero = battle.player_hero if is_player else battle.enemy_hero
 	return hero.health - value >= SAFE_HEALTH_MARGIN
 
+# Affiche la carte du Pacte via la popup persistante (CardPopupSystem, même
+# emplacement que le ciblage), avec un panneau de choix Oui/Non ancré juste
+# en dessous — pour que le joueur voie la carte (texte d'effet compris) en
+# même temps que le choix qu'elle lui demande.
 func ask(card_data: CardData, value: int) -> bool:
-	var dialog := ConfirmationDialog.new()
-	dialog.title = card_data.display_name()
-	dialog.dialog_text = SettingsManager.t("PACT_CONFIRM_TEXT") % value
-	dialog.ok_button_text = SettingsManager.t("PACT_CONFIRM_YES")
-	dialog.cancel_button_text = SettingsManager.t("PACT_CONFIRM_NO")
-	battle.add_child(dialog)
-	dialog.popup_centered()
+	await battle.card_popup_system.show_targeting_popup(card_data)
+	var card: Card = battle.card_popup_system.get_persistent_card()
+	var layer: CanvasLayer = battle.card_popup_system.get_popup_layer()
+
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("1a0e0eee")
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = Color("c9a227")
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", style)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	panel.add_child(vbox)
+
+	var label := Label.new()
+	label.text = SettingsManager.t("PACT_CONFIRM_TEXT") % value
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(label)
+
+	var hbox := HBoxContainer.new()
+	hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	hbox.add_theme_constant_override("separation", 12)
+	vbox.add_child(hbox)
+
+	var yes_button := Button.new()
+	yes_button.text = SettingsManager.t("PACT_CONFIRM_YES")
+	hbox.add_child(yes_button)
+
+	var no_button := Button.new()
+	no_button.text = SettingsManager.t("PACT_CONFIRM_NO")
+	hbox.add_child(no_button)
+
+	layer.add_child(panel)
+	if card != null and is_instance_valid(card):
+		panel.custom_minimum_size.x = card.size.x
+		await panel.get_tree().process_frame
+		panel.position = card.position + Vector2(0.0, card.size.y + 12.0)
 
 	var paid: bool = false
 	var done: bool = false
-	dialog.confirmed.connect(func() -> void:
+	yes_button.pressed.connect(func() -> void:
 		paid = true
 		done = true
 	)
-	dialog.canceled.connect(func() -> void:
+	no_button.pressed.connect(func() -> void:
 		paid = false
 		done = true
 	)
 	while not done:
 		await battle.get_tree().process_frame
-	dialog.queue_free()
+	panel.queue_free()
+	battle.card_popup_system.hide_targeting_popup()
 	return paid
