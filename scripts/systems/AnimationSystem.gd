@@ -13,6 +13,12 @@ var battle
 func init(_battle) -> void:
 	battle = _battle
 
+# Durée de tween réduite quand SettingsManager.reduced_motion est actif
+# (accessibilité) : raccourcit les grands déplacements/rotations sans les
+# supprimer complètement, pour conserver un minimum de retour visuel.
+func _t(seconds: float) -> float:
+	return seconds * SettingsManager.motion_scale()
+
 # Angle de départ de play_summon (bascule autour du bas de la carte) : le bas
 # est déjà planté à sa position finale, le haut est encore basculé en arrière
 # et "tombe" ensuite jusqu'à être à plat.
@@ -30,7 +36,7 @@ func play_summon(visual: BoardMinion) -> void:
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(visual, "modulate:a", 1.0, 0.1)
-	tween.tween_property(visual, "rotation_degrees", 0.0, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual, "rotation_degrees", 0.0, _t(0.32)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_callback(func():
 		if is_instance_valid(visual):
 			visual.pivot_offset = base_pivot
@@ -123,11 +129,11 @@ func _split_card_in_half(visual: BoardMinion) -> void:
 
 			var tween: Tween = battle.create_tween()
 			tween.set_parallel(true)
-			tween.tween_property(piece, "global_position", piece_pos + travel, 0.45)\
+			tween.tween_property(piece, "global_position", piece_pos + travel, _t(0.45))\
 				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			tween.tween_property(piece, "rotation_degrees", spin, 0.45)\
+			tween.tween_property(piece, "rotation_degrees", spin, _t(0.45))\
 				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(piece, "modulate:a", 0.0, 0.3).set_delay(0.2)
+			tween.tween_property(piece, "modulate:a", 0.0, 0.3).set_delay(_t(0.2))
 			tween.chain().tween_callback(piece.queue_free)
 
 func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
@@ -140,19 +146,20 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		return
 	attacker_visual.z_index = 50
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, 0.15)\
+	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, _t(0.15))\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, 0.12)\
+	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, _t(0.12))\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		if not is_instance_valid(target):
 			return
-		# Shake
-		var hit_pos := target.position
-		var shake: Tween = battle.create_tween()
-		shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05)
-		shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05)
-		shake.tween_property(target, "position", hit_pos, 0.05)
+		# Shake (accessibilité : désactivé si SettingsManager.reduced_motion)
+		if not SettingsManager.reduced_motion:
+			var hit_pos := target.position
+			var shake: Tween = battle.create_tween()
+			shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05)
+			shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05)
+			shake.tween_property(target, "position", hit_pos, 0.05)
 		# Flash rouge
 		var flash: Tween = battle.create_tween()
 		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
@@ -160,7 +167,7 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		flash.tween_callback(func(): reapply_status_tint(target))
 		play_hit_mark(attacker_visual, target)
 	)
-	tween.tween_property(attacker_visual, "position", start_pos, 0.25)\
+	tween.tween_property(attacker_visual, "position", start_pos, _t(0.25))\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	if is_instance_valid(attacker_visual):
@@ -179,8 +186,8 @@ func play_resource_absorb(card: Card, color: Color) -> void:
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
 	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	tween.tween_property(card, "modulate", Color(color.r, color.g, color.b, 0.0), 0.35)
-	tween.tween_property(card, "scale", card.scale * 0.75, 0.35)
+	tween.tween_property(card, "modulate", Color(color.r, color.g, color.b, 0.0), _t(0.35))
+	tween.tween_property(card, "scale", card.scale * 0.75, _t(0.35))
 	tween.chain().tween_callback(func():
 		if is_instance_valid(card):
 			card.queue_free()
@@ -214,7 +221,7 @@ func _fire_missile(start: Vector2, target: Vector2, color: Color, delay: float) 
 	battle.add_child(bolt)
 	bolt.global_position = start - bolt.size / 2.0
 
-	var duration: float = clampf(start.distance_to(target) / 1300.0, 0.18, 0.45)
+	var duration: float = _t(clampf(start.distance_to(target) / 1300.0, 0.18, 0.45))
 	var perp: Vector2 = (target - start).orthogonal().normalized()
 	var trail_spawned := {}
 
@@ -330,9 +337,10 @@ func reapply_status_tint(visual: CanvasItem) -> void:
 	if is_instance_valid(visual) and visual.has_method("status_tint"):
 		visual.update_display()
 
-## Petit shake horizontal (ex: peur, choc encaissé).
+## Petit shake horizontal (ex: peur, choc encaissé). Désactivé si
+## SettingsManager.reduced_motion est actif (accessibilité).
 func _shake(visual: Control, amount: float = 8.0, step: float = 0.05) -> void:
-	if not is_instance_valid(visual):
+	if not is_instance_valid(visual) or SettingsManager.reduced_motion:
 		return
 	var base_pos := visual.position
 	var tween: Tween = battle.create_tween()
@@ -431,13 +439,13 @@ func play_revenant(visual: Control) -> void:
 		return
 	visual.pivot_offset = visual.size / 2.0
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(visual, "scale", Vector2(0.85, 0.6), 0.18)\
+	tween.tween_property(visual, "scale", Vector2(0.85, 0.6), _t(0.18))\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.tween_property(visual, "modulate", Color(0.6, 1.0, 0.9, 0.5), 0.1)
-	tween.tween_property(visual, "scale", Vector2(1.2, 1.2), 0.16)\
+	tween.tween_property(visual, "scale", Vector2(1.2, 1.2), _t(0.16))\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(visual, "modulate", Color(0.6, 1.0, 0.9, 1.0), 0.12)
-	tween.tween_property(visual, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual, "scale", Vector2.ONE, _t(0.14)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(visual, "modulate", rest_tint(visual), 0.25)
 	tween.chain().tween_callback(func(): reapply_status_tint(visual))
 	_floating_text(visual, "%s !" % KeywordUndead.get_keyword_name(KeywordUndead.Type.REVENANT), Color(0.6, 1.0, 0.9))
