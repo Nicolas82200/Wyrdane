@@ -38,6 +38,7 @@ var _net: NetworkManager
 var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
+var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
@@ -61,6 +62,7 @@ func _ready() -> void:
 	cancel_ranked_button.pressed.connect(_on_cancel_ranked_pressed)
 	invite_button.pressed.connect(_on_steam_invite_pressed)
 	back_button.pressed.connect(_on_back_pressed)
+	_net.session_ready.connect(_on_session_ready)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	if SteamService.is_available():
@@ -106,12 +108,34 @@ func _on_steam_quick_pressed() -> void:
 		_quick_matching = false
 		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
 
+# L'overlay Steam d'invitation exige un lobby déjà créé (voir
+# SteamTransport.invite_friends) : si aucun n'est en cours, on héberge d'abord
+# et on ouvre l'overlay dès que le lobby est prêt, plutôt que de laisser le
+# joueur presser « Héberger » lui-même avant de pouvoir inviter.
 func _on_steam_invite_pressed() -> void:
+	if _lobby_hosted:
+		_net.invite_friends()
+		return
+	_quick_matching = false
+	_net.session_ready.connect(_on_invite_lobby_ready, CONNECT_ONE_SHOT)
+	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
+	if err == OK:
+		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+	else:
+		if _net.session_ready.is_connected(_on_invite_lobby_ready):
+			_net.session_ready.disconnect(_on_invite_lobby_ready)
+		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+
+func _on_invite_lobby_ready(_session_id: int) -> void:
 	_net.invite_friends()
+
+func _on_session_ready(_session_id: int) -> void:
+	_lobby_hosted = _net.is_host
 
 func _on_back_pressed() -> void:
 	# Coupe une éventuelle connexion en cours avant de revenir au menu.
 	_cancel_ranked_search(false)
+	_lobby_hosted = false
 	_net.close()
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
