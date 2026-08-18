@@ -32,13 +32,18 @@ const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 @onready var title_label:        Label  = $TitleLabel
 @onready var subtitle_label:     Label  = $SubtitleLabel
 @onready var status_title_label: Label  = $StatusPanel/StatusMargin/StatusVBox/StatusTitleLabel
-@onready var _log:               RichTextLabel = $StatusPanel/StatusMargin/StatusVBox/LogPanel/Log
+@onready var spinner_icon:       TextureRect = $StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox/SpinnerIcon
+@onready var phase_label:        Label  = $StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox/PhaseLabel
+
+const SPINNER_TURNS_PER_SECOND := 0.5
 
 var _net: NetworkManager
 var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
+var _status_key := "NET_LOADING_IDLE"  # clé de traduction affichée par phase_label
+var _loading := false  # affiche le spinner tant qu'une connexion est en cours
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
@@ -55,7 +60,10 @@ func _ready() -> void:
 	add_child(_net)
 	_net.peer_connected.connect(_on_peer_connected)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
-	_net.status.connect(_log_line)
+	# Détail technique (ids de lobby, codes de connexion P2P...) utile en debug
+	# mais pas au joueur : direction console uniquement, jamais l'écran (voir
+	# _set_status pour le texte réellement affiché, une phase à la fois).
+	_net.status.connect(func(text: String) -> void: print("[NetLobby] " + text))
 	host_button.pressed.connect(_on_steam_host_pressed)
 	quick_match_button.pressed.connect(_on_steam_quick_pressed)
 	ranked_button.pressed.connect(_on_ranked_pressed)
@@ -68,20 +76,32 @@ func _ready() -> void:
 	if SteamService.is_available():
 		SteamService.watch_join_requests(_on_steam_join_requested)
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# Pompe les callbacks Steam même hors session active, pour capter une
 	# invitation reçue pendant qu'on est simplement sur cet écran (voir
 	# SteamService.watch_join_requests). Sans effet si Steam pas initialisé.
 	if SteamService.is_available():
 		SteamService.run_callbacks()
+	if _loading:
+		spinner_icon.rotation += delta * TAU * SPINNER_TURNS_PER_SECOND
 
-func _log_line(text: String) -> void:
-	_log.append_text(text + "\n")
+# Remplace le texte de statut affiché (une seule phase à la fois, jamais un
+# journal qui s'accumule — voir _net.status en debug console pour le détail).
+func _set_status(key: String) -> void:
+	_status_key = key
+	phase_label.text = SettingsManager.t(key)
+
+func _set_loading(active: bool) -> void:
+	_loading = active
+	spinner_icon.visible = active
+	if not active:
+		spinner_icon.rotation = 0.0
 
 func _retranslate() -> void:
 	title_label.text        = SettingsManager.t("MENU_MULTIPLAYER")
 	subtitle_label.text     = SettingsManager.t("NET_LOBBY_SUBTITLE")
 	status_title_label.text = SettingsManager.t("NET_STATUS_TITLE")
+	phase_label.text        = SettingsManager.t(_status_key)
 	host_button.text        = SettingsManager.t("NET_STEAM_HOST")
 	quick_match_button.text = SettingsManager.t("NET_STEAM_QUICK")
 	ranked_button.text      = SettingsManager.t("NET_STEAM_RANKED")
@@ -95,18 +115,20 @@ func _on_steam_host_pressed() -> void:
 	_quick_matching = false
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
-		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+		_set_loading(true)
+		_set_status("NET_STEAM_HOSTING")
 	else:
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_status("NET_STEAM_UNAVAILABLE")
 
 func _on_steam_quick_pressed() -> void:
 	_quick_matching = true
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
-		_log_line(SettingsManager.t("NET_STEAM_SEARCHING"))
+		_set_loading(true)
+		_set_status("NET_STEAM_SEARCHING")
 	else:
 		_quick_matching = false
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_status("NET_STEAM_UNAVAILABLE")
 
 # L'overlay Steam d'invitation exige un lobby déjà créé (voir
 # SteamTransport.invite_friends) : si aucun n'est en cours, on héberge d'abord
@@ -120,11 +142,12 @@ func _on_steam_invite_pressed() -> void:
 	_net.session_ready.connect(_on_invite_lobby_ready, CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
-		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+		_set_loading(true)
+		_set_status("NET_STEAM_HOSTING")
 	else:
 		if _net.session_ready.is_connected(_on_invite_lobby_ready):
 			_net.session_ready.disconnect(_on_invite_lobby_ready)
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_status("NET_STEAM_UNAVAILABLE")
 
 func _on_invite_lobby_ready(_session_id: int) -> void:
 	_net.invite_friends()
@@ -136,6 +159,7 @@ func _on_back_pressed() -> void:
 	# Coupe une éventuelle connexion en cours avant de revenir au menu.
 	_cancel_ranked_search(false)
 	_lobby_hosted = false
+	_set_loading(false)
 	_net.close()
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
@@ -144,14 +168,15 @@ func _on_back_pressed() -> void:
 
 func _on_ranked_pressed() -> void:
 	if not BackendClient.is_authenticated():
-		_log_line(SettingsManager.t("NET_RANKED_UNAVAILABLE"))
+		_set_status("NET_RANKED_UNAVAILABLE")
 		return
 	_set_actions_enabled(false)
 	cancel_ranked_button.visible = true
-	_log_line(SettingsManager.t("NET_RANKED_QUEUEING"))
+	_set_loading(true)
+	_set_status("NET_RANKED_QUEUEING")
 	BackendClient.queue_join(func(success: bool, data: Dictionary) -> void:
 		if not success or str(data.get("ticket_id", "")) == "":
-			_log_line(SettingsManager.t("NET_RANKED_UNAVAILABLE"))
+			_set_status("NET_RANKED_UNAVAILABLE")
 			_reset_ranked_ui()
 			return
 		_ranked_ticket_id = str(data.get("ticket_id", ""))
@@ -166,14 +191,14 @@ func _on_ranked_pressed() -> void:
 func _on_cancel_ranked_pressed() -> void:
 	_cancel_ranked_search(true)
 
-# manual : true si annulé par le joueur (log dédié), false si on quitte l'écran
-# (aucun log utile, on part de toute façon).
+# manual : true si annulé par le joueur (statut dédié), false si on quitte
+# l'écran (aucun message utile, on part de toute façon).
 func _cancel_ranked_search(manual: bool) -> void:
 	if _ranked_ticket_id == "":
 		return
 	BackendClient.queue_cancel(_ranked_ticket_id)
 	if manual:
-		_log_line(SettingsManager.t("NET_RANKED_CANCELLED"))
+		_set_status("NET_RANKED_CANCELLED")
 	_reset_ranked_ui()
 
 func _reset_ranked_ui() -> void:
@@ -185,11 +210,12 @@ func _reset_ranked_ui() -> void:
 	_ranked_role = ""
 	cancel_ranked_button.visible = false
 	_set_actions_enabled(true)
+	_set_loading(false)
 
 func _poll_ranked_queue() -> void:
 	_ranked_elapsed += RANKED_POLL_INTERVAL
 	if _ranked_elapsed >= RANKED_QUEUE_TIMEOUT:
-		_log_line(SettingsManager.t("NET_RANKED_TIMEOUT"))
+		_set_status("NET_RANKED_TIMEOUT")
 		_cancel_ranked_search(false)
 		return
 	var ticket_id := _ranked_ticket_id
@@ -201,7 +227,7 @@ func _poll_ranked_queue() -> void:
 			"matched":
 				_on_ranked_matched(data)
 			"cancelled", "expired":
-				_log_line(SettingsManager.t("NET_RANKED_TIMEOUT"))
+				_set_status("NET_RANKED_TIMEOUT")
 				_reset_ranked_ui()
 			_:
 				pass  # "waiting" : rien à faire, on repollera au prochain tick
@@ -216,11 +242,11 @@ func _on_ranked_matched(data: Dictionary) -> void:
 		_net.session_ready.connect(_on_ranked_lobby_ready, CONNECT_ONE_SHOT)
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 		if err == OK:
-			_log_line(SettingsManager.t("NET_RANKED_MATCHED"))
+			_set_status("NET_RANKED_MATCHED")
 		else:
 			if _net.session_ready.is_connected(_on_ranked_lobby_ready):
 				_net.session_ready.disconnect(_on_ranked_lobby_ready)
-			_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+			_set_status("NET_STEAM_UNAVAILABLE")
 			_cancel_ranked_search(false)
 		return
 	# Invité : le lobby n'est disponible qu'une fois l'hôte l'ayant rapporté
@@ -232,10 +258,10 @@ func _on_ranked_matched(data: Dictionary) -> void:
 		_ranked_poll_timer.stop()
 	_quick_matching = false
 	_ranked_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
-	_log_line(SettingsManager.t("NET_RANKED_MATCHED"))
+	_set_status("NET_RANKED_MATCHED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err != OK:
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_status("NET_STEAM_UNAVAILABLE")
 		_reset_ranked_ui()
 
 # Hôte classé uniquement : le lobby vient d'être créé, on transmet son id au
@@ -253,12 +279,13 @@ func _on_peer_connected() -> void:
 	_quick_matching = false
 	cancel_ranked_button.visible = false
 	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
-	_log_line("✓ Pair connecté — handshake…")
+	_set_loading(true)
+	_set_status("NET_LOADING_PREPARING")
 	_set_actions_enabled(false)
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
 	_handshake.completed.connect(_on_handshake_ready)
-	_handshake.progress.connect(_log_line)
+	_handshake.progress.connect(func(text: String) -> void: print("[NetLobby] " + text))
 	_handshake.start()
 
 # Boutons de lancement de partie désactivés dès qu'une connexion pair-à-pair
@@ -275,18 +302,22 @@ func _on_peer_disconnected(reason: String) -> void:
 		"steam_same_account":
 			_quick_matching = false
 			_reset_ranked_ui()
-			_log_line(SettingsManager.t("NET_STEAM_SAME_ACCOUNT"))
+			_set_loading(false)
+			_set_status("NET_STEAM_SAME_ACCOUNT")
 		"steam_no_lobby_found":
 			if _quick_matching:
-				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY_HOSTING"))
+				_set_status("NET_STEAM_NO_LOBBY_HOSTING")
 				_start_quick_match_host()
 			else:
 				_reset_ranked_ui()
-				_log_line(SettingsManager.t("NET_STEAM_NO_LOBBY"))
+				_set_loading(false)
+				_set_status("NET_STEAM_NO_LOBBY")
 		_:
 			_quick_matching = false
 			_reset_ranked_ui()
-			_log_line("✗ Pair déconnecté (%s)" % [reason])
+			_set_loading(false)
+			print("[NetLobby] Pair déconnecté (%s)" % [reason])
+			_set_status("NET_STEAM_DISCONNECTED")
 
 # Partie rapide sans adversaire trouvé : on héberge à la place plutôt que de
 # laisser le joueur relancer manuellement (voir _on_steam_quick_pressed).
@@ -294,20 +325,24 @@ func _start_quick_match_host() -> void:
 	_quick_matching = false
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
-		_log_line(SettingsManager.t("NET_STEAM_HOSTING"))
+		_set_loading(true)
+		_set_status("NET_STEAM_HOSTING")
 	else:
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_loading(false)
+		_set_status("NET_STEAM_UNAVAILABLE")
 
 # Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») alors
 # que le joueur est déjà sur cet écran : on rejoint directement ce lobby.
 func _on_steam_join_requested(lobby_id: int) -> void:
 	_quick_matching = false
-	_log_line(SettingsManager.t("NET_STEAM_INVITE_RECEIVED"))
+	_set_status("NET_STEAM_INVITE_RECEIVED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err == OK:
-		_log_line(SettingsManager.t("NET_STEAM_SEARCHING"))
+		_set_loading(true)
+		_set_status("NET_STEAM_SEARCHING")
 	else:
-		_log_line(SettingsManager.t("NET_STEAM_UNAVAILABLE"))
+		_set_loading(false)
+		_set_status("NET_STEAM_UNAVAILABLE")
 
 # Deck local mélangé, sous forme de resource_path (identifiant partagé).
 func _local_deck_paths() -> Array:
@@ -320,8 +355,7 @@ func _local_deck_paths() -> Array:
 
 func _on_handshake_ready(setup: Dictionary) -> void:
 	print("[NetLobby] _on_handshake_ready  self=%s  in_tree=%s" % [self, is_inside_tree()])
-	_log_line(SettingsManager.t("NET_WAITING_OPPONENT"))
-	status_title_label.text = SettingsManager.t("NET_STATUS_SYNCING")
+	_set_status("NET_WAITING_OPPONENT")
 	NetContext.active = true
 	NetContext.net = _net
 	NetContext.is_host = _net.is_host
@@ -333,11 +367,11 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	_battle_sync = NetBattleSync.new(_net)
 	add_child(_battle_sync)
 	_battle_sync.completed.connect(_on_battle_sync_ready)
-	_battle_sync.progress.connect(_log_line)
+	_battle_sync.progress.connect(func(text: String) -> void: print("[NetLobby] " + text))
 	_battle_sync.start()
 
 func _on_battle_sync_ready() -> void:
-	_log_line("Adversaire prêt — lancement de la bataille réseau…")
+	print("[NetLobby] Adversaire prêt — lancement de la bataille réseau…")
 	# Le NetworkManager doit survivre au changement de scène : on le reparente
 	# sous la racine de l'arbre avant de charger Battle.
 	_net.get_parent().remove_child(_net)
