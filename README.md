@@ -244,7 +244,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
 *   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page en attente de validation Valve — instructions d'installation dans l'en-tête du fichier.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page validée par Valve — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).
 
@@ -815,7 +815,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390) en attendant la validation Valve de la page Steam
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion`, `CardLibrary`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, la mutation Abomination et le timer de tour (voir « Tests automatisés » dans `CLAUDE.md`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
@@ -824,7 +824,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : validation Valve de la page Steamworks (AppID 5052390 déjà en place côté code), invitations d'amis, puis build/dépôt Steam
+*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, déjà en place côté code)
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Animations shaders
