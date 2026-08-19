@@ -130,12 +130,11 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 12
 
-[node name="CardGrid" type="GridContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox/ScrollCards/GridMargin" unique_id=100000006]
+[node name="CardGrid" type="HFlowContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox/ScrollCards/GridMargin" unique_id=100000006]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 20
-columns = 6
 
 [node name="VSep" type="VSeparator" parent="MainVBox/HBox" unique_id=100000025]
 layout_mode = 2

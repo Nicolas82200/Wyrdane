@@ -22,7 +22,7 @@ const PREVIEW_SCALE := Vector2(1.15, 1.15)
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 
-@onready var card_grid:        GridContainer = %CardGrid
+@onready var card_grid:        HFlowContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
 @onready var card_count_label: Label         = %CardCountLabel
