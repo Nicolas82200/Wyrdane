@@ -240,6 +240,7 @@ func _ready() -> void:
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
 	_wire_nav_hover_pop()
+	_wire_play_button_glow()
 
 # Apparition en cascade des boutons de navigation (la barre de l'écran de
 # chargement disparaît elle-même en fondu — voir
@@ -275,6 +276,27 @@ func _wire_nav_hover_pop() -> void:
 			var tween := create_tween()
 			tween.tween_property(button, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		)
+
+# Léger halo pulsant en boucle sur le bouton Jouer (CTA principal), pour lui
+# donner une présence "vivante" façon MTGA. Désactivé si réduction des
+# animations activée (même logique que AnimationSystem._shake) et réagit au
+# changement du réglage en direct si la fenêtre reste ouverte.
+var _play_button_glow_tween: Tween
+func _wire_play_button_glow() -> void:
+	SettingsManager.reduced_motion_changed.connect(func(_enabled): _set_play_button_glow(not _enabled))
+	_set_play_button_glow(not SettingsManager.reduced_motion)
+
+func _set_play_button_glow(enabled: bool) -> void:
+	if _play_button_glow_tween:
+		_play_button_glow_tween.kill()
+		_play_button_glow_tween = null
+	play_button.self_modulate = Color.WHITE
+	if not enabled:
+		return
+	_play_button_glow_tween = create_tween()
+	_play_button_glow_tween.set_loops()
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color(1.1, 1.05, 0.9), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color.WHITE, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 # Fondu d'apparition pour les panneaux plein écran (Packs), qui portent déjà
 # leur propre voile d'assombrissement en fond — un simple fondu du contrôle
