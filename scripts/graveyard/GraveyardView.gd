@@ -3,9 +3,9 @@ class_name GraveyardView
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
-const GRID_CARD_SCALE       := 0.55
-const GRID_CARD_HOVER_SCALE := 0.66
-const GRID_WRAPPER_SIZE     := Vector2(140, 210)
+const GRID_CARD_SCALE       := 0.85
+const GRID_CARD_HOVER_SCALE := 0.95
+const GRID_WRAPPER_SIZE     := Vector2(215, 320)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 const TOOLTIP_WIDTH         := 220.0
 
@@ -38,15 +38,32 @@ func close() -> void:
 	hide()
 
 func open(graveyard: Graveyard) -> void:
+	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
+	var entries: Array = []
+	# Pile LIFO : la mort la plus récente est affichée en premier
+	for i in range(graveyard.entries.size() - 1, -1, -1):
+		var entry = graveyard.entries[i]
+		entries.append({"card_data": entry["card_data"], "face_down": graveyard.is_face_down(entry)})
+	_open_entries(entries)
+
+# Cartes restantes dans la pioche du joueur, triées par coût de mana (pas
+# l'ordre du deck, qui est mélangé et sans intérêt pour le joueur ici).
+func open_deck(cards: Array) -> void:
+	count_label.text = SettingsManager.t("deck_view.count_format") % cards.size()
+	var sorted_cards := cards.duplicate()
+	sorted_cards.sort_custom(func(a: CardData, b: CardData): return a.cost < b.cost)
+	var entries: Array = []
+	for card in sorted_cards:
+		entries.append({"card_data": card, "face_down": false})
+	_open_entries(entries)
+
+func _open_entries(entries: Array) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
 	for child in container.get_children():
 		child.queue_free()
-	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
-	# Pile LIFO : la mort la plus récente est affichée en premier
-	for i in range(graveyard.entries.size() - 1, -1, -1):
-		var entry = graveyard.entries[i]
-		_add_card(entry["card_data"], graveyard.is_face_down(entry))
+	for entry in entries:
+		_add_card(entry["card_data"], entry["face_down"])
 	show()
 
 func _add_card(card_data: CardData, face_down: bool) -> void:
