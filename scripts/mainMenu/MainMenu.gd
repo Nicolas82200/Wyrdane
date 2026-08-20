@@ -28,7 +28,7 @@ const RACE_ACCENTS := {
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
 # Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
-# constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
+# constantes/logique que DeckStatsPanel.refresh / _make_curve_chart.
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
@@ -894,7 +894,7 @@ func _on_deck_comp_card_unhover() -> void:
 	deck_comp_preview_hint.show()
 
 ## Courbe de mana + répartition types/races du deck affiché, même logique que
-## DeckBuilder._update_stats_panel/_make_curve_chart.
+## DeckStatsPanel.refresh/_make_curve_chart.
 func _update_deck_comp_stats(cards: Array[CardData]) -> void:
 	for child in deck_comp_stats_panel.get_children():
 		child.queue_free()
