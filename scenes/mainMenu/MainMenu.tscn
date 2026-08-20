@@ -189,6 +189,20 @@ bg_color = Color(0, 0, 0, 0)
 border_width_left = 3
 border_color = Color(0, 0, 0, 0)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crest"]
+bg_color = Color(0.16, 0.12, 0.08, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0.88, 0.6, 0.2, 0.3)
+shadow_size = 10
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.69, 0.29, 0.24, 1)
 border_width_left = 1
@@ -321,6 +335,25 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 24
+
+[node name="NavCrest" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_crest")
+
+[node name="NavCrestLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/NavCrest"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.72, 0.32, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 22
+text = "W"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NavCrestSep" type="Control" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
 
 [node name="PacksButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000031]
 custom_minimum_size = Vector2(0, 52)
