@@ -80,6 +80,8 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
 @onready var packs_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
+@onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
+@onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
 @onready var pack_shop:       Control = $PackShop
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
@@ -238,6 +240,7 @@ func _ready() -> void:
 	_load_news()
 	_start_backend_sync()
 	_wire_nav_active_indicators()
+	_fetch_quests_badge()
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
 	_wire_nav_hover_pop()
@@ -636,6 +639,38 @@ func _populate_quests(quests: Array) -> void:
 		child.queue_free()
 	for quest in quests:
 		_add_quest_item(quest)
+	_update_quests_badge(quests)
+
+# Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
+# menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
+# quêtes sont réclamables tout de suite. Récupérée une première fois au
+# lancement (`_fetch_quests_badge`, appelée depuis `_ready`), puis rafraîchie
+# à chaque ouverture du panneau Quêtes (`_populate_quests`) et après chaque
+# réclamation.
+func _update_quests_badge(quests: Array) -> void:
+	var claimable := 0
+	for quest in quests:
+		var progress := int(quest.get("progress", 0))
+		var target := int(quest.get("target", 1))
+		var claimed := bool(quest.get("claimed", false))
+		if progress >= target and not claimed:
+			claimable += 1
+	quests_badge.visible = claimable > 0
+	quests_badge_label.text = str(claimable)
+
+func _fetch_quests_badge() -> void:
+	if not BackendClient.is_authenticated():
+		if not BackendClient.login_succeeded.is_connected(_on_quests_badge_login_succeeded):
+			BackendClient.login_succeeded.connect(_on_quests_badge_login_succeeded, CONNECT_ONE_SHOT)
+		return
+	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
+		if not success:
+			return
+		_update_quests_badge(data.get("quests", []))
+	)
+
+func _on_quests_badge_login_succeeded(_user: Dictionary) -> void:
+	_fetch_quests_badge()
 
 func _add_quest_item(quest: Dictionary) -> void:
 	var quest_id := int(quest.get("id", 0))
@@ -704,6 +739,7 @@ func _on_claim_quest_pressed(quest_id: int, button: Button) -> void:
 		AudioManager.play(AudioManager.CONFIRM)
 		CurrencyManager.sync_from_backend()
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
+		_fetch_quests_badge()
 	)
 
 func _on_legal_pressed() -> void:
