@@ -1043,7 +1043,7 @@ func _make_deck_comp_curve_chart(curve: Array) -> Control:
 func _make_deck_comp_chip(label_text: String, count: int) -> Control:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
-	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
+	bg.border_color = Color(0.72, 0.55, 0.24, 0.55)
 	bg.set_border_width_all(1)
 	bg.set_corner_radius_all(4)
 	bg.content_margin_left   = 8

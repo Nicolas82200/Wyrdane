@@ -413,6 +413,9 @@ text = "Arene"
 [node name="ModeBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=2146294638]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "← Retour"
 
 [node name="DeckSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1927201091]
@@ -431,6 +434,9 @@ theme_override_constants/separation = 8
 
 [node name="PlayBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader" unique_id=2018509045]
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "← Retour"
 
 [node name="DeckSelectTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader" unique_id=1681087930]
@@ -742,6 +748,9 @@ autowrap_mode = 3
 [node name="EditDeckButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView" unique_id=84917535]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Modifier le deck"
 
 [node name="ProfileView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1172476512]
@@ -878,6 +887,9 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Mentions légales"
 
 [node name="CreditsLegalSub" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack" unique_id=1251512213]
@@ -895,6 +907,9 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "← Retour"
 
 [node name="LegalScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1897122273]
@@ -967,8 +982,14 @@ autowrap_mode = 3
 [node name="ReportSubmitButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000082]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Envoyer"
 
 [node name="SettingsMenu" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=2017956977 instance=ExtResource("1_settings")]
