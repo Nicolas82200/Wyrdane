@@ -27,8 +27,8 @@ const RACE_ACCENTS := {
 }
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
-# Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
-# constantes/logique que DeckStatsPanel.refresh / _make_curve_chart.
+# Aperçu de carte dans la vue "Composition du deck" (voir DeckCompositionPanel
+# pour la courbe de mana/répartition affichée à côté).
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
@@ -38,11 +38,6 @@ const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # désaligne le contenu par rapport à la bordure.
 const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
-const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
-const CURVE_BAR_HEIGHT := 60.0
-const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
-const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
-const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
@@ -191,7 +186,7 @@ func _ready() -> void:
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
-	edit_deck_button.pressed.connect(_on_edit_composition_deck)
+	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 	shop_open_button.pressed.connect(_on_shop_open_pressed)
 	_show_nav_view(NavView.MAIN)
 
@@ -587,7 +582,7 @@ func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
 	_refresh_play_deck_list()
-	_show_deck_composition(index)
+	DeckCompositionPanel.show(self, index)
 
 func _on_launch_pressed() -> void:
 	if _play_selected_deck_index < 0:
@@ -600,203 +595,6 @@ func _on_launch_pressed() -> void:
 	else:
 		AudioManager.play(AudioManager.OPEN_MENU)
 		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
-
-# --- Composition du deck sélectionné (vue "actualités") -----------------
-
-func _show_deck_composition(deck_index: int) -> void:
-	_composition_deck_index = deck_index
-	var deck: DeckData = DeckManager.decks[deck_index]
-	deck_comp_title_label.text = "%s : %s" % [SettingsManager.t("MENU_DECK_COMPOSITION_TITLE"), SettingsManager.t(deck.name)]
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-	for child in deck_comp_list_vbox.get_children():
-		child.queue_free()
-
-	var counts: Dictionary = {}
-	var order: Array[CardData] = []
-	for card in deck.get_cards():
-		if not counts.has(card.resource_path):
-			order.append(card)
-		counts[card.resource_path] = counts.get(card.resource_path, 0) + 1
-
-	for card in order:
-		var line := HBoxContainer.new()
-		line.add_theme_constant_override("separation", 8)
-		line.mouse_entered.connect(_on_deck_comp_card_hover.bind(card))
-		line.mouse_exited.connect(_on_deck_comp_card_unhover)
-
-		var count_lbl := Label.new()
-		count_lbl.text = "x%d" % counts[card.resource_path]
-		count_lbl.custom_minimum_size = Vector2(32, 0)
-		count_lbl.add_theme_font_size_override("font_size", 14)
-		count_lbl.add_theme_color_override("font_color", Color(0.94, 0.75, 0.25, 1))
-		line.add_child(count_lbl)
-
-		var name_lbl := Label.new()
-		name_lbl.text = SettingsManager.t(card.card_name)
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 14)
-		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-		line.add_child(name_lbl)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(card.cost)
-		cost_lbl.custom_minimum_size = Vector2(20, 0)
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 14)
-		cost_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.95, 1))
-		line.add_child(cost_lbl)
-
-		deck_comp_list_vbox.add_child(line)
-
-	_update_deck_comp_stats(deck.get_cards())
-	_show_info_view(InfoView.DECK_COMPOSITION)
-
-## Aperçu de carte à droite au survol d'une ligne de la composition.
-func _on_deck_comp_card_hover(card: CardData) -> void:
-	deck_comp_preview_hint.hide()
-	deck_comp_preview_card.set_data(card)
-	deck_comp_preview_card.show()
-
-func _on_deck_comp_card_unhover() -> void:
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-
-## Courbe de mana + répartition types/races du deck affiché, même logique que
-## DeckStatsPanel.refresh/_make_curve_chart.
-func _update_deck_comp_stats(cards: Array[CardData]) -> void:
-	for child in deck_comp_stats_panel.get_children():
-		child.queue_free()
-	if cards.is_empty():
-		return
-
-	var curve := []
-	curve.resize(CURVE_BUCKETS)
-	curve.fill(0)
-	var type_counts: Dictionary = {}
-	var race_counts: Dictionary = {}
-	var total_cost := 0
-
-	for card in cards:
-		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
-		curve[bucket] += 1
-		total_cost += card.cost
-		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
-		race_counts[card.race] = race_counts.get(card.race, 0) + 1
-
-	var curve_title := Label.new()
-	curve_title.text = SettingsManager.t("deck.stats_curve_title")
-	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	curve_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(curve_title)
-
-	deck_comp_stats_panel.add_child(_make_deck_comp_curve_chart(curve))
-
-	var avg_label := Label.new()
-	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
-	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	avg_label.add_theme_font_size_override("font_size", 12)
-	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	deck_comp_stats_panel.add_child(avg_label)
-
-	var breakdown_title := Label.new()
-	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
-	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	breakdown_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(breakdown_title)
-
-	# Colonne étroite : un chip par ligne plutôt qu'une rangée horizontale
-	# (contrairement à DeckBuilder, qui a toute la largeur de l'écran).
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
-		if type_counts.has(type_name):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(
-				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
-
-	for key in Race.Type.keys():
-		var race_value: int = Race.Type[key]
-		if race_counts.has(race_value):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
-
-func _make_deck_comp_curve_chart(curve: Array) -> Control:
-	var max_count: int = 1
-	for c in curve:
-		max_count = max(max_count, c)
-
-	var chart := HBoxContainer.new()
-	chart.alignment = BoxContainer.ALIGNMENT_CENTER
-	chart.add_theme_constant_override("separation", 3)
-
-	for i in range(CURVE_BUCKETS):
-		var count: int = curve[i]
-		var col := VBoxContainer.new()
-		col.alignment = BoxContainer.ALIGNMENT_END
-		col.custom_minimum_size = Vector2(22, 0)
-		col.add_theme_constant_override("separation", 2)
-
-		var count_lbl := Label.new()
-		count_lbl.text = str(count) if count > 0 else ""
-		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_lbl.add_theme_font_size_override("font_size", 10)
-		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-		col.add_child(count_lbl)
-
-		var bar := ColorRect.new()
-		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
-		bar.custom_minimum_size = Vector2(18, height)
-		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
-		col.add_child(bar)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 10)
-		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-		col.add_child(cost_lbl)
-
-		chart.add_child(col)
-
-	return chart
-
-func _make_deck_comp_chip(label_text: String, count: int) -> Control:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
-	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
-	bg.set_border_width_all(1)
-	bg.set_corner_radius_all(4)
-	bg.content_margin_left   = 8
-	bg.content_margin_right  = 8
-	bg.content_margin_top    = 2
-	bg.content_margin_bottom = 2
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", bg)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-
-	var lbl := Label.new()
-	lbl.text = "%s ×%d" % [label_text, count]
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	panel.add_child(lbl)
-
-	return panel
-
-func _on_edit_composition_deck() -> void:
-	if _composition_deck_index < 0 or _composition_deck_index >= DeckManager.decks.size():
-		return
-	var scene := load(DECK_BUILDER_SCENE) as PackedScene
-	if scene == null:
-		return
-	var builder = scene.instantiate()
-	get_tree().current_scene.add_child(builder)
-	builder.load_deck(DeckManager.decks[_composition_deck_index])
-	# DeckBuilder est plein écran, il recouvre déjà le panneau de nav en
-	# dessous — pas besoin de le masquer, juste de rafraîchir au retour.
-	builder.tree_exited.connect(func():
-		if _play_selected_deck_index >= 0:
-			_refresh_play_deck_list()
-			_show_deck_composition(_composition_deck_index)
-	)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -860,6 +658,6 @@ func _retranslate() -> void:
 	if quests_view.visible:
 		QuestsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
-		_show_deck_composition(_composition_deck_index)
+		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:
 		ProfilePanel.open(self)
