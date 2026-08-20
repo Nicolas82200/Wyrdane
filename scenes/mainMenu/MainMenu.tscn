@@ -308,7 +308,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 24
 
 [node name="PacksButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000031]
 custom_minimum_size = Vector2(0, 52)
@@ -348,6 +348,10 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
 alignment = 0
 text = "Credits"
+
+[node name="NavSpacer" type="Control" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+layout_mode = 2
+size_flags_vertical = 3
 
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
