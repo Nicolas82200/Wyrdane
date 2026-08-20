@@ -151,6 +151,25 @@ corner_radius_bottom_left = 30
 shadow_color = Color(0.35, 0.24, 0.08, 0.4)
 shadow_size = 14
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_item_hover"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.72, 0.55, 0.24, 0.1)
+border_width_left = 3
+border_color = Color(0.85, 0.65, 0.28, 0.95)
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_item_normal"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+border_width_left = 3
+border_color = Color(0, 0, 0, 0)
+
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_transparent"]
 
 [node name="MainMenu" type="Control" unique_id=1995000585]
@@ -296,16 +315,28 @@ layout_mode = 2
 [node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=68074911]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Parametres"
 
 [node name="ReportButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000073]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Signalement"
 
 [node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=444085026]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Credits"
 
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
@@ -314,7 +345,11 @@ layout_mode = 2
 [node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
 theme_override_font_sizes/font_size = 17
+alignment = 0
 text = "Quitter"
 
 [node name="ModeSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1309648493]

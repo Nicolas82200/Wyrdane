@@ -237,6 +237,7 @@ func _ready() -> void:
 	)
 	_load_news()
 	_start_backend_sync()
+	_wire_nav_active_indicators()
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
 	_wire_nav_hover_pop()
@@ -281,6 +282,28 @@ func _wire_nav_hover_pop() -> void:
 # donner une présence "vivante" façon MTGA. Désactivé si réduction des
 # animations activée (même logique que AnimationSystem._shake) et réagit au
 # changement du réglage en direct si la fenêtre reste ouverte.
+# Indicateur d'onglet actif façon rail de navigation (sans icônes dédiées
+# pour l'instant, voir CLAUDE.md) : les boutons qui ouvrent une vue du
+# panneau d'infos se teintent légèrement en or tant que leur vue est
+# affichée, plutôt que de dépendre uniquement du contenu affiché à droite
+# pour savoir "où on est".
+var _nav_active_buttons: Dictionary = {}
+const NAV_ACTIVE_TINT := Color(1.25, 1.08, 0.72)
+
+func _wire_nav_active_indicators() -> void:
+	_nav_active_buttons = {
+		InfoView.DECKS_MANAGE: decks_button,
+		InfoView.QUESTS: quests_button,
+		InfoView.SETTINGS: settings_button,
+		InfoView.REPORT: report_button,
+		InfoView.CREDITS: credits_button,
+	}
+
+func _update_nav_active_indicators(view: InfoView) -> void:
+	for v in _nav_active_buttons:
+		var btn: BaseButton = _nav_active_buttons[v]
+		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
+
 var _play_button_glow_tween: Tween
 func _wire_play_button_glow() -> void:
 	SettingsManager.reduced_motion_changed.connect(func(_enabled): _set_play_button_glow(not _enabled))
@@ -384,6 +407,7 @@ func _show_info_view(view: InfoView) -> void:
 	deck_list.visible = view == InfoView.DECKS_MANAGE
 	report_view.visible = view == InfoView.REPORT
 	quests_view.visible = view == InfoView.QUESTS
+	_update_nav_active_indicators(view)
 	if view == InfoView.PROFILE:
 		_open_profile_view()
 	elif view == InfoView.SETTINGS:
@@ -615,6 +639,12 @@ func _add_quest_item(quest: Dictionary) -> void:
 	var completed := progress >= target
 
 	var row := PanelContainer.new()
+	var quest_accent := ACCENT_DIM
+	if completed and not claimed:
+		quest_accent = ACCENT_GOLD
+	elif not completed:
+		quest_accent = ACCENT_EMBER
+	row.add_theme_stylebox_override("panel", _make_accent_card_style(quest_accent))
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 14)
 	margin.add_theme_constant_override("margin_top", 10)
@@ -1104,25 +1134,64 @@ func _populate_news() -> void:
 	for child in news_list_vbox.get_children():
 		child.queue_free()
 	if _use_remote_news:
-		for entry in _remote_news_entries:
+		for i in _remote_news_entries.size():
+			var entry: Dictionary = _remote_news_entries[i]
 			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
 			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
-			_add_news_item(entry.get("date", ""), title, body, entry.get("kind", "news"))
+			_add_news_item(entry.get("date", ""), title, body, entry.get("kind", "news"), i == 0)
 	else:
-		for entry in _local_news_entries:
-			_add_news_item(entry.date, entry.display_title(), entry.display_body(), "news")
+		for i in _local_news_entries.size():
+			var entry := _local_news_entries[i]
+			_add_news_item(entry.date, entry.display_title(), entry.display_body(), "news", i == 0)
+
+# Style de carte à liseré coloré (façon MTGA) réutilisé pour les listes du
+# panneau d'infos (actualités, quêtes) : un simple PanelContainer par défaut
+# n'a aucune bordure, ces listes se distinguaient jusqu'ici uniquement par
+# leur espacement vertical. `accent` marque la nature/priorité de la ligne
+# (ex. actu la plus récente, quête réclamable) sans dépendre que de la couleur
+# du texte.
+func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
+	style.border_width_left = 3
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = accent
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	return style
+
+const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
+const ACCENT_ARCANE := Color(0.47, 0.56, 0.84, 0.85)
+const ACCENT_DIM := Color(0.42, 0.37, 0.3, 0.55)
+const ACCENT_GOLD := Color(0.92, 0.72, 0.28, 0.95)
 
 # Le corps d'une entrée est tronqué côté site (voir generate-feed.mjs,
 # MAX_BODY_LENGTH) : le lien "voir les détails" renvoie vers la page dédiée
 # du site (actus ou devlog selon "kind") pour lire le texte complet.
-func _add_news_item(date: String, title: String, body: String, kind: String) -> void:
+# `is_featured` marque la toute première entrée (la plus récente) d'un liseré
+# arcane distinct, pour qu'elle ressorte visuellement du reste de la liste.
+func _add_news_item(date: String, title: String, body: String, kind: String, is_featured: bool = false) -> void:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_accent_card_style(ACCENT_ARCANE if is_featured else ACCENT_EMBER))
+	var card_margin := MarginContainer.new()
+	card_margin.add_theme_constant_override("margin_left", 14)
+	card_margin.add_theme_constant_override("margin_top", 10)
+	card_margin.add_theme_constant_override("margin_right", 14)
+	card_margin.add_theme_constant_override("margin_bottom", 10)
+	card.add_child(card_margin)
+
 	var item := VBoxContainer.new()
 	item.add_theme_constant_override("separation", 4)
+	card_margin.add_child(item)
 
 	var date_label := Label.new()
 	date_label.text = date
 	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
+	date_label.add_theme_color_override("font_color", ACCENT_ARCANE if is_featured else Color(0.91, 0.835, 0.639, 0.55))
 	item.add_child(date_label)
 
 	var title_label := Label.new()
@@ -1147,7 +1216,7 @@ func _add_news_item(date: String, title: String, body: String, kind: String) -> 
 	read_more.pressed.connect(func(): OS.shell_open(WEBSITE_URL + path))
 	item.add_child(read_more)
 
-	news_list_vbox.add_child(item)
+	news_list_vbox.add_child(card)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
