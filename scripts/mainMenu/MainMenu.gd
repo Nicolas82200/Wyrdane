@@ -235,7 +235,7 @@ func _ready() -> void:
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	_load_news()
+	NewsPanel.load_news(self)
 	_start_backend_sync()
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
@@ -371,7 +371,7 @@ func _show_info_view(view: InfoView) -> void:
 	elif view == InfoView.REPORT:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
-		_open_quests_view()
+		QuestsPanel.open(self)
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -558,95 +558,6 @@ func _on_report_submit_pressed() -> void:
 	)
 
 # --- Quêtes quotidiennes --------------------------------------------------
-
-func _open_quests_view() -> void:
-	if not BackendClient.is_authenticated():
-		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-		quests_status_label.visible = true
-		return
-	quests_status_label.text = SettingsManager.t("PROFILE_LOADING")
-	quests_status_label.visible = true
-	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
-		if _current_info_view != InfoView.QUESTS:
-			return
-		if not success:
-			quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-			return
-		_populate_quests(data.get("quests", []))
-	)
-
-func _populate_quests(quests: Array) -> void:
-	quests_status_label.visible = quests.is_empty()
-	if quests.is_empty():
-		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-	for child in quests_list_vbox.get_children():
-		child.queue_free()
-	for quest in quests:
-		_add_quest_item(quest)
-
-func _add_quest_item(quest: Dictionary) -> void:
-	var quest_id := int(quest.get("id", 0))
-	var progress := int(quest.get("progress", 0))
-	var target := int(quest.get("target", 1))
-	var reward := int(quest.get("reward_currency", 0))
-	var claimed := bool(quest.get("claimed", false))
-	var completed := progress >= target
-
-	var row := PanelContainer.new()
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	row.add_child(margin)
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	margin.add_child(hbox)
-
-	var text_col := VBoxContainer.new()
-	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(text_col)
-
-	var desc_label := Label.new()
-	desc_label.text = SettingsManager.t(String(quest.get("description_key", "")))
-	desc_label.add_theme_font_size_override("font_size", 17)
-	desc_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	text_col.add_child(desc_label)
-
-	var progress_label := Label.new()
-	progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
-	progress_label.add_theme_font_size_override("font_size", 14)
-	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
-	text_col.add_child(progress_label)
-
-	var action_button := Button.new()
-	action_button.custom_minimum_size = Vector2(140, 40)
-	action_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	if claimed:
-		action_button.text = SettingsManager.t("QUESTS_CLAIMED")
-		action_button.disabled = true
-	elif completed:
-		action_button.text = SettingsManager.t("QUESTS_CLAIM")
-		action_button.pressed.connect(_on_claim_quest_pressed.bind(quest_id, action_button))
-	else:
-		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
-		action_button.disabled = true
-	hbox.add_child(action_button)
-
-	quests_list_vbox.add_child(row)
-
-func _on_claim_quest_pressed(quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-	)
-
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
@@ -1029,104 +940,6 @@ func _on_edit_composition_deck() -> void:
 			_show_deck_composition(_composition_deck_index)
 	)
 
-# Charge le panneau d'actualités : les devlogs/actus créés sur le site
-# (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
-# chaque déploiement depuis src/content/news + src/content/devlog — voir son
-# scripts/generate-feed.mjs). Les ressources locales (res://resources/news/*.tres)
-# ne servent plus que de repli si le site est injoignable (même logique de
-# dégradation que CollectionManager/CurrencyManager).
-func _load_news() -> void:
-	_load_local_news()
-	_fetch_remote_news()
-
-func _load_local_news() -> void:
-	_local_news_entries.clear()
-	var dir := DirAccess.open(NEWS_DIR)
-	if dir == null:
-		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
-		return
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var entry := load(NEWS_DIR + file_name) as NewsEntry
-			if entry:
-				_local_news_entries.append(entry)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	_local_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
-	_populate_news()
-
-func _fetch_remote_news() -> void:
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-		http.queue_free()
-		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
-			push_warning("Impossible de récupérer les actualités du site (résultat %d, code %d)" % [result, response_code])
-			return
-		var parsed = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(parsed) != TYPE_ARRAY:
-			push_warning("Format de flux d'actualités invalide")
-			return
-		_remote_news_entries = parsed
-		_use_remote_news = true
-		_populate_news()
-	)
-	var err := http.request(NEWS_FEED_URL)
-	if err != OK:
-		push_warning("Échec de la requête d'actualités : %d" % err)
-		http.queue_free()
-
-func _populate_news() -> void:
-	for child in news_list_vbox.get_children():
-		child.queue_free()
-	if _use_remote_news:
-		for entry in _remote_news_entries:
-			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
-			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
-			_add_news_item(entry.get("date", ""), title, body, entry.get("kind", "news"))
-	else:
-		for entry in _local_news_entries:
-			_add_news_item(entry.date, entry.display_title(), entry.display_body(), "news")
-
-# Le corps d'une entrée est tronqué côté site (voir generate-feed.mjs,
-# MAX_BODY_LENGTH) : le lien "voir les détails" renvoie vers la page dédiée
-# du site (actus ou devlog selon "kind") pour lire le texte complet.
-func _add_news_item(date: String, title: String, body: String, kind: String) -> void:
-	var item := VBoxContainer.new()
-	item.add_theme_constant_override("separation", 4)
-
-	var date_label := Label.new()
-	date_label.text = date
-	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
-	item.add_child(date_label)
-
-	var title_label := Label.new()
-	title_label.text = title
-	title_label.add_theme_font_size_override("font_size", 18)
-	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(title_label)
-
-	var body_label := Label.new()
-	body_label.text = body
-	body_label.add_theme_font_size_override("font_size", 15)
-	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
-	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(body_label)
-
-	var read_more := LinkButton.new()
-	read_more.text = SettingsManager.t("MENU_NEWS_READ_MORE")
-	read_more.add_theme_font_size_override("font_size", 13)
-	read_more.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25, 1))
-	var path: String = WEBSITE_DEVLOG_PATH if kind == "devlog" else WEBSITE_NEWS_PATH
-	read_more.pressed.connect(func(): OS.shell_open(WEBSITE_URL + path))
-	item.add_child(read_more)
-
-	news_list_vbox.add_child(item)
-
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
 
@@ -1165,7 +978,7 @@ func _retranslate() -> void:
 	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
 	report_text_edit.placeholder_text = SettingsManager.t("REPORT_DESCRIPTION_PLACEHOLDER")
 	report_submit_button.text = SettingsManager.t("REPORT_SUBMIT")
-	_populate_news()
+	NewsPanel._populate_news(self)
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
@@ -1187,7 +1000,7 @@ func _retranslate() -> void:
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	if quests_view.visible:
-		_open_quests_view()
+		QuestsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		_show_deck_composition(_composition_deck_index)
 	if profile_view.visible:
