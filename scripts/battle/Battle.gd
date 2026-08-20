@@ -188,7 +188,7 @@ func _ready() -> void:
 	_init_data()
 	_init_systems()
 	_connect_signals()
-	_start_game()
+	turn_system.start_match()
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
@@ -303,123 +303,6 @@ func _style_settings_button() -> void:
 	gear.offset_right = 11.0
 	gear.offset_bottom = 11.0
 	settings_button.add_child(gear)
-
-func _start_game() -> void:
-	update_mana_ui()
-	hero_system.update_ui()
-	if tutorial_active:
-		deck.clear()
-		deck.append_array(TutorialDeck.player_deck_padding())
-	else:
-		deck_system.load_deck()
-	deck_system.update_deck_ui()
-	board_visual_system.refresh_board()
-	hero_system.update_turn_halo()
-	for minion in player_minions:
-		board_visual_system.spawn_minion_visual(minion, true)
-	for minion in enemy_minions:
-		board_visual_system.spawn_minion_visual(minion, false)
-	if tutorial_active or NetContext.active:
-		opponent.setup()
-	else:
-		ai_system.setup()
-	if tutorial_active:
-		hand_cards = TutorialDeck.player_hand()
-	else:
-		deck_system.deal_opening_hand()
-	var deck_origin: Vector2 = deck_button.global_position + deck_button.size / 2.0
-	await hand.play_opening_draw(hand_cards, deck_origin)
-	if tutorial_active:
-		await tutorial_manager.intro_mulligan()
-	await _run_mulligan()
-	if NetContext.active:
-		var local_first: bool = net_local_first
-		NetContext.clear()
-		# Si le joueur distant commence, on lui passe la main avant notre 1er tour.
-		if not local_first:
-			await _run_remote_first_turn()
-			return
-	# Le joueur local ouvre la partie : annonce de son premier tour (sauf en
-	# tutoriel, où les popups pédagogiques s'en chargent déjà).
-	if not tutorial_active:
-		turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
-	update_end_turn_hint()
-	if tutorial_active:
-		# Pas de pression du temps pendant le tutoriel obligatoire.
-		TutorialContext.clear()
-		tutorial_manager.start()
-	else:
-		turn_timer.start()
-
-# Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
-# normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
-# Le bouton Fin du tour devient "Commencer" et confirme la fin du mulligan.
-# En réseau, chaque camp mulligan indépendamment (le contenu reste privé) ; on
-# attend juste que le pair ait fini avant de lancer le tour 1.
-func _run_mulligan() -> void:
-	_mulligan_active = true
-	_mulligan_swap_count = 0
-	_mulligan_swapped_indices.clear()
-	# Transition étalée réservée à la partie normale : le tutoriel guidé mesure
-	# la position des cartes très tôt (voir TutorialManager.guided_mulligan) et
-	# a besoin qu'elles soient déjà stables à cet instant.
-	hand.set_mulligan_mode(true, -1.0 if tutorial_active else Hand.MULLIGAN_TRANSITION_DURATION)
-	hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
-	mulligan_dim_overlay.visible = true
-	turn_banner.show_banner_persistent(
-		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"),
-		TurnBanner.MULLIGAN_Y_RATIO)
-	_retranslate_battle()
-	end_turn_button.disabled = false
-	end_turn_button.set_ready_hint(true)
-	# Pas de pression du temps pendant le tutoriel obligatoire (voir _start_game) :
-	# le joueur lit la popup d'introduction avant de pouvoir même cliquer.
-	if not tutorial_active:
-		turn_timer.start(MULLIGAN_DURATION)
-	else:
-		# Étape guidée : surligne les cartes-ressource et force réellement
-		# l'échange d'au moins l'une d'elles avant de laisser le joueur
-		# confirmer, pour que le mulligan soit enseigné comme les autres
-		# mécaniques (pas juste une popup de narration qui se ferme au clic).
-		await tutorial_manager.guided_mulligan()
-	await mulligan_confirmed
-	turn_timer.stop()
-	turn_banner.hide_banner()
-	end_turn_button.disabled = true
-	end_turn_button.set_ready_hint(false)
-	mulligan_dim_overlay.visible = false
-	hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
-	hand.set_mulligan_mode(false)
-	_mulligan_active = false
-	if net_emitter != null:
-		net_emitter.mulligan_done()
-	await opponent.await_mulligan()
-	end_turn_button.disabled = false
-	_retranslate_battle()
-	update_end_turn_hint()
-
-func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
-	if index in _mulligan_swapped_indices or _mulligan_swap_count >= MULLIGAN_MAX_SWAPS:
-		return
-	if tutorial_active and not TutorialDeck.is_swappable_during_tutorial(_card_data):
-		return
-	var new_data: CardData = deck_system.mulligan_replace_one(index)
-	if new_data == null:
-		return
-	_mulligan_swap_count += 1
-	_mulligan_swapped_indices.append(index)
-	AudioManager.play(AudioManager.DRAW)
-	hand.flip_replace_at(index, new_data)
-	hand.set_card_mulligan_swapped(index, true)
-	if tutorial_active:
-		tutorial_manager.notify_mulligan_swap(_card_data)
-
-# Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
-func _run_remote_first_turn() -> void:
-	opponent.take_turn()
-	if game_over:
-		return
-	await turn_system._begin_player_turn()
 
 # ─── Process ──────────────────────────────────────────────────────────────────
 
