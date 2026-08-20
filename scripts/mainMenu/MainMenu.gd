@@ -44,7 +44,7 @@ const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
 const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
 const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
-@onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
+@onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var report_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
@@ -78,7 +78,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
-@onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
+@onready var packs_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var pack_shop:       Control = $PackShop
 
@@ -248,21 +248,28 @@ func _ready() -> void:
 # LoadingScreen._fade_out_loading_ui). Rejoué aussi au retour d'une partie :
 # transition douce dans tous les cas.
 func _play_intro_animation() -> void:
-	var nav_buttons := play_button.get_parent().get_children()
-	for i in nav_buttons.size():
-		var button := nav_buttons[i] as Control
+	_fade_in_button_group(main_nav_view.get_children())
+	_fade_in_button_group(decks_button.get_parent().get_children(), 0.1)
+
+func _fade_in_button_group(buttons: Array, extra_delay: float = 0.0) -> void:
+	for i in buttons.size():
+		var button := buttons[i] as Control
 		if button == null:
 			continue
 		button.modulate.a = 0.0
 		var tween := create_tween()
-		tween.tween_interval(0.15 + i * 0.07)
+		tween.tween_interval(0.15 + extra_delay + i * 0.07)
 		tween.tween_property(button, "modulate:a", 1.0, 0.3)
 
-# Léger "pop" d'échelle au survol des boutons de nav, en plus du changement de
-# couleur déjà géré par le thème/StyleBox — renforce le retour visuel sans
-# toucher au style existant.
+# Léger "pop" d'échelle au survol des boutons de nav et du dock, en plus du
+# changement de couleur déjà géré par le thème/StyleBox — renforce le retour
+# visuel sans toucher au style existant.
 func _wire_nav_hover_pop() -> void:
-	for child in play_button.get_parent().get_children():
+	_wire_hover_pop_group(main_nav_view.get_children())
+	_wire_hover_pop_group(decks_button.get_parent().get_children())
+
+func _wire_hover_pop_group(buttons: Array) -> void:
+	for child in buttons:
 		var button := child as BaseButton
 		if button == null:
 			continue

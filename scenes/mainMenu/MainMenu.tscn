@@ -20,12 +20,12 @@ colors = PackedColorArray(0, 0, 0, 0.75, 0, 0, 0, 0.25, 0, 0, 0, 0)
 gradient = SubResource("Gradient_vignette")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav"]
-bg_color = Color(0.051, 0.041, 0.031, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.72, 0.55, 0.24, 0.9)
+bg_color = Color(0.043, 0.035, 0.027, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -89,17 +89,17 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.58, 0.42, 0.1, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
 border_color = Color(0.88, 0.72, 0.32, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0.88, 0.6, 0.2, 0.28)
-shadow_size = 14
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.88, 0.6, 0.2, 0.4)
+shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_pressed"]
 content_margin_left = 14.0
@@ -107,15 +107,15 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.45, 0.32, 0.07, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
 border_color = Color(0.88, 0.72, 0.32, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 shadow_color = Color(0.88, 0.6, 0.2, 0.16)
 shadow_size = 6
 
@@ -125,25 +125,25 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.71, 0.53, 0.15, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.85, 0.45, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.95, 0.75, 0.35, 0.6)
+shadow_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_capsule"]
+bg_color = Color(0.043, 0.035, 0.027, 0.94)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 0.85, 0.45, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0.95, 0.75, 0.35, 0.45)
-shadow_size = 22
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_capsule"]
-bg_color = Color(0.051, 0.041, 0.031, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.72, 0.55, 0.24, 0.9)
+border_color = Color(0.85, 0.65, 0.28, 1)
 corner_radius_top_left = 30
 corner_radius_top_right = 30
 corner_radius_bottom_right = 30
@@ -267,10 +267,10 @@ layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 64.0
-offset_top = -262.0
-offset_right = 392.0
-offset_bottom = 262.0
+offset_left = 32.0
+offset_top = -220.0
+offset_right = 300.0
+offset_bottom = 220.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
@@ -296,18 +296,14 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="PlayButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=641949860]
-custom_minimum_size = Vector2(0, 58)
+[node name="PacksButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000031]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Jouer"
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
+text = "Packs"
 
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
@@ -1129,9 +1125,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -64.0
-offset_right = 220.0
+offset_left = -314.0
+offset_top = -100.0
+offset_right = 314.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -1146,28 +1142,36 @@ theme_override_constants/margin_bottom = 6
 
 [node name="BottomCenterRow" type="HBoxContainer" parent="BottomCenterPanel/BottomCenterMargin" unique_id=1375496095]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="DecksButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=300000001]
-custom_minimum_size = Vector2(190, 44)
+custom_minimum_size = Vector2(170, 56)
 layout_mode = 2
+size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Mes Decks"
 
-[node name="PacksButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=300000031]
-custom_minimum_size = Vector2(190, 44)
+[node name="PlayButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=641949860]
+custom_minimum_size = Vector2(240, 72)
 layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
-text = "Packs"
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Jouer"
 
 [node name="QuestsButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=400000001]
-custom_minimum_size = Vector2(190, 44)
+custom_minimum_size = Vector2(170, 56)
 layout_mode = 2
+size_flags_vertical = 4
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
