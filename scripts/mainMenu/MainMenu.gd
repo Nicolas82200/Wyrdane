@@ -164,7 +164,7 @@ func _ready() -> void:
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
-	login_reward_claim_button.pressed.connect(_on_claim_login_reward_pressed)
+	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -343,8 +343,8 @@ func _launch_backend_syncs() -> void:
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
 	)
-	_fetch_rank_badge()
-	_fetch_login_reward_status()
+	ProfilePanel.fetch_rank_badge(self)
+	ProfilePanel.fetch_login_reward_status(self)
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
@@ -363,7 +363,7 @@ func _show_info_view(view: InfoView) -> void:
 	report_view.visible = view == InfoView.REPORT
 	quests_view.visible = view == InfoView.QUESTS
 	if view == InfoView.PROFILE:
-		_open_profile_view()
+		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
@@ -377,148 +377,6 @@ func _show_info_view(view: InfoView) -> void:
 
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
-
-func _open_profile_view() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	if SteamService.ensure_init():
-		var persona := SteamService.local_persona_name()
-		if persona != "":
-			profile_name_label.text = persona
-		var tex := SteamService.local_avatar_texture()
-		if tex:
-			profile_avatar.texture = tex
-	profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
-	_show_profile_placeholders()
-	_fetch_profile()
-
-# BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
-# du menu (voir _start_backend_sync) : si le joueur ouvre cette vue avant la
-# fin de la connexion, is_authenticated() est encore faux. Attendre
-# login_succeeded sans jamais relancer la requête laisserait les libellés
-# bloqués sur "Chargement..." indéfiniment.
-func _fetch_profile() -> void:
-	if BackendClient.is_authenticated():
-		BackendClient.get_profile(_on_profile_response)
-		return
-	if not BackendClient.login_succeeded.is_connected(_on_profile_login_succeeded):
-		BackendClient.login_succeeded.connect(_on_profile_login_succeeded, CONNECT_ONE_SHOT)
-	if not BackendClient.login_failed.is_connected(_on_profile_login_failed):
-		BackendClient.login_failed.connect(_on_profile_login_failed, CONNECT_ONE_SHOT)
-
-func _on_profile_login_succeeded(_user: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	BackendClient.get_profile(_on_profile_response)
-
-func _on_profile_login_failed(_reason: String) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	_show_profile_unavailable()
-
-func _on_profile_response(success: bool, data: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	if success:
-		_populate_profile_stats(data)
-	else:
-		_show_profile_unavailable()
-
-func _show_profile_placeholders() -> void:
-	var dash := SettingsManager.t("PROFILE_LOADING")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-	profile_rank_badge_label.text = dash
-
-func _show_profile_unavailable() -> void:
-	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-	profile_rank_badge_label.text = dash
-
-func _populate_profile_stats(data: Dictionary) -> void:
-	var created_at: String = str(data.get("created_at", ""))
-	var date_str := created_at.substr(0, 10) if created_at.length() >= 10 else SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = SettingsManager.t("PROFILE_MEMBER_SINCE") % date_str
-
-	var collection_count := int(data.get("collection_count", 0))
-	profile_collection_label.text = SettingsManager.t("PROFILE_COLLECTION_COUNT") % collection_count
-
-	var solo: Dictionary = data.get("solo", {})
-	profile_solo_stats_label.text = SettingsManager.t("PROFILE_SOLO_STATS") % [int(solo.get("wins", 0)), int(solo.get("losses", 0))]
-
-	var ranked: Dictionary = data.get("ranked", {})
-	profile_ranked_stats_label.text = SettingsManager.t("PROFILE_RANKED_STATS") % [
-		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
-		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
-	]
-	_apply_rank_badge(profile_rank_badge_label, int(ranked.get("mmr", 0)), true)
-
-# Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
-# (persistant, avec_progress = false) et à celui de la vue Profil (avec la
-# progression vers le palier suivant, plus lisible dans un contexte dédié).
-func _apply_rank_badge(label: Label, mmr: int, with_progress: bool) -> void:
-	var tier := RankTier.from_mmr(mmr)
-	label.add_theme_color_override("font_color", RankTier.color(tier))
-	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [RankTier.symbol(tier), SettingsManager.t(RankTier.tier_key(tier)), mmr]
-	if with_progress:
-		var remaining := RankTier.mmr_to_next_tier(mmr)
-		if remaining >= 0:
-			var next_tier_name := SettingsManager.t(RankTier.tier_key(tier + 1))
-			text += "\n" + SettingsManager.t("RANK_BADGE_PROGRESS") % [remaining, next_tier_name]
-		else:
-			text += "\n" + SettingsManager.t("RANK_BADGE_MAX_TIER")
-	label.text = text
-
-func _fetch_rank_badge() -> void:
-	if not BackendClient.is_authenticated():
-		return
-	BackendClient.get_profile(func(success: bool, data: Dictionary):
-		if success:
-			_apply_rank_badge(rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
-	)
-
-# --- Récompense de connexion quotidienne ---------------------------------
-# Popup automatique au chargement du menu (une fois la sync backend faite),
-# uniquement si pas déjà réclamée aujourd'hui — voir BackendClient.get_login_reward_status.
-# Le montant n'est connu qu'une fois réclamé (POST /claim) : /status ne renvoie
-# que le palier, pas la récompense associée — évite de dupliquer la table de
-# récompenses par palier (REWARD_BY_DAY) côté client, où elle pourrait dériver
-# de celle du backend sans que personne ne s'en aperçoive.
-func _fetch_login_reward_status() -> void:
-	if not BackendClient.is_authenticated():
-		return
-	BackendClient.get_login_reward_status(func(success: bool, data: Dictionary):
-		if not success or bool(data.get("claimed_today", true)):
-			return
-		_show_login_reward_popup(int(data.get("streak_day", 1)))
-	)
-
-func _show_login_reward_popup(streak_day: int) -> void:
-	login_reward_title_label.text = SettingsManager.t("LOGIN_REWARD_TITLE")
-	login_reward_streak_label.text = SettingsManager.t("LOGIN_REWARD_STREAK") % streak_day
-	login_reward_amount_label.text = ""
-	login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIM")
-	login_reward_claim_button.disabled = false
-	login_reward_popup.visible = true
-	_fade_in_overlay(login_reward_popup)
-
-func _on_claim_login_reward_pressed() -> void:
-	login_reward_claim_button.disabled = true
-	BackendClient.claim_login_reward(func(success: bool, data: Dictionary):
-		if not success:
-			login_reward_claim_button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		login_reward_amount_label.text = SettingsManager.t("LOGIN_REWARD_AMOUNT") % int(data.get("reward_currency", 0))
-		login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIMED")
-		await get_tree().create_timer(1.4).timeout
-		login_reward_popup.visible = false
-	)
 
 func _on_credits() -> void:
 	credits_main_sub.show()
@@ -1004,4 +862,4 @@ func _retranslate() -> void:
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		_show_deck_composition(_composition_deck_index)
 	if profile_view.visible:
-		_open_profile_view()
+		ProfilePanel.open(self)
