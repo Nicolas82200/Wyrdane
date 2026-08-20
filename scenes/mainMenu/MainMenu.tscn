@@ -33,6 +33,24 @@ corner_radius_bottom_left = 12
 shadow_color = Color(0.35, 0.24, 0.08, 0.4)
 shadow_size = 18
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rail"]
+bg_color = Color(0.043, 0.035, 0.027, 0.96)
+border_width_right = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.35, 0.24, 0.08, 0.35)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_side_panel"]
+bg_color = Color(0.039, 0.031, 0.024, 0.95)
+border_width_left = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_left = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.35, 0.24, 0.08, 0.35)
+shadow_size = 16
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_normal"]
 content_margin_left = 14.0
 content_margin_top = 8.0
@@ -167,6 +185,7 @@ content_margin_left = 12.0
 content_margin_top = 8.0
 content_margin_right = 8.0
 content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
 border_width_left = 3
 border_color = Color(0, 0, 0, 0)
 
@@ -265,15 +284,10 @@ horizontal_alignment = 2
 [node name="NavPanel" type="PanelContainer" parent="." unique_id=1955392600]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 32.0
-offset_top = -220.0
-offset_right = 300.0
-offset_bottom = 220.0
-grow_horizontal = 2
+anchor_bottom = 1.0
+offset_right = 268.0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+theme_override_styles/panel = SubResource("StyleBoxFlat_rail")
 
 [node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
 layout_mode = 2
@@ -475,14 +489,15 @@ text = "Lancer la partie"
 
 [node name="PlayerStatusPanel" type="PanelContainer" parent="." unique_id=300000020]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -76.0
-offset_right = 470.0
-offset_bottom = -16.0
-grow_vertical = 0
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -478.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 84.0
+grow_horizontal = 0
+grow_vertical = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_capsule")
 
 [node name="PlayerMargin" type="MarginContainer" parent="PlayerStatusPanel" unique_id=2088017129]
@@ -606,13 +621,12 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -1080.0
-offset_top = -390.0
-offset_right = -64.0
-offset_bottom = 390.0
+offset_left = -1016.0
+offset_top = -360.0
+offset_bottom = 360.0
 grow_horizontal = 0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
 
 [node name="InfoMargin" type="MarginContainer" parent="InfoPanel" unique_id=300000041]
 layout_mode = 2
