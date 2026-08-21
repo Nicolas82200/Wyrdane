@@ -42,15 +42,6 @@ corner_radius_bottom_right = 14
 shadow_color = Color(0.35, 0.24, 0.08, 0.35)
 shadow_size = 16
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_side_panel"]
-bg_color = Color(0.039, 0.031, 0.024, 0.95)
-border_width_left = 2
-border_color = Color(0.85, 0.65, 0.28, 1)
-corner_radius_top_left = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0.35, 0.24, 0.08, 0.35)
-shadow_size = 16
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_normal"]
 content_margin_left = 14.0
 content_margin_top = 8.0
@@ -666,16 +657,16 @@ text = "W"
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -1016.0
-offset_top = -360.0
-offset_bottom = 360.0
-grow_horizontal = 0
+offset_left = 300.0
+offset_top = -400.0
+offset_right = -32.0
+offset_bottom = 400.0
+grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_side_panel")
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
 
 [node name="InfoMargin" type="MarginContainer" parent="InfoPanel" unique_id=300000041]
 layout_mode = 2
