@@ -63,12 +63,12 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var play_decks_container: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll/PlayDecksContainer
 @onready var launch_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/LaunchButton
 
-@onready var steam_profile:   Control = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
-@onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
-@onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
-@onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
-@onready var rank_badge_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
-@onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
+@onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
+@onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
+@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
+@onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
+@onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -81,7 +81,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
-@onready var pack_shop:       Control = $PackShop
+@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/PackShop
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -126,11 +126,6 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 # Non typé : typer en AudioSettingsMenu cassait _ready() si le type ne matchait pas
 @onready var settings_menu = $InfoPanel/InfoMargin/ViewsRoot/SettingsMenu
 @onready var deck_list:       DeckList = $InfoPanel/InfoMargin/ViewsRoot/DeckList
-
-@onready var shop_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
-@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
-@onready var shop_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopDescLabel
-@onready var shop_open_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopOpenButton
 
 @onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
 @onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
@@ -193,7 +188,8 @@ func _ready() -> void:
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
 	edit_deck_button.pressed.connect(_on_edit_composition_deck)
-	shop_open_button.pressed.connect(_on_shop_open_pressed)
+	if pack_shop.has_signal("closed"):
+		pack_shop.closed.connect(func(): _show_info_view(InfoView.NEWS))
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -409,7 +405,7 @@ func _show_info_view(view: InfoView) -> void:
 	news_view.visible = view == InfoView.NEWS
 	deck_composition_view.visible = view == InfoView.DECK_COMPOSITION
 	credits_view.visible = view == InfoView.CREDITS
-	shop_view.visible = view == InfoView.SHOP
+	pack_shop.visible = view == InfoView.SHOP
 	profile_view.visible = view == InfoView.PROFILE
 	settings_menu.visible = view == InfoView.SETTINGS
 	deck_list.visible = view == InfoView.DECKS_MANAGE
@@ -428,6 +424,9 @@ func _show_info_view(view: InfoView) -> void:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
 		_open_quests_view()
+	elif view == InfoView.SHOP:
+		if pack_shop.has_method("refresh"):
+			pack_shop.refresh()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -753,17 +752,6 @@ func _on_decks_button_pressed() -> void:
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_info_view(InfoView.DECKS_MANAGE)
-
-# Ouvre le shop plein écran existant (animations d'ouverture de pack, non
-# adaptées à l'espace réduit de la fenêtre actualités — voir PackShop.gd).
-# La vue "Boutique" de la fenêtre actualités sert de point d'entrée en
-# attendant une vraie boutique multi-articles (prévue plus tard).
-func _on_shop_open_pressed() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	pack_shop.visible = true
-	_fade_in_overlay(pack_shop)
-	if pack_shop.has_method("refresh"):
-		pack_shop.refresh()
 
 func _on_packs_button_pressed() -> void:
 	_show_info_view(InfoView.SHOP)
@@ -1305,9 +1293,6 @@ func _retranslate() -> void:
 	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
-	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
-	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
-	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
