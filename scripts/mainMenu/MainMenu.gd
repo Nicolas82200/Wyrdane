@@ -13,8 +13,7 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
-enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -52,17 +51,17 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
-@onready var mode_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/ModeSelectView
-@onready var mode_title_label: Label = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeTitleLabel
-@onready var solo_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/SoloModeButton
-@onready var multi_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/MultiModeButton
-@onready var arena_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ArenaModeButton
-@onready var mode_back_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeBackButton
-@onready var deck_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView
-@onready var play_back_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/PlayBackButton
-@onready var deck_select_title_label: Label = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
-@onready var play_decks_container: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView/PlayDeckScroll/PlayDecksContainer
-@onready var launch_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/LaunchButton
+@onready var mode_select_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView
+@onready var mode_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeTitleLabel
+@onready var solo_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/SoloModeButton
+@onready var multi_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/MultiModeButton
+@onready var arena_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/ArenaModeButton
+@onready var mode_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeBackButton
+@onready var deck_select_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView
+@onready var play_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/PlayBackButton
+@onready var deck_select_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
+@onready var play_decks_container: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll/PlayDecksContainer
+@onready var launch_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/LaunchButton
 
 @onready var steam_profile:   Control = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
@@ -195,7 +194,6 @@ func _ready() -> void:
 	launch_button.pressed.connect(_on_launch_pressed)
 	edit_deck_button.pressed.connect(_on_edit_composition_deck)
 	shop_open_button.pressed.connect(_on_shop_open_pressed)
-	_show_nav_view(NavView.MAIN)
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -417,6 +415,8 @@ func _show_info_view(view: InfoView) -> void:
 	deck_list.visible = view == InfoView.DECKS_MANAGE
 	report_view.visible = view == InfoView.REPORT
 	quests_view.visible = view == InfoView.QUESTS
+	mode_select_view.visible = view == InfoView.MODE_SELECT
+	deck_select_view.visible = view == InfoView.DECK_SELECT
 	_update_nav_active_indicators(view)
 	if view == InfoView.PROFILE:
 		_open_profile_view()
@@ -773,22 +773,16 @@ func _on_packs_button_pressed() -> void:
 # lieu d'ouvrir une fenêtre à part : MAIN (boutons habituels) -> MODE_SELECT
 # (Solo/Multijoueur) -> DECK_SELECT (liste des decks + Lancer la partie).
 
-func _show_nav_view(view: NavView) -> void:
-	main_nav_view.visible = view == NavView.MAIN
-	mode_select_view.visible = view == NavView.MODE_SELECT
-	deck_select_view.visible = view == NavView.DECK_SELECT
-
 func _on_play() -> void:
 	if not SettingsManager.tutorial_completed:
 		TutorialContext.active = true
 		get_tree().change_scene_to_file(BATTLE_SCENE)
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
-	_show_nav_view(NavView.MODE_SELECT)
-	_show_info_view(InfoView.NEWS)
+	_show_info_view(InfoView.MODE_SELECT)
 
 func _on_mode_back_pressed() -> void:
-	_show_nav_view(NavView.MAIN)
+	_show_info_view(InfoView.NEWS)
 
 func _on_solo_mode_selected() -> void:
 	_play_mode = PlayMode.SOLO
@@ -806,14 +800,13 @@ func _on_arena_mode_selected() -> void:
 	get_tree().change_scene_to_file(ARENA_SCENE)
 
 func _show_deck_select() -> void:
-	_show_nav_view(NavView.DECK_SELECT)
 	_play_selected_deck_index = -1
 	launch_button.disabled = true
 	_refresh_play_deck_list()
-	_show_info_view(InfoView.NEWS)
+	_show_info_view(InfoView.DECK_SELECT)
 
 func _on_play_back_pressed() -> void:
-	_show_nav_view(NavView.MODE_SELECT)
+	_show_info_view(InfoView.MODE_SELECT)
 
 func _refresh_play_deck_list() -> void:
 	for child in play_decks_container.get_children():
@@ -913,13 +906,11 @@ func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
 	_refresh_play_deck_list()
-	_show_deck_composition(index)
 
 func _on_launch_pressed() -> void:
 	if _play_selected_deck_index < 0:
 		return
 	DeckManager.set_active_deck(_play_selected_deck_index)
-	_show_nav_view(NavView.MAIN)
 	if _play_mode == PlayMode.SOLO:
 		TutorialContext.active = false
 		get_tree().change_scene_to_file(BATTLE_SCENE)
