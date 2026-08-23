@@ -474,7 +474,7 @@ class SimCardPopupSystem:
 # Aucune animation en simulation (voir décision "résumé texte instantané" du
 # plan Arena) : tous les appels sont des no-op.
 class SimAnimationSystem:
-	func play_attack_lunge(_a, _b) -> void:
+	func play_attack_lunge(_a, _b, _speed_scale: float = 1.0) -> void:
 		pass
 	func play_aegis_break(_v) -> void:
 		pass
