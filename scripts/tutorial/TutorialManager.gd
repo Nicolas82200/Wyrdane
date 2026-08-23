@@ -569,7 +569,7 @@ func notify_player_turn_began() -> void:
 func notify_victory() -> void:
 	await _popup("tutorial.complete", [])
 	SettingsManager.set_tutorial_completed()
-	battle.get_tree().change_scene_to_file(battle.MAIN_MENU_SCENE)
+	SceneTransition.change_scene(battle.MAIN_MENU_SCENE)
 
 # ─── Attentes ─────────────────────────────────────────────────────────────────
 

@@ -450,7 +450,7 @@ func _show_nav_view(view: NavView) -> void:
 func _on_play() -> void:
 	if not SettingsManager.tutorial_completed:
 		TutorialContext.active = true
-		get_tree().change_scene_to_file(BATTLE_SCENE)
+		SceneTransition.change_scene(BATTLE_SCENE)
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_nav_view(NavView.MODE_SELECT)
@@ -472,7 +472,7 @@ func _on_multi_mode_selected() -> void:
 # de deck et lance la scène dédiée.
 func _on_arena_mode_selected() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
-	get_tree().change_scene_to_file(ARENA_SCENE)
+	SceneTransition.change_scene(ARENA_SCENE)
 
 func _show_deck_select() -> void:
 	_show_nav_view(NavView.DECK_SELECT)
@@ -591,10 +591,10 @@ func _on_launch_pressed() -> void:
 	_show_nav_view(NavView.MAIN)
 	if _play_mode == PlayMode.SOLO:
 		TutorialContext.active = false
-		get_tree().change_scene_to_file(BATTLE_SCENE)
+		SceneTransition.change_scene(BATTLE_SCENE)
 	else:
 		AudioManager.play(AudioManager.OPEN_MENU)
-		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
+		SceneTransition.change_scene(NET_LOBBY_SCENE)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)

@@ -758,11 +758,11 @@ func _advance_round() -> void:
 	_start_shop_phase_timer()
 
 func _on_back_to_menu_pressed() -> void:
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+	SceneTransition.change_scene(MAIN_MENU_SCENE)
 
 # Concéder depuis le menu Paramètres (voir settings_menu.concede_requested) :
 # pas de réseau à fermer côté Arena (solo local), contrairement à
 # Battle._on_quit_match — juste retourner au menu, la partie en cours est perdue.
 func _on_settings_quit() -> void:
 	settings_menu.close()
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+	SceneTransition.change_scene(MAIN_MENU_SCENE)

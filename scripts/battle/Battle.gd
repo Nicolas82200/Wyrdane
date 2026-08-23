@@ -329,7 +329,7 @@ func _on_report_pressed() -> void:
 func _on_quit_match() -> void:
 	settings_menu.close()
 	net_session_system.close()
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+	SceneTransition.change_scene(MAIN_MENU_SCENE)
 
 # Relance une bataille depuis l'écran de fin (solo uniquement : le bouton
 # Rejouer est masqué en réseau, mais on nettoie le transport par sécurité).

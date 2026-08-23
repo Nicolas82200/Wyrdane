@@ -76,6 +76,7 @@ Autoloads globaux (voir `project.godot`) :
 - `CollectionManager` — `scripts/collection/CollectionManager.gd` (collection de cartes possédées, autoritaire côté backend)
 - `CurrencyManager` — `scripts/collection/CurrencyManager.gd` (solde de monnaie molle, autoritaire côté backend)
 - `BackendClient` — `scripts/net/BackendClient.gd` (client HTTP vers `wyrdane-backend`, auth Steam)
+- `SceneTransition` — `scripts/systems/SceneTransition.gd` (fondu au noir générique entre deux `change_scene_to_file` — à utiliser systématiquement à la place d'un appel brut pour tout changement de scène plein écran)
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
