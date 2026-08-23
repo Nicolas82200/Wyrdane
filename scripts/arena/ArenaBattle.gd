@@ -386,9 +386,21 @@ func _animate_slide_in(groups: Dictionary, duration: float) -> void:
 # joueur) — celles déjà affichées avant ce rafraîchissement ne sont pas
 # ré-animées à chaque petite action (achat d'une autre case, repositionnement...).
 func _refresh_shop(in_shop_phase: bool = true) -> void:
+	# remove_child() avant queue_free() (plutôt que queue_free() seul) : la
+	# libération réelle est différée en fin de frame, donc les anciennes cases
+	# restaient dans shop_front_row/shop_back_row (et donc dans la mise en page
+	# de l'HBoxContainer) pendant que les nouvelles étaient déjà ajoutées juste
+	# en dessous — le temps d'une frame, deux BoardMinion pouvaient se
+	# chevaucher sous le curseur et déclencher chacun leur propre aperçu de
+	# survol (BoardMinion._process sonde la position de la souris à chaque
+	# frame, sans notion d'exclusivité entre serviteurs). remove_child() retire
+	# immédiatement l'ancienne case de la mise en page et déclenche aussitôt
+	# son _exit_tree() (voir BoardMinion._exit_tree -> _cleanup_hover).
 	for child in shop_front_row.get_children():
+		shop_front_row.remove_child(child)
 		child.queue_free()
 	for child in shop_back_row.get_children():
+		shop_back_row.remove_child(child)
 		child.queue_free()
 	if not in_shop_phase:
 		_last_shop_offer_snapshot = []
@@ -482,9 +494,14 @@ func _refresh_hand() -> void:
 # participant/le Fantôme consulté via la colonne de portraits) — façon TFT :
 # un seul plateau visible à la fois, interactif seulement quand c'est le sien.
 func _refresh_board() -> void:
+	# remove_child() avant queue_free() : voir _refresh_shop, même correctif
+	# (évite qu'une ancienne case et sa remplaçante coexistent une frame dans
+	# la mise en page et déclenchent chacune leur propre survol).
 	for child in front_row.get_children():
+		front_row.remove_child(child)
 		child.queue_free()
 	for child in back_row.get_children():
+		back_row.remove_child(child)
 		child.queue_free()
 	var is_own_board: bool = viewed_target == human
 	front_row.on_drop = _on_shop_card_dropped if is_own_board else Callable()
