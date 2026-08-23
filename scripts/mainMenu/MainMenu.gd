@@ -348,15 +348,20 @@ func _launch_backend_syncs() -> void:
 
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
-	news_view.visible = view == InfoView.NEWS
-	deck_composition_view.visible = view == InfoView.DECK_COMPOSITION
-	credits_view.visible = view == InfoView.CREDITS
-	shop_view.visible = view == InfoView.SHOP
-	profile_view.visible = view == InfoView.PROFILE
-	settings_menu.visible = view == InfoView.SETTINGS
-	deck_list.visible = view == InfoView.DECKS_MANAGE
-	report_view.visible = view == InfoView.REPORT
-	quests_view.visible = view == InfoView.QUESTS
+	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
+		profile_view, settings_menu, deck_list, report_view, quests_view]
+	var active: Control = {
+		InfoView.NEWS: news_view,
+		InfoView.DECK_COMPOSITION: deck_composition_view,
+		InfoView.CREDITS: credits_view,
+		InfoView.SHOP: shop_view,
+		InfoView.PROFILE: profile_view,
+		InfoView.SETTINGS: settings_menu,
+		InfoView.DECKS_MANAGE: deck_list,
+		InfoView.REPORT: report_view,
+		InfoView.QUESTS: quests_view,
+	}[view]
+	ViewFade.switch(self, views, active)
 	if view == InfoView.PROFILE:
 		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
@@ -443,9 +448,13 @@ func _on_packs_button_pressed() -> void:
 # (Solo/Multijoueur) -> DECK_SELECT (liste des decks + Lancer la partie).
 
 func _show_nav_view(view: NavView) -> void:
-	main_nav_view.visible = view == NavView.MAIN
-	mode_select_view.visible = view == NavView.MODE_SELECT
-	deck_select_view.visible = view == NavView.DECK_SELECT
+	var views: Array = [main_nav_view, mode_select_view, deck_select_view]
+	var active: Control = {
+		NavView.MAIN: main_nav_view,
+		NavView.MODE_SELECT: mode_select_view,
+		NavView.DECK_SELECT: deck_select_view,
+	}[view]
+	ViewFade.switch(self, views, active)
 
 func _on_play() -> void:
 	if not SettingsManager.tutorial_completed:
