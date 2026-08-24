@@ -246,7 +246,7 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 
 # Attend et rejoue le tour d'ouverture du joueur distant, puis démarre le nôtre.
 func run_remote_first_turn() -> void:
-	battle.opponent.take_turn()
+	await battle.opponent.take_turn()
 	if battle.game_over:
 		return
 	await _begin_player_turn()

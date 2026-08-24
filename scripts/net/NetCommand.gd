@@ -46,11 +46,14 @@ static func play_card(card_path: String, row: String, insert_index: int,
 		"target": target_net_id,
 	}
 
-static func attack(attacker_net_id: int, defender_net_id: int) -> Dictionary:
-	return {"type": ATTACK, "attacker": attacker_net_id, "defender": defender_net_id}
+# ids : net_id des serviteurs créés pendant la résolution de l'attaque (ex.
+# invocation par un Dernier Souffle qui meurt au combat), à imposer au rejeu —
+# même mécanique que play_card.
+static func attack(attacker_net_id: int, defender_net_id: int, ids: Array = []) -> Dictionary:
+	return {"type": ATTACK, "attacker": attacker_net_id, "defender": defender_net_id, "ids": ids}
 
-static func attack_hero(attacker_net_id: int) -> Dictionary:
-	return {"type": ATTACK_HERO, "attacker": attacker_net_id}
+static func attack_hero(attacker_net_id: int, ids: Array = []) -> Dictionary:
+	return {"type": ATTACK_HERO, "attacker": attacker_net_id, "ids": ids}
 
 # ids : net_id des serviteurs créés par les déclencheurs de fin de tour, à imposer
 # lors du rejeu de cette phase sur le pair.
@@ -76,13 +79,16 @@ static func activate_ritual(card_path: String, victim_ids: Array, ids: Array = [
 # mot-clé absorbé par son pool ("keywords"/"human_keywords"/"undead_keywords"/
 # "demon_keywords"/"abomination_keywords") et son nom (Type.keys()[value]),
 # résolu via le from_name() de l'enum correspondant.
-static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String) -> Dictionary:
+# ids : serviteurs créés pendant la résolution (ex. Dernier Souffle du
+# sacrifié), à imposer au rejeu — même mécanique que play_card.
+static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> Dictionary:
 	return {
 		"type": ACTIVATE_FUSION,
 		"source": source_id,
 		"victim": victim_id,
 		"pool": keyword_pool,
 		"keyword": keyword_name,
+		"ids": ids,
 	}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
