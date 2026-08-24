@@ -7,6 +7,13 @@ class_name PackShop
 # l'API n'ouvrant qu'un pack par requête, le client enchaîne les appels puis
 # révèle toutes les cartes dans une seule séquence.
 
+# Émis quand le joueur ferme l'écran via la croix (le nœud se contente de se
+# masquer lui-même — voir close_x_button plus bas) : permet à l'appelant
+# (MainMenu, quand PackShop est embarqué comme vue du panneau d'infos plutôt
+# que comme overlay plein écran) de revenir sur une autre vue au lieu de
+# laisser le panneau vide.
+signal closed
+
 @export var card_scene: PackedScene
 
 const CARD_SIZE := Vector2(250, 375)
@@ -81,7 +88,7 @@ func _ready() -> void:
 	free_button.get_parent().visible = OS.is_debug_build()
 	free_button.pressed.connect(func(): _open_pack(true, 1))
 	close_x_button.set_meta("no_click_sound", true)
-	close_x_button.pressed.connect(func(): AudioManager.play(AudioManager.CLOSE_MENU); hide())
+	close_x_button.pressed.connect(func(): AudioManager.play(AudioManager.CLOSE_MENU); hide(); closed.emit())
 	skip_hint_label.gui_input.connect(_on_skip_input)
 	CurrencyManager.balance_changed.connect(func(new_balance: int): _update_balance_label(new_balance))
 	CollectionManager.collection_loaded.connect(_update_progress_label)
@@ -101,7 +108,11 @@ func refresh() -> void:
 func _resize_shake_layer() -> void:
 	if not is_instance_valid(shake_layer):
 		return
-	shake_layer.size = get_viewport_rect().size
+	# `size`, pas `get_viewport_rect().size` : quand PackShop est embarqué
+	# comme vue du panneau d'infos du menu principal (au lieu d'un overlay
+	# plein écran, voir MainMenu.gd), son propre rect n'est qu'une partie de
+	# la fenêtre — se baser sur le viewport ferait déborder tout le contenu.
+	shake_layer.size = size
 
 ## Empilement de dos de carte façon paquet fermé, décalés en diagonale.
 ## Ajouté à "parent" en tout premier : les layers entrent ainsi dans l'arbre
@@ -213,7 +224,7 @@ func _on_packs_opened(code: int, cards: Array) -> void:
 ## paquet) pour `count` cartes, ainsi que l'échelle de repos à leur appliquer
 ## pour qu'elles restent toutes visibles sans déborder du cadre.
 func _compute_grid_slots(count: int) -> Dictionary:
-	var viewport_size: Vector2 = get_viewport_rect().size
+	var viewport_size: Vector2 = size
 	var area_left: float = viewport_size.x * GRID_AREA_LEFT_RATIO + GRID_AREA_SIDE_MARGIN
 	var area_right: float = viewport_size.x - GRID_AREA_SIDE_MARGIN
 	var area_top: float = GRID_AREA_TOP

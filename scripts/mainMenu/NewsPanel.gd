@@ -55,25 +55,59 @@ static func _populate_news(menu) -> void:
 	for child in menu.news_list_vbox.get_children():
 		child.queue_free()
 	if menu._use_remote_news:
-		for entry in menu._remote_news_entries:
+		for i in menu._remote_news_entries.size():
+			var entry: Dictionary = menu._remote_news_entries[i]
 			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
 			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
-			_add_news_item(menu, entry.get("date", ""), title, body, entry.get("kind", "news"))
+			_add_news_item(menu, entry.get("date", ""), title, body, entry.get("kind", "news"), i == 0)
 	else:
-		for entry in menu._local_news_entries:
-			_add_news_item(menu, entry.date, entry.display_title(), entry.display_body(), "news")
+		for i in menu._local_news_entries.size():
+			var entry: NewsEntry = menu._local_news_entries[i]
+			_add_news_item(menu, entry.date, entry.display_title(), entry.display_body(), "news", i == 0)
+
+# Style de carte à liseré coloré (façon MTGA), partagé avec QuestsPanel (même
+# petit helper dupliqué là-bas plutôt qu'extrait dans un 3e fichier — les deux
+# seuls appelants, pas de raison de fusionner davantage).
+const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
+const ACCENT_ARCANE := Color(0.47, 0.56, 0.84, 0.85)
+
+static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
+	style.border_width_left = 3
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = accent
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	return style
 
 # Le corps d'une entrée est tronqué côté site (voir generate-feed.mjs,
 # MAX_BODY_LENGTH) : le lien "voir les détails" renvoie vers la page dédiée
 # du site (actus ou devlog selon "kind") pour lire le texte complet.
-static func _add_news_item(menu, date: String, title: String, body: String, kind: String) -> void:
+# `is_featured` marque la toute première entrée (la plus récente) d'un liseré
+# arcane distinct, pour qu'elle ressorte visuellement du reste de la liste.
+static func _add_news_item(menu, date: String, title: String, body: String, kind: String, is_featured: bool = false) -> void:
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", _make_accent_card_style(ACCENT_ARCANE if is_featured else ACCENT_EMBER))
+	var card_margin := MarginContainer.new()
+	card_margin.add_theme_constant_override("margin_left", 14)
+	card_margin.add_theme_constant_override("margin_top", 10)
+	card_margin.add_theme_constant_override("margin_right", 14)
+	card_margin.add_theme_constant_override("margin_bottom", 10)
+	card.add_child(card_margin)
+
 	var item := VBoxContainer.new()
 	item.add_theme_constant_override("separation", 4)
+	card_margin.add_child(item)
 
 	var date_label := Label.new()
 	date_label.text = date
 	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
+	date_label.add_theme_color_override("font_color", ACCENT_ARCANE if is_featured else Color(0.91, 0.835, 0.639, 0.55))
 	item.add_child(date_label)
 
 	var title_label := Label.new()
@@ -98,4 +132,4 @@ static func _add_news_item(menu, date: String, title: String, body: String, kind
 	read_more.pressed.connect(func(): OS.shell_open(menu.WEBSITE_URL + path))
 	item.add_child(read_more)
 
-	menu.news_list_vbox.add_child(item)
+	menu.news_list_vbox.add_child(card)

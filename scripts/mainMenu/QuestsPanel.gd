@@ -29,6 +29,28 @@ static func _populate(menu, quests: Array) -> void:
 		child.queue_free()
 	for quest in quests:
 		_add_item(menu, quest)
+	menu._update_quests_badge(quests)
+
+# Style de carte à liseré coloré (façon MTGA), même petit helper que
+# NewsPanel._make_accent_card_style (dupliqué plutôt qu'extrait dans un 3e
+# fichier partagé — seulement deux appelants).
+const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
+const ACCENT_DIM := Color(0.42, 0.37, 0.3, 0.55)
+const ACCENT_GOLD := Color(0.92, 0.72, 0.28, 0.95)
+
+static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
+	style.border_width_left = 3
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = accent
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	return style
 
 static func _add_item(menu, quest: Dictionary) -> void:
 	var quest_id := int(quest.get("id", 0))
@@ -39,6 +61,12 @@ static func _add_item(menu, quest: Dictionary) -> void:
 	var completed := progress >= target
 
 	var row := PanelContainer.new()
+	var quest_accent := ACCENT_DIM
+	if completed and not claimed:
+		quest_accent = ACCENT_GOLD
+	elif not completed:
+		quest_accent = ACCENT_EMBER
+	row.add_theme_stylebox_override("panel", _make_accent_card_style(quest_accent))
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 14)
 	margin.add_theme_constant_override("margin_top", 10)
@@ -91,4 +119,5 @@ static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
 		AudioManager.play(AudioManager.CONFIRM)
 		CurrencyManager.sync_from_backend()
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
+		menu._fetch_quests_badge()
 	)

@@ -13,8 +13,7 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
-enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -39,7 +38,7 @@ const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 
-@onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
+@onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var report_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
@@ -47,24 +46,24 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
-@onready var mode_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/ModeSelectView
-@onready var mode_title_label: Label = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeTitleLabel
-@onready var solo_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/SoloModeButton
-@onready var multi_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/MultiModeButton
-@onready var arena_mode_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ArenaModeButton
-@onready var mode_back_button: Button = $NavPanel/NavMargin/NavStack/ModeSelectView/ModeBackButton
-@onready var deck_select_view: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView
-@onready var play_back_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/PlayBackButton
-@onready var deck_select_title_label: Label = $NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
-@onready var play_decks_container: VBoxContainer = $NavPanel/NavMargin/NavStack/DeckSelectView/PlayDeckScroll/PlayDecksContainer
-@onready var launch_button: Button = $NavPanel/NavMargin/NavStack/DeckSelectView/LaunchButton
+@onready var mode_select_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView
+@onready var mode_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeTitleLabel
+@onready var solo_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/SoloModeButton
+@onready var multi_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/MultiModeButton
+@onready var arena_mode_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow/ArenaModeButton
+@onready var mode_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeBackButton
+@onready var deck_select_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView
+@onready var play_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/PlayBackButton
+@onready var deck_select_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
+@onready var play_decks_container: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll/PlayDecksContainer
+@onready var launch_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/LaunchButton
 
-@onready var steam_profile:   Control = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
-@onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
-@onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
-@onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
-@onready var rank_badge_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
-@onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
+@onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
+@onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
+@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
+@onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
+@onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -73,9 +72,11 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
-@onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
+@onready var packs_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
-@onready var pack_shop:       Control = $PackShop
+@onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
+@onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
+@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/PackShop
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -121,11 +122,6 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var settings_menu = $InfoPanel/InfoMargin/ViewsRoot/SettingsMenu
 @onready var deck_list:       DeckList = $InfoPanel/InfoMargin/ViewsRoot/DeckList
 
-@onready var shop_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
-@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
-@onready var shop_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopDescLabel
-@onready var shop_open_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopOpenButton
-
 @onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
 @onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
@@ -165,6 +161,8 @@ func _ready() -> void:
 	profile_button.set_meta("no_click_sound", true)
 	profile_button.pressed.connect(_on_profile_button_pressed)
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
+	if pack_shop.has_signal("closed"):
+		pack_shop.closed.connect(func(): _show_info_view(InfoView.NEWS))
 
 	deck_comp_preview_card.set_non_interactive()
 	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
@@ -187,8 +185,6 @@ func _ready() -> void:
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
 	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
-	shop_open_button.pressed.connect(_on_shop_open_pressed)
-	_show_nav_view(NavView.MAIN)
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -232,30 +228,41 @@ func _ready() -> void:
 	)
 	NewsPanel.load_news(self)
 	_start_backend_sync()
+	_wire_nav_active_indicators()
+	_fetch_quests_badge()
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
 	_wire_nav_hover_pop()
+	_wire_play_button_glow()
 
 # Apparition en cascade des boutons de navigation (la barre de l'écran de
 # chargement disparaît elle-même en fondu — voir
 # LoadingScreen._fade_out_loading_ui). Rejoué aussi au retour d'une partie :
-# transition douce dans tous les cas.
+# transition douce dans tous les cas. Deux groupes distincts (rail + dock)
+# depuis que Jouer a quitté le rail pour devenir le CTA du dock.
 func _play_intro_animation() -> void:
-	var nav_buttons := play_button.get_parent().get_children()
-	for i in nav_buttons.size():
-		var button := nav_buttons[i] as Control
+	_fade_in_button_group(main_nav_view.get_children())
+	_fade_in_button_group(decks_button.get_parent().get_children(), 0.1)
+
+func _fade_in_button_group(buttons: Array, extra_delay: float = 0.0) -> void:
+	for i in buttons.size():
+		var button := buttons[i] as Control
 		if button == null:
 			continue
 		button.modulate.a = 0.0
 		var tween := create_tween()
-		tween.tween_interval(0.15 + i * 0.07)
+		tween.tween_interval(0.15 + extra_delay + i * 0.07)
 		tween.tween_property(button, "modulate:a", 1.0, 0.3)
 
-# Léger "pop" d'échelle au survol des boutons de nav, en plus du changement de
-# couleur déjà géré par le thème/StyleBox — renforce le retour visuel sans
-# toucher au style existant.
+# Léger "pop" d'échelle au survol des boutons de nav et du dock, en plus du
+# changement de couleur déjà géré par le thème/StyleBox — renforce le retour
+# visuel sans toucher au style existant.
 func _wire_nav_hover_pop() -> void:
-	for child in play_button.get_parent().get_children():
+	_wire_hover_pop_group(main_nav_view.get_children())
+	_wire_hover_pop_group(decks_button.get_parent().get_children())
+
+func _wire_hover_pop_group(buttons: Array) -> void:
+	for child in buttons:
 		var button := child as BaseButton
 		if button == null:
 			continue
@@ -270,6 +277,80 @@ func _wire_nav_hover_pop() -> void:
 			var tween := create_tween()
 			tween.tween_property(button, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		)
+
+# Léger halo pulsant en boucle sur le bouton Jouer (CTA principal), pour lui
+# donner une présence "vivante" façon MTGA. Désactivé si réduction des
+# animations activée (même logique que AnimationSystem._shake) et réagit au
+# changement du réglage en direct si la fenêtre reste ouverte.
+var _play_button_glow_tween: Tween
+func _wire_play_button_glow() -> void:
+	SettingsManager.reduced_motion_changed.connect(func(_enabled): _set_play_button_glow(not _enabled))
+	_set_play_button_glow(not SettingsManager.reduced_motion)
+
+func _set_play_button_glow(enabled: bool) -> void:
+	if _play_button_glow_tween:
+		_play_button_glow_tween.kill()
+		_play_button_glow_tween = null
+	play_button.self_modulate = Color.WHITE
+	if not enabled:
+		return
+	_play_button_glow_tween = create_tween()
+	_play_button_glow_tween.set_loops()
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color(1.1, 1.05, 0.9), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color.WHITE, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+# Indicateur d'onglet actif façon rail de navigation (sans icônes dédiées
+# pour l'instant, voir CLAUDE.md) : les boutons qui ouvrent une vue du
+# panneau d'infos se teintent légèrement en or tant que leur vue est
+# affichée, plutôt que de dépendre uniquement du contenu affiché à droite
+# pour savoir "où on est".
+var _nav_active_buttons: Dictionary = {}
+const NAV_ACTIVE_TINT := Color(1.25, 1.08, 0.72)
+
+func _wire_nav_active_indicators() -> void:
+	_nav_active_buttons = {
+		InfoView.DECKS_MANAGE: decks_button,
+		InfoView.QUESTS: quests_button,
+		InfoView.SETTINGS: settings_button,
+		InfoView.REPORT: report_button,
+		InfoView.CREDITS: credits_button,
+	}
+
+func _update_nav_active_indicators(view: InfoView) -> void:
+	for v in _nav_active_buttons:
+		var btn: BaseButton = _nav_active_buttons[v]
+		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
+
+# Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
+# menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
+# quêtes sont réclamables tout de suite. Récupérée une première fois au
+# lancement (retentée après la fin du login Steam si besoin), puis rafraîchie
+# à chaque ouverture du panneau Quêtes (voir QuestsPanel) et après chaque
+# réclamation.
+func _update_quests_badge(quests: Array) -> void:
+	var claimable := 0
+	for quest in quests:
+		var progress := int(quest.get("progress", 0))
+		var target := int(quest.get("target", 1))
+		var claimed := bool(quest.get("claimed", false))
+		if progress >= target and not claimed:
+			claimable += 1
+	quests_badge.visible = claimable > 0
+	quests_badge_label.text = str(claimable)
+
+func _fetch_quests_badge() -> void:
+	if not BackendClient.is_authenticated():
+		if not BackendClient.login_succeeded.is_connected(_on_quests_badge_login_succeeded):
+			BackendClient.login_succeeded.connect(_on_quests_badge_login_succeeded, CONNECT_ONE_SHOT)
+		return
+	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
+		if not success:
+			return
+		_update_quests_badge(data.get("quests", []))
+	)
+
+func _on_quests_badge_login_succeeded(_user: Dictionary) -> void:
+	_fetch_quests_badge()
 
 # Fondu d'apparition pour les panneaux plein écran (Packs), qui portent déjà
 # leur propre voile d'assombrissement en fond — un simple fondu du contrôle
@@ -343,25 +424,30 @@ func _launch_backend_syncs() -> void:
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
-# défaut, composition de deck pendant le flux Jouer, Profil/Crédits/
-# Paramètres/Mes Decks/Boutique selon le bouton cliqué).
+# défaut, composition de deck / choix de mode / choix de deck pendant le
+# flux Jouer, Profil/Crédits/Paramètres/Mes Decks/Boutique selon le bouton
+# cliqué).
 
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
-	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
-		profile_view, settings_menu, deck_list, report_view, quests_view]
+	var views: Array = [news_view, deck_composition_view, credits_view, pack_shop,
+		profile_view, settings_menu, deck_list, report_view, quests_view,
+		mode_select_view, deck_select_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
 		InfoView.CREDITS: credits_view,
-		InfoView.SHOP: shop_view,
+		InfoView.SHOP: pack_shop,
 		InfoView.PROFILE: profile_view,
 		InfoView.SETTINGS: settings_menu,
 		InfoView.DECKS_MANAGE: deck_list,
 		InfoView.REPORT: report_view,
 		InfoView.QUESTS: quests_view,
+		InfoView.MODE_SELECT: mode_select_view,
+		InfoView.DECK_SELECT: deck_select_view,
 	}[view]
 	ViewFade.switch(self, views, active)
+	_update_nav_active_indicators(view)
 	if view == InfoView.PROFILE:
 		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
@@ -372,6 +458,9 @@ func _show_info_view(view: InfoView) -> void:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
 		QuestsPanel.open(self)
+	elif view == InfoView.SHOP:
+		if pack_shop.has_method("refresh"):
+			pack_shop.refresh()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -415,7 +504,6 @@ func _on_report_submit_pressed() -> void:
 			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
 	)
 
-# --- Quêtes quotidiennes --------------------------------------------------
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
@@ -428,33 +516,14 @@ func _on_decks_button_pressed() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_info_view(InfoView.DECKS_MANAGE)
 
-# Ouvre le shop plein écran existant (animations d'ouverture de pack, non
-# adaptées à l'espace réduit de la fenêtre actualités — voir PackShop.gd).
-# La vue "Boutique" de la fenêtre actualités sert de point d'entrée en
-# attendant une vraie boutique multi-articles (prévue plus tard).
-func _on_shop_open_pressed() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	pack_shop.visible = true
-	_fade_in_overlay(pack_shop)
-	if pack_shop.has_method("refresh"):
-		pack_shop.refresh()
-
 func _on_packs_button_pressed() -> void:
 	_show_info_view(InfoView.SHOP)
 
-# --- Flux "Jouer" : mode puis deck, directement dans le panneau de nav ----
-# Le panneau de gauche (Jouer/Paramètres/Crédits/...) bascule son contenu au
-# lieu d'ouvrir une fenêtre à part : MAIN (boutons habituels) -> MODE_SELECT
-# (Solo/Multijoueur) -> DECK_SELECT (liste des decks + Lancer la partie).
-
-func _show_nav_view(view: NavView) -> void:
-	var views: Array = [main_nav_view, mode_select_view, deck_select_view]
-	var active: Control = {
-		NavView.MAIN: main_nav_view,
-		NavView.MODE_SELECT: mode_select_view,
-		NavView.DECK_SELECT: deck_select_view,
-	}[view]
-	ViewFade.switch(self, views, active)
+# --- Flux "Jouer" : mode puis deck, directement dans le panneau d'infos ----
+# Le panneau de droite (Actualités/Profil/Boutique/...) bascule son contenu
+# au lieu d'ouvrir une fenêtre à part : NEWS (par défaut) -> MODE_SELECT
+# (Solo/Multijoueur/Arène) -> DECK_SELECT (liste des decks + Lancer la partie).
+# Le rail de navigation, lui, reste statique (voir CLAUDE.md).
 
 func _on_play() -> void:
 	if not SettingsManager.tutorial_completed:
@@ -462,11 +531,10 @@ func _on_play() -> void:
 		SceneTransition.change_scene(BATTLE_SCENE)
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
-	_show_nav_view(NavView.MODE_SELECT)
-	_show_info_view(InfoView.NEWS)
+	_show_info_view(InfoView.MODE_SELECT)
 
 func _on_mode_back_pressed() -> void:
-	_show_nav_view(NavView.MAIN)
+	_show_info_view(InfoView.NEWS)
 
 func _on_solo_mode_selected() -> void:
 	_play_mode = PlayMode.SOLO
@@ -484,14 +552,13 @@ func _on_arena_mode_selected() -> void:
 	SceneTransition.change_scene(ARENA_SCENE)
 
 func _show_deck_select() -> void:
-	_show_nav_view(NavView.DECK_SELECT)
 	_play_selected_deck_index = -1
 	launch_button.disabled = true
 	_refresh_play_deck_list()
-	_show_info_view(InfoView.NEWS)
+	_show_info_view(InfoView.DECK_SELECT)
 
 func _on_play_back_pressed() -> void:
-	_show_nav_view(NavView.MODE_SELECT)
+	_show_info_view(InfoView.MODE_SELECT)
 
 func _refresh_play_deck_list() -> void:
 	for child in play_decks_container.get_children():
@@ -587,17 +654,20 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 
 	return button
 
+# Sélectionner un deck met juste à jour la surbrillance et active Lancer :
+# `DeckCompositionPanel.show` bascule vers InfoView.DECK_COMPOSITION, ce qui
+# masquerait la liste elle-même (et le bouton Lancer) puisque les deux sont
+# désormais des vues du même panneau — l'aperçu détaillé reste disponible via
+# "Mes Decks", inchangé.
 func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
 	_refresh_play_deck_list()
-	DeckCompositionPanel.show(self, index)
 
 func _on_launch_pressed() -> void:
 	if _play_selected_deck_index < 0:
 		return
 	DeckManager.set_active_deck(_play_selected_deck_index)
-	_show_nav_view(NavView.MAIN)
 	if _play_mode == PlayMode.SOLO:
 		TutorialContext.active = false
 		SceneTransition.change_scene(BATTLE_SCENE)
@@ -658,9 +728,6 @@ func _retranslate() -> void:
 	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
-	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
-	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
-	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")

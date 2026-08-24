@@ -20,18 +20,77 @@ colors = PackedColorArray(0, 0, 0, 0.75, 0, 0, 0, 0.25, 0, 0, 0, 0)
 gradient = SubResource("Gradient_vignette")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav"]
-bg_color = Color(0.043, 0.035, 0.024, 0.85)
+bg_color = Color(0.043, 0.035, 0.027, 0.7)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0.35, 0.24, 0.08, 0.4)
+shadow_size = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rail"]
+bg_color = Color(0.043, 0.035, 0.027, 0.72)
+border_width_right = 2
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+shadow_color = Color(0.35, 0.24, 0.08, 0.35)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_normal"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.11, 0.09, 0.075, 0.68)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.55, 0.41, 0.08, 0.85)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 14
+border_color = Color(0.5, 0.38, 0.17, 0.75)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_hover"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.16, 0.13, 0.1, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.65, 0.28, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.7, 0.45, 0.15, 0.3)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dock_pressed"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.065, 0.05, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.38, 0.17, 0.75)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
 content_margin_left = 14.0
@@ -39,15 +98,17 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.58, 0.42, 0.1, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
 border_color = Color(0.88, 0.72, 0.32, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.88, 0.6, 0.2, 0.4)
+shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_pressed"]
 content_margin_left = 14.0
@@ -55,15 +116,17 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.45, 0.32, 0.07, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
 border_color = Color(0.88, 0.72, 0.32, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.88, 0.6, 0.2, 0.16)
+shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_hover"]
 content_margin_left = 14.0
@@ -71,15 +134,63 @@ content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
 bg_color = Color(0.71, 0.53, 0.15, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.85, 0.45, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0.95, 0.75, 0.35, 0.6)
+shadow_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_item_hover"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.72, 0.55, 0.24, 0.1)
+border_width_left = 3
+border_color = Color(0.85, 0.65, 0.28, 0.95)
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_item_normal"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 3
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crest"]
+bg_color = Color(0.16, 0.12, 0.08, 0.8)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 0.85, 0.45, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+border_color = Color(0.85, 0.65, 0.28, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0.88, 0.6, 0.2, 0.3)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.69, 0.29, 0.24, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.1, 0.05, 0.04, 0.8)
+corner_radius_top_left = 11
+corner_radius_top_right = 11
+corner_radius_bottom_right = 11
+corner_radius_bottom_left = 11
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_transparent"]
 
@@ -140,6 +251,7 @@ expand_mode = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
+offset_left = 300.0
 offset_top = 70.0
 offset_right = -80.0
 offset_bottom = 150.0
@@ -152,13 +264,14 @@ theme_override_constants/shadow_offset_y = 3
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 80
 text = "Wyrdane"
-horizontal_alignment = 2
+horizontal_alignment = 0
 vertical_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="." unique_id=1202251534]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
+offset_left = 304.0
 offset_top = 150.0
 offset_right = -84.0
 offset_bottom = 180.0
@@ -171,20 +284,15 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 22
 text = "Un jeu de cartes stratégique"
-horizontal_alignment = 2
+horizontal_alignment = 0
 
 [node name="NavPanel" type="PanelContainer" parent="." unique_id=1955392600]
 layout_mode = 1
 anchors_preset = -1
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 64.0
-offset_top = -262.0
-offset_right = 392.0
-offset_bottom = 262.0
-grow_horizontal = 2
+anchor_bottom = 1.0
+offset_right = 268.0
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+theme_override_styles/panel = SubResource("StyleBoxFlat_rail")
 
 [node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
 layout_mode = 2
@@ -205,20 +313,35 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 24
 
-[node name="PlayButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=641949860]
-custom_minimum_size = Vector2(0, 58)
+[node name="NavCrest" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Jouer"
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_crest")
+
+[node name="NavCrestLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/NavCrest"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.72, 0.32, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 22
+text = "W"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NavCrestSep" type="Control" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="PacksButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000031]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
+text = "Packs"
 
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
@@ -226,17 +349,96 @@ layout_mode = 2
 [node name="SettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=68074911]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Parametres"
 
 [node name="ReportButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000073]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Signalement"
 
 [node name="CreditsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=444085026]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
 text = "Credits"
+
+[node name="NavSpacer" type="Control" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerStatusPanel" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
+
+[node name="PlayerMargin" type="MarginContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=2088017129]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="PlayerVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin" unique_id=1012782123]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SteamProfile" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000021]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Avatar" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000022]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000023]
+layout_mode = 2
+size_flags_horizontal = 3
+clip_text = true
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Pseudo Steam"
+vertical_alignment = 1
+
+[node name="PlayerSep" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=1389468235]
+layout_mode = 2
+
+[node name="CurrencyLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000032]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 15
+text = "0"
+
+[node name="RankBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000034]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 13
+text = "—"
+autowrap_mode = 3
+
+[node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
@@ -244,195 +446,12 @@ layout_mode = 2
 [node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1815401124]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
 theme_override_font_sizes/font_size = 17
+alignment = 0
 text = "Quitter"
-
-[node name="ModeSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1309648493]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 14
-
-[node name="ModeTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=651162713]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 20
-text = "Choisis ton mode de jeu"
-autowrap_mode = 3
-
-[node name="ModeSep" type="HSeparator" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=2140790698]
-layout_mode = 2
-
-[node name="SoloModeButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=833253891]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Solo"
-
-[node name="MultiModeButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=1419433010]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Multijoueur"
-
-[node name="ArenaModeButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=1800142620]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Arene"
-
-[node name="ModeBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/ModeSelectView" unique_id=2146294638]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-text = "← Retour"
-
-[node name="DeckSelectView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1927201091]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 10
-
-[node name="DeckSelectHeader" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView" unique_id=1342988631]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PlayBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader" unique_id=2018509045]
-layout_mode = 2
-text = "← Retour"
-
-[node name="DeckSelectTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/DeckSelectView/DeckSelectHeader" unique_id=1681087930]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 17
-text = "Choisis ton deck"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 3
-
-[node name="DeckSelectSep" type="HSeparator" parent="NavPanel/NavMargin/NavStack/DeckSelectView" unique_id=1472541]
-layout_mode = 2
-
-[node name="PlayDeckScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView" unique_id=1223869849]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="PlayDecksContainer" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/DeckSelectView/PlayDeckScroll" unique_id=1050146357]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
-
-[node name="LaunchButton" type="Button" parent="NavPanel/NavMargin/NavStack/DeckSelectView" unique_id=641662269]
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-disabled = true
-text = "Lancer la partie"
-
-[node name="PlayerStatusPanel" type="PanelContainer" parent="." unique_id=300000020]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -166.0
-offset_right = 288.0
-offset_bottom = -16.0
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
-
-[node name="PlayerMargin" type="MarginContainer" parent="PlayerStatusPanel" unique_id=2088017129]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 14
-
-[node name="PlayerVBox" type="VBoxContainer" parent="PlayerStatusPanel/PlayerMargin" unique_id=1012782123]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="SteamProfile" type="HBoxContainer" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000021]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Avatar" type="TextureRect" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000022]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-size_flags_vertical = 4
-expand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile" unique_id=300000023]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 18
-text = "Pseudo Steam"
-vertical_alignment = 1
-
-[node name="PlayerSep" type="HSeparator" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=1389468235]
-layout_mode = 2
-
-[node name="CurrencyLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000032]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 18
-text = "0"
-
-[node name="RankBadgeLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000034]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 16
-text = "—"
-
-[node name="ProfileButton" type="Button" parent="PlayerStatusPanel" unique_id=1214852387]
-layout_mode = 2
-focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -488,15 +507,14 @@ text = "W"
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -1080.0
-offset_top = -390.0
-offset_right = -64.0
-offset_bottom = 390.0
-grow_horizontal = 0
+offset_left = 300.0
+offset_top = -400.0
+offset_right = -32.0
+offset_bottom = 400.0
+grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
 
@@ -630,6 +648,9 @@ autowrap_mode = 3
 [node name="EditDeckButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView" unique_id=84917535]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Modifier le deck"
 
 [node name="ProfileView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1172476512]
@@ -766,6 +787,9 @@ custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Mentions légales"
 
 [node name="CreditsLegalSub" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack" unique_id=1251512213]
@@ -783,6 +807,9 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "← Retour"
 
 [node name="LegalScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1897122273]
@@ -855,8 +882,14 @@ autowrap_mode = 3
 [node name="ReportSubmitButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000082]
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Envoyer"
 
 [node name="SettingsMenu" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=2017956977 instance=ExtResource("1_settings")]
@@ -867,47 +900,15 @@ embedded_in_panel = true
 visible = false
 layout_mode = 1
 
-[node name="ShopView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1554326407]
+[node name="PackShop" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=300000033 instance=ExtResource("7_packshop")]
 visible = false
+z_index = 0
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 12
-
-[node name="ShopTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=209292904]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 26
-text = "Boutique"
-
-[node name="ShopSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=1252715381]
-layout_mode = 2
-
-[node name="ShopDescLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=1999039668]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
-text = "D'autres objets arriveront bientôt dans la boutique. Pour l'instant, tu peux ouvrir des packs de cartes."
-autowrap_mode = 3
-
-[node name="ShopOpenButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=1098342740]
-custom_minimum_size = Vector2(0, 54)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
-theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
-text = "Ouvrir la boutique de packs"
 
 [node name="QuestsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=400000002]
 visible = false
@@ -947,6 +948,146 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
+
+[node name="ModeSelectView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1309648493]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="ModeTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView" unique_id=651162713]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Choisis ton mode de jeu"
+autowrap_mode = 3
+
+[node name="ModeSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView" unique_id=2140790698]
+layout_mode = 2
+
+[node name="ModeButtonsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="SoloModeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow" unique_id=833253891]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Solo"
+
+[node name="MultiModeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow" unique_id=1419433010]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Multijoueur"
+
+[node name="ArenaModeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView/ModeButtonsRow" unique_id=1800142620]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Arene"
+
+[node name="ModeBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ModeSelectView" unique_id=2146294638]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
+
+[node name="DeckSelectView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1927201091]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="DeckSelectHeader" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=1342988631]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PlayBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader" unique_id=2018509045]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
+
+[node name="DeckSelectTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader" unique_id=1681087930]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Choisis ton deck"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="DeckSelectSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=1472541]
+layout_mode = 2
+
+[node name="PlayDeckScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=1223869849]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="PlayDecksContainer" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll" unique_id=1050146357]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LaunchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=641662269]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+disabled = true
+text = "Lancer la partie"
 
 [node name="OfflineBanner" type="PanelContainer" parent="." unique_id=300000070]
 visible = false
@@ -996,9 +1137,9 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -220.0
-offset_top = -64.0
-offset_right = 220.0
+offset_left = -314.0
+offset_top = -100.0
+offset_right = 314.0
 offset_bottom = -16.0
 grow_horizontal = 2
 grow_vertical = 0
@@ -1013,26 +1154,60 @@ theme_override_constants/margin_bottom = 6
 
 [node name="BottomCenterRow" type="HBoxContainer" parent="BottomCenterPanel/BottomCenterMargin" unique_id=1375496095]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="DecksButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=300000001]
-custom_minimum_size = Vector2(190, 40)
+custom_minimum_size = Vector2(170, 56)
 layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Mes Decks"
 
-[node name="PacksButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=300000031]
-custom_minimum_size = Vector2(190, 40)
+[node name="PlayButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=641949860]
+custom_minimum_size = Vector2(240, 72)
 layout_mode = 2
-text = "Packs"
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Jouer"
 
 [node name="QuestsButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=400000001]
-custom_minimum_size = Vector2(190, 40)
+custom_minimum_size = Vector2(170, 56)
 layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "Quêtes"
 
-[node name="PackShop" parent="." unique_id=300000033 instance=ExtResource("7_packshop")]
+[node name="QuestsBadge" type="PanelContainer" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton"]
+visible = false
 layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+offset_left = -26.0
+offset_top = -6.0
+offset_right = -4.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="QuestsBadgeLabel" type="Label" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
 visible = false
