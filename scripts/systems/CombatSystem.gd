@@ -3,6 +3,27 @@ class_name CombatSystem
 
 var battle
 
+# Accélération des attaques en rafale : plus des attaques s'enchaînent vite
+# (plusieurs serviteurs de l'IA, ou le joueur qui enchaîne ses clics), plus
+# l'animation de charge de chacune est courte — jusqu'à un plancher, jamais
+# instantané. Le combo retombe à zéro dès qu'un délai réel dépasse
+# COMBO_RESET_MS entre deux attaques (ex: le joueur réfléchit entre deux
+# coups) : basé sur le temps réel écoulé, pas sur un compteur remis à zéro
+# manuellement à un moment arbitraire du tour.
+var _consecutive_attacks := 0
+var _last_attack_time_msec := 0
+const COMBO_RESET_MS := 1500
+const COMBO_SPEED_STEP := 0.15
+const COMBO_MIN_SPEED_SCALE := 0.4
+
+func _combo_speed_scale() -> float:
+	var now := Time.get_ticks_msec()
+	if now - _last_attack_time_msec > COMBO_RESET_MS:
+		_consecutive_attacks = 0
+	_consecutive_attacks += 1
+	_last_attack_time_msec = now
+	return maxf(COMBO_MIN_SPEED_SCALE, 1.0 - COMBO_SPEED_STEP * (_consecutive_attacks - 1))
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -34,12 +55,13 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
 	if is_local_attack:
 		battle.net_registry.begin_capture()
+	var speed_scale := _combo_speed_scale()
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	if attacker_visual and defender_visual:
-		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual)
+		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual, speed_scale)
 	var dealt_to_defender: int = await _execute_damage(attacker, defender)
-	await battle.get_tree().create_timer(0.05).timeout
+	await battle.get_tree().create_timer(0.05 * speed_scale).timeout
 	# Le résultat (mort ou non) n'est logué qu'une fois la résolution de mort
 	# terminée (REVENANT peut relever le serviteur) ; les deux serviteurs sont
 	# passés en "silent" pour que DeathSystem ne double-logue pas leur mort
@@ -149,11 +171,12 @@ func perform_hero_attack(attacker: Minion) -> void:
 	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
 	if is_local_attack:
 		battle.net_registry.begin_capture()
+	var speed_scale := _combo_speed_scale()
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	if visual:
 		var hero_panel: Control = battle.get_node(panel_name)
-		await battle.animation_system.play_attack_lunge(visual, hero_panel)
+		await battle.animation_system.play_attack_lunge(visual, hero_panel, speed_scale)
 	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)

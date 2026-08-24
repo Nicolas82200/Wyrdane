@@ -136,7 +136,11 @@ func _split_card_in_half(visual: BoardMinion) -> void:
 			tween.tween_property(piece, "modulate:a", 0.0, 0.3).set_delay(_t(0.2))
 			tween.chain().tween_callback(piece.queue_free)
 
-func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
+# speed_scale : facteur additionnel de vitesse (1.0 = normal, < 1.0 = plus
+# rapide), fourni par CombatSystem._combo_speed_scale quand plusieurs attaques
+# s'enchaînent vite (voir son commentaire) — indépendant de motion_scale()
+# (accessibilité), qui reste appliqué en plus via _t().
+func play_attack_lunge(attacker_visual: BoardMinion, target: Control, speed_scale: float = 1.0) -> void:
 	if not is_instance_valid(attacker_visual) or not is_instance_valid(target):
 		return
 	var start_pos := attacker_visual.position
@@ -146,9 +150,9 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		return
 	attacker_visual.z_index = 50
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, _t(0.15))\
+	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, _t(0.15 * speed_scale))\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, _t(0.12))\
+	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, _t(0.12 * speed_scale))\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		if not is_instance_valid(target):
@@ -157,17 +161,17 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		if not SettingsManager.reduced_motion:
 			var hit_pos := target.position
 			var shake: Tween = battle.create_tween()
-			shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05)
-			shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05)
-			shake.tween_property(target, "position", hit_pos, 0.05)
+			shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05 * speed_scale)
+			shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05 * speed_scale)
+			shake.tween_property(target, "position", hit_pos, 0.05 * speed_scale)
 		# Flash rouge
 		var flash: Tween = battle.create_tween()
-		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
-		flash.tween_property(target, "modulate", rest_tint(target), 0.18)
+		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04 * speed_scale)
+		flash.tween_property(target, "modulate", rest_tint(target), 0.18 * speed_scale)
 		flash.tween_callback(func(): reapply_status_tint(target))
 		play_hit_mark(attacker_visual, target)
 	)
-	tween.tween_property(attacker_visual, "position", start_pos, _t(0.25))\
+	tween.tween_property(attacker_visual, "position", start_pos, _t(0.25 * speed_scale))\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	if is_instance_valid(attacker_visual):

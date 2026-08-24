@@ -162,7 +162,7 @@ func _on_back_pressed() -> void:
 	_set_loading(false)
 	_net.close()
 	AudioManager.play(AudioManager.CLOSE_MENU)
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+	SceneTransition.change_scene(MAIN_MENU_SCENE)
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 
@@ -397,4 +397,4 @@ func _on_battle_sync_ready() -> void:
 	# sous la racine de l'arbre avant de charger Battle.
 	_net.get_parent().remove_child(_net)
 	get_tree().root.add_child(_net)
-	get_tree().change_scene_to_file(BATTLE_SCENE)
+	SceneTransition.change_scene(BATTLE_SCENE)

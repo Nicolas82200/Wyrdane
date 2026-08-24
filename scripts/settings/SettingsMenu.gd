@@ -150,8 +150,8 @@ func _on_confirm_yes() -> void:
 func _select_tab(selected_button: Button) -> void:
 	selected_button.button_pressed = true
 	report_panel.visible = false
-	for tab_button in _tabs:
-		_tabs[tab_button].visible = tab_button == selected_button
+	var views: Array = _tabs.values()
+	ViewFade.switch(self, views, _tabs[selected_button])
 
 # Bascule le contenu du menu vers le formulaire de signalement intégré, sans
 # ouvrir de nouvelle fenêtre (voir Battle._on_report_pressed, qui connaît
@@ -161,8 +161,9 @@ func show_report_view(allow_cheating: bool, reported_user_id: int, match_id: Str
 	_report_match_id = match_id
 	for tab_button in _tabs:
 		tab_button.button_pressed = false
-		_tabs[tab_button].visible = false
-	report_panel.visible = true
+	var views: Array = _tabs.values()
+	views.append(report_panel)
+	ViewFade.switch(self, views, report_panel)
 	report_status_label.text = ""
 	report_text_edit.text = ""
 	report_submit_button.disabled = false
