@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Stratège Royal"
-description = "Présence : un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer."
+description = "Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer."
 flavour_text = "Il ne voit pas un champ de bataille. Il voit un problème à résoudre."
 texture = ExtResource("3_texture")
 cost = 4

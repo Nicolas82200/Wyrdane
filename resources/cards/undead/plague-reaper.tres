@@ -20,7 +20,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Faucheur de la Plaie"
-description = "Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins."
+description = "Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins."
 flavour_text = "Il ne choisit pas les plus forts. Il choisit les presque morts, pour finir le travail."
 texture = ExtResource("3_texture")
 cost = 5

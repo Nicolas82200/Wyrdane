@@ -30,7 +30,8 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Berserker Infecté"
-description = "FRÉNÉSIE. REVENANT. Mort-rage : +3/+0."
+description = "FRÉNÉSIE, REVENANT
+Mort-rage : +3/+0."
 flavour_text = "La fièvre l'a tué. Ce qui reste est plus rapide."
 texture = ExtResource("3_texture")
 cost = 4

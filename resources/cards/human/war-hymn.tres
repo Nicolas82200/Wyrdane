@@ -23,7 +23,7 @@ type = "OnSummon"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Hymne de Guerre"
-description = "Renfort : le serviteur Humain invoqué gagne +1/+1."
+description = "Renfort : Le serviteur Humain invoqué gagne +1/+1."
 flavour_text = "Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls."
 texture = ExtResource("3_texture")
 cost = 4

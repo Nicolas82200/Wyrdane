@@ -25,12 +25,13 @@ script = ExtResource("1_cardeffect")
 effect_id = "Heal"
 target = "Self"
 value = 1
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Sentinelle du Gouffre"
-description = "REMPART.
+description = "REMPART
 Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie."
 flavour_text = "Elle boit la douleur des autres. La tienne fera l'affaire."
 texture = ExtResource("3_texture")

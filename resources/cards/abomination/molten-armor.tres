@@ -15,7 +15,7 @@ keyword_type = 5
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Armure Fondue"
-description = "MUTATION. INSTABLE."
+description = "MUTATION, INSTABLE"
 flavour_text = "Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence."
 texture = ExtResource("2_texture")
 cost = 3

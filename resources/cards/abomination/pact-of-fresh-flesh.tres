@@ -24,7 +24,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Accord de la Chair Neuve"
-description = "Sacrifice (un serviteur allié à 2 HP ou moins) : invoque un Amas Informe 2/2 doté de MUTATION."
+description = "Sacrifice 1 (≤2 points de vie) : Invoque un Amas Informe 2/2 doté de MUTATION."
 flavour_text = "Chaque offrande revient sous une forme différente."
 texture = ExtResource("2_texture")
 cost = 4

@@ -63,10 +63,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -380.0
-offset_top = -290.0
-offset_right = 380.0
-offset_bottom = 290.0
+offset_left = -460.0
+offset_top = -340.0
+offset_right = 460.0
+offset_bottom = 340.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -186,10 +186,71 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="ReportPanel" type="VBoxContainer" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=300000090]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ReportCategoryLabel" type="Label" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000091]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "Catégorie :"
+
+[node name="ReportCategorySelect" type="OptionButton" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000092]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+
+[node name="ReportDescLabel" type="Label" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000093]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "Description :"
+
+[node name="ReportTextEdit" type="TextEdit" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000094]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+wrap_mode = 1
+
+[node name="ReportStatusLabel" type="Label" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000095]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = ""
+autowrap_mode = 3
+
+[node name="ReportButtonsRow" type="HBoxContainer" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000096]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReportBackButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel/ReportButtonsRow" unique_id=300000097]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "← Retour"
+
+[node name="ReportSubmitButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel/ReportButtonsRow" unique_id=300000098]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Envoyer"
+
 [node name="ReportButton" type="Button" parent="Panel/VBox" unique_id=300000073]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "🚩  Signaler un problème"
 
@@ -209,13 +270,13 @@ theme_override_constants/separation = 10
 
 [node name="CloseButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000014]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "Fermer"
 
 [node name="ConcedeButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000019]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 text = "Concéder"
 
@@ -227,9 +288,9 @@ theme_override_constants/margin_bottom = 20
 
 [node name="ApplyButton" type="Button" parent="Panel/VBox/ApplyMargin" unique_id=300000075]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 text = "Appliquer"
 
 [node name="ConfirmPanel" type="PanelContainer" parent="." unique_id=100000022]

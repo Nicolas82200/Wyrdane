@@ -11,7 +11,7 @@ keyword_type = 1
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Visage-Encore-Flou"
-description = "FUSION."
+description = "FUSION"
 flavour_text = "Il essaie plusieurs expressions. Aucune ne lui va tout à fait."
 texture = ExtResource("2_texture")
 cost = 3

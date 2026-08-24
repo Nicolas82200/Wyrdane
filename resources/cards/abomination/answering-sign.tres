@@ -15,7 +15,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Signe Qui Répond"
-description = "Pioche 1 carte. Si c'est une Abomination, elle coûte 1 de moins ce tour."
+description = "Piochez 1 carte.
+Si c'est une Abomination, elle coûte 1 de moins ce tour."
 flavour_text = "Il désigne. Quelque chose répond, déjà changé."
 texture = ExtResource("2_texture")
 cost = 1

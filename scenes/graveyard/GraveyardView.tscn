@@ -102,4 +102,4 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 20
-columns = 6
+columns = 4

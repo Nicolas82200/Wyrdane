@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Étau de Chair Neuve"
-description = "Renvoie un serviteur ennemi de 3 HP ou moins dans la main de son propriétaire."
+description = "Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire."
 flavour_text = "Il revient. Mais ce n'est plus vraiment lui."
 texture = ExtResource("2_texture")
 cost = 2

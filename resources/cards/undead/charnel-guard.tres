@@ -21,7 +21,8 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Garde du Charnier"
-description = "REMPART. Dernier Souffle : pioche 1 carte."
+description = "REMPART
+Dernier Souffle : Piochez 1 carte."
 flavour_text = "Il gardait les vivants. Il garde désormais ce qui reste."
 texture = ExtResource("3_texture")
 cost = 2

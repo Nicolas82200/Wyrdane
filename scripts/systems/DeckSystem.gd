@@ -5,6 +5,15 @@ var battle
 
 func init(_battle) -> void:
 	battle = _battle
+	# Bouton deck adverse laissé purement cosmétique (main/deck adverses ne
+	# sont que des compteurs, jamais consultables en détail).
+	battle.deck_button.pressed.connect(_toggle_deck_view)
+
+func _toggle_deck_view() -> void:
+	if battle.graveyard_view.visible:
+		battle.graveyard_view.close()
+	else:
+		battle.graveyard_view.open_deck(battle.deck)
 
 func load_deck() -> void:
 	var active := DeckManager.get_active_deck()
