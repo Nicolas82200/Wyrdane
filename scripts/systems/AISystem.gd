@@ -413,16 +413,25 @@ func _pick_spell_target(card: CardData) -> Minion:
 		return null
 	match effect.target:
 		"EnemyMinion":
-			return _best_hostile_target(_filter_spell_targets(battle.player_minions, effect))
+			return _best_hostile_target(_filter_spell_targets(_exclude_spell_immune(battle.player_minions, card), effect))
 		"AllyMinion":
 			return _best_friendly_target(_filter_spell_targets(battle.enemy_minions, effect))
 		"AnyMinion":
-			var hostile: Minion = _best_hostile_target(_filter_spell_targets(battle.player_minions, effect))
+			var hostile: Minion = _best_hostile_target(_filter_spell_targets(_exclude_spell_immune(battle.player_minions, card), effect))
 			if hostile != null:
 				return hostile
 			return _best_friendly_target(_filter_spell_targets(battle.enemy_minions, effect))
 		_:
 			return null
+
+# Assassin Décharné / Éclaireur Infiltré : intargetable par les sorts ennemis —
+# miroir de TargetingSystem._is_valid_target_minion, pour que l'IA respecte la
+# même règle que le ciblage manuel du joueur humain (sans quoi l'immunité ne
+# protégeait en pratique que contre un adversaire humain, pas contre l'IA).
+func _exclude_spell_immune(minions: Array[Minion], card: CardData) -> Array[Minion]:
+	if card.card_type not in ["Instant", "Ritual"]:
+		return minions
+	return minions.filter(func(m: Minion) -> bool: return not m.spell_immune)
 
 # Filtres de l'effet (race/rangée/seuils HP-ATK), miroir d'EffectManager._filter_targets.
 func _filter_spell_targets(minions: Array[Minion], effect: CardEffect) -> Array[Minion]:
