@@ -11,11 +11,10 @@ const WEBSITE_URL := "https://wyrdane.com"
 const WEBSITE_NEWS_PATH := "/news"
 const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
-const CAMPAIGN_RACE_SELECT_SCENE := "res://scenes/campaign/CampaignRaceSelect.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum NavView { MAIN, MODE_SELECT, DECK_SELECT }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -28,8 +27,8 @@ const RACE_ACCENTS := {
 }
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
-# Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
-# constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
+# Aperçu de carte dans la vue "Composition du deck" (voir DeckCompositionPanel
+# pour la courbe de mana/répartition affichée à côté).
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
@@ -39,14 +38,8 @@ const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # désaligne le contenu par rapport à la bordure.
 const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
-const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
-const CURVE_BAR_HEIGHT := 60.0
-const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
-const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
-const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var play_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayButton
-@onready var campaign_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CampaignButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
 @onready var report_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
 @onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
@@ -70,6 +63,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var steam_avatar:    TextureRect = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var rank_badge_label: Label = $PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
 @onready var profile_button: Button = $PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -80,6 +74,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
 @onready var packs_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PacksButton
+@onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var pack_shop:       Control = $PackShop
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
@@ -103,6 +98,7 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileSoloStatsLabel
 @onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankedStatsLabel
+@onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankBadgeLabel
 
 @onready var credits_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView
 @onready var credits_main_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub
@@ -130,6 +126,17 @@ const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 @onready var shop_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopDescLabel
 @onready var shop_open_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopOpenButton
 
+@onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
+@onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
+@onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
+@onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
+
+@onready var login_reward_popup: Control = $LoginRewardPopup
+@onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
+@onready var login_reward_streak_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStreakLabel
+@onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
+@onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
+
 var _local_news_entries: Array[NewsEntry] = []
 var _remote_news_entries: Array = []
 var _use_remote_news := false
@@ -145,13 +152,14 @@ func _ready() -> void:
 	_retranslate()
 	_apply_tutorial_lock()
 	play_button.pressed.connect(_on_play)
-	campaign_button.pressed.connect(_on_campaign_pressed)
 	credits_button.pressed.connect(_on_credits)
 	report_button.pressed.connect(_on_report_pressed)
 	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
+	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
+	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -178,7 +186,7 @@ func _ready() -> void:
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
-	edit_deck_button.pressed.connect(_on_edit_composition_deck)
+	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 	shop_open_button.pressed.connect(_on_shop_open_pressed)
 	_show_nav_view(NavView.MAIN)
 
@@ -222,7 +230,7 @@ func _ready() -> void:
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	_load_news()
+	NewsPanel.load_news(self)
 	_start_backend_sync()
 	_show_info_view(InfoView.NEWS)
 	_play_intro_animation()
@@ -298,13 +306,9 @@ func _apply_tutorial_lock() -> void:
 	multi_mode_button.disabled = locked
 	decks_button.disabled = locked
 	packs_button.disabled = locked
-	# La campagne réutilise le système de cartes/deck : pas de sens de l'ouvrir
-	# avant la fin du tutoriel obligatoire (même logique que decks/packs).
-	campaign_button.disabled = locked
 	multi_mode_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	packs_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
-	campaign_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 # Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
 # en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
@@ -334,6 +338,8 @@ func _launch_backend_syncs() -> void:
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
 	)
+	ProfilePanel.fetch_rank_badge(self)
+	ProfilePanel.fetch_login_reward_status(self)
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
@@ -350,95 +356,22 @@ func _show_info_view(view: InfoView) -> void:
 	settings_menu.visible = view == InfoView.SETTINGS
 	deck_list.visible = view == InfoView.DECKS_MANAGE
 	report_view.visible = view == InfoView.REPORT
+	quests_view.visible = view == InfoView.QUESTS
 	if view == InfoView.PROFILE:
-		_open_profile_view()
+		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
 		deck_list._refresh()
 	elif view == InfoView.REPORT:
 		_open_report_view()
+	elif view == InfoView.QUESTS:
+		QuestsPanel.open(self)
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
-
-func _open_profile_view() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	if SteamService.ensure_init():
-		var persona := SteamService.local_persona_name()
-		if persona != "":
-			profile_name_label.text = persona
-		var tex := SteamService.local_avatar_texture()
-		if tex:
-			profile_avatar.texture = tex
-	profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
-	_show_profile_placeholders()
-	_fetch_profile()
-
-# BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
-# du menu (voir _start_backend_sync) : si le joueur ouvre cette vue avant la
-# fin de la connexion, is_authenticated() est encore faux. Attendre
-# login_succeeded sans jamais relancer la requête laisserait les libellés
-# bloqués sur "Chargement..." indéfiniment.
-func _fetch_profile() -> void:
-	if BackendClient.is_authenticated():
-		BackendClient.get_profile(_on_profile_response)
-		return
-	if not BackendClient.login_succeeded.is_connected(_on_profile_login_succeeded):
-		BackendClient.login_succeeded.connect(_on_profile_login_succeeded, CONNECT_ONE_SHOT)
-	if not BackendClient.login_failed.is_connected(_on_profile_login_failed):
-		BackendClient.login_failed.connect(_on_profile_login_failed, CONNECT_ONE_SHOT)
-
-func _on_profile_login_succeeded(_user: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	BackendClient.get_profile(_on_profile_response)
-
-func _on_profile_login_failed(_reason: String) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	_show_profile_unavailable()
-
-func _on_profile_response(success: bool, data: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	if success:
-		_populate_profile_stats(data)
-	else:
-		_show_profile_unavailable()
-
-func _show_profile_placeholders() -> void:
-	var dash := SettingsManager.t("PROFILE_LOADING")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-
-func _show_profile_unavailable() -> void:
-	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-
-func _populate_profile_stats(data: Dictionary) -> void:
-	var created_at: String = str(data.get("created_at", ""))
-	var date_str := created_at.substr(0, 10) if created_at.length() >= 10 else SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = SettingsManager.t("PROFILE_MEMBER_SINCE") % date_str
-
-	var collection_count := int(data.get("collection_count", 0))
-	profile_collection_label.text = SettingsManager.t("PROFILE_COLLECTION_COUNT") % collection_count
-
-	var solo: Dictionary = data.get("solo", {})
-	profile_solo_stats_label.text = SettingsManager.t("PROFILE_SOLO_STATS") % [int(solo.get("wins", 0)), int(solo.get("losses", 0))]
-
-	var ranked: Dictionary = data.get("ranked", {})
-	profile_ranked_stats_label.text = SettingsManager.t("PROFILE_RANKED_STATS") % [
-		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
-		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
-	]
 
 func _on_credits() -> void:
 	credits_main_sub.show()
@@ -477,14 +410,11 @@ func _on_report_submit_pressed() -> void:
 			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
 	)
 
+# --- Quêtes quotidiennes --------------------------------------------------
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
 	AudioManager.play(AudioManager.OPEN_MENU)
-
-func _on_campaign_pressed() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	get_tree().change_scene_to_file(CAMPAIGN_RACE_SELECT_SCENE)
 
 func _on_decks_button_pressed() -> void:
 	if not CardLibrary.is_loaded:
@@ -652,7 +582,7 @@ func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
 	_refresh_play_deck_list()
-	_show_deck_composition(index)
+	DeckCompositionPanel.show(self, index)
 
 func _on_launch_pressed() -> void:
 	if _play_selected_deck_index < 0:
@@ -665,301 +595,6 @@ func _on_launch_pressed() -> void:
 	else:
 		AudioManager.play(AudioManager.OPEN_MENU)
 		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
-
-# --- Composition du deck sélectionné (vue "actualités") -----------------
-
-func _show_deck_composition(deck_index: int) -> void:
-	_composition_deck_index = deck_index
-	var deck: DeckData = DeckManager.decks[deck_index]
-	deck_comp_title_label.text = "%s : %s" % [SettingsManager.t("MENU_DECK_COMPOSITION_TITLE"), SettingsManager.t(deck.name)]
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-	for child in deck_comp_list_vbox.get_children():
-		child.queue_free()
-
-	var counts: Dictionary = {}
-	var order: Array[CardData] = []
-	for card in deck.get_cards():
-		if not counts.has(card.resource_path):
-			order.append(card)
-		counts[card.resource_path] = counts.get(card.resource_path, 0) + 1
-
-	for card in order:
-		var line := HBoxContainer.new()
-		line.add_theme_constant_override("separation", 8)
-		line.mouse_entered.connect(_on_deck_comp_card_hover.bind(card))
-		line.mouse_exited.connect(_on_deck_comp_card_unhover)
-
-		var count_lbl := Label.new()
-		count_lbl.text = "x%d" % counts[card.resource_path]
-		count_lbl.custom_minimum_size = Vector2(32, 0)
-		count_lbl.add_theme_font_size_override("font_size", 14)
-		count_lbl.add_theme_color_override("font_color", Color(0.94, 0.75, 0.25, 1))
-		line.add_child(count_lbl)
-
-		var name_lbl := Label.new()
-		name_lbl.text = SettingsManager.t(card.card_name)
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 14)
-		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-		line.add_child(name_lbl)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(card.cost)
-		cost_lbl.custom_minimum_size = Vector2(20, 0)
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 14)
-		cost_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.95, 1))
-		line.add_child(cost_lbl)
-
-		deck_comp_list_vbox.add_child(line)
-
-	_update_deck_comp_stats(deck.get_cards())
-	_show_info_view(InfoView.DECK_COMPOSITION)
-
-## Aperçu de carte à droite au survol d'une ligne de la composition.
-func _on_deck_comp_card_hover(card: CardData) -> void:
-	deck_comp_preview_hint.hide()
-	deck_comp_preview_card.set_data(card)
-	deck_comp_preview_card.show()
-
-func _on_deck_comp_card_unhover() -> void:
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-
-## Courbe de mana + répartition types/races du deck affiché, même logique que
-## DeckBuilder._update_stats_panel/_make_curve_chart.
-func _update_deck_comp_stats(cards: Array[CardData]) -> void:
-	for child in deck_comp_stats_panel.get_children():
-		child.queue_free()
-	if cards.is_empty():
-		return
-
-	var curve := []
-	curve.resize(CURVE_BUCKETS)
-	curve.fill(0)
-	var type_counts: Dictionary = {}
-	var race_counts: Dictionary = {}
-	var total_cost := 0
-
-	for card in cards:
-		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
-		curve[bucket] += 1
-		total_cost += card.cost
-		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
-		race_counts[card.race] = race_counts.get(card.race, 0) + 1
-
-	var curve_title := Label.new()
-	curve_title.text = SettingsManager.t("deck.stats_curve_title")
-	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	curve_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(curve_title)
-
-	deck_comp_stats_panel.add_child(_make_deck_comp_curve_chart(curve))
-
-	var avg_label := Label.new()
-	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
-	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	avg_label.add_theme_font_size_override("font_size", 12)
-	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	deck_comp_stats_panel.add_child(avg_label)
-
-	var breakdown_title := Label.new()
-	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
-	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	breakdown_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(breakdown_title)
-
-	# Colonne étroite : un chip par ligne plutôt qu'une rangée horizontale
-	# (contrairement à DeckBuilder, qui a toute la largeur de l'écran).
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
-		if type_counts.has(type_name):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(
-				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
-
-	for key in Race.Type.keys():
-		var race_value: int = Race.Type[key]
-		if race_counts.has(race_value):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
-
-func _make_deck_comp_curve_chart(curve: Array) -> Control:
-	var max_count: int = 1
-	for c in curve:
-		max_count = max(max_count, c)
-
-	var chart := HBoxContainer.new()
-	chart.alignment = BoxContainer.ALIGNMENT_CENTER
-	chart.add_theme_constant_override("separation", 3)
-
-	for i in range(CURVE_BUCKETS):
-		var count: int = curve[i]
-		var col := VBoxContainer.new()
-		col.alignment = BoxContainer.ALIGNMENT_END
-		col.custom_minimum_size = Vector2(22, 0)
-		col.add_theme_constant_override("separation", 2)
-
-		var count_lbl := Label.new()
-		count_lbl.text = str(count) if count > 0 else ""
-		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_lbl.add_theme_font_size_override("font_size", 10)
-		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-		col.add_child(count_lbl)
-
-		var bar := ColorRect.new()
-		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
-		bar.custom_minimum_size = Vector2(18, height)
-		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
-		col.add_child(bar)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 10)
-		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-		col.add_child(cost_lbl)
-
-		chart.add_child(col)
-
-	return chart
-
-func _make_deck_comp_chip(label_text: String, count: int) -> Control:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
-	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
-	bg.set_border_width_all(1)
-	bg.set_corner_radius_all(4)
-	bg.content_margin_left   = 8
-	bg.content_margin_right  = 8
-	bg.content_margin_top    = 2
-	bg.content_margin_bottom = 2
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", bg)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-
-	var lbl := Label.new()
-	lbl.text = "%s ×%d" % [label_text, count]
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	panel.add_child(lbl)
-
-	return panel
-
-func _on_edit_composition_deck() -> void:
-	if _composition_deck_index < 0 or _composition_deck_index >= DeckManager.decks.size():
-		return
-	var scene := load(DECK_BUILDER_SCENE) as PackedScene
-	if scene == null:
-		return
-	var builder = scene.instantiate()
-	get_tree().current_scene.add_child(builder)
-	builder.load_deck(DeckManager.decks[_composition_deck_index])
-	# DeckBuilder est plein écran, il recouvre déjà le panneau de nav en
-	# dessous — pas besoin de le masquer, juste de rafraîchir au retour.
-	builder.tree_exited.connect(func():
-		if _play_selected_deck_index >= 0:
-			_refresh_play_deck_list()
-			_show_deck_composition(_composition_deck_index)
-	)
-
-# Charge le panneau d'actualités : les devlogs/actus créés sur le site
-# (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
-# chaque déploiement depuis src/content/news + src/content/devlog — voir son
-# scripts/generate-feed.mjs). Les ressources locales (res://resources/news/*.tres)
-# ne servent plus que de repli si le site est injoignable (même logique de
-# dégradation que CollectionManager/CurrencyManager).
-func _load_news() -> void:
-	_load_local_news()
-	_fetch_remote_news()
-
-func _load_local_news() -> void:
-	_local_news_entries.clear()
-	var dir := DirAccess.open(NEWS_DIR)
-	if dir == null:
-		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
-		return
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var entry := load(NEWS_DIR + file_name) as NewsEntry
-			if entry:
-				_local_news_entries.append(entry)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	_local_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
-	_populate_news()
-
-func _fetch_remote_news() -> void:
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-		http.queue_free()
-		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
-			push_warning("Impossible de récupérer les actualités du site (résultat %d, code %d)" % [result, response_code])
-			return
-		var parsed = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(parsed) != TYPE_ARRAY:
-			push_warning("Format de flux d'actualités invalide")
-			return
-		_remote_news_entries = parsed
-		_use_remote_news = true
-		_populate_news()
-	)
-	var err := http.request(NEWS_FEED_URL)
-	if err != OK:
-		push_warning("Échec de la requête d'actualités : %d" % err)
-		http.queue_free()
-
-func _populate_news() -> void:
-	for child in news_list_vbox.get_children():
-		child.queue_free()
-	if _use_remote_news:
-		for entry in _remote_news_entries:
-			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
-			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
-			_add_news_item(entry.get("date", ""), title, body, entry.get("kind", "news"))
-	else:
-		for entry in _local_news_entries:
-			_add_news_item(entry.date, entry.display_title(), entry.display_body(), "news")
-
-# Le corps d'une entrée est tronqué côté site (voir generate-feed.mjs,
-# MAX_BODY_LENGTH) : le lien "voir les détails" renvoie vers la page dédiée
-# du site (actus ou devlog selon "kind") pour lire le texte complet.
-func _add_news_item(date: String, title: String, body: String, kind: String) -> void:
-	var item := VBoxContainer.new()
-	item.add_theme_constant_override("separation", 4)
-
-	var date_label := Label.new()
-	date_label.text = date
-	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.55))
-	item.add_child(date_label)
-
-	var title_label := Label.new()
-	title_label.text = title
-	title_label.add_theme_font_size_override("font_size", 18)
-	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(title_label)
-
-	var body_label := Label.new()
-	body_label.text = body
-	body_label.add_theme_font_size_override("font_size", 15)
-	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
-	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(body_label)
-
-	var read_more := LinkButton.new()
-	read_more.text = SettingsManager.t("MENU_NEWS_READ_MORE")
-	read_more.add_theme_font_size_override("font_size", 13)
-	read_more.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25, 1))
-	var path: String = WEBSITE_DEVLOG_PATH if kind == "devlog" else WEBSITE_NEWS_PATH
-	read_more.pressed.connect(func(): OS.shell_open(WEBSITE_URL + path))
-	item.add_child(read_more)
-
-	news_list_vbox.add_child(item)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -981,7 +616,6 @@ func _show_offline_banner() -> void:
 func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
-	campaign_button.text = SettingsManager.t("MENU_CAMPAIGN")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
 	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
@@ -1000,7 +634,7 @@ func _retranslate() -> void:
 	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
 	report_text_edit.placeholder_text = SettingsManager.t("REPORT_DESCRIPTION_PLACEHOLDER")
 	report_submit_button.text = SettingsManager.t("REPORT_SUBMIT")
-	_populate_news()
+	NewsPanel._populate_news(self)
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
@@ -1019,7 +653,11 @@ func _retranslate() -> void:
 	shop_desc_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
 	shop_open_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
+	quests_button.text = SettingsManager.t("MENU_QUESTS")
+	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	if quests_view.visible:
+		QuestsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
-		_show_deck_composition(_composition_deck_index)
+		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:
-		_open_profile_view()
+		ProfilePanel.open(self)

@@ -19,7 +19,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de la Fosse Sans Fond"
-description = "Sacrifice (un serviteur allié) : pioche 1 carte."
+description = "Sacrifice 1 : Piochez 1 carte."
 flavour_text = "Il a tout donné. Il savait exactement ce que ça valait, un peu à la fois."
 texture = ExtResource("3_texture")
 cost = 6

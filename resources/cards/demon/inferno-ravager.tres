@@ -17,7 +17,7 @@ keyword_type = 3
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Ravageur des Flammes"
-description = "RAVAGE. RANG INFERNAL."
+description = "RAVAGE, RANG INFERNAL"
 flavour_text = "Plus ton héros saigne, plus il brûle fort."
 texture = ExtResource("3_texture")
 cost = 5

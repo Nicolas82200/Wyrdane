@@ -24,7 +24,8 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Tombeau Ambulant"
-description = "REMPART. Dernier Souffle : invoque 3 Rampants 1/1 en rangée Avant."
+description = "REMPART
+Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant."
 flavour_text = "Il n'était pas un monstre. Il était une fosse commune."
 texture = ExtResource("3_texture")
 cost = 5

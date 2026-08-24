@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ca1o1l2ekku4e"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Bourreau Corrompu"
-description = "CORRUPTION."
+description = "CORRUPTION"
 flavour_text = "Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait."
 texture = ExtResource("2_texture")
 cost = 4

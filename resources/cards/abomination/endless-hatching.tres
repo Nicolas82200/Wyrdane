@@ -21,7 +21,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Éclosion Sans Fin"
-description = "Éveil : invoque une Abomination aléatoire de coût ≤4 ; elle mute deux fois."
+description = "Éveil : Invoque une Abomination aléatoire de coût ≤4.
+Elle mute deux fois."
 flavour_text = "Elle n'a pas éclos une fois. Elle éclot encore."
 texture = ExtResource("2_texture")
 cost = 7

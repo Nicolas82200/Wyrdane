@@ -16,7 +16,7 @@ keyword_type = 4
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Le Reste-Qui-Veille"
-description = "REMPART. ASSIMILATION."
+description = "REMPART, ASSIMILATION"
 flavour_text = "Il grandit à chaque garde tombée, la sienne comme celle d'en face."
 texture = ExtResource("3_texture")
 cost = 2

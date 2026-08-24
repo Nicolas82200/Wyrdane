@@ -130,3 +130,15 @@ class_name CardEffect
 @export var count_if_threshold: int = 0
 # Le seuil est comparé au nombre de cibles résolues (Damage/DamageAll/Buff/BuffRow)
 # ou, pour SummonMinion/SummonRandom, au nombre d'alliés dans la rangée d'invocation.
+
+# ─── Bonus de Pacte (mot-clé PACTE) ────────────────────────────────────────────
+# Un effet marqué pact_bonus ne s'exécute que si le joueur choisit de payer le
+# coût en PV du Pacte (KeywordChoiceDemon.value) au moment où ce trigger se
+# déclenche — redemandé à chaque déclenchement, pas seulement à l'Arrivée (voir
+# EffectManager.trigger_effects / PactChoiceSystem.resolve_trigger). Les effets
+# non marqués (base) s'exécutent toujours, gratuitement.
+@export var pact_bonus: bool = false
+# Si vrai ET que ce bonus est payé, les effets de base du même trigger sont
+# REMPLACÉS par ce bonus au lieu de s'ajouter à eux (ex: invoque un serviteur
+# amélioré à la place du serviteur de base). Sans effet si pact_bonus est faux.
+@export var pact_replaces_base: bool = false

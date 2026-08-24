@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" uid="uid://blvj7aucrtbmf" path="res://assets/card_art/demon/ascending-hellspawn.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="3_kwd"]
+
+[sub_resource type="Resource" id="Resource_akw1t"]
+script = ExtResource("3_kwd")
+keyword_type = 3
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Larve Ascendante"
+description = "RANG INFERNAL."
+flavour_text = "Elle grandit dans les cicatrices, pas dans la lumière."
+texture = ExtResource("2_texture")
+cost = 2
+race = 5
+unit_style = 18
+attack = 1
+health = 2
+demon_keywords = Array[ExtResource("3_kwd")]([SubResource("Resource_akw1t")])
+rarity = "Rare"
+board_position = "Front"
+is_token = true
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

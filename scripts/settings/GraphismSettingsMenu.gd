@@ -17,6 +17,8 @@ signal dirty_changed(is_dirty: bool)
 @onready var text_scale_slider: HSlider      = $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleSlider
 @onready var text_scale_value_label: Label   = $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleValueLabel
 @onready var colorblind_option: OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow/ColorblindOption
+@onready var high_contrast_check: CheckButton = $VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow/HighContrastCheck
+@onready var reduced_motion_check: CheckButton = $VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow/ReducedMotionCheck
 
 # Libellés localisés (clé de traduction → nœud à mettre à jour).
 @onready var _localized_labels := {
@@ -29,6 +31,8 @@ signal dirty_changed(is_dirty: bool)
 	"graphics.difficulty":  $VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow/DifficultyLabel,
 	"graphics.text_scale":  $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleLabel,
 	"graphics.colorblind":  $VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow/ColorblindLabel,
+	"graphics.high_contrast":  $VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow/HighContrastLabel,
+	"graphics.reduced_motion": $VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow/ReducedMotionLabel,
 }
 
 # Nom d'affichage de chaque locale dans le sélecteur de langue.
@@ -97,6 +101,11 @@ func _ready() -> void:
 		_update_text_scale_label(value)
 	)
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
+
+	high_contrast_check.button_pressed = SettingsManager.high_contrast
+	high_contrast_check.toggled.connect(func(on: bool): SettingsManager.set_high_contrast(on))
+	reduced_motion_check.button_pressed = SettingsManager.reduced_motion
+	reduced_motion_check.toggled.connect(func(on: bool): SettingsManager.set_reduced_motion(on))
 
 	SettingsManager.language_changed.connect(_on_language_changed)
 	_retranslate()

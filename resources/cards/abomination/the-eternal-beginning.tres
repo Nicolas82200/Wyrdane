@@ -21,7 +21,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "L'Éternel Recommencement"
-description = "Éveil : invoque une Abomination aléatoire de coût ≤3 en rangée Avant ; elle mute immédiatement."
+description = "Éveil : Invoque une Abomination aléatoire de coût ≤3 en rangée Avant.
+Elle mute immédiatement."
 flavour_text = "Il ne se soigne plus. Il se réinvente, sans fin."
 texture = ExtResource("2_texture")
 cost = 6

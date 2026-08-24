@@ -9,14 +9,14 @@ var _firing_on_summon: bool = false
 func init(_battle) -> void:
 	battle = _battle
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, pact_paid := false) -> void:
-	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay, pact_paid)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
 func _has_row_overflow_ally(is_player: bool) -> bool:
 	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
 	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
 
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, pact_paid := false) -> Minion:
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target: Minion = null) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
@@ -44,20 +44,8 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		battle.animation_system.play_charge_ready(minion_visual)
 
 
-	# PACTE : le joueur a choisi (ou non) de payer le coût en PV de la carte
-	# (KeywordChoiceDemon.value) au moment de la jouer — voir
-	# CardSystem.handle_card_played. S'il refuse, ni le coût en PV ni l'effet
-	# d'Arrivée (ONPLAY) ne s'appliquent ; la carte est posée comme un vanille.
-	var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-	var pact_declined: bool = pact_value > 0 and not pact_paid
-	if pact_value > 0 and pact_paid:
-		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if is_player else "EnemyHeroPanel")
-		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-		await battle.hero_system.self_damage(is_player, pact_value)
-
-
-	if not skip_onplay and not pact_declined:
-		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
+	if not skip_onplay:
+		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY", onplay_target)
 
 
 	if not _firing_on_summon:
@@ -136,3 +124,79 @@ func _get_row_count(minions: Array[Minion], row: String) -> int:
 
 func _spawn(minion: Minion, is_player: bool) -> void:
 	battle.board_visual_system.spawn_minion_visual(minion, is_player)
+
+# ─── Requêtes de plateau ────────────────────────────────────────────────────
+
+func get_owner_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return battle.player_minions
+	return battle.player_minions if minion.owner_is_player else battle.enemy_minions
+
+func get_enemy_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return battle.enemy_minions
+	return battle.enemy_minions if minion.owner_is_player else battle.player_minions
+
+func get_row_minions(is_player: bool, row: String) -> Array[Minion]:
+	var source: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
+	return source.filter(func(m: Minion): return m.board_row == row)
+
+func get_front_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, battle.ROW_FRONT)
+
+func get_back_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, battle.ROW_BACK)
+
+func can_summon_to_row(is_player: bool, row: String) -> bool:
+	return get_row_minions(is_player, row).size() < battle.MAX_MINIONS_PER_ROW
+
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [battle.ROW_FRONT, battle.ROW_BACK]
+	match card_data.board_position:
+		battle.ROW_FRONT: return [battle.ROW_FRONT]
+		battle.ROW_BACK:  return [battle.ROW_BACK]
+		_:                return [battle.ROW_FRONT, battle.ROW_BACK]
+
+func can_play_card_on_row(card_data: CardData, row: String) -> bool:
+	return row in get_allowed_rows_for_card(card_data)
+
+func has_enemy_taunt(attacker: Minion) -> bool:
+	var attackable: Array[Minion] = get_attackable_enemy_minions(attacker)
+	for minion in attackable:
+		if minion.has_keyword(Keyword.Type.TAUNT):
+			return true
+	return false
+
+# Généralisé pour un attaquant de n'importe quel camp (joueur ou IA/réseau) :
+# la rangée/le camp "en face" se déduit de la propriété de l'attaquant plutôt
+# que d'être toujours le camp ennemi du joueur local.
+func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	var defending_is_player: bool = attacker != null and not attacker.owner_is_player
+	var defenders: Array[Minion] = battle.player_minions if defending_is_player else battle.enemy_minions
+	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
+		return defenders
+	var front: Array[Minion] = get_front_minions(defending_is_player)
+	if not front.is_empty():
+		return front
+	return defenders
+
+# ─── Règles d'attaque ───────────────────────────────────────────────────────
+
+func can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
+	if target not in get_attackable_enemy_minions(attacker):
+		return false
+	if has_enemy_taunt(attacker) and not target.has_keyword(Keyword.Type.TAUNT):
+		return false
+	return true
+
+# Généralisé pour un attaquant de n'importe quel camp : utilisé par
+# SelectionSystem (joueur local), AISystem et NetworkOpponent (revalidation
+# des commandes distantes).
+func can_attack_hero(attacker: Minion) -> bool:
+	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
+		return false
+	if has_enemy_taunt(attacker):
+		return false
+	var defending_is_player: bool = not attacker.owner_is_player
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()

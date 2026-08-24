@@ -1,11 +1,11 @@
 [gd_scene format=3 uid="uid://bh2v8er86udpn"]
 
 [ext_resource type="Script" uid="uid://pkd71kg4dn1s" path="res://scripts/card/Card.gd" id="1_7d3tr"]
-[ext_resource type="FontFile" uid="uid://c2dxyg6e7mc6w" path="res://assets/fonts/CinzelDecorative-Black.otf" id="2_u4wdl"]
 [ext_resource type="FontFile" uid="uid://c6ta1tbu0oeb6" path="res://assets/fonts/Cinzel-Black.otf" id="3_wcykg"]
 [ext_resource type="FontFile" uid="uid://cthx272rbm3cd" path="res://assets/fonts/CrimsonText-SemiBold.ttf" id="4_wcykg"]
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
+[ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
 bg_color = Color(0, 0, 0, 1)
@@ -14,14 +14,6 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 corner_detail = 10
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_typebg"]
-bg_color = Color(0.3, 0.3, 0.3, 0.85)
-corner_radius_top_left = 75
-corner_radius_top_right = 75
-corner_radius_bottom_right = 75
-corner_radius_bottom_left = 75
-corner_detail = 32
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3dwn4"]
 bg_color = Color(0.22745098, 0.14901961, 0.09411765, 0.78431374)
@@ -37,12 +29,12 @@ corner_radius_bottom_left = 5
 corner_detail = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_s5r67"]
-bg_color = Color(0.33333334, 0.41960785, 0.57254905, 0.78431374)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.65882355, 0.47843137, 0.20392157, 0.39215687)
+bg_color = Color(0.33333334, 0.41960785, 0.57254905, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65882355, 0.47843137, 0.20392157, 1)
 border_blend = true
 corner_radius_top_left = 20
 corner_radius_top_right = 20
@@ -126,23 +118,13 @@ anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
 
-[node name="TypeIconBg" type="Panel" parent="." unique_id=1153858897]
-custom_minimum_size = Vector2(150, 150)
-layout_mode = 0
-offset_left = 42.5
-offset_top = 171.0
-offset_right = 192.5
-offset_bottom = 321.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_typebg")
-
 [node name="LaneIcon" type="TextureRect" parent="." unique_id=1153858896]
-modulate = Color(0, 0, 0, 0.68)
+modulate = Color(1, 1, 1, 0.42)
 custom_minimum_size = Vector2(140, 140)
 layout_mode = 0
-offset_left = 47.5
+offset_left = 55.0
 offset_top = 176.0
-offset_right = 187.5
+offset_right = 195.0
 offset_bottom = 316.0
 mouse_filter = 2
 expand_mode = 1
@@ -155,12 +137,25 @@ offset_top = 158.0
 offset_right = 236.5
 offset_bottom = 183.0
 theme_override_colors/font_color = Color(0.9490196, 0.8901961, 0.7764706, 1)
-theme_override_fonts/font = ExtResource("2_u4wdl")
-theme_override_font_sizes/font_size = 11
+theme_override_fonts/font = ExtResource("3_wcykg")
+theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_3dwn4")
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
+
+[node name="GenericCostLabel" type="Label" parent="." unique_id=707796708]
+layout_mode = 0
+offset_left = 167.5
+offset_top = 32.5
+offset_right = 201.5
+offset_bottom = 66.5
+theme_override_colors/font_color = Color(0.827451, 0.827451, 0.827451, 1)
+theme_override_fonts/font = ExtResource("3_wcykg")
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_s5r67")
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CostLabel" type="Label" parent="." unique_id=707796707]
 layout_mode = 0
@@ -168,22 +163,9 @@ offset_left = 190.0
 offset_top = 18.0
 offset_right = 232.0
 offset_bottom = 60.0
-theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
+theme_override_colors/font_color = Color(0.827451, 0.827451, 0.827451, 1)
 theme_override_fonts/font = ExtResource("3_wcykg")
 theme_override_font_sizes/font_size = 28
-theme_override_styles/normal = SubResource("StyleBoxFlat_s5r67")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="GenericCostLabel" type="Label" parent="." unique_id=707796708]
-layout_mode = 0
-offset_left = 160.0
-offset_top = 30.0
-offset_right = 194.0
-offset_bottom = 64.0
-theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("3_wcykg")
-theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_s5r67")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -193,10 +175,12 @@ layout_mode = 0
 offset_left = 15.0
 offset_top = 186.0
 offset_right = 235.0
-offset_bottom = 306.0
-theme_override_colors/default_color = Color(1, 1, 1, 0.85490197)
+offset_bottom = 328.5
+theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_fonts/normal_font = ExtResource("4_wcykg")
+theme_override_fonts/bold_font = ExtResource("7_boldfont")
 theme_override_font_sizes/normal_font_size = 13
+theme_override_font_sizes/bold_font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
 bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
@@ -204,19 +188,6 @@ fit_content = true
 scroll_active = false
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="TypeLabel" type="Label" parent="." unique_id=1918273645]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 310.0
-offset_right = 230.0
-offset_bottom = 328.0
-theme_override_colors/font_color = Color(0.9490196, 0.8901961, 0.7764706, 1)
-theme_override_fonts/font = ExtResource("5_1oahe")
-theme_override_font_sizes/font_size = 10
-horizontal_alignment = 1
-vertical_alignment = 1
-text_overrun_behavior = 3
 
 [node name="AttackLabel" type="Label" parent="." unique_id=1445587069]
 custom_minimum_size = Vector2(40, 30)
@@ -261,3 +232,21 @@ grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("6_u4wdl")
 expand_mode = 1
+
+[node name="TypeLabel" type="Label" parent="." unique_id=1918273645]
+custom_minimum_size = Vector2(120, 10)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -60.0
+offset_top = -5.5
+offset_right = 60.0
+offset_bottom = 7.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_1oahe")
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3

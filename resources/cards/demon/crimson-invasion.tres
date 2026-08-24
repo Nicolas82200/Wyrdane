@@ -20,12 +20,22 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 1
+value = 4
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "SummonRandom"
+pool_race_filter = "Demon"
+pool_max_cost = 6
+pact_bonus = true
+pact_replaces_base = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Invasion Écarlate"
-description = "Pacte 1 : Éveil : Invoque un Démon aléatoire de coût 4 ou moins."
+description = "Éveil : Invoque un Démon aléatoire de coût 4 ou moins.
+Pacte 4 : Invoque à la place un Démon aléatoire de coût 6 ou moins."
 flavour_text = "Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour."
 texture = ExtResource("3_texture")
 cost = 7
@@ -34,6 +44,6 @@ card_type = "Ritual"
 ritual_duration = 3
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_bvc6j")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_crfqx")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_crfqx"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

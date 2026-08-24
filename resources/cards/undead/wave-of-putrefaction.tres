@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Vague de Putréfaction"
-description = "1 dégât à tous les serviteurs ennemis en rangée Avant."
+description = "Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant."
 flavour_text = "La peste ne choisit pas. Elle couvre."
 texture = ExtResource("3_texture")
 cost = 3

@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Premier Écart"
-description = "Arrivée : tous tes serviteurs Abomination alliés mutent immédiatement."
+description = "Arrivée : Tous vos serviteurs Abomination alliés mutent immédiatement."
 flavour_text = "Tout a commencé par une simple erreur de forme. Rien ne s'est arrêté depuis."
 texture = ExtResource("2_texture")
 cost = 4

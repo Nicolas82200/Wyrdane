@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Dernier Soupir"
-description = "Pioche 1 carte par Mort-Vivant allié mort ce tour (max 3)."
+description = "Piochez 1 carte par Mort-Vivant allié mort ce tour (max 3)."
 flavour_text = "Leurs voix ne portent plus. Mais leurs secrets, si."
 texture = ExtResource("3_texture")
 cost = 3

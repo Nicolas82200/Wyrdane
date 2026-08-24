@@ -19,12 +19,20 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 1
+value = 2
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "ReturnFromGrave"
+race_filter = "Demon"
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Grand Rituel du Pacte"
-description = "Pacte 1 : Deuil : Ramène en main le Démon allié le plus récemment mort."
+description = "Deuil : Ramène en main le Démon allié le plus récemment mort.
+Pacte 2 : Ramène aussi le suivant."
 flavour_text = "Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."
 texture = ExtResource("3_texture")
 cost = 8
@@ -33,6 +41,6 @@ card_type = "Ritual"
 ritual_duration = 3
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_qriyt")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_retad")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_retad"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

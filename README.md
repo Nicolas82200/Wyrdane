@@ -78,7 +78,7 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 
 | Mot-clé | Effet | Implémentation |
 |---|---|---|
-| `PACTE X` | Le joueur choisit de payer X PV (une valeur propre à la carte, indépendante de son coût en mana) pour activer l'effet de la carte à son déclenchement. Serviteur : choix unique à l'Arrivée. Rituel/Enchantement ou trigger répété d'un serviteur (Exécution, Blessure...) : choix redemandé à chaque déclenchement, charge du Rituel consommée dans tous les cas. | `KeywordChoiceDemon.value` (X), popup `PactChoiceSystem` (`ask` à la pose, `resolve_trigger`/`heuristic_decision` par déclenchement), gating dans `BoardSystem.summon_minion_return`, `EffectManager.trigger_effects`, `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` |
+| `PACTE X` | L'effet de la carte se déclenche toujours gratuitement (effet de base). En plus, le joueur peut payer X PV (valeur propre à la carte) pour activer un effet bonus qui s'ajoute au résultat de base, ou le remplace. Redemandé à chaque déclenchement — une seule fois à l'Arrivée pour un serviteur, à chaque occurrence pour tout autre trigger. | `CardEffect.pact_bonus`/`pact_replaces_base`, `KeywordChoiceDemon.value` (X), popup `PactChoiceSystem` (`ask` en solo, `resolve_trigger`/`heuristic_decision` sinon), résolu dans `EffectManager.trigger_effects` (tous triggers de serviteur, Arrivée comprise) et `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` (Rituels/Enchantements) |
 | `CORRUPTION` | Les attaques infligent Corruption en plus des dégâts. | `CombatSystem._execute_damage` |
 | `TERREUR` | La cible attaquée ne peut pas attaquer au prochain tour adverse. | `Minion.terror_turns` (séparé du Gel), immunités à la peur respectées |
 | `RANG INFERNAL` | +1/+0 par tranche de 10 HP manquants sur ton héros. | Aura recalculée (`AuraSystem._apply_infernal_rank`) |
@@ -92,10 +92,7 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 - **Annulation de sort** (`TriggerSystem.try_cancel_spell` + effet `CancelSpellOnRaceTarget`) : un rituel adverse à trigger `OnSpell` peut contrer un sort ciblant un de ses serviteurs de la race demandée (Rituel de l'Éclipse Rouge) ; le sort est défaussé sans effet, les autres effets du rituel s'exécutent et une charge est consommée. Vérifiée dans `CardSystem.resolve_with_target` et rejouée à l'identique par `NetworkOpponent`.
 - **Vol temporaire** (effet `StealMinionThenDestroy` + `TempEffectSystem.add_destroy_at_expiry`) : prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit (Emprise Écarlate). Immunités au contrôle mental respectées.
 - **Drain de héros** (effet `StealHealthFromHero`) : vole X HP au héros ennemi et en soigne le héros allié d'autant (Suceur d'Âmes).
-- **Choix du Pacte** (`PactChoiceSystem` + `KeywordChoiceDemon.value`) : deux régimes de paiement selon le type de carte.
-  - **Serviteur (Arrivée)** : à la pose depuis la main, une popup de confirmation demande au joueur local s'il paie X PV, choix unique (`CardSystem.handle_card_played`). Accepté : le coût en PV est appliqué (`HeroSystem.self_damage`) puis l'effet d'Arrivée (trigger `ONPLAY`) de la carte s'exécute normalement, ciblage compris s'il y en a un. Refusé : la carte se pose comme un vanille, sans coût ni effet ni ciblage. Transporté en réseau par `NetCommand.PLAY_CARD` (`pact_paid`), rejoué à l'identique côté pair.
-  - **Trigger répétable** (Exécution, Blessure, Dernier Souffle sur un serviteur ; Éveil, Deuil, Renfort, Résonance, Carnage, Sacrifice, Sortilège sur un Rituel/Enchantement) : le paiement est redemandé à CHAQUE déclenchement effectif (`EffectManager.trigger_effects` pour les triggers de serviteur, `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` pour les Rituels/Enchantements). La charge d'un Rituel est consommée que le joueur paie ou non — seul l'effet (et son coût en PV) est conditionné au paiement.
-  - Dans les deux régimes, l'IA décide seule via une heuristique de marge de PV (`PactChoiceSystem.heuristic_decision`, paie si le héros garde une marge de sécurité après paiement). Pour le régime « trigger répétable », aucun canal réseau dédié n'existe (contrairement au choix unique à la pose) : en partie réseau, les deux camps décident via cette même heuristique déterministe pour rester synchronisés.
+- **Choix du Pacte** (`PactChoiceSystem` + `CardEffect.pact_bonus`) : chaque effet d'une carte PACTE X est marqué "de base" (toujours exécuté, gratuitement) ou "bonus" (`pact_bonus = true`, ne s'exécute que si le joueur paie X PV). `EffectManager.trigger_effects` sépare les deux listes à chaque déclenchement du trigger concerné (Arrivée comprise pour un serviteur — aucun traitement à part, ni choix fait en amont à la pose de la carte) : les effets de base s'exécutent toujours ; s'il existe un bonus pour ce trigger, `PactChoiceSystem.resolve_trigger` est appelé (popup pour le joueur local hors réseau, heuristique de marge de PV pour l'IA et pour les deux camps en partie réseau — `heuristic_decision`, aucun canal réseau dédié à ce choix répété) ; payé, le coût est appliqué (`HeroSystem.self_damage`) et les effets bonus s'exécutent en plus des effets de base, ou à leur place si `pact_replaces_base` est vrai sur le bonus (ex: invoque un serviteur amélioré au lieu du serviteur de base). Même logique côté Rituel/Enchantement dans `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` — la charge d'un Rituel est consommée que le bonus soit payé ou non.
 
 ### 🧬 Mécaniques Abomination
 
@@ -247,7 +244,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
 *   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page en attente de validation Valve — instructions d'installation dans l'en-tête du fichier.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page validée par Valve — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).
 
@@ -284,6 +281,16 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 *   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 317 cartes** (jetons compris ; noms, effets, flavour).
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
+
+### ♿ Accessibilité
+
+Réglages persistants (`SettingsManager.gd`, menu Réglages → onglets Graphismes/Contrôles) :
+
+*   **Échelle de l'interface** (85 %–130 %) et **assistance daltonisme** (protanopie/deutéranopie/tritanopie, via overlay shader qui décale les teintes confondues).
+*   **Contraste élevé** — overlay shader dédié (boost contraste + saturation), cumulable avec l'assistance daltonisme.
+*   **Réduction des animations** — coupe le shake d'écran et raccourcit les tweens de déplacement les plus visibles (pose/mort de serviteur, charge d'attaque, popups d'effet, animation de pioche), sans supprimer les fondus/flashs courts.
+*   **Rebind clavier** des 3 actions ayant un raccourci (fin de tour, cimetière allié/ennemi).
+*   **Indicateurs non basés sur la seule couleur** : symbole de rareté sur le bandeau de type d'une carte (●/◆/▲/★), icône d'alerte devant les HP du héros sous 30 % de ses HP max, mots-clés déjà iconifiés individuellement (`TooltipData`).
 
 ### 🚨 Systèmes de protection anti-bug
 
@@ -540,7 +547,7 @@ Mode autobattler à 8 joueurs mêlant TFT (boutique, pool partagé, économie) e
 
 #### Fin de partie (validé)
 - **Classement brut uniquement** (1er → 8e, basé sur l'ordre d'élimination), affiché en fin de partie.
-- **Aucune récompense méta en v1** (pas de monnaie, pas de déblocage, pas de points de rang) — le projet n'a pas encore de système de compte/progression persistante sur lequel accrocher ça (le mode campagne/collection de cartes est un chantier séparé de la roadmap).
+- **Aucune récompense méta en v1** (pas de monnaie, pas de déblocage, pas de points de rang) — le projet n'a pas encore de système de compte/progression persistante sur lequel accrocher ça (la collection de cartes est un chantier séparé de la roadmap).
 - *Extension future* : historique de parties, système de points de classement simple, cosmétiques débloqués par performance — une fois qu'un système de compte/progression existe ailleurs dans le jeu.
 
 #### Ghost Board (appariement à effectif impair)
@@ -808,41 +815,20 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390) en attendant la validation Valve de la page Steam
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion`, `CardLibrary`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, la mutation Abomination et le timer de tour (voir « Tests automatisés » dans `CLAUDE.md`)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
-*   **Mode Campagne** — run roguelite solo sans fin façon Slay the Spire (voir section dédiée ci-dessous)
 
 ### À faire
-*   Steam : validation Valve de la page Steamworks (AppID 5052390 déjà en place côté code), invitations d'amis, puis build/dépôt Steam
+*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, déjà en place côté code)
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
-*   Mode Campagne : contenu d'événements à étoffer, articulation exacte de l'amélioration de carte en boutique (mot-clé vs stats — point ouvert, voir `CAMPAIGN.md`), tables de rareté Élite/Boss par nombre de victoires à chiffrer plus finement
 *   Animations shaders
 *   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
----
-
-## 🗡️ Mode Campagne
-
-Run roguelite solo **sans fin** (design complet dans `CAMPAIGN.md`), distincte de la « partie rapide » (deck construit au préalable) et du multijoueur : le joueur part avec un plateau prêt à combattre (pas de deck ni de pioche) et progresse sur une carte à embranchements dont la difficulté grimpe sans plafond, jusqu'à sa mort.
-
-*   **Choix de race** puis **constitution du plateau** — 5 choix successifs parmi 3 cartes Commune de la race choisie forment les 5 premières cartes du plateau (pas de deck classique).
-*   **Carte de run à embranchements, sans fin** — générée par fenêtre glissante (jamais un graphe illimité stocké d'un coup), 1 à 3 chemins tirés à chaque palier. Types de nœuds : Combat, Élite, Boss (un seul nœud, imposé tous les 10 paliers — un jalon récurrent, plus une fin de run), Relique, Boutique, Repos, Événement. Densité d'Élites/Événements croissante avec la profondeur, Repos/Boutique stables ; un Repos est toujours garanti juste avant chaque Boss.
-*   **Combat auto-battler tour par tour** — pas de main ni de mana en combat : les plateaux sont déjà posés, alternance stricte joueur/adversaire, le joueur choisit librement quelle carte attaque quelle cible (CHARGE offre une attaque bonus par serviteur vivant qui le porte). Mort en combat définitive. Un plateau vide rend le héros directement attaquable.
-*   **Scaling de la difficulté** — Normal : x1,5 (PV/stats) tous les 10 paliers, +1 carte tous les 2 paliers (jusqu'à 20). Élite/Boss : x1,5 après chaque victoire contre ce type précis (compteurs séparés), pas par palier. Rareté des cartes adverses croissante avec la profondeur (table par tranche de 10 paliers).
-*   **Or de run et Boutique** — or gagné après chaque combat (base croissante par tranche de 5 paliers, x1/x1,5/x3 selon Normal/Élite/Boss), dépensable en Boutique : achat de carte (prix fixe par rareté), amélioration d'une carte du plateau (buff de stats), soin (30 % des PV manquants), retrait d'une carte (coût croissant). Monnaie propre à la run, perdue à la mort.
-*   **Reliques** — des cartes Enchantement/Rituel ordinaires, obtenues uniquement via le nœud dédié (imposées, sans choix) ou en Boutique — jamais via la récompense de combat classique (réservée aux Serviteurs).
-*   **Récompense de combat** — après une victoire (hors Boss), choix de 1 carte parmi 3 (Serviteurs uniquement), tirées avec les mêmes poids de rareté que l'ouverture de pack.
-*   **PV persistants** entre combats ; un nœud Repos rend 30 % des PV manquants.
-*   **Sauvegarde de run locale** (fichier `user://`) — sauvegardée juste avant d'engager un combat (adversaire déjà figé) et juste après une victoire (y compris si le choix de récompense n'est pas encore fait). Au lancement du mode, une run interrompue propose Reprendre/Nouvelle run.
-*   **Défaite** — mort du héros = fin de run immédiate, récompense de consolation en monnaie molle proportionnelle à la profondeur atteinte.
-
-Implémentation : `scripts/campaign/` (logique pure : `CampaignContext`/`CampaignRun`/`CampaignMapNode`, `CampaignMapGenerator`, `CampaignBoardBuild`, `CampaignOpponentFactory`, `CampaignRewardPicker`, `CampaignGold`, `CampaignEvents`, `CampaignConsolationReward`, `CampaignSaveService`) + `scenes/campaign/` (10 écrans : sélection de race, construction du plateau, carte de run, combat (`CampaignBattle.tscn`, moteur auto-battler dédié — ne passe jamais par `Battle.tscn`), récompense, boutique, relique, repos, événement, fin de run). `CampaignBattle.gd` réutilise directement `CombatSystem`/`DeathSystem`/`TriggerSystem`/`EnchantmentSystem`/`SelectionSystem` du moteur de combat classique (déjà indépendants de la main/du mana) sans jamais instancier `DeckSystem`/`CardSystem`/`CostSystem`.
-
 ---
 
 ## 💠 Système de Ressources par Race
@@ -872,8 +858,9 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 ### ⚖️ Composition du deck
 
 - **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
-- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
+- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
+- Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
 - Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
@@ -881,7 +868,7 @@ ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums l'est.)*
+*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -907,7 +894,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
-- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée).
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée), avertissements bloquant la sauvegarde en cas d'incohérence race/ressource, dédoublonnage automatique des noms de deck (`DeckManager.make_unique_name`), bouton Sauvegarder désactivé tant que rien n'a changé, confirmation avant de quitter avec des modifications non sauvegardées.
 - `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 

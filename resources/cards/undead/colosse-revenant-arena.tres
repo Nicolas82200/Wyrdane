@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Colosse Revenant"
-description = "REMPART. REVENANT."
+description = "REMPART, REVENANT"
 flavour_text = "Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre."
 texture = ExtResource("2_texture")
 cost = 5

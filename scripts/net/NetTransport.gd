@@ -18,6 +18,12 @@ signal disconnected(reason: String)
 # Trace lisible des étapes d'établissement de la connexion (diagnostic affiché
 # dans le journal du lobby — voir NetLobby).
 signal status(message: String)
+# Une session hébergée est prête à être rejointe par un pair (ex. Steam :
+# lobby créé avec succès, session_id = lobby_id) — pas encore connecté, juste
+# de quoi communiquer un identifiant à un pair ciblé (matchmaking classé, où
+# les deux joueurs ne se cherchent pas via la liste de lobbies publics mais
+# sont appariés par le backend). No-op côté rejoignant.
+signal session_ready(session_id: int)
 
 # Héberge une session. params opaque selon le backend (ex. Steam : rien).
 # Retourne OK ou un code d'erreur.

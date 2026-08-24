@@ -22,7 +22,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Pluie Qui Change"
-description = "1 dégât à tous les serviteurs ennemis en rangée Avant ; les survivants ont -1 ATK jusqu'à la fin du tour."
+description = "Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
+Les survivants ont -1 ATK jusqu'à la fin du tour."
 flavour_text = "L'air lui-même devient hostile en son sillage."
 texture = ExtResource("2_texture")
 cost = 3

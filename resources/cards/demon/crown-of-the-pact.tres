@@ -24,10 +24,21 @@ value = 1
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+duration = "UntilEndOfTurn"
+value = 1
+value_2 = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cercle du Grand Pacte"
-description = "Sacrifice 1 : Pacte 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour."
+description = "Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.
+Pacte 1 : +1/+1 supplémentaire."
 flavour_text = "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande."
 texture = ExtResource("3_texture")
 cost = 6
@@ -37,6 +48,6 @@ ritual_duration = 2
 sacrifice_count = 1
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_szohy")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_iwf1x")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_iwf1x"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
