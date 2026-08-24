@@ -556,7 +556,13 @@ func _art_for_target(target) -> Texture2D:
 # voir GhostBoard/README) n'est volontairement pas montré ici : c'est un
 # détail d'appariement interne, pas un participant à consulter.
 func _refresh_portraits() -> void:
+	# remove_child() avant queue_free() : voir _refresh_shop/_refresh_board,
+	# même correctif — appelée à quasi chaque action du joueur (_refresh_ui),
+	# une ancienne case et sa remplaçante coexistant une frame dans la mise en
+	# page produisait un flicker visible et une fenêtre où le bouton sur le
+	# point d'être libéré pouvait encore intercepter un clic.
 	for child in portraits_column.get_children():
+		portraits_column.remove_child(child)
 		child.queue_free()
 	for p in match_.players:
 		portraits_column.add_child(_make_participant_button(p, p.display_name, p.is_eliminated, p == human, p.hero_hp))
