@@ -306,9 +306,6 @@ func _cast_spell(card: CardData) -> void:
 		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
 	if shows_popup:
 		await battle.card_popup_system.show_card_popup(card)
-	if card.card_type == "Instant" or card.card_type == "Ritual":
-		AudioManager.play_spell_cast(card)
-		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 	# Sortilège — enchantements du joueur réagissent (miroir de CardSystem)
 	await battle.trigger_system.fire("OnSpell", null, true)
 	for ally in battle.enemy_minions.duplicate():
@@ -319,11 +316,18 @@ func _cast_spell(card: CardData) -> void:
 		battle.aura_system.recompute_all()
 		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
+		# Son/VFX joués juste avant la résolution effective de l'effet (et
+		# non avant/pendant la preview), pour rester synchronisés avec ce qui
+		# se passe réellement (miroir de CardSystem).
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
 		await battle.death_system.process_deaths()
 	else:
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
 		for effect in card.effects:
