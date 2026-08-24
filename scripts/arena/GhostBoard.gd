@@ -27,4 +27,17 @@ static func _clone(m: Minion) -> Minion:
 	clone.base_attack = m.base_attack
 	clone.base_max_health = m.base_max_health
 	clone.star_level = m.star_level
+	# Mots-clés dynamiquement accordés en cours de partie (ex. GrantKeyword,
+	# absorption FUSION) : Minion.new() ne peuple que les mots-clés de base de
+	# la carte (via card_data), pas ceux gagnés depuis — sans cette copie, un
+	# Rempart/Taunt octroyé en jeu disparaissait du Fantôme, faisant diverger
+	# le combat contre lui de ce qu'aurait vraiment livré le plateau original.
+	clone.keywords = m.keywords.duplicate()
+	clone.human_keywords = m.human_keywords.duplicate()
+	clone.undead_keywords = m.undead_keywords.duplicate()
+	clone.demon_keywords = m.demon_keywords.duplicate()
+	clone.abomination_keywords = m.abomination_keywords.duplicate()
+	# Déjà reflété numériquement dans base_attack (voir apply_corruption),
+	# copié aussi pour que l'affichage (icône, nombre de stacks) reste correct.
+	clone.corruption_stacks = m.corruption_stacks
 	return clone
