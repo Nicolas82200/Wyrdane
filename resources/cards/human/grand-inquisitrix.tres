@@ -24,7 +24,8 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_yv1py")
 card_name = "La Grande Inquisitrice"
-description = "DISCIPLINE. Éveil : détruit un enchantement ou rituel ennemi actif aléatoire."
+description = "DISCIPLINE
+Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire."
 flavour_text = "Elle ne combat pas la magie ennemie. Elle la refuse."
 texture = ExtResource("4_k4mkx")
 cost = 6

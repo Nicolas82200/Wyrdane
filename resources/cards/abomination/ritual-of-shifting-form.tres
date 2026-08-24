@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel de la Forme Jamais Fixée"
-description = "Éveil : un serviteur Abomination allié aléatoire mute immédiatement."
+description = "Éveil : Un serviteur Abomination allié aléatoire mute immédiatement."
 flavour_text = "Le cercle ne s'arrête jamais de proposer de nouvelles formes."
 texture = ExtResource("2_texture")
 cost = 5

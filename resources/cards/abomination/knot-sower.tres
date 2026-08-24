@@ -25,7 +25,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Semeur de Nœuds"
-description = "FUSION. Attaque : invoque un Amas Informe 1/2 en rangée Avant."
+description = "FUSION
+Attaque : Invoque un Amas Informe 1/2 en rangée Avant."
 flavour_text = "Il ne construit rien. Il fait pousser."
 texture = ExtResource("3_texture")
 cost = 3

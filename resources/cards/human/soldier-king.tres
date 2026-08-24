@@ -32,7 +32,8 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("3_lxph1")
 card_name = "Le Roi Soldat"
-description = "COMMANDEMENT. ÉGIDE. Arrivée : tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente."
+description = "COMMANDEMENT, ÉGIDE
+Arrivée : Tous les serviteurs Humains alliés gagnent +2/+2 de façon permanente."
 flavour_text = "Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts."
 texture = ExtResource("4_xhwd2")
 cost = 7

@@ -19,7 +19,7 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Charognard Putride"
-description = "Dernier Souffle : inflige Infection à un serviteur ennemi ciblé."
+description = "Dernier Souffle : Inflige Infection à un serviteur ennemi ciblé."
 flavour_text = "Même en tombant, il répand ce qui l'a tué."
 texture = ExtResource("3_texture")
 cost = 2

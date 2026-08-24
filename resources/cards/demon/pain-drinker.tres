@@ -12,7 +12,7 @@ keyword_type = 5
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Buveur de Souffrance"
-description = "SANG NOIR."
+description = "SANG NOIR"
 flavour_text = "Il ne ressent pas ta douleur. Il l'absorbe, littéralement."
 texture = ExtResource("3_texture")
 cost = 3

@@ -14,6 +14,8 @@ signal ai_difficulty_changed(level: String)
 signal display_settings_changed
 signal keybind_changed(action: String, keycode: int)
 signal match_stats_changed(wins: int, losses: int)
+signal reduced_motion_changed(enabled: bool)
+signal high_contrast_changed(enabled: bool)
 
 const CONFIG_PATH := "user://display_settings.cfg"
 const DEFAULT_LANGUAGE := "fr"
@@ -42,6 +44,16 @@ const DEFAULT_TEXT_SCALE := 1.0
 # Filtre d'assistance daltonisme, voir resources/shaders/colorblind_filter.gdshader.
 const COLORBLIND_MODES := ["none", "protanopia", "deuteranopia", "tritanopia"]
 const DEFAULT_COLORBLIND_MODE := "none"
+
+# Contraste élevé (accessibilité), voir resources/shaders/high_contrast_filter.gdshader.
+const DEFAULT_HIGH_CONTRAST := false
+
+# Réduction des animations (accessibilité) : désactive les tremblements
+# d'écran et raccourcit les tweens de déplacement (voir AnimationSystem._t,
+# Hand.gd, CardPopupSystem.gd). N'affecte pas les fondus/flashs courts, dont
+# la disparition brutale serait plus perturbante que le mouvement lui-même.
+const DEFAULT_REDUCED_MOTION := false
+const REDUCED_MOTION_SCALE := 0.35
 
 # Actions d'InputMap que le joueur peut réattribuer depuis ControlSettingsMenu.
 # Les touches par défaut sont celles déclarées dans project.godot ; elles sont
@@ -72,7 +84,10 @@ var vsync: bool = true
 var quality: String = DEFAULT_QUALITY
 var text_scale: float = DEFAULT_TEXT_SCALE
 var colorblind_mode: String = DEFAULT_COLORBLIND_MODE
+var high_contrast: bool = DEFAULT_HIGH_CONTRAST
+var reduced_motion: bool = DEFAULT_REDUCED_MOTION
 var _colorblind_overlay: ColorRect
+var _high_contrast_overlay: ColorRect
 
 # Touches personnalisées : action -> keycode. Une action absente de ce
 # dictionnaire utilise sa touche par défaut (_default_keycodes).
@@ -86,6 +101,7 @@ func _ready() -> void:
 	_apply_display()
 	_apply_keybinds()
 	_setup_colorblind_overlay()
+	_setup_high_contrast_overlay()
 
 # Retourne le texte traduit d'une clé dans la langue courante. Une clé absente
 # du CSV est renvoyée telle quelle (utile pour repérer les oublis en jeu).
@@ -227,6 +243,51 @@ func _apply_colorblind_mode() -> void:
 	var mode_index: int = COLORBLIND_MODES.find(colorblind_mode)
 	_colorblind_overlay.material.set_shader_parameter("mode", maxi(mode_index, 0))
 
+func set_high_contrast(enabled: bool) -> void:
+	if high_contrast == enabled:
+		return
+	high_contrast = enabled
+	_save()
+	_apply_high_contrast()
+	high_contrast_changed.emit(enabled)
+	display_settings_changed.emit()
+
+# Overlay plein écran unique, même principe que _setup_colorblind_overlay
+# (survit aux changements de scène). Les deux overlays peuvent être actifs en
+# même temps (assistance daltonisme + contraste élevé ne s'excluent pas).
+func _setup_high_contrast_overlay() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var layer := CanvasLayer.new()
+	layer.layer = 129
+	tree.root.call_deferred("add_child", layer)
+	_high_contrast_overlay = ColorRect.new()
+	_high_contrast_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_high_contrast_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_high_contrast_overlay.material = ShaderMaterial.new()
+	_high_contrast_overlay.material.shader = load("res://resources/shaders/high_contrast_filter.gdshader")
+	layer.call_deferred("add_child", _high_contrast_overlay)
+	_apply_high_contrast()
+
+func _apply_high_contrast() -> void:
+	if _high_contrast_overlay == null or _high_contrast_overlay.material == null:
+		return
+	_high_contrast_overlay.material.set_shader_parameter("enabled", high_contrast)
+
+func set_reduced_motion(enabled: bool) -> void:
+	if reduced_motion == enabled:
+		return
+	reduced_motion = enabled
+	_save()
+	reduced_motion_changed.emit(enabled)
+	display_settings_changed.emit()
+
+# Facteur multiplicatif à appliquer à la durée des tweens de déplacement
+# (voir AnimationSystem._t, Hand.gd, CardPopupSystem.gd).
+func motion_scale() -> float:
+	return REDUCED_MOTION_SCALE if reduced_motion else 1.0
+
 func _apply_quality() -> void:
 	var vp := get_viewport()
 	if vp == null:
@@ -311,6 +372,8 @@ func _save() -> void:
 	cfg.set_value("stats", "match_losses", match_losses)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
+	cfg.set_value("display", "high_contrast", high_contrast)
+	cfg.set_value("display", "reduced_motion", reduced_motion)
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -342,6 +405,8 @@ func _load() -> void:
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String
 	if not COLORBLIND_MODES.has(colorblind_mode):
 		colorblind_mode = DEFAULT_COLORBLIND_MODE
+	high_contrast = cfg.get_value("display", "high_contrast", DEFAULT_HIGH_CONTRAST) as bool
+	reduced_motion = cfg.get_value("display", "reduced_motion", DEFAULT_REDUCED_MOTION) as bool
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
 		for action in saved_keybinds:

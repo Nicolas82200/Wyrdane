@@ -20,7 +20,7 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("3_gqd7o")
 card_name = "Résistance Acharnée"
-description = "Carnage : quand un serviteur ennemi meurt, ton héros regagne 1 HP."
+description = "Carnage : Quand un serviteur ennemi meurt, votre héros regagne 1 point de vie."
 flavour_text = "Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu, de précieux."
 texture = ExtResource("4_qgakc")
 cost = 4

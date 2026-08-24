@@ -33,35 +33,22 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		battle.hand.set_hand(battle.hand_cards)
 		return
 
-	# PACTE : demande au joueur s'il paie le coût en PV pour activer l'effet
-	# d'Arrivée de la carte. Sans PACTE (value 0), pact_paid reste true — n'a
-	# alors aucune incidence sur la suite du flux (carte non concernée).
-	var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-	var pact_paid: bool = true
-	if card_data.card_type == "Minion" and pact_value > 0:
-		pact_paid = await battle.pact_choice_system.ask(card_data, pact_value)
-
 	if card_data.requires_target:
-		if not pact_paid:
-			# Pacte refusé : l'effet (donc le besoin de cible) disparaît, la
-			# carte se pose comme un vanille, sans passer par le ciblage.
-			await play_card(card_data, row, insert_index, false)
-			return
 		# Serviteur à effet ciblé sans cible valide : on le pose quand même,
 		# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
 		# en amont par conditions_met)
 		if card_data.card_type == "Minion" \
 				and not battle.targeting_system.has_any_valid_target(card_data):
-			await play_card(card_data, row, insert_index, pact_paid)
+			await play_card(card_data, row, insert_index)
 			return
 		battle.pending_card         = card_data
 		battle.pending_row          = row
 		battle.pending_insert_index = insert_index
 		battle.waiting_for_target   = true
 		await battle.card_popup_system.show_targeting_popup(card_data)
-		battle.targeting_system.begin_targeting(card_data, row, insert_index, null, pact_paid)
+		battle.targeting_system.begin_targeting(card_data, row, insert_index)
 		return
-	await play_card(card_data, row, insert_index, pact_paid)
+	await play_card(card_data, row, insert_index)
 
 # Un sort dont les conditions ne sont pas remplies (aucune cible valide,
 # cimetière vide...) ne doit pas pouvoir être lancé.
@@ -84,7 +71,7 @@ func conditions_met(card_data: CardData) -> bool:
 					return false
 	return true
 
-func play_card(card_data: CardData, row := "Front", insert_index := -1, pact_paid := false) -> void:
+func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	# Les sorts éphémères montrent leur popup d'effet dans _resolve (glisse depuis
 	# la gauche, puis l'effet). Inutile de doubler avec un reveal de ciblage ici.
 	if card_data.card_type != "Instant":
@@ -97,11 +84,11 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1, pact_pai
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
-	await _resolve(card_data, row, insert_index, pact_paid)
+	await _resolve(card_data, row, insert_index)
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
 
-func resolve_with_target(card_data: CardData, row: String, insert_index: int, target, pact_paid := true) -> void:
+func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
@@ -115,18 +102,18 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index, false, pact_paid)
-		# pact_paid par défaut à true : seules les cartes PACTE ciblées passent
-		# explicitement false (Pacte refusé, voir handle_card_played) — dans ce
-		# cas l'effet ci-dessous, qui EST l'effet du Pacte, ne doit pas s'exécuter.
-		if pact_paid:
+		# La cible (si Minion) est transmise directement au déclenchement ONPLAY :
+		# EffectManager.trigger_effects s'en sert pour les effets qui en ont besoin
+		# (EnemyMinion/AllyMinion/AnyMinion), base ET bonus de Pacte compris.
+		# Un ciblage d'enchantement (CardData) n'est pas géré par ce pipeline —
+		# encore résolu manuellement ci-dessous, cas rare non concerné par PACTE.
+		summoned = await battle.board_system.summon_minion_return(
+			card_data, true, row, insert_index, false, target if target is Minion else null)
+		if target is CardData:
 			for effect in card_data.effects:
-				if target is Minion:
-					await battle.effect_manager.execute_effect(battle, summoned, effect, target)
-				elif target is CardData:
-					await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
-				else:
-					await battle.effect_manager.execute_effect(battle, summoned, effect)
+				if effect.pact_bonus:
+					continue
+				await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
 	else:
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
 		# contrer un sort ciblant un de ses serviteurs. Le sort est alors défaussé
@@ -190,17 +177,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.play_card(card_data, row, insert_index,
-			ids, target if target is Minion else null, pact_paid)
+			ids, target if target is Minion else null)
 
 	battle.reset_targeting_state()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
 
-func _resolve(card_data: CardData, row: String, insert_index: int, pact_paid := false) -> void:
+func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if battle.net_emitter != null:
 		battle.net_registry.begin_capture()
 	if card_data.card_type == "Minion":
-		await battle.board_system.summon_minion_return(card_data, true, row, insert_index, false, pact_paid)
+		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
 		battle.combat_log.card_played(card_data, true)
 		var shows_popup: bool = card_data.card_type != "Enchantment" \
@@ -239,7 +226,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int, pact_paid := 
 	# Émission réseau : le joueur local a joué cette carte (sans cible).
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
-		battle.net_emitter.play_card(card_data, row, insert_index, ids, null, pact_paid)
+		battle.net_emitter.play_card(card_data, row, insert_index, ids, null)
 
 func _remove_from_hand(card_data: CardData) -> void:
 	var idx: int = battle.hand_cards.find(card_data)

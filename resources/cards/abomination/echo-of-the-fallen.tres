@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Écho des Chutes"
-description = "Dévoration : pioche 1 carte (une seule fois par tour)."
+description = "Dévoration : Piochez 1 carte (une seule fois par tour)."
 flavour_text = "Chaque mort, où qu'elle soit, nourrit le cercle."
 texture = ExtResource("2_texture")
 cost = 3

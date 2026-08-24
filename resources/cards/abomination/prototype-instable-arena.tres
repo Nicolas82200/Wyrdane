@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://c85woqh2ck2sx"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Prototype Instable"
-description = "MUTATION."
+description = "MUTATION"
 flavour_text = "Sa forme n'est jamais tout à fait la même deux combats de suite."
 texture = ExtResource("2_texture")
 cost = 3

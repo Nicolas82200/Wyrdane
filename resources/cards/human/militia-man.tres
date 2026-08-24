@@ -19,7 +19,7 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Milicien du Bourg"
-description = "Dernier Souffle : invoque un Éclaireur Rapide 1/1."
+description = "Dernier Souffle : Invoque un Éclaireur Rapide 1/1."
 flavour_text = "Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé."
 texture = ExtResource("3_texture")
 race = 1

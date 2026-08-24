@@ -533,7 +533,7 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 		# Retour en main = retrait du plateau SANS passer par la mort
 		# (pas de cimetière, pas de Dernier Souffle)
 		_remove_from_board(battle, target)
-		# Mode Campagne (CampaignBattle.gd) : pas de main — la carte est
+		# Mode Arena (SimulatedBattle.gd) : pas de main — la carte est
 		# simplement retirée du combat plutôt que rendue injouable pour le
 		# reste de la partie (pas de crash sur hand/hand_cards absents).
 		if battle.get("hand_cards") == null:
@@ -600,7 +600,7 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 # OpponentDriver (IA : vrai deck local ; réseau : compteurs cosmétiques, le
 # pair distant pioche réellement de son côté).
 func _draw_cards(battle, source_minion: Minion, count: int) -> void:
-	# Mode Campagne (CampaignBattle.gd) : pas de deck/pioche — sans intérêt,
+	# Mode Arena (SimulatedBattle.gd) : pas de deck/pioche — sans intérêt,
 	# no-op plutôt qu'un crash sur deck_system/opponent absents.
 	if battle.get("deck_system") == null:
 		return
@@ -947,7 +947,7 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 			break
 	if card_data == null:
 		return
-	# Mode Campagne (CampaignBattle.gd) : pas de main — la carte reste au
+	# Mode Arena (SimulatedBattle.gd) : pas de main — la carte reste au
 	# cimetière plutôt qu'un crash sur hand/hand_cards absents.
 	if battle.get("hand_cards") == null:
 		return
@@ -1134,7 +1134,7 @@ func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEff
 # toucher au mana maximum — le surplus non dépensé est perdu au tour suivant
 # (Vortex des Âmes : Carnage -> +1 mana ce tour).
 func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
-	# Mode Campagne (CampaignBattle.gd) : pas de mana en combat — sans
+	# Mode Arena (SimulatedBattle.gd) : pas de mana en combat — sans
 	# intérêt, no-op plutôt qu'un crash sur race_mana_pool absent.
 	if not battle.has_method("race_mana_pool"):
 		return
@@ -1157,7 +1157,7 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 # réelle du pair distant est inconnue localement donc seule la pioche
 # cosmétique a lieu, sans remise (que le pair applique de son côté).
 func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
-	# Mode Campagne (CampaignBattle.gd) : pas de deck/coût — sans intérêt,
+	# Mode Arena (SimulatedBattle.gd) : pas de deck/coût — sans intérêt,
 	# no-op plutôt qu'un crash sur deck_system/cost_system absents.
 	if battle.get("deck_system") == null:
 		return
@@ -1427,21 +1427,40 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
-	# PACTE sur un trigger répétable (Exécution, Blessure, Dernier Souffle...) :
-	# contrairement à l'Arrivée (paiement unique, déjà géré par
-	# BoardSystem.summon_minion_return avant l'appel ONPLAY ci-dessous), le
-	# paiement est redemandé à CHAQUE déclenchement effectif.
-	if trigger_name != "ONPLAY":
-		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-		if pact_value > 0:
-			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
-			if not pact_paid:
-				return false
-			await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+	# PACTE : l'effet de base (pact_bonus == false) se déclenche toujours,
+	# gratuitement. S'il existe en plus un effet de bonus (pact_bonus == true)
+	# pour CE trigger, le paiement du coût en PV est proposé à chaque
+	# déclenchement (Arrivée comprise — pas de traitement spécial, redemandé à
+	# chaque fois comme n'importe quel autre trigger) ; payé, le bonus s'ajoute
+	# à l'effet de base, ou le remplace si `pact_replaces_base` est vrai.
+	var base_effects: Array[CardEffect] = []
+	var bonus_effects: Array[CardEffect] = []
 	for effect in minion.card_data.effects:
 		if effect.trigger != "" and effect.trigger != trigger_name:
 			continue
-		await execute_effect(battle, minion, effect, selected_target)
+		if effect.pact_bonus:
+			bonus_effects.append(effect)
+		else:
+			base_effects.append(effect)
+
+	var pact_paid: bool = false
+	if not bonus_effects.is_empty():
+		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+		if pact_value > 0:
+			pact_paid = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+			if pact_paid:
+				var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+				var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+				battle.animation_system.play_pact_drain(hero_panel, minion_visual)
+				await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+
+	var replaces_base: bool = pact_paid and bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
+	if not replaces_base:
+		for effect in base_effects:
+			await execute_effect(battle, minion, effect, selected_target)
+	if pact_paid:
+		for effect in bonus_effects:
+			await execute_effect(battle, minion, effect, selected_target)
 	return true
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir

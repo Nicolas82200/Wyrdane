@@ -20,6 +20,14 @@ func add_card(card_data: CardData) -> void:
 func remove_card_at(index: int) -> void:
 	card_paths.remove_at(index)
 
+## Retire toutes les copies de la carte désignée par ce chemin.
+func remove_all_copies(path: String) -> void:
+	var kept: Array[String] = []
+	for p in card_paths:
+		if p != path:
+			kept.append(p)
+	card_paths = kept
+
 func size() -> int:
 	return card_paths.size()
 

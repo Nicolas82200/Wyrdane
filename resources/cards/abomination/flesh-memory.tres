@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Ce-Qui-Se-Souvient-Par-le-Corps"
-description = "Arrivée : gagne +3/+3 de façon permanente."
+description = "Arrivée : Gagne +3/+3 de façon permanente."
 flavour_text = "Il n'a pas de mémoire. Il a une chair qui se souvient à sa place."
 texture = ExtResource("2_texture")
 cost = 7
