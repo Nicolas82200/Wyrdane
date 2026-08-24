@@ -484,7 +484,14 @@ func _gui_input(event: InputEvent) -> void:
 		return
 
 	var battle: Node = get_tree().current_scene
-	if battle and "enemy_turn_active" in battle and battle.enemy_turn_active:
+	# Vérifie explicitement game_over/reconnecting ici (comme Battle._on_card_played),
+	# plutôt que de compter uniquement sur un overlay plein écran pour bloquer le
+	# clic : ce dernier n'apparaît qu'~1s après game_over=true (voir _show_game_over),
+	# fenêtre pendant laquelle une carte glissée-déposée était détruite sans effet.
+	if battle and "enemy_turn_active" in battle \
+			and (battle.enemy_turn_active \
+				or ("game_over" in battle and battle.game_over) \
+				or ("reconnecting" in battle and battle.reconnecting)):
 		get_viewport().set_input_as_handled()
 		return
 
