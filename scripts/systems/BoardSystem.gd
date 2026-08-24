@@ -148,7 +148,16 @@ func get_back_minions(is_player: bool) -> Array[Minion]:
 	return get_row_minions(is_player, battle.ROW_BACK)
 
 func can_summon_to_row(is_player: bool, row: String) -> bool:
-	return get_row_minions(is_player, row).size() < battle.MAX_MINIONS_PER_ROW
+	# Ignore les serviteurs déjà morts (0 PV) mais pas encore physiquement
+	# retirés du plateau : DeathSystem.process_deaths() peut être en cours
+	# (ex. appelé depuis un Dernier Souffle qui invoque à son tour un effet de
+	# résurrection) sans avoir encore réellement retiré la cible de
+	# battle.player_minions/enemy_minions — sans ce filtre, sa place occupée
+	# était comptée à tort comme indisponible.
+	var occupied: int = get_row_minions(is_player, row).filter(
+		func(m: Minion): return not m.is_dead()
+	).size()
+	return occupied < battle.MAX_MINIONS_PER_ROW
 
 func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
 	if card_data == null or card_data.card_type != "Minion":
