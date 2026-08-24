@@ -61,6 +61,16 @@ const RARITY_COLORS := {
 	"Legendary": Color("f39c12")
 }
 
+# Accessibilité : symbole distinct par rareté, affiché en plus de la couleur
+# du bandeau (voir _apply_type_style) pour ne pas dépendre uniquement de la
+# couleur (daltonisme).
+const RARITY_SYMBOLS := {
+	"Common":    "●",
+	"Rare":      "◆",
+	"Epic":      "▲",
+	"Legendary": "★"
+}
+
 const RACE_COLORS := {
 	Race.Type.UNDEAD: Color("#0a0806d6"),
 	Race.Type.ABOMINATION: Color("020a00d6"),
@@ -217,6 +227,11 @@ func set_data(new_data: CardData) -> void:
 func set_display_cost(cost_split: Dictionary) -> void:
 	if data == null:
 		return
+	var is_resource := data.card_type == "Resource"
+	cost_label.visible = not is_resource
+	if is_resource:
+		generic_cost_label.visible = false
+		return
 	var race_cost: int = cost_split.get("race", 0)
 	var generic_cost: int = cost_split.get("generic", 0)
 	var reduced: bool = race_cost + generic_cost < data.cost
@@ -231,10 +246,12 @@ func update_display() -> void:
 	if data == null:
 		return
 	name_label.text   = data.display_name()
+	var is_resource := data.card_type == "Resource"
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
+	cost_label.visible = not is_resource
 	cost_label.text = str(base_race_cost)
-	generic_cost_label.visible = data.cost - base_race_cost > 0
+	generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
 	generic_cost_label.text = str(data.cost - base_race_cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
@@ -408,6 +425,11 @@ func _apply_type_style() -> void:
 			label_text += " • %d charge%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
 		elif data.ritual_duration == -1:
 			label_text += " • Permanent"
+	# Symbole de rareté (accessibilité, voir RARITY_SYMBOLS) en plus de la
+	# couleur du bandeau, pour rester lisible sans distinction de couleur.
+	var rarity_symbol: String = RARITY_SYMBOLS.get(data.rarity, "")
+	if rarity_symbol != "":
+		label_text = rarity_symbol + " " + label_text
 	type_label.text = label_text
 	_fit_type_label()
 

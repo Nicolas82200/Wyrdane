@@ -179,6 +179,7 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 	# propres lobbies (cas « même compte », voir _on_lobby_match_list).
 	_steam.setLobbyData(lobby_id, LOBBY_OWNER_KEY, str(_steam.getSteamID()))
 	_steam.setLobbyJoinable(lobby_id, true)
+	session_ready.emit(lobby_id)
 
 # Un membre entre / sort du lobby (hôte : détecte l'arrivée de l'adversaire).
 # Ne fait QUE mémoriser son SteamID — la connexion P2P elle-même est initiée
