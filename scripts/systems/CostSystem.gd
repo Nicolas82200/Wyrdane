@@ -162,3 +162,48 @@ func expire_end_of_player_turn() -> void:
 	_temp_discounts.clear()
 	if battle.hand != null:
 		battle.hand.refresh_costs()
+
+# ─── Pools de mana par race ────────────────────────────────────────────────
+# Un pool par race (voir README « Système de Ressources par Race ») : plus de
+# mana générique unique. `battle.race_mana`/`battle.race_max_mana` appartiennent
+# au joueur ; `opponent.race_mana`/`opponent.race_max_mana` au camp adverse.
+
+func race_mana_pool(is_player: bool) -> Dictionary:
+	return battle.race_mana if is_player else battle.opponent.race_mana
+
+func race_max_mana_pool(is_player: bool) -> Dictionary:
+	return battle.race_max_mana if is_player else battle.opponent.race_max_mana
+
+# Recharge le pool courant de chaque race à son maximum (début de tour) et
+# efface tout mana temporaire hors-race (GainMana) : "le surplus non dépensé
+# est perdu au tour suivant" (Vortex des Âmes).
+func refill_mana_pool(is_player: bool = true) -> void:
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	pool.clear()
+	for r in max_pool:
+		pool[r] = max_pool[r]
+
+# Une carte-ressource jouée est consommée : +1 (actuel et max) au pool de sa
+# race, action à part qui ne consomme pas le droit de jouer une carte normale
+# mais limitée à une par tour et par camp. La carte est ensuite simplement
+# retirée de la partie (déjà sortie de la main par l'appelant) : aucune zone
+# ne la garde, elle n'est donc récupérable par aucun effet. La pose visuelle
+# en zone dédiée (EnchantmentSystem.add_resource) est conservée mais
+# désactivée pour l'instant — voir Battle.RESOURCE_ZONE_ENABLED.
+func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
+	if battle.resource_played_this_turn.get(is_player, false):
+		return
+	battle.resource_played_this_turn[is_player] = true
+	var pool: Dictionary = race_mana_pool(is_player)
+	var max_pool: Dictionary = race_max_mana_pool(is_player)
+	max_pool[card_data.race] = int(max_pool.get(card_data.race, 0)) + 1
+	pool[card_data.race]     = int(pool.get(card_data.race, 0)) + 1
+	if battle.RESOURCE_ZONE_ENABLED:
+		battle.enchantment_system.add_resource(card_data, is_player)
+	battle.combat_log.card_played(card_data, is_player)
+	if is_player:
+		battle.update_mana_ui()
+	else:
+		battle.update_enemy_mana_ui()
+		battle.enemy_mana_display.pulse_max()

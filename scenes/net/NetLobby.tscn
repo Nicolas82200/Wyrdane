@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="4_subtitle"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Navbar.tscn" id="6_navbar"]
+[ext_resource type="Texture2D" uid="uid://mx6ft052vmq6" path="res://assets/icons/gem.png" id="7_spinner"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -42,22 +43,6 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_log"]
-bg_color = Color(0.02, 0.017, 0.012, 0.7)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.35, 0.27, 0.08, 0.6)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-content_margin_left = 12.0
-content_margin_top = 10.0
-content_margin_right = 12.0
-content_margin_bottom = 10.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
 content_margin_left = 14.0
@@ -284,20 +269,35 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_title")
 theme_override_font_sizes/font_size = 24
-text = "Journal de connexion"
+text = "Connexion"
 
-[node name="LogPanel" type="PanelContainer" parent="StatusPanel/StatusMargin/StatusVBox" unique_id=2001000018]
+[node name="LoadingCenter" type="CenterContainer" parent="StatusPanel/StatusMargin/StatusVBox" unique_id=2001000018]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_log")
 
-[node name="Log" type="RichTextLabel" parent="StatusPanel/StatusMargin/StatusVBox/LogPanel" unique_id=2001000019]
+[node name="LoadingVBox" type="VBoxContainer" parent="StatusPanel/StatusMargin/StatusVBox/LoadingCenter"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/default_color = Color(0.91, 0.835, 0.639, 0.9)
-theme_override_font_sizes/normal_font_size = 16
-bbcode_enabled = false
-scroll_following = true
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="SpinnerIcon" type="TextureRect" parent="StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox"]
+visible = false
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+pivot_offset = Vector2(32, 32)
+texture = ExtResource("7_spinner")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PhaseLabel" type="Label" parent="StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox"]
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.9)
+theme_override_font_sizes/font_size = 20
+text = "Choisissez un mode de jeu pour commencer."
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="VersionLabel" type="Label" parent="." unique_id=2001000020]
 layout_mode = 1
