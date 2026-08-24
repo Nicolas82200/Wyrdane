@@ -26,6 +26,7 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
 @onready var card_count_label: Label         = %CardCountLabel
+@onready var warning_label:    Label         = %WarningLabel
 @onready var save_button:      Button        = %SaveButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
@@ -40,6 +41,11 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
+
+# true dès que le deck en cours d'édition a été modifié depuis le dernier
+# chargement/sauvegarde — commande l'activation du bouton Sauvegarder et
+# l'avertissement de sortie sans sauvegarde (voir _mark_dirty/_on_back).
+var _dirty: bool = false
 
 # Tooltip state
 var _keyword_tooltips: Array[Control] = []
@@ -106,10 +112,10 @@ func _retranslate() -> void:
 	deck_name_edit.placeholder_text = SettingsManager.t("deck.name_placeholder")
 	export_button.text = SettingsManager.t("deck.export")
 	import_button.text = SettingsManager.t("deck.import")
-	_build_filter_bar()   # relocalise les libellés de filtres (sélection préservée)
-	_build_sort_bar()
+	DeckFilterBar.build_filter_bar(self)   # relocalise les libellés de filtres (sélection préservée)
+	DeckFilterBar.build_sort_bar(self)
 	_update_count_label()
-	_update_stats_panel()
+	DeckStatsPanel.refresh(self)
 
 # ─── Chargement cartes ────────────────────────────────────────────────────────
 
@@ -370,7 +376,7 @@ func _refresh_deck_list() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 	_update_grid_maxed_states()
-	_update_stats_panel()
+	DeckStatsPanel.refresh(self)
 	if current_deck == null:
 		_update_count_label()
 		return
@@ -413,6 +419,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 0)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 
 	var cost_bg := StyleBoxFlat.new()
@@ -422,6 +429,7 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var cost_panel := PanelContainer.new()
 	cost_panel.add_theme_stylebox_override("panel", cost_bg)
 	cost_panel.custom_minimum_size = Vector2(28, 0)
+	cost_panel.mouse_filter        = Control.MOUSE_FILTER_IGNORE
 	var cost_lbl := Label.new()
 	cost_lbl.text                 = str(card.cost)
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -439,12 +447,13 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_margin.mouse_filter          = Control.MOUSE_FILTER_IGNORE
 	name_margin.add_child(name_lbl)
 	row.add_child(name_margin)
 
 	var qty_lbl := Label.new()
-	qty_lbl.text                 = str(count)
-	qty_lbl.custom_minimum_size  = Vector2(22, 0)
+	qty_lbl.text                 = "x%d" % count
+	qty_lbl.custom_minimum_size  = Vector2(28, 0)
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_size_override("font_size", 13)
@@ -457,11 +466,17 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	del_btn.add_theme_color_override("font_color",       Color(0.6, 0.3, 0.3, 1))
 	del_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.4, 0.4, 1))
 	del_btn.add_theme_font_size_override("font_size", 12)
-	del_btn.pressed.connect(_on_remove_one.bind(path))
+	del_btn.pressed.connect(_on_remove_all.bind(path))
 	row.add_child(del_btn)
 
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
+
+	# Clic sur la ligne (hors croix rouge) : retire une seule copie. La croix
+	# rouge (del_btn, filtre souris par défaut STOP) consomme son propre clic
+	# et ne déclenche donc jamais ce gui_input.
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.gui_input.connect(_on_deck_row_input.bind(path))
 
 	# Preview agrandie au survol d'une carte déjà dans le deck, même mécanisme
 	# que pour la grille de collection (voir _on_card_wrapper_entered/_exited).
@@ -497,145 +512,77 @@ func _update_count_label() -> void:
 	]
 	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
+	_update_warnings()
+	_update_save_button()
 
-# ─── Statistiques du deck (courbe de mana + répartition) ──────────────────────
+# ─── Warnings ressources de race ───────────────────────────────────────────────
 
-const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
-const CURVE_BAR_HEIGHT := 60.0
-const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
-const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
-const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
-
-func _update_stats_panel() -> void:
-	for child in stats_panel.get_children():
-		child.queue_free()
-
+## Deux cas surveillés (voir README « Système de Ressources par Race ») :
+##  - une race a des serviteurs/sorts dans le deck mais pas assez de cartes-
+##    ressource de cette race pour atteindre le coût de race de sa carte la
+##    plus chère (le pool ne pourra jamais monter assez haut) ;
+##  - des cartes-ressource d'une race sont présentes alors qu'aucune carte
+##    jouable de cette race n'en a l'usage (ressources gâchées).
+## Les deux bloquent la sauvegarde (voir _can_save).
+func _race_warnings() -> Array[String]:
 	if current_deck == null:
-		return
-	var cards := current_deck.get_cards()
-	if cards.is_empty():
-		return
+		return []
+	var max_race_cost: Dictionary = {}       # Race.Type -> coût de race max requis
+	var playable_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_counts: Dictionary = {}        # Race.Type -> nb de cartes-ressource
 
-	var curve := []
-	curve.resize(CURVE_BUCKETS)
-	curve.fill(0)
-	var type_counts: Dictionary = {}
-	var race_counts: Dictionary = {}
-	var total_cost := 0
+	for card in current_deck.get_cards():
+		if card.card_type == "Resource":
+			resource_race_present[card.race] = true
+			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
+		elif card.race != Race.Type.NONE:
+			playable_race_present[card.race] = true
+			var race_cost: int = CostSystem.compute_race_cost(
+				card.cost, card.race, card.rarity, card.race_cost_override)
+			max_race_cost[card.race] = max(int(max_race_cost.get(card.race, 0)), race_cost)
 
-	for card in cards:
-		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
-		curve[bucket] += 1
-		total_cost += card.cost
-		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
-		race_counts[card.race] = race_counts.get(card.race, 0) + 1
+	var warnings: Array[String] = []
+	for race in max_race_cost:
+		var needed: int = max_race_cost[race]
+		var have: int = int(resource_counts.get(race, 0))
+		if have < needed:
+			warnings.append(SettingsManager.t("deck.warning_missing_resource") % [needed, _race_label(race)])
+	for race in resource_race_present:
+		if not playable_race_present.has(race):
+			warnings.append(SettingsManager.t("deck.warning_unused_resource") % _race_label(race))
+	return warnings
 
-	var curve_title := Label.new()
-	curve_title.text = SettingsManager.t("deck.stats_curve_title")
-	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	curve_title.add_theme_font_size_override("font_size", 13)
-	stats_panel.add_child(curve_title)
+func _race_label(race: int) -> String:
+	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
 
-	stats_panel.add_child(_make_curve_chart(curve))
+func _update_warnings() -> void:
+	var warnings := _race_warnings()
+	warning_label.visible = not warnings.is_empty()
+	warning_label.text = "\n".join(warnings)
 
-	var avg_label := Label.new()
-	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
-	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	avg_label.add_theme_font_size_override("font_size", 12)
-	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	stats_panel.add_child(avg_label)
+# ─── État du bouton Sauvegarder ────────────────────────────────────────────────
 
-	var breakdown_title := Label.new()
-	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
-	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	breakdown_title.add_theme_font_size_override("font_size", 13)
-	stats_panel.add_child(breakdown_title)
+func _can_save() -> bool:
+	return current_deck != null and _dirty \
+		and _playable_count() >= MIN_CARDS and _resource_count() >= MIN_RESOURCE_CARDS \
+		and _race_warnings().is_empty()
 
-	var type_row := HBoxContainer.new()
-	type_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	type_row.add_theme_constant_override("separation", 10)
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
-		if type_counts.has(type_name):
-			type_row.add_child(_make_chip(
-				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
-	stats_panel.add_child(type_row)
+func _update_save_button() -> void:
+	save_button.disabled = not _can_save()
 
-	var race_row := HBoxContainer.new()
-	race_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	race_row.add_theme_constant_override("separation", 10)
-	for key in Race.Type.keys():
-		var race_value: int = Race.Type[key]
-		if race_counts.has(race_value):
-			race_row.add_child(_make_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
-	stats_panel.add_child(race_row)
-
-func _make_curve_chart(curve: Array) -> Control:
-	var max_count: int = 1
-	for c in curve:
-		max_count = max(max_count, c)
-
-	var chart := HBoxContainer.new()
-	chart.alignment = BoxContainer.ALIGNMENT_CENTER
-	chart.add_theme_constant_override("separation", 4)
-
-	for i in range(CURVE_BUCKETS):
-		var count: int = curve[i]
-		var col := VBoxContainer.new()
-		col.alignment = BoxContainer.ALIGNMENT_END
-		col.custom_minimum_size = Vector2(28, 0)
-		col.add_theme_constant_override("separation", 2)
-
-		var count_lbl := Label.new()
-		count_lbl.text = str(count) if count > 0 else ""
-		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_lbl.add_theme_font_size_override("font_size", 11)
-		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-		col.add_child(count_lbl)
-
-		var bar := ColorRect.new()
-		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
-		bar.custom_minimum_size = Vector2(22, height)
-		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
-		col.add_child(bar)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 11)
-		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-		col.add_child(cost_lbl)
-
-		chart.add_child(col)
-
-	return chart
-
-func _make_chip(label_text: String, count: int) -> Control:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
-	bg.border_color = Color(0.30, 0.24, 0.10, 0.6)
-	bg.set_border_width_all(1)
-	bg.set_corner_radius_all(4)
-	bg.content_margin_left   = 8
-	bg.content_margin_right  = 8
-	bg.content_margin_top    = 2
-	bg.content_margin_bottom = 2
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", bg)
-
-	var lbl := Label.new()
-	lbl.text = "%s: %d" % [label_text, count]
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	panel.add_child(lbl)
-
-	return panel
+## Toute modification du deck en cours (ajout/retrait de carte, renommage,
+## import) passe par ici pour réactiver le bouton Sauvegarder.
+func _mark_dirty() -> void:
+	_dirty = true
+	_update_save_button()
 
 # ─── Actions ──────────────────────────────────────────────────────────────────
 
 func load_deck(deck: DeckData) -> void:
 	current_deck = deck
 	deck_name_edit.text = deck.name
+	_dirty = false
 	_refresh_deck_list()
 
 func _on_add_card(card_data: CardData) -> void:
@@ -644,10 +591,17 @@ func _on_add_card(card_data: CardData) -> void:
 	if not DeckManager.can_add_card(current_deck, card_data):
 		return
 	current_deck.add_card(card_data)
+	_mark_dirty()
 	_refresh_deck_list()
 	# Si on vient d'atteindre le max de copies, feedback immédiat sous le curseur
 	if _is_card_maxed(card_data) and _hovered_wrapper != null and is_instance_valid(_hovered_wrapper):
 		_show_max_copies_tooltip(_hovered_wrapper, card_data)
+
+func _on_deck_row_input(event: InputEvent, path: String) -> void:
+	if event is InputEventMouseButton \
+			and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.pressed:
+		_on_remove_one(path)
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -655,98 +609,69 @@ func _on_remove_one(path: String) -> void:
 	var idx := current_deck.card_paths.rfind(path)
 	if idx >= 0:
 		current_deck.remove_card_at(idx)
+		_mark_dirty()
+	_refresh_deck_list()
+
+func _on_remove_all(path: String) -> void:
+	if current_deck == null:
+		return
+	current_deck.remove_all_copies(path)
+	_mark_dirty()
 	_refresh_deck_list()
 
 func _on_name_changed(new_name: String) -> void:
-	if current_deck:
+	if current_deck and current_deck.name != new_name:
 		current_deck.name = new_name
+		_mark_dirty()
 
 func _on_search_changed(text: String) -> void:
 	_filter_text = text
 	_refresh_card_grid()
 
 func _on_save() -> void:
-	if current_deck == null or _playable_count() < MIN_CARDS or _resource_count() < MIN_RESOURCE_CARDS:
+	if not _can_save():
 		return
+	current_deck.name = DeckManager.make_unique_name(current_deck.name, current_deck)
+	deck_name_edit.text = current_deck.name
 	DeckManager.save_decks()
+	_dirty = false
+	_update_save_button()
 
 func _on_back() -> void:
-	DeckManager.save_decks()
-	queue_free()
+	if _dirty:
+		_show_unsaved_changes_dialog()
+	else:
+		queue_free()
+
+## Popup affichée en quittant le deck builder avec des modifications non
+## sauvegardées (voir _dirty) : proposer de sauvegarder plutôt que de perdre
+## les changements silencieusement (comportement précédent).
+func _show_unsaved_changes_dialog() -> void:
+	var dialog := ConfirmationDialog.new()
+	dialog.dialog_text     = SettingsManager.t("deck.unsaved_changes_text")
+	dialog.ok_button_text  = SettingsManager.t("deck.unsaved_changes_save")
+	dialog.cancel_button_text = SettingsManager.t("deck.unsaved_changes_discard")
+	add_child(dialog)
+	dialog.popup_centered()
+	dialog.confirmed.connect(func():
+		# Deck invalide (min de cartes non atteint, warning de ressource de race...) :
+		# on ne peut pas sauvegarder — on referme juste la popup et on laisse le
+		# joueur corriger le deck plutôt que de fermer le builder sans sauver.
+		if _can_save():
+			_on_save()
+			queue_free()
+	)
+	dialog.canceled.connect(func():
+		queue_free()
+	)
 
 # ─── Import / Export ───────────────────────────────────────────────────────────
 
 func _on_export() -> void:
-	if current_deck == null:
-		return
-	var code := current_deck.to_code()
-	DisplayServer.clipboard_set(code)
-
-	var dialog := AcceptDialog.new()
-	dialog.title = SettingsManager.t("deck.export_title")
-	dialog.min_size = Vector2(480, 220)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-
-	var hint := Label.new()
-	hint.text = SettingsManager.t("deck.export_hint")
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(hint)
-
-	var text_edit := TextEdit.new()
-	text_edit.text = code
-	text_edit.editable = false
-	text_edit.custom_minimum_size = Vector2(0, 110)
-	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	vbox.add_child(text_edit)
-
-	dialog.add_child(vbox)
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(dialog.queue_free)
-	dialog.canceled.connect(dialog.queue_free)
+	DeckImportExport.export(self)
 
 func _on_import() -> void:
-	if current_deck == null:
-		return
-	var dialog := AcceptDialog.new()
-	dialog.title = SettingsManager.t("deck.import_title")
-	dialog.min_size = Vector2(480, 220)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-
-	var hint := Label.new()
-	hint.text = SettingsManager.t("deck.import_hint")
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(hint)
-
-	var text_edit := TextEdit.new()
-	text_edit.custom_minimum_size = Vector2(0, 110)
-	text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-	vbox.add_child(text_edit)
-
-	dialog.add_child(vbox)
-	add_child(dialog)
-	dialog.popup_centered()
-
-	dialog.confirmed.connect(func():
-		var imported := DeckData.from_code(text_edit.text)
-		if imported == null:
-			var err := AcceptDialog.new()
-			err.dialog_text = SettingsManager.t("deck.import_error")
-			add_child(err)
-			err.popup_centered()
-			err.confirmed.connect(err.queue_free)
-		else:
-			current_deck.name = imported.name
-			current_deck.card_paths = imported.card_paths
-			deck_name_edit.text = current_deck.name
-			_refresh_deck_list()
-		dialog.queue_free()
-	)
-	dialog.canceled.connect(dialog.queue_free)
+	DeckImportExport.import(self)
 
 # ─── Limite de copies ─────────────────────────────────────────────────────────
 
@@ -844,6 +769,20 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 	_race_tooltip = race_panel
 	_position_hover_tooltips()
 
+## Trouve le ScrollContainer ancêtre le plus proche du nœud survolé (grille de
+## collection = ScrollCards, liste du deck = ScrollDeck) : sert de référence
+## pour ne jamais faire déborder la preview/les tooltips sur les panneaux
+## voisins (barre de filtres au-dessus, liste du deck à côté). À défaut,
+## replie sur tout l'écran.
+func _hover_panel_bounds(wrapper: Control) -> Rect2:
+	var n: Node = wrapper
+	while n != null and not (n is ScrollContainer):
+		n = n.get_parent()
+	if n == null:
+		return Rect2(Vector2.ZERO, get_viewport_rect().size)
+	var ctrl := n as Control
+	return Rect2(ctrl.global_position, ctrl.size)
+
 ## Repositionne la preview agrandie et les tooltips par rapport à la carte
 ## survolée. Appelé à chaque frame tant que le survol dure, pour que tout
 ## suive le scroll de la grille.
@@ -852,17 +791,23 @@ func _position_hover_tooltips() -> void:
 	if wrapper == null or not is_instance_valid(wrapper):
 		return
 	var vp := get_viewport_rect().size
+	var panel_bounds := _hover_panel_bounds(wrapper)
 	var preview_size := CARD_BASE_SIZE * PREVIEW_SCALE.x
-	var wrapper_center := wrapper.global_position + wrapper.size / 2.0
 
-	# Preview centrée verticalement sur la carte survolée, à gauche si la
-	# place le permet (sinon à droite), pour ne jamais empiéter sur la
-	# section deck à droite de l'écran.
+	# Preview alignée sur le haut de la carte survolée quand la place le
+	# permet (sinon ajustée comme en bas d'écran, pour ne jamais chevaucher
+	# la barre de filtres si la carte est coupée en haut de la grille).
 	var preview_y: float = clampf(
-		wrapper_center.y - preview_size.y / 2.0, 4.0, vp.y - preview_size.y - 4.0)
-	var preview_x: float = wrapper.global_position.x - preview_size.x - 12.0
-	if preview_x < 4.0:
-		preview_x = wrapper.global_position.x + wrapper.size.x + 12.0
+		wrapper.global_position.y, panel_bounds.position.y, vp.y - preview_size.y - 4.0)
+
+	# À droite de la carte par défaut (place généralement disponible dans la
+	# grille), replié à gauche seulement si ça déborderait du panneau courant
+	# (empêche d'empiéter sur la liste du deck voisine).
+	var preview_on_left := false
+	var preview_x: float = wrapper.global_position.x + wrapper.size.x + 12.0
+	if preview_x + preview_size.x > panel_bounds.position.x + panel_bounds.size.x - 4.0:
+		preview_x = wrapper.global_position.x - preview_size.x - 12.0
+		preview_on_left = true
 	preview_x = clampf(preview_x, 4.0, vp.x - preview_size.x - 4.0)
 
 	card_preview.global_position = Vector2(preview_x, preview_y)
@@ -880,12 +825,17 @@ func _position_hover_tooltips() -> void:
 		stack_height -= 6.0
 		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
+	# Toujours du même côté que la preview, en s'en éloignant davantage —
+	# jamais entre la preview et la carte survolée (sinon ils la recouvrent).
 	for panel in _keyword_tooltips:
 		if not is_instance_valid(panel):
 			continue
-		var px := card_preview.global_position.x - panel.size.x - 12.0
-		if px < 4.0:
+		var px: float
+		if preview_on_left:
+			px = card_preview.global_position.x - panel.size.x - 12.0
+		else:
 			px = card_preview.global_position.x + preview_size.x + 12.0
+		px = clampf(px, 4.0, vp.x - panel.size.x - 4.0)
 		panel.global_position = Vector2(px, base_y)
 		base_y += panel.size.y + 6
 	if _race_tooltip != null and is_instance_valid(_race_tooltip):
@@ -916,195 +866,3 @@ func _hide_keyword_tooltips() -> void:
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
 		
-# ─── Filtres ──────────────────────────────────────────────────────────────────
-
-## Crée la barre de filtres directement en code sous la SearchEdit.
-## Appelle cette fonction dans _ready(), après _load_all_cards().
-func _build_filter_bar() -> void:
-	# Reconstruit à chaque appel (notamment au changement de langue) : on vide
-	# d'abord les libellés/groupes existants. La sélection active est préservée
-	# car chaque groupe s'initialise depuis les variables _filter_*.
-	for child in filter_bar.get_children():
-		child.queue_free()
-
-	var all_label := SettingsManager.t("deck.filter_all")
-
-	# Race (seules les races dotées de cartes sont proposées comme filtre)
-	var race_values: Array = [-1]
-	var race_labels: Array[String] = [all_label]
-	var race_keys := Race.Type.keys()
-	for race_value in Race.get_implemented_races():
-		race_values.append(race_value)
-		race_labels.append(SettingsManager.t("RACE_" + race_keys[race_value]))
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_race")))
-	_add_filter_group(filter_bar, race_values,
-		func(v: int) -> void: _filter_race = v; _refresh_card_grid(),
-		func() -> int: return _filter_race,
-		race_labels)
-
-	# Type de carte
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_type")))
-	_add_filter_group(filter_bar, ["", "Minion", "Instant", "Ritual", "Enchantment", "Resource"],
-		func(v: String) -> void: _filter_type = v; _refresh_card_grid(),
-		func() -> String: return _filter_type,
-		[all_label, SettingsManager.t("cardtype.minion"), SettingsManager.t("cardtype.instant"),
-			SettingsManager.t("cardtype.ritual"), SettingsManager.t("cardtype.enchantment"),
-			SettingsManager.t("cardtype.resource")])
-
-	# Rareté
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_rarity")))
-	_add_filter_group(filter_bar, ["", "Common", "Rare", "Epic", "Legendary"],
-		func(v: String) -> void: _filter_rarity = v; _refresh_card_grid(),
-		func() -> String: return _filter_rarity,
-		[all_label, "Common", "Rare", "Epic", "Legendary"])
-
-	# Coût
-	filter_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_cost")))
-	_add_filter_group(filter_bar, [-1, 0, 1, 2, 3, 4, 5, 6, 7],
-		func(v: int) -> void: _filter_cost = v; _refresh_card_grid(),
-		func() -> int: return _filter_cost,
-		[all_label, "0", "1", "2", "3", "4", "5", "6", "7+"])
-
-	# Cacher/montrer les cartes non débloquées (bouton à bascule seul, pas un groupe radio)
-	var lock_btn := Button.new()
-	lock_btn.text            = SettingsManager.t("deck.filter_hide_locked")
-	lock_btn.toggle_mode     = true
-	lock_btn.button_pressed  = _filter_hide_locked
-	lock_btn.custom_minimum_size = Vector2(0, 26)
-	lock_btn.add_theme_font_size_override("font_size", 12)
-	_style_filter_button(lock_btn, _filter_hide_locked)
-	lock_btn.toggled.connect(func(pressed: bool) -> void:
-		_filter_hide_locked = pressed
-		_style_filter_button(lock_btn, pressed)
-		_refresh_card_grid())
-	filter_bar.add_child(lock_btn)
-
-
-## Barre secondaire : filtre par mot-clé (dropdown, trop de valeurs pour des
-## boutons radio) et tri de la grille de cartes.
-func _build_sort_bar() -> void:
-	for child in sort_bar.get_children():
-		child.queue_free()
-
-	var all_label := SettingsManager.t("deck.filter_all")
-
-	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.filter_keyword")))
-	var kw_values: Array[String] = [""]
-	var kw_labels: Array[String] = [all_label]
-	for entry in _all_keyword_entries():
-		kw_values.append(entry["id"])
-		kw_labels.append(entry["label"])
-	sort_bar.add_child(_make_keyword_dropdown(kw_values, kw_labels))
-
-	var sort_spacer := Control.new()
-	sort_spacer.custom_minimum_size = Vector2(20, 0)
-	sort_bar.add_child(sort_spacer)
-
-	sort_bar.add_child(_make_filter_label(SettingsManager.t("deck.sort_label")))
-	_add_filter_group(sort_bar, ["", "cost", "name", "rarity"],
-		func(v: String) -> void: _sort_mode = v; _refresh_card_grid(),
-		func() -> String: return _sort_mode,
-		[SettingsManager.t("deck.sort_default"), SettingsManager.t("deck.sort_cost"),
-			SettingsManager.t("deck.sort_name"), SettingsManager.t("deck.sort_rarity")])
-
-## Rassemble tous les mots-clés (générique + 3 races) sous forme d'ids "pool:value".
-func _all_keyword_entries() -> Array[Dictionary]:
-	var entries: Array[Dictionary] = []
-	for key in Keyword.Type.keys():
-		var v: int = Keyword.Type[key]
-		entries.append({"id": "K:%d" % v, "label": Keyword.get_keyword_name(v)})
-	for key in KeywordHuman.Type.keys():
-		var v: int = KeywordHuman.Type[key]
-		entries.append({"id": "H:%d" % v, "label": KeywordHuman.get_keyword_name(v)})
-	for key in KeywordUndead.Type.keys():
-		var v: int = KeywordUndead.Type[key]
-		entries.append({"id": "U:%d" % v, "label": KeywordUndead.get_keyword_name(v)})
-	for key in KeywordDemon.Type.keys():
-		var v: int = KeywordDemon.Type[key]
-		entries.append({"id": "D:%d" % v, "label": KeywordDemon.get_keyword_name(v)})
-	for key in KeywordAbomination.Type.keys():
-		var v: int = KeywordAbomination.Type[key]
-		entries.append({"id": "A:%d" % v, "label": KeywordAbomination.get_keyword_name(v)})
-	return entries
-
-func _make_keyword_dropdown(values: Array[String], labels: Array[String]) -> OptionButton:
-	var opt := OptionButton.new()
-	opt.custom_minimum_size = Vector2(170, 26)
-	opt.add_theme_font_size_override("font_size", 12)
-	for i in range(labels.size()):
-		opt.add_item(labels[i])
-	var current_idx := values.find(_filter_keyword)
-	opt.selected = max(current_idx, 0)
-	opt.item_selected.connect(func(idx: int) -> void:
-		_filter_keyword = values[idx]
-		_refresh_card_grid())
-	return opt
-
-func _make_filter_label(text: String) -> Label:
-	var lbl := Label.new()
-	lbl.text = text
-	lbl.add_theme_color_override("font_color", Color(0.7, 0.6, 0.4, 1))
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	return lbl
-
-
-## Crée un groupe de boutons radio pour un filtre donné.
-## values      : tableau de valeurs (String ou int)
-## on_select   : callable(value) appelé au clic
-## get_current : callable() → valeur active
-## labels      : libellés affichés (même taille que values)
-func _add_filter_group(parent: Control, values: Array, on_select: Callable,
-		get_current: Callable, labels: Array) -> void:
-	var group_box := HBoxContainer.new()
-	group_box.add_theme_constant_override("separation", 2)
-	parent.add_child(group_box)
-
-	var buttons: Array[Button] = []
-	for i in range(values.size()):
-		var val   = values[i]
-		var label = labels[i] if i < labels.size() else str(val)
-		var btn   := Button.new()
-		btn.text               = label
-		btn.toggle_mode        = true
-		btn.button_pressed     = (val == get_current.call())
-		btn.custom_minimum_size = Vector2(0, 26)
-		btn.add_theme_font_size_override("font_size", 12)
-		_style_filter_button(btn, btn.button_pressed)
-		buttons.append(btn)
-		group_box.add_child(btn)
-
-		btn.pressed.connect(func() -> void:
-			# Déselectionne les autres du groupe
-			for b in buttons:
-				b.button_pressed = false
-				_style_filter_button(b, false)
-			btn.button_pressed = true
-			_style_filter_button(btn, true)
-			on_select.call(val)
-		)
-
-
-func _style_filter_button(btn: Button, active: bool) -> void:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color                   = Color(0.35, 0.26, 0.06, 0.9) if active else Color(0.12, 0.10, 0.08, 0.85)
-	sb.border_color               = Color(0.78, 0.58, 0.10, 1) if active else Color(0.30, 0.24, 0.10, 0.6)
-	sb.border_width_left          = 1
-	sb.border_width_right         = 1
-	sb.border_width_top           = 1
-	sb.border_width_bottom        = 1
-	sb.corner_radius_top_left     = 4
-	sb.corner_radius_top_right    = 4
-	sb.corner_radius_bottom_left  = 4
-	sb.corner_radius_bottom_right = 4
-	sb.content_margin_left        = 7
-	sb.content_margin_right       = 7
-	sb.content_margin_top         = 3
-	sb.content_margin_bottom      = 3
-	btn.add_theme_stylebox_override("normal",   sb)
-	btn.add_theme_stylebox_override("pressed",  sb)
-	btn.add_theme_stylebox_override("hover",    sb)
-	var font_color := Color(0.98, 0.85, 0.40, 1) if active else Color(0.72, 0.64, 0.48, 1)
-	btn.add_theme_color_override("font_color",         font_color)
-	btn.add_theme_color_override("font_pressed_color", font_color)
-	btn.add_theme_color_override("font_hover_color",   Color(1, 0.92, 0.60, 1))

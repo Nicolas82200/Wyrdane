@@ -220,11 +220,6 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Jouer"
 
-[node name="CampaignButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Campagne"
-
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
 
@@ -423,6 +418,13 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_font_sizes/font_size = 18
 text = "0"
+
+[node name="RankBadgeLabel" type="Label" parent="PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000034]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 16
+text = "—"
 
 [node name="ProfileButton" type="Button" parent="PlayerStatusPanel" unique_id=1214852387]
 layout_mode = 2
@@ -703,6 +705,12 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 16
 text = "—"
 
+[node name="ProfileRankBadgeLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1136697272]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "—"
+
 [node name="CreditsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1875120101]
 visible = false
 layout_mode = 1
@@ -901,6 +909,45 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Ouvrir la boutique de packs"
 
+[node name="QuestsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=400000002]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="QuestsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000003]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Quêtes quotidiennes"
+
+[node name="QuestsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000004]
+layout_mode = 2
+
+[node name="QuestsStatusLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000005]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Chargement..."
+autowrap_mode = 3
+
+[node name="QuestsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000006]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="QuestsListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll" unique_id=400000007]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
 [node name="OfflineBanner" type="PanelContainer" parent="." unique_id=300000070]
 visible = false
 layout_mode = 1
@@ -979,5 +1026,93 @@ custom_minimum_size = Vector2(190, 40)
 layout_mode = 2
 text = "Packs"
 
+[node name="QuestsButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow" unique_id=400000001]
+custom_minimum_size = Vector2(190, 40)
+layout_mode = 2
+text = "Quêtes"
+
 [node name="PackShop" parent="." unique_id=300000033 instance=ExtResource("7_packshop")]
 layout_mode = 1
+
+[node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="LoginRewardBackdrop" type="ColorRect" parent="LoginRewardPopup" unique_id=400000011]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="LoginRewardPanel" type="PanelContainer" parent="LoginRewardPopup" unique_id=400000012]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -140.0
+offset_right = 200.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="LoginRewardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel" unique_id=400000013]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="LoginRewardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin" unique_id=400000014]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="LoginRewardTitleLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000015]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 24
+text = "Récompense de connexion"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LoginRewardStreakLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000016]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 18
+text = "Jour 1"
+horizontal_alignment = 1
+
+[node name="LoginRewardAmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000017]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.68, 0.30, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 22
+text = "+10 or"
+horizontal_alignment = 1
+
+[node name="LoginRewardClaimButton" type="Button" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000018]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Réclamer"

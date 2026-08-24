@@ -34,6 +34,17 @@ func test_remove_card_at_removes_by_index() -> void:
 	deck.remove_card_at(0)
 	assert_eq(deck.card_paths, ["res://__test_fake__/b.tres"])
 
+func test_remove_all_copies_removes_every_matching_path_only() -> void:
+	var a := CardData.new()
+	a.resource_path = "res://__test_fake__/a.tres"
+	var b := CardData.new()
+	b.resource_path = "res://__test_fake__/b.tres"
+	deck.add_card(a)
+	deck.add_card(b)
+	deck.add_card(a)
+	deck.remove_all_copies("res://__test_fake__/a.tres")
+	assert_eq(deck.card_paths, ["res://__test_fake__/b.tres"])
+
 func test_get_cards_loads_real_resources_and_skips_invalid_paths() -> void:
 	deck.card_paths = [REAL_CARD_PATH, "res://__test_fake__/does_not_exist.tres"]
 	var cards: Array[CardData] = deck.get_cards()

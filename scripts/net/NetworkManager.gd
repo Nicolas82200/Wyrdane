@@ -19,6 +19,10 @@ signal status(message: String)
 signal connection_lost(reason: String)
 # La reconnexion a réussi dans le délai de grâce : le match peut reprendre.
 signal connection_restored()
+# Relais de NetTransport.session_ready — voir ce signal pour le contexte
+# (matchmaking classé : l'hôte doit connaître son propre lobby_id pour le
+# transmettre au backend, avant même qu'un pair ne rejoigne).
+signal session_ready(session_id: int)
 
 var transport: NetTransport = null
 var is_host: bool = false
@@ -86,6 +90,7 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 	transport.disconnected.connect(_on_transport_disconnected)
 	transport.packet_received.connect(_on_packet_received)
 	transport.status.connect(func(message: String) -> void: status.emit(message))
+	transport.session_ready.connect(func(session_id: int) -> void: session_ready.emit(session_id))
 
 func _on_transport_disconnected(reason: String) -> void:
 	if _reconnecting:

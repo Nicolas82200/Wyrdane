@@ -93,6 +93,53 @@ func _on_self_damage_dealt(is_player: bool) -> void:
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 
+# Accessibilité : au-dessous de ce ratio de HP max, un symbole "⚠" est ajouté
+# devant le nombre de HP du héros — ne pas dépendre uniquement d'une couleur
+# pour signaler un danger (voir _hp_label_text).
+const LOW_HP_RATIO := 0.3
+
 func update_ui() -> void:
-	battle.get_node("PlayerHeroPanel/HealthLabel").text = str(maxi(battle.player_hero.health, 0))
-	battle.get_node("EnemyHeroPanel/HealthLabel").text  = str(maxi(battle.enemy_hero.health, 0))
+	battle.get_node("PlayerHeroPanel/HealthLabel").text = _hp_label_text(battle.player_hero)
+	battle.get_node("EnemyHeroPanel/HealthLabel").text  = _hp_label_text(battle.enemy_hero)
+
+func _hp_label_text(hero: Hero) -> String:
+	var hp: int = maxi(hero.health, 0)
+	if hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0:
+		return "⚠ " + str(hp)
+	return str(hp)
+
+# ─── Halo de tour ───────────────────────────────────────────────────────────
+# Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros
+# (voir StyleBoxFlat_vbfmk / StyleBoxFlat_nyp61 dans Battle.tscn).
+const _HERO_BORDER_COLOR := Color(0.72, 0.55, 0.26, 1.0)
+const _HERO_BORDER_WIDTH := 3
+const _HERO_SHADOW_COLOR := Color(0.72, 0.55, 0.26, 0.2)
+const _HERO_SHADOW_SIZE := 8
+# Halo jaune signalant le joueur (humain ou IA) dont c'est le tour.
+const _HERO_TURN_BORDER_COLOR := Color(1.0, 0.85, 0.15, 1.0)
+const _HERO_TURN_BORDER_WIDTH := 5
+const _HERO_TURN_SHADOW_COLOR := Color(1.0, 0.85, 0.15, 0.85)
+const _HERO_TURN_SHADOW_SIZE := 20
+
+# Met à jour le halo doré des panneaux héros pour refléter qui est en train
+# de jouer : le camp actif reçoit une bordure/lueur jaune, l'autre repasse
+# au style doré discret par défaut.
+func update_turn_halo() -> void:
+	_apply_turn_style(battle.get_node("PlayerHeroPanel"), not battle.enemy_turn_active)
+	_apply_turn_style(battle.get_node("EnemyHeroPanel"), battle.enemy_turn_active)
+
+func _apply_turn_style(panel: Panel, active: bool) -> void:
+	var style: StyleBoxFlat = panel.get_theme_stylebox("panel")
+	if style == null:
+		return
+	var border_color := _HERO_TURN_BORDER_COLOR if active else _HERO_BORDER_COLOR
+	var border_width := _HERO_TURN_BORDER_WIDTH if active else _HERO_BORDER_WIDTH
+	var shadow_color := _HERO_TURN_SHADOW_COLOR if active else _HERO_SHADOW_COLOR
+	var shadow_size := _HERO_TURN_SHADOW_SIZE if active else _HERO_SHADOW_SIZE
+	style.border_color = border_color
+	style.border_width_left = border_width
+	style.border_width_top = border_width
+	style.border_width_right = border_width
+	style.border_width_bottom = border_width
+	style.shadow_color = shadow_color
+	style.shadow_size = shadow_size
