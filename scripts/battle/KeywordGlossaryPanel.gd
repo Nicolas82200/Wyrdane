@@ -38,16 +38,15 @@ func _ready() -> void:
 	add_child(dim)
 
 	_wrapper = PanelContainer.new()
-	# Ancres posées explicitement (plutôt que set_anchors_preset, qui
-	# recalcule les offsets à partir de la taille actuelle du contrôle — encore
-	# 0x0 ici puisqu'il n'est pas encore dans l'arbre — et finit décentré,
-	# la fenêtre n'affichant alors que son coin haut-gauche à l'écran).
-	# Les offsets (taille réelle) sont posés dans _update_layout, appelée à
-	# chaque redimensionnement de la fenêtre pour ne jamais dépasser l'écran.
-	_wrapper.anchor_left = 0.5
-	_wrapper.anchor_top = 0.5
-	_wrapper.anchor_right = 0.5
-	_wrapper.anchor_bottom = 0.5
+	# Position en pixels absolus via get_viewport_rect() (voir _update_layout),
+	# pas via ancres fractionnaires : celles-ci se résolvent contre la taille de
+	# `self` (ce Control), qui hérite du PRESET_FULL_RECT posé juste au-dessus —
+	# pas garanti résolu dès ce frame puisque `self` vient d'entrer dans l'arbre.
+	# Un ancrage à 0.5 contre une taille encore à 0x0 centre le panneau sur (0,0)
+	# plutôt que sur l'écran : seul son coin bas-droit (le quart qui déborde vers
+	# les coordonnées positives) reste visible. Même piège et même parade que
+	# ReconnectOverlay._center_panel (position absolue recalculée à chaque frame
+	# nécessaire, jamais figée dans des ancres).
 	var style := StyleBoxFlat.new()
 	style.bg_color              = Color("1a0e0ef2")
 	style.border_width_top      = 2
@@ -103,12 +102,10 @@ func _update_layout() -> void:
 		min(PANEL_SIZE.x, viewport_size.x - SCREEN_MARGIN),
 		min(PANEL_SIZE.y, viewport_size.y - SCREEN_MARGIN)
 	)
-	_wrapper.offset_left = -panel_size.x / 2.0
-	_wrapper.offset_top = -panel_size.y / 2.0
-	_wrapper.offset_right = panel_size.x / 2.0
-	_wrapper.offset_bottom = panel_size.y / 2.0
 	_wrapper.custom_minimum_size = panel_size
 	_scroll.custom_minimum_size = Vector2(panel_size.x - 32, panel_size.y - 90)
+	_wrapper.reset_size()
+	_wrapper.position = (viewport_size - _wrapper.size) / 2.0
 
 func open() -> void:
 	_update_layout()
