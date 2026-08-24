@@ -2,9 +2,9 @@ extends Control
 
 @export var next_scene: String = "res://scenes/mainMenu/MainMenu.tscn"
 
-# Délai max accordé à la phase backend (Render en cold start peut être lent) :
-# au-delà, on ouvre le menu quand même et la sync continue en arrière-plan
-# (MainMenu._start_backend_sync sert de filet de rattrapage).
+# Délai max accordé à la phase backend : au-delà, on ouvre le menu quand même
+# et la sync continue en arrière-plan (MainMenu._start_backend_sync sert de
+# filet de rattrapage).
 const BACKEND_TIMEOUT_SEC := 20.0
 
 @onready var progress_bar: ProgressBar = %ProgressBar

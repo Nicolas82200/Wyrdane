@@ -144,7 +144,11 @@ func _apply(cmd: Dictionary) -> void:
 			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
 			if attacker != null and defender != null \
 					and not attacker.owner_is_player and defender.owner_is_player:
+				# ids imposés : voir CombatSystem.resolve_combat (capture des
+				# serviteurs invoqués par un Dernier Souffle déclenché en combat).
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.resolve_combat(attacker, defender)
+				battle.net_registry.set_imposed_ids([])
 			else:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
@@ -154,7 +158,9 @@ func _apply(cmd: Dictionary) -> void:
 			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
 			# perform_hero_attack lui-même n'effectue aucune validation.
 			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.perform_hero_attack(attacker)
+				battle.net_registry.set_imposed_ids([])
 			elif attacker != null:
 				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
 		NetCommand.ACTIVATE_RITUAL:
@@ -258,7 +264,9 @@ func _apply_activate_fusion(cmd: Dictionary) -> void:
 		return
 	var pool: String = cmd.get("pool", "")
 	var keyword: int = FusionSystem.keyword_from_name(pool, cmd.get("keyword", "")) if pool != "" else -1
+	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+	battle.net_registry.set_imposed_ids([])
 
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles

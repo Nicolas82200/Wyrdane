@@ -7,6 +7,19 @@ var processing_deaths := false
 func init(_battle) -> void:
 	battle = _battle
 
+# Appel imbriqué (ex. un effet exécuté DEPUIS un Dernier Souffle tue à son
+# tour un autre serviteur) : no-op — l'appel englobant retraite lui-même toute
+# nouvelle mort via son propre appel récursif final (voir plus bas) une fois
+# ses propres étapes terminées. Ne PAS attendre ici que l'englobant se
+# termine : l'appel imbriqué fait partie de sa propre chaîne d'exécution
+# synchrone (ex. un Dernier Souffle qui invoque process_deaths pendant que
+# l'englobant est encore suspendu dans _trigger_deathrattle) — attendre
+# créerait un blocage mutuel, l'englobant ne pouvant jamais atteindre sa
+# propre fin tant que cet appel imbriqué n'a pas rendu la main. Le serviteur
+# fraîchement mort reste donc dans battle.player_minions/enemy_minions le
+# temps que l'englobant le retraite ; voir BoardSystem.can_summon_to_row pour
+# le correctif côté appelant (_destroy_and_resurrect) qui suppose sinon la
+# cible déjà retirée pour un calcul de place disponible.
 func process_deaths(silent: Array = []) -> void:
 	if processing_deaths:
 		return

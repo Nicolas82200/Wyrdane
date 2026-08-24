@@ -23,10 +23,12 @@ func test_play_card_defaults_to_no_ids_and_no_target() -> void:
 	assert_eq(cmd["target"], NetCommand.TARGET_NONE)
 
 func test_attack_builds_expected_dictionary() -> void:
-	assert_eq(NetCommand.attack(7, 9), {"type": NetCommand.ATTACK, "attacker": 7, "defender": 9})
+	assert_eq(NetCommand.attack(7, 9), {"type": NetCommand.ATTACK, "attacker": 7, "defender": 9, "ids": []})
+	assert_eq(NetCommand.attack(7, 9, [4]), {"type": NetCommand.ATTACK, "attacker": 7, "defender": 9, "ids": [4]})
 
 func test_attack_hero_builds_expected_dictionary() -> void:
-	assert_eq(NetCommand.attack_hero(7), {"type": NetCommand.ATTACK_HERO, "attacker": 7})
+	assert_eq(NetCommand.attack_hero(7), {"type": NetCommand.ATTACK_HERO, "attacker": 7, "ids": []})
+	assert_eq(NetCommand.attack_hero(7, [4]), {"type": NetCommand.ATTACK_HERO, "attacker": 7, "ids": [4]})
 
 func test_end_turn_builds_expected_dictionary_with_ids() -> void:
 	assert_eq(NetCommand.end_turn([1, 2]), {"type": NetCommand.END_TURN, "ids": [1, 2]})
@@ -54,7 +56,10 @@ func test_activate_fusion_builds_expected_dictionary() -> void:
 		"victim": 2,
 		"pool": "undead_keywords",
 		"keyword": "REVENANT",
+		"ids": [],
 	})
+	var cmd_with_ids := NetCommand.activate_fusion(1, 2, "undead_keywords", "REVENANT", [9])
+	assert_eq(cmd_with_ids["ids"], [9])
 
 func test_hello_builds_expected_dictionary() -> void:
 	var cmd := NetCommand.hello(["res://a.tres"], 2, 2, 12345, 99)

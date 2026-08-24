@@ -61,3 +61,13 @@ func _try_finish() -> void:
 		set_process(false)
 		_net.command_received.disconnect(_on_command_received)
 		completed.emit()
+
+# Annule une synchronisation abandonnée — voir NetHandshake.cancel(), même
+# raison d'être (queue_free() seul ne se désabonne qu'en fin de frame).
+func cancel() -> void:
+	if _finished:
+		return
+	_finished = true
+	set_process(false)
+	if _net.command_received.is_connected(_on_command_received):
+		_net.command_received.disconnect(_on_command_received)

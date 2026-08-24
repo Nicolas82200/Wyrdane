@@ -451,6 +451,13 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_generic_debuff(visual, effect.value, effect.value_2)
+		# Une perte de PV réelle doit passer par le même point d'entrée qu'un
+		# dégât de combat (Mort-rage sous 50%, Mutation Abomination via
+		# notify_damaged) — sans ça un "-X/-X" faisait passer un serviteur sous
+		# la moitié de ses PV max sans jamais déclencher ces réactions.
+		var dealt: int = old_health - target.health
+		if dealt > 0 and not target.is_dead():
+			await notify_damaged(battle, target)
 
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "RandomAlly", "AllAllies", "AllAlliesFront", "AllAlliesBack"]

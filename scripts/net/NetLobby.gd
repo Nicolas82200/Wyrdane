@@ -275,10 +275,27 @@ func _on_ranked_lobby_ready(session_id: int) -> void:
 
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
+# Annule et libère tout handshake/synchronisation de bataille d'une tentative
+# de connexion précédente et abandonnée (pair déconnecté avant la fin, ou
+# retour au lobby) — sans ça, l'ancienne instance reste enfant de NetLobby,
+# toujours abonnée à _net.command_received, et peut réagir à un paquet reçu
+# lors d'une tentative suivante (double changement de scène, ou setup — seed
+# RNG, parité d'ids — périmé écrasant le bon).
+func _cleanup_connection_flow() -> void:
+	if _handshake != null and is_instance_valid(_handshake):
+		_handshake.cancel()
+		_handshake.queue_free()
+	_handshake = null
+	if _battle_sync != null and is_instance_valid(_battle_sync):
+		_battle_sync.cancel()
+		_battle_sync.queue_free()
+	_battle_sync = null
+
 func _on_peer_connected() -> void:
 	_quick_matching = false
 	cancel_ranked_button.visible = false
 	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
+	_cleanup_connection_flow()
 	_set_loading(true)
 	_set_status("NET_LOADING_PREPARING")
 	_set_actions_enabled(false)
@@ -298,6 +315,10 @@ func _set_actions_enabled(enabled: bool) -> void:
 	invite_button.disabled = not enabled
 
 func _on_peer_disconnected(reason: String) -> void:
+	# Coupure pendant un handshake/synchronisation en cours : évite de laisser
+	# une instance abandonnée abonnée à _net.command_received (voir
+	# _cleanup_connection_flow) avant une éventuelle tentative suivante.
+	_cleanup_connection_flow()
 	match reason:
 		"steam_same_account":
 			_quick_matching = false
