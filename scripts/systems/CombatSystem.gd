@@ -26,8 +26,14 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	attacker.is_attacking = true
 	# Émission réseau : uniquement les attaques initiées par le joueur LOCAL.
 	# Les attaques rejouées du pair (serviteur ennemi) ne réémettent pas.
-	if battle.net_emitter != null and attacker.owner_is_player:
-		battle.net_emitter.attack(attacker, defender)
+	# begin_capture/end_capture (comme CardSystem.resolve_with_target) : un
+	# Dernier Souffle déclenché par cette attaque (ex. le défenseur meurt et
+	# invoque un jeton) doit imposer le MÊME net_id côté pair — sans capture,
+	# chaque client attribuerait son propre id local au jeton et divergerait
+	# durablement sur toute référence future à ce serviteur.
+	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	if is_local_attack:
+		battle.net_registry.begin_capture()
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	if attacker_visual and defender_visual:
@@ -42,6 +48,9 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	battle.combat_log.attack(attacker, defender, dealt_to_defender, attacker.is_dead(), defender.is_dead())
 	battle.hero_system.update_ui()
 	battle.check_game_end()
+	if is_local_attack:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.attack(attacker, defender, ids)
 	attacker.is_attacking = false
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
@@ -132,12 +141,14 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	return dealt_to_defender
 
 func perform_hero_attack(attacker: Minion) -> void:
-	# Voir resolve_combat : même verrou de ré-entrance.
+	# Voir resolve_combat : même verrou de ré-entrance, même capture d'ids
+	# réseau (le trigger OnAttack ci-dessous peut invoquer un serviteur).
 	if attacker.is_attacking:
 		return
 	attacker.is_attacking = true
-	if battle.net_emitter != null and attacker.owner_is_player:
-		battle.net_emitter.attack_hero(attacker)
+	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	if is_local_attack:
+		battle.net_registry.begin_capture()
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	if visual:
@@ -152,5 +163,8 @@ func perform_hero_attack(attacker: Minion) -> void:
 		if visual:
 			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)
+	if is_local_attack:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.attack_hero(attacker, ids)
 	attacker.consume_attack()
 	attacker.is_attacking = false
