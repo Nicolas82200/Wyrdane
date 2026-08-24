@@ -30,6 +30,7 @@ SettingsManager="*res://scripts/settings/SettingsManager.gd"
 CollectionManager="*res://scripts/collection/CollectionManager.gd"
 CurrencyManager="*res://scripts/collection/CurrencyManager.gd"
 BackendClient="*res://scripts/net/BackendClient.gd"
+SceneTransition="*res://scripts/systems/SceneTransition.gd"
 
 [display]
 

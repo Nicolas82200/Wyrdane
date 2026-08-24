@@ -76,6 +76,7 @@ Autoloads globaux (voir `project.godot`) :
 - `CollectionManager` — `scripts/collection/CollectionManager.gd` (collection de cartes possédées, autoritaire côté backend)
 - `CurrencyManager` — `scripts/collection/CurrencyManager.gd` (solde de monnaie molle, autoritaire côté backend)
 - `BackendClient` — `scripts/net/BackendClient.gd` (client HTTP vers `wyrdane-backend`, auth Steam)
+- `SceneTransition` — `scripts/systems/SceneTransition.gd` (fondu au noir générique entre deux `change_scene_to_file` — à utiliser systématiquement à la place d'un appel brut pour tout changement de scène plein écran)
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
@@ -258,7 +259,7 @@ Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, co
 
 Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé. Le dossier `devlogs/` est local uniquement (`.gitignore`) — notes de session brutes, il n'apparaît pas sur GitHub :
 
-- Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi** à venir (créer le fichier s'il n'existe pas — voir `devlogs/README.md` pour le format).
+- Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi strictement après aujourd'hui**. Si on est déjà lundi (dès 00h01), la cible est le lundi *suivant* (+7 jours), jamais la date du jour — le lundi en cours est celui dont le vrai devlog est sur le point d'être écrit avec l'utilisateur, pas une cible d'écriture. Créer le fichier s'il n'existe pas (voir `devlogs/README.md` pour le format).
 - Ajouter une entrée en fin de fichier, sous la date du jour (`## YYYY-MM-DD`), avec une liste à puces brute des changements faits pendant la session — pas de mise en forme, pas de ton marketing, juste les faits (ce qui a été ajouté/corrigé/changé et pourquoi si pertinent).
 - Ne pas réécrire ou reformuler les entrées des sessions précédentes dans ce fichier : c'est un journal brut destiné à être relu et transformé en vrai devlog le lundi, avec l'utilisateur.
 - Ne rien ajouter pour des tâches sans impact utilisateur/projet perceptible (ex. simple refactor interne sans changement de comportement) — même logique que pour les autres docs ci-dessus.

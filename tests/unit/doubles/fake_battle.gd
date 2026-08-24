@@ -299,7 +299,7 @@ class FakeAnimationSystem:
 		pass
 	func play_death(_visual) -> Tween:
 		return null
-	func play_attack_lunge(_attacker_visual, _target) -> void:
+	func play_attack_lunge(_attacker_visual, _target, _speed_scale: float = 1.0) -> void:
 		pass
 	func play_resource_absorb(_card, _target: Vector2, _color: Color) -> void:
 		pass

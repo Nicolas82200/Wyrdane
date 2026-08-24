@@ -2,9 +2,9 @@ extends Control
 
 @export var next_scene: String = "res://scenes/mainMenu/MainMenu.tscn"
 
-# Délai max accordé à la phase backend (Render en cold start peut être lent) :
-# au-delà, on ouvre le menu quand même et la sync continue en arrière-plan
-# (MainMenu._start_backend_sync sert de filet de rattrapage).
+# Délai max accordé à la phase backend : au-delà, on ouvre le menu quand même
+# et la sync continue en arrière-plan (MainMenu._start_backend_sync sert de
+# filet de rattrapage).
 const BACKEND_TIMEOUT_SEC := 20.0
 
 @onready var progress_bar: ProgressBar = %ProgressBar
@@ -87,6 +87,14 @@ func _sync_backend() -> void:
 		func(code: int, _parsed): claim.result = 1 if code == 200 else -1)
 	await _wait_until(func(): return claim.result != 0, deadline)
 	progress_bar.value = 70
+
+	# Quête cachée de première connexion Steam (500 or, voir wyrdane-backend
+	# currencyModel.claimFirstLoginReward) : idempotent côté backend, même
+	# appel que le site web (AuthRequire.tsx). Non bloquant comme claim-starter.
+	var firstLoginClaim := {"result": 0}
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/currency/claim-first-login-bonus", {},
+		func(code: int, _parsed): firstLoginClaim.result = 1 if code == 200 else -1)
+	await _wait_until(func(): return firstLoginClaim.result != 0, deadline)
 
 	var pending := {"count": 3}
 	DeckManager.sync_from_backend(func(_ok: bool): pending.count -= 1)

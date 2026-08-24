@@ -306,9 +306,6 @@ func _cast_spell(card: CardData) -> void:
 		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
 	if shows_popup:
 		await battle.card_popup_system.show_card_popup(card)
-	if card.card_type == "Instant" or card.card_type == "Ritual":
-		AudioManager.play_spell_cast(card)
-		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 	# Sortilège — enchantements du joueur réagissent (miroir de CardSystem)
 	await battle.trigger_system.fire("OnSpell", null, true)
 	for ally in battle.enemy_minions.duplicate():
@@ -319,11 +316,18 @@ func _cast_spell(card: CardData) -> void:
 		battle.aura_system.recompute_all()
 		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
+		# Son/VFX joués juste avant la résolution effective de l'effet (et
+		# non avant/pendant la preview), pour rester synchronisés avec ce qui
+		# se passe réellement (miroir de CardSystem).
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
 		await battle.death_system.process_deaths()
 	else:
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
 		for effect in card.effects:
@@ -413,16 +417,25 @@ func _pick_spell_target(card: CardData) -> Minion:
 		return null
 	match effect.target:
 		"EnemyMinion":
-			return _best_hostile_target(_filter_spell_targets(battle.player_minions, effect))
+			return _best_hostile_target(_filter_spell_targets(_exclude_spell_immune(battle.player_minions, card), effect))
 		"AllyMinion":
 			return _best_friendly_target(_filter_spell_targets(battle.enemy_minions, effect))
 		"AnyMinion":
-			var hostile: Minion = _best_hostile_target(_filter_spell_targets(battle.player_minions, effect))
+			var hostile: Minion = _best_hostile_target(_filter_spell_targets(_exclude_spell_immune(battle.player_minions, card), effect))
 			if hostile != null:
 				return hostile
 			return _best_friendly_target(_filter_spell_targets(battle.enemy_minions, effect))
 		_:
 			return null
+
+# Assassin Décharné / Éclaireur Infiltré : intargetable par les sorts ennemis —
+# miroir de TargetingSystem._is_valid_target_minion, pour que l'IA respecte la
+# même règle que le ciblage manuel du joueur humain (sans quoi l'immunité ne
+# protégeait en pratique que contre un adversaire humain, pas contre l'IA).
+func _exclude_spell_immune(minions: Array[Minion], card: CardData) -> Array[Minion]:
+	if card.card_type not in ["Instant", "Ritual"]:
+		return minions
+	return minions.filter(func(m: Minion) -> bool: return not m.spell_immune)
 
 # Filtres de l'effet (race/rangée/seuils HP-ATK), miroir d'EffectManager._filter_targets.
 func _filter_spell_targets(minions: Array[Minion], effect: CardEffect) -> Array[Minion]:

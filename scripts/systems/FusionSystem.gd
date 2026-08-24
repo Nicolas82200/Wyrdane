@@ -91,11 +91,19 @@ func _execute(source: Minion, victim: Minion) -> void:
 	var pool: String = chosen.get("pool", "")
 	var keyword: int = chosen.get("keyword", -1)
 
+	# Capture : le Dernier Souffle du sacrifié (process_deaths dans apply_fusion)
+	# peut invoquer un serviteur — voir CombatSystem.resolve_combat pour le
+	# même mécanisme et l'explication du risque de désync sans elle.
+	var is_local: bool = battle.net_emitter != null
+	if is_local:
+		battle.net_registry.begin_capture()
+
 	await apply_fusion(source, victim, pool, keyword)
 
-	if battle.net_emitter != null:
+	if is_local:
+		var ids: Array = battle.net_registry.end_capture()
 		var keyword_name: String = keyword_to_name(pool, keyword) if pool != "" else ""
-		battle.net_emitter.activate_fusion(source_id, victim_id, pool, keyword_name)
+		battle.net_emitter.activate_fusion(source_id, victim_id, pool, keyword_name, ids)
 
 # Cœur de l'effet, rejouable tel quel côté réseau distant (NetworkOpponent).
 func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:

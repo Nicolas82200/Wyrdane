@@ -26,8 +26,8 @@ const RACE_ACCENTS := {
 }
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 
-# Aperçu de carte + courbe de mana dans la vue "Composition du deck" — même
-# constantes/logique que DeckBuilder._update_stats_panel / _make_curve_chart.
+# Aperçu de carte dans la vue "Composition du deck" (voir DeckCompositionPanel
+# pour la courbe de mana/répartition affichée à côté).
 # Taille agrandie de x1.2 par rapport à la taille "carte de base" (180x270).
 const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # Taille native de Card.tscn (voir DeckBuilder.CARD_BASE_SIZE) : la carte de
@@ -37,11 +37,6 @@ const DECK_COMP_PREVIEW_SIZE := Vector2(216, 324)
 # désaligne le contenu par rapport à la bordure.
 const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
-const CURVE_BUCKETS := 8       # coûts 0..6, puis 7+ regroupés
-const CURVE_BAR_HEIGHT := 60.0
-const CURVE_BAR_COLOR := Color(0.78, 0.58, 0.10, 1)
-const STATS_LABEL_COLOR := Color(0.7, 0.6, 0.4, 1)
-const STATS_VALUE_COLOR := Color(0.91, 0.835, 0.639, 1)
 
 @onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
 @onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
@@ -160,12 +155,14 @@ func _ready() -> void:
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	packs_button.pressed.connect(_on_packs_button_pressed)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
-	login_reward_claim_button.pressed.connect(_on_claim_login_reward_pressed)
+	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
 	profile_button.pressed.connect(_on_profile_button_pressed)
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
+	if pack_shop.has_signal("closed"):
+		pack_shop.closed.connect(func(): _show_info_view(InfoView.NEWS))
 
 	deck_comp_preview_card.set_non_interactive()
 	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
@@ -187,9 +184,7 @@ func _ready() -> void:
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
-	edit_deck_button.pressed.connect(_on_edit_composition_deck)
-	if pack_shop.has_signal("closed"):
-		pack_shop.closed.connect(func(): _show_info_view(InfoView.NEWS))
+	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -231,7 +226,7 @@ func _ready() -> void:
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	_load_news()
+	NewsPanel.load_news(self)
 	_start_backend_sync()
 	_wire_nav_active_indicators()
 	_fetch_quests_badge()
@@ -243,7 +238,8 @@ func _ready() -> void:
 # Apparition en cascade des boutons de navigation (la barre de l'écran de
 # chargement disparaît elle-même en fondu — voir
 # LoadingScreen._fade_out_loading_ui). Rejoué aussi au retour d'une partie :
-# transition douce dans tous les cas.
+# transition douce dans tous les cas. Deux groupes distincts (rail + dock)
+# depuis que Jouer a quitté le rail pour devenir le CTA du dock.
 func _play_intro_animation() -> void:
 	_fade_in_button_group(main_nav_view.get_children())
 	_fade_in_button_group(decks_button.get_parent().get_children(), 0.1)
@@ -286,6 +282,23 @@ func _wire_hover_pop_group(buttons: Array) -> void:
 # donner une présence "vivante" façon MTGA. Désactivé si réduction des
 # animations activée (même logique que AnimationSystem._shake) et réagit au
 # changement du réglage en direct si la fenêtre reste ouverte.
+var _play_button_glow_tween: Tween
+func _wire_play_button_glow() -> void:
+	SettingsManager.reduced_motion_changed.connect(func(_enabled): _set_play_button_glow(not _enabled))
+	_set_play_button_glow(not SettingsManager.reduced_motion)
+
+func _set_play_button_glow(enabled: bool) -> void:
+	if _play_button_glow_tween:
+		_play_button_glow_tween.kill()
+		_play_button_glow_tween = null
+	play_button.self_modulate = Color.WHITE
+	if not enabled:
+		return
+	_play_button_glow_tween = create_tween()
+	_play_button_glow_tween.set_loops()
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color(1.1, 1.05, 0.9), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color.WHITE, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 # Indicateur d'onglet actif façon rail de navigation (sans icônes dédiées
 # pour l'instant, voir CLAUDE.md) : les boutons qui ouvrent une vue du
 # panneau d'infos se teintent légèrement en or tant que leur vue est
@@ -308,22 +321,36 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 		var btn: BaseButton = _nav_active_buttons[v]
 		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
 
-var _play_button_glow_tween: Tween
-func _wire_play_button_glow() -> void:
-	SettingsManager.reduced_motion_changed.connect(func(_enabled): _set_play_button_glow(not _enabled))
-	_set_play_button_glow(not SettingsManager.reduced_motion)
+# Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
+# menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
+# quêtes sont réclamables tout de suite. Récupérée une première fois au
+# lancement (retentée après la fin du login Steam si besoin), puis rafraîchie
+# à chaque ouverture du panneau Quêtes (voir QuestsPanel) et après chaque
+# réclamation.
+func _update_quests_badge(quests: Array) -> void:
+	var claimable := 0
+	for quest in quests:
+		var progress := int(quest.get("progress", 0))
+		var target := int(quest.get("target", 1))
+		var claimed := bool(quest.get("claimed", false))
+		if progress >= target and not claimed:
+			claimable += 1
+	quests_badge.visible = claimable > 0
+	quests_badge_label.text = str(claimable)
 
-func _set_play_button_glow(enabled: bool) -> void:
-	if _play_button_glow_tween:
-		_play_button_glow_tween.kill()
-		_play_button_glow_tween = null
-	play_button.self_modulate = Color.WHITE
-	if not enabled:
+func _fetch_quests_badge() -> void:
+	if not BackendClient.is_authenticated():
+		if not BackendClient.login_succeeded.is_connected(_on_quests_badge_login_succeeded):
+			BackendClient.login_succeeded.connect(_on_quests_badge_login_succeeded, CONNECT_ONE_SHOT)
 		return
-	_play_button_glow_tween = create_tween()
-	_play_button_glow_tween.set_loops()
-	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color(1.1, 1.05, 0.9), 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_play_button_glow_tween.tween_property(play_button, "self_modulate", Color.WHITE, 1.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
+		if not success:
+			return
+		_update_quests_badge(data.get("quests", []))
+	)
+
+func _on_quests_badge_login_succeeded(_user: Dictionary) -> void:
+	_fetch_quests_badge()
 
 # Fondu d'apparition pour les panneaux plein écran (Packs), qui portent déjà
 # leur propre voile d'assombrissement en fond — un simple fondu du contrôle
@@ -392,30 +419,37 @@ func _launch_backend_syncs() -> void:
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
 	)
-	_fetch_rank_badge()
-	_fetch_login_reward_status()
+	ProfilePanel.fetch_rank_badge(self)
+	ProfilePanel.fetch_login_reward_status(self)
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par
-# défaut, composition de deck pendant le flux Jouer, Profil/Crédits/
-# Paramètres/Mes Decks/Boutique selon le bouton cliqué).
+# défaut, composition de deck / choix de mode / choix de deck pendant le
+# flux Jouer, Profil/Crédits/Paramètres/Mes Decks/Boutique selon le bouton
+# cliqué).
 
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
-	news_view.visible = view == InfoView.NEWS
-	deck_composition_view.visible = view == InfoView.DECK_COMPOSITION
-	credits_view.visible = view == InfoView.CREDITS
-	pack_shop.visible = view == InfoView.SHOP
-	profile_view.visible = view == InfoView.PROFILE
-	settings_menu.visible = view == InfoView.SETTINGS
-	deck_list.visible = view == InfoView.DECKS_MANAGE
-	report_view.visible = view == InfoView.REPORT
-	quests_view.visible = view == InfoView.QUESTS
-	mode_select_view.visible = view == InfoView.MODE_SELECT
-	deck_select_view.visible = view == InfoView.DECK_SELECT
+	var views: Array = [news_view, deck_composition_view, credits_view, pack_shop,
+		profile_view, settings_menu, deck_list, report_view, quests_view,
+		mode_select_view, deck_select_view]
+	var active: Control = {
+		InfoView.NEWS: news_view,
+		InfoView.DECK_COMPOSITION: deck_composition_view,
+		InfoView.CREDITS: credits_view,
+		InfoView.SHOP: pack_shop,
+		InfoView.PROFILE: profile_view,
+		InfoView.SETTINGS: settings_menu,
+		InfoView.DECKS_MANAGE: deck_list,
+		InfoView.REPORT: report_view,
+		InfoView.QUESTS: quests_view,
+		InfoView.MODE_SELECT: mode_select_view,
+		InfoView.DECK_SELECT: deck_select_view,
+	}[view]
+	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
 	if view == InfoView.PROFILE:
-		_open_profile_view()
+		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
@@ -423,7 +457,7 @@ func _show_info_view(view: InfoView) -> void:
 	elif view == InfoView.REPORT:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
-		_open_quests_view()
+		QuestsPanel.open(self)
 	elif view == InfoView.SHOP:
 		if pack_shop.has_method("refresh"):
 			pack_shop.refresh()
@@ -432,148 +466,6 @@ func _show_info_view(view: InfoView) -> void:
 
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
-
-func _open_profile_view() -> void:
-	AudioManager.play(AudioManager.OPEN_MENU)
-	if SteamService.ensure_init():
-		var persona := SteamService.local_persona_name()
-		if persona != "":
-			profile_name_label.text = persona
-		var tex := SteamService.local_avatar_texture()
-		if tex:
-			profile_avatar.texture = tex
-	profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
-	_show_profile_placeholders()
-	_fetch_profile()
-
-# BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
-# du menu (voir _start_backend_sync) : si le joueur ouvre cette vue avant la
-# fin de la connexion, is_authenticated() est encore faux. Attendre
-# login_succeeded sans jamais relancer la requête laisserait les libellés
-# bloqués sur "Chargement..." indéfiniment.
-func _fetch_profile() -> void:
-	if BackendClient.is_authenticated():
-		BackendClient.get_profile(_on_profile_response)
-		return
-	if not BackendClient.login_succeeded.is_connected(_on_profile_login_succeeded):
-		BackendClient.login_succeeded.connect(_on_profile_login_succeeded, CONNECT_ONE_SHOT)
-	if not BackendClient.login_failed.is_connected(_on_profile_login_failed):
-		BackendClient.login_failed.connect(_on_profile_login_failed, CONNECT_ONE_SHOT)
-
-func _on_profile_login_succeeded(_user: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	BackendClient.get_profile(_on_profile_response)
-
-func _on_profile_login_failed(_reason: String) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	_show_profile_unavailable()
-
-func _on_profile_response(success: bool, data: Dictionary) -> void:
-	if _current_info_view != InfoView.PROFILE:
-		return
-	if success:
-		_populate_profile_stats(data)
-	else:
-		_show_profile_unavailable()
-
-func _show_profile_placeholders() -> void:
-	var dash := SettingsManager.t("PROFILE_LOADING")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-	profile_rank_badge_label.text = dash
-
-func _show_profile_unavailable() -> void:
-	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = dash
-	profile_collection_label.text = dash
-	profile_solo_stats_label.text = dash
-	profile_ranked_stats_label.text = dash
-	profile_rank_badge_label.text = dash
-
-func _populate_profile_stats(data: Dictionary) -> void:
-	var created_at: String = str(data.get("created_at", ""))
-	var date_str := created_at.substr(0, 10) if created_at.length() >= 10 else SettingsManager.t("PROFILE_UNAVAILABLE")
-	profile_member_since_label.text = SettingsManager.t("PROFILE_MEMBER_SINCE") % date_str
-
-	var collection_count := int(data.get("collection_count", 0))
-	profile_collection_label.text = SettingsManager.t("PROFILE_COLLECTION_COUNT") % collection_count
-
-	var solo: Dictionary = data.get("solo", {})
-	profile_solo_stats_label.text = SettingsManager.t("PROFILE_SOLO_STATS") % [int(solo.get("wins", 0)), int(solo.get("losses", 0))]
-
-	var ranked: Dictionary = data.get("ranked", {})
-	profile_ranked_stats_label.text = SettingsManager.t("PROFILE_RANKED_STATS") % [
-		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
-		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
-	]
-	_apply_rank_badge(profile_rank_badge_label, int(ranked.get("mmr", 0)), true)
-
-# Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
-# (persistant, avec_progress = false) et à celui de la vue Profil (avec la
-# progression vers le palier suivant, plus lisible dans un contexte dédié).
-func _apply_rank_badge(label: Label, mmr: int, with_progress: bool) -> void:
-	var tier := RankTier.from_mmr(mmr)
-	label.add_theme_color_override("font_color", RankTier.color(tier))
-	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [RankTier.symbol(tier), SettingsManager.t(RankTier.tier_key(tier)), mmr]
-	if with_progress:
-		var remaining := RankTier.mmr_to_next_tier(mmr)
-		if remaining >= 0:
-			var next_tier_name := SettingsManager.t(RankTier.tier_key(tier + 1))
-			text += "\n" + SettingsManager.t("RANK_BADGE_PROGRESS") % [remaining, next_tier_name]
-		else:
-			text += "\n" + SettingsManager.t("RANK_BADGE_MAX_TIER")
-	label.text = text
-
-func _fetch_rank_badge() -> void:
-	if not BackendClient.is_authenticated():
-		return
-	BackendClient.get_profile(func(success: bool, data: Dictionary):
-		if success:
-			_apply_rank_badge(rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
-	)
-
-# --- Récompense de connexion quotidienne ---------------------------------
-# Popup automatique au chargement du menu (une fois la sync backend faite),
-# uniquement si pas déjà réclamée aujourd'hui — voir BackendClient.get_login_reward_status.
-# Le montant n'est connu qu'une fois réclamé (POST /claim) : /status ne renvoie
-# que le palier, pas la récompense associée — évite de dupliquer la table de
-# récompenses par palier (REWARD_BY_DAY) côté client, où elle pourrait dériver
-# de celle du backend sans que personne ne s'en aperçoive.
-func _fetch_login_reward_status() -> void:
-	if not BackendClient.is_authenticated():
-		return
-	BackendClient.get_login_reward_status(func(success: bool, data: Dictionary):
-		if not success or bool(data.get("claimed_today", true)):
-			return
-		_show_login_reward_popup(int(data.get("streak_day", 1)))
-	)
-
-func _show_login_reward_popup(streak_day: int) -> void:
-	login_reward_title_label.text = SettingsManager.t("LOGIN_REWARD_TITLE")
-	login_reward_streak_label.text = SettingsManager.t("LOGIN_REWARD_STREAK") % streak_day
-	login_reward_amount_label.text = ""
-	login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIM")
-	login_reward_claim_button.disabled = false
-	login_reward_popup.visible = true
-	_fade_in_overlay(login_reward_popup)
-
-func _on_claim_login_reward_pressed() -> void:
-	login_reward_claim_button.disabled = true
-	BackendClient.claim_login_reward(func(success: bool, data: Dictionary):
-		if not success:
-			login_reward_claim_button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		login_reward_amount_label.text = SettingsManager.t("LOGIN_REWARD_AMOUNT") % int(data.get("reward_currency", 0))
-		login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIMED")
-		await get_tree().create_timer(1.4).timeout
-		login_reward_popup.visible = false
-	)
 
 func _on_credits() -> void:
 	credits_main_sub.show()
@@ -612,135 +504,6 @@ func _on_report_submit_pressed() -> void:
 			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
 	)
 
-# --- Quêtes quotidiennes --------------------------------------------------
-
-func _open_quests_view() -> void:
-	if not BackendClient.is_authenticated():
-		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-		quests_status_label.visible = true
-		return
-	quests_status_label.text = SettingsManager.t("PROFILE_LOADING")
-	quests_status_label.visible = true
-	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
-		if _current_info_view != InfoView.QUESTS:
-			return
-		if not success:
-			quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-			return
-		_populate_quests(data.get("quests", []))
-	)
-
-func _populate_quests(quests: Array) -> void:
-	quests_status_label.visible = quests.is_empty()
-	if quests.is_empty():
-		quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-	for child in quests_list_vbox.get_children():
-		child.queue_free()
-	for quest in quests:
-		_add_quest_item(quest)
-	_update_quests_badge(quests)
-
-# Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
-# menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
-# quêtes sont réclamables tout de suite. Récupérée une première fois au
-# lancement (`_fetch_quests_badge`, appelée depuis `_ready`), puis rafraîchie
-# à chaque ouverture du panneau Quêtes (`_populate_quests`) et après chaque
-# réclamation.
-func _update_quests_badge(quests: Array) -> void:
-	var claimable := 0
-	for quest in quests:
-		var progress := int(quest.get("progress", 0))
-		var target := int(quest.get("target", 1))
-		var claimed := bool(quest.get("claimed", false))
-		if progress >= target and not claimed:
-			claimable += 1
-	quests_badge.visible = claimable > 0
-	quests_badge_label.text = str(claimable)
-
-func _fetch_quests_badge() -> void:
-	if not BackendClient.is_authenticated():
-		if not BackendClient.login_succeeded.is_connected(_on_quests_badge_login_succeeded):
-			BackendClient.login_succeeded.connect(_on_quests_badge_login_succeeded, CONNECT_ONE_SHOT)
-		return
-	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
-		if not success:
-			return
-		_update_quests_badge(data.get("quests", []))
-	)
-
-func _on_quests_badge_login_succeeded(_user: Dictionary) -> void:
-	_fetch_quests_badge()
-
-func _add_quest_item(quest: Dictionary) -> void:
-	var quest_id := int(quest.get("id", 0))
-	var progress := int(quest.get("progress", 0))
-	var target := int(quest.get("target", 1))
-	var reward := int(quest.get("reward_currency", 0))
-	var claimed := bool(quest.get("claimed", false))
-	var completed := progress >= target
-
-	var row := PanelContainer.new()
-	var quest_accent := ACCENT_DIM
-	if completed and not claimed:
-		quest_accent = ACCENT_GOLD
-	elif not completed:
-		quest_accent = ACCENT_EMBER
-	row.add_theme_stylebox_override("panel", _make_accent_card_style(quest_accent))
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	row.add_child(margin)
-	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
-	margin.add_child(hbox)
-
-	var text_col := VBoxContainer.new()
-	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(text_col)
-
-	var desc_label := Label.new()
-	desc_label.text = SettingsManager.t(String(quest.get("description_key", "")))
-	desc_label.add_theme_font_size_override("font_size", 17)
-	desc_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	text_col.add_child(desc_label)
-
-	var progress_label := Label.new()
-	progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
-	progress_label.add_theme_font_size_override("font_size", 14)
-	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
-	text_col.add_child(progress_label)
-
-	var action_button := Button.new()
-	action_button.custom_minimum_size = Vector2(140, 40)
-	action_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	if claimed:
-		action_button.text = SettingsManager.t("QUESTS_CLAIMED")
-		action_button.disabled = true
-	elif completed:
-		action_button.text = SettingsManager.t("QUESTS_CLAIM")
-		action_button.pressed.connect(_on_claim_quest_pressed.bind(quest_id, action_button))
-	else:
-		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
-		action_button.disabled = true
-	hbox.add_child(action_button)
-
-	quests_list_vbox.add_child(row)
-
-func _on_claim_quest_pressed(quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		_fetch_quests_badge()
-	)
-
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
@@ -756,15 +519,16 @@ func _on_decks_button_pressed() -> void:
 func _on_packs_button_pressed() -> void:
 	_show_info_view(InfoView.SHOP)
 
-# --- Flux "Jouer" : mode puis deck, directement dans le panneau de nav ----
-# Le panneau de gauche (Jouer/Paramètres/Crédits/...) bascule son contenu au
-# lieu d'ouvrir une fenêtre à part : MAIN (boutons habituels) -> MODE_SELECT
-# (Solo/Multijoueur) -> DECK_SELECT (liste des decks + Lancer la partie).
+# --- Flux "Jouer" : mode puis deck, directement dans le panneau d'infos ----
+# Le panneau de droite (Actualités/Profil/Boutique/...) bascule son contenu
+# au lieu d'ouvrir une fenêtre à part : NEWS (par défaut) -> MODE_SELECT
+# (Solo/Multijoueur/Arène) -> DECK_SELECT (liste des decks + Lancer la partie).
+# Le rail de navigation, lui, reste statique (voir CLAUDE.md).
 
 func _on_play() -> void:
 	if not SettingsManager.tutorial_completed:
 		TutorialContext.active = true
-		get_tree().change_scene_to_file(BATTLE_SCENE)
+		SceneTransition.change_scene(BATTLE_SCENE)
 		return
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_info_view(InfoView.MODE_SELECT)
@@ -785,7 +549,7 @@ func _on_multi_mode_selected() -> void:
 # de deck et lance la scène dédiée.
 func _on_arena_mode_selected() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
-	get_tree().change_scene_to_file(ARENA_SCENE)
+	SceneTransition.change_scene(ARENA_SCENE)
 
 func _show_deck_select() -> void:
 	_play_selected_deck_index = -1
@@ -890,6 +654,11 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 
 	return button
 
+# Sélectionner un deck met juste à jour la surbrillance et active Lancer :
+# `DeckCompositionPanel.show` bascule vers InfoView.DECK_COMPOSITION, ce qui
+# masquerait la liste elle-même (et le bouton Lancer) puisque les deux sont
+# désormais des vues du même panneau — l'aperçu détaillé reste disponible via
+# "Mes Decks", inchangé.
 func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
@@ -901,344 +670,10 @@ func _on_launch_pressed() -> void:
 	DeckManager.set_active_deck(_play_selected_deck_index)
 	if _play_mode == PlayMode.SOLO:
 		TutorialContext.active = false
-		get_tree().change_scene_to_file(BATTLE_SCENE)
+		SceneTransition.change_scene(BATTLE_SCENE)
 	else:
 		AudioManager.play(AudioManager.OPEN_MENU)
-		get_tree().change_scene_to_file(NET_LOBBY_SCENE)
-
-# --- Composition du deck sélectionné (vue "actualités") -----------------
-
-func _show_deck_composition(deck_index: int) -> void:
-	_composition_deck_index = deck_index
-	var deck: DeckData = DeckManager.decks[deck_index]
-	deck_comp_title_label.text = "%s : %s" % [SettingsManager.t("MENU_DECK_COMPOSITION_TITLE"), SettingsManager.t(deck.name)]
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-	for child in deck_comp_list_vbox.get_children():
-		child.queue_free()
-
-	var counts: Dictionary = {}
-	var order: Array[CardData] = []
-	for card in deck.get_cards():
-		if not counts.has(card.resource_path):
-			order.append(card)
-		counts[card.resource_path] = counts.get(card.resource_path, 0) + 1
-
-	for card in order:
-		var line := HBoxContainer.new()
-		line.add_theme_constant_override("separation", 8)
-		line.mouse_entered.connect(_on_deck_comp_card_hover.bind(card))
-		line.mouse_exited.connect(_on_deck_comp_card_unhover)
-
-		var count_lbl := Label.new()
-		count_lbl.text = "x%d" % counts[card.resource_path]
-		count_lbl.custom_minimum_size = Vector2(32, 0)
-		count_lbl.add_theme_font_size_override("font_size", 14)
-		count_lbl.add_theme_color_override("font_color", Color(0.94, 0.75, 0.25, 1))
-		line.add_child(count_lbl)
-
-		var name_lbl := Label.new()
-		name_lbl.text = SettingsManager.t(card.card_name)
-		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 14)
-		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-		line.add_child(name_lbl)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(card.cost)
-		cost_lbl.custom_minimum_size = Vector2(20, 0)
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 14)
-		cost_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.95, 1))
-		line.add_child(cost_lbl)
-
-		deck_comp_list_vbox.add_child(line)
-
-	_update_deck_comp_stats(deck.get_cards())
-	_show_info_view(InfoView.DECK_COMPOSITION)
-
-## Aperçu de carte à droite au survol d'une ligne de la composition.
-func _on_deck_comp_card_hover(card: CardData) -> void:
-	deck_comp_preview_hint.hide()
-	deck_comp_preview_card.set_data(card)
-	deck_comp_preview_card.show()
-
-func _on_deck_comp_card_unhover() -> void:
-	deck_comp_preview_card.hide()
-	deck_comp_preview_hint.show()
-
-## Courbe de mana + répartition types/races du deck affiché, même logique que
-## DeckBuilder._update_stats_panel/_make_curve_chart.
-func _update_deck_comp_stats(cards: Array[CardData]) -> void:
-	for child in deck_comp_stats_panel.get_children():
-		child.queue_free()
-	if cards.is_empty():
-		return
-
-	var curve := []
-	curve.resize(CURVE_BUCKETS)
-	curve.fill(0)
-	var type_counts: Dictionary = {}
-	var race_counts: Dictionary = {}
-	var total_cost := 0
-
-	for card in cards:
-		var bucket: int = min(card.cost, CURVE_BUCKETS - 1)
-		curve[bucket] += 1
-		total_cost += card.cost
-		type_counts[card.card_type] = type_counts.get(card.card_type, 0) + 1
-		race_counts[card.race] = race_counts.get(card.race, 0) + 1
-
-	var curve_title := Label.new()
-	curve_title.text = SettingsManager.t("deck.stats_curve_title")
-	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	curve_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(curve_title)
-
-	deck_comp_stats_panel.add_child(_make_deck_comp_curve_chart(curve))
-
-	var avg_label := Label.new()
-	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
-	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	avg_label.add_theme_font_size_override("font_size", 12)
-	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	deck_comp_stats_panel.add_child(avg_label)
-
-	var breakdown_title := Label.new()
-	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
-	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	breakdown_title.add_theme_font_size_override("font_size", 13)
-	deck_comp_stats_panel.add_child(breakdown_title)
-
-	# Colonne étroite : un chip par ligne plutôt qu'une rangée horizontale
-	# (contrairement à DeckBuilder, qui a toute la largeur de l'écran).
-	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
-		if type_counts.has(type_name):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(
-				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
-
-	for key in Race.Type.keys():
-		var race_value: int = Race.Type[key]
-		if race_counts.has(race_value):
-			deck_comp_stats_panel.add_child(_make_deck_comp_chip(SettingsManager.t("RACE_" + key), race_counts[race_value]))
-
-func _make_deck_comp_curve_chart(curve: Array) -> Control:
-	var max_count: int = 1
-	for c in curve:
-		max_count = max(max_count, c)
-
-	var chart := HBoxContainer.new()
-	chart.alignment = BoxContainer.ALIGNMENT_CENTER
-	chart.add_theme_constant_override("separation", 3)
-
-	for i in range(CURVE_BUCKETS):
-		var count: int = curve[i]
-		var col := VBoxContainer.new()
-		col.alignment = BoxContainer.ALIGNMENT_END
-		col.custom_minimum_size = Vector2(22, 0)
-		col.add_theme_constant_override("separation", 2)
-
-		var count_lbl := Label.new()
-		count_lbl.text = str(count) if count > 0 else ""
-		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_lbl.add_theme_font_size_override("font_size", 10)
-		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-		col.add_child(count_lbl)
-
-		var bar := ColorRect.new()
-		var height: float = max(4.0, (float(count) / max_count) * CURVE_BAR_HEIGHT)
-		bar.custom_minimum_size = Vector2(18, height)
-		bar.color = CURVE_BAR_COLOR if count > 0 else Color(0.3, 0.24, 0.10, 0.4)
-		col.add_child(bar)
-
-		var cost_lbl := Label.new()
-		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
-		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 10)
-		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-		col.add_child(cost_lbl)
-
-		chart.add_child(col)
-
-	return chart
-
-func _make_deck_comp_chip(label_text: String, count: int) -> Control:
-	var bg := StyleBoxFlat.new()
-	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
-	bg.border_color = Color(0.72, 0.55, 0.24, 0.55)
-	bg.set_border_width_all(1)
-	bg.set_corner_radius_all(4)
-	bg.content_margin_left   = 8
-	bg.content_margin_right  = 8
-	bg.content_margin_top    = 2
-	bg.content_margin_bottom = 2
-
-	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", bg)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-
-	var lbl := Label.new()
-	lbl.text = "%s ×%d" % [label_text, count]
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 12)
-	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	panel.add_child(lbl)
-
-	return panel
-
-func _on_edit_composition_deck() -> void:
-	if _composition_deck_index < 0 or _composition_deck_index >= DeckManager.decks.size():
-		return
-	var scene := load(DECK_BUILDER_SCENE) as PackedScene
-	if scene == null:
-		return
-	var builder = scene.instantiate()
-	get_tree().current_scene.add_child(builder)
-	builder.load_deck(DeckManager.decks[_composition_deck_index])
-	# DeckBuilder est plein écran, il recouvre déjà le panneau de nav en
-	# dessous — pas besoin de le masquer, juste de rafraîchir au retour.
-	builder.tree_exited.connect(func():
-		if _play_selected_deck_index >= 0:
-			_refresh_play_deck_list()
-			_show_deck_composition(_composition_deck_index)
-	)
-
-# Charge le panneau d'actualités : les devlogs/actus créés sur le site
-# (wyrdane.com) font foi, récupérés via NEWS_FEED_URL (généré par le site à
-# chaque déploiement depuis src/content/news + src/content/devlog — voir son
-# scripts/generate-feed.mjs). Les ressources locales (res://resources/news/*.tres)
-# ne servent plus que de repli si le site est injoignable (même logique de
-# dégradation que CollectionManager/CurrencyManager).
-func _load_news() -> void:
-	_load_local_news()
-	_fetch_remote_news()
-
-func _load_local_news() -> void:
-	_local_news_entries.clear()
-	var dir := DirAccess.open(NEWS_DIR)
-	if dir == null:
-		push_warning("Dossier d'actualités introuvable : %s" % NEWS_DIR)
-		return
-	dir.list_dir_begin()
-	var file_name := dir.get_next()
-	while file_name != "":
-		if file_name.ends_with(".tres"):
-			var entry := load(NEWS_DIR + file_name) as NewsEntry
-			if entry:
-				_local_news_entries.append(entry)
-		file_name = dir.get_next()
-	dir.list_dir_end()
-	_local_news_entries.sort_custom(func(a: NewsEntry, b: NewsEntry): return a.date > b.date)
-	_populate_news()
-
-func _fetch_remote_news() -> void:
-	var http := HTTPRequest.new()
-	add_child(http)
-	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray):
-		http.queue_free()
-		if result != HTTPRequest.RESULT_SUCCESS or response_code != 200:
-			push_warning("Impossible de récupérer les actualités du site (résultat %d, code %d)" % [result, response_code])
-			return
-		var parsed = JSON.parse_string(body.get_string_from_utf8())
-		if typeof(parsed) != TYPE_ARRAY:
-			push_warning("Format de flux d'actualités invalide")
-			return
-		_remote_news_entries = parsed
-		_use_remote_news = true
-		_populate_news()
-	)
-	var err := http.request(NEWS_FEED_URL)
-	if err != OK:
-		push_warning("Échec de la requête d'actualités : %d" % err)
-		http.queue_free()
-
-func _populate_news() -> void:
-	for child in news_list_vbox.get_children():
-		child.queue_free()
-	if _use_remote_news:
-		for i in _remote_news_entries.size():
-			var entry: Dictionary = _remote_news_entries[i]
-			var title: String = entry.get("title", {}).get(SettingsManager.language, entry.get("title", {}).get("fr", ""))
-			var body: String = entry.get("body", {}).get(SettingsManager.language, entry.get("body", {}).get("fr", ""))
-			_add_news_item(entry.get("date", ""), title, body, entry.get("kind", "news"), i == 0)
-	else:
-		for i in _local_news_entries.size():
-			var entry := _local_news_entries[i]
-			_add_news_item(entry.date, entry.display_title(), entry.display_body(), "news", i == 0)
-
-# Style de carte à liseré coloré (façon MTGA) réutilisé pour les listes du
-# panneau d'infos (actualités, quêtes) : un simple PanelContainer par défaut
-# n'a aucune bordure, ces listes se distinguaient jusqu'ici uniquement par
-# leur espacement vertical. `accent` marque la nature/priorité de la ligne
-# (ex. actu la plus récente, quête réclamable) sans dépendre que de la couleur
-# du texte.
-func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
-	style.border_width_left = 3
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = accent
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_right = 4
-	style.corner_radius_bottom_left = 4
-	return style
-
-const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
-const ACCENT_ARCANE := Color(0.47, 0.56, 0.84, 0.85)
-const ACCENT_DIM := Color(0.42, 0.37, 0.3, 0.55)
-const ACCENT_GOLD := Color(0.92, 0.72, 0.28, 0.95)
-
-# Le corps d'une entrée est tronqué côté site (voir generate-feed.mjs,
-# MAX_BODY_LENGTH) : le lien "voir les détails" renvoie vers la page dédiée
-# du site (actus ou devlog selon "kind") pour lire le texte complet.
-# `is_featured` marque la toute première entrée (la plus récente) d'un liseré
-# arcane distinct, pour qu'elle ressorte visuellement du reste de la liste.
-func _add_news_item(date: String, title: String, body: String, kind: String, is_featured: bool = false) -> void:
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _make_accent_card_style(ACCENT_ARCANE if is_featured else ACCENT_EMBER))
-	var card_margin := MarginContainer.new()
-	card_margin.add_theme_constant_override("margin_left", 14)
-	card_margin.add_theme_constant_override("margin_top", 10)
-	card_margin.add_theme_constant_override("margin_right", 14)
-	card_margin.add_theme_constant_override("margin_bottom", 10)
-	card.add_child(card_margin)
-
-	var item := VBoxContainer.new()
-	item.add_theme_constant_override("separation", 4)
-	card_margin.add_child(item)
-
-	var date_label := Label.new()
-	date_label.text = date
-	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", ACCENT_ARCANE if is_featured else Color(0.91, 0.835, 0.639, 0.55))
-	item.add_child(date_label)
-
-	var title_label := Label.new()
-	title_label.text = title
-	title_label.add_theme_font_size_override("font_size", 18)
-	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(title_label)
-
-	var body_label := Label.new()
-	body_label.text = body
-	body_label.add_theme_font_size_override("font_size", 15)
-	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
-	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	item.add_child(body_label)
-
-	var read_more := LinkButton.new()
-	read_more.text = SettingsManager.t("MENU_NEWS_READ_MORE")
-	read_more.add_theme_font_size_override("font_size", 13)
-	read_more.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25, 1))
-	var path: String = WEBSITE_DEVLOG_PATH if kind == "devlog" else WEBSITE_NEWS_PATH
-	read_more.pressed.connect(func(): OS.shell_open(WEBSITE_URL + path))
-	item.add_child(read_more)
-
-	news_list_vbox.add_child(card)
+		SceneTransition.change_scene(NET_LOBBY_SCENE)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -1278,7 +713,7 @@ func _retranslate() -> void:
 	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
 	report_text_edit.placeholder_text = SettingsManager.t("REPORT_DESCRIPTION_PLACEHOLDER")
 	report_submit_button.text = SettingsManager.t("REPORT_SUBMIT")
-	_populate_news()
+	NewsPanel._populate_news(self)
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
@@ -1297,8 +732,8 @@ func _retranslate() -> void:
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	if quests_view.visible:
-		_open_quests_view()
+		QuestsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
-		_show_deck_composition(_composition_deck_index)
+		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:
-		_open_profile_view()
+		ProfilePanel.open(self)

@@ -227,6 +227,11 @@ func set_data(new_data: CardData) -> void:
 func set_display_cost(cost_split: Dictionary) -> void:
 	if data == null:
 		return
+	var is_resource := data.card_type == "Resource"
+	cost_label.visible = not is_resource
+	if is_resource:
+		generic_cost_label.visible = false
+		return
 	var race_cost: int = cost_split.get("race", 0)
 	var generic_cost: int = cost_split.get("generic", 0)
 	var reduced: bool = race_cost + generic_cost < data.cost
@@ -241,10 +246,12 @@ func update_display() -> void:
 	if data == null:
 		return
 	name_label.text   = data.display_name()
+	var is_resource := data.card_type == "Resource"
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
+	cost_label.visible = not is_resource
 	cost_label.text = str(base_race_cost)
-	generic_cost_label.visible = data.cost - base_race_cost > 0
+	generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
 	generic_cost_label.text = str(data.cost - base_race_cost)
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
@@ -484,7 +491,14 @@ func _gui_input(event: InputEvent) -> void:
 		return
 
 	var battle: Node = get_tree().current_scene
-	if battle and "enemy_turn_active" in battle and battle.enemy_turn_active:
+	# Vérifie explicitement game_over/reconnecting ici (comme Battle._on_card_played),
+	# plutôt que de compter uniquement sur un overlay plein écran pour bloquer le
+	# clic : ce dernier n'apparaît qu'~1s après game_over=true (voir _show_game_over),
+	# fenêtre pendant laquelle une carte glissée-déposée était détruite sans effet.
+	if battle and "enemy_turn_active" in battle \
+			and (battle.enemy_turn_active \
+				or ("game_over" in battle and battle.game_over) \
+				or ("reconnecting" in battle and battle.reconnecting)):
 		get_viewport().set_input_as_handled()
 		return
 

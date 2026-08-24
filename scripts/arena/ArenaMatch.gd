@@ -190,8 +190,13 @@ func end_shop_phase() -> void:
 # combats (bots entre eux, jamais regardés) restent résolus en headless.
 func start_combat_phase(live_setup: Callable = Callable()) -> void:
 	last_combat_summaries.clear()
-	var alive: Array = alive_players()
-	var participants: Array = alive.duplicate()
+	# Array[Variant] explicite : alive_players() retourne un Array[ArenaPlayerState]
+	# dont .duplicate() conserve la contrainte de type au runtime même assigné à
+	# une variable Array non typée — y ajouter ghost_board (GhostBoard, qui
+	# n'hérite pas d'ArenaPlayerState) plantait alors avec "Attempted to
+	# push_back an object into a TypedArray, that does not inherit from...".
+	var participants: Array[Variant] = []
+	participants.append_array(alive_players())
 	# Le fantôme ne comble que l'effectif impair (README « Ghost Board ») ;
 	# à effectif pair, tous les appariements sont entre joueurs réels.
 	if participants.size() % 2 == 1 and ghost_board != null:
