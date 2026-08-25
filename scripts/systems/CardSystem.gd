@@ -81,6 +81,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
+	battle.track_card_played_for_quests(card_data)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
@@ -91,6 +92,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
+	battle.track_card_played_for_quests(card_data)
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame

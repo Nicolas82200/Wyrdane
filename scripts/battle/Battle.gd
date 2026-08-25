@@ -147,6 +147,21 @@ var pending_insert_index: int    = -1
 var waiting_for_target: bool     = false
 var deck: Array[CardData]        = []
 var hand_cards: Array[CardData]  = []
+# Suivi des quêtes quotidiennes de race (voir README « Économie »/CLAUDE.md) :
+# deck_races est figé au chargement du deck (DeckSystem.load_deck), avant
+# tirage, pour refléter la composition du deck entier — pas seulement les
+# cartes piochées. cards_played_by_race n'incrémente que sur les cartes
+# jouées par le joueur local (voir CardSystem.gd/play_resource_card), jamais
+# celles de l'IA/adversaire. Reportés une fois au backend en fin de match par
+# MatchResultReporter.
+var deck_races: Array[String] = []
+var cards_played_by_race: Dictionary = {}
+
+func track_card_played_for_quests(card_data: CardData) -> void:
+	if card_data.race == Race.Type.NONE:
+		return
+	var race_name := Race.get_race_name(card_data.race)
+	cards_played_by_race[race_name] = cards_played_by_race.get(race_name, 0) + 1
 # Pools de ressource par race (clé = Race.Type). Alimentés uniquement en jouant
 # une carte-ressource (Âme/Sceau/Pacte...) dans sa zone dédiée — voir
 # `play_resource_card` et README « Système de Ressources par Race ».
@@ -389,6 +404,8 @@ func update_enemy_hand_ui() -> void:
 # mais limitée à une par tour et par camp. Voir CostSystem.play_resource_card.
 func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	cost_system.play_resource_card(card_data, is_player)
+	if is_player:
+		track_card_played_for_quests(card_data)
 
 # ─── Serviteurs ───────────────────────────────────────────────────────────────
 
@@ -565,7 +582,8 @@ func _show_game_over(result: String) -> void:
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
 	game_over_screen.show_result(result, network_manager == null)
-	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen)
+	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
+			cards_played_by_race, deck_races)
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 
