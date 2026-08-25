@@ -272,6 +272,34 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 
 La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
 
+### 💰 Économie (méta-jeu, monnaie molle)
+
+À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
+
+**Gains**
+| Source | Montant | Limite |
+|---|---|---|
+| Victoire vs IA (solo) | +25 or | 5×/jour |
+| Défaite vs IA (solo) | +10 or | 5×/jour |
+| Récompense de connexion quotidienne (streak 7 jours, cycle) | 10 → 15 → 20 → 25 → 30 → 40 → 60 or | 1×/jour, réinitialisée si un jour est manqué |
+| Quête « Jouer 3 parties » | 30 or | — |
+| Quête « Jouer 5 parties » | 60 or | — |
+| Quête « Gagner 2 parties » | 50 or | — |
+| Quête « Gagner 3 parties » | 70 or | — |
+| Quête « Gagner 1 partie classée » | 80 or | — |
+
+3 quêtes tirées aléatoirement chaque jour parmi les 5 ci-dessus (rotation déterministe côté serveur, par joueur et par jour).
+
+**Dépenses**
+| Achat | Coût | Détail |
+|---|---|---|
+| Pack de cartes | 500 or | 4 cartes par pack, pondération par rareté Commune 60 / Rare 25 / Épique 12 / Légendaire 3 (ratio, somme non normalisée à 100) |
+| Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
+
+**Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
+
+Toutes ces valeurs vivent en dur dans le code (`CurrencyManager.gd` côté client à titre indicatif, `packModel.ts`/`collectionModel.ts`/`questModel.ts`/`loginRewardModel.ts`/`rewardsController.ts` côté `wyrdane-backend` en source de vérité) — les deux côtés doivent rester synchronisés manuellement, voir les commentaires croisés dans chaque fichier.
+
 ### 🌍 Internationalisation (i18n)
 
 Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
