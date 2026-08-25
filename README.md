@@ -276,19 +276,36 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
 
-**Gains**
+**Victoires/défaites vs IA (solo)** — pas de plafond quotidien :
+| Résultat | Montant |
+|---|---|
+| Défaite | 5 or (fixe) |
+| Victoire, série de 1-2 | 10 or |
+| Victoire, série de 3-4 | 15 or |
+| Victoire, série de 5-6 | 20 or |
+| Victoire, série de 7 ou plus | 25 or |
+
+La série de victoires (win streak) ne compte que les victoires consécutives vs IA ; une défaite la ramène immédiatement à 0 (récompense de victoire suivante = 10 or).
+
+**Autres gains**
 | Source | Montant | Limite |
 |---|---|---|
-| Victoire vs IA (solo) | +25 or | 5×/jour |
-| Défaite vs IA (solo) | +10 or | 5×/jour |
 | Récompense de connexion quotidienne (streak 7 jours, cycle) | 10 → 15 → 20 → 25 → 30 → 40 → 60 or | 1×/jour, réinitialisée si un jour est manqué |
 | Quête « Jouer 3 parties » | 30 or | — |
 | Quête « Jouer 5 parties » | 60 or | — |
 | Quête « Gagner 2 parties » | 50 or | — |
 | Quête « Gagner 3 parties » | 70 or | — |
 | Quête « Gagner 1 partie classée » | 80 or | — |
+| Quête « Jouer 10 cartes Mort-Vivant » | 40 or | — |
+| Quête « Jouer 10 cartes Humain » | 40 or | — |
+| Quête « Jouer 10 cartes Démon » | 40 or | — |
+| Quête « Jouer 10 cartes Abomination » | 40 or | — |
+| Quête « Gagner 2 parties avec un deck Mort-Vivant » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Humain » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Démon » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Abomination » | 60 or | — |
 
-3 quêtes tirées aléatoirement chaque jour parmi les 5 ci-dessus (rotation déterministe côté serveur, par joueur et par jour).
+3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
 
 **Dépenses**
 | Achat | Coût | Détail |
