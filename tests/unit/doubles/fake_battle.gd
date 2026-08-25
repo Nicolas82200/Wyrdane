@@ -53,6 +53,16 @@ var deck_count_label: Label = Label.new()
 const MAX_STACK_VISUAL := 8
 const CARD_BACK = preload("res://assets/card_back/card-back.png")
 
+# ─── Suivi des quêtes de race (voir Battle.gd) ─────────────────────────────────
+var deck_races: Array[String] = []
+var cards_played_by_race: Dictionary = {}
+
+func track_card_played_for_quests(card_data: CardData) -> void:
+	if card_data.race == Race.Type.NONE:
+		return
+	var race_name := Race.get_race_name(card_data.race)
+	cards_played_by_race[race_name] = cards_played_by_race.get(race_name, 0) + 1
+
 # ─── Ajouts pour tester HeroSystem / CombatSystem / TurnSystem ────────────────
 const BOARD_MINION_SIZE := Vector2(100, 150)
 var animation_system: FakeAnimationSystem = FakeAnimationSystem.new()

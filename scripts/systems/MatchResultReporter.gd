@@ -9,14 +9,15 @@ class_name MatchResultReporter
 # second client pour faire foi : le client déclare directement son résultat,
 # plafonné par jour côté serveur contre l'abus.
 static func report(result: String, network_manager: NetworkManager, net_client_match_id: String,
-		net_opponent_backend_id: int, game_over_screen: GameOverScreen) -> void:
+		net_opponent_backend_id: int, game_over_screen: GameOverScreen,
+		cards_played_by_race: Dictionary = {}, deck_races: Array = []) -> void:
 	if network_manager == null:
 		var won := result == "victory"
-		CurrencyManager.report_solo_match_result(won, func(credited: bool):
+		CurrencyManager.report_solo_match_result(won, cards_played_by_race, deck_races, func(credited: bool, reward: int):
 			if credited:
-				var reward := CurrencyManager.SOLO_WIN_REWARD_DISPLAY if won else CurrencyManager.SOLO_DEFEAT_REWARD_DISPLAY
 				game_over_screen.show_reward(reward)
 		)
 	elif (result == "victory" or result == "defeat") and net_client_match_id != "" and net_opponent_backend_id > 0 and BackendClient.local_user_id() > 0:
 		var winner_id := BackendClient.local_user_id() if result == "victory" else net_opponent_backend_id
-		BackendClient.report_ranked_match(net_client_match_id, net_opponent_backend_id, winner_id)
+		BackendClient.report_ranked_match(net_client_match_id, net_opponent_backend_id, winner_id,
+				cards_played_by_race, deck_races)

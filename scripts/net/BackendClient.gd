@@ -149,11 +149,14 @@ func get_profile(on_profile: Callable) -> void:
 # voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
-func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int, on_complete: Callable = Callable()) -> void:
+func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
+		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable()) -> void:
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
+		"cardsPlayedByRace": cards_played_by_race,
+		"deckRaces": deck_races,
 	}, on_complete)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────

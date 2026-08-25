@@ -64,3 +64,21 @@ func test_mulligan_replace_one_tutorial_non_resource_unaffected() -> void:
 	var new_card: CardData = deck_system.mulligan_replace_one(0)
 	assert_true(new_card == deck_card or new_card == old_card,
 		"les cartes non-ressource suivent le tirage normal dans le deck (le clic est déjà filtré en amont par Battle)")
+
+# ─── deck_races (quêtes quotidiennes de race) ──────────────────────────────────
+# _compute_deck_races testé directement plutôt que via load_deck() : ce
+# dernier dépend de l'autoload DeckManager, pas fiable sous le runner GUT
+# (-s) — voir CLAUDE.md « Tests automatisés ».
+
+func test_compute_deck_races_deduplicates_races() -> void:
+	var zombie := _zombie_card() # Mort-Vivant
+	battle.deck = [zombie, zombie, zombie]
+	deck_system._compute_deck_races()
+	assert_eq(battle.deck_races, ["Undead"], "chaque race ne doit apparaître qu'une fois même avec plusieurs copies")
+
+func test_compute_deck_races_ignores_race_none_cards() -> void:
+	var no_race_card := CardData.new()
+	no_race_card.race = Race.Type.NONE
+	battle.deck = [no_race_card]
+	deck_system._compute_deck_races()
+	assert_eq(battle.deck_races, [], "une carte sans race (Type.NONE) ne doit jamais apparaître dans deck_races")
