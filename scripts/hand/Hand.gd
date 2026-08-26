@@ -5,6 +5,7 @@ signal card_played(card_data: CardData, row: String, insert_index: int)
 signal drag_started
 signal drag_ended
 signal mulligan_card_clicked(index: int, card_data: CardData)
+signal discard_card_clicked(index: int, card_data: CardData)
 
 @onready var container = $CardsContainer
 
@@ -60,6 +61,7 @@ var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
 var _hovering:          bool           = false
 var _mulligan_mode:     bool           = false
+var _discard_mode:      bool           = false
 # Repli/déploiement façon TCG : la main se range vers le bas hors hover
 var _hand_expanded:     bool           = false
 # Vrai pendant un drag issu de la main : reste déployée quelle que soit la souris
@@ -338,6 +340,32 @@ func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
 	if index != -1:
 		mulligan_card_clicked.emit(index, card.data)
+
+# Bascule le mode « sélection pour défausse » (limite 10 cartes en fin de
+# tour, voir HandDiscardSystem) — même patron que set_mulligan_mode : un
+# simple clic sélectionne une carte au lieu de la jouer, aucun drag possible.
+func set_discard_mode(active: bool) -> void:
+	_discard_mode = active
+	if active and not _hand_expanded:
+		_hand_expanded = true
+		_update_hand_layout(true)
+	for card in container.get_children():
+		if card is Card:
+			card.discard_mode = active
+			if not active:
+				card.set_discard_selected(false)
+
+func set_card_discard_selected(index: int, selected: bool) -> void:
+	if index < 0 or index >= _hand_order.size():
+		return
+	var card: Card = _hand_order[index]
+	if card is Card:
+		card.set_discard_selected(selected)
+
+func _on_discard_card_clicked(card: Card) -> void:
+	var index: int = _hand_order.find(card)
+	if index != -1:
+		discard_card_clicked.emit(index, card.data)
 
 func flip_replace_at(index: int, new_data: CardData) -> void:
 	if index < 0 or index >= _hand_order.size():
@@ -637,7 +665,10 @@ func _connect_card(card: Card) -> void:
 		card.mouse_exited.connect(_on_card_unhover)
 	if not card.mulligan_clicked.is_connected(_on_mulligan_card_clicked):
 		card.mulligan_clicked.connect(_on_mulligan_card_clicked.bind(card))
+	if not card.discard_clicked.is_connected(_on_discard_card_clicked):
+		card.discard_clicked.connect(_on_discard_card_clicked.bind(card))
 	card.mulligan_mode = _mulligan_mode
+	card.discard_mode = _discard_mode
 	for child in card.get_children():
 		if child is Control:
 			child.mouse_filter = Control.MOUSE_FILTER_PASS

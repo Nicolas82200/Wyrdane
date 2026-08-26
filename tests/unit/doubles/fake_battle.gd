@@ -490,13 +490,27 @@ class FakeOpponent:
 
 class FakeHand:
 	extends Node
+	signal discard_card_clicked(index: int, card_data: CardData)
 	var last_set: Array[CardData] = []
+	var discard_mode: bool = false
+	var discard_selected: Dictionary = {}  # index -> bool, pour HandDiscardSystem
 	func set_hand(cards: Array, _animate: bool = false, _from_pos: Vector2 = Vector2.ZERO) -> void:
 		last_set = cards
 	func refresh_costs() -> void:
 		pass
 	func refresh_playable_highlights() -> void:
 		pass
+	func set_discard_mode(active: bool) -> void:
+		discard_mode = active
+	func set_card_discard_selected(index: int, selected: bool) -> void:
+		discard_selected[index] = selected
+
+
+class FakeNetEmitter:
+	extends RefCounted
+	var discard_calls: Array[int] = []
+	func discard(count: int) -> void:
+		discard_calls.append(count)
 
 
 class FakeTargetingSystem:

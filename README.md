@@ -57,6 +57,17 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 7.  `remove_dead_minions()` (dans `DeathSystem`)
 8.  `check_game_end()`
 
+### 🖐️ Limite de main
+
+`HandDiscardSystem` (`scripts/systems/HandDiscardSystem.gd`), appelé en tout début de `TurnSystem.end_turn()` : si le joueur local a plus de **10 cartes** en main au moment de terminer son tour, il doit en défausser l'excédent avant que le tour ne se termine réellement.
+
+- La main passe en mode sélection (`Hand.set_discard_mode`) : un simple clic sur une carte la sélectionne/désélectionne pour la défausse (pas de drag, même patron que le mulligan) — teintée en rouge tant que sélectionnée.
+- Un décompte de **15 secondes** démarre (réutilise `TurnTimer`, le décompte normal de fin de tour étant suspendu le temps de cette sous-phase). Dès que le nombre de cartes requis est sélectionné, la défausse est immédiate.
+- À l'expiration du décompte, le reste de la sélection requise est complété **aléatoirement** parmi les cartes pas encore choisies.
+- Les cartes défaussées rejoignent le cimetière **face cachée** (`Graveyard.Origin.CARD_DISCARDED`, déjà prévu par `is_face_down()`).
+- En réseau : seul le **nombre** de cartes défaussées est transmis (`NetCommand.DISCARD`), pas leur identité — met à jour le compteur cosmétique de main adverse, comme le mulligan.
+- L'IA n'a pas cette UI : `AISystem._discard_excess_hand()` défausse silencieusement un excédent aléatoire à la fin de son tour (un effet "Piochez X cartes" peut la faire dépasser 10, pas seulement la pioche automatique d'1 carte/tour).
+
 ### 🛡️ Mécaniques défensives
 
 - **Réduction de dégâts** (`CardData.damage_reduction` + `Minion.aura_damage_reduction`) : chaque source de dégâts subie est réduite d'un montant fixe, sans jamais descendre sous 1 quand un coup touche. La part inhérente vient de la carte (Défenseur Juré, Zombie Bouclier) ; une part peut être ajoutée par une aura via l'effet `AuraDamageReduction` (Pacte de Résistance : Humains alliés −1). Appliquée dans `Minion.take_damage`.
@@ -257,7 +268,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Protocole (`NetCommand.gd`)
 
-Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
+Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `DISCARD` (défausse de fin de tour, contenu privé — voir « Limite de main » ci-dessous), `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
 
 *   `NetEmitter` — émet les actions du joueur local sous forme de commandes.
 *   `NetworkOpponent` — met en file les commandes distantes et les rejoue dans l'ordre jusqu'à `END_TURN`.

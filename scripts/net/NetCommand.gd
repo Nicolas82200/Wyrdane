@@ -24,6 +24,7 @@ const ACTIVATE_PACT := "ACTIVATE_PACT"  # activation volontaire d'un Pacte "stan
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
+const DISCARD := "DISCARD"  # défausse de fin de tour (limite 10 cartes) — nombre seulement, contenu privé
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 
@@ -125,6 +126,12 @@ static func hello_ack() -> Dictionary:
 # de la décision est communiquée, pour synchroniser le début du tour 1.
 static func mulligan_done() -> Dictionary:
 	return {"type": MULLIGAN_DONE}
+
+# Défausse de fin de tour (limite 10 cartes, voir HandDiscardSystem) : seul le
+# nombre de cartes défaussées est transmis, pour garder à jour le compteur
+# cosmétique de main adverse — comme pour le mulligan, le contenu reste privé.
+static func discard(count: int) -> Dictionary:
+	return {"type": DISCARD, "count": count}
 
 # Envoyé juste avant de fermer volontairement la connexion (concède/retour au
 # menu) : permet au pair de distinguer un départ délibéré d'une coupure réseau

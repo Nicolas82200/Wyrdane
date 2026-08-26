@@ -107,6 +107,7 @@ var cost_system := CostSystem.new()
 var sacrifice_system := SacrificeSystem.new()
 var fusion_system := FusionSystem.new()
 var pact_activation_system := PactActivationSystem.new()
+var hand_discard_system := HandDiscardSystem.new()
 var combat_log := CombatLogSystem.new()
 # Overlay de VFX 3D (impacts de coup, projectiles de sort), créé en code (voir
 # VFXManager) — pas de nœud dans Battle.tscn.
@@ -257,6 +258,7 @@ func _init_systems() -> void:
 	sacrifice_system.init(self)
 	fusion_system.init(self)
 	pact_activation_system.init(self)
+	hand_discard_system.init(self)
 	turn_banner = TurnBanner.new()
 	add_child(turn_banner)
 	vfx_manager = VFXManager.new()

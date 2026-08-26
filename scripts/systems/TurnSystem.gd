@@ -19,6 +19,9 @@ func end_turn() -> void:
 	if _ending_turn:
 		return
 	_ending_turn = true
+	# Limite de 10 cartes en main (voir HandDiscardSystem) : si dépassée, bloque
+	# ici tant que le joueur n'a pas défaussé l'excédent (choix ou timeout).
+	await battle.hand_discard_system.run_if_needed()
 	# Capture les ids des serviteurs créés par les déclencheurs de fin de tour
 	# (ex. Dernier Souffle), pour que le pair les rejoue avec les mêmes ids.
 	if battle.net_emitter != null:
