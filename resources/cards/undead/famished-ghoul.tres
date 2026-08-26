@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Goule Affamée"
-description = "NÉCROPHAGE : Gagne +1/+1 de façon permanente quand un serviteur allié meurt."
+description = "NÉCROPHAGE"
 flavour_text = "La faim ne disparaît pas avec la mort. Elle empire."
 texture = ExtResource("3_texture")
 attack = 2

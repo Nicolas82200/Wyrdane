@@ -138,7 +138,12 @@ var _load_generation: int = 0
 func _refresh_card_grid() -> void:
 	_load_generation += 1
 	var my_generation: int = _load_generation
+	# remove_child() immédiat avant queue_free() : sinon les anciennes cartes
+	# comptent encore dans la taille calculée de CardGrid le temps que le
+	# nouveau chargement par lot (_load_next_batch, étalé sur plusieurs frames)
+	# les remplace, ce qui peut pousser/rogner la grille pendant la transition.
 	for child in card_grid.get_children():
+		card_grid.remove_child(child)
 		child.queue_free()
 	_grid_visuals.clear()
 	_buy_buttons.clear()

@@ -196,7 +196,7 @@ Positionnement (Lane Types)
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 65 | Autel des Damnés | 3 | Rare | Deuil : Piochez 1 carte. | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
+| 65 | Autel des Damnés | 3 | Rare | Deuil : Piochez 1 carte. (Une seule fois par tour.) | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
 | 66 | Fosse Commune | 4 | Rare | Renfort : Si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
 | 67 | Aura de Décrépitude | 3 | Rare | Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
 | 68 | Cimetière Vivant | 5 | Épique | Deuil : Ce Mort-Vivant revient en jeu à la fin du tour avec 1 point de vie. (Une seule fois par serviteur.) | Le sol ici ne garde rien. Il régurgite. |
@@ -304,12 +304,12 @@ Liste complète des cartes de la race **Humain**.
 | H01 | Conscrit | ⚔️ | 1 | 1 | 2 | — | *Il n'a pas choisi de venir. Il est venu quand même.* |
 | H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
 | H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
-| H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. | *Seul, il tient. Ensemble, ils avancent.* |
+| H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION. | *Seul, il tient. Ensemble, ils avancent.* |
 | H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant. | *Il ne rate pas. Il attend juste le bon moment.* |
 | H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT Arrivée : Piochez 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
 | H07 | Vétéran des Marches | ⚔️ | 3 | 2 | 4 | Blessure : Gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
 | H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Attaque : Le serviteur allié adjacent gagne +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
-| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
+| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
 | H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : Restaure 1 point de vie à un serviteur Humain allié aléatoire. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
 | H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
 
@@ -322,7 +322,7 @@ Liste complète des cartes de la race **Humain**.
 | H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT Arrivée : Invoque un Milicien du Bourg 2/1 en rangée Avant. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
 | H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Attaque** : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
 | H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART, FORTIFICATION | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
-| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION : Peut cibler n'importe quel serviteur ennemi (Avant ou Arrière). | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
+| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION. | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
 | H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : Restaure 2 HP à un serviteur Humain allié aléatoire. Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
 | H19 | Lame-Jurée | ⚔️ | 3 | 4 | 2 | DISCIPLINE. Exécution : Gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : Les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
@@ -365,7 +365,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |---|:---:|:---:|:---:|:---:|---|---|
 | Porte-Bannière Royal | 🛡️ | 4 | 3 | 5 | COMMANDEMENT | Chaque recrue qui rejoint sa bannière se tient un peu plus droite. |
-| Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION : Tant qu'un allié est adjacent, ce serviteur gagne +1/+1. | Seule, une lance plie. En ligne, elle ne recule plus. |
+| Ligne de Fer | ⚔️ | 3 | 2 | 6 | FORMATION. | Seule, une lance plie. En ligne, elle ne recule plus. |
 
 **Incantations Arena** :
 
@@ -446,7 +446,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION : Tant qu'un allié est adjacent, gagne +1/+1. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
+| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
 | H78 | Éclaireur Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT (jeton, invoqué par : Marche Forcée, Prêtre de Guerre, Porte-Étendard, Paladin de l'Aube, Milicien du Bourg). | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
 | H79 | Porteur de Bouclier (jeton) | ⚔️ | — | 1 | 4 | REMPART (jeton, invoqué par : Le Rempart Vivant). | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
 | H80 | Milicien du Bourg (jeton) | ⚔️ | — | 2 | 1 | — (jeton vanille, invoqué par : Mémorial des Héros, Appel aux Armes, Capitaine de Milice, Soldat de la Foi). | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |

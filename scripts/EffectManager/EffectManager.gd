@@ -130,6 +130,12 @@ func _get_targets(
 				result.append(selected_target)
 			else:
 				push_warning("Effet '%s' attend une cible mais selected_target est null." % effect.effect_id)
+		"TriggerSource":
+			# Le serviteur à l'origine de l'évènement (ex: l'attaquant pour
+			# OnResonance) — distinct de selected_target qui, pour ce trigger,
+			# porte la cible de l'attaque (voir TriggerSystem._execute_enchantment_effects_with_proxy).
+			if selected_target:
+				result.append(selected_target)
 		"AllEnemies":
 			result.append_array(battle.get_enemy_minions(source_minion))
 		"AllAllies":
