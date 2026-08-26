@@ -17,7 +17,7 @@ static func refresh(builder) -> void:
 
 	if builder.current_deck == null:
 		return
-	var cards := builder.current_deck.get_cards()
+	var cards: Array[CardData] = builder.current_deck.get_cards()
 	if cards.is_empty():
 		return
 
