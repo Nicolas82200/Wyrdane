@@ -29,7 +29,11 @@ func _ready() -> void:
 	# Les decks arrivent de façon asynchrone (sync backend lancée par MainMenu) :
 	# si elle n'a pas encore fini, on se met simplement à jour quand elle finit.
 	DeckManager.decks_loaded.connect(_refresh)
-	_retranslate()   # appelle aussi _refresh()
+	_retranslate()   # appelle aussi _refresh() avec les données déjà en mémoire
+	# Re-sync à chaque ouverture de l'écran : un deck créé sur le deck builder
+	# web pendant que le jeu tourne n'apparaît sinon qu'au prochain redémarrage
+	# (DeckManager.decks n'est peuplé qu'au chargement initial du jeu).
+	DeckManager.sync_from_backend()
 
 # Met à jour les libellés fixes dans la langue courante (les lignes de deck sont
 # régénérées par _refresh, appelé ici aussi pour relocaliser leurs boutons).
