@@ -356,9 +356,9 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 
 func _on_card_hover(card: Card) -> void:
 	_hovering = true
-	if _battle and "game_over" in _battle and _battle.game_over:
+	if is_instance_valid(_battle) and "game_over" in _battle and _battle.game_over:
 		return
-	if _battle and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
+	if is_instance_valid(_battle) and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
 	for c in container.get_children():
 		if c is Card and c.dragging:
@@ -370,7 +370,7 @@ func _on_card_hover(card: Card) -> void:
 		_update_hand_layout(true)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if not _hovering or not is_instance_valid(card) or card.dragging:
+	if not is_instance_valid(self) or not _hovering or not is_instance_valid(card) or card.dragging:
 		return
 	# La carte survolée se décale déjà (voir HOVER_LIFT/_card_position) : les
 	# tooltips de mots-clés s'ancrent directement sur son rectangle réel plutôt
@@ -393,11 +393,15 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float, f
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
+	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
+		return
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
 	_battle.add_child(_tooltip_layer)
 	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
 	await get_tree().process_frame
+	if not is_instance_valid(self) or not is_instance_valid(_tooltip_layer):
+		return
 
 	var vp := get_viewport_rect().size
 
