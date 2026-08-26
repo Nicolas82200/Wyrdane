@@ -375,6 +375,45 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 
 	return panels
 
+# ─── États négatifs actuels d'un serviteur (survol en bataille) ──────────────
+# Distinct des panels de mots-clés/effets ci-dessus (qui décrivent la CARTE) :
+# ceux-ci reflètent l'état RUNTIME du serviteur avec les valeurs réelles
+# (nombre de marques d'Infection, tours de Gel/Terreur restants, stacks de
+# Corruption) — un serviteur touché 5 fois par l'Infection affiche "Subit 5
+# points de dégâts par tour", pas un texte générique disant "1".
+func build_status_panels_for_minion(minion: Minion, parent: Node) -> Array[Control]:
+	var panels: Array[Control] = []
+
+	if minion.infection_stacks > 0:
+		var panel := make_tooltip_panel(
+			_tr("STATUS_INFECTED_NAME"), _tr("STATUS_INFECTED_DESC") % minion.infection_stacks, COLOR_EFFECT)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	if minion.frozen_turns > 0:
+		var panel := make_tooltip_panel(
+			_tr("STATUS_FROZEN_NAME"), _tr("STATUS_FROZEN_DESC") % minion.frozen_turns, COLOR_EFFECT)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	if minion.terror_turns > 0:
+		var panel := make_tooltip_panel(
+			_tr("STATUS_TERROR_NAME"), _tr("STATUS_TERROR_DESC") % minion.terror_turns, COLOR_EFFECT)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	if minion.corruption_stacks > 0:
+		var panel := make_tooltip_panel(
+			_tr("STATUS_CORRUPTED_NAME"), _tr("STATUS_CORRUPTED_DESC") % minion.corruption_stacks, COLOR_EFFECT)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
+	return panels
+
 func _effect_title(effect_id: String) -> String:
 	match effect_id:
 		"Freeze":           return _tr("EFF_FREEZE_NAME")
