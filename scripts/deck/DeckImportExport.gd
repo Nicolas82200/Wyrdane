@@ -8,7 +8,7 @@ class_name DeckImportExport
 static func export(builder) -> void:
 	if builder.current_deck == null:
 		return
-	var code := builder.current_deck.to_code()
+	var code: String = builder.current_deck.to_code()
 	DisplayServer.clipboard_set(code)
 
 	var dialog := AcceptDialog.new()

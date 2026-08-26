@@ -10,6 +10,11 @@ class_name DeckList
 
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
+# Taille totale d'un deck complet (cartes jouables + cartes-ressource, voir
+# DeckBuilder.MIN_CARDS/MIN_RESOURCE_CARDS) — deck.size() compte les deux
+# ensemble, donc le seuil affiché ici doit être leur somme, pas MIN_CARDS seul.
+const MIN_DECK_SIZE := 50
+
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne, selon la race
 # dominante du deck (repère visuel rapide dans la liste).
 const RACE_ACCENTS := {
@@ -129,12 +134,12 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Compte de cartes — rouge si deck incomplet
 	var count_lbl := Label.new()
-	count_lbl.text = "%d/40" % deck.size()
+	count_lbl.text = "%d/%d" % [deck.size(), MIN_DECK_SIZE]
 	count_lbl.custom_minimum_size = Vector2(56, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_lbl.add_theme_font_size_override("font_size", 14)
 	count_lbl.add_theme_color_override("font_color",
-		Color(0.5, 0.9, 0.5, 1) if deck.size() >= 40 else Color(1, 0.4, 0.4, 1))
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= MIN_DECK_SIZE else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
 
 	# Bouton choisir — désactivé si déjà actif
