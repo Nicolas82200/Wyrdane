@@ -256,23 +256,29 @@ func _apply_commandement_bonus(minion: Minion, is_player: bool) -> void:
 		if ally != minion and ally.has_human_keyword(KeywordHuman.Type.COMMANDEMENT):
 			minion.base_attack += 1
 
+# Même règle que BoardSystem._apply_chair_adaptative (1v1) : n'importe quel
+# serviteur en jeu dans cette bataille simulée, allié ou ennemi, pas
+# seulement un voisin adjacent.
 func _apply_chair_adaptative(minion: Minion) -> void:
 	if not minion.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE):
 		return
-	for adjacent in effect_manager._get_adjacent_minions(self, minion):
-		if not adjacent.keywords.is_empty():
-			minion.add_keyword(adjacent.keywords[0])
+	var candidates: Array[Minion] = player_minions + enemy_minions
+	for candidate in candidates:
+		if candidate == minion:
+			continue
+		if not candidate.keywords.is_empty():
+			minion.add_keyword(candidate.keywords[0])
 			return
-		if not adjacent.human_keywords.is_empty():
-			minion.add_human_keyword(adjacent.human_keywords[0])
+		if not candidate.human_keywords.is_empty():
+			minion.add_human_keyword(candidate.human_keywords[0])
 			return
-		if not adjacent.undead_keywords.is_empty():
-			minion.undead_keywords.append(adjacent.undead_keywords[0])
+		if not candidate.undead_keywords.is_empty():
+			minion.undead_keywords.append(candidate.undead_keywords[0])
 			return
-		if not adjacent.demon_keywords.is_empty():
-			minion.add_demon_keyword(adjacent.demon_keywords[0])
+		if not candidate.demon_keywords.is_empty():
+			minion.add_demon_keyword(candidate.demon_keywords[0])
 			return
-		for kw in adjacent.abomination_keywords:
+		for kw in candidate.abomination_keywords:
 			if kw != KeywordAbomination.Type.CHAIR_ADAPTATIVE:
 				minion.add_abomination_keyword(kw)
 				return

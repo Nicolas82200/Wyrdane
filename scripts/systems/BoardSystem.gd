@@ -73,32 +73,36 @@ func _apply_commandement_bonus(minion: Minion, is_player: bool) -> bool:
 			applied = true
 	return applied
 
-# CHAIR ADAPTATIVE (Abomination) : Arrivée — copie un mot-clé présent sur un
-# serviteur ALLIÉ adjacent, de façon permanente. Simplification par rapport au
-# texte (« allié ou ennemi ») : le plateau n'ayant pas de notion de position
-# géométrique inter-camp (les rangées adverses ne sont pas indexées en miroir),
-# seule l'adjacence alliée est résolue ici. Choix déterministe (premier trouvé),
-# faute d'UI de sélection.
+# CHAIR ADAPTATIVE (Abomination) : Arrivée — copie un mot-clé présent sur
+# n'importe quel serviteur en jeu, allié ou ennemi, de façon permanente.
+# Plus de contrainte d'adjacence : elle posait un problème de résolution
+# inter-camp (les rangées adverses ne sont pas indexées en miroir) réglé en
+# élargissant la source aux serviteurs en jeu plutôt qu'en le contournant.
+# Choix déterministe (premier trouvé, alliés d'abord puis ennemis dans
+# l'ordre du plateau), faute d'UI de sélection.
 func _apply_chair_adaptative(minion: Minion) -> Minion:
 	if not minion.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE):
 		return null
-	for adjacent in battle.effect_manager._get_adjacent_minions(battle, minion):
-		if not adjacent.keywords.is_empty():
-			minion.add_keyword(adjacent.keywords[0])
-			return adjacent
-		if not adjacent.human_keywords.is_empty():
-			minion.add_human_keyword(adjacent.human_keywords[0])
-			return adjacent
-		if not adjacent.undead_keywords.is_empty():
-			minion.undead_keywords.append(adjacent.undead_keywords[0])
-			return adjacent
-		if not adjacent.demon_keywords.is_empty():
-			minion.add_demon_keyword(adjacent.demon_keywords[0])
-			return adjacent
-		for kw in adjacent.abomination_keywords:
+	var candidates: Array[Minion] = battle.player_minions + battle.enemy_minions
+	for candidate in candidates:
+		if candidate == minion:
+			continue
+		if not candidate.keywords.is_empty():
+			minion.add_keyword(candidate.keywords[0])
+			return candidate
+		if not candidate.human_keywords.is_empty():
+			minion.add_human_keyword(candidate.human_keywords[0])
+			return candidate
+		if not candidate.undead_keywords.is_empty():
+			minion.undead_keywords.append(candidate.undead_keywords[0])
+			return candidate
+		if not candidate.demon_keywords.is_empty():
+			minion.add_demon_keyword(candidate.demon_keywords[0])
+			return candidate
+		for kw in candidate.abomination_keywords:
 			if kw != KeywordAbomination.Type.CHAIR_ADAPTATIVE:
 				minion.add_abomination_keyword(kw)
-				return adjacent
+				return candidate
 	return null
 
 func _insert(minion: Minion, is_player: bool, row: String, insert_index: int) -> void:

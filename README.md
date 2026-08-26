@@ -103,7 +103,7 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 | `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
 | `FUSION` | Activation volontaire : sacrifie un allié adjacent, absorbe ses stats restantes ET un de ses mots-clés au choix. | `FusionSystem.gd` — bouton dédié sur le serviteur, ciblage de la victime puis popup de choix du mot-clé ; synchronisé réseau (`NetCommand.ACTIVATE_FUSION`) |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
-| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur EN JEU (allié ou ennemi), de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé, alliés d'abord) |
 | `ASSIMILATION` | Dévoration : gagne +1/+1 jusqu'au début du prochain tour (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
 | `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
 

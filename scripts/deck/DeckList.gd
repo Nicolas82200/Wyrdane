@@ -98,6 +98,11 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	panel.custom_minimum_size = Vector2(0, 52)
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
+	# Deck incomplet/invalide ou contenant des cartes non possédées : pas
+	# bloquant ici (juste une gestion des decks), mais expliqué au survol.
+	var warnings := DeckManager.playability_warnings(deck)
+	if not warnings.is_empty():
+		panel.tooltip_text = "\n".join(warnings)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)

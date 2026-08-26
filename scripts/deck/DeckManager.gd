@@ -196,18 +196,59 @@ func validation_warnings(deck: DeckData) -> Array[String]:
 	warnings.append_array(race_warnings(deck))
 	return warnings
 
+## Texte d'avertissement si le deck contient des cartes (non-ressource) en
+## quantité supérieure à ce que le joueur possède réellement — vide si le
+## deck est entièrement possédé. Un deck importé/construit avec des cartes
+## manquantes reste sauvegardable (voir DeckBuilder._on_save, qui ne bloque
+## que sur validation_warnings) mais n'est pas jouable tant qu'il en manque
+## (voir playability_warnings).
+func unowned_cards_warning(deck: DeckData) -> String:
+	if deck == null:
+		return ""
+	var counts: Dictionary = {}
+	for path in deck.card_paths:
+		counts[path] = counts.get(path, 0) + 1
+	var missing := 0
+	for path in counts:
+		var card: CardData = load(path) as CardData
+		if card == null or card.card_type == "Resource":
+			continue
+		var needed: int = counts[path]
+		var owned := CollectionManager.owned_quantity(card)
+		if owned < needed:
+			missing += needed - owned
+	if missing <= 0:
+		return ""
+	return SettingsManager.t("deck.warning_unowned_cards") % missing
+
+## validation_warnings (règles de deck : nombre de cartes, ressources de race)
+## + unowned_cards_warning (possession) : conditions complètes pour qu'un deck
+## soit réellement jouable. Utilisé pour bloquer la sélection dans l'écran
+## "choisir un deck" (voir MainMenu._make_play_deck_row) et pour le tooltip
+## d'avertissement dans la liste "Mes Decks" (voir DeckList._make_deck_row).
+func playability_warnings(deck: DeckData) -> Array[String]:
+	var warnings := validation_warnings(deck)
+	var unowned := unowned_cards_warning(deck)
+	if unowned != "":
+		warnings.append(unowned)
+	return warnings
+
+## Une carte peut être ajoutée jusqu'à MAX_COPIES_PER_CARD exemplaires, que le
+## joueur la possède ou non (voir unowned_cards_warning) — permet de construire
+## ou d'importer un deck avant d'avoir acheté toutes ses cartes ; il ne sera
+## simplement pas sélectionnable pour jouer tant qu'il en manque (voir
+## playability_warnings / MainMenu._make_play_deck_row). Cartes-ressource :
+## quantité illimitée dans un deck (le backend ne vérifie ni plafond ni
+## possession pour ce type de carte, voir README « Système de Ressources par
+## Race »).
 func can_add_card(deck: DeckData, card_data: CardData) -> bool:
-	# Cartes-ressource : quantité illimitée dans un deck, sans lien avec ce qui
-	# est possédé en collection (voir README « Système de Ressources par Race »
-	# — le backend ne vérifie ni plafond ni possession pour ce type de carte).
 	if card_data.card_type == "Resource":
 		return true
-	var owned := CollectionManager.owned_quantity(card_data)
 	var count := 0
 	for path in deck.card_paths:
 		if path == card_data.resource_path:
 			count += 1
-	return count < min(MAX_COPIES_PER_CARD, owned)
+	return count < MAX_COPIES_PER_CARD
 
 # ─── Sauvegarde (pousse tous les decks vers l'API) ────────────────────────────
 
