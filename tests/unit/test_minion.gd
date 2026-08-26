@@ -91,3 +91,29 @@ func test_infected_blocked_by_chair_morte() -> void:
 	minion.undead_keywords.append(KeywordUndead.Type.CHAIR_MORTE)
 	minion.infected = true
 	assert_false(minion.infected, "CHAIR MORTE doit bloquer l'Infection")
+
+func test_infection_stacks_accumulate_on_repeated_exposure() -> void:
+	var minion := Minion.new(_make_data(2, 40))
+	minion.infected = true
+	minion.infected = true
+	minion.infected = true
+	minion.infected = true
+	minion.infected = true
+	assert_eq(minion.infection_stacks, 5, "5 expositions doivent donner 5 marques cumulées")
+	assert_true(minion.infected)
+
+func test_infected_false_cures_all_stacks_at_once() -> void:
+	var minion := Minion.new(_make_data(2, 40))
+	minion.infected = true
+	minion.infected = true
+	minion.infected = false
+	assert_eq(minion.infection_stacks, 0, "infected = false doit guérir toutes les marques d'un coup")
+	assert_false(minion.infected)
+
+func test_chair_morte_blocks_additional_stacks_but_not_existing_ones() -> void:
+	var minion := Minion.new(_make_data(2, 40))
+	minion.infected = true
+	minion.infected = true
+	minion.undead_keywords.append(KeywordUndead.Type.CHAIR_MORTE)
+	minion.infected = true
+	assert_eq(minion.infection_stacks, 2, "CHAIR MORTE ne doit bloquer que les NOUVELLES marques")

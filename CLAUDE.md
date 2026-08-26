@@ -109,7 +109,7 @@ Un effet `SummonMinion` (cible fixe via `CardEffect.summon_card`) ne doit **jama
 `REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `INFILTRATION`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
 
 ### Mécaniques spéciales — Mort-Vivant
-- **Infection** — perte de 1 HP au début du tour adverse, persiste jusqu'à mort
+- **Infection** — cumulable (`Minion.infection_stacks`) : chaque pose ajoute une marque, perte d'autant de HP au début du tour adverse (5 marques = 5 HP/tour), persiste jusqu'à mort ou guérison complète (`CureInfection` retire toutes les marques d'un coup)
 - **Mort-rage** — se déclenche une seule fois, quand le serviteur passe sous 50% HP max
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet

@@ -113,9 +113,9 @@ func _apply_infection_damage() -> void:
 	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
 		if minion.infected:
 			any_infected = true
-			var dealt: int = minion.take_damage(1)
+			var dealt: int = minion.take_damage(minion.infection_stacks)
 			if dealt > 0:
-				battle.combat_log.infection_tick(minion)
+				battle.combat_log.infection_tick(minion, dealt)
 				var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 				if visual:
 					battle.animation_system.play_infection_tick(visual, dealt)

@@ -153,3 +153,13 @@ func test_apply_infection_damage_no_crash_without_infected_minions() -> void:
 	_minion(true, false)
 	await turn_system._apply_infection_damage()
 	assert_eq(battle.player_minions[0].health, 4)
+
+func test_apply_infection_damage_scales_with_stacks() -> void:
+	var minion := _minion(true, true)
+	minion.infected = true
+	minion.infected = true
+	minion.infected = true
+	# 4 marques au total (1 posée par _minion() + 3 ci-dessus) sur un 2/4 → mort,
+	# la perte de vie doit refléter les 4 marques et non un dégât fixe de 1.
+	await turn_system._apply_infection_damage()
+	assert_true(minion.is_dead(), "4 marques d'Infection doivent tuer un serviteur à 4 PV max")
