@@ -35,6 +35,14 @@ var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
 var _fusion_button: Button = null
 
+# Halo pulsant affiché pendant que la popup d'effet de CE serviteur est jouée
+# (CardPopupSystem.show_card_popup) — identifie visuellement quelle carte du
+# plateau déclenche l'effet en cours de preview, vert pour un allié, rouge
+# pour un adversaire (voir set_effect_preview_highlight).
+var _effect_preview_glow: Panel = null
+var _effect_preview_style: StyleBoxFlat = null
+var _effect_preview_pulse: float = 0.0
+
 # ─── Statuts persistants (Rempart, Égide, Gel, Infection, Terreur, Silence,
 # Corruption, Immunité aux sorts) ──────────────────────────────────────────────
 var _taunt_shield: Panel = null
@@ -71,6 +79,8 @@ const TAUNT_SHIELD_COLOR      := Color(0.55, 0.7, 0.85)
 const AEGIS_GLOW_COLOR        := Color(1.0, 0.84, 0.2)
 const CORRUPTION_BORDER_COLOR := Color(0.75, 0.15, 0.2)
 const SPELL_WARD_COLOR        := Color(0.35, 0.85, 0.8)
+const EFFECT_PREVIEW_ALLY_COLOR  := Color(0.25, 0.9, 0.3)
+const EFFECT_PREVIEW_ENEMY_COLOR := Color(0.95, 0.2, 0.2)
 
 # ─── Coloration des stats (buff/debuff) ───────────────────────────────────────
 const STAT_COLOR_DEFAULT           := Color(1, 1, 1, 1)
@@ -143,6 +153,29 @@ func _ready() -> void:
 	add_child(_ready_glow)
 	move_child(_ready_glow, border_highlight.get_index())
 
+	# Halo « effet en cours de preview » — léger contour pulsant, vert/rouge
+	# selon le camp (voir set_effect_preview_highlight).
+	_effect_preview_style = StyleBoxFlat.new()
+	_effect_preview_style.bg_color            = Color.TRANSPARENT
+	_effect_preview_style.border_width_left   = 3
+	_effect_preview_style.border_width_right  = 3
+	_effect_preview_style.border_width_top    = 3
+	_effect_preview_style.border_width_bottom = 3
+	_effect_preview_style.border_color        = EFFECT_PREVIEW_ALLY_COLOR
+	_effect_preview_style.corner_radius_top_left     = 8
+	_effect_preview_style.corner_radius_top_right    = 8
+	_effect_preview_style.corner_radius_bottom_left  = 8
+	_effect_preview_style.corner_radius_bottom_right = 8
+	_effect_preview_glow = Panel.new()
+	_effect_preview_glow.name = "EffectPreviewGlow"
+	_effect_preview_glow.position = Vector2(-4, -4)
+	_effect_preview_glow.size = Vector2(108, 158)
+	_effect_preview_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_effect_preview_glow.add_theme_stylebox_override("panel", _effect_preview_style)
+	_effect_preview_glow.visible = false
+	add_child(_effect_preview_glow)
+	move_child(_effect_preview_glow, border_highlight.get_index())
+
 	BoardMinionStatusVFX.setup(self)
 
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -192,6 +225,10 @@ func _process(delta: float) -> void:
 		_ready_pulse += delta * 2.5
 		_ready_style.border_color.a = 0.55 + sin(_ready_pulse) * 0.35
 		_ready_glow.queue_redraw()
+	if _effect_preview_glow != null and _effect_preview_glow.visible:
+		_effect_preview_pulse += delta * 4.0
+		_effect_preview_style.border_color.a = 0.5 + sin(_effect_preview_pulse) * 0.4
+		_effect_preview_glow.queue_redraw()
 	BoardMinionStatusVFX.update_pulse(self, delta)
 	_update_fusion_button()
 	if not _targetable or _targetable_style == null:
@@ -253,6 +290,19 @@ func _update_fusion_button() -> void:
 		return
 	_fusion_button.visible = "fusion_system" in _battle \
 		and _battle.fusion_system.can_activate(minion)
+
+# ─── Halo « effet en cours de preview » ──────────────────────────────────────
+
+# Affiché/masqué par CardPopupSystem pendant que la popup d'effet de ce
+# serviteur est jouée à l'écran (voir CardPopupSystem._play_popup) : identifie
+# la carte du plateau qui déclenche l'effet en cours de preview.
+func set_effect_preview_highlight(active: bool, is_ally: bool) -> void:
+	if _effect_preview_glow == null:
+		return
+	if active:
+		_effect_preview_style.border_color = EFFECT_PREVIEW_ALLY_COLOR if is_ally else EFFECT_PREVIEW_ENEMY_COLOR
+		_effect_preview_pulse = 0.0
+	_effect_preview_glow.visible = active
 
 # ─── Halo « prêt à attaquer » ────────────────────────────────────────────────
 

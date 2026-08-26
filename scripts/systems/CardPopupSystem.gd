@@ -92,7 +92,7 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		card.position.x = -card.size.x
 		card.scale = Vector2(STACK_SCALE, STACK_SCALE)
 
-	var entry := {"card": card, "shown": false}
+	var entry := {"card": card, "shown": false, "source_minion": source_minion}
 	# Un nouvel effet déclenché passe DEVANT la file : il se jouera en premier
 	_pending.push_front(entry)
 	_reflow_pending()
@@ -191,6 +191,12 @@ func _play_popup(entry: Dictionary) -> void:
 	t_in.tween_property(card, "modulate:a", 1.0, 0.15)
 	await t_in.finished
 
+	# Identifie sur le plateau le serviteur qui déclenche l'effet en cours de
+	# preview (contour pulsant vert/rouge selon le camp, voir
+	# BoardMinion.set_effect_preview_highlight) — pas pour les cartes-ressource,
+	# qui n'ont pas de serviteur source.
+	_set_source_highlight(entry, true)
+
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
 	await battle.get_tree().create_timer(READ_HOLD).timeout
@@ -199,6 +205,7 @@ func _play_popup(entry: Dictionary) -> void:
 	if is_resource:
 		await battle.get_tree().create_timer(RESOURCE_HOLD).timeout
 		_active_card = null
+		_set_source_highlight(entry, false)
 		_absorb_resource_popup(card, entry["card_data"])
 		return
 
@@ -208,8 +215,20 @@ func _play_popup(entry: Dictionary) -> void:
 		_effect_card = null
 		clear_effect_arrows()
 	_active_card = null
+	_set_source_highlight(entry, false)
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card)
+
+# Active/désactive le halo de preview sur le serviteur source de cette popup
+# (absent pour les cartes-ressource, ou si le serviteur a quitté le plateau
+# entre-temps — ex: il meurt pendant que sa propre popup est encore affichée).
+func _set_source_highlight(entry: Dictionary, active: bool) -> void:
+	var source_minion: Minion = entry.get("source_minion")
+	if source_minion == null:
+		return
+	var visual: BoardMinion = battle.board_visual_system.get_visual(source_minion)
+	if visual != null and is_instance_valid(visual):
+		visual.set_effect_preview_highlight(active, source_minion.owner_is_player)
 
 # Remplace le fondu habituel par la dissolution de AnimationSystem, depuis la
 # position de la popup — la même animation que Card.gd utilisait auparavant
