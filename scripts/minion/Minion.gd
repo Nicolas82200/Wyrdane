@@ -56,13 +56,24 @@ var corruption_stacks: int = 0
 # sont appliqués directement sur base_attack/base_max_health par roll_mutation.
 var mutation_stacks: int = 0
 var mutations: Array[String] = []
-# CHAIR MORTE, ou une immunité d'aura (Aegis de l'Empire), bloque toute pose
-# d'Infection quelle que soit la source
-var infected: bool = false:
+# Infection cumulable : chaque pose ajoute une marque, chacune infligeant 1
+# dégât au début du tour adverse (voir TurnSystem._apply_infection_damage) —
+# un serviteur touché 5 fois perd 5 PV/tour, pas 1. CHAIR MORTE ou une
+# immunité d'aura (Aegis de l'Empire) bloque toute nouvelle marque.
+var infection_stacks: int = 0
+# Compat/lisibilité : `infected = true` ajoute une marque (bloqué par
+# l'immunité), `infected = false` retire toutes les marques (guérison
+# complète, voir CureInfection/Aegis de l'Empire) ; `infected` se lit comme un
+# simple booléen partout ailleurs dans le code (combat, ciblage, VFX...).
+var infected: bool:
+	get: return infection_stacks > 0
 	set(value):
-		if value and is_infection_immune():
-			return
-		infected = value
+		if value:
+			if is_infection_immune():
+				return
+			infection_stacks += 1
+		else:
+			infection_stacks = 0
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
 var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false

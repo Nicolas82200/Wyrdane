@@ -655,7 +655,7 @@ class SimCombatLog:
 		])
 	func minion_died(minion: Minion) -> void:
 		lines.append("%s meurt" % minion.card_data.card_name)
-	func infection_tick(_minion: Minion) -> void:
+	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
 		pass

@@ -62,8 +62,8 @@ func attack_hero(attacker: Minion, target_is_player: bool, dmg: int) -> void:
 func minion_died(minion: Minion) -> void:
 	_add("X", [_seg_card(minion.card_data, minion.owner_is_player)])
 
-func infection_tick(minion: Minion) -> void:
-	_add("Inf.", [_seg_card(minion.card_data, minion.owner_is_player), _seg_text("-1")])
+func infection_tick(minion: Minion, dealt: int = 1) -> void:
+	_add("Inf.", [_seg_card(minion.card_data, minion.owner_is_player), _seg_text("-%d" % dealt)])
 
 func self_damage(is_player: bool, dmg: int) -> void:
 	if dmg <= 0:
