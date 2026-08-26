@@ -426,6 +426,7 @@ func _launch_backend_syncs() -> void:
 	)
 	ProfilePanel.fetch_rank_badge(self)
 	ProfilePanel.fetch_login_reward_status(self)
+	ReferralPanel.maybe_show_first_launch_prompt(self)
 
 # --- Fenêtre "Actualités" multi-vues -----------------------------------
 # Le panneau de droite affiche une seule vue à la fois (Actualités par

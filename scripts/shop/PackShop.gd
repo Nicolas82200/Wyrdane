@@ -38,7 +38,10 @@ const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
 const GRID_AREA_LEFT_RATIO := 0.34
 const GRID_AREA_SIDE_MARGIN := 40.0
 const GRID_AREA_TOP := 150.0
-const GRID_AREA_BOTTOM := 170.0
+# Doit rester au-dessus de la pile de boutons ancrée en bas de l'écran (voir
+# OwnedButtonRow/FreeButtonRow/BottomBar/SkipHintLabel dans PackShop.tscn, qui
+# culmine à 234px du bas) pour que les cartes révélées ne les chevauchent pas.
+const GRID_AREA_BOTTOM := 250.0
 const GRID_MAX_COLUMNS := 5
 # Fraction de chaque cellule de grille effectivement occupée par la carte (le
 # reste forme l'espacement entre cartes).
@@ -52,6 +55,7 @@ const GRID_CELL_PADDING := 0.86
 @onready var close_x_button: Button = $ShakeLayer/CloseXButton
 @onready var pack_stage: Control = $ShakeLayer/PackStage
 @onready var pack_center: CenterContainer = $ShakeLayer/PackStage/PackCenter
+@onready var owned_button: Button = $ShakeLayer/OwnedButtonRow/OpenOwnedButton
 @onready var free_button: Button = $ShakeLayer/FreeButtonRow/FreeButton
 @onready var open_x1_button: Button = $ShakeLayer/BottomBar/OpenX1Button
 @onready var open_x3_button: Button = $ShakeLayer/BottomBar/OpenX3Button
@@ -82,6 +86,12 @@ func _ready() -> void:
 	open_x3_button.pressed.connect(func(): _open_pack(false, 3))
 	open_x5_button.pressed.connect(func(): _open_pack(false, 5))
 	odds_button.pressed.connect(_on_odds_pressed)
+	# Packs gratuits gagnés (quêtes hebdo, parrainage — voir
+	# docs/backend-contracts/weekly-quests-and-referral.md) : consomme
+	# CurrencyManager.free_packs plutôt que l'or, visible seulement s'il y en
+	# a au moins un.
+	owned_button.pressed.connect(_open_owned_packs)
+	CurrencyManager.free_packs_changed.connect(func(_n): _update_owned_button())
 	# Bouton d'ouverture gratuite : outil de test, réservé aux builds debug
 	# (l'export release ne l'affiche pas) et refusé côté serveur (403) tant
 	# que DEV_FREE_PACKS n'est pas activé sur le backend.
@@ -96,6 +106,7 @@ func _ready() -> void:
 	_retranslate()
 	_update_balance_label(CurrencyManager.balance)
 	_update_progress_label()
+	_update_owned_button()
 	_start_idle_spin()
 
 func refresh() -> void:
@@ -159,6 +170,7 @@ func _set_action_buttons_disabled(disabled: bool) -> void:
 	open_x1_button.disabled = disabled
 	open_x3_button.disabled = disabled
 	open_x5_button.disabled = disabled
+	owned_button.disabled = disabled
 	free_button.disabled = disabled
 
 ## Ouvre `quantity` packs d'affilée (l'API backend n'en ouvre qu'un par
@@ -185,6 +197,35 @@ func _open_pack(free: bool, quantity: int) -> void:
 
 func _request_single_pack(free: bool) -> Dictionary:
 	CurrencyManager.open_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards), free)
+	var result: Array = await _pack_request_completed
+	return {"code": result[0], "cards": result[1]}
+
+## Ouvre d'un coup tous les packs gratuits gagnés (quêtes hebdo, parrainage —
+## voir CurrencyManager.free_packs), même séquence de révélation que x1/x3/x5
+## mais débité du solde de packs plutôt que de l'or.
+func _open_owned_packs() -> void:
+	var quantity: int = CurrencyManager.free_packs
+	if quantity <= 0:
+		return
+	_set_action_buttons_disabled(true)
+	status_label.hide()
+
+	var all_cards: Array = []
+	var last_code := 200
+	for i in quantity:
+		var result: Dictionary = await _request_single_owned_pack()
+		if not is_instance_valid(self):
+			return
+		last_code = result["code"]
+		var cards: Array = result["cards"]
+		if last_code != 200 or cards.is_empty():
+			break
+		all_cards.append_array(cards)
+
+	_on_packs_opened(last_code, all_cards)
+
+func _request_single_owned_pack() -> Dictionary:
+	CurrencyManager.open_owned_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
 	var result: Array = await _pack_request_completed
 	return {"code": result[0], "cards": result[1]}
 
@@ -483,6 +524,13 @@ func _clear_cards() -> void:
 func _update_balance_label(new_balance: int) -> void:
 	balance_label.text = SettingsManager.t("pack_shop.balance") % new_balance
 
+## Visible seulement si le joueur a au moins un pack gratuit à ouvrir (quêtes
+## hebdo, parrainage) — CurrencyManager.free_packs, séparé du solde d'or.
+func _update_owned_button() -> void:
+	var count: int = CurrencyManager.free_packs
+	owned_button.get_parent().visible = count > 0
+	owned_button.text = SettingsManager.t("pack_shop.open_owned") % count
+
 ## Teaser de complétion de collection : cartes obtenues (>=1 exemplaire) sur
 ## le total de cartes collectionnables (exclut les cartes-ressource, jamais
 ## octroyées par un pack — voir packModel.fetchDrawablePool côté backend).
@@ -518,3 +566,4 @@ func _retranslate() -> void:
 	status_label.text = SettingsManager.t("pack_shop.error")
 	_update_balance_label(CurrencyManager.balance)
 	_update_progress_label()
+	_update_owned_button()

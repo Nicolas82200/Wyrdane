@@ -39,11 +39,9 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 **Résolu.** Ajout de 4 options d'accessibilité dans le menu Réglages (`SettingsManager.gd`, `GraphismSettingsMenu`) : contraste élevé (overlay shader dédié), réduction des animations (shake désactivé, tweens de déplacement raccourcis à 35 %), symbole de rareté sur le bandeau de type des cartes, icône d'alerte sous 30 % HP héros. Rebind clavier déjà générique (`ControlSettingsMenu.gd`) mais limité aux 3 seules actions ayant un raccourci clavier dans le projet — rien d'autre à étendre pour l'instant ; si de nouvelles actions clavier sont ajoutées au jeu, penser à les inscrire dans `SettingsManager.REBINDABLE_ACTIONS`.
 
-## P8 — Quêtes hebdomadaires & parrainage : routes backend manquantes
+## P8 — Quêtes hebdomadaires & parrainage
 
-Contrat écrit (`docs/backend-contracts/weekly-quests-and-referral.md`), squelette client prêt (`QuestsPanel._populate_weekly`, `ReferralPanel.gd`, `CurrencyManager.free_packs`/`open_owned_pack`) mais aucune des routes correspondantes n'existe encore côté `wyrdane-backend` (`/api/quests/weekly`, `/api/packs/open-owned`, `/api/referral/*`) — le client échoue proprement en attendant (mêmes garde-fous que le matchmaking classé avant ses routes). Suivis restants une fois le backend en place :
-- Bouton « Ouvrir un pack gratuit » dans `PackShop.tscn` — pas câblé dans ce lot (édition de scène volontairement laissée de côté), le solde `free_packs` est prêt côté client en attendant.
-- Placement du champ « entrer un code de parrainage » dans le flow de premier lancement/tutoriel plutôt que dans le menu principal — actuellement seulement dans la vue Profil.
+**Résolu.** Contrat (`docs/backend-contracts/weekly-quests-and-referral.md`), routes backend (`wyrdane-backend`, branche `0044-weekly-quests-and-referral` : `/api/quests/weekly`, `/api/packs/open-owned`, `/api/referral/*`) et squelette client (`QuestsPanel._populate_weekly`, `ReferralPanel.gd`, `CurrencyManager.free_packs`/`open_owned_pack`) tous en place. Bouton « Ouvrir un pack gratuit » câblé dans `PackShop.tscn`/`PackShop.gd` (visible seulement si `free_packs > 0`). Popup « entrer un code de parrainage » affiché une seule fois (`SettingsManager.referral_prompt_seen`) juste après la fin du tutoriel (`ReferralPanel.maybe_show_first_launch_prompt`, appelé depuis `MainMenu._launch_backend_syncs`), en plus du champ resté dans la vue Profil pour un usage tardif. Reste à mettre en prod côté backend (`0044-weekly-quests-and-referral` pas encore mergée/déployée) avant que ces écrans ne fonctionnent réellement en jeu.
 
 ## Non-problèmes vérifiés pendant cette revue
 

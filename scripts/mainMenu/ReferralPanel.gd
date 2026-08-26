@@ -109,3 +109,131 @@ static func _fetch_status(menu, section: VBoxContainer, status_label: Label, cod
 			_:
 				status_label.text = SettingsManager.t("REFERRAL_STATUS_NONE") % code
 	)
+
+# --- Popup de premier lancement --------------------------------------------
+# Affiché une seule fois (SettingsManager.referral_prompt_seen), juste après
+# la fin du tutoriel — moment naturel pour un nouveau joueur d'entrer un code
+# reçu d'un ami, plutôt que de compter sur lui pour aller le chercher dans la
+# vue Profil. Construit entièrement en code (aucune édition de MainMenu.tscn,
+# scène volumineuse gérée par un outil externe — même prudence que la section
+# Profil ci-dessus) et ajouté comme dernier enfant de `menu` pour s'afficher
+# au-dessus du reste. Appelé depuis MainMenu._launch_backend_syncs() : le
+# check `status == "none"` côté backend sert aussi de garde-fou si le joueur a
+# déjà été parrainé depuis un autre appareil/session avant que le flag local
+# ne soit posé.
+static func maybe_show_first_launch_prompt(menu) -> void:
+	if not SettingsManager.tutorial_completed or SettingsManager.referral_prompt_seen:
+		return
+	if not BackendClient.is_authenticated():
+		return
+	BackendClient.get_referral_status(func(success: bool, data: Dictionary):
+		if not success:
+			return
+		if String(data.get("status", "none")) != "none":
+			SettingsManager.mark_referral_prompt_seen()
+			return
+		_show_first_launch_popup(menu)
+	)
+
+const PROMPT_ACCENT := Color(0.85, 0.7, 0.25, 1.0)
+
+static func _show_first_launch_popup(menu) -> void:
+	var backdrop := ColorRect.new()
+	backdrop.name = "ReferralFirstLaunchPopup"
+	backdrop.color = Color(0, 0, 0, 0.6)
+	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
+	backdrop.z_index = 4000
+	menu.add_child(backdrop)
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	backdrop.add_child(center)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.09, 0.075, 0.06, 0.97)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = PROMPT_ACCENT
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 24
+	style.content_margin_right = 24
+	style.content_margin_top = 24
+	style.content_margin_bottom = 24
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", style)
+	center.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(380, 0)
+	vbox.add_theme_constant_override("separation", 14)
+	panel.add_child(vbox)
+
+	var title := Label.new()
+	title.text = SettingsManager.t("REFERRAL_FIRST_LAUNCH_TITLE")
+	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(title)
+
+	var desc := Label.new()
+	desc.text = SettingsManager.t("REFERRAL_FIRST_LAUNCH_DESC")
+	desc.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 1))
+	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(desc)
+
+	var status_label := Label.new()
+	status_label.visible = false
+	status_label.add_theme_color_override("font_color", Color(0.85, 0.25, 0.2, 1))
+	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(status_label)
+
+	var field := LineEdit.new()
+	field.placeholder_text = SettingsManager.t("REFERRAL_REDEEM_PLACEHOLDER")
+	field.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(field)
+
+	var button_row := HBoxContainer.new()
+	button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_row.add_theme_constant_override("separation", 12)
+	vbox.add_child(button_row)
+
+	var skip_button := Button.new()
+	skip_button.text = SettingsManager.t("REFERRAL_SKIP_BUTTON")
+	button_row.add_child(skip_button)
+
+	var submit_button := Button.new()
+	submit_button.custom_minimum_size = Vector2(140, 0)
+	submit_button.text = SettingsManager.t("REFERRAL_REDEEM_BUTTON")
+	button_row.add_child(submit_button)
+
+	var close_popup := func():
+		SettingsManager.mark_referral_prompt_seen()
+		AudioManager.play(AudioManager.CLOSE_MENU)
+		backdrop.queue_free()
+
+	skip_button.pressed.connect(close_popup)
+
+	submit_button.pressed.connect(func():
+		var code := field.text.strip_edges().to_upper()
+		if code.is_empty():
+			return
+		submit_button.disabled = true
+		BackendClient.redeem_referral_code(code, func(success: bool, error_code: String):
+			if not is_instance_valid(submit_button):
+				return
+			submit_button.disabled = false
+			if success:
+				AudioManager.play(AudioManager.CONFIRM)
+				close_popup.call()
+			else:
+				var message_key := error_code if not error_code.is_empty() else "REFERRAL_UNAVAILABLE"
+				status_label.text = SettingsManager.t(message_key)
+				status_label.visible = true
+		)
+	)
