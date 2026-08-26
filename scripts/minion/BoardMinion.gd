@@ -428,7 +428,7 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 	_tooltip_layer.layer = 20
 	_battle.add_child(_tooltip_layer)
 
-	var panels: Array[Control] = TooltipData.build_panels_for_card(minion.card_data, _tooltip_layer)
+	var panels: Array[Control] = TooltipData.build_panels_for_minion(minion, _tooltip_layer)
 	await get_tree().process_frame
 
 	if not _mouse_is_over:
