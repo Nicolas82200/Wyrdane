@@ -340,7 +340,7 @@ func play_for_style(sound_name: String, style: int, pitch_variation := true) -> 
 		push_warning("'%s' n'est pas un son par style — utilisez play()" % sound_name)
 		return
 	var variants = entry.get(style)
-	if variants == null:
+	if variants == null or (variants is Array and variants.is_empty()):
 		push_warning("Pas de son pour le style %d dans '%s'" % [style, sound_name])
 		return
 	var sound: AudioStream = variants.pick_random() if variants is Array else variants
