@@ -2,11 +2,6 @@
 extends Control
 
 const ALL_CARDS_PATH := "res://resources/cards"
-# Plus de plafond de taille de deck (voir README « Système de Ressources par
-# Race ») : seuls des minimums sont imposés, cartes jouables et ressources
-# comptées séparément bien que mélangées dans le même paquet.
-const MIN_CARDS := 40
-const MIN_RESOURCE_CARDS := 10
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
@@ -28,6 +23,7 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var card_count_label: Label         = %CardCountLabel
 @onready var warning_label:    Label         = %WarningLabel
 @onready var save_button:      Button        = %SaveButton
+@onready var buy_missing_button: Button      = %BuyMissingButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
 @onready var filter_bar:       HFlowContainer = %FilterBar
@@ -41,6 +37,16 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
+
+# Instantané du deck au dernier chargement/sauvegarde — current_deck est la
+# MÊME instance que celle rangée dans DeckManager.decks, donc chaque
+# ajout/retrait de carte la modifie déjà en mémoire avant tout clic sur
+# Sauvegarder. "Ne pas sauvegarder" restaure ces valeurs sur l'objet partagé
+# pour que l'édition abandonnée ne soit pas silencieusement repoussée au
+# backend par un DeckManager.save_decks() ultérieur et sans rapport (ex.
+# création d'un autre deck) — voir _snapshot_original_state/_discard_changes.
+var _original_name: String = ""
+var _original_card_paths: Array[String] = []
 
 # true dès que le deck en cours d'édition a été modifié depuis le dernier
 # chargement/sauvegarde — commande l'activation du bouton Sauvegarder et
@@ -93,6 +99,7 @@ func _ready() -> void:
 	card_preview.z_index = 100
 	card_preview.hide()
 	save_button.pressed.connect(_on_save)
+	buy_missing_button.pressed.connect(_on_buy_missing_pressed)
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
 	search_edit.text_changed.connect(_on_search_changed)
@@ -333,8 +340,8 @@ func _on_buy_card(card_data: CardData, buy_button: Button) -> void:
 
 ## Petit tooltip d'erreur temporaire au-dessus du bouton d'achat (solde
 ## insuffisant ou requête réseau échouée) — se referme seul après 2s.
-func _show_buy_error_tooltip(anchor: Control) -> void:
-	var panel := TooltipData.make_race_tooltip("deck.buy_error")
+func _show_buy_error_tooltip(anchor: Control, text_key: String = "deck.buy_error") -> void:
+	var panel := TooltipData.make_race_tooltip(text_key)
 	panel.position = Vector2(-9999, -9999)
 	_overlay_layer.add_child(panel)
 	await get_tree().process_frame
@@ -347,6 +354,69 @@ func _show_buy_error_tooltip(anchor: Control) -> void:
 	await get_tree().create_timer(2.0).timeout
 	if is_instance_valid(panel):
 		panel.queue_free()
+
+# ─── Achat groupé des cartes manquantes ────────────────────────────────────────
+
+## Une entrée par copie manquante (carte non-ressource possédée en quantité
+## inférieure à celle utilisée dans le deck) — une même carte peut apparaître
+## plusieurs fois si plusieurs copies manquent.
+func _missing_cards_queue() -> Array[CardData]:
+	if current_deck == null:
+		return []
+	var counts: Dictionary = {}
+	for path in current_deck.card_paths:
+		counts[path] = counts.get(path, 0) + 1
+	var queue: Array[CardData] = []
+	for path in counts:
+		var card := load(path) as CardData
+		if card == null or card.card_type == "Resource":
+			continue
+		var needed: int = counts[path]
+		var owned := CollectionManager.owned_quantity(card)
+		for i in range(maxi(needed - owned, 0)):
+			queue.append(card)
+	return queue
+
+func _on_buy_missing_pressed() -> void:
+	var queue := _missing_cards_queue()
+	if queue.is_empty():
+		return
+	buy_missing_button.disabled = true
+	_buy_missing_next(queue)
+
+## Achète uniquement les copies manquantes d'UNE carte (bouton sur sa ligne
+## grisée dans la liste du deck, voir _make_deck_row) — utile quand le joueur
+## n'a pas assez d'or pour tout acheter d'un coup via BuyMissingButton et
+## préfère acheter carte par carte.
+func _on_buy_row_missing(card: CardData, count: int, buy_btn: Button) -> void:
+	buy_btn.disabled = true
+	var queue: Array[CardData] = []
+	for i in range(count):
+		queue.append(card)
+	_buy_missing_next(queue)
+
+## Achète les copies manquantes une par une (l'API n'a qu'un endpoint à
+## l'unité, voir CollectionManager.buy_card) — s'arrête à la première erreur
+## (solde insuffisant en cours de route, requête réseau échouée) plutôt que
+## de continuer avec un état partiel silencieux.
+func _buy_missing_next(queue: Array[CardData]) -> void:
+	if queue.is_empty():
+		_on_buy_missing_finished(true)
+		return
+	var card: CardData = queue.pop_front()
+	CollectionManager.buy_card(card, func(success: bool) -> void:
+		if not success:
+			_on_buy_missing_finished(false)
+			return
+		_buy_missing_next(queue)
+	)
+
+func _on_buy_missing_finished(success: bool) -> void:
+	buy_missing_button.disabled = false
+	_refresh_card_grid()   # boutons d'achat individuels et grisage à jour
+	_refresh_deck_list()   # badge de stock et bouton "acheter manquantes" à jour
+	if not success:
+		_show_buy_error_tooltip(buy_missing_button, "deck.buy_missing_error")
 
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
 	if event is InputEventMouseButton \
@@ -405,20 +475,38 @@ func _refresh_deck_list() -> void:
 		var card := load(path) as CardData
 		if card == null:
 			continue
-		deck_list.add_child(_make_deck_row(card, path, counts[path]))
+		var total: int = counts[path]
+		# Copies possédées et non possédées d'une même carte affichées comme
+		# deux lignes distinctes (voir _make_deck_row) plutôt qu'une seule —
+		# permet d'acheter/repérer précisément ce qu'il manque. Les
+		# cartes-ressource ne sont jamais "manquantes" (illimitées, sans lien
+		# avec la possession, voir DeckManager.can_add_card).
+		if card.card_type == "Resource":
+			deck_list.add_child(_make_deck_row(card, path, total, false))
+			continue
+		var owned: int = mini(CollectionManager.owned_quantity(card), total)
+		var missing: int = total - owned
+		if owned > 0:
+			deck_list.add_child(_make_deck_row(card, path, owned, false))
+		if missing > 0:
+			deck_list.add_child(_make_deck_row(card, path, missing, true))
 
 	_update_count_label()
 
-func _make_deck_row(card: CardData, path: String, count: int) -> Control:
+## is_missing : cette ligne représente des copies NON possédées (voir
+## _refresh_deck_list, qui sépare une même carte en deux lignes si le joueur
+## n'en possède qu'une partie) — grisée, avec un bouton d'achat dédié, mais le
+## badge de coût garde sa couleur de race (repère visuel même sans posséder la carte).
+func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) -> Control:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color                   = Color(0.12, 0.10, 0.08, 1)
+	bg.bg_color                   = Color(0.08, 0.07, 0.06, 1) if is_missing else Color(0.12, 0.10, 0.08, 1)
 	bg.corner_radius_top_left     = 3
 	bg.corner_radius_top_right    = 3
 	bg.corner_radius_bottom_left  = 3
 	bg.corner_radius_bottom_right = 3
 
 	var bg_hover := bg.duplicate() as StyleBoxFlat
-	bg_hover.bg_color             = Color(0.20, 0.16, 0.10, 1)
+	bg_hover.bg_color             = Color(0.15, 0.13, 0.10, 1) if is_missing else Color(0.20, 0.16, 0.10, 1)
 	bg_hover.border_color         = Color(0.55, 0.41, 0.08, 0.6)
 	bg_hover.border_width_left    = 1
 	bg_hover.border_width_right   = 1
@@ -457,7 +545,8 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var name_lbl := Label.new()
 	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	name_lbl.add_theme_color_override("font_color",
+		Color(0.91, 0.835, 0.639, 0.45) if is_missing else Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_size_override("font_size", 14)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
@@ -470,9 +559,24 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	qty_lbl.text                 = "x%d" % count
 	qty_lbl.custom_minimum_size  = Vector2(28, 0)
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	qty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.8))
+	qty_lbl.add_theme_color_override("font_color",
+		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_size_override("font_size", 13)
 	row.add_child(qty_lbl)
+
+	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
+	# copies de cette ligne, voir _on_buy_row_missing) — permet d'acheter
+	# carte par carte si le joueur n'a pas assez d'or pour tout acheter
+	# d'un coup via BuyMissingButton.
+	if is_missing:
+		var price := CurrencyManager.card_price(card.rarity) * count
+		var buy_btn := Button.new()
+		buy_btn.text = SettingsManager.t("deck.buy_button") % price
+		buy_btn.custom_minimum_size = Vector2(0, 26)
+		buy_btn.add_theme_font_size_override("font_size", 11)
+		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
+		row.add_child(buy_btn)
 
 	var del_btn := Button.new()
 	del_btn.text                = "✕"
@@ -522,66 +626,39 @@ func _update_count_label() -> void:
 	var playable := _playable_count()
 	var resources := _resource_count()
 	card_count_label.text = "%s\n%s" % [
-		SettingsManager.t("deck.count_format") % [playable, MIN_CARDS],
-		SettingsManager.t("deck.resource_count_format") % [resources, MIN_RESOURCE_CARDS],
+		SettingsManager.t("deck.count_format") % [playable, DeckManager.MIN_PLAYABLE_CARDS],
+		SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS],
 	]
-	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
+	var ok: bool = playable >= DeckManager.MIN_PLAYABLE_CARDS and resources >= DeckManager.MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
 	_update_warnings()
 	_update_save_button()
+	_update_buy_missing_button()
+
+## Bouton "Acheter les cartes manquantes" : visible seulement s'il manque au
+## moins une copie possédée d'une carte du deck, affiche le coût total des
+## copies manquantes (voir _missing_cards_queue/CurrencyManager.card_price).
+func _update_buy_missing_button() -> void:
+	var missing := _missing_cards_queue()
+	buy_missing_button.visible = not missing.is_empty()
+	if missing.is_empty():
+		return
+	var total_cost := 0
+	for card in missing:
+		total_cost += CurrencyManager.card_price(card.rarity)
+	buy_missing_button.text = SettingsManager.t("deck.buy_missing_button") % total_cost
 
 # ─── Warnings ressources de race ───────────────────────────────────────────────
 
-## Deux cas surveillés (voir README « Système de Ressources par Race ») :
-##  - une race a des serviteurs/sorts dans le deck mais pas assez de cartes-
-##    ressource de cette race pour atteindre le coût de race de sa carte la
-##    plus chère (le pool ne pourra jamais monter assez haut) ;
-##  - des cartes-ressource d'une race sont présentes alors qu'aucune carte
-##    jouable de cette race n'en a l'usage (ressources gâchées).
-## Les deux bloquent la sauvegarde (voir _can_save).
-func _race_warnings() -> Array[String]:
-	if current_deck == null:
-		return []
-	var max_race_cost: Dictionary = {}       # Race.Type -> coût de race max requis
-	var playable_race_present: Dictionary = {}  # Race.Type -> true
-	var resource_race_present: Dictionary = {}  # Race.Type -> true
-	var resource_counts: Dictionary = {}        # Race.Type -> nb de cartes-ressource
-
-	for card in current_deck.get_cards():
-		if card.card_type == "Resource":
-			resource_race_present[card.race] = true
-			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
-		elif card.race != Race.Type.NONE:
-			playable_race_present[card.race] = true
-			var race_cost: int = CostSystem.compute_race_cost(
-				card.cost, card.race, card.rarity, card.race_cost_override)
-			max_race_cost[card.race] = max(int(max_race_cost.get(card.race, 0)), race_cost)
-
-	var warnings: Array[String] = []
-	for race in max_race_cost:
-		var needed: int = max_race_cost[race]
-		var have: int = int(resource_counts.get(race, 0))
-		if have < needed:
-			warnings.append(SettingsManager.t("deck.warning_missing_resource") % [needed, _race_label(race)])
-	for race in resource_race_present:
-		if not playable_race_present.has(race):
-			warnings.append(SettingsManager.t("deck.warning_unused_resource") % _race_label(race))
-	return warnings
-
-func _race_label(race: int) -> String:
-	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
-
 func _update_warnings() -> void:
-	var warnings := _race_warnings()
+	var warnings := DeckManager.race_warnings(current_deck)
 	warning_label.visible = not warnings.is_empty()
 	warning_label.text = "\n".join(warnings)
 
 # ─── État du bouton Sauvegarder ────────────────────────────────────────────────
 
 func _can_save() -> bool:
-	return current_deck != null and _dirty \
-		and _playable_count() >= MIN_CARDS and _resource_count() >= MIN_RESOURCE_CARDS \
-		and _race_warnings().is_empty()
+	return current_deck != null and _dirty and DeckManager.validation_warnings(current_deck).is_empty()
 
 func _update_save_button() -> void:
 	save_button.disabled = not _can_save()
@@ -598,7 +675,25 @@ func load_deck(deck: DeckData) -> void:
 	current_deck = deck
 	deck_name_edit.text = deck.name
 	_dirty = false
+	_snapshot_original_state()
 	_refresh_deck_list()
+
+## Mémorise l'état actuel de current_deck comme point de retour pour un futur
+## "Ne pas sauvegarder" — appelé au chargement puis après chaque sauvegarde
+## réussie (voir load_deck/_on_save), jamais pendant l'édition elle-même.
+func _snapshot_original_state() -> void:
+	if current_deck == null:
+		return
+	_original_name = current_deck.name
+	_original_card_paths = current_deck.card_paths.duplicate()
+
+## Restaure current_deck (même instance que dans DeckManager.decks) à son
+## dernier état sauvegardé — voir _original_name/_original_card_paths.
+func _discard_changes() -> void:
+	if current_deck == null:
+		return
+	current_deck.name = _original_name
+	current_deck.card_paths = _original_card_paths.duplicate()
 
 func _on_add_card(card_data: CardData) -> void:
 	if current_deck == null:
@@ -650,7 +745,10 @@ func _on_save() -> void:
 	deck_name_edit.text = current_deck.name
 	DeckManager.save_decks()
 	_dirty = false
+	_snapshot_original_state()
 	_update_save_button()
+	if DeckManager.unowned_cards_warning(current_deck) != "":
+		_show_saved_but_unplayable_popup()
 
 func _on_back() -> void:
 	if _dirty:
@@ -660,15 +758,40 @@ func _on_back() -> void:
 
 ## Popup affichée en quittant le deck builder avec des modifications non
 ## sauvegardées (voir _dirty) : proposer de sauvegarder plutôt que de perdre
-## les changements silencieusement (comportement précédent).
+## les changements silencieusement (comportement précédent). Panneau custom
+## (pas de ConfirmationDialog natif, dont le chrome de fenêtre système
+## tranche avec le reste de l'UI parchemin/or du deck builder) construit
+## dans le même style que les autres panneaux de cet écran.
 func _show_unsaved_changes_dialog() -> void:
-	var dialog := ConfirmationDialog.new()
-	dialog.dialog_text     = SettingsManager.t("deck.unsaved_changes_text")
-	dialog.ok_button_text  = SettingsManager.t("deck.unsaved_changes_save")
-	dialog.cancel_button_text = SettingsManager.t("deck.unsaved_changes_discard")
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(func():
+	var popup := _make_popup_overlay()
+	var overlay: CanvasLayer = popup[0]
+	var vbox: VBoxContainer = popup[1]
+
+	var text_lbl := Label.new()
+	text_lbl.text = SettingsManager.t("deck.unsaved_changes_text")
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	text_lbl.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(text_lbl)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 12)
+	vbox.add_child(btn_row)
+
+	var discard_btn := Button.new()
+	discard_btn.text = SettingsManager.t("deck.unsaved_changes_discard")
+	discard_btn.custom_minimum_size = Vector2(150, 34)
+	btn_row.add_child(discard_btn)
+
+	var save_btn := Button.new()
+	save_btn.text = SettingsManager.t("deck.unsaved_changes_save")
+	save_btn.custom_minimum_size = Vector2(150, 34)
+	btn_row.add_child(save_btn)
+
+	save_btn.pressed.connect(func():
+		overlay.queue_free()
 		# Deck invalide (min de cartes non atteint, warning de ressource de race...) :
 		# on ne peut pas sauvegarder — on referme juste la popup et on laisse le
 		# joueur corriger le deck plutôt que de fermer le builder sans sauver.
@@ -676,9 +799,77 @@ func _show_unsaved_changes_dialog() -> void:
 			_on_save()
 			queue_free()
 	)
-	dialog.canceled.connect(func():
+	discard_btn.pressed.connect(func():
+		overlay.queue_free()
+		_discard_changes()
 		queue_free()
 	)
+
+## Informe le joueur qu'un deck vient d'être sauvegardé avec des cartes qu'il
+## ne possède pas — sauvegarde autorisée (voir _can_save, qui ne bloque pas
+## sur la possession), mais le deck ne sera pas sélectionnable pour jouer tant
+## qu'il en manque (voir DeckManager.playability_warnings).
+func _show_saved_but_unplayable_popup() -> void:
+	var popup := _make_popup_overlay()
+	var overlay: CanvasLayer = popup[0]
+	var vbox: VBoxContainer = popup[1]
+
+	var text_lbl := Label.new()
+	text_lbl.text = SettingsManager.t("deck.saved_but_unplayable")
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	text_lbl.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(text_lbl)
+
+	var ok_btn := Button.new()
+	ok_btn.text = SettingsManager.t("ui.ok")
+	ok_btn.custom_minimum_size = Vector2(120, 34)
+	ok_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	vbox.add_child(ok_btn)
+	ok_btn.pressed.connect(overlay.queue_free)
+
+## Construit l'overlay commun aux popups custom du deck builder (fond
+## assombri + panneau centré au style parchemin/or, voir
+## _show_unsaved_changes_dialog / _show_saved_but_unplayable_popup) — retourne
+## [CanvasLayer, VBoxContainer] : au caller d'ajouter son propre contenu
+## (texte, boutons) dans le VBoxContainer.
+func _make_popup_overlay() -> Array:
+	var overlay := CanvasLayer.new()
+	overlay.layer = 30
+	add_child(overlay)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color              = Color(0.09, 0.075, 0.055, 0.98)
+	bg.border_color          = Color(0.78, 0.58, 0.10, 0.9)
+	bg.set_border_width_all(2)
+	bg.set_corner_radius_all(8)
+	bg.content_margin_left   = 26
+	bg.content_margin_right  = 26
+	bg.content_margin_top    = 22
+	bg.content_margin_bottom = 22
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+	panel.custom_minimum_size = Vector2(420, 0)
+	center.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 18)
+	panel.add_child(vbox)
+
+	return [overlay, vbox]
 
 # ─── Import / Export ───────────────────────────────────────────────────────────
 
@@ -703,8 +894,7 @@ func _is_card_maxed(card_data: CardData) -> bool:
 	# Cartes-ressource : jamais au maximum, quantité illimitée dans le deck.
 	if card_data.card_type == "Resource":
 		return false
-	var owned := CollectionManager.owned_quantity(card_data)
-	return _count_in_deck(card_data.resource_path) >= min(DeckManager.MAX_COPIES_PER_CARD, owned)
+	return _count_in_deck(card_data.resource_path) >= DeckManager.MAX_COPIES_PER_CARD
 
 ## true si le joueur ne possède aucun exemplaire de cette carte (distinct de
 ## "maxed" : une carte à 0 possédée est verrouillée, pas juste complète dans
@@ -716,9 +906,8 @@ func _is_card_locked(card_data: CardData) -> bool:
 		return false
 	return CollectionManager.owned_quantity(card_data) <= 0
 
-## Grise les cartes de la grille dont le deck contient déjà le max de copies
-## possédées (voir _is_card_maxed — inclut désormais les cartes-ressource,
-## bornées par la quantité réellement débloquée plutôt que par DeckManager.MAX_COPIES_PER_CARD).
+## Grise les cartes de la grille dont le deck contient déjà le nombre maximum
+## de copies (voir _is_card_maxed).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
@@ -732,13 +921,13 @@ func _update_grid_maxed_states() -> void:
 			if is_instance_valid(stock_label):
 				_update_stock_label(card_data, stock_label)
 
-## Tooltip centré sur la carte grisée : max de copies possédées atteint, ou
-## carte pas encore débloquée du tout (message distinct, voir _is_card_locked).
+## Tooltip centré sur la carte grisée quand le deck contient déjà le nombre
+## maximum de copies (DeckManager.MAX_COPIES_PER_CARD) — indépendant de la
+## possession : une carte non possédée reste ajoutable au deck (voir
+## DeckManager.can_add_card), seul le plafond de copies bloque l'ajout.
 func _show_max_copies_tooltip(anchor: Control, card_data: CardData = null) -> void:
 	_clear_max_tooltip()
-	var text_key := "deck.card_locked" if (card_data != null and _is_card_locked(card_data)) \
-		else "deck.max_copies_reached"
-	var panel := TooltipData.make_race_tooltip(text_key)
+	var panel := TooltipData.make_race_tooltip("deck.max_copies_reached")
 	panel.position = Vector2(-9999, -9999)
 	_overlay_layer.add_child(panel)
 	_max_tooltip = panel

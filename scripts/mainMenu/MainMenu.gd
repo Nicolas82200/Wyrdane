@@ -12,11 +12,6 @@ const WEBSITE_NEWS_PATH := "/news"
 const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
-# Taille totale d'un deck complet (cartes jouables + cartes-ressource, voir
-# DeckBuilder.MIN_CARDS/MIN_RESOURCE_CARDS) — deck.size() compte les deux
-# ensemble, donc le seuil affiché ici doit être leur somme, pas MIN_CARDS seul.
-const MIN_DECK_SIZE := 50
-
 enum PlayMode { SOLO, MULTI }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
@@ -627,13 +622,25 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	bg_hover.bg_color     = Color(0.18, 0.15, 0.10, 1)
 	bg_hover.border_color = Color(0.78, 0.58, 0.10, 1)
 
+	var bg_disabled := bg.duplicate() as StyleBoxFlat
+	bg_disabled.bg_color = Color(0.08, 0.07, 0.055, 0.7)
+
 	var button := Button.new()
 	button.flat = true
 	button.custom_minimum_size = Vector2(0, 52)
 	button.add_theme_stylebox_override("normal", bg)
 	button.add_theme_stylebox_override("hover", bg_hover)
 	button.add_theme_stylebox_override("pressed", bg_hover)
+	button.add_theme_stylebox_override("disabled", bg_disabled)
 	button.pressed.connect(_on_play_deck_selected.bind(index))
+	# Un deck incomplet/invalide (moins de 50 cartes, ressources de race
+	# manquantes, cartes non possédées...) n'est pas sélectionnable pour jouer
+	# — désactivé plutôt que juste signalé, le tooltip explique pourquoi (les
+	# tooltips restent actifs sur un Control desactivé).
+	var warnings := DeckManager.playability_warnings(deck)
+	if not warnings.is_empty():
+		button.tooltip_text = "\n".join(warnings)
+		button.disabled = true
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -664,12 +671,12 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	row.add_child(name_lbl)
 
 	var count_lbl := Label.new()
-	count_lbl.text = "%d/%d" % [deck.size(), MIN_DECK_SIZE]
+	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(44, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_lbl.add_theme_font_size_override("font_size", 12)
 	count_lbl.add_theme_color_override("font_color",
-		Color(0.5, 0.9, 0.5, 1) if deck.size() >= MIN_DECK_SIZE else Color(1, 0.4, 0.4, 1))
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
 
 	return button

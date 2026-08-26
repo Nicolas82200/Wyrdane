@@ -122,6 +122,18 @@ func test_chair_adaptative_copies_first_base_keyword_from_adjacent_ally() -> voi
 	var minion := await board_system.summon_minion_return(card, true, "Front")
 	assert_true(minion.has_keyword(Keyword.Type.TAUNT), "CHAIR ADAPTATIVE doit copier un mot-clé d'un allié adjacent")
 
+# Plus de contrainte d'adjacence (ni de camp) : un mot-clé présent sur
+# n'importe quel serviteur en jeu, y compris ennemi, doit pouvoir être copié.
+func test_chair_adaptative_copies_from_enemy_minion_too() -> void:
+	var enemy := _existing_minion(false, "Front")
+	enemy.add_keyword(Keyword.Type.TAUNT)
+	var card := _card(1, 1, Race.Type.ABOMINATION)
+	var kw := KeywordChoiceAbomination.new()
+	kw.keyword_type = KeywordAbomination.Type.CHAIR_ADAPTATIVE
+	card.abomination_keywords = [kw]
+	var minion := await board_system.summon_minion_return(card, true, "Front")
+	assert_true(minion.has_keyword(Keyword.Type.TAUNT), "CHAIR ADAPTATIVE doit aussi pouvoir copier un mot-clé d'un serviteur ennemi")
+
 func test_chair_adaptative_does_nothing_without_the_keyword() -> void:
 	var neighbor := _existing_minion(true, "Front")
 	neighbor.add_keyword(Keyword.Type.TAUNT)

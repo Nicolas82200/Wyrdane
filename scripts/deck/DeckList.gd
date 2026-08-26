@@ -10,11 +10,6 @@ class_name DeckList
 
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
-# Taille totale d'un deck complet (cartes jouables + cartes-ressource, voir
-# DeckBuilder.MIN_CARDS/MIN_RESOURCE_CARDS) — deck.size() compte les deux
-# ensemble, donc le seuil affiché ici doit être leur somme, pas MIN_CARDS seul.
-const MIN_DECK_SIZE := 50
-
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne, selon la race
 # dominante du deck (repère visuel rapide dans la liste).
 const RACE_ACCENTS := {
@@ -103,6 +98,11 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	panel.custom_minimum_size = Vector2(0, 52)
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
+	# Deck incomplet/invalide ou contenant des cartes non possédées : pas
+	# bloquant ici (juste une gestion des decks), mais expliqué au survol.
+	var warnings := DeckManager.playability_warnings(deck)
+	if not warnings.is_empty():
+		panel.tooltip_text = "\n".join(warnings)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -134,12 +134,12 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Compte de cartes — rouge si deck incomplet
 	var count_lbl := Label.new()
-	count_lbl.text = "%d/%d" % [deck.size(), MIN_DECK_SIZE]
+	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(56, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_lbl.add_theme_font_size_override("font_size", 14)
 	count_lbl.add_theme_color_override("font_color",
-		Color(0.5, 0.9, 0.5, 1) if deck.size() >= MIN_DECK_SIZE else Color(1, 0.4, 0.4, 1))
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
 
 	# Bouton choisir — désactivé si déjà actif
