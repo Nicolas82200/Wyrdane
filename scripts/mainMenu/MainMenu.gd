@@ -12,6 +12,11 @@ const WEBSITE_NEWS_PATH := "/news"
 const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
+# Taille totale d'un deck complet (cartes jouables + cartes-ressource, voir
+# DeckBuilder.MIN_CARDS/MIN_RESOURCE_CARDS) — deck.size() compte les deux
+# ensemble, donc le seuil affiché ici doit être leur somme, pas MIN_CARDS seul.
+const MIN_DECK_SIZE := 50
+
 enum PlayMode { SOLO, MULTI }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
@@ -644,12 +649,12 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	row.add_child(name_lbl)
 
 	var count_lbl := Label.new()
-	count_lbl.text = "%d/40" % deck.size()
+	count_lbl.text = "%d/%d" % [deck.size(), MIN_DECK_SIZE]
 	count_lbl.custom_minimum_size = Vector2(44, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_lbl.add_theme_font_size_override("font_size", 12)
 	count_lbl.add_theme_color_override("font_color",
-		Color(0.5, 0.9, 0.5, 1) if deck.size() >= 40 else Color(1, 0.4, 0.4, 1))
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= MIN_DECK_SIZE else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
 
 	return button
