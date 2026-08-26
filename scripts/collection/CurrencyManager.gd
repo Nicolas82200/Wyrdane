@@ -8,10 +8,10 @@ extends Node
 # Affiché à titre indicatif dans l'UI ; le coût réel est appliqué et vérifié
 # côté serveur (voir PACK_COST dans wyrdane-backend/backend/src/model/packModel.ts).
 const PACK_COST := 500
-# Doivent rester synchronisées avec SOLO_WIN_REWARD/SOLO_DEFEAT_REWARD côté
-# wyrdane-backend/backend/src/controller/rewardsController.ts.
-const SOLO_WIN_REWARD_DISPLAY := 25
-const SOLO_DEFEAT_REWARD_DISPLAY := 10
+# Le montant exact d'une récompense de victoire/défaite solo dépend de la
+# série de victoires en cours (voir rewardsController.WIN_STREAK_REWARD_TIERS
+# côté wyrdane-backend) — pas de constante d'affichage statique possible ici,
+# report_solo_match_result renvoie le montant réellement crédité au callback.
 
 # Prix d'achat à l'unité dans le deckbuilder, par rareté — affiché à titre
 # indicatif ; le prix réel est appliqué et vérifié côté serveur (voir
@@ -53,17 +53,28 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 			on_complete.call(success)
 	)
 
-# À appeler après une victoire vs IA (pas de report réseau pour ces matchs) :
-# le backend crédite (plafonné par jour) et renvoie le solde à jour.
-func report_solo_match_result(won: bool, on_complete: Callable = Callable()) -> void:
-	var body := {"result": "victory" if won else "defeat"}
+# À appeler après un match vs IA (pas de report réseau pour ces matchs) : le
+# backend crédite (sans plafond quotidien, montant de victoire dépendant de la
+# série en cours — voir CARDS.md/README « Économie ») et renvoie le solde à
+# jour. on_complete(credited, reward) : reward est le montant réellement
+# crédité, à afficher tel quel (aucune constante d'affichage statique côté
+# client, voir commentaire au-dessus de PACK_COST).
+func report_solo_match_result(won: bool, cards_played_by_race: Dictionary = {}, deck_races: Array = [],
+		on_complete: Callable = Callable()) -> void:
+	var body := {
+		"result": "victory" if won else "defeat",
+		"cardsPlayedByRace": cards_played_by_race,
+		"deckRaces": deck_races,
+	}
 	BackendClient.request(HTTPClient.METHOD_POST, "/api/rewards/solo-match", body, func(code: int, parsed) -> void:
 		var credited := false
+		var reward := 0
 		if code == 200 and parsed is Dictionary:
 			credited = bool(parsed.get("credited", false))
+			reward = int(parsed.get("reward", 0))
 			_set_balance(int(parsed.get("balance", balance)))
 		if on_complete.is_valid():
-			on_complete.call(credited)
+			on_complete.call(credited, reward)
 	)
 
 # Ouvre un pack (coût fixe côté serveur) : renvoie les cartes tirées (tableau
