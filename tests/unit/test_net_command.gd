@@ -82,6 +82,9 @@ func test_hello_ack_builds_expected_dictionary() -> void:
 func test_mulligan_done_builds_expected_dictionary() -> void:
 	assert_eq(NetCommand.mulligan_done(), {"type": NetCommand.MULLIGAN_DONE})
 
+func test_discard_builds_expected_dictionary() -> void:
+	assert_eq(NetCommand.discard(3), {"type": NetCommand.DISCARD, "count": 3})
+
 func test_leave_match_builds_expected_dictionary() -> void:
 	assert_eq(NetCommand.leave_match(), {"type": NetCommand.LEAVE_MATCH})
 

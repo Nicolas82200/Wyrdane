@@ -209,6 +209,8 @@ turn.hint,"Un seul choix par tour, choisissez avec sagesse.","One choice per tur
 turn.peek,"Voir ma main","View my hand"
 mulligan.banner,"Choisissez votre main","Choose your hand"
 mulligan.hint,"Vous pouvez changer jusqu'à 2 cartes","You may change up to 2 cards"
+discard.banner,"Main trop pleine : défaussez %d carte(s)","Hand too full: discard %d card(s)"
+discard.hint,"Cliquez sur les cartes à défausser (15 secondes, sinon défausse aléatoire)","Click the cards to discard (15 seconds, otherwise a random discard)"
 mulligan.start_button,"Commencer","Start"
 KW_TAUNT_NAME,"Rempart","Taunt"
 KW_CHARGE_NAME,"Assaut","Charge"

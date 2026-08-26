@@ -46,3 +46,8 @@ func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keywo
 # Le joueur local a validé son mulligan (contenu privé, seule la fin est notifiée).
 func mulligan_done() -> void:
 	_net.send_command(NetCommand.mulligan_done())
+
+# Défausse de fin de tour (limite 10 cartes) : contenu privé, seul le nombre
+# de cartes défaussées est transmis (voir HandDiscardSystem).
+func discard(count: int) -> void:
+	_net.send_command(NetCommand.discard(count))
