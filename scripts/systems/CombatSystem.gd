@@ -145,6 +145,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 		battle.animation_system.play_lifesteal(attacker_visual, hero_panel, dealt_to_defender)
 
+	# MOISSON côté défenseur : un serviteur qui inflige des dégâts EN DÉFENDANT
+	# (ex: Esprit Vorace) doit soigner son héros au même titre que l'attaquant.
+	if defender.has_keyword(Keyword.Type.LIFESTEAL) and dealt_to_attacker > 0:
+		battle.hero_system.get_owner_hero(defender).heal(dealt_to_attacker)
+		var defender_hero_panel: Control = battle.get_node("PlayerHeroPanel" if defender.owner_is_player else "EnemyHeroPanel")
+		battle.animation_system.play_lifesteal(defender_visual, defender_hero_panel, dealt_to_attacker)
+
 	if defender.is_dead():
 		await battle.effect_manager.trigger_effects(battle, attacker, "OnExecution")
 		if attacker.has_keyword(Keyword.Type.RAVAGE) and not defender.card_data.blocks_overkill:
@@ -179,6 +186,13 @@ func perform_hero_attack(attacker: Minion) -> void:
 		await battle.animation_system.play_attack_lunge(visual, hero_panel, speed_scale)
 	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
+	# Résonance — enchantements réagissent aussi quand un allié attaque le héros
+	# directement (voir _execute_damage pour l'attaque d'un serviteur). Pas de
+	# serviteur ciblé ici (target: null explicite) : les effets qui visent une
+	# cible précise (ex: Aura de Corruption, Idole du Grand Pacte) n'ont
+	# simplement rien à faire, seuls ceux visant l'attaquant lui-même
+	# (ex: Aura de Décrépitude, via TriggerSource) s'appliquent.
+	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": null})
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:
