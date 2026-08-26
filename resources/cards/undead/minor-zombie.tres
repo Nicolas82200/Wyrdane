@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Zombie Mineur"
-description = "HORDE : +1/+0 tant que vous contrôlez 3 Morts-Vivants ou plus."
+description = "HORDE"
 flavour_text = "Il était enfant. C'était avant."
 texture = ExtResource("3_texture")
 cost = 2

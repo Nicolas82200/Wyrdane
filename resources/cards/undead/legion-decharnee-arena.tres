@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Légion Décharnée"
-description = "HORDE : +1/+0 tant que vous contrôlez 3 Morts-Vivants ou plus."
+description = "HORDE"
 flavour_text = "Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue."
 texture = ExtResource("2_texture")
 cost = 3
