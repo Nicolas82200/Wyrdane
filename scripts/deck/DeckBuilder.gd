@@ -268,18 +268,20 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	_stock_labels[card_data.resource_path] = badge_label
 	_update_stock_label(card_data, badge_label)
 
-## Texte du badge de stock : quantité possédée (plafonnée à DeckManager.MAX_COPIES_PER_CARD pour
-## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
-## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
-## deck en cours (jamais négatif). Les cartes-ressource sont illimitées : le
-## badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
+## Texte du badge de stock : "cartes encore ajoutables au deck / cartes
+## possédées au total" — le numérateur est plafonné à DeckManager.MAX_COPIES_PER_CARD
+## (au-delà, la carte ne peut de toute façon plus être ajoutée) moins les
+## copies déjà présentes dans le deck en cours (jamais négatif) ; le
+## dénominateur est la quantité réellement possédée, non plafonnée, pour que
+## le joueur voie sa collection réelle. Les cartes-ressource sont illimitées :
+## le badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
 func _update_stock_label(card_data: CardData, label: Label) -> void:
 	if card_data.card_type == "Resource":
 		label.text = "∞"
 		return
-	var owned: int = mini(CollectionManager.owned_quantity(card_data), DeckManager.MAX_COPIES_PER_CARD)
-	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
-	label.text = SettingsManager.t("deck.stock_format") % remaining
+	var owned: int = CollectionManager.owned_quantity(card_data)
+	var addable: int = maxi(mini(owned, DeckManager.MAX_COPIES_PER_CARD) - _count_in_deck(card_data.resource_path), 0)
+	label.text = SettingsManager.t("deck.stock_format") % [addable, owned]
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
 ## encore possédée à DeckManager.MAX_COPIES_PER_CARD (qu'elle soit à 0 ou partiellement possédée :

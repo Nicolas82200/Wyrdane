@@ -67,8 +67,10 @@ func set_active_deck(index: int) -> void:
 
 # ─── CRUD ─────────────────────────────────────────────────────────────────────
 
-func create_deck(deck_name: String = "Nouveau Deck") -> DeckData:
+func create_deck(deck_name: String = "") -> DeckData:
 	var deck := DeckData.new()
+	if deck_name == "":
+		deck_name = SettingsManager.t("deck.default_name")
 	deck.name = make_unique_name(deck_name, deck)
 	decks.append(deck)
 	save_decks()
