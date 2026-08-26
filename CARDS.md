@@ -196,7 +196,7 @@ Positionnement (Lane Types)
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 65 | Autel des Damnés | 3 | Rare | Deuil : Piochez 1 carte. | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
+| 65 | Autel des Damnés | 3 | Rare | Deuil : Piochez 1 carte. (Une seule fois par tour.) | Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom. |
 | 66 | Fosse Commune | 4 | Rare | Renfort : Si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
 | 67 | Aura de Décrépitude | 3 | Rare | Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
 | 68 | Cimetière Vivant | 5 | Épique | Deuil : Ce Mort-Vivant revient en jeu à la fin du tour avec 1 point de vie. (Une seule fois par serviteur.) | Le sol ici ne garde rien. Il régurgite. |
