@@ -12,7 +12,14 @@ class_name DeckFilterBar
 ## de langue : la sélection active est préservée car chaque groupe s'initialise
 ## depuis les variables `builder._filter_*`).
 static func build_filter_bar(builder) -> void:
+	# remove_child() avant queue_free() : la suppression du parent est immédiate
+	# (queue_free() seul ne libère qu'en fin de frame, donc les anciens boutons
+	# compteraient encore dans la taille calculée de cette HFlowContainer le
+	# temps d'ajouter les nouveaux juste après, la faisant paraître trop haute
+	# le temps d'une frame — et avec elle, la grille de cartes en dessous qui se
+	# retrouve décalée/rognée en haut).
 	for child in builder.filter_bar.get_children():
+		builder.filter_bar.remove_child(child)
 		child.queue_free()
 
 	var all_label := SettingsManager.t("deck.filter_all")
@@ -43,7 +50,8 @@ static func build_filter_bar(builder) -> void:
 		["", "Common", "Rare", "Epic", "Legendary"],
 		func(v: String) -> void: builder._filter_rarity = v; builder._refresh_card_grid(),
 		func() -> String: return builder._filter_rarity,
-		[all_label, "Common", "Rare", "Epic", "Legendary"])
+		[all_label, SettingsManager.t("rarity.common"), SettingsManager.t("rarity.rare"),
+			SettingsManager.t("rarity.epic"), SettingsManager.t("rarity.legendary")])
 
 	# Coût
 	_add_labeled_filter_group(builder.filter_bar, SettingsManager.t("deck.filter_cost"),
@@ -69,7 +77,11 @@ static func build_filter_bar(builder) -> void:
 ## Barre secondaire : filtre par mot-clé (dropdown, trop de valeurs pour des
 ## boutons radio) et tri de la grille de cartes.
 static func build_sort_bar(builder) -> void:
+	# Voir build_filter_bar ci-dessus : remove_child() immédiat avant
+	# queue_free(), pour ne pas fausser la taille calculée de cette
+	# HFlowContainer pendant la reconstruction.
 	for child in builder.sort_bar.get_children():
+		builder.sort_bar.remove_child(child)
 		child.queue_free()
 
 	var all_label := SettingsManager.t("deck.filter_all")

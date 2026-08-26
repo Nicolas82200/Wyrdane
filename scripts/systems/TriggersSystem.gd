@@ -213,10 +213,18 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 	var replaces_base: bool = pact_paid and bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
 	if not replaces_base:
 		for effect in base_effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, context_target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, _effect_target(effect, ctx, context_target))
 	if pact_paid:
 		for effect in bonus_effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, context_target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, _effect_target(effect, ctx, context_target))
+
+# Certains effets (ex: Aura de Décrépitude) doivent viser le serviteur à
+# l'origine de l'évènement (l'attaquant) plutôt que context_target (qui, pour
+# OnResonance, porte la cible de l'attaque — voir commentaire ci-dessus).
+func _effect_target(effect: CardEffect, ctx: TriggerContext, context_target: Minion) -> Minion:
+	if effect.target == "TriggerSource":
+		return ctx.source_minion
+	return context_target
 
 func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")

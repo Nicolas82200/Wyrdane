@@ -10,7 +10,7 @@
 [sub_resource type="Resource" id="Resource_5j29i"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
-target = "AllAllies"
+target = "TriggerSource"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
