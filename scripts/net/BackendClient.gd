@@ -240,6 +240,61 @@ func claim_login_reward(on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Quêtes hebdomadaires & parrainage ──────────────────────────────────────
+# Contrat détaillé (à implémenter côté wyrdane-backend) :
+# docs/backend-contracts/weekly-quests-and-referral.md
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_pack, claimed}], resets_at}).
+func get_weekly_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/weekly", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {free_packs, reward_pack}).
+func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/weekly/%s/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {code}). Génère le code au premier appel côté
+# serveur (idempotent ensuite) — voir contrat.
+func get_referral_code(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/referral/code", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {code, referred_username, status, reward_granted}).
+# status : "none" | "pending" | "completed".
+func get_referral_status(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/referral/status", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, error_code). error_code vide si succès, sinon
+# une des clés REFERRAL_INVALID_CODE / REFERRAL_SELF / REFERRAL_ALREADY_REFERRED
+# / REFERRAL_CODE_USED (traduites côté appelant).
+func redeem_referral_code(code: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/referral/redeem", {"code": code}, func(response_code: int, parsed: Variant):
+		if response_code == 200:
+			on_data.call(true, "")
+		else:
+			var error_code := String(parsed.get("error", "")) if parsed is Dictionary else ""
+			on_data.call(false, error_code)
+	)
+
 # Signale un bug ou un joueur pour triche (POST /api/reports) — voir
 # ReportDialog. Pas de table dédiée côté backend : le signalement part par
 # mail à l'équipe (même mécanisme que le formulaire de contact du site).

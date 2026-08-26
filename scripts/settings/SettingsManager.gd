@@ -70,6 +70,11 @@ var ai_difficulty: String = DEFAULT_AI_DIFFICULTY
 # obligatoire (voir TutorialManager). Multijoueur et deckbuilder restent
 # verrouillés dans MainMenu jusqu'à ce que ce flag passe à true.
 var tutorial_completed: bool = false
+# true une fois que le joueur a vu le popup "entrer un code de parrainage"
+# (affiché une seule fois, juste après la fin du tutoriel — voir
+# ReferralPromptPopup dans MainMenu.gd) — jamais réaffiché après, qu'il ait
+# entré un code ou fermé le popup sans rien saisir.
+var referral_prompt_seen: bool = false
 
 # Historique de parties (victoires/défaites), stocké localement uniquement —
 # pas de synchronisation backend, contrairement à la collection/monnaie
@@ -137,6 +142,12 @@ func set_tutorial_completed() -> void:
 	if tutorial_completed:
 		return
 	tutorial_completed = true
+	_save()
+
+func mark_referral_prompt_seen() -> void:
+	if referral_prompt_seen:
+		return
+	referral_prompt_seen = true
 	_save()
 
 func record_match_result(won: bool) -> void:
@@ -363,6 +374,7 @@ func _save() -> void:
 	cfg.set_value("display", "language", language)
 	cfg.set_value("display", "ai_difficulty", ai_difficulty)
 	cfg.set_value("display", "tutorial_completed", tutorial_completed)
+	cfg.set_value("display", "referral_prompt_seen", referral_prompt_seen)
 	cfg.set_value("display", "resolution_x", resolution.x)
 	cfg.set_value("display", "resolution_y", resolution.y)
 	cfg.set_value("display", "fullscreen", fullscreen)
@@ -389,6 +401,7 @@ func _load() -> void:
 	if not AI_DIFFICULTIES.has(ai_difficulty):
 		ai_difficulty = DEFAULT_AI_DIFFICULTY
 	tutorial_completed = cfg.get_value("display", "tutorial_completed", false) as bool
+	referral_prompt_seen = cfg.get_value("display", "referral_prompt_seen", false) as bool
 
 	var res_x: int = cfg.get_value("display", "resolution_x", DEFAULT_RESOLUTION.x) as int
 	var res_y: int = cfg.get_value("display", "resolution_y", DEFAULT_RESOLUTION.y) as int

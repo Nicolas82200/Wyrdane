@@ -37,9 +37,11 @@ const RARITY_WEIGHTS_DISPLAY := {
 }
 
 var balance: int = 0
+var free_packs: int = 0
 var is_synced: bool = false
 
 signal balance_changed(new_balance: int)
+signal free_packs_changed(new_free_packs: int)
 
 # on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
 # reçue — permet à l'écran de chargement d'attendre la fin de la sync.
@@ -49,8 +51,22 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 		if success:
 			is_synced = true
 			_set_balance(int(parsed.get("balance", balance)))
+			_set_free_packs(int(parsed.get("free_packs", free_packs)))
 		if on_complete.is_valid():
 			on_complete.call(success)
+	)
+
+# Ouvre un pack en consommant le solde de packs gratuits (quêtes hebdo,
+# parrainage — voir docs/backend-contracts/weekly-quests-and-referral.md),
+# pas l'or. on_complete(code, cards) même forme que open_pack.
+func open_owned_pack(on_complete: Callable = Callable()) -> void:
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/open-owned", {}, func(code: int, parsed) -> void:
+		var cards: Array = []
+		if code == 200 and parsed is Dictionary:
+			cards = parsed.get("cards", [])
+			_set_free_packs(int(parsed.get("free_packs", free_packs)))
+		if on_complete.is_valid():
+			on_complete.call(code, cards)
 	)
 
 # À appeler après un match vs IA (pas de report réseau pour ces matchs) : le
@@ -106,3 +122,7 @@ func apply_balance_update(new_balance: int) -> void:
 func _set_balance(new_balance: int) -> void:
 	balance = new_balance
 	balance_changed.emit(balance)
+
+func _set_free_packs(new_free_packs: int) -> void:
+	free_packs = new_free_packs
+	free_packs_changed.emit(free_packs)
