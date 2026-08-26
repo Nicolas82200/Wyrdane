@@ -43,7 +43,8 @@ static func build_filter_bar(builder) -> void:
 		["", "Common", "Rare", "Epic", "Legendary"],
 		func(v: String) -> void: builder._filter_rarity = v; builder._refresh_card_grid(),
 		func() -> String: return builder._filter_rarity,
-		[all_label, "Common", "Rare", "Epic", "Legendary"])
+		[all_label, SettingsManager.t("rarity.common"), SettingsManager.t("rarity.rare"),
+			SettingsManager.t("rarity.epic"), SettingsManager.t("rarity.legendary")])
 
 	# Coût
 	_add_labeled_filter_group(builder.filter_bar, SettingsManager.t("deck.filter_cost"),
