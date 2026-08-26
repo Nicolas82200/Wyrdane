@@ -8,6 +8,16 @@ extends Node
 const MAX_COPIES_PER_CARD := 4
 const ACTIVE_DECK_PATH := "user://active_deck.cfg"
 
+# Règles minimales de validité d'un deck (voir README « Système de Ressources
+# par Race ») : plus de plafond de taille, seuls des minimums sont imposés,
+# cartes jouables et ressources comptées séparément bien que mélangées dans
+# le même paquet. Source unique — DeckBuilder (édition) et l'écran de choix
+# du deck à lancer (MainMenu) référencent ces constantes plutôt que de
+# recopier leurs propres valeurs.
+const MIN_PLAYABLE_CARDS := 40
+const MIN_RESOURCE_CARDS := 10
+const MIN_TOTAL_CARDS    := MIN_PLAYABLE_CARDS + MIN_RESOURCE_CARDS
+
 var decks: Array[DeckData] = []
 var active_deck_index: int = 0
 
@@ -121,6 +131,70 @@ func add_deck(deck: DeckData) -> void:
 	deck.name = make_unique_name(deck.name, deck)
 	decks.append(deck)
 	save_decks()
+
+## Avertissements de ressources de race (textes déjà traduits ; vide si OK) —
+## voir README « Système de Ressources par Race ». Deux cas surveillés :
+##  - une race a des serviteurs/sorts dans le deck mais pas assez de cartes-
+##    ressource de cette race pour atteindre le coût de race de sa carte la
+##    plus chère (le pool ne pourra jamais monter assez haut) ;
+##  - des cartes-ressource d'une race sont présentes alors qu'aucune carte
+##    jouable de cette race n'en a l'usage (ressources gâchées).
+func race_warnings(deck: DeckData) -> Array[String]:
+	if deck == null:
+		return []
+	var max_race_cost: Dictionary = {}       # Race.Type -> coût de race max requis
+	var playable_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_race_present: Dictionary = {}  # Race.Type -> true
+	var resource_counts: Dictionary = {}        # Race.Type -> nb de cartes-ressource
+
+	for card in deck.get_cards():
+		if card.card_type == "Resource":
+			resource_race_present[card.race] = true
+			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
+		elif card.race != Race.Type.NONE:
+			playable_race_present[card.race] = true
+			var race_cost: int = CostSystem.compute_race_cost(
+				card.cost, card.race, card.rarity, card.race_cost_override)
+			max_race_cost[card.race] = max(int(max_race_cost.get(card.race, 0)), race_cost)
+
+	var warnings: Array[String] = []
+	for race in max_race_cost:
+		var needed: int = max_race_cost[race]
+		var have: int = int(resource_counts.get(race, 0))
+		if have < needed:
+			warnings.append(SettingsManager.t("deck.warning_missing_resource") % [needed, _race_label(race)])
+	for race in resource_race_present:
+		if not playable_race_present.has(race):
+			warnings.append(SettingsManager.t("deck.warning_unused_resource") % _race_label(race))
+	return warnings
+
+func _race_label(race: int) -> String:
+	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
+
+## Toutes les raisons pour lesquelles ce deck ne respecte pas les règles
+## minimales (nombre de cartes + race_warnings ci-dessus), textes déjà
+## traduits, vide si le deck est valide. Centralisé ici pour être réutilisable
+## hors du deck builder (ex. tooltip d'avertissement dans l'écran de choix du
+## deck à lancer, voir MainMenu._make_play_deck_row) — le deck builder lui-même
+## garde un affichage séparé compteur/avertissements (voir DeckBuilder._can_save).
+func validation_warnings(deck: DeckData) -> Array[String]:
+	if deck == null:
+		return []
+	var playable := 0
+	var resources := 0
+	for card in deck.get_cards():
+		if card.card_type == "Resource":
+			resources += 1
+		else:
+			playable += 1
+
+	var warnings: Array[String] = []
+	if playable < MIN_PLAYABLE_CARDS:
+		warnings.append(SettingsManager.t("deck.count_format") % [playable, MIN_PLAYABLE_CARDS])
+	if resources < MIN_RESOURCE_CARDS:
+		warnings.append(SettingsManager.t("deck.resource_count_format") % [resources, MIN_RESOURCE_CARDS])
+	warnings.append_array(race_warnings(deck))
+	return warnings
 
 func can_add_card(deck: DeckData, card_data: CardData) -> bool:
 	# Cartes-ressource : quantité illimitée dans un deck, sans lien avec ce qui

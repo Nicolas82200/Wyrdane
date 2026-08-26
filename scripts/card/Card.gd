@@ -61,16 +61,6 @@ const RARITY_COLORS := {
 	"Legendary": Color("f39c12")
 }
 
-# Accessibilité : symbole distinct par rareté, affiché en plus de la couleur
-# du bandeau (voir _apply_type_style) pour ne pas dépendre uniquement de la
-# couleur (daltonisme).
-const RARITY_SYMBOLS := {
-	"Common":    "●",
-	"Rare":      "◆",
-	"Epic":      "▲",
-	"Legendary": "★"
-}
-
 const RACE_COLORS := {
 	Race.Type.UNDEAD: Color("#0a0806d6"),
 	Race.Type.ABOMINATION: Color("020a00d6"),
@@ -102,6 +92,10 @@ const TYPE_LABELS := {
 # TypeLabel (bandeau sur la bordure dorée, voir Card.tscn) : largeur ajustee
 # au texte affiche (ex. "Rituel • 3 charges" est plus long que "Ritule")
 # plutot que fixe, entre ces deux bornes, toujours centre horizontalement.
+# Bornes proches de la largeur de l'artwork (Art fait 250 de large à
+# l'échelle native de la carte, voir Card.tscn) plutot que de la bordure
+# noire externe (plus large, purement decorative) : le bandeau reste donc
+# presque pleine largeur d'image quel que soit le texte affiche.
 # TYPE_LABEL_PADDING doit rester egal a la somme des content_margin_left/right
 # de _type_style (voir _ready) pour que le texte ne touche jamais le bord.
 # Le noeud est ancre a 50% (anchor_left = anchor_right = 0.5, voir Card.tscn)
@@ -109,8 +103,8 @@ const TYPE_LABELS := {
 # a ce point d'ancrage (0 = centre), pas a une largeur de carte supposee fixe
 # (la carte est etiree a des largeurs differentes selon le contexte : main,
 # grille du deck builder, apercu au survol).
-const TYPE_LABEL_MIN_WIDTH := 55.0
-const TYPE_LABEL_MAX_WIDTH := 200.0
+const TYPE_LABEL_MIN_WIDTH := 210.0
+const TYPE_LABEL_MAX_WIDTH := 235.0
 const TYPE_LABEL_PADDING   := 16.0
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
@@ -425,11 +419,6 @@ func _apply_type_style() -> void:
 			label_text += " • %d charge%s" % [data.ritual_duration, "s" if data.ritual_duration > 1 else ""]
 		elif data.ritual_duration == -1:
 			label_text += " • Permanent"
-	# Symbole de rareté (accessibilité, voir RARITY_SYMBOLS) en plus de la
-	# couleur du bandeau, pour rester lisible sans distinction de couleur.
-	var rarity_symbol: String = RARITY_SYMBOLS.get(data.rarity, "")
-	if rarity_symbol != "":
-		label_text = rarity_symbol + " " + label_text
 	type_label.text = label_text
 	_fit_type_label()
 
