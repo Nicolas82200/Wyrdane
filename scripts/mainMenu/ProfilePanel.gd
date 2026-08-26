@@ -18,6 +18,7 @@ static func open(menu) -> void:
 	menu.profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_show_placeholders(menu)
 	_fetch(menu)
+	ReferralPanel.open(menu)
 
 # BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
 # du menu (voir MainMenu._start_backend_sync) : si le joueur ouvre cette vue
