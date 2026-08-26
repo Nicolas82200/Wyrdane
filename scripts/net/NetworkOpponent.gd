@@ -134,6 +134,11 @@ func _apply(cmd: Dictionary) -> void:
 				_hand_count += 1
 			battle.update_enemy_hand_ui()
 			battle.deck_system.update_enemy_deck_ui()
+		NetCommand.DISCARD:
+			# Défausse de fin de tour (limite 10 cartes) : contenu privé, seul le
+			# compteur cosmétique de main adverse est mis à jour.
+			_hand_count = maxi(0, _hand_count - int(cmd.get("count", 0)))
+			battle.update_enemy_hand_ui()
 		NetCommand.PLAY_CARD:
 			await _apply_play_card(cmd)
 		NetCommand.ATTACK:

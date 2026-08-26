@@ -75,6 +75,25 @@ func test_draw_card_is_a_noop_on_empty_deck() -> void:
 	assert_eq(ai_system.get_deck_count(), 0)
 	assert_eq(ai_system.get_hand_count(), 0)
 
+# ─── Limite de main (voir HandDiscardSystem, équivalent joueur avec UI) ──────────
+
+func test_discard_excess_hand_is_noop_at_or_below_ten_cards() -> void:
+	ai_system.hand.clear()
+	for i in range(10):
+		ai_system.hand.append(CardData.new())
+	ai_system._discard_excess_hand()
+	assert_eq(ai_system.get_hand_count(), 10)
+	assert_eq(battle.enemy_graveyard.size(), 0)
+
+func test_discard_excess_hand_discards_down_to_ten_face_down() -> void:
+	ai_system.hand.clear()
+	for i in range(13):
+		ai_system.hand.append(CardData.new())
+	ai_system._discard_excess_hand()
+	assert_eq(ai_system.get_hand_count(), 10)
+	assert_eq(battle.enemy_graveyard.size(), 3)
+	assert_true(battle.enemy_graveyard.is_face_down(battle.enemy_graveyard.entries[0]))
+
 # ─── Cibles de sort ──────────────────────────────────────────────────────────────
 
 func test_best_hostile_target_prefers_highest_attack() -> void:

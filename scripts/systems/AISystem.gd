@@ -96,7 +96,22 @@ func take_turn() -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
 	await battle.turn_system.run_turn_end_triggers(false)
+	_discard_excess_hand()
 	battle.set_enemy_turn(false)
+
+# Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
+# côté joueur avec UI/timer) : l'IA n'a pas d'interface pour choisir, donc
+# défausse silencieusement un excédent aléatoire — plusieurs cartes ("Piochez
+# X cartes") peuvent la faire dépasser 10, pas seulement la pioche d'1 carte/tour.
+func _discard_excess_hand() -> void:
+	var excess: int = hand.size() - HandDiscardSystem.MAX_HAND_SIZE
+	if excess <= 0:
+		return
+	hand.shuffle()
+	for i in range(excess):
+		var card: CardData = hand.pop_back()
+		battle.enemy_graveyard.add_discarded(card)
+	refresh_ui()
 
 # Miroir de TurnSystem._finish_turn_start : recharge les pools de ressource à
 # leur maximum et pioche une carte, plus de choix Mana/Pioche. Le reste du

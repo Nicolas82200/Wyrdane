@@ -6,6 +6,7 @@ signal card_clicked(card: CardData, row: String, insert_index: int)
 signal drag_started
 signal drag_ended(played: bool)
 signal mulligan_clicked
+signal discard_clicked
 
 const DRAG_THRESHOLD      := 350.0
 const HAND_RETURN_DISTANCE := 50.0
@@ -14,6 +15,10 @@ const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
 # DeckBuilder.MAXED_TINT).
 const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
+# Teinte d'une carte sélectionnée pour la défausse de fin de tour (limite 10
+# cartes en main, voir Hand.set_discard_mode) — rougeâtre pour se distinguer
+# du grisé neutre du mulligan.
+const DISCARD_SELECTED_TINT := Color(1.0, 0.55, 0.55, 1)
 # Halo vert léger pulsant autour d'une carte jouable (mana + conditions réunis)
 const PLAYABLE_GLOW_COLOR := Color(0.45, 1.0, 0.5)
 
@@ -139,6 +144,11 @@ var mulligan_mode := false
 # Cette carte a déjà été échangée pendant le mulligan en cours : grisée, plus
 # cliquable tant que la phase de mulligan n'est pas terminée.
 var mulligan_swapped := false
+# En phase de défausse de fin de tour (limite 10 cartes) : un simple clic
+# sélectionne/désélectionne la carte pour la défausse, aucun drag possible —
+# même patron que mulligan_mode.
+var discard_mode := false
+var discard_selected := false
 
 # Référence vers la main, injectée par Hand
 var hand_ref: Control = null
@@ -394,7 +404,7 @@ static func _bold_caps_words(line: String) -> String:
 func update_playable_highlight() -> void:
 	if _playable_glow == null:
 		return
-	var should_show: bool = data != null and not mulligan_mode and not dragging \
+	var should_show: bool = data != null and not mulligan_mode and not discard_mode and not dragging \
 		and _is_players_turn() \
 		and can_drag_check.is_valid() and can_drag_check.call(data)
 	if should_show != _is_playable:
@@ -460,9 +470,20 @@ func set_mulligan_swapped(swapped: bool) -> void:
 	mulligan_swapped = swapped
 	modulate = MULLIGAN_SWAPPED_TINT if swapped else Color.WHITE
 
+func set_discard_selected(selected: bool) -> void:
+	discard_selected = selected
+	modulate = DISCARD_SELECTED_TINT if selected else Color.WHITE
+
 # ─── Drag & Drop ──────────────────────────────────────────────────────────────
 
 func _gui_input(event: InputEvent) -> void:
+	if discard_mode:
+		if event is InputEventMouseButton \
+				and event.button_index == MOUSE_BUTTON_LEFT \
+				and event.pressed:
+			discard_clicked.emit()
+			get_viewport().set_input_as_handled()
+		return
 	if mulligan_mode:
 		if mulligan_swapped:
 			return

@@ -14,6 +14,9 @@ func add_minion(card_data: CardData) -> void:
 func add_spell(card_data: CardData) -> void:
 	_add(card_data, Origin.SPELL_PLAYED)
 
+func add_discarded(card_data: CardData) -> void:
+	_add(card_data, Origin.CARD_DISCARDED)
+
 func _add(card_data: CardData, origin: Origin) -> void:
 	entries.append({ "card_data": card_data, "origin": origin })
 	graveyard_changed.emit()
