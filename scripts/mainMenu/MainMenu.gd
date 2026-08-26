@@ -183,6 +183,11 @@ func _ready() -> void:
 	deck_comp_preview_card.scale = DECK_COMP_PREVIEW_SCALE
 	deck_comp_preview_card.hide()
 
+	# Rafraîchit l'écran de choix du deck à lancer une fois la sync backend
+	# déclenchée par _show_deck_select() terminée (voir DeckList._ready() pour
+	# le même mécanisme côté onglet "Mes Decks").
+	DeckManager.decks_loaded.connect(_refresh_play_deck_list)
+
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
 	multi_mode_button.pressed.connect(_on_multi_mode_selected)
 	arena_mode_button.pressed.connect(_on_arena_mode_selected)
@@ -459,6 +464,13 @@ func _show_info_view(view: InfoView) -> void:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
 		deck_list._refresh()
+		# Un deck créé/modifié sur le deck builder web pendant que le jeu tourne
+		# n'apparaîtrait sinon qu'au prochain redémarrage (DeckManager.decks
+		# n'est peuplé qu'à la connexion) : re-sync à chaque ouverture de
+		# l'onglet. DeckList._refresh() ci-dessus donne un rendu immédiat avec
+		# les données déjà en mémoire, le signal decks_loaded (déjà écouté par
+		# DeckList) rafraîchira une seconde fois une fois la réponse reçue.
+		DeckManager.sync_from_backend()
 	elif view == InfoView.REPORT:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
@@ -561,6 +573,9 @@ func _show_deck_select() -> void:
 	launch_button.disabled = true
 	_refresh_play_deck_list()
 	_show_info_view(InfoView.DECK_SELECT)
+	# Même besoin qu'en DECKS_MANAGE (voir _show_info_view) : re-sync à chaque
+	# ouverture de l'écran de choix du deck pour lancer une partie.
+	DeckManager.sync_from_backend()
 
 func _on_play_back_pressed() -> void:
 	_show_info_view(InfoView.MODE_SELECT)
