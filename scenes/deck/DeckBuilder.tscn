@@ -222,6 +222,14 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Importer"
 
+[node name="BuyMissingButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000042]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Acheter les cartes manquantes"
+
 [node name="SaveButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000015]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)

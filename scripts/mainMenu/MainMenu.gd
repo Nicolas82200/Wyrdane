@@ -623,20 +623,25 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	bg_hover.bg_color     = Color(0.18, 0.15, 0.10, 1)
 	bg_hover.border_color = Color(0.78, 0.58, 0.10, 1)
 
+	var bg_disabled := bg.duplicate() as StyleBoxFlat
+	bg_disabled.bg_color = Color(0.08, 0.07, 0.055, 0.7)
+
 	var button := Button.new()
 	button.flat = true
 	button.custom_minimum_size = Vector2(0, 52)
 	button.add_theme_stylebox_override("normal", bg)
 	button.add_theme_stylebox_override("hover", bg_hover)
 	button.add_theme_stylebox_override("pressed", bg_hover)
+	button.add_theme_stylebox_override("disabled", bg_disabled)
 	button.pressed.connect(_on_play_deck_selected.bind(index))
 	# Un deck incomplet/invalide (moins de 50 cartes, ressources de race
-	# manquantes...) reste sélectionnable ici — le lancer avec un deck non
-	# conforme n'est pas bloqué côté client. Au moins expliquer pourquoi au
-	# survol plutôt que de laisser le compteur rouge sans détail.
-	var warnings := DeckManager.validation_warnings(deck)
+	# manquantes, cartes non possédées...) n'est pas sélectionnable pour jouer
+	# — désactivé plutôt que juste signalé, le tooltip explique pourquoi (les
+	# tooltips restent actifs sur un Control desactivé).
+	var warnings := DeckManager.playability_warnings(deck)
 	if not warnings.is_empty():
 		button.tooltip_text = "\n".join(warnings)
+		button.disabled = true
 
 	var row := HBoxContainer.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE

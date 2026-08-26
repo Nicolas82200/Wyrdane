@@ -103,7 +103,7 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 | `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
 | `FUSION` | Activation volontaire : sacrifie un allié adjacent, absorbe ses stats restantes ET un de ses mots-clés au choix. | `FusionSystem.gd` — bouton dédié sur le serviteur, ciblage de la victime puis popup de choix du mot-clé ; synchronisé réseau (`NetCommand.ACTIVATE_FUSION`) |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
-| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur EN JEU (allié ou ennemi), de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé, alliés d'abord) |
 | `ASSIMILATION` | Dévoration : gagne +1/+1 jusqu'au début du prochain tour (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
 | `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
 
@@ -276,7 +276,9 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
 
-**Victoires/défaites vs IA (solo)** — pas de plafond quotidien :
+**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie depuis 2026-08-26 (seuls les stats `solo_stats` et la progression des quêtes continuent) : jouer/gagner en solo ne rapporte plus d'or, pour ne pas concurrencer le classé.
+
+**Victoires/défaites en 1v1 classé (réseau)** — pas de plafond quotidien, même barème que l'ancienne récompense solo, désormais crédité aux **deux** joueurs selon leur propre résultat :
 | Résultat | Montant |
 |---|---|
 | Défaite | 5 or (fixe) |
@@ -285,7 +287,9 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 | Victoire, série de 5-6 | 20 or |
 | Victoire, série de 7 ou plus | 25 or |
 
-La série de victoires (win streak) ne compte que les victoires consécutives vs IA ; une défaite la ramène immédiatement à 0 (récompense de victoire suivante = 10 or).
+La série de victoires (win streak) ne compte que les victoires classées consécutives *de ce joueur* (suivie par joueur dans `ranked_stats.win_streak`, distinct côté serveur de `wins`/`losses` qui ne font qu'accumuler) ; une défaite la ramène immédiatement à 0.
+
+Le montant n'est crédité (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'or est de toute façon déjà crédité en base dès la confirmation, que la popup ait pu s'afficher ou non.
 
 **Autres gains**
 | Source | Montant | Limite |

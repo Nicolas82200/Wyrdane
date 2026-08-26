@@ -716,7 +716,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | `MUTATION` | Ce serviteur mute (voir Table de Mutation ci-dessous) chaque fois qu'il survit à une blessure. Les effets sont permanents et cumulables. |
 | `FUSION` | Sacrifice un serviteur allié adjacent : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. |
-| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur adjacent (allié ou ennemi), de façon permanente. |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi), de façon permanente. |
 | `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
 
@@ -916,7 +916,7 @@ Le support moteur est en place (voir « Mécaniques Abomination » dans `README.
 1. **`MUTATION`** : jet pondéré (40/40/20) centralisé dans `EffectManager.roll_mutation`, déclenché automatiquement par `EffectManager.notify_damaged` (survie à une Blessure). `Minion.mutation_stacks` / `Minion.mutations` gardent l'historique pour l'affichage. Effets permanents et cumulables, appliqués directement sur `base_attack`/`base_max_health`.
 2. **`FUSION`** : le mot-clé est défini et affiché (tooltip), mais **aucune UI d'activation n'a été câblée** — contrairement aux rituels à `sacrifice_count`, il n'existe pas encore d'« capacité activable » pour un mot-clé de serviteur en jeu. Les cartes qui portent uniquement FUSION (sans autre texte) sont donc, pour l'instant, cosmétiques. À trancher dans une itération suivante : soit ajouter une UI générique d'activation de mot-clé, soit retirer FUSION du texte tant qu'elle n'est pas jouable.
 3. **Dévoration** (`OnDevoration`, `TriggerType.ON_DEVORATION`) : se déclenche sur toute mort, tout camp confondu, via `DeathSystem._trigger_devoration` — appelé une fois par vague de morts (après Deuil/Carnage), fire deux fois (`TriggerSystem.fire` par camp) pour que les enchantements des deux joueurs réagissent.
-4. **`CHAIR ADAPTATIVE`** : copie automatique et déterministe (premier mot-clé trouvé) d'un serviteur **allié** adjacent, dans `BoardSystem._apply_chair_adaptative`. Simplification : le texte d'origine autorise aussi la copie depuis un ennemi adjacent, mais le plateau n'a pas de notion de position géométrique inter-camp (rangées adverses non indexées en miroir) — seule l'adjacence alliée est résolue.
+4. **`CHAIR ADAPTATIVE`** : copie automatique et déterministe (premier mot-clé trouvé, alliés d'abord puis ennemis dans l'ordre du plateau) d'un serviteur **en jeu**, allié ou ennemi, dans `BoardSystem._apply_chair_adaptative` — sans contrainte d'adjacence (levée pour éviter le problème de résolution inter-camp que posait l'adjacence : les rangées adverses ne sont pas indexées en miroir).
 5. **Garde-fou** : la Dégénérescence ne peut réduire `Minion.max_health` (qui plancherait déjà à 1, comme les autres debuffs du moteur) ; elle ne tue donc que si les dégâts déjà subis dépassent le nouveau maximum, jamais un serviteur encore intact — même logique que `_debuff` pour les autres races, pas de garde-fou dédié nécessaire.
 
 ### ⚠️ Simplifications connues (texte affiché ≠ texte de conception d'origine)
