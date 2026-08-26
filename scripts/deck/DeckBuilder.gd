@@ -384,6 +384,17 @@ func _on_buy_missing_pressed() -> void:
 	buy_missing_button.disabled = true
 	_buy_missing_next(queue)
 
+## Achète uniquement les copies manquantes d'UNE carte (bouton sur sa ligne
+## grisée dans la liste du deck, voir _make_deck_row) — utile quand le joueur
+## n'a pas assez d'or pour tout acheter d'un coup via BuyMissingButton et
+## préfère acheter carte par carte.
+func _on_buy_row_missing(card: CardData, count: int, buy_btn: Button) -> void:
+	buy_btn.disabled = true
+	var queue: Array[CardData] = []
+	for i in range(count):
+		queue.append(card)
+	_buy_missing_next(queue)
+
 ## Achète les copies manquantes une par une (l'API n'a qu'un endpoint à
 ## l'unité, voir CollectionManager.buy_card) — s'arrête à la première erreur
 ## (solde insuffisant en cours de route, requête réseau échouée) plutôt que
@@ -464,20 +475,38 @@ func _refresh_deck_list() -> void:
 		var card := load(path) as CardData
 		if card == null:
 			continue
-		deck_list.add_child(_make_deck_row(card, path, counts[path]))
+		var total: int = counts[path]
+		# Copies possédées et non possédées d'une même carte affichées comme
+		# deux lignes distinctes (voir _make_deck_row) plutôt qu'une seule —
+		# permet d'acheter/repérer précisément ce qu'il manque. Les
+		# cartes-ressource ne sont jamais "manquantes" (illimitées, sans lien
+		# avec la possession, voir DeckManager.can_add_card).
+		if card.card_type == "Resource":
+			deck_list.add_child(_make_deck_row(card, path, total, false))
+			continue
+		var owned: int = mini(CollectionManager.owned_quantity(card), total)
+		var missing: int = total - owned
+		if owned > 0:
+			deck_list.add_child(_make_deck_row(card, path, owned, false))
+		if missing > 0:
+			deck_list.add_child(_make_deck_row(card, path, missing, true))
 
 	_update_count_label()
 
-func _make_deck_row(card: CardData, path: String, count: int) -> Control:
+## is_missing : cette ligne représente des copies NON possédées (voir
+## _refresh_deck_list, qui sépare une même carte en deux lignes si le joueur
+## n'en possède qu'une partie) — grisée, avec un bouton d'achat dédié, mais le
+## badge de coût garde sa couleur de race (repère visuel même sans posséder la carte).
+func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) -> Control:
 	var bg := StyleBoxFlat.new()
-	bg.bg_color                   = Color(0.12, 0.10, 0.08, 1)
+	bg.bg_color                   = Color(0.08, 0.07, 0.06, 1) if is_missing else Color(0.12, 0.10, 0.08, 1)
 	bg.corner_radius_top_left     = 3
 	bg.corner_radius_top_right    = 3
 	bg.corner_radius_bottom_left  = 3
 	bg.corner_radius_bottom_right = 3
 
 	var bg_hover := bg.duplicate() as StyleBoxFlat
-	bg_hover.bg_color             = Color(0.20, 0.16, 0.10, 1)
+	bg_hover.bg_color             = Color(0.15, 0.13, 0.10, 1) if is_missing else Color(0.20, 0.16, 0.10, 1)
 	bg_hover.border_color         = Color(0.55, 0.41, 0.08, 0.6)
 	bg_hover.border_width_left    = 1
 	bg_hover.border_width_right   = 1
@@ -516,7 +545,8 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	var name_lbl := Label.new()
 	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	name_lbl.add_theme_color_override("font_color",
+		Color(0.91, 0.835, 0.639, 0.45) if is_missing else Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_size_override("font_size", 14)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
@@ -529,9 +559,24 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	qty_lbl.text                 = "x%d" % count
 	qty_lbl.custom_minimum_size  = Vector2(28, 0)
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	qty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.8))
+	qty_lbl.add_theme_color_override("font_color",
+		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_size_override("font_size", 13)
 	row.add_child(qty_lbl)
+
+	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
+	# copies de cette ligne, voir _on_buy_row_missing) — permet d'acheter
+	# carte par carte si le joueur n'a pas assez d'or pour tout acheter
+	# d'un coup via BuyMissingButton.
+	if is_missing:
+		var price := CurrencyManager.card_price(card.rarity) * count
+		var buy_btn := Button.new()
+		buy_btn.text = SettingsManager.t("deck.buy_button") % price
+		buy_btn.custom_minimum_size = Vector2(0, 26)
+		buy_btn.add_theme_font_size_override("font_size", 11)
+		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
+		row.add_child(buy_btn)
 
 	var del_btn := Button.new()
 	del_btn.text                = "✕"
