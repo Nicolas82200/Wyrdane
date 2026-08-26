@@ -197,7 +197,7 @@ func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_durat
 		var final_pos: Vector2 = card.position
 		var final_scale: Vector2 = card.scale
 		AudioManager.play(AudioManager.DRAW)
-		await _fly_ghost_card(card_data, deck_origin, final_pos, final_scale, func(): card.visible = true)
+		await _fly_ghost_card(card_data, deck_origin, final_pos, final_scale, card, func(): card.visible = true)
 		if not is_instance_valid(self):
 			return
 		await get_tree().create_timer(maxf(gap - 0.5, 0.05)).timeout
@@ -207,10 +207,13 @@ func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_durat
 # Fait voler une carte fantôme (dos visible) depuis deck_origin (position
 # globale) jusqu'à local_target_pos (dans le repère de Hand), se retourne à
 # mi-chemin, puis appelle on_landed une fois arrivée. Facteur commun entre
-# play_opening_draw et _set_hand_animated.
-func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos: Vector2, target_scale: Vector2, on_landed: Callable) -> void:
+# play_opening_draw et _set_hand_animated. target_card est la carte de la main
+# que on_landed va rendre visible : si elle a été libérée entre-temps (main
+# reconstruite pendant l'animation), on_landed n'est pas appelé.
+func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos: Vector2, target_scale: Vector2, target_card: Card, on_landed: Callable) -> void:
 	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
-		on_landed.call()
+		if is_instance_valid(target_card):
+			on_landed.call()
 		return
 	var ghost: Card = CARD_SCENE.instantiate()
 	_battle.add_child(ghost)
@@ -222,7 +225,10 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 	ghost.z_index  = 100
 	ghost.visible  = false
 	await get_tree().process_frame
-	if not is_instance_valid(self) or not is_instance_valid(ghost):
+	if not is_instance_valid(ghost):
+		return
+	if not is_instance_valid(self):
+		ghost.queue_free()
 		return
 	var final_pos: Vector2 = global_position + local_target_pos
 	ghost.global_position = deck_origin - Vector2(
@@ -244,10 +250,10 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 	tween.tween_property(ghost, "scale:x",          target_scale.x, step_duration).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_property(ghost, "global_position",  final_pos,     step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	await tween.finished
-	if is_instance_valid(self):
-		on_landed.call()
 	if is_instance_valid(ghost):
 		ghost.queue_free()
+	if is_instance_valid(self) and is_instance_valid(target_card):
+		on_landed.call()
 
 func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	var new_card_data: CardData = cards.back()
@@ -259,6 +265,8 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	_connect_card(new_card)
 	_hand_order.append(new_card)
 	await get_tree().process_frame
+	if not is_instance_valid(self) or not is_instance_valid(new_card):
+		return
 	new_card.pivot_offset = Vector2(new_card.size.x / 2.0, new_card.size.y)
 	_update_hand_layout(false)
 
@@ -269,7 +277,7 @@ func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 		tween_existing.tween_property(card, "position", _base_positions[card], 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween_existing.tween_property(card, "scale",    card.scale,            0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
-	await _fly_ghost_card(new_card_data, deck_origin, new_card.position, new_card.scale, func(): new_card.visible = true)
+	await _fly_ghost_card(new_card_data, deck_origin, new_card.position, new_card.scale, new_card, func(): new_card.visible = true)
 
 
 func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: int = -1) -> void:

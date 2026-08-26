@@ -107,6 +107,25 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
+[node name="OwnedButtonRow" type="HBoxContainer" parent="ShakeLayer"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -234.0
+offset_bottom = -192.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="OpenOwnedButton" type="Button" parent="ShakeLayer/OwnedButtonRow"]
+visible = false
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+text = "Ouvrir un pack gratuit (x0)"
+
 [node name="FreeButtonRow" type="HBoxContainer" parent="ShakeLayer"]
 layout_mode = 1
 anchors_preset = -1
