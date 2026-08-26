@@ -32,7 +32,8 @@ class_name CardEffect
 	"AllAllies", "AllMinions", "RandomEnemy", "RandomAlly",
 	"AnyMinion", "AllEnemiesFront", "AllEnemiesBack",
 	"AllAlliesFront", "AllAlliesBack", "PerInfectedEnemy",
-	"EnemyEnchantment", "AllyEnchantment", "AnyEnchantment"
+	"EnemyEnchantment", "AllyEnchantment", "AnyEnchantment",
+	"TriggerSource"
 ) var target: String = "Self"
 
 @export_enum("Permanent", "UntilEndOfTurn", "UntilEndOfEnemyTurn") var duration: String = "Permanent"
