@@ -957,7 +957,7 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.)","Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.)","Freeze target enemy minion for one turn. (Infection continues.)"
 "Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur.","Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur.","The cold stops movement. Not the rot that gnaws from within."
 "Larve Infernale","Larve Infernale","Hellspawn Larva"
-"Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente.","Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente.","Pact 1: This minion permanently gains +1/+1."
+"Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. (Activable à tout moment.)","Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. (Activable à tout moment.)","Pact 1: This minion permanently gains +1/+1. (Activate anytime.)"
 "Elle ne demande rien. Elle prend juste sa part avant même d'arriver.","Elle ne demande rien. Elle prend juste sa part avant même d'arriver.","It asks for nothing. It simply takes its due before it even arrives."
 "Suppôt des Abysses","Suppôt des Abysses","Abyssal Thrall"
 "CORRUPTION","CORRUPTION","CORRUPTION"
@@ -999,7 +999,7 @@ Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie.","TAUNT.
 Pact 1: Wounded: This minion regains 1 HP."
 "Elle boit la douleur des autres. La tienne fera l'affaire.","Elle boit la douleur des autres. La tienne fera l'affaire.","It drinks the pain of others. Yours will do just fine."
 "Invocateur Novice","Invocateur Novice","Novice Summoner"
-"Pacte 2 : Ce serviteur acquiert REMPART.","Pacte 2 : Ce serviteur acquiert REMPART.","Pact 2: This minion gains TAUNT."
+"Pacte 2 : Ce serviteur acquiert REMPART. (Activable à tout moment.)","Pacte 2 : Ce serviteur acquiert REMPART. (Activable à tout moment.)","Pact 2: This minion gains TAUNT. (Activate anytime.)"
 "Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.","Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.","Its first pact. It has no idea yet what the toll will be, over time."
 "Chasseur des Abysses","Chasseur des Abysses","Abyssal Stalker"
 "CORRUPTION","CORRUPTION","CORRUPTION"
@@ -1032,7 +1032,7 @@ Pact 2: Deal 1 more damage."
 "Blessure : Votre héros regagne 1 point de vie.","Blessure : Votre héros regagne 1 point de vie.","Wounded: Your hero regains 1 HP."
 "Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.","Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.","Every blow it takes returns, transformed, to the one it shields."
 "Chevalier Déchu","Chevalier Déchu","Fallen Hellknight"
-"Pacte 3 : Ce serviteur acquiert INFILTRATION.","Pacte 3 : Ce serviteur acquiert INFILTRATION.","Pact 3: This minion gains INFILTRATION."
+"Pacte 3 : Ce serviteur acquiert INFILTRATION. (Activable à tout moment.)","Pacte 3 : Ce serviteur acquiert INFILTRATION. (Activable à tout moment.)","Pact 3: This minion gains INFILTRATION. (Activate anytime.)"
 "Son armure était sacrée, autrefois. Elle a changé de camp avec lui.","Son armure était sacrée, autrefois. Elle a changé de camp avec lui.","His armor was once sacred. It changed sides right along with him."
 "Banshee des Abysses","Banshee des Abysses","Abyssal Banshee"
 "Arrivée : inflige Corruption à un serviteur ennemi ciblé.","Arrivée : inflige Corruption à un serviteur ennemi ciblé.","Arrival: inflict Corruption on target enemy minion."
@@ -1099,15 +1099,15 @@ Arrival: Inflict Corruption on target enemy minion."
 "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Its visions never lie. They simply make sure they come true."
 "Assassin des Ombres Rouges","Assassin des Ombres Rouges","Crimson Shadow Assassin"
 "INFILTRATION
-Pacte 3 : Ce serviteur acquiert ÉGIDE.","INFILTRATION
-Pacte 3 : Ce serviteur acquiert ÉGIDE.","INFILTRATION
-Pact 3: This minion gains AEGIS."
+Pacte 3 : Ce serviteur acquiert ÉGIDE. (Activable à tout moment.)","INFILTRATION
+Pacte 3 : Ce serviteur acquiert ÉGIDE. (Activable à tout moment.)","INFILTRATION
+Pact 3: This minion gains AEGIS. (Activate anytime.)"
 "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.","Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.","It never strikes what is guarded. It strikes what you thought was safe."
 "Berserker du Pacte","Berserker du Pacte","Pact Berserker"
 "FRÉNÉSIE
-Pacte 3 : Ce serviteur acquiert ASSAUT.","FRÉNÉSIE
-Pacte 3 : Ce serviteur acquiert ASSAUT.","FURY
-Pact 3: This minion gains CHARGE."
+Pacte 3 : Ce serviteur acquiert ASSAUT. (Activable à tout moment.)","FRÉNÉSIE
+Pacte 3 : Ce serviteur acquiert ASSAUT. (Activable à tout moment.)","FURY
+Pact 3: This minion gains CHARGE. (Activate anytime.)"
 "Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.","Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.","Every contract it signs makes it faster, and you more vulnerable."
 "Trône de Cendres","Trône de Cendres","Ashen Throne"
 "REMPART, RANG INFERNAL","REMPART, RANG INFERNAL","TAUNT, INFERNAL RANK"

@@ -28,7 +28,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Larve Infernale"
-description = "Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente."
+description = "Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. (Activable à tout moment.)"
 flavour_text = "Elle ne demande rien. Elle prend juste sa part avant même d'arriver."
 texture = ExtResource("3_texture")
 cost = 1
@@ -41,4 +41,5 @@ trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_h2wqf")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v3tzk")])
 rarity = "Common"
 board_position = "Front"
+pact_standalone = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

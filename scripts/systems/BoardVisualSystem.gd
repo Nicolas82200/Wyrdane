@@ -52,12 +52,15 @@ func _wire_visual_signals(visual: BoardMinion, is_player: bool) -> void:
 		visual.minion_clicked.disconnect(connection.callable)
 	for connection in visual.fusion_requested.get_connections():
 		visual.fusion_requested.disconnect(connection.callable)
+	for connection in visual.pact_activation_requested.get_connections():
+		visual.pact_activation_requested.disconnect(connection.callable)
 	if is_player:
 		visual.minion_clicked.connect(battle.selection_system.on_player_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_ally_minion_clicked(m, v))
 		visual.minion_clicked.connect(func(m, v): battle.sacrifice_system.on_ally_minion_clicked(m, v))
 		visual.minion_clicked.connect(func(m, v): battle.fusion_system.on_ally_minion_clicked(m, v))
 		visual.fusion_requested.connect(func(m): battle.fusion_system.try_begin(m))
+		visual.pact_activation_requested.connect(func(m): battle.pact_activation_system.try_activate(m))
 	else:
 		visual.minion_clicked.connect(battle.selection_system.on_enemy_minion_clicked)
 		visual.minion_clicked.connect(func(m, v): battle.targeting_system.on_enemy_minion_clicked(m, v))

@@ -536,7 +536,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
+| D01 | Larve Infernale | ⚔️ | 1 | 2 | 1 | Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente. (Activable à tout moment.) | *Elle ne demande rien. Elle prend juste sa part avant même d'arriver.* |
 | D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
 | D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART, CHAIR DE SOUFRE | *Elle a regardé brûler des cathédrales entières sans ciller.* |
 | D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 3 : Inflige 2 dégâts à un serviteur ennemi ciblé. | *Chaque morsure lui coûte, à toi aussi.* |
@@ -546,7 +546,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR | *Son cri ne blesse pas. Il paralyse.* |
 | D09 | Bourreau Mineur | ⚔️ | 3 | 3 | 3 | Exécution : Ce serviteur gagne +1/+0 de façon permanente. Pacte 1 : Il gagne aussi +0/+1. | *Chaque exécution le nourrit — et te vide un peu.* |
 | D10 | Sentinelle du Gouffre | 🛡️ | 3 | 1 | 4 | REMPART. Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie. | *Elle boit la douleur des autres. La tienne fera l'affaire.* |
-| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Ce serviteur acquiert REMPART. | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
+| D11 | Invocateur Novice | ↕️ | 1 | 1 | 1 | Pacte 2 : Ce serviteur acquiert REMPART. (Activable à tout moment.) | *Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps.* |
 
 ### Rares
 
@@ -559,7 +559,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D16 | Larve Ascendante | ↕️ | 2 | 1 | 2 | RANG INFERNAL | *Elle grandit dans les cicatrices, pas dans la lumière.* |
 | D17 | Titan de Cendres | ⚔️ | 5 | 4 | 6 | REMPART. Dernier Souffle : Inflige 2 dégâts au héros adverse. Pacte 2 : Inflige 1 dégât de plus. | *Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.* |
 | D18 | Suppôt du Répit | 🛡️ | 3 | 2 | 3 | Blessure : Votre héros regagne 1 point de vie. | *Chaque coup qu'il encaisse repart, transformé, vers celui qu'il protège.* |
-| D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Ce serviteur acquiert INFILTRATION. | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
+| D19 | Chevalier Déchu | ⚔️ | 3 | 4 | 3 | Pacte 3 : Ce serviteur acquiert INFILTRATION. (Activable à tout moment.) | *Son armure était sacrée, autrefois. Elle a changé de camp avec lui.* |
 | D20 | Banshee des Abysses | 🛡️ | 4 | 2 | 5 | Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Son chant ne tue personne. Il fait juste pourrir ce qui l'entend.* |
 | D21 | Possédé Écarlate | ⚔️ | 3 | 5 | 1 | ASSAUT, TERREUR | *Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite.* |
 | D22 | Cavalier des Flammes | ⚔️ | 4 | 4 | 3 | ASSAUT. Arrivée : Ce serviteur gagne +2/+0 de façon permanente. Pacte 2 : +2/+0 supplémentaires. | *Sa monture est morte au premier galop. Il n'a pas ralenti pour autant.* |
@@ -577,8 +577,8 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
 | D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. Pacte 2 : Seuil porté à 5 points de vie. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
 | D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ennemi ciblé. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
-| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Ce serviteur acquiert ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
-| D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. Pacte 3 : Ce serviteur acquiert ASSAUT. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
+| D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Ce serviteur acquiert ÉGIDE. (Activable à tout moment.) | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
+| D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. Pacte 3 : Ce serviteur acquiert ASSAUT. (Activable à tout moment.) | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
 | D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART, RANG INFERNAL | *Il siège sur ce que ton héros a déjà perdu.* |
 
 ### Légendaires

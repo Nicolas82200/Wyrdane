@@ -34,7 +34,7 @@ name_fr = "Frénésie"
 script = ExtResource("2_carddata")
 card_name = "Berserker du Pacte"
 description = "FRÉNÉSIE
-Pacte 3 : Ce serviteur acquiert ASSAUT."
+Pacte 3 : Ce serviteur acquiert ASSAUT. (Activable à tout moment.)"
 flavour_text = "Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable."
 texture = ExtResource("3_texture")
 cost = 4
@@ -48,4 +48,5 @@ trigger_types = Array[ExtResource("6_trig")]([SubResource("Resource_9j2wn")])
 effects = Array[ExtResource("7_cardeffect")]([SubResource("Resource_hn4kp")])
 rarity = "Epic"
 board_position = "Front"
+pact_standalone = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

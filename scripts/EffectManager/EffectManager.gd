@@ -1446,6 +1446,12 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 		if effect.trigger != "" and effect.trigger != trigger_name:
 			continue
 		if effect.pact_bonus:
+			# PACTE « standalone » (voir CardData.pact_standalone) : jamais proposé
+			# ici, seulement via l'activation manuelle du serviteur en jeu
+			# (PactActivationSystem) — sinon le joueur perdrait définitivement
+			# l'occasion s'il refuse au moment du trigger.
+			if minion.card_data.pact_standalone:
+				continue
 			bonus_effects.append(effect)
 		else:
 			base_effects.append(effect)

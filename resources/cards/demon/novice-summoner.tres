@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Invocateur Novice"
-description = "Pacte 2 : Ce serviteur acquiert REMPART."
+description = "Pacte 2 : Ce serviteur acquiert REMPART. (Activable à tout moment.)"
 flavour_text = "Son premier pacte. Il ne sait pas encore combien ça va coûter, au fil du temps."
 texture = ExtResource("3_texture")
 cost = 1
@@ -40,4 +40,5 @@ trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_hq5tn")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_bk9wl")])
 rarity = "Common"
 board_position = "Hybrid"
+pact_standalone = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
