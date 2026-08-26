@@ -287,10 +287,34 @@ func make_race_tooltip(race_key: String) -> PanelContainer:
 # ─── Construction de la liste de panels pour une carte ───────────────────────
 
 func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
+	return _build_panels(card_data, parent,
+		card_data.get_keyword_values(), card_data.get_human_keyword_values(),
+		card_data.get_undead_keyword_values(), card_data.get_demon_keyword_values(),
+		card_data.get_abomination_keyword_values())
+
+# Comme build_panels_for_card, mais les panels de mots-clés reflètent l'état
+# RUNTIME du serviteur (minion.keywords/human_keywords/...) plutôt que la seule
+# définition figée de sa carte — un serviteur ayant reçu un mot-clé en cours de
+# partie (ex: Bouclier de la Foi accordant ÉGIDE) doit voir son tooltip
+# explicatif, pas seulement l'icône (déjà correcte, voir BoardMinion._refresh_keyword_icons
+# qui lit les mêmes tableaux runtime). Déclencheurs/charges/effets restent basés
+# sur card_data : un mot-clé accordé n'ajoute ni trigger ni effet à la carte.
+func build_panels_for_minion(minion: Minion, parent: Node) -> Array[Control]:
+	return _build_panels(minion.card_data, parent,
+		minion.keywords, minion.human_keywords,
+		minion.undead_keywords, minion.demon_keywords,
+		minion.abomination_keywords)
+
+func _build_panels(
+	card_data: CardData, parent: Node,
+	keyword_values: Array, human_keyword_values: Array,
+	undead_keyword_values: Array, demon_keyword_values: Array,
+	abomination_keyword_values: Array
+) -> Array[Control]:
 	var panels: Array[Control] = []
 
 	# 1. Mots-clés Mort-Vivant / partagés (enum Keyword.Type)
-	for keyword in card_data.get_keyword_values():
+	for keyword in keyword_values:
 		if not KEYWORD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_DESCRIPTIONS[keyword]
@@ -300,7 +324,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		panels.append(panel)
 
 	# 1b. Mots-clés Humain (enum KeywordHuman.Type)
-	for keyword in card_data.get_human_keyword_values():
+	for keyword in human_keyword_values:
 		if not KEYWORD_HUMAN_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_HUMAN_DESCRIPTIONS[keyword]
@@ -310,7 +334,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		panels.append(panel)
 
 	# 1c. Mots-clés Mort-Vivant (enum KeywordUndead.Type)
-	for keyword in card_data.get_undead_keyword_values():
+	for keyword in undead_keyword_values:
 		if not KEYWORD_UNDEAD_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_UNDEAD_DESCRIPTIONS[keyword]
@@ -320,7 +344,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		panels.append(panel)
 
 	# 1d. Mots-clés Démon (enum KeywordDemon.Type)
-	for keyword in card_data.get_demon_keyword_values():
+	for keyword in demon_keyword_values:
 		if not KEYWORD_DEMON_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_DEMON_DESCRIPTIONS[keyword]
@@ -330,7 +354,7 @@ func build_panels_for_card(card_data: CardData, parent: Node) -> Array[Control]:
 		panels.append(panel)
 
 	# 1e. Mots-clés Abomination (enum KeywordAbomination.Type)
-	for keyword in card_data.get_abomination_keyword_values():
+	for keyword in abomination_keyword_values:
 		if not KEYWORD_ABOMINATION_DESCRIPTIONS.has(keyword):
 			continue
 		var info: Dictionary = KEYWORD_ABOMINATION_DESCRIPTIONS[keyword]
