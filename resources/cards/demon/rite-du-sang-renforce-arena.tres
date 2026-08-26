@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" path="res://assets/card_art/demon/blood-rite.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_buff1"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+duration = "Permanent"
+value = 2
+value_2 = 0
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Rite du Sang Renforcé"
+description = "Tous vos serviteurs alliés gagnent +2/+0 de façon permanente."
+flavour_text = "Le sang versé n'appelle pas la pitié. Il appelle la force de frapper plus fort."
+texture = ExtResource("2_texture")
+cost = 4
+race = 5
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_buff1")])
+rarity = "Epic"
+arena_only = true
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

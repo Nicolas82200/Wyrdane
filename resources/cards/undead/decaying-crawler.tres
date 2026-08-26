@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rampant en Décomposition"
-description = "Dernier Souffle : invoque un Zombie 1/1 sous ton contrôle."
+description = "Dernier Souffle : Invoque un Zombie 1/1 sous votre contrôle."
 flavour_text = "Il ne sait plus pourquoi il avance. Il avance, c'est tout."
 texture = ExtResource("3_texture")
 attack = 1

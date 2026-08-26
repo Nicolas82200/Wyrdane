@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Banshee Zombie"
-description = "Arrivée : silence un serviteur ennemi ciblé jusqu'à fin du prochain tour adverse."
+description = "Arrivée : Silence un serviteur ennemi ciblé jusqu'à la fin du prochain tour adverse."
 flavour_text = "Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler."
 texture = ExtResource("3_texture")
 cost = 4

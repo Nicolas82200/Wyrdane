@@ -6,7 +6,7 @@ extends RefCounted
 class_name KeywordDemon
 
 enum Type {
-	PACTE,            # À l'arrivée en jeu : ton héros perd son coût en mana en HP ; gagne ASSAUT.
+	PACTE,            # "Pacte X" — l'effet de base de la carte est toujours gratuit ; le joueur peut en plus payer X PV, à chaque déclenchement, pour activer un effet bonus qui s'ajoute au (ou remplace le) base (CardEffect.pact_bonus/pact_replaces_base, voir PactChoiceSystem).
 	CORRUPTION,       # Les attaques infligent Corruption en plus des dégâts (-1 ATK permanent, cumulable).
 	TERREUR,          # Quand ce serviteur attaque, la cible ne peut pas attaquer au prochain tour adverse.
 	RANG_INFERNAL,    # +1/+0 par tranche de 10 HP manquants sur ton héros (aura recalculée).

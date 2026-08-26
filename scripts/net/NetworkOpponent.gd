@@ -144,7 +144,11 @@ func _apply(cmd: Dictionary) -> void:
 			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
 			if attacker != null and defender != null \
 					and not attacker.owner_is_player and defender.owner_is_player:
+				# ids imposés : voir CombatSystem.resolve_combat (capture des
+				# serviteurs invoqués par un Dernier Souffle déclenché en combat).
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.resolve_combat(attacker, defender)
+				battle.net_registry.set_imposed_ids([])
 			else:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
@@ -154,7 +158,9 @@ func _apply(cmd: Dictionary) -> void:
 			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
 			# perform_hero_attack lui-même n'effectue aucune validation.
 			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.perform_hero_attack(attacker)
+				battle.net_registry.set_imposed_ids([])
 			elif attacker != null:
 				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
 		NetCommand.ACTIVATE_RITUAL:
@@ -219,14 +225,12 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
-		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index)
-		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : on rejoue la
-		# boucle d'effets avec la cible résolue par net_id, comme côté émetteur.
+		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : la cible est
+		# résolue par net_id puis transmise directement au déclenchement ONPLAY,
+		# comme côté émetteur (voir CardSystem.resolve_with_target).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
-		if target_id != NetCommand.TARGET_NONE and summoned != null:
-			var target: Minion = battle.net_registry.resolve(target_id)
-			for effect in card.effects:
-				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
+		var target: Minion = battle.net_registry.resolve(target_id) if target_id != NetCommand.TARGET_NONE else null
+		await battle.board_system.summon_minion_return(card, false, row, index, false, target)
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
@@ -260,7 +264,9 @@ func _apply_activate_fusion(cmd: Dictionary) -> void:
 		return
 	var pool: String = cmd.get("pool", "")
 	var keyword: int = FusionSystem.keyword_from_name(pool, cmd.get("keyword", "")) if pool != "" else -1
+	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+	battle.net_registry.set_imposed_ids([])
 
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles

@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Monument aux Morts"
-description = "Deuil : invoque 2 Mort-Vivants aléatoires de coût ≤3."
+description = "Deuil : Invoque 2 Mort-Vivants aléatoires de coût ≤3."
 flavour_text = "On l'a érigé pour honorer les disparus. Il préfère les renvoyer."
 texture = ExtResource("3_texture")
 cost = 5

@@ -14,7 +14,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Ultime Sacrifice"
-description = "Sacrifice (jusqu'à 3 serviteurs alliés) : pioche 1 carte par sacrifié ; ton héros perd 1 HP par sacrifié."
+description = "Sacrifice jusqu'à 3 : Piochez une carte par serviteur sacrifié.
+Votre héros perd 1 point de vie par serviteur sacrifié."
 flavour_text = "Ils ne meurent pas pour rien. Ils meurent pour que tu continues, de justesse."
 texture = ExtResource("3_texture")
 cost = 3

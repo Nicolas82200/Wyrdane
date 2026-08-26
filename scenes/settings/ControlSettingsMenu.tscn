@@ -1,22 +1,7 @@
 [gd_scene format=3 uid="uid://bt0vohrgfxbke"]
 
-[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="1_font"]
 [ext_resource type="Script" uid="uid://cj3cr2fdlyqs4" path="res://scripts/settings/ControlSettingsMenu.gd" id="2_script"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="3_theme"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.06, 0.05, 0.04, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.55, 0.41, 0.08, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_key"]
 bg_color = Color(0.15, 0.12, 0.09, 1)
@@ -40,90 +25,51 @@ grow_vertical = 2
 theme = ExtResource("3_theme")
 script = ExtResource("2_script")
 
-[node name="Overlay" type="ColorRect" parent="." unique_id=700000001]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=700000003]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
-
-[node name="PanelContainer" type="PanelContainer" parent="." unique_id=700000002]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -320.0
-offset_top = -300.0
-offset_right = 320.0
-offset_bottom = 300.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="VBox" type="VBoxContainer" parent="PanelContainer" unique_id=700000003]
-layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000004]
+[node name="HintMargin" type="MarginContainer" parent="VBox" unique_id=700000007]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 0
+theme_override_constants/margin_top = 4
 
-[node name="Title" type="Label" parent="PanelContainer/VBox/TitleMargin" unique_id=700000005]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 32
-text = "Contrôles"
-horizontal_alignment = 1
-
-[node name="Sep" type="HSeparator" parent="PanelContainer/VBox" unique_id=700000006]
-layout_mode = 2
-
-[node name="HintMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000007]
-layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 0
-
-[node name="HintLabel" type="Label" parent="PanelContainer/VBox/HintMargin" unique_id=700000008]
+[node name="HintLabel" type="Label" parent="VBox/HintMargin" unique_id=700000008]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
 theme_override_font_sizes/font_size = 13
 text = "Clique sur une touche pour la modifier"
-horizontal_alignment = 1
 
-[node name="BindsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000009]
+[node name="BindsMargin" type="MarginContainer" parent="VBox" unique_id=700000009]
 layout_mode = 2
-theme_override_constants/margin_left = 32
+size_flags_vertical = 3
 theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 0
 
-[node name="BindsVBox" type="VBoxContainer" parent="PanelContainer/VBox/BindsMargin" unique_id=700000010]
+[node name="BindsScroll" type="ScrollContainer" parent="VBox/BindsMargin" unique_id=700000027]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="BindsVBox" type="VBoxContainer" parent="VBox/BindsMargin/BindsScroll" unique_id=700000010]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="EndTurnRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=700000014]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="EndTurnRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000014]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="EndTurnLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000015]
-custom_minimum_size = Vector2(180, 0)
+[node name="EndTurnLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow" unique_id=700000015]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
 text = "Fin de tour"
 
-[node name="EndTurnButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/EndTurnRow" unique_id=700000016]
+[node name="EndTurnButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow" unique_id=700000016]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -133,19 +79,18 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "Espace"
 
-[node name="ToggleGraveyardRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=700000017]
+[node name="ToggleGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=700000017]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ToggleGraveyardLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000018]
-custom_minimum_size = Vector2(180, 0)
+[node name="ToggleGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow" unique_id=700000018]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
 text = "Cimetière allié"
 
-[node name="ToggleGraveyardButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
+[node name="ToggleGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -155,19 +100,18 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "G"
 
-[node name="ToggleEnemyGraveyardRow" type="HBoxContainer" parent="PanelContainer/VBox/BindsMargin/BindsVBox" unique_id=986537293]
+[node name="ToggleEnemyGraveyardRow" type="HBoxContainer" parent="VBox/BindsMargin/BindsScroll/BindsVBox" unique_id=986537293]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ToggleEnemyGraveyardLabel" type="Label" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=185130313]
-custom_minimum_size = Vector2(180, 0)
+[node name="ToggleEnemyGraveyardLabel" type="Label" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow" unique_id=185130313]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
 text = "Cimetière ennemi"
 
-[node name="ToggleEnemyGraveyardButton" type="Button" parent="PanelContainer/VBox/BindsMargin/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
+[node name="ToggleEnemyGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
@@ -177,52 +121,31 @@ theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "H"
 
-[node name="ConflictMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000025]
+[node name="ConflictMargin" type="MarginContainer" parent="VBox" unique_id=700000025]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 0
 
-[node name="ConflictLabel" type="Label" parent="PanelContainer/VBox/ConflictMargin" unique_id=700000026]
+[node name="ConflictLabel" type="Label" parent="VBox/ConflictMargin" unique_id=700000026]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.3, 0.3, 1)
 theme_override_font_sizes/font_size = 13
-horizontal_alignment = 1
 visible = false
 
-[node name="SepBottom" type="HSeparator" parent="PanelContainer/VBox" unique_id=700000020]
+[node name="BtnsMargin" type="MarginContainer" parent="VBox" unique_id=700000021]
 layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_bottom = 4
 
-[node name="BtnsMargin" type="MarginContainer" parent="PanelContainer/VBox" unique_id=700000021]
+[node name="BtnsRow" type="HBoxContainer" parent="VBox/BtnsMargin" unique_id=700000022]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 24
-
-[node name="BtnsRow" type="HBoxContainer" parent="PanelContainer/VBox/BtnsMargin" unique_id=700000022]
-layout_mode = 2
+size_flags_vertical = 8
 theme_override_constants/separation = 12
 
-[node name="ResetButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=700000023]
+[node name="ResetButton" type="Button" parent="VBox/BtnsMargin/BtnsRow" unique_id=700000023]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 17
 text = "Réinitialiser"
-
-[node name="BackButton" type="Button" parent="PanelContainer/VBox/BtnsMargin/BtnsRow" unique_id=700000024]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 17
-text = "← Retour"
-

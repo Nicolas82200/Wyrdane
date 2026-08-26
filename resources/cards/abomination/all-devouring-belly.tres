@@ -24,7 +24,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel du Ventre Qui Prend Tout"
-description = "Sacrifice (un serviteur allié) : pioche 1 carte ; ton héros regagne des HP."
+description = "Sacrifice 1 : Piochez 1 carte.
+Votre héros regagne des points de vie."
 flavour_text = "Rien ne se perd vraiment. Tout se redistribue, même à toi."
 texture = ExtResource("2_texture")
 cost = 6

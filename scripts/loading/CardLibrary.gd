@@ -3,6 +3,11 @@ extends Node
 const ALL_CARDS_PATH := "res://resources/cards"
 
 var all_cards: Array[CardData] = []
+# Cartes marquées CardData.arena_only = true : jamais dans all_cards (donc
+# invisibles du deckbuilder/pool IA/SummonRandom), mais réservées au pool du
+# mode Arena (voir scripts/arena/ArenaCardPool.gd). Même principe d'exclusion
+# que is_token, dans l'autre sens (exclues du 1v1, incluses en Arena).
+var arena_only_cards: Array[CardData] = []
 var is_loaded: bool = false
 
 # Correspondance carte ↔ id numérique côté wyrdane-backend (table `cards`).
@@ -19,6 +24,7 @@ func load_all_cards() -> void:
 	if is_loaded:
 		return
 	all_cards.clear()
+	arena_only_cards.clear()
 	_scan_recursive(ALL_CARDS_PATH)
 	all_cards.sort_custom(func(a: CardData, b: CardData) -> bool: return a.cost < b.cost)
 	is_loaded = true
@@ -58,6 +64,27 @@ func sync_backend_catalog(on_complete: Callable = Callable()) -> void:
 			on_complete.call(true)
 	)
 
+## Cartes jouables d'une race donnée. Les jetons (is_token) ne peuvent jamais
+## apparaître ici : déjà exclus en amont de all_cards par _scan_recursive.
+func get_cards_by_race(race: int, include_resources: bool = false) -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card in all_cards:
+		if card.race != race:
+			continue
+		if not include_resources and card.card_type == "Resource":
+			continue
+		result.append(card)
+	return result
+
+## Cartes jouables d'une race et d'une rareté données (exclut toujours les
+## cartes-ressource).
+func get_cards_by_race_and_rarity(race: int, rarity: String) -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card in get_cards_by_race(race, false):
+		if card.rarity == rarity:
+			result.append(card)
+	return result
+
 func _scan_recursive(path: String) -> void:
 	var dir := DirAccess.open(path)
 	if dir == null:
@@ -71,6 +98,9 @@ func _scan_recursive(path: String) -> void:
 		elif file_name.ends_with(".tres"):
 			var res := load(full_path)
 			if res is CardData and not (res as CardData).is_token:
-				all_cards.append(res as CardData)
+				if (res as CardData).arena_only:
+					arena_only_cards.append(res as CardData)
+				else:
+					all_cards.append(res as CardData)
 		file_name = dir.get_next()
 	dir.list_dir_end()

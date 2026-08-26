@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="1_carddata"]
+[ext_resource type="Texture2D" path="res://assets/card_art/abomination/all-devouring-belly.jpg" id="2_texture"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="3_kw"]
+
+[sub_resource type="Resource" id="Resource_kw1"]
+script = ExtResource("3_kw")
+keyword_type = 6
+metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
+
+[sub_resource type="Resource" id="Resource_kw2"]
+script = ExtResource("3_kw")
+keyword_type = 5
+metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
+
+[resource]
+script = ExtResource("1_carddata")
+card_name = "Charognard Vorace"
+description = "RAVAGE, VENIN MORTEL"
+flavour_text = "Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé."
+texture = ExtResource("2_texture")
+cost = 4
+race = 6
+attack = 5
+health = 3
+unit_style = 20
+keywords = Array[ExtResource("3_kw")]([SubResource("Resource_kw1"), SubResource("Resource_kw2")])
+rarity = "Epic"
+arena_only = true
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

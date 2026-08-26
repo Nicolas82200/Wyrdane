@@ -569,7 +569,7 @@ func notify_player_turn_began() -> void:
 func notify_victory() -> void:
 	await _popup("tutorial.complete", [])
 	SettingsManager.set_tutorial_completed()
-	battle.get_tree().change_scene_to_file(battle.MAIN_MENU_SCENE)
+	SceneTransition.change_scene(battle.MAIN_MENU_SCENE)
 
 # ─── Attentes ─────────────────────────────────────────────────────────────────
 
@@ -585,14 +585,14 @@ func _wait_card(card: CardData) -> void:
 func _wait_minion() -> void:
 	await _wait_for("card_played", func(p): return p != null and p.card_type == "Minion")
 
-# Appelé par Battle AVANT _run_mulligan() (donc avant run()) : narration pure,
-# fermée au clic, pour présenter la phase de mulligan qui va suivre juste
-# après — elle utilise la vraie mécanique de jeu (Hand/Battle._run_mulligan),
-# pas une popup d'action de ce script.
+# Appelé par TurnSystem.start_match AVANT run_mulligan() (donc avant run()) :
+# narration pure, fermée au clic, pour présenter la phase de mulligan qui va
+# suivre juste après — elle utilise la vraie mécanique de jeu
+# (Hand/TurnSystem.run_mulligan), pas une popup d'action de ce script.
 func intro_mulligan() -> void:
 	await _popup("tutorial.mulligan_intro", [battle.hand, battle.end_turn_button])
 
-# Appelé par Battle._run_mulligan() une fois le mode mulligan actif (cartes
+# Appelé par TurnSystem.run_mulligan() une fois le mode mulligan actif (cartes
 # cliquables) : cible les cartes en main comme _popup_play_card (cartes
 # voisines assombries, aucun cadre de surbrillance, popup positionnée par
 # rapport à toute la main dépliée pour ne jamais la chevaucher) plutôt que le
@@ -623,7 +623,7 @@ func guided_mulligan() -> void:
 		battle.hand._force_expanded = false
 	_forced_hand_expanded = false
 
-# Appelé par Battle._on_mulligan_card_clicked() après un échange réussi.
+# Appelé par TurnSystem._on_mulligan_card_clicked() après un échange réussi.
 func notify_mulligan_swap(card_data: CardData) -> void:
 	_event.emit({"kind": "mulligan_swap", "payload": card_data})
 

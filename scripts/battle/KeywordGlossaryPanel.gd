@@ -1,7 +1,7 @@
 extends Control
 class_name KeywordGlossaryPanel
 
-## Glossaire consultable à tout moment pendant un match (bouton "❔" du HUD) :
+## Glossaire consultable à tout moment pendant un match (bouton "?" du HUD) :
 ## liste tous les mots-clés (communs + par race) et déclencheurs déjà décrits
 ## dans TooltipData (même source que les tooltips de carte), regroupés par
 ## section. Simple overlay centré, ne met pas la partie en pause — juste une
@@ -12,8 +12,15 @@ class_name KeywordGlossaryPanel
 const FONT_BOLD    := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const FONT_REGULAR := preload("res://assets/fonts/MedievalSharp-Book.ttf")
 const PANEL_SIZE := Vector2(560, 620)
+# Marge gardée entre le panneau et les bords de l'écran : le nombre de
+# sections (5 races + déclencheurs) a fini par rendre PANEL_SIZE.y trop
+# grand pour tenir sur les résolutions/fenêtres plus basses que 1080p,
+# poussant le bouton Fermer hors écran. La taille réelle du panneau est donc
+# recalculée par rapport à la fenêtre plutôt que figée à PANEL_SIZE.
+const SCREEN_MARGIN := 60.0
 
 var _wrapper: PanelContainer
+var _scroll: ScrollContainer
 var _list: VBoxContainer
 var _title_label: Label
 var _close_button: Button
@@ -31,19 +38,15 @@ func _ready() -> void:
 	add_child(dim)
 
 	_wrapper = PanelContainer.new()
-	# Ancres/offsets posés explicitement (plutôt que set_anchors_preset, qui
-	# recalcule les offsets à partir de la taille actuelle du contrôle — encore
-	# 0x0 ici puisqu'il n'est pas encore dans l'arbre — et finit décentré,
-	# la fenêtre n'affichant alors que son coin haut-gauche à l'écran).
-	_wrapper.anchor_left = 0.5
-	_wrapper.anchor_top = 0.5
-	_wrapper.anchor_right = 0.5
-	_wrapper.anchor_bottom = 0.5
-	_wrapper.offset_left = -PANEL_SIZE.x / 2.0
-	_wrapper.offset_top = -PANEL_SIZE.y / 2.0
-	_wrapper.offset_right = PANEL_SIZE.x / 2.0
-	_wrapper.offset_bottom = PANEL_SIZE.y / 2.0
-	_wrapper.custom_minimum_size = PANEL_SIZE
+	# Position en pixels absolus via get_viewport_rect() (voir _update_layout),
+	# pas via ancres fractionnaires : celles-ci se résolvent contre la taille de
+	# `self` (ce Control), qui hérite du PRESET_FULL_RECT posé juste au-dessus —
+	# pas garanti résolu dès ce frame puisque `self` vient d'entrer dans l'arbre.
+	# Un ancrage à 0.5 contre une taille encore à 0x0 centre le panneau sur (0,0)
+	# plutôt que sur l'écran : seul son coin bas-droit (le quart qui déborde vers
+	# les coordonnées positives) reste visible. Même piège et même parade que
+	# ReconnectOverlay._center_panel (position absolue recalculée à chaque frame
+	# nécessaire, jamais figée dans des ancres).
 	var style := StyleBoxFlat.new()
 	style.bg_color              = Color("1a0e0ef2")
 	style.border_width_top      = 2
@@ -69,15 +72,14 @@ func _ready() -> void:
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_title_label)
 
-	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(PANEL_SIZE.x - 32, PANEL_SIZE.y - 90)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	vbox.add_child(scroll)
+	_scroll = ScrollContainer.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox.add_child(_scroll)
 
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", 4)
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_list)
+	_scroll.add_child(_list)
 
 	_close_button = Button.new()
 	_close_button.custom_minimum_size = Vector2(140, 40)
@@ -90,9 +92,23 @@ func _ready() -> void:
 
 	_populate()
 	_retranslate()
+	_update_layout()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
+	get_viewport().size_changed.connect(_update_layout)
+
+func _update_layout() -> void:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var panel_size := Vector2(
+		min(PANEL_SIZE.x, viewport_size.x - SCREEN_MARGIN),
+		min(PANEL_SIZE.y, viewport_size.y - SCREEN_MARGIN)
+	)
+	_wrapper.custom_minimum_size = panel_size
+	_scroll.custom_minimum_size = Vector2(panel_size.x - 32, panel_size.y - 90)
+	_wrapper.reset_size()
+	_wrapper.position = (viewport_size - _wrapper.size) / 2.0
 
 func open() -> void:
+	_update_layout()
 	visible = true
 	AudioManager.play(AudioManager.OPEN_MENU)
 

@@ -1,8 +1,6 @@
 extends Control
 class_name AudioSettingsMenu
 
-signal back_requested  # ← ajouté pour SettingsMenu
-
 const SAVE_PATH := "user://audio_settings.cfg"
 
 @onready var master_slider: HSlider = %MasterSlider
@@ -11,11 +9,9 @@ const SAVE_PATH := "user://audio_settings.cfg"
 @onready var master_label:  Label   = %MasterValueLabel
 @onready var music_label:   Label   = %MusicValueLabel
 @onready var sfx_label:     Label   = %SFXValueLabel
-@onready var close_button:  Button  = %CloseButton
-@onready var title_label:   Label   = $PanelContainer/VBox/TitleMargin/Title
-@onready var master_name:   Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/MasterRow/MasterLabel
-@onready var music_name:    Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/MusicRow/MusicLabel
-@onready var sfx_name:      Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/SFXRow/SFXLabel
+@onready var master_name:   Label   = $RowsMargin/RowsScroll/RowsVBox/MasterRow/MasterLabel
+@onready var music_name:    Label   = $RowsMargin/RowsScroll/RowsVBox/MusicRow/MusicLabel
+@onready var sfx_name:      Label   = $RowsMargin/RowsScroll/RowsVBox/SFXRow/SFXLabel
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -23,18 +19,14 @@ func _ready() -> void:
 	master_slider.value_changed.connect(_on_master_changed)
 	music_slider.value_changed.connect(_on_music_changed)
 	sfx_slider.value_changed.connect(_on_sfx_changed)
-	close_button.pressed.connect(_on_close)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
-	hide()
 
 # Met à jour les libellés fixes du menu dans la langue courante.
 func _retranslate() -> void:
-	title_label.text = SettingsManager.t("audio.title")
 	master_name.text = SettingsManager.t("audio.master")
 	music_name.text  = SettingsManager.t("audio.music")
 	sfx_name.text    = SettingsManager.t("audio.sfx")
-	close_button.text = SettingsManager.t("audio.back")
 
 func _on_master_changed(value: float) -> void:
 	master_label.text = "%d%%" % int(value * 100)
@@ -50,17 +42,6 @@ func _on_sfx_changed(value: float) -> void:
 	sfx_label.text = "%d%%" % int(value * 100)
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(value))
 	_save_settings()
-
-func _on_close() -> void:
-	back_requested.emit()  # ← remplace hide() direct
-	hide()
-
-func open() -> void:
-	_load_settings()
-	show()
-
-func close() -> void:
-	_on_close()
 
 func _save_settings() -> void:
 	var cfg := ConfigFile.new()

@@ -13,7 +13,7 @@ class_name CardEffect
 	"DamageAllMinions", "ReturnFromGrave",
 	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
 	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
-	"SacrificeAlly", "GrantCounterOffensive",
+	"SacrificeAlly", "GrantCounterOffensive", "ProtectFrontLine",
 	"GainMana", "DrawCardDiscount",
 	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
 	"DestroyRandomEnchantment",
@@ -22,7 +22,8 @@ class_name CardEffect
 	"PreventEnemyHeroHeal", "CancelSpellOnRaceTarget",
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
 	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
-	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword"
+	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword",
+	"DrawCardPerAllyDeathThisTurn", "MoveRow"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -36,12 +37,22 @@ class_name CardEffect
 
 @export_enum("Permanent", "UntilEndOfTurn", "UntilEndOfEnemyTurn") var duration: String = "Permanent"
 
+# Trigger d'appartenance. Vide = l'effet se déclenche pour n'importe lequel des
+# trigger_types de la carte (cas général). Renseigné = l'effet n'est joué que
+# pour ce trigger précis, utile aux cartes portant plusieurs déclencheurs
+# distincts avec des effets différents (ex: Prêtre de Guerre, Éveil vs Dernier
+# Souffle). Filtré par EffectManager.trigger_effects et le chemin enchantement.
+@export var trigger: String = ""
+
 @export var value: int = 0
 @export var value_2: int = 0
 @export var count: int = 1
 @export var summon_card: CardData
 @export var transform_card: CardData
 @export var race_filter: String = ""
+# Inverse le sens de race_filter : ne retient que les cibles qui N'appartiennent
+# PAS à cette race (ex: Fléau Écarlate, "serviteurs non Démons ennemis").
+@export var race_filter_exclude: bool = false
 @export var row_filter: String = ""  # "Front", "Back", ou "" pour les deux
 
 # ─── Conditions sur la cible ──────────────────────────────────────────────────
@@ -53,6 +64,12 @@ class_name CardEffect
 # Ne peut cibler qu'un serviteur ramené du cimetière (Minion.was_resurrected),
 # ex. Brise-Mort.
 @export var requires_resurrected_target: bool = false
+# Exclut les cibles de rareté Légendaire (ex: Morsure Infectieuse : "un
+# serviteur ennemi non-Légendaire"). Vérifié au ciblage ET à la résolution.
+@export var exclude_legendary: bool = false
+# Ne retient que les cibles actuellement infectées (Brouillard Pestilentiel :
+# "les serviteurs ennemis infectés perdent 1 HP supplémentaire").
+@export var requires_infected_target: bool = false
 
 # ─── Condition d'exécution ────────────────────────────────────────────────────
 # L'effet n'est appliqué que si la condition est remplie. "None" = toujours.
@@ -113,3 +130,15 @@ class_name CardEffect
 @export var count_if_threshold: int = 0
 # Le seuil est comparé au nombre de cibles résolues (Damage/DamageAll/Buff/BuffRow)
 # ou, pour SummonMinion/SummonRandom, au nombre d'alliés dans la rangée d'invocation.
+
+# ─── Bonus de Pacte (mot-clé PACTE) ────────────────────────────────────────────
+# Un effet marqué pact_bonus ne s'exécute que si le joueur choisit de payer le
+# coût en PV du Pacte (KeywordChoiceDemon.value) au moment où ce trigger se
+# déclenche — redemandé à chaque déclenchement, pas seulement à l'Arrivée (voir
+# EffectManager.trigger_effects / PactChoiceSystem.resolve_trigger). Les effets
+# non marqués (base) s'exécutent toujours, gratuitement.
+@export var pact_bonus: bool = false
+# Si vrai ET que ce bonus est payé, les effets de base du même trigger sont
+# REMPLACÉS par ce bonus au lieu de s'ajouter à eux (ex: invoque un serviteur
+# amélioré à la place du serviteur de base). Sans effet si pact_bonus est faux.
+@export var pact_replaces_base: bool = false

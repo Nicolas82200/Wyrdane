@@ -65,6 +65,13 @@ func test_token_cards_are_excluded_from_library() -> void:
 	for card in library.all_cards:
 		assert_false(card.is_token, "%s : un jeton (is_token=true) ne doit pas apparaître dans CardLibrary.all_cards (deckbuilder/IA/pool aléatoire)" % card.resource_path)
 
+func test_arena_only_cards_are_excluded_from_library_but_kept_separately() -> void:
+	for card in library.all_cards:
+		assert_false(card.arena_only, "%s : une carte arena_only=true ne doit pas apparaître dans all_cards (deckbuilder/IA/pool aléatoire)" % card.resource_path)
+	assert_gt(library.arena_only_cards.size(), 0, "aucune carte arena_only trouvée, le scan a probablement échoué")
+	for card in library.arena_only_cards:
+		assert_true(card.arena_only)
+
 func test_token_cards_have_no_chaining_effects() -> void:
 	var token_paths: Array[String] = []
 	_collect_token_paths("res://resources/cards", token_paths)
@@ -73,6 +80,52 @@ func test_token_cards_have_no_chaining_effects() -> void:
 		var card: CardData = load(path)
 		assert_true(card.is_token, "%s devrait avoir is_token=true" % path)
 		assert_eq(card.effects.size(), 0, "%s : un jeton ne doit porter aucun effect (risque de réaction en chaîne)" % path)
+
+func test_summon_minion_effects_target_a_valid_token() -> void:
+	# Règle CLAUDE.md « Jetons d'invocation » : un effet SummonMinion ne doit
+	# jamais cibler une vraie carte collectionnable (ré-déclencherait ses
+	# propres triggers/effets), seulement un jeton dédié sans effects.
+	for card in library.all_cards:
+		for effect in card.effects:
+			if effect.effect_id != "SummonMinion":
+				continue
+			assert_not_null(effect.summon_card, "%s : effet SummonMinion sans summon_card assignée (no-op silencieux en jeu)" % card.card_name)
+			if effect.summon_card == null:
+				continue
+			assert_true(effect.summon_card.is_token,
+				"%s (SummonMinion) cible %s, qui n'est pas un jeton (is_token=false)" % [card.card_name, effect.summon_card.card_name])
+			assert_eq(effect.summon_card.effects.size(), 0,
+				"%s : le jeton ciblé %s porte des effects (risque de réaction en chaîne)" % [card.card_name, effect.summon_card.card_name])
+
+func test_transform_effects_have_a_transform_card_assigned() -> void:
+	for card in library.all_cards:
+		for effect in card.effects:
+			if effect.effect_id == "Transform":
+				assert_not_null(effect.transform_card, "%s : effet Transform sans transform_card assignée (no-op silencieux en jeu)" % card.card_name)
+
+func test_get_cards_by_race_excludes_resources_by_default() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race(Race.Type.UNDEAD)
+	assert_gt(cards.size(), 0, "aucune carte Mort-Vivant trouvée")
+	for card in cards:
+		assert_eq(card.race, Race.Type.UNDEAD)
+		assert_ne(card.card_type, "Resource", "%s : ressource incluse alors que include_resources=false" % card.card_name)
+
+func test_get_cards_by_race_can_include_resources() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race(Race.Type.UNDEAD, true)
+	var has_resource := false
+	for card in cards:
+		if card.card_type == "Resource":
+			has_resource = true
+			break
+	assert_true(has_resource, "la carte-ressource Mort-Vivant devrait apparaître avec include_resources=true")
+
+func test_get_cards_by_race_and_rarity_filters_correctly() -> void:
+	var cards: Array[CardData] = library.get_cards_by_race_and_rarity(Race.Type.HUMAN, "Common")
+	assert_gt(cards.size(), 0, "aucune carte Humain Common trouvée")
+	for card in cards:
+		assert_eq(card.race, Race.Type.HUMAN)
+		assert_eq(card.rarity, "Common")
+		assert_ne(card.card_type, "Resource")
 
 func _collect_token_paths(path: String, out: Array[String]) -> void:
 	var dir := DirAccess.open(path)

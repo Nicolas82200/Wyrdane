@@ -104,7 +104,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "🔍  Rechercher une carte..."
+placeholder_text = "Rechercher une carte..."
 
 [node name="FilterBar" type="HFlowContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox" unique_id=100000016]
 unique_name_in_owner = true
@@ -184,7 +184,7 @@ size_flags_vertical = 3
 [node name="DeckList" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/ScrollDeck" unique_id=100000012]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
 [node name="StatsHSep" type="HSeparator" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000034]
@@ -194,6 +194,15 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
+
+[node name="WarningLabel" type="Label" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000041]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.3, 1)
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 3
 
 [node name="IORow" type="HBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000036]
 layout_mode = 2
@@ -212,6 +221,14 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Importer"
+
+[node name="BuyMissingButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000042]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Acheter les cartes manquantes"
 
 [node name="SaveButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000015]
 unique_name_in_owner = true

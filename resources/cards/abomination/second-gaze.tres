@@ -23,7 +23,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Second Regard"
-description = "CHAIR ADAPTATIVE. Arrivée : pioche 1 carte."
+description = "CHAIR ADAPTATIVE
+Arrivée : Piochez 1 carte."
 flavour_text = "Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes."
 texture = ExtResource("3_texture")
 cost = 3

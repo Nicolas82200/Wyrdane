@@ -32,6 +32,7 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		push_warning("Conditions non remplies pour jouer %s." % card_data.card_name)
 		battle.hand.set_hand(battle.hand_cards)
 		return
+
 	if card_data.requires_target:
 		# Serviteur à effet ciblé sans cible valide : on le pose quand même,
 		# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
@@ -80,6 +81,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
+	battle.track_card_played_for_quests(card_data)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
@@ -90,6 +92,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
+	battle.track_card_played_for_quests(card_data)
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -101,14 +104,18 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
-		for effect in card_data.effects:
-			if target is Minion:
-				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
-			elif target is CardData:
+		# La cible (si Minion) est transmise directement au déclenchement ONPLAY :
+		# EffectManager.trigger_effects s'en sert pour les effets qui en ont besoin
+		# (EnemyMinion/AllyMinion/AnyMinion), base ET bonus de Pacte compris.
+		# Un ciblage d'enchantement (CardData) n'est pas géré par ce pipeline —
+		# encore résolu manuellement ci-dessous, cas rare non concerné par PACTE.
+		summoned = await battle.board_system.summon_minion_return(
+			card_data, true, row, insert_index, false, target if target is Minion else null)
+		if target is CardData:
+			for effect in card_data.effects:
+				if effect.pact_bonus:
+					continue
 				await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
-			else:
-				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
 		# contrer un sort ciblant un de ses serviteurs. Le sort est alors défaussé

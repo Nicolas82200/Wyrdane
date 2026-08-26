@@ -21,6 +21,8 @@ func execute_effect(
 		"Debuff":           await _debuff(battle, source_minion, effect, selected_target)
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
 		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
+		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
+		"MoveRow":          await _move_row(battle, source_minion, effect, selected_target)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
 		"StealHealth":      await _steal_health(battle, source_minion, effect, selected_target)
@@ -39,7 +41,7 @@ func execute_effect(
 		"SummonSelf":       await _summon_self(battle, source_minion, effect)
 		"DamageAll":        await _damage_all(battle, source_minion, effect)
 		"BuffRow":          await _buff_row(battle, source_minion, effect)
-		"BuffAdjacent":     await _buff_adjacent(battle, source_minion, effect)
+		"BuffAdjacent":     await _buff_adjacent(battle, source_minion, effect, selected_target)
 		"SplashDamage":     await _splash_damage(battle, source_minion, effect, selected_target)
 		"DebuffATK":        await _debuff_atk(battle, source_minion, effect, selected_target)
 		"DestroyLowHP":     await _destroy_low_hp(battle, source_minion, effect)
@@ -52,6 +54,7 @@ func execute_effect(
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
+		"ProtectFrontLine": _protect_front_line(battle, source_minion, effect)
 		"GainMana":         _gain_mana(battle, source_minion, effect)
 		"DestroyRandomEnchantment": await _destroy_random_enchantment(battle, source_minion, effect)
 		"DrawCardDiscount": _draw_card_discount(battle, source_minion, effect)
@@ -166,7 +169,7 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 	if not effect.race_filter.is_empty():
 		var race_id: int = Race.from_string(effect.race_filter)
 		result = result.filter(func(t: Minion) -> bool:
-			return t.card_data.race == race_id
+			return (t.card_data.race == race_id) != effect.race_filter_exclude
 		)
 	if not effect.row_filter.is_empty():
 		result = result.filter(func(t: Minion) -> bool:
@@ -182,6 +185,10 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 		)
 	if effect.requires_resurrected_target:
 		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
+	if effect.exclude_legendary:
+		result = result.filter(func(t: Minion) -> bool: return t.card_data.rarity != "Legendary")
+	if effect.requires_infected_target:
+		result = result.filter(func(t: Minion) -> bool: return t.infected)
 	return result
 
 func _resolve_targets(
@@ -319,7 +326,11 @@ func _get_adjacent_minions(battle, minion: Minion) -> Array[Minion]:
 	return result
 
 func _get_adjacent_enemies(battle, target: Minion) -> Array[Minion]:
-	var list: Array[Minion] = battle.enemy_minions if target.owner_is_player else battle.player_minions
+	# La position adjacente se calcule dans le camp DE LA CIBLE (comme
+	# _get_adjacent_minions) : le camp opposé ne contient jamais `target`,
+	# donc find() y échouait toujours (-1), ce qui ne touchait que le
+	# premier serviteur de la rangée au lieu du vrai voisin (bug corrigé).
+	var list: Array[Minion] = battle.player_minions if target.owner_is_player else battle.enemy_minions
 	var same_row: Array[Minion] = list.filter(func(m: Minion): return m.board_row == target.board_row)
 	var idx: int = same_row.find(target)
 	var result: Array[Minion] = []
@@ -440,9 +451,16 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_generic_debuff(visual, effect.value, effect.value_2)
+		# Une perte de PV réelle doit passer par le même point d'entrée qu'un
+		# dégât de combat (Mort-rage sous 50%, Mutation Abomination via
+		# notify_damaged) — sans ça un "-X/-X" faisait passer un serviteur sous
+		# la moitié de ses PV max sans jamais déclencher ces réactions.
+		var dealt: int = old_health - target.health
+		if dealt > 0 and not target.is_dead():
+			await notify_damaged(battle, target)
 
 func _destroy(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
-	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
+	var is_ally_targeted := effect.target in ["Self", "AllyMinion", "RandomAlly", "AllAllies", "AllAlliesFront", "AllAlliesBack"]
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
@@ -517,9 +535,16 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 	for target in targets:
 		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
 			continue
+		if _is_front_line_protected(battle, source_minion, target):
+			continue
 		# Retour en main = retrait du plateau SANS passer par la mort
 		# (pas de cimetière, pas de Dernier Souffle)
 		_remove_from_board(battle, target)
+		# Mode Arena (SimulatedBattle.gd) : pas de main — la carte est
+		# simplement retirée du combat plutôt que rendue injouable pour le
+		# reste de la partie (pas de crash sur hand/hand_cards absents).
+		if battle.get("hand_cards") == null:
+			continue
 		if target.owner_is_player:
 			battle.hand_cards.append(target.card_data)
 			battle.hand.set_hand(battle.hand_cards)
@@ -541,6 +566,14 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
+		# Les deux cartes utilisant Transform (Morsure Infectieuse, Apocalypse
+		# Zombie) précisent toutes deux « sous ton contrôle » : le serviteur
+		# transformé change donc aussi de camp, comme _steal_minion — y compris
+		# l'immunité au contrôle mental, qui bloque alors tout l'effet.
+		if target.is_mind_control_immune():
+			continue
+		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
+			continue
 		target.card_data        = effect.transform_card
 		target.base_attack      = effect.transform_card.attack
 		target.base_max_health  = effect.transform_card.health
@@ -553,6 +586,20 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.demon_keywords   = effect.transform_card.get_demon_keyword_values()
 		target.abomination_keywords = effect.transform_card.get_abomination_keyword_values()
 		target.silenced         = false
+		var from_player: bool = target.owner_is_player
+		var to_player: bool = not from_player
+		if not battle.can_summon_to_row(to_player, target.board_row):
+			var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
+			if battle.can_summon_to_row(to_player, other_row):
+				target.board_row = other_row
+		target.owner_is_player = to_player
+		if from_player:
+			battle.player_minions.erase(target)
+			battle.enemy_minions.append(target)
+		else:
+			battle.enemy_minions.erase(target)
+			battle.player_minions.append(target)
+		battle.board_visual_system.reparent_minion_visual(target, to_player)
 
 # Pioche `count` carte(s) pour le camp propriétaire de `source_minion` (joueur
 # par défaut si absent, ex. carte piochée en main sans source). Le joueur
@@ -560,12 +607,41 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 # OpponentDriver (IA : vrai deck local ; réseau : compteurs cosmétiques, le
 # pair distant pioche réellement de son côté).
 func _draw_cards(battle, source_minion: Minion, count: int) -> void:
+	# Mode Arena (SimulatedBattle.gd) : pas de deck/pioche — sans intérêt,
+	# no-op plutôt qu'un crash sur deck_system/opponent absents.
+	if battle.get("deck_system") == null:
+		return
 	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	for i in range(count):
 		if is_player:
 			battle.deck_system.draw_card()
 		else:
 			battle.opponent.draw_card()
+
+# Pioche 1 carte par Mort-Vivant allié mort CE TOUR, plafonné à effect.count
+# (Dernier Soupir : "pioche 1 carte par Mort-Vivant allié mort ce tour, max 3").
+# Compteur tenu à jour par DeathSystem/TurnSystem (battle.undead_ally_deaths_this_turn).
+func _draw_card_per_ally_death_this_turn(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
+	var deaths: int = int(battle.undead_ally_deaths_this_turn.get(is_player, 0))
+	var count: int = mini(deaths, effect.count) if effect.count > 0 else deaths
+	_draw_cards(battle, source_minion, count)
+
+# Bascule la rangée d'un allié ciblé, Avant<->Arrière (Repli Tactique).
+# Ignore la cible si la rangée d'en face est déjà pleine : rien à échanger.
+func _move_row(battle, source_minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		if target.has_human_keyword(KeywordHuman.Type.FORTIFICATION) and _is_hostile_to(source_minion, target):
+			continue
+		if _is_front_line_protected(battle, source_minion, target):
+			continue
+		var other_row: String = battle.ROW_BACK if target.board_row == battle.ROW_FRONT else battle.ROW_FRONT
+		if not battle.can_summon_to_row(target.owner_is_player, other_row):
+			continue
+		target.board_row = other_row
+		battle.board_visual_system.reparent_minion_visual(target, target.owner_is_player)
 
 func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -769,9 +845,15 @@ func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> void:
 	if source_minion == null:
 		return
+	# La position "en face" se lit dans le camp DE LA SOURCE (source_minion
+	# n'apparaît jamais dans le camp adverse, donc chercher son index
+	# directement dans `enemies` échouait toujours et ne touchait que le
+	# premier ennemi de la rangée, quelle que soit la position réelle — bug
+	# corrigé en calculant idx depuis le propre camp de la source).
+	var own_row: Array[Minion] = battle.get_owner_minions(source_minion).filter(func(m: Minion): return m.board_row == source_minion.board_row)
+	var idx: int = own_row.find(source_minion)
 	var enemies: Array[Minion] = battle.get_enemy_minions(source_minion)
 	var same_row: Array[Minion] = enemies.filter(func(m: Minion): return m.board_row == source_minion.board_row)
-	var idx: int = same_row.find(source_minion)
 	# Cible les ennemis adjacents en face (position idx-1, idx, idx+1)
 	var hit: Array[Minion] = []
 	for offset in [-1, 0, 1]:
@@ -785,13 +867,21 @@ func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> voi
 		if visual:
 			battle.animation_system.play_infection(visual)
 
-# Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...)
-func _buff_adjacent(battle, source_minion, effect) -> void:
-	if source_minion == null:
-		return
-	var adjacents: Array[Minion] = _get_adjacent_minions(battle, source_minion)
+# Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...).
+# Cas Deuil (Serment du Sang) : selected_target est le serviteur qui vient de
+# mourir, déjà retiré du plateau — on retombe alors sur ses voisins capturés
+# par DeathSystem juste avant sa mort (grief_adjacent_hint) plutôt que de
+# recalculer une adjacence sur des tableaux qui ne le contiennent plus.
+func _buff_adjacent(battle, source_minion, effect, selected_target: Minion = null) -> void:
+	var adjacents: Array[Minion] = []
+	if selected_target != null and not selected_target.grief_adjacent_hint.is_empty():
+		adjacents = selected_target.grief_adjacent_hint
+	elif source_minion != null:
+		adjacents = _get_adjacent_minions(battle, source_minion)
 	await _point_arrows_to(battle, adjacents, source_minion)
 	for adjacent in adjacents:
+		if adjacent.is_dead():
+			continue
 		adjacent.base_attack     += effect.value
 		adjacent.base_max_health += effect.value_2
 
@@ -864,6 +954,10 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 			break
 	if card_data == null:
 		return
+	# Mode Arena (SimulatedBattle.gd) : pas de main — la carte reste au
+	# cimetière plutôt qu'un crash sur hand/hand_cards absents.
+	if battle.get("hand_cards") == null:
+		return
 	if is_player:
 		battle.hand_cards.append(card_data)
 		battle.hand.set_hand(battle.hand_cards)
@@ -932,11 +1026,6 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_demon_keyword(kw)
 			battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
-			# PACTE octroyé après l'arrivée : donne aussi ASSAUT (le coût en HP ne
-			# s'applique qu'à l'entrée en jeu, pas rétroactivement)
-			if kw == KeywordDemon.Type.PACTE and not target.has_keyword(Keyword.Type.CHARGE):
-				target.add_keyword(Keyword.Type.CHARGE)
-				battle.temp_effect_system.add_temp_keyword(target, Keyword.Type.CHARGE, false, effect.duration)
 			battle.aura_system.recompute_all()
 		else:
 			var kw: int = Keyword.from_name(effect.granted_keyword)
@@ -1029,6 +1118,14 @@ func _grant_counter_offensive(battle, source_minion: Minion, _effect: CardEffect
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	battle.counter_offensive[is_player] = true
 
+# Protège la rangée Avant du camp lanceur du renvoi en main et du déplacement par
+# des effets ennemis, jusqu'au prochain Éveil du camp (Ordre de Tenir). Le flag
+# est réarmé chaque tour tant que le rituel vit, remis à zéro par TurnSystem.
+# Vérifié dans _return_to_hand et _move_row.
+func _protect_front_line(battle, source_minion: Minion, _effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	battle.front_line_protected[is_player] = true
+
 # Détruit un enchantement ou rituel ennemi actif aléatoire (La Grande
 # Inquisitrice, Éveil). Tirage via le RNG partagé pour rester synchronisé en réseau.
 func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEffect) -> void:
@@ -1044,6 +1141,10 @@ func _destroy_random_enchantment(battle, source_minion: Minion, _effect: CardEff
 # toucher au mana maximum — le surplus non dépensé est perdu au tour suivant
 # (Vortex des Âmes : Carnage -> +1 mana ce tour).
 func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
+	# Mode Arena (SimulatedBattle.gd) : pas de mana en combat — sans
+	# intérêt, no-op plutôt qu'un crash sur race_mana_pool absent.
+	if not battle.has_method("race_mana_pool"):
+		return
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var amount: int = maxi(1, effect.value)
 	# Bucket hors-race (Race.Type.NONE) : compte comme surplus générique dans
@@ -1063,6 +1164,10 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 # réelle du pair distant est inconnue localement donc seule la pioche
 # cosmétique a lieu, sans remise (que le pair applique de son côté).
 func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
+	# Mode Arena (SimulatedBattle.gd) : pas de deck/coût — sans intérêt,
+	# no-op plutôt qu'un crash sur deck_system/cost_system absents.
+	if battle.get("deck_system") == null:
+		return
 	var is_player: bool = source_minion == null or source_minion.owner_is_player
 	var count: int = maxi(1, effect.value)
 	var discount: int = maxi(1, effect.value_2)
@@ -1329,9 +1434,48 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
+	# PACTE : l'effet de base (pact_bonus == false) se déclenche toujours,
+	# gratuitement. S'il existe en plus un effet de bonus (pact_bonus == true)
+	# pour CE trigger, le paiement du coût en PV est proposé à chaque
+	# déclenchement (Arrivée comprise — pas de traitement spécial, redemandé à
+	# chaque fois comme n'importe quel autre trigger) ; payé, le bonus s'ajoute
+	# à l'effet de base, ou le remplace si `pact_replaces_base` est vrai.
+	var base_effects: Array[CardEffect] = []
+	var bonus_effects: Array[CardEffect] = []
 	for effect in minion.card_data.effects:
-		await execute_effect(battle, minion, effect, selected_target)
+		if effect.trigger != "" and effect.trigger != trigger_name:
+			continue
+		if effect.pact_bonus:
+			bonus_effects.append(effect)
+		else:
+			base_effects.append(effect)
+
+	var pact_paid: bool = false
+	if not bonus_effects.is_empty():
+		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+		if pact_value > 0:
+			pact_paid = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+			if pact_paid:
+				var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+				var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+				battle.animation_system.play_pact_drain(hero_panel, minion_visual)
+				await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+
+	var replaces_base: bool = pact_paid and bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
+	if not replaces_base:
+		for effect in base_effects:
+			await execute_effect(battle, minion, effect, selected_target)
+	if pact_paid:
+		for effect in bonus_effects:
+			await execute_effect(battle, minion, effect, selected_target)
 	return true
+
+# Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
+# contre un effet hostile (renvoi en main / déplacement).
+func _is_front_line_protected(battle, source_minion: Minion, target: Minion) -> bool:
+	return target.board_row == battle.ROW_FRONT \
+		and battle.front_line_protected.get(target.owner_is_player, false) \
+		and _is_hostile_to(source_minion, target)
 
 func _is_hostile_to(source_minion: Minion, target: Minion) -> bool:
 	if source_minion != null:

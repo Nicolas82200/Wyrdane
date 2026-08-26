@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
+race_filter = "Undead"
 value = 2
 value_2 = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -25,7 +26,8 @@ type = "OnDeathRage"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ravageur Putréfié"
-description = "RAVAGE. Mort-rage : serviteurs Mort-Vivants alliés +2/+2."
+description = "RAVAGE
+Mort-rage : Serviteurs Mort-Vivants alliés +2/+2."
 flavour_text = "Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts."
 texture = ExtResource("3_texture")
 cost = 5

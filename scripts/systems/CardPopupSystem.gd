@@ -161,9 +161,9 @@ func _reflow_pending() -> void:
 		_kill_popup_tween(card)
 		var t = card.create_tween().set_parallel(true)
 		card.set_meta("popup_tween", t)
-		t.tween_property(card, "position", _waiting_slot_position(i, card.size), 0.25)\
+		t.tween_property(card, "position", _waiting_slot_position(i, card.size), 0.25 * SettingsManager.motion_scale())\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-		t.tween_property(card, "scale", Vector2(STACK_SCALE, STACK_SCALE), 0.25)\
+		t.tween_property(card, "scale", Vector2(STACK_SCALE, STACK_SCALE), 0.25 * SettingsManager.motion_scale())\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 		t.tween_property(card, "modulate:a", STACK_DIM, 0.25)
 
@@ -184,9 +184,9 @@ func _play_popup(entry: Dictionary) -> void:
 	_kill_popup_tween(card)
 	var t_in = card.create_tween().set_parallel(true)
 	card.set_meta("popup_tween", t_in)
-	t_in.tween_property(card, "position", _get_left_slot_position(card.size), 0.3)\
+	t_in.tween_property(card, "position", _get_left_slot_position(card.size), 0.3 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.3)\
+	t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.3 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t_in.tween_property(card, "modulate:a", 1.0, 0.15)
 	await t_in.finished
@@ -211,18 +211,18 @@ func _play_popup(entry: Dictionary) -> void:
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card)
 
-# Remplace le fondu habituel par la désintégration en fragments de
-# AnimationSystem, depuis la position de la popup vers le pool de mana de la
-# race de la carte — la même animation que Card.gd utilisait auparavant depuis
-# la main, désormais déclenchée depuis l'emplacement de la popup.
+# Remplace le fondu habituel par la dissolution de AnimationSystem, depuis la
+# position de la popup — la même animation que Card.gd utilisait auparavant
+# depuis la main, désormais déclenchée depuis l'emplacement de la popup. Le
+# pool de mana du joueur "respire" (pulse_max) au même instant, pour que le
+# gain de mana soit visuellement associé à la disparition de la carte.
 func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
 	var color: Color = Color.WHITE
-	var target: Vector2 = card.global_position + card.size * 0.5
 	if battle.get("mana_display"):
-		color  = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
-		target = battle.mana_display.get_race_anchor_global_position(card_data.race)
+		color = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
+		battle.mana_display.pulse_max()
 	if battle.get("animation_system"):
-		battle.animation_system.play_resource_absorb(card, target, color)
+		battle.animation_system.play_resource_absorb(card, color)
 	else:
 		card.queue_free()
 
@@ -293,10 +293,19 @@ func show_targeting_popup(card_data: CardData) -> void:
 	_persistent_card = card
 
 	var t = card.create_tween().set_parallel(true)
-	t.tween_property(card, "position:x", LEFT_MARGIN, 0.25)\
+	t.tween_property(card, "position:x", LEFT_MARGIN, 0.25 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(card, "modulate:a", 1.0, 0.2)
 	await t.finished
+
+# Accès à la popup persistante et à son calque, pour qu'un système appelant
+# (ex. PactChoiceSystem) puisse positionner sa propre UI de choix juste en
+# dessous de la carte affichée par show_targeting_popup.
+func get_persistent_card() -> Card:
+	return _persistent_card
+
+func get_popup_layer() -> CanvasLayer:
+	return _popup_layer
 
 func hide_targeting_popup() -> void:
 	if _persistent_card == null or not is_instance_valid(_persistent_card):
@@ -305,7 +314,7 @@ func hide_targeting_popup() -> void:
 	var card := _persistent_card
 	_persistent_card = null
 	var t = card.create_tween().set_parallel(true)
-	t.tween_property(card, "position:x", -card.size.x, 0.2)\
+	t.tween_property(card, "position:x", -card.size.x, 0.2 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(card, "modulate:a", 0.0, 0.15)
 	await t.finished

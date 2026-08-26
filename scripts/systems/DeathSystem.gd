@@ -7,6 +7,19 @@ var processing_deaths := false
 func init(_battle) -> void:
 	battle = _battle
 
+# Appel imbriqué (ex. un effet exécuté DEPUIS un Dernier Souffle tue à son
+# tour un autre serviteur) : no-op — l'appel englobant retraite lui-même toute
+# nouvelle mort via son propre appel récursif final (voir plus bas) une fois
+# ses propres étapes terminées. Ne PAS attendre ici que l'englobant se
+# termine : l'appel imbriqué fait partie de sa propre chaîne d'exécution
+# synchrone (ex. un Dernier Souffle qui invoque process_deaths pendant que
+# l'englobant est encore suspendu dans _trigger_deathrattle) — attendre
+# créerait un blocage mutuel, l'englobant ne pouvant jamais atteindre sa
+# propre fin tant que cet appel imbriqué n'a pas rendu la main. Le serviteur
+# fraîchement mort reste donc dans battle.player_minions/enemy_minions le
+# temps que l'englobant le retraite ; voir BoardSystem.can_summon_to_row pour
+# le correctif côté appelant (_destroy_and_resurrect) qui suppose sinon la
+# cible déjà retirée pour un calcul de place disponible.
 func process_deaths(silent: Array = []) -> void:
 	if processing_deaths:
 		return
@@ -28,6 +41,10 @@ func process_deaths(silent: Array = []) -> void:
 	# VIRULENT (Abomination) : capture les cibles AVANT retrait du plateau, la
 	# recherche d'adjacence se fait sur les listes de serviteurs encore en jeu.
 	var virulent_adjacent: Array[Minion] = _collect_virulent_adjacent(dead_all)
+	# Idem pour le Deuil (Serment du Sang) : chaque mort mémorise ses voisins
+	# actuels avant d'être retiré des tableaux du plateau.
+	for dead in dead_all:
+		dead.grief_adjacent_hint = battle.effect_manager._get_adjacent_minions(battle, dead)
 	await _animate_deaths(dead_all, silent)
 	battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
 	battle.enemy_minions  = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
@@ -72,7 +89,7 @@ func _apply_revenant(minions: Array[Minion]) -> bool:
 func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:
 		# Les morts déjà représentées dans une entrée de log dédiée (ex : attaque
-		# fusionnée attaquant/défenseur) ne dupliquent pas de ligne 💀 séparée.
+		# fusionnée attaquant/défenseur) ne dupliquent pas de ligne de mort séparée.
 		if not silent.has(minion):
 			battle.combat_log.minion_died(minion)
 		var visual = battle.board_visual_system.get_visual(minion)
@@ -105,6 +122,13 @@ func _trigger_death_reactions(dead_minions: Array[Minion], dead_were_player: boo
 		return
 	var same_camp: Array[Minion]  = battle.player_minions if dead_were_player else battle.enemy_minions
 	var other_camp: Array[Minion] = battle.enemy_minions if dead_were_player else battle.player_minions
+
+	# Suivi "Morts-Vivants alliés morts ce tour" (Dernier Soupir)
+	var undead_deaths: int = dead_minions.filter(
+		func(m: Minion): return m.card_data.race == Race.Type.UNDEAD
+	).size()
+	if undead_deaths > 0:
+		battle.undead_ally_deaths_this_turn[dead_were_player] = int(battle.undead_ally_deaths_this_turn.get(dead_were_player, 0)) + undead_deaths
 
 	# NÉCROPHAGE : chaque survivant du camp gagne +1/+1 permanent par allié mort
 	for minion in same_camp:
@@ -147,16 +171,22 @@ func _collect_virulent_adjacent(dead_minions: Array[Minion]) -> Array[Minion]:
 # Dévoration (Abomination) : se déclenche quand N'IMPORTE QUEL serviteur meurt,
 # allié ou ennemi — contrairement à Deuil/Carnage qui sont scindés par camp.
 # ASSIMILATION (mot-clé) est traité ici en dur, sur le même modèle que
-# NÉCROPHAGE ci-dessus : +1/+1 permanent par vague de morts (pas par mort
-# individuelle, pour éviter qu'une mort groupée ne cumule démesurément).
+# NÉCROPHAGE ci-dessus, mais +1/+1 seulement jusqu'au début du prochain tour
+# (une fois par vague de morts, pas par mort individuelle) : enregistré via
+# TempEffectSystem plutôt qu'en dur pour être réverti automatiquement. La
+# vague entière partage la même échéance ("UntilEndOfTurn" si c'est le tour
+# du joueur local, "UntilEndOfEnemyTurn" si c'est le tour adverse), afin que
+# le retrait coïncide avec le tout début du prochain tour, quel qu'il soit.
 func _trigger_devoration(dead_minions: Array[Minion]) -> void:
 	if dead_minions.is_empty():
 		return
 	var survivors: Array[Minion] = battle.player_minions + battle.enemy_minions
+	var duration: String = "UntilEndOfEnemyTurn" if battle.enemy_turn_active else "UntilEndOfTurn"
 	for minion in survivors:
 		if minion.has_abomination_keyword(KeywordAbomination.Type.ASSIMILATION):
 			minion.base_attack     += 1
 			minion.base_max_health += 1
+			battle.temp_effect_system.add_temp_stat_change(minion, 1, 1, duration)
 			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 			if visual:
 				battle.animation_system.play_assimilation_buff(visual)

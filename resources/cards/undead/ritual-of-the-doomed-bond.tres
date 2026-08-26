@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_nax22"]
 script = ExtResource("1_cardeffect")
+effect_id = "Damage"
 target = "EnemyHero"
 value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -19,7 +20,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel du Lien Funeste"
-description = "Deuil : inflige 2 dégâts au héros ennemi."
+description = "Deuil : Inflige 2 dégâts au héros ennemi."
 flavour_text = "Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction."
 texture = ExtResource("3_texture")
 cost = 4

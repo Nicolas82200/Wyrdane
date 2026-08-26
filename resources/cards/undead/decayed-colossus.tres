@@ -22,7 +22,8 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Colosse Décomposé"
-description = "REMPART. CHAIR MORTE. Immunisé au débordement de RAVAGE : les dégâts excédentaires ne se propagent jamais sur ton héros."
+description = "REMPART, CHAIR MORTE
+Immunisé au débordement de RAVAGE : Les dégâts excédentaires ne se propagent jamais sur votre héros."
 flavour_text = "Les lames disparaissent dans sa masse. Il continue d'avancer."
 texture = ExtResource("3_texture")
 cost = 6

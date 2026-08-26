@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://blkpwtmtoarrt" path="res://assets/card_art/demon/grand-pact-ritual.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 
 [sub_resource type="Resource" id="Resource_qriyt"]
 script = ExtResource("4_trig")
@@ -15,24 +16,31 @@ effect_id = "ReturnFromGrave"
 race_filter = "Demon"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_tich1"]
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("5_kwd")
+keyword_type = 0
+value = 2
+
+[sub_resource type="Resource" id="Resource_bonus"]
 script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
-value = 1
+effect_id = "ReturnFromGrave"
+race_filter = "Demon"
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Grand Rituel du Pacte"
-description = "Deuil : ramène en main le Démon allié le plus récemment mort ; ton héros perd 1 HP."
+description = "Deuil : Ramène en main le Démon allié le plus récemment mort.
+Pacte 2 : Ramène aussi le suivant."
 flavour_text = "Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."
 texture = ExtResource("3_texture")
 cost = 8
 race = 5
 card_type = "Ritual"
 ritual_duration = 3
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_qriyt")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_retad"), SubResource("Resource_tich1")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_retad"), SubResource("Resource_bonus")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

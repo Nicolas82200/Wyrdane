@@ -34,7 +34,8 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("3_385w7")
 card_name = "Le Rempart Vivant"
-description = "REMPART. FORTIFICATION. CONTRE-ATTAQUE. Blessure : invoque un Porteur de Bouclier 1/4 REMPART."
+description = "REMPART, FORTIFICATION, CONTRE-ATTAQUE
+Blessure : Invoque un Porteur de Bouclier 1/4 REMPART."
 flavour_text = "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore."
 texture = ExtResource("4_lsemj")
 cost = 6

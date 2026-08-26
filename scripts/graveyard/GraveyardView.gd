@@ -3,9 +3,9 @@ class_name GraveyardView
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
-const GRID_CARD_SCALE       := 0.55
-const GRID_CARD_HOVER_SCALE := 0.66
-const GRID_WRAPPER_SIZE     := Vector2(140, 210)
+const GRID_CARD_SCALE       := 0.85
+const GRID_CARD_HOVER_SCALE := 0.95
+const GRID_WRAPPER_SIZE     := Vector2(215, 320)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 const TOOLTIP_WIDTH         := 220.0
 
@@ -38,15 +38,32 @@ func close() -> void:
 	hide()
 
 func open(graveyard: Graveyard) -> void:
+	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
+	var entries: Array = []
+	# Pile LIFO : la mort la plus récente est affichée en premier
+	for i in range(graveyard.entries.size() - 1, -1, -1):
+		var entry = graveyard.entries[i]
+		entries.append({"card_data": entry["card_data"], "face_down": graveyard.is_face_down(entry)})
+	_open_entries(entries)
+
+# Cartes restantes dans la pioche du joueur, triées par coût de mana (pas
+# l'ordre du deck, qui est mélangé et sans intérêt pour le joueur ici).
+func open_deck(cards: Array) -> void:
+	count_label.text = SettingsManager.t("deck_view.count_format") % cards.size()
+	var sorted_cards := cards.duplicate()
+	sorted_cards.sort_custom(func(a: CardData, b: CardData): return a.cost < b.cost)
+	var entries: Array = []
+	for card in sorted_cards:
+		entries.append({"card_data": card, "face_down": false})
+	_open_entries(entries)
+
+func _open_entries(entries: Array) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
 	for child in container.get_children():
 		child.queue_free()
-	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
-	# Pile LIFO : la mort la plus récente est affichée en premier
-	for i in range(graveyard.entries.size() - 1, -1, -1):
-		var entry = graveyard.entries[i]
-		_add_card(entry["card_data"], graveyard.is_face_down(entry))
+	for entry in entries:
+		_add_card(entry["card_data"], entry["face_down"])
 	show()
 
 func _add_card(card_data: CardData, face_down: bool) -> void:
@@ -127,6 +144,17 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 	if not _hovering:
 		_hide_keyword_tooltips()
 		return
+
+	# Remonte le point de départ si la pile déborde en bas de l'écran.
+	var vp := get_viewport_rect().size
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
+
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
@@ -137,10 +165,13 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 	if race_panel != null and is_instance_valid(race_panel) and is_instance_valid(wrapper):
 		# Calé sous le bord visuel de la carte agrandie (pivot en haut-gauche)
 		var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
-		race_panel.global_position = Vector2(
+		var rx: float = clampf(
 			wrapper.global_position.x + card_size.x / 2.0 - race_panel.size.x / 2.0,
-			wrapper.global_position.y + card_size.y + 4
-		)
+			4.0, vp.x - race_panel.size.x - 4.0)
+		var ry := wrapper.global_position.y + card_size.y + 4
+		if ry + race_panel.size.y > vp.y - 4.0:
+			ry = wrapper.global_position.y - race_panel.size.y - 4
+		race_panel.global_position = Vector2(rx, ry)
 		_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:

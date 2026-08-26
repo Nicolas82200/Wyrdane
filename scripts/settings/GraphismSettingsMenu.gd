@@ -1,34 +1,38 @@
 extends Control
 
-signal back_requested
+# Émis à chaque changement de sélection sur un réglage nécessitant "Appliquer"
+# (résolution/plein écran/V-Sync/qualité) : true si la sélection diffère de ce
+# qui est actuellement appliqué (SettingsManager), false une fois synchronisée.
+# Le bouton Appliquer, désormais dans le pied de SettingsMenu (voir SettingsMenu.gd),
+# s'appuie sur ce signal pour s'éclairer/s'assombrir.
+signal dirty_changed(is_dirty: bool)
 
-@onready var resolution_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionOption
-@onready var fullscreen_check:  CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenCheck
-@onready var vsync_check:       CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow/VSyncCheck
-@onready var quality_option:    OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityOption
-@onready var highlight_check:   CheckButton  = $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightCheck
-@onready var language_option:   OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageOption
-@onready var difficulty_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyOption
-@onready var text_scale_slider: HSlider      = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleSlider
-@onready var text_scale_value_label: Label   = $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleValueLabel
-@onready var colorblind_option: OptionButton = $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindOption
-@onready var apply_button:      Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton
-@onready var back_button:       Button       = $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton
+@onready var resolution_option: OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow/ResolutionOption
+@onready var fullscreen_check:  CheckButton  = $VBox/RowsMargin/RowsScroll/RowsVBox/FullscreenRow/FullscreenCheck
+@onready var vsync_check:       CheckButton  = $VBox/RowsMargin/RowsScroll/RowsVBox/VSyncRow/VSyncCheck
+@onready var quality_option:    OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow/QualityOption
+@onready var highlight_check:   CheckButton  = $VBox/RowsMargin/RowsScroll/RowsVBox/HighlightRow/HighlightCheck
+@onready var language_option:   OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow/LanguageOption
+@onready var difficulty_option: OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow/DifficultyOption
+@onready var text_scale_slider: HSlider      = $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleSlider
+@onready var text_scale_value_label: Label   = $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleValueLabel
+@onready var colorblind_option: OptionButton = $VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow/ColorblindOption
+@onready var high_contrast_check: CheckButton = $VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow/HighContrastCheck
+@onready var reduced_motion_check: CheckButton = $VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow/ReducedMotionCheck
 
 # Libellés localisés (clé de traduction → nœud à mettre à jour).
 @onready var _localized_labels := {
-	"graphics.title":       $PanelContainer/VBox/Margin/Title,
-	"graphics.resolution":  $PanelContainer/VBox/RowsMargin/RowsVBox/ResolutionRow/ResolutionLabel,
-	"graphics.fullscreen":  $PanelContainer/VBox/RowsMargin/RowsVBox/FullscreenRow/FullscreenLabel,
-	"graphics.vsync":       $PanelContainer/VBox/RowsMargin/RowsVBox/VSyncRow/VSyncLabel,
-	"graphics.quality":     $PanelContainer/VBox/RowsMargin/RowsVBox/QualityRow/QualityLabel,
-	"graphics.highlights":  $PanelContainer/VBox/RowsMargin/RowsVBox/HighlightRow/HighlightLabel,
-	"graphics.language":    $PanelContainer/VBox/RowsMargin/RowsVBox/LanguageRow/LanguageLabel,
-	"graphics.difficulty":  $PanelContainer/VBox/RowsMargin/RowsVBox/DifficultyRow/DifficultyLabel,
-	"graphics.text_scale":  $PanelContainer/VBox/RowsMargin/RowsVBox/TextScaleRow/TextScaleLabel,
-	"graphics.colorblind":  $PanelContainer/VBox/RowsMargin/RowsVBox/ColorblindRow/ColorblindLabel,
-	"graphics.apply":       $PanelContainer/VBox/BtnsMargin/BtnsRow/ApplyButton,
-	"graphics.back":        $PanelContainer/VBox/BtnsMargin/BtnsRow/BackButton,
+	"graphics.resolution":  $VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow/ResolutionLabel,
+	"graphics.fullscreen":  $VBox/RowsMargin/RowsScroll/RowsVBox/FullscreenRow/FullscreenLabel,
+	"graphics.vsync":       $VBox/RowsMargin/RowsScroll/RowsVBox/VSyncRow/VSyncLabel,
+	"graphics.quality":     $VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow/QualityLabel,
+	"graphics.highlights":  $VBox/RowsMargin/RowsScroll/RowsVBox/HighlightRow/HighlightLabel,
+	"graphics.language":    $VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow/LanguageLabel,
+	"graphics.difficulty":  $VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow/DifficultyLabel,
+	"graphics.text_scale":  $VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow/TextScaleLabel,
+	"graphics.colorblind":  $VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow/ColorblindLabel,
+	"graphics.high_contrast":  $VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow/HighContrastLabel,
+	"graphics.reduced_motion": $VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow/ReducedMotionLabel,
 }
 
 # Nom d'affichage de chaque locale dans le sélecteur de langue.
@@ -71,6 +75,13 @@ func _ready() -> void:
 	resolution_option.disabled = SettingsManager.fullscreen
 	fullscreen_check.toggled.connect(func(on: bool): resolution_option.disabled = on)
 
+	# Réglages nécessitant "Appliquer" : chaque changement de sélection
+	# recalcule l'état "modifications en attente" (voir dirty_changed ci-dessus).
+	resolution_option.item_selected.connect(func(_i): _update_dirty_state())
+	fullscreen_check.toggled.connect(func(_on): _update_dirty_state())
+	vsync_check.toggled.connect(func(_on): _update_dirty_state())
+	quality_option.item_selected.connect(func(_i): _update_dirty_state())
+
 	# Surbrillances : appliqué immédiatement (pas besoin de « Appliquer »).
 	highlight_check.button_pressed = SettingsManager.show_play_highlights
 	highlight_check.toggled.connect(func(on: bool): SettingsManager.set_highlights(on))
@@ -91,11 +102,14 @@ func _ready() -> void:
 	)
 	colorblind_option.item_selected.connect(_on_colorblind_selected)
 
-	apply_button.pressed.connect(_apply)
-	back_button.pressed.connect(func(): back_requested.emit(); hide())
+	high_contrast_check.button_pressed = SettingsManager.high_contrast
+	high_contrast_check.toggled.connect(func(on: bool): SettingsManager.set_high_contrast(on))
+	reduced_motion_check.button_pressed = SettingsManager.reduced_motion
+	reduced_motion_check.toggled.connect(func(on: bool): SettingsManager.set_reduced_motion(on))
 
 	SettingsManager.language_changed.connect(_on_language_changed)
 	_retranslate()
+	_update_dirty_state()
 
 func _populate_resolutions() -> void:
 	resolution_option.clear()
@@ -182,7 +196,7 @@ func _retranslate() -> void:
 	for key in _localized_labels:
 		_localized_labels[key].text = SettingsManager.t(key)
 
-func _apply() -> void:
+func apply_changes() -> void:
 	var resolutions: Array = SettingsManager.RESOLUTIONS
 	var selected_size: Vector2i = resolutions[resolution_option.selected]
 	SettingsManager.set_resolution(selected_size)
@@ -190,3 +204,26 @@ func _apply() -> void:
 	SettingsManager.set_vsync(vsync_check.button_pressed)
 	var level: String = quality_option.get_item_metadata(quality_option.selected)
 	SettingsManager.set_quality(level)
+	_update_dirty_state()
+
+# Résolution/plein écran/V-Sync/qualité ne s'appliquent qu'au clic sur
+# "Appliquer" (contrairement au reste de ce menu, en direct) : indique si la
+# sélection courante diffère de ce qui est réellement appliqué.
+func has_pending_changes() -> bool:
+	var resolutions: Array = SettingsManager.RESOLUTIONS
+	if resolution_option.selected < 0 or resolution_option.selected >= resolutions.size():
+		return false
+	var selected_size: Vector2i = resolutions[resolution_option.selected]
+	if selected_size != SettingsManager.resolution:
+		return true
+	if fullscreen_check.button_pressed != SettingsManager.fullscreen:
+		return true
+	if vsync_check.button_pressed != SettingsManager.vsync:
+		return true
+	var level: String = quality_option.get_item_metadata(quality_option.selected)
+	if level != SettingsManager.quality:
+		return true
+	return false
+
+func _update_dirty_state() -> void:
+	dirty_changed.emit(has_pending_changes())

@@ -24,6 +24,10 @@ var aura_damage_reduction: int = 0
 var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
+# Verrou de ré-entrance : posé pendant la résolution d'une attaque (CombatSystem)
+# pour empêcher qu'un effet déclenché en chaîne (ex. OnAttack, attaque immédiate)
+# ne relance une attaque avec ce serviteur avant que la précédente soit terminée.
+var is_attacking: bool = false
 var keywords: Array[int] = []
 var human_keywords: Array[int] = []
 var undead_keywords: Array[int] = []
@@ -64,9 +68,20 @@ var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
+# Voisins capturés juste avant le retrait du plateau (DeathSystem), pour que
+# les rituels/enchantements à Deuil (Serment du Sang) puissent buffer "le
+# serviteur adjacent" du mort alors que celui-ci n'est déjà plus dans
+# player_minions/enemy_minions au moment où OnGrief se déclenche.
+var grief_adjacent_hint: Array[Minion] = []
 # Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
 var extra_attack_used_this_turn: bool = false
 var buffs: Array = []
+
+# ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
+# Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).
+var star_level: int = 1
+# Verrouillée en boutique : ne sera pas re-proposée au reroll suivant.
+var locked: bool = false
 
 func _init(data: CardData, is_player: bool = true, row: String = "Front") -> void:
 	owner_is_player = is_player
@@ -80,9 +95,6 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	undead_keywords   = data.get_undead_keyword_values()
 	demon_keywords    = data.get_demon_keyword_values()
 	abomination_keywords = data.get_abomination_keyword_values()
-	# PACTE accorde ASSAUT (le coût en HP du héros est appliqué par BoardSystem à l'arrivée)
-	if has_demon_keyword(KeywordDemon.Type.PACTE):
-		add_keyword(Keyword.Type.CHARGE)
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
 	spell_immune = data.spell_immune_until_attack
 
@@ -100,7 +112,7 @@ var health: int:
 
 # ─── Combat (inchangé) ──────────────────────────────────────────────────────
 func can_attack() -> bool:
-	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0
+	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0 and not is_attacking
 
 func refresh_attacks() -> void:
 	extra_attack_used_this_turn = false

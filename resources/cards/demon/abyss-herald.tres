@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cercle de Guérison Infernale"
-description = "Éveil : ton héros regagne 2 HP."
+description = "Éveil : Votre héros regagne 2 points de vie."
 flavour_text = "Même les Abysses savent qu'un pacte mort ne rapporte plus rien."
 texture = ExtResource("3_texture")
 cost = 4

@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bouclier de la Foi"
-description = "Présence : tes serviteurs alliés reçoivent 2 dégâts de moins de toute source (minimum 1)."
+description = "Présence : Vos serviteurs alliés reçoivent 2 dégâts de moins de toute source (minimum 1)."
 flavour_text = "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner."
 texture = ExtResource("5_x4yxw")
 cost = 4

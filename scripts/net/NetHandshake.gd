@@ -143,6 +143,20 @@ func _finish() -> void:
 	_net.command_received.disconnect(_on_command_received)
 	completed.emit(setup)
 
+# Annule un handshake abandonné (ex. nouvelle tentative de connexion reçue
+# alors que celui-ci attendait toujours son pair) : se désabonne
+# immédiatement de command_received. Indispensable en plus de queue_free() —
+# lui seul ne libère qu'en fin de frame, laissant une fenêtre où ce handshake
+# périmé pourrait encore réagir à un HELLO/HELLO_ACK entre-temps et ré-émettre
+# `completed` avec un setup (seed RNG, parité d'ids) obsolète.
+func cancel() -> void:
+	if _finished:
+		return
+	_finished = true
+	set_process(false)
+	if _net.command_received.is_connected(_on_command_received):
+		_net.command_received.disconnect(_on_command_received)
+
 # Identifiant de match partagé par les deux clients, calculé indépendamment
 # des rôles hôte/invité (paire ordonnée des deux contributions de graine, déjà
 # échangées) : collision négligeable (2⁻⁶⁴) sans ajouter de champ réseau dédié.

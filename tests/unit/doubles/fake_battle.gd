@@ -17,8 +17,9 @@ var card_popup_system: FakeCardPopupSystem = FakeCardPopupSystem.new()
 var death_system: FakeDeathSystem = FakeDeathSystem.new()
 var aura_system: FakeAuraSystem = FakeAuraSystem.new()
 var trigger_system: FakeTriggerSystem = FakeTriggerSystem.new()
+var fusion_system: FakeFusionSystem = FakeFusionSystem.new()
 var network_manager = null
-var hand = null
+var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
@@ -39,6 +40,8 @@ var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
+var front_line_protected: Dictionary = {true: false, false: false}
+var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
 var _fake_tree := FakeSceneTree.new()
 
 # ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
@@ -49,6 +52,16 @@ var deck_button: Button = Button.new()
 var deck_count_label: Label = Label.new()
 const MAX_STACK_VISUAL := 8
 const CARD_BACK = preload("res://assets/card_back/card-back.png")
+
+# ─── Suivi des quêtes de race (voir Battle.gd) ─────────────────────────────────
+var deck_races: Array[String] = []
+var cards_played_by_race: Dictionary = {}
+
+func track_card_played_for_quests(card_data: CardData) -> void:
+	if card_data.race == Race.Type.NONE:
+		return
+	var race_name := Race.get_race_name(card_data.race)
+	cards_played_by_race[race_name] = cards_played_by_race.get(race_name, 0) + 1
 
 # ─── Ajouts pour tester HeroSystem / CombatSystem / TurnSystem ────────────────
 const BOARD_MINION_SIZE := Vector2(100, 150)
@@ -63,6 +76,46 @@ var _enemy_health_label := Label.new()
 
 # ─── Ajouts pour tester AISystem ───────────────────────────────────────────────
 var deck_system: FakeDeckSystem = FakeDeckSystem.new()
+
+# ─── Ajouts pour couvrir le reste d'EffectManager (Summon*/Resurrect*/combat
+# bonus/mana/remise de pioche) sans dépendre de BoardSystem/CombatSystem réels
+# (qui appellent AudioManager, non fiable en runner GUT -s, voir CLAUDE.md) ───
+var board_system: FakeBoardSystem = FakeBoardSystem.new(self)
+var combat_system: FakeCombatSystem = FakeCombatSystem.new()
+var opponent: FakeOpponent = FakeOpponent.new()
+var ai_system: FakeOpponent = opponent
+var race_mana: Dictionary = {}
+var enemy_race_mana: Dictionary = {}
+
+# ─── Ajouts pour tester DropSystem ─────────────────────────────────────────────
+const ROW_FRONT := "Front"
+const ROW_BACK := "Back"
+var player_front_container: Control = Control.new()
+var player_back_container: Control = Control.new()
+var enemy_front_container: Control = Control.new()
+var enemy_back_container: Control = Control.new()
+
+# Même formule que Battle.get_allowed_rows_for_card.
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [ROW_FRONT, ROW_BACK]
+	match card_data.board_position:
+		ROW_FRONT: return [ROW_FRONT]
+		ROW_BACK:  return [ROW_BACK]
+		_:         return [ROW_FRONT, ROW_BACK]
+
+func race_mana_pool(is_player: bool) -> Dictionary:
+	return race_mana if is_player else enemy_race_mana
+
+func update_mana_ui() -> void:
+	pass
+
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+	await board_system.summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
+
+func _init() -> void:
+	deck_system.battle = self
+	temp_effect_system.init(self)
 
 func update_enemy_hand_ui() -> void:
 	pass
@@ -215,14 +268,35 @@ class FakeAuraSystem:
 class FakeTriggerSystem:
 	var active_enchantments: Dictionary = {true: [], false: []}
 	var activated_rituals: Array = []
+	var fired_calls: Array = []
 	func get_active_enchantments(is_player: bool) -> Array:
 		return active_enchantments.get(is_player, [])
-	func fire(_trigger_name: String, _source: Minion = null, _is_player: bool = true, _extra: Dictionary = {}, _paced: bool = false, _already_acted: bool = false) -> bool:
+	func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false, already_acted: bool = false) -> bool:
+		fired_calls.append({"trigger_name": trigger_name, "source": source, "is_player": is_player, "extra": extra, "paced": paced, "already_acted": already_acted})
 		return false
 	func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Array) -> void:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
 	func reset_once_per_turn(_is_local_turn: bool) -> void:
 		pass
+
+
+class FakeFusionSystem:
+	var applied_fusions: Array = []
+	func _collect_keyword_choices(victim: Minion) -> Array:
+		var out: Array = []
+		for kw in victim.keywords:
+			out.append({"pool": "keywords", "keyword": kw, "label": ""})
+		for kw in victim.human_keywords:
+			out.append({"pool": "human_keywords", "keyword": kw, "label": ""})
+		for kw in victim.undead_keywords:
+			out.append({"pool": "undead_keywords", "keyword": kw, "label": ""})
+		for kw in victim.demon_keywords:
+			out.append({"pool": "demon_keywords", "keyword": kw, "label": ""})
+		for kw in victim.abomination_keywords:
+			out.append({"pool": "abomination_keywords", "keyword": kw, "label": ""})
+		return out
+	func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:
+		applied_fusions.append({"source": source, "victim": victim, "pool": pool, "keyword": keyword})
 
 
 class FakeAnimationSystem:
@@ -235,7 +309,7 @@ class FakeAnimationSystem:
 		pass
 	func play_death(_visual) -> Tween:
 		return null
-	func play_attack_lunge(_attacker_visual, _target) -> void:
+	func play_attack_lunge(_attacker_visual, _target, _speed_scale: float = 1.0) -> void:
 		pass
 	func play_resource_absorb(_card, _target: Vector2, _color: Color) -> void:
 		pass
@@ -305,10 +379,15 @@ class FakeVfxManager:
 
 
 class FakeCostSystem:
+	var temp_discounts: Dictionary = {}
 	func on_turn_started(_is_local_turn: bool) -> void:
 		pass
 	func expire_end_of_player_turn() -> void:
 		pass
+	func add_temp_discount(card_data: CardData, amount: int) -> void:
+		if card_data == null or amount <= 0:
+			return
+		temp_discounts[card_data] = int(temp_discounts.get(card_data, 0)) + amount
 
 
 class FakeCombatLog:
@@ -346,7 +425,69 @@ class FakeEnchantmentSystem:
 
 
 class FakeDeckSystem:
+	var battle: FakeBattle
 	func update_enemy_deck_ui() -> void:
+		pass
+	func draw_card() -> void:
+		if battle == null or battle.deck.is_empty():
+			return
+		battle.hand_cards.append(battle.deck.pop_back())
+		battle.hand.set_hand(battle.hand_cards)
+
+
+# Reproduit uniquement la mécanique de plateau (insertion + limite de rangée)
+# de BoardSystem.summon_minion_return, sans AudioManager ni triggers ONPLAY/
+# OnSummon (hors-scope des tests d'effets individuels ; ces enchaînements sont
+# couverts par test_trigger_system.gd / test_board_system.gd).
+class FakeBoardSystem:
+	var battle: FakeBattle
+	func _init(_battle: FakeBattle) -> void:
+		battle = _battle
+	func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", _insert_index := -1, _skip_onplay := false) -> Minion:
+		if not battle.can_summon_to_row(is_player, row):
+			return null
+		var minion := Minion.new(card_data, is_player, row)
+		if is_player:
+			battle.player_minions.append(minion)
+		else:
+			battle.enemy_minions.append(minion)
+		return minion
+	func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
+		await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
+
+
+# Échange de dégâts symétrique minimal (attaquant <-> défenseur), sans le
+# pipeline complet de mots-clés de combat (poison, contre-attaque...) déjà
+# couvert par test_combat_system.gd — suffisant pour vérifier qu'AttackImmediate
+# / GroupAttackImmediate ciblent et déclenchent bien un combat.
+class FakeCombatSystem:
+	var resolved: Array = []
+	func resolve_combat(attacker: Minion, defender: Minion) -> void:
+		resolved.append({"attacker": attacker, "defender": defender})
+		defender.take_damage(attacker.attack)
+		attacker.take_damage(defender.attack)
+
+
+class FakeOpponent:
+	var hand: Array[CardData] = []
+	var deck: Array[CardData] = []
+	func draw_card() -> void:
+		if not deck.is_empty():
+			hand.append(deck.pop_back())
+	func get_deck_count() -> int:
+		return deck.size()
+	func get_hand_count() -> int:
+		return hand.size()
+
+
+class FakeHand:
+	extends Node
+	var last_set: Array[CardData] = []
+	func set_hand(cards: Array, _animate: bool = false, _from_pos: Vector2 = Vector2.ZERO) -> void:
+		last_set = cards
+	func refresh_costs() -> void:
+		pass
+	func refresh_playable_highlights() -> void:
 		pass
 
 

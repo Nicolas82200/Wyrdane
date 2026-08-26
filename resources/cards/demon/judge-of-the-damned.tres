@@ -22,7 +22,9 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Doigt Écarlate"
-description = "Pioche 1 carte. Ton héros perd 1 HP. Si c'est un Démon, il coûte 1 de moins ce tour."
+description = "Piochez une carte.
+Votre héros perd 1 point de vie.
+Si c'est un Démon, il coûte 1 de moins ce tour."
 flavour_text = "Il désigne. Ce qu'il montre a toujours un prix, y compris pour toi."
 texture = ExtResource("3_texture")
 cost = 1

@@ -53,6 +53,29 @@ func _minion(attack: int = 2, health: int = 4, is_player: bool = true, race: int
 		battle.enemy_minions.append(minion)
 	return minion
 
+# Serviteur portant `trigger_name` + Buff(Self, +1/+0), pour vérifier
+# concrètement qu'un hook de CombatSystem (OnAttack/OnExecution) s'est déclenché.
+func _minion_with_trigger(trigger_name: String, is_player: bool = true) -> Minion:
+	var data := CardData.new()
+	data.card_name = "TRIGGER_CARD"
+	data.race = Race.Type.UNDEAD
+	data.attack = 2
+	data.health = 4
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = trigger_name
+	data.trigger_types = [trigger]
+	var effect := CardEffect.new()
+	effect.effect_id = "Buff"
+	effect.target = "Self"
+	effect.value = 1
+	data.effects = [effect]
+	var minion := Minion.new(data, is_player)
+	if is_player:
+		battle.player_minions.append(minion)
+	else:
+		battle.enemy_minions.append(minion)
+	return minion
+
 # ─── Étape 0 : test de fumée (AudioManager) ─────────────────────────────────
 
 func test_smoke_resolve_combat_does_not_crash() -> void:
@@ -128,6 +151,15 @@ func test_ravage_deals_excess_to_enemy_hero() -> void:
 	assert_true(defender.is_dead())
 	assert_eq(battle.enemy_hero.health, 16, "excédent = attaque(6) - max_health(2) = 4")
 
+func test_ravage_excess_uses_health_before_hit_not_max_health() -> void:
+	battle.enemy_hero.health = 20
+	var attacker := _minion(6, 5, true, Race.Type.UNDEAD, Keyword.Type.RAVAGE)
+	var defender := _minion(1, 10, false)
+	defender.health = 2
+	await combat_system.resolve_combat(attacker, defender)
+	assert_true(defender.is_dead())
+	assert_eq(battle.enemy_hero.health, 16, "excédent = attaque(6) - PV avant le coup(2) = 4, pas attaque - max_health(10)")
+
 func test_ravage_blocked_by_blocks_overkill() -> void:
 	battle.enemy_hero.health = 20
 	var attacker := _minion(6, 5, true, Race.Type.UNDEAD, Keyword.Type.RAVAGE)
@@ -193,6 +225,27 @@ func test_counter_offensive_grants_extra_attack_on_kill() -> void:
 	assert_true(defender.is_dead())
 	assert_eq(attacker.attacks_remaining, 1, "attacks_remaining incrémenté par la mise à mort puis décrémenté par consume_attack : net 0")
 
+# ─── Triggers de combat (OnAttack / OnExecution) ────────────────────────────
+
+func test_on_attack_fires_on_attacker_when_attacking_a_minion() -> void:
+	var attacker := _minion_with_trigger("OnAttack")
+	var defender := _minion(1, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	assert_eq(attacker.base_attack, 3, "OnAttack doit se déclencher sur l'attaquant à chaque attaque")
+
+func test_on_execution_fires_on_attacker_when_it_kills_the_defender() -> void:
+	var attacker := _minion_with_trigger("OnExecution")
+	var defender := _minion(1, 1, false)
+	await combat_system.resolve_combat(attacker, defender)
+	assert_true(defender.is_dead())
+	assert_eq(attacker.base_attack, 3)
+
+func test_on_execution_does_not_fire_when_defender_survives() -> void:
+	var attacker := _minion_with_trigger("OnExecution")
+	var defender := _minion(1, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	assert_eq(attacker.base_attack, 2, "le défenseur survit : OnExecution ne doit pas se déclencher")
+
 # ─── perform_hero_attack ─────────────────────────────────────────────────────
 
 func test_perform_hero_attack_deals_damage_to_enemy_hero() -> void:
@@ -210,3 +263,9 @@ func test_perform_hero_attack_with_lifesteal_heals_owner() -> void:
 	attacker.attacks_remaining = 1
 	await combat_system.perform_hero_attack(attacker)
 	assert_eq(battle.player_hero.health, 24)
+
+func test_perform_hero_attack_fires_on_attack_trigger() -> void:
+	var attacker := _minion_with_trigger("OnAttack")
+	attacker.attacks_remaining = 1
+	await combat_system.perform_hero_attack(attacker)
+	assert_eq(attacker.base_attack, 3, "OnAttack doit aussi se déclencher en attaquant directement le héros")
