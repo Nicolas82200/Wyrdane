@@ -2,11 +2,6 @@
 extends Control
 
 const ALL_CARDS_PATH := "res://resources/cards"
-# Plus de plafond de taille de deck (voir README « Système de Ressources par
-# Race ») : seuls des minimums sont imposés, cartes jouables et ressources
-# comptées séparément bien que mélangées dans le même paquet.
-const MIN_CARDS := 40
-const MIN_RESOURCE_CARDS := 10
 # Nombre de cartes instanciées par frame — ajuste selon les perfs
 const CARDS_PER_FRAME := 5
 
@@ -41,6 +36,16 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 var current_deck: DeckData = null
 var _all_cards: Array[CardData] = []
 var _pending_cards: Array[CardData] = []
+
+# Instantané du deck au dernier chargement/sauvegarde — current_deck est la
+# MÊME instance que celle rangée dans DeckManager.decks, donc chaque
+# ajout/retrait de carte la modifie déjà en mémoire avant tout clic sur
+# Sauvegarder. "Ne pas sauvegarder" restaure ces valeurs sur l'objet partagé
+# pour que l'édition abandonnée ne soit pas silencieusement repoussée au
+# backend par un DeckManager.save_decks() ultérieur et sans rapport (ex.
+# création d'un autre deck) — voir _snapshot_original_state/_discard_changes.
+var _original_name: String = ""
+var _original_card_paths: Array[String] = []
 
 # true dès que le deck en cours d'édition a été modifié depuis le dernier
 # chargement/sauvegarde — commande l'activation du bouton Sauvegarder et
@@ -522,66 +527,25 @@ func _update_count_label() -> void:
 	var playable := _playable_count()
 	var resources := _resource_count()
 	card_count_label.text = "%s\n%s" % [
-		SettingsManager.t("deck.count_format") % [playable, MIN_CARDS],
-		SettingsManager.t("deck.resource_count_format") % [resources, MIN_RESOURCE_CARDS],
+		SettingsManager.t("deck.count_format") % [playable, DeckManager.MIN_PLAYABLE_CARDS],
+		SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS],
 	]
-	var ok: bool = playable >= MIN_CARDS and resources >= MIN_RESOURCE_CARDS
+	var ok: bool = playable >= DeckManager.MIN_PLAYABLE_CARDS and resources >= DeckManager.MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
 	_update_warnings()
 	_update_save_button()
 
 # ─── Warnings ressources de race ───────────────────────────────────────────────
 
-## Deux cas surveillés (voir README « Système de Ressources par Race ») :
-##  - une race a des serviteurs/sorts dans le deck mais pas assez de cartes-
-##    ressource de cette race pour atteindre le coût de race de sa carte la
-##    plus chère (le pool ne pourra jamais monter assez haut) ;
-##  - des cartes-ressource d'une race sont présentes alors qu'aucune carte
-##    jouable de cette race n'en a l'usage (ressources gâchées).
-## Les deux bloquent la sauvegarde (voir _can_save).
-func _race_warnings() -> Array[String]:
-	if current_deck == null:
-		return []
-	var max_race_cost: Dictionary = {}       # Race.Type -> coût de race max requis
-	var playable_race_present: Dictionary = {}  # Race.Type -> true
-	var resource_race_present: Dictionary = {}  # Race.Type -> true
-	var resource_counts: Dictionary = {}        # Race.Type -> nb de cartes-ressource
-
-	for card in current_deck.get_cards():
-		if card.card_type == "Resource":
-			resource_race_present[card.race] = true
-			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
-		elif card.race != Race.Type.NONE:
-			playable_race_present[card.race] = true
-			var race_cost: int = CostSystem.compute_race_cost(
-				card.cost, card.race, card.rarity, card.race_cost_override)
-			max_race_cost[card.race] = max(int(max_race_cost.get(card.race, 0)), race_cost)
-
-	var warnings: Array[String] = []
-	for race in max_race_cost:
-		var needed: int = max_race_cost[race]
-		var have: int = int(resource_counts.get(race, 0))
-		if have < needed:
-			warnings.append(SettingsManager.t("deck.warning_missing_resource") % [needed, _race_label(race)])
-	for race in resource_race_present:
-		if not playable_race_present.has(race):
-			warnings.append(SettingsManager.t("deck.warning_unused_resource") % _race_label(race))
-	return warnings
-
-func _race_label(race: int) -> String:
-	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
-
 func _update_warnings() -> void:
-	var warnings := _race_warnings()
+	var warnings := DeckManager.race_warnings(current_deck)
 	warning_label.visible = not warnings.is_empty()
 	warning_label.text = "\n".join(warnings)
 
 # ─── État du bouton Sauvegarder ────────────────────────────────────────────────
 
 func _can_save() -> bool:
-	return current_deck != null and _dirty \
-		and _playable_count() >= MIN_CARDS and _resource_count() >= MIN_RESOURCE_CARDS \
-		and _race_warnings().is_empty()
+	return current_deck != null and _dirty and DeckManager.validation_warnings(current_deck).is_empty()
 
 func _update_save_button() -> void:
 	save_button.disabled = not _can_save()
@@ -598,7 +562,25 @@ func load_deck(deck: DeckData) -> void:
 	current_deck = deck
 	deck_name_edit.text = deck.name
 	_dirty = false
+	_snapshot_original_state()
 	_refresh_deck_list()
+
+## Mémorise l'état actuel de current_deck comme point de retour pour un futur
+## "Ne pas sauvegarder" — appelé au chargement puis après chaque sauvegarde
+## réussie (voir load_deck/_on_save), jamais pendant l'édition elle-même.
+func _snapshot_original_state() -> void:
+	if current_deck == null:
+		return
+	_original_name = current_deck.name
+	_original_card_paths = current_deck.card_paths.duplicate()
+
+## Restaure current_deck (même instance que dans DeckManager.decks) à son
+## dernier état sauvegardé — voir _original_name/_original_card_paths.
+func _discard_changes() -> void:
+	if current_deck == null:
+		return
+	current_deck.name = _original_name
+	current_deck.card_paths = _original_card_paths.duplicate()
 
 func _on_add_card(card_data: CardData) -> void:
 	if current_deck == null:
@@ -650,6 +632,7 @@ func _on_save() -> void:
 	deck_name_edit.text = current_deck.name
 	DeckManager.save_decks()
 	_dirty = false
+	_snapshot_original_state()
 	_update_save_button()
 
 func _on_back() -> void:
@@ -660,15 +643,70 @@ func _on_back() -> void:
 
 ## Popup affichée en quittant le deck builder avec des modifications non
 ## sauvegardées (voir _dirty) : proposer de sauvegarder plutôt que de perdre
-## les changements silencieusement (comportement précédent).
+## les changements silencieusement (comportement précédent). Panneau custom
+## (pas de ConfirmationDialog natif, dont le chrome de fenêtre système
+## tranche avec le reste de l'UI parchemin/or du deck builder) construit
+## dans le même style que les autres panneaux de cet écran.
 func _show_unsaved_changes_dialog() -> void:
-	var dialog := ConfirmationDialog.new()
-	dialog.dialog_text     = SettingsManager.t("deck.unsaved_changes_text")
-	dialog.ok_button_text  = SettingsManager.t("deck.unsaved_changes_save")
-	dialog.cancel_button_text = SettingsManager.t("deck.unsaved_changes_discard")
-	add_child(dialog)
-	dialog.popup_centered()
-	dialog.confirmed.connect(func():
+	var overlay := CanvasLayer.new()
+	overlay.layer = 30
+	add_child(overlay)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.55)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	overlay.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.add_child(center)
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color              = Color(0.09, 0.075, 0.055, 0.98)
+	bg.border_color          = Color(0.78, 0.58, 0.10, 0.9)
+	bg.set_border_width_all(2)
+	bg.set_corner_radius_all(8)
+	bg.content_margin_left   = 26
+	bg.content_margin_right  = 26
+	bg.content_margin_top    = 22
+	bg.content_margin_bottom = 22
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+	panel.custom_minimum_size = Vector2(420, 0)
+	center.add_child(panel)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 18)
+	panel.add_child(vbox)
+
+	var text_lbl := Label.new()
+	text_lbl.text = SettingsManager.t("deck.unsaved_changes_text")
+	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	text_lbl.add_theme_font_size_override("font_size", 15)
+	vbox.add_child(text_lbl)
+
+	var btn_row := HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	btn_row.add_theme_constant_override("separation", 12)
+	vbox.add_child(btn_row)
+
+	var discard_btn := Button.new()
+	discard_btn.text = SettingsManager.t("deck.unsaved_changes_discard")
+	discard_btn.custom_minimum_size = Vector2(150, 34)
+	btn_row.add_child(discard_btn)
+
+	var save_btn := Button.new()
+	save_btn.text = SettingsManager.t("deck.unsaved_changes_save")
+	save_btn.custom_minimum_size = Vector2(150, 34)
+	btn_row.add_child(save_btn)
+
+	save_btn.pressed.connect(func():
+		overlay.queue_free()
 		# Deck invalide (min de cartes non atteint, warning de ressource de race...) :
 		# on ne peut pas sauvegarder — on referme juste la popup et on laisse le
 		# joueur corriger le deck plutôt que de fermer le builder sans sauver.
@@ -676,7 +714,9 @@ func _show_unsaved_changes_dialog() -> void:
 			_on_save()
 			queue_free()
 	)
-	dialog.canceled.connect(func():
+	discard_btn.pressed.connect(func():
+		overlay.queue_free()
+		_discard_changes()
 		queue_free()
 	)
 
