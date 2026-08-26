@@ -76,6 +76,9 @@ var infected: bool:
 			infection_stacks = 0
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
 var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
+# PACTE « standalone » (CardData.pact_standalone) déjà activé — une seule fois
+# par serviteur, voir PactActivationSystem.
+var pact_activated: bool = false
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false

@@ -20,6 +20,7 @@ const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
 const ACTIVATE_FUSION := "ACTIVATE_FUSION"  # activation volontaire du mot-clé FUSION
+const ACTIVATE_PACT := "ACTIVATE_PACT"  # activation volontaire d'un Pacte "standalone" (voir PactActivationSystem)
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
@@ -91,6 +92,14 @@ static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String
 		"keyword": keyword_name,
 		"ids": ids,
 	}
+
+# Activation volontaire d'un Pacte "standalone" (voir PactActivationSystem) :
+# le serviteur qui l'active est désigné par son net_id. Toujours "oui" côté
+# rejeu (seul celui qui clique décide) : aucun choix Oui/Non à transmettre,
+# contrairement au Pacte demandé à un trigger (PactChoiceSystem, résolu par
+# heuristique déterministe des deux côtés, pas de commande dédiée).
+static func activate_pact(source_id: int) -> Dictionary:
+	return {"type": ACTIVATE_PACT, "source": source_id}
 
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).

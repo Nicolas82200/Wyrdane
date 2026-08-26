@@ -18,6 +18,7 @@ var death_system: FakeDeathSystem = FakeDeathSystem.new()
 var aura_system: FakeAuraSystem = FakeAuraSystem.new()
 var trigger_system: FakeTriggerSystem = FakeTriggerSystem.new()
 var fusion_system: FakeFusionSystem = FakeFusionSystem.new()
+var sacrifice_system: FakeSacrificeSystem = FakeSacrificeSystem.new()
 var network_manager = null
 var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
@@ -282,6 +283,8 @@ class FakeTriggerSystem:
 
 class FakeFusionSystem:
 	var applied_fusions: Array = []
+	func is_active() -> bool:
+		return false
 	func _collect_keyword_choices(victim: Minion) -> Array:
 		var out: Array = []
 		for kw in victim.keywords:
@@ -297,6 +300,11 @@ class FakeFusionSystem:
 		return out
 	func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:
 		applied_fusions.append({"source": source, "victim": victim, "pool": pool, "keyword": keyword})
+
+
+class FakeSacrificeSystem:
+	func is_active() -> bool:
+		return false
 
 
 class FakeAnimationSystem:
