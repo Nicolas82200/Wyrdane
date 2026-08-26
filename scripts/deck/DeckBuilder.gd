@@ -268,18 +268,20 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	_stock_labels[card_data.resource_path] = badge_label
 	_update_stock_label(card_data, badge_label)
 
-## Texte du badge de stock : quantité possédée (plafonnée à DeckManager.MAX_COPIES_PER_CARD pour
-## les cartes non-ressource, qui ne peuvent de toute façon pas être utilisées
-## au-delà de ce nombre dans un deck) moins les copies déjà présentes dans le
-## deck en cours (jamais négatif). Les cartes-ressource sont illimitées : le
-## badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
+## Texte du badge de stock : "cartes encore ajoutables au deck / cartes
+## possédées au total" — le numérateur est plafonné à DeckManager.MAX_COPIES_PER_CARD
+## (au-delà, la carte ne peut de toute façon plus être ajoutée) moins les
+## copies déjà présentes dans le deck en cours (jamais négatif) ; le
+## dénominateur est la quantité réellement possédée, non plafonnée, pour que
+## le joueur voie sa collection réelle. Les cartes-ressource sont illimitées :
+## le badge affiche l'infini plutôt qu'un stock borné à ce qui est possédé.
 func _update_stock_label(card_data: CardData, label: Label) -> void:
 	if card_data.card_type == "Resource":
 		label.text = "∞"
 		return
-	var owned: int = mini(CollectionManager.owned_quantity(card_data), DeckManager.MAX_COPIES_PER_CARD)
-	var remaining: int = maxi(owned - _count_in_deck(card_data.resource_path), 0)
-	label.text = SettingsManager.t("deck.stock_format") % remaining
+	var owned: int = CollectionManager.owned_quantity(card_data)
+	var addable: int = maxi(mini(owned, DeckManager.MAX_COPIES_PER_CARD) - _count_in_deck(card_data.resource_path), 0)
+	label.text = SettingsManager.t("deck.stock_format") % [addable, owned]
 
 ## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
 ## encore possédée à DeckManager.MAX_COPIES_PER_CARD (qu'elle soit à 0 ou partiellement possédée :
@@ -385,11 +387,21 @@ func _refresh_deck_list() -> void:
 	for path in current_deck.card_paths:
 		counts[path] = counts.get(path, 0) + 1
 
+	# Une ligne par carte distincte, triée par coût croissant (puis par nom à
+	# coût égal) — reconstruite à chaque modification du deck, donc une carte
+	# ajoutée/retirée se replace immédiatement à la bonne position.
 	var seen: Array[String] = []
 	for path in current_deck.card_paths:
-		if path in seen:
-			continue
-		seen.append(path)
+		if path not in seen:
+			seen.append(path)
+	seen.sort_custom(func(a: String, b: String) -> bool:
+		var ca := load(a) as CardData
+		var cb := load(b) as CardData
+		if ca.cost != cb.cost:
+			return ca.cost < cb.cost
+		return ca.display_name() < cb.display_name())
+
+	for path in seen:
 		var card := load(path) as CardData
 		if card == null:
 			continue
@@ -422,8 +434,11 @@ func _make_deck_row(card: CardData, path: String, count: int) -> Control:
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(row)
 
+	# Couleur du badge = race de la carte (mêmes teintes que les icônes de
+	# type/rangée sur la carte elle-même, voir Card.RACE_ICON_COLORS) : repère
+	# visuel rapide pour identifier la race sans survoler chaque ligne.
 	var cost_bg := StyleBoxFlat.new()
-	cost_bg.bg_color                  = Color(0.55, 0.41, 0.08, 0.9)
+	cost_bg.bg_color                  = Card.RACE_ICON_COLORS.get(card.race, Color(0.55, 0.41, 0.08, 0.9))
 	cost_bg.corner_radius_top_left    = 3
 	cost_bg.corner_radius_bottom_left = 3
 	var cost_panel := PanelContainer.new()
