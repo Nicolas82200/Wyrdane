@@ -12,7 +12,7 @@ signal discard_card_clicked(index: int, card_data: CardData)
 
 const CARD_SCENE      := preload("res://scenes/card/Card.tscn")
 const NORMAL_SCALE    := Vector2(0.75, 0.75)
-const SPACING         := 100.0
+const SPACING         := 115.0
 const COMPACT_SPACING := 20.0
 const ARC_STRENGTH    := 20.0
 # Échelle des cartes pendant le mulligan (main centrée à l'écran), relative à
@@ -251,10 +251,15 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 		ghost.queue_free()
 		return
 	var final_pos: Vector2 = global_position + local_target_pos
-	ghost.global_position = deck_origin - Vector2(
-		ghost.size.x * target_scale.x / 2.0,
-		ghost.size.y * target_scale.y / 2.0
-	)
+	# Le deck est affiché tourné à 90° (DeckButton.rotation dans Battle.tscn) :
+	# la carte fantôme part dans cette même orientation, se redresse en vol
+	# (90° -> 0°), puis se retourne (dos -> face) une fois droite, tout en
+	# continuant sa course vers la main. pivot_offset au centre pour que la
+	# rotation ET le retournement (scale:x) restent centrés sur la carte au
+	# lieu de pivoter depuis son coin (comportement par défaut de Control).
+	ghost.pivot_offset = ghost.size / 2.0
+	ghost.rotation = PI / 2.0
+	ghost.global_position = deck_origin - ghost.pivot_offset
 	ghost.visible = true
 	var mid_pos := Vector2(
 		(deck_origin.x + final_pos.x) / 2.0,
@@ -264,7 +269,8 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 	var step_duration: float = 0.1 * SettingsManager.motion_scale()
 	var tween := create_tween()
 	tween.set_parallel(false)
-	tween.tween_property(ghost, "global_position", mid_pos,        step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "global_position", mid_pos, step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ghost, "rotation", 0.0, step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(ghost, "scale:x",          0.0,           step_duration).set_trans(Tween.TRANS_LINEAR)
 	tween.tween_callback(func(): ghost.show_back(false))
 	tween.tween_property(ghost, "scale:x",          target_scale.x, step_duration).set_trans(Tween.TRANS_LINEAR)
@@ -414,6 +420,19 @@ func _on_card_hover(card: Card) -> void:
 	if _hovered_card != card:
 		_hovered_card = card
 		_update_hand_layout(true)
+	if _mulligan_mode:
+		# Pendant le mulligan, la main est déjà agrandie/centrée à l'écran : pas
+		# d'aperçu zoomé par-dessus (redondant, cache la bannière) — seuls les
+		# tooltips de mots-clés restent utiles, ancrés sur la carte elle-même.
+		await get_tree().process_frame
+		await get_tree().process_frame
+		if not is_instance_valid(self) or not _hovering or not is_instance_valid(card) or card.dragging:
+			return
+		var card_rect := card.get_global_rect()
+		var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
+		var tooltip_y0: float = card_rect.position.y
+		await _show_keyword_tooltips(card.data, tooltip_x0, tooltip_y0)
+		return
 	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
 	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
 	# lisible même quand la main est très resserrée (beaucoup de cartes).
@@ -422,9 +441,15 @@ func _on_card_hover(card: Card) -> void:
 		preview.set_display_cost(display_cost.call(card.data))
 	preview.scale   = Vector2(1.1, 1.1)
 	preview.z_index = 100
+	# Centré horizontalement par rapport à la carte survolée : card.pivot_offset
+	# est calé sur son centre horizontal (voir _set_hand_instant), donc son point
+	# pivot reste au centre visuel de la carte quelle que soit son échelle —
+	# contrairement à preview (pivot par défaut en haut-à-gauche), dont le centre
+	# visuel décalé de la moitié de sa largeur mise à l'échelle.
+	var card_center_x: float = card.global_position.x + card.pivot_offset.x
 	var pos := card.global_position
 	preview.global_position = Vector2(
-		pos.x - preview.size.x * 0.25,
+		card_center_x - preview.size.x * preview.scale.x * 0.5,
 		pos.y - preview.size.y * 1.0
 	)
 	preview.show()
