@@ -172,8 +172,6 @@ func _apply(cmd: Dictionary) -> void:
 			await _apply_activate_ritual(cmd)
 		NetCommand.ACTIVATE_FUSION:
 			await _apply_activate_fusion(cmd)
-		NetCommand.ACTIVATE_PACT:
-			await _apply_activate_pact(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
@@ -274,26 +272,6 @@ func _apply_activate_fusion(cmd: Dictionary) -> void:
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
 	battle.net_registry.set_imposed_ids([])
-
-# Rejoue l'activation distante d'un Pacte "standalone" côté ENNEMI : le
-# serviteur doit appartenir au camp distant (comme FUSION/ATTACK).
-func _apply_activate_pact(cmd: Dictionary) -> void:
-	var source: Minion = battle.net_registry.resolve(cmd.get("source", 0))
-	if source == null or source.owner_is_player:
-		push_warning("NetworkOpponent : ACTIVATE_PACT invalide (propriété incohérente)")
-		return
-	if not source.card_data.pact_standalone or source.pact_activated:
-		push_warning("NetworkOpponent : ACTIVATE_PACT invalide (carte non standalone ou déjà activée)")
-		return
-	var effect: CardEffect = null
-	for e in source.card_data.effects:
-		if e.pact_bonus:
-			effect = e
-			break
-	if effect == null:
-		return
-	var value: int = source.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-	await battle.pact_activation_system.apply_pact_activation(source, effect, value)
 
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles
