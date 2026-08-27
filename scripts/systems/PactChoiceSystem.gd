@@ -103,25 +103,33 @@ func ask(card_data: CardData, value: int) -> bool:
 		await panel.get_tree().process_frame
 		panel.position = card.position + Vector2(0.0, card.size.y + 12.0)
 
-	var paid: bool = false
-	var done: bool = false
+	# ATTENTION : un Dictionary, PAS deux bool locaux. Une lambda GDScript
+	# capture les variables locales PAR VALEUR (une copie), pas par référence —
+	# `paid = true` / `done = true` dans les callbacks ci-dessous ne mutaient
+	# donc RIEN dans la portée de cette fonction : la boucle d'attente plus bas
+	# ne voyait jamais `done` passer à `true`, quel que soit le bouton cliqué.
+	# C'est le bug "cliquer Oui/Non sur le Pacte ne fait rien" (confirmé par un
+	# test isolé : voir la PR). Un Dictionary est un type par référence en
+	# GDScript, donc `state["done"] = true` mute bien l'objet partagé — même
+	# patron déjà utilisé (et fonctionnel) par FusionSystem._show_keyword_popup.
+	var state := {"paid": false, "done": false}
 	yes_button.pressed.connect(func() -> void:
-		paid = true
-		done = true
+		state["paid"] = true
+		state["done"] = true
 	)
 	no_button.pressed.connect(func() -> void:
-		paid = false
-		done = true
+		state["paid"] = false
+		state["done"] = true
 	)
 	# Garde-fou : si la scène de bataille est détruite pendant l'attente (ex. la
 	# partie se termine puis le joueur retourne au menu, ou une reconnexion
 	# échoue), `battle` devient une instance libérée — sans ce garde-fou,
 	# `battle.get_tree()` plantait (voir le même correctif sur Hand.gd) et le
 	# clic Oui/Non ne faisait alors plus rien de visible pour le joueur.
-	while not done and is_instance_valid(battle):
+	while not state["done"] and is_instance_valid(battle):
 		await battle.get_tree().process_frame
 	if is_instance_valid(blocker):
 		blocker.queue_free()  # libère aussi panel, qui en est désormais l'enfant
 	if is_instance_valid(battle):
 		battle.card_popup_system.hide_targeting_popup()
-	return paid
+	return state["paid"]
