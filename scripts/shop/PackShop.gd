@@ -31,11 +31,6 @@ const PACK_FLIP_DURATION := 0.22
 # tranche ou tranche -> face). Plus lente que le tour de mélange
 # (PACK_FLIP_DURATION) qui accompagne la révélation d'une carte.
 const IDLE_SPIN_HALF_DURATION := 2.4
-# Épaisseur visuelle de la "tranche" du paquet (voir _pack_spine), affichée
-# quand le paquet est vu de profil (scale:x proche de 0) pour qu'il se lise
-# comme un petit tas de cartes qui tourne plutôt qu'une image plate qui
-# s'aplatit dans le vide.
-const PACK_SPINE_WIDTH := 22.0
 const CARD_FLY_DURATION := 0.45
 const FIRST_REVEAL_DELAY := 0.25
 const REVEAL_STAGGER := 0.85
@@ -76,7 +71,11 @@ const GRID_CELL_PADDING := 0.86
 var _revealing: bool = false
 var _skip_requested: bool = false
 var _pack_visual: Control = null
-var _pack_spine: ColorRect = null
+# Les 4 dos de carte empilés en diagonale (voir _build_pack_visual). Animés
+# individuellement (chacun autour de son propre centre) plutôt que le groupe
+# entier, pour que la rotation garde leur décalage visible façon éventail au
+# lieu de les aplatir tous sur une seule ligne au moment du profil.
+var _pack_layers: Array = []
 var _idle_spin_tween: Tween = null
 # Échelle de repos utilisée pour la révélation en cours, recalculée à chaque
 # séquence selon le nombre de cartes (voir _compute_grid_slots).
@@ -155,54 +154,44 @@ func _build_pack_visual(parent: Control) -> Control:
 
 	parent.add_child(visual)
 
+	_pack_layers.clear()
 	for i in PACK_LAYER_COUNT:
 		var layer := card_scene.instantiate()
 		visual.add_child(layer)
 		layer.set_non_interactive()
 		layer.size = CARD_SIZE
 		layer.position = Vector2(i, i) * PACK_LAYER_OFFSET
+		layer.pivot_offset = CARD_SIZE / 2.0
 		layer.show_back(true)
-
-	# Tranche du paquet : invisible de face, révélée (voir _start_idle_spin/
-	# _pulse_pack_flip) quand scale:x s'approche de 0, moment où les dos de
-	# carte s'aplatissent dans le vide — sans elle le paquet a l'air de
-	# disparaître au lieu de se voir de profil comme un vrai petit tas de
-	# cartes qui tourne.
-	_pack_spine = ColorRect.new()
-	_pack_spine.color = Color(0.16, 0.12, 0.06, 1.0)
-	_pack_spine.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_pack_spine.size = Vector2(PACK_SPINE_WIDTH, CARD_SIZE.y)
-	_pack_spine.position = Vector2(
-		(stack_size.x - PACK_SPINE_WIDTH) / 2.0,
-		(stack_size.y - CARD_SIZE.y) / 2.0
-	)
-	_pack_spine.modulate.a = 0.0
-	visual.add_child(_pack_spine)
+		_pack_layers.append(layer)
 	return visual
 
 ## Rotation lente perpétuelle du paquet tant qu'aucune ouverture n'est en
 ## cours (ambiance visuelle de l'écran).
 func _start_idle_spin() -> void:
 	_stop_spin()
-	if not is_instance_valid(_pack_visual):
+	if _pack_layers.is_empty():
 		return
 	_idle_spin_tween = create_tween()
 	_idle_spin_tween.set_loops()
-	_idle_spin_tween.tween_property(_pack_visual, "scale:x", 0.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	if is_instance_valid(_pack_spine):
-		_idle_spin_tween.parallel().tween_property(_pack_spine, "modulate:a", 1.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	_idle_spin_tween.chain().tween_property(_pack_visual, "scale:x", PACK_SCALE, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	if is_instance_valid(_pack_spine):
-		_idle_spin_tween.parallel().tween_property(_pack_spine, "modulate:a", 0.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_idle_spin_tween.tween_method(_set_layers_scale_x, 1.0, 0.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_spin_tween.tween_method(_set_layers_scale_x, 0.0, 1.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _stop_spin() -> void:
 	if _idle_spin_tween and _idle_spin_tween.is_valid():
 		_idle_spin_tween.kill()
 	_idle_spin_tween = null
-	if is_instance_valid(_pack_visual):
-		_pack_visual.scale = Vector2(PACK_SCALE, PACK_SCALE)
-	if is_instance_valid(_pack_spine):
-		_pack_spine.modulate.a = 0.0
+	_set_layers_scale_x(1.0)
+
+## Applique la même échelle horizontale aux 4 dos de carte (autour de leur
+## propre centre, voir layer.pivot_offset) : à mi-parcours (valeur 0), leurs
+## décalages en diagonale restent visibles côte à côte au lieu de se
+## confondre en une seule ligne — l'effet se lit comme une petite pile de 4
+## cartes vue par la tranche plutôt qu'une image plate qui disparaît.
+func _set_layers_scale_x(value: float) -> void:
+	for layer in _pack_layers:
+		if is_instance_valid(layer):
+			layer.scale.x = value
 
 func _set_action_buttons_disabled(disabled: bool) -> void:
 	open_x1_button.disabled = disabled
@@ -386,16 +375,12 @@ func _reveal_one(entry: Dictionary, slot_pos: Vector2, skip: bool) -> void:
 ## Un tour complet du paquet (dos toujours visible), accompagné du son de
 ## mélange — le geste qui "fait sortir" la prochaine carte.
 func _pulse_pack_flip() -> void:
-	if not is_instance_valid(_pack_visual):
+	if _pack_layers.is_empty():
 		return
 	AudioManager.play(AudioManager.SHUFFLE)
 	var tween := create_tween()
-	tween.tween_property(_pack_visual, "scale:x", 0.0, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	if is_instance_valid(_pack_spine):
-		tween.parallel().tween_property(_pack_spine, "modulate:a", 1.0, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	tween.chain().tween_property(_pack_visual, "scale:x", PACK_SCALE, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	if is_instance_valid(_pack_spine):
-		tween.parallel().tween_property(_pack_spine, "modulate:a", 0.0, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_method(_set_layers_scale_x, 1.0, 0.0, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_method(_set_layers_scale_x, 0.0, 1.0, PACK_FLIP_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	await tween.finished
 
 ## Carte face cachée qui apparaît au centre du paquet, prête à s'envoler.
