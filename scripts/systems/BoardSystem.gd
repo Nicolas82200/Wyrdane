@@ -46,7 +46,13 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 
 	if not skip_onplay:
 		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY", onplay_target)
-
+		# Garde-fou : le trigger ONPLAY peut avoir attendu plusieurs secondes un
+		# choix de Pacte (PactChoiceSystem.ask) ; si la scène de bataille a été
+		# détruite entre-temps, `battle` est une instance libérée et tout le
+		# reste de cette fonction (player_minions/enemy_minions...) plantait
+		# dessus (même classe de bug déjà rencontrée sur Hand.gd).
+		if not is_instance_valid(battle):
+			return minion
 
 	if not _firing_on_summon:
 		_firing_on_summon = true

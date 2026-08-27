@@ -46,6 +46,17 @@ func ask(card_data: CardData, value: int) -> bool:
 	var card: Card = battle.card_popup_system.get_persistent_card()
 	var layer: CanvasLayer = battle.card_popup_system.get_popup_layer()
 
+	# Bloqueur plein écran (mouse_filter STOP) : sans lui, un clic ailleurs
+	# pendant l'attente (bouton Fin du tour, menu Échap...) reste possible et
+	# peut mener à une fin de partie/changement de scène pendant que cette
+	# popup attend encore le joueur — voir le garde-fou is_instance_valid(battle)
+	# plus bas, qui protège contre ce cas mais ne devrait plus se produire une
+	# fois l'interaction bloquée. Même patron que FusionSystem._show_keyword_popup.
+	var blocker := Control.new()
+	blocker.set_anchors_preset(Control.PRESET_FULL_RECT)
+	blocker.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(blocker)
+
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color("1a0e0eee")
@@ -106,6 +117,8 @@ func ask(card_data: CardData, value: int) -> bool:
 	# clic Oui/Non ne faisait alors plus rien de visible pour le joueur.
 	while not done and is_instance_valid(battle):
 		await battle.get_tree().process_frame
+	if is_instance_valid(blocker):
+		blocker.queue_free()
 	if is_instance_valid(panel):
 		panel.queue_free()
 	if is_instance_valid(battle):
