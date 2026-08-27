@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crm5jav6d6lj6"
-path.s3tc="res://.godot/imported/crimson-tempter.jpg-e091ed8f7c069ab52e7f186db3a4353b.s3tc.ctex"
+path.bptc="res://.godot/imported/crimson-tempter.jpg-e091ed8f7c069ab52e7f186db3a4353b.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -12,19 +12,19 @@ metadata={
 [deps]
 
 source_file="res://assets/card_art/demon/crimson-tempter.jpg"
-dest_files=["res://.godot/imported/crimson-tempter.jpg-e091ed8f7c069ab52e7f186db3a4353b.s3tc.ctex"]
+dest_files=["res://.godot/imported/crimson-tempter.jpg-e091ed8f7c069ab52e7f186db3a4353b.bptc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
