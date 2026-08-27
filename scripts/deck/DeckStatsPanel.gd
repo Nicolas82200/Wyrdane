@@ -56,18 +56,20 @@ static func refresh(builder) -> void:
 	breakdown_title.add_theme_font_size_override("font_size", 13)
 	builder.stats_panel.add_child(breakdown_title)
 
-	var type_row := HBoxContainer.new()
-	type_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	type_row.add_theme_constant_override("separation", 10)
+	var type_row := HFlowContainer.new()
+	type_row.alignment = FlowContainer.ALIGNMENT_CENTER
+	type_row.add_theme_constant_override("h_separation", 10)
+	type_row.add_theme_constant_override("v_separation", 4)
 	for type_name in ["Minion", "Instant", "Ritual", "Enchantment", "Resource"]:
 		if type_counts.has(type_name):
 			type_row.add_child(_make_chip(
 				SettingsManager.t("cardtype." + type_name.to_lower()), type_counts[type_name]))
 	builder.stats_panel.add_child(type_row)
 
-	var race_row := HBoxContainer.new()
-	race_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	race_row.add_theme_constant_override("separation", 10)
+	var race_row := HFlowContainer.new()
+	race_row.alignment = FlowContainer.ALIGNMENT_CENTER
+	race_row.add_theme_constant_override("h_separation", 10)
+	race_row.add_theme_constant_override("v_separation", 4)
 	for key in Race.Type.keys():
 		var race_value: int = Race.Type[key]
 		if race_counts.has(race_value):
