@@ -79,7 +79,12 @@ func _ready() -> void:
 	status_label.hide()
 	skip_hint_label.hide()
 	_resize_shake_layer()
-	get_viewport().size_changed.connect(_resize_shake_layer)
+	# `resized` (pas seulement `get_viewport().size_changed`) : quand PackShop
+	# est embarqué comme vue du panneau d'infos, sa taille finale n'est connue
+	# qu'après la première passe de layout du conteneur parent, pas encore à
+	# `_ready()` — sans quoi ShakeLayer reste bloqué à une taille de 0x0 tant
+	# que la fenêtre du jeu n'est jamais redimensionnée.
+	resized.connect(_resize_shake_layer)
 	_pack_visual = _build_pack_visual(pack_center)
 	_style_close_x_button()
 	open_x1_button.pressed.connect(func(): _open_pack(false, 1))
@@ -110,6 +115,7 @@ func _ready() -> void:
 	_start_idle_spin()
 
 func refresh() -> void:
+	_resize_shake_layer()
 	CurrencyManager.sync_from_backend()
 	CollectionManager.sync_from_backend()
 	_clear_cards()
