@@ -99,8 +99,15 @@ func ask(card_data: CardData, value: int) -> bool:
 		paid = false
 		done = true
 	)
-	while not done:
+	# Garde-fou : si la scène de bataille est détruite pendant l'attente (ex. la
+	# partie se termine puis le joueur retourne au menu, ou une reconnexion
+	# échoue), `battle` devient une instance libérée — sans ce garde-fou,
+	# `battle.get_tree()` plantait (voir le même correctif sur Hand.gd) et le
+	# clic Oui/Non ne faisait alors plus rien de visible pour le joueur.
+	while not done and is_instance_valid(battle):
 		await battle.get_tree().process_frame
-	panel.queue_free()
-	battle.card_popup_system.hide_targeting_popup()
+	if is_instance_valid(panel):
+		panel.queue_free()
+	if is_instance_valid(battle):
+		battle.card_popup_system.hide_targeting_popup()
 	return paid
