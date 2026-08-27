@@ -73,7 +73,20 @@ var _collapse_elapsed:  float          = 0.0
 var _battle: Node = null
 
 func _ready() -> void:
+	# Repli seulement : Hand est un enfant STATIQUE de Battle.tscn, donc ses
+	# _ready() peuvent s'exécuter avant que get_tree().current_scene ne
+	# pointe effectivement vers la scène en cours de chargement (contrairement
+	# à BoardMinion, instancié dynamiquement bien après la fin de la
+	# transition). Une résolution ratée ici laissait `_battle` invalide toute
+	# la partie : la carte se soulevait encore au survol (logique locale à
+	# Hand) mais aucun tooltip de mot-clé ne s'affichait jamais, sans erreur
+	# visible (bloqué par les gardes is_instance_valid(_battle) plus bas).
+	# set_battle(), appelé explicitement par Battle._init_systems(), écrase
+	# cette valeur avec la référence garantie correcte.
 	_battle = get_tree().current_scene
+
+func set_battle(battle: Node) -> void:
+	_battle = battle
 
 func _process(delta: float) -> void:
 	if _mulligan_mode:

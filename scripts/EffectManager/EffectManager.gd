@@ -7,6 +7,12 @@ func execute_effect(
 	effect: CardEffect,
 	selected_target: Minion = null
 ) -> void:
+	# Garde-fou : execute_effect peut être appelé après un await potentiellement
+	# long (ex. PactChoiceSystem.ask attendant le clic Oui/Non du joueur) — si la
+	# scène de bataille a été détruite entre-temps, `battle` est une instance
+	# libérée et tout le reste de la fonction planterait dessus.
+	if not is_instance_valid(battle):
+		return
 	# Condition d'exécution : si non remplie, l'effet est purement et simplement
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
@@ -1461,6 +1467,14 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 		if pact_value > 0:
 			pact_paid = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+			# Garde-fou : resolve_trigger() attend potentiellement plusieurs
+			# secondes le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la
+			# scène de bataille a été détruite entre-temps (retour au menu,
+			# reconnexion échouée...), `battle` devient une instance libérée —
+			# sans ce garde-fou, tout le reste de cette fonction plantait dessus
+			# (même classe de bug déjà rencontrée sur Hand.gd).
+			if not is_instance_valid(battle):
+				return true
 			if pact_paid:
 				var minion_visual: Control = battle.board_visual_system.find_visual(minion)
 				var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")

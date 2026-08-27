@@ -215,6 +215,17 @@ func _init_data() -> void:
 	game_rng.randomize()  # solo : aléatoire ; écrasé par le seed réseau si besoin
 
 func _init_systems() -> void:
+	# Injecté explicitement plutôt que laissé à Hand._ready() qui se résout lui-
+	# même via get_tree().current_scene : Hand est un enfant STATIQUE de
+	# Battle.tscn (contrairement à BoardMinion, instancié dynamiquement bien
+	# après la fin de la transition de scène) — ses enfants sont notifiés
+	# _ready() AVANT le nœud racine Battle, potentiellement avant que
+	# current_scene ne pointe effectivement vers cette scène. Une résolution
+	# ratée à ce moment-là laissait `hand._battle` invalide pour toute la
+	# partie : la carte se soulève toujours au survol (logique locale à Hand),
+	# mais aucun tooltip de mot-clé ne s'affiche jamais (bloqué par les gardes
+	# `is_instance_valid(_battle)`), sans la moindre erreur visible.
+	hand.set_battle(self)
 	hand.can_play_check      = can_play_card
 	hand.create_drag_preview = _create_card_drag_preview
 	trigger_system = TriggerSystem.new()
