@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Chevalier Déchu"
-description = "Pacte 3 : Ce serviteur acquiert INFILTRATION. (Activable à tout moment.)"
+description = "Pacte 3 : Ce serviteur acquiert INFILTRATION."
 flavour_text = "Son armure était sacrée, autrefois. Elle a changé de camp avec lui."
 texture = ExtResource("3_texture")
 cost = 3
@@ -40,5 +40,4 @@ trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_wknxr")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_z9dsm")])
 rarity = "Rare"
 board_position = "Front"
-pact_standalone = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

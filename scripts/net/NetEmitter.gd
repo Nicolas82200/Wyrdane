@@ -43,10 +43,6 @@ func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) ->
 func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> void:
 	_net.send_command(NetCommand.activate_fusion(source_id, victim_id, keyword_pool, keyword_name, ids))
 
-# Activation locale d'un Pacte "standalone" (victime déjà décidée localement).
-func activate_pact(source_id: int) -> void:
-	_net.send_command(NetCommand.activate_pact(source_id))
-
 # Le joueur local a validé son mulligan (contenu privé, seule la fin est notifiée).
 func mulligan_done() -> void:
 	_net.send_command(NetCommand.mulligan_done())
