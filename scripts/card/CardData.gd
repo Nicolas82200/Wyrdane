@@ -48,14 +48,6 @@ class_name CardData
 # placé dans l'autre rangée au lieu d'échouer (Stratège Royal). Lu par
 # BoardSystem.summon_minion_return.
 @export var allows_row_overflow: bool = false
-# PACTE sans trigger réellement porteur (ex: Larve Infernale — le seul effet de
-# la carte est le bonus de Pacte lui-même, rien ne se passe si on refuse à
-# l'Arrivée). Ces cartes n'offrent PAS le choix du Pacte à leur trigger (voir
-# EffectManager.trigger_effects) : le bonus s'active à la place n'importe quand
-# via un bouton sur le serviteur en jeu (voir PactActivationSystem), une seule
-# fois. Ne s'applique qu'aux effets ciblant Self — les cartes Pacte à cible
-# ennemie (Croc de Braise, Le Grand Pacte) gardent le choix à l'Arrivée.
-@export var pact_standalone: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []

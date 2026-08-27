@@ -4,7 +4,6 @@ class_name BoardMinion
 
 signal minion_clicked(minion, board_minion)
 signal fusion_requested(minion)
-signal pact_activation_requested(minion)
 
 var minion = null
 var is_selected := false
@@ -35,7 +34,6 @@ var _ready_glow: Panel = null
 var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
 var _fusion_button: Button = null
-var _pact_button: Button = null
 
 # Halo pulsant affiché pendant que la popup d'effet de CE serviteur est jouée
 # (CardPopupSystem.show_card_popup) — identifie visuellement quelle carte du
@@ -202,21 +200,6 @@ func _ready() -> void:
 	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
 	add_child(_fusion_button)
 
-	# Bouton d'activation du bonus de Pacte "standalone" (voir CardData.pact_standalone,
-	# PactActivationSystem) : même patron que FusionButton, décalé pour ne pas
-	# se superposer si un serviteur cumulait un jour les deux (aucun cas actuel).
-	_pact_button = Button.new()
-	_pact_button.name = "PactButton"
-	_pact_button.text = "P"
-	_pact_button.custom_minimum_size = Vector2(26, 26)
-	_pact_button.position = Vector2(70, 30)
-	_pact_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	_pact_button.visible = false
-	_pact_button.add_theme_font_size_override("font_size", 14)
-	_pact_button.tooltip_text = TranslationServer.translate("KW_PACTE_NAME")
-	_pact_button.pressed.connect(func(): pact_activation_requested.emit(minion))
-	add_child(_pact_button)
-
 func _process(delta: float) -> void:
 	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de
 	# serviteurs (HBoxContainer) se réorganise souvent (mort, invocation,
@@ -248,7 +231,6 @@ func _process(delta: float) -> void:
 		_effect_preview_glow.queue_redraw()
 	BoardMinionStatusVFX.update_pulse(self, delta)
 	_update_fusion_button()
-	_update_pact_button()
 	if not _targetable or _targetable_style == null:
 		return
 	_pulse_time += delta * 3.0
@@ -308,14 +290,6 @@ func _update_fusion_button() -> void:
 		return
 	_fusion_button.visible = "fusion_system" in _battle \
 		and _battle.fusion_system.can_activate(minion)
-
-# ─── Activation du Pacte "standalone" ────────────────────────────────────────
-
-func _update_pact_button() -> void:
-	if _pact_button == null or minion == null or _battle == null:
-		return
-	_pact_button.visible = "pact_activation_system" in _battle \
-		and _battle.pact_activation_system.can_activate(minion)
 
 # ─── Halo « effet en cours de preview » ──────────────────────────────────────
 
