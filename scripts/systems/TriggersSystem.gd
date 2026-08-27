@@ -125,6 +125,13 @@ func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Ar
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 		if pact_value > 0:
 			pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
+			# Garde-fou : resolve_trigger() attend potentiellement plusieurs
+			# secondes le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la
+			# scène de bataille a été détruite entre-temps, `battle` devient une
+			# instance libérée — sans ce garde-fou, tout le reste plantait
+			# dessus (même classe de bug que sur Hand.gd/EffectManager.gd).
+			if not is_instance_valid(battle):
+				return
 			if pact_paid:
 				await battle.hero_system.self_damage(is_player, pact_value)
 
@@ -207,6 +214,9 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 		if pact_value > 0:
 			pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
+			# Garde-fou : voir activate_sacrifice_ritual ci-dessus.
+			if not is_instance_valid(battle):
+				return
 			if pact_paid:
 				await battle.hero_system.self_damage(is_player, pact_value)
 
@@ -269,6 +279,9 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 		if pact_value > 0:
 			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(card_data, owner_is_player)
+			# Garde-fou : voir activate_sacrifice_ritual plus haut.
+			if not is_instance_valid(battle):
+				return false
 			if not pact_paid:
 				_consume_ritual_charge(entry, owner_is_player)
 				continue

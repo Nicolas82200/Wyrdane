@@ -8,6 +8,7 @@ signal mulligan_card_clicked(index: int, card_data: CardData)
 signal discard_card_clicked(index: int, card_data: CardData)
 
 @onready var container = $CardsContainer
+@onready var preview   = $CardPreview
 
 const CARD_SCENE      := preload("res://scenes/card/Card.tscn")
 const NORMAL_SCALE    := Vector2(0.75, 0.75)
@@ -84,6 +85,10 @@ func _ready() -> void:
 	# set_battle(), appelé explicitement par Battle._init_systems(), écrase
 	# cette valeur avec la référence garantie correcte.
 	_battle = get_tree().current_scene
+	preview.set_non_interactive()
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.z_index = 100
+	preview.hide()
 
 func set_battle(battle: Node) -> void:
 	_battle = battle
@@ -409,28 +414,43 @@ func _on_card_hover(card: Card) -> void:
 	if _hovered_card != card:
 		_hovered_card = card
 		_update_hand_layout(true)
+	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
+	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
+	# lisible même quand la main est très resserrée (beaucoup de cartes).
+	preview.set_data(card.data)
+	if display_cost.is_valid():
+		preview.set_display_cost(display_cost.call(card.data))
+	preview.scale   = Vector2(1.1, 1.1)
+	preview.z_index = 100
+	var pos := card.global_position
+	preview.global_position = Vector2(
+		pos.x - preview.size.x * 0.25,
+		pos.y - preview.size.y * 1.0
+	)
+	preview.show()
+	if not card.drag_started.is_connected(_hide_preview):
+		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
 	await get_tree().process_frame
 	if not is_instance_valid(self) or not _hovering or not is_instance_valid(card) or card.dragging:
 		return
-	# La carte survolée se décale déjà (voir HOVER_LIFT/_card_position) : les
-	# tooltips de mots-clés s'ancrent directement sur son rectangle réel plutôt
-	# que sur une preview zoomée séparée.
-	var card_rect := card.get_global_rect()
-	var scaled_width: float = card_rect.size.x * card.scale.x
-	var tooltip_x: float = card_rect.position.x + scaled_width + 15
-	var tooltip_y: float = card_rect.position.y
-	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y, card_rect.position.x)
+	var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+	var tooltip_y: float = preview.global_position.y
+	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y)
+
+func _hide_preview() -> void:
+	preview.hide()
 
 func _on_card_unhover() -> void:
 	_hovering = false
+	preview.hide()
 	_hide_keyword_tooltips()
 	if _hovered_card != null:
 		_hovered_card = null
 		_update_hand_layout(true)
 
 
-func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float, fallback_left_x: float = -1.0) -> void:
+func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
@@ -446,8 +466,8 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float, f
 
 	var vp := get_viewport_rect().size
 
-	# Reste sur l'écran : ramène la pile dans la largeur visible si elle déborde
-	# à droite, et remonte le point de départ si elle déborde en bas.
+	# Reste sur l'écran : bascule à gauche de la preview si la pile déborde à
+	# droite, et remonte le point de départ si elle déborde en bas.
 	var stack_height := 0.0
 	for panel in panels:
 		if is_instance_valid(panel):
@@ -460,10 +480,7 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float, f
 	if panels.size() > 0 and is_instance_valid(panels[0]):
 		panel_width = panels[0].size.x
 	if base_x + panel_width > vp.x - 4.0:
-		if fallback_left_x >= 0.0:
-			base_x = maxf(4.0, fallback_left_x - panel_width - 15)
-		else:
-			base_x = maxf(4.0, vp.x - 4.0 - panel_width)
+		base_x = maxf(4.0, preview.global_position.x - panel_width - 15)
 
 	for panel in panels:
 		if not is_instance_valid(panel):

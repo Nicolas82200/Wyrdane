@@ -51,7 +51,10 @@ func ask(card_data: CardData, value: int) -> bool:
 	# peut mener à une fin de partie/changement de scène pendant que cette
 	# popup attend encore le joueur — voir le garde-fou is_instance_valid(battle)
 	# plus bas, qui protège contre ce cas mais ne devrait plus se produire une
-	# fois l'interaction bloquée. Même patron que FusionSystem._show_keyword_popup.
+	# fois l'interaction bloquée. Le panneau Oui/Non est ENFANT du bloqueur
+	# (pas un frère) — même patron que FusionSystem._show_keyword_popup — pour
+	# qu'il reçoive les clics en priorité sans dépendre de l'ordre des enfants
+	# dans le calque.
 	var blocker := Control.new()
 	blocker.set_anchors_preset(Control.PRESET_FULL_RECT)
 	blocker.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -94,7 +97,7 @@ func ask(card_data: CardData, value: int) -> bool:
 	no_button.text = SettingsManager.t("PACT_CONFIRM_NO")
 	hbox.add_child(no_button)
 
-	layer.add_child(panel)
+	blocker.add_child(panel)
 	if card != null and is_instance_valid(card):
 		panel.custom_minimum_size.x = card.size.x
 		await panel.get_tree().process_frame
@@ -118,9 +121,7 @@ func ask(card_data: CardData, value: int) -> bool:
 	while not done and is_instance_valid(battle):
 		await battle.get_tree().process_frame
 	if is_instance_valid(blocker):
-		blocker.queue_free()
-	if is_instance_valid(panel):
-		panel.queue_free()
+		blocker.queue_free()  # libère aussi panel, qui en est désormais l'enfant
 	if is_instance_valid(battle):
 		battle.card_popup_system.hide_targeting_popup()
 	return paid
