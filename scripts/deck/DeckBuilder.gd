@@ -249,7 +249,7 @@ func _add_card_to_grid(card_data: CardData) -> void:
 
 	wrapper.gui_input.connect(_on_card_wrapper_input.bind(card_data))
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
-	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual))
+	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(wrapper))
 
 	_add_buy_button_if_locked(card_data, wrapper)
 	_add_stock_badge(card_data, wrapper)
@@ -440,7 +440,15 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 		_show_max_copies_tooltip(wrapper, card_data)
 	await _show_keyword_tooltips(card_data, wrapper)
 
-func _on_card_wrapper_exited(card_visual: Card) -> void:
+## `wrapper` (et non `card_visual`, inutile ici) permet d'ignorer une sortie
+## « périmée » : mouse_entered/mouse_exited entre deux wrappers adjacents ne
+## sont pas garantis dans l'ordre par Godot, donc l'exited d'une ancienne
+## carte peut arriver après l'entered de la nouvelle — sans ce garde-fou, il
+## efface à tort le survol/tooltip de la carte réellement sous la souris
+## (voir aussi le même garde-fou dans _show_keyword_tooltips).
+func _on_card_wrapper_exited(wrapper: Control) -> void:
+	if wrapper != _hovered_wrapper:
+		return
 	_hovered_wrapper = null
 	_hovering = false
 	card_preview.hide()
@@ -605,7 +613,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	# Preview agrandie au survol d'une carte déjà dans le deck, même mécanisme
 	# que pour la grille de collection (voir _on_card_wrapper_entered/_exited).
 	panel.mouse_entered.connect(_on_card_wrapper_entered.bind(card, null, panel))
-	panel.mouse_exited.connect(_on_card_wrapper_exited.bind(null))
+	panel.mouse_exited.connect(_on_card_wrapper_exited.bind(panel))
 
 	return panel
 
@@ -968,7 +976,12 @@ func _show_keyword_tooltips(card_data: CardData, wrapper: Control) -> void:
 		_tooltip_layer.add_child(race_panel)
 
 	await get_tree().process_frame
-	if not _hovering or not is_instance_valid(wrapper):
+	# `wrapper != _hovered_wrapper` : le survol a changé de carte pendant
+	# l'attente (mouse_entered/mouse_exited entre deux cartes adjacentes
+	# n'arrivent pas toujours dans un ordre garanti) — sans ce contrôle,
+	# les panneaux d'une carte qui n'est plus survolée pouvaient s'afficher
+	# à la place de (ou en plus de) ceux de la carte réellement sous la souris.
+	if not _hovering or wrapper != _hovered_wrapper or not is_instance_valid(wrapper):
 		_hide_keyword_tooltips()
 		return
 
