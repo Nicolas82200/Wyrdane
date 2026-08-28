@@ -77,12 +77,12 @@ const RACE_COLORS := {
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.UNDEAD: Color("#bebebe"),
-	Race.Type.ABOMINATION: Color("#9bd76e"),
-	Race.Type.HUMAN:  Color("#e8c56d"),
-	Race.Type.ELF:    Color("#7bd3c1"),
-	Race.Type.DWARF:  Color("#d7a46f"),
-	Race.Type.DEMON:  Color("#e87587"),
+	Race.Type.UNDEAD: Color("#e2e2e2"),
+	Race.Type.ABOMINATION: Color("#bdeb9c"),
+	Race.Type.HUMAN:  Color("#f2d98f"),
+	Race.Type.ELF:    Color("#a6e6d8"),
+	Race.Type.DWARF:  Color("#e8c295"),
+	Race.Type.DEMON:  Color("#f2a3b0"),
 }
 
 # Libellé français du bandeau de type (la couleur du bandeau vient de la rareté)
