@@ -816,7 +816,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
-z_index = -1
 custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
