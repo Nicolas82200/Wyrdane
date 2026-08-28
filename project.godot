@@ -74,6 +74,10 @@ locale/translations=PackedStringArray("res://translations/game.fr.translation", 
 
 3d/physics_engine="Jolt Physics"
 
+[rendering]
+
+textures/canvas_textures/default_texture_filter=2
+
 [steam]
 
 initialization/app_data/app_type=0
