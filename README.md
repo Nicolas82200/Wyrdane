@@ -877,18 +877,18 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
 *   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
-*   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion`, `CardLibrary`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, la mutation Abomination et le timer de tour (voir « Tests automatisés » dans `CLAUDE.md`)
+*   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, déjà en place côté code)
+*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`)
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Animations shaders
-*   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
+*   Mise en prod côté `wyrdane-backend` des routes de matchmaking classé et des quêtes hebdomadaires/parrainage (client déjà prêt, voir sections dédiées ci-dessous)
 ---
 
 ## 💠 Système de Ressources par Race

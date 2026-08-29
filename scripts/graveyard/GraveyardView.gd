@@ -88,7 +88,7 @@ func _add_card(card_data: CardData, face_down: bool) -> void:
 
 	card_visual.set_data(card_data)
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
-	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual))
+	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual, wrapper))
 
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
@@ -109,10 +109,16 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 		return
 	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
 
-func _on_card_wrapper_exited(card_visual: Card) -> void:
+## `wrapper` : mouse_entered/mouse_exited entre deux cartes adjacentes n'arrivent
+## pas toujours dans un ordre garanti par Godot — un exited périmé (celui de
+## l'ancienne carte survolée, arrivant après l'entered de la nouvelle) doit être
+## ignoré plutôt que d'effacer à tort le survol/tooltip de la carte actuelle
+## (voir le même garde-fou dans _show_keyword_tooltips).
+func _on_card_wrapper_exited(card_visual: Card, wrapper: Control) -> void:
+	if wrapper != _hovered_wrapper:
+		return
 	_hovered_wrapper = null
 	_hovering = false
-	var wrapper := card_visual.get_parent() as Control
 	if wrapper:
 		wrapper.z_index = 0
 	var tween := create_tween()
@@ -141,7 +147,7 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float,
 		_tooltip_layer.add_child(race_panel)
 
 	await get_tree().process_frame
-	if not _hovering:
+	if not _hovering or wrapper != _hovered_wrapper:
 		_hide_keyword_tooltips()
 		return
 

@@ -315,6 +315,10 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 # l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
 func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	_mulligan_mode = active
+	# Doit rester au-dessus du MulliganDimOverlay (z_index 90 dans Battle.tscn) :
+	# la main est l'élément d'interaction du mulligan, elle ne doit pas être
+	# assombrie comme le reste du plateau.
+	z_index = 91 if active else 0
 	if active and not _hand_expanded:
 		_hand_expanded = true
 		if transition_duration > 0.0:
@@ -426,12 +430,13 @@ func _on_card_hover(card: Card) -> void:
 		# tooltips de mots-clés restent utiles, ancrés sur la carte elle-même.
 		await get_tree().process_frame
 		await get_tree().process_frame
-		if not is_instance_valid(self) or not _hovering or not is_instance_valid(card) or card.dragging:
+		if not is_instance_valid(self) or not _hovering or card != _hovered_card \
+				or not is_instance_valid(card) or card.dragging:
 			return
 		var card_rect := card.get_global_rect()
 		var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
 		var tooltip_y0: float = card_rect.position.y
-		await _show_keyword_tooltips(card.data, tooltip_x0, tooltip_y0)
+		await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
 		return
 	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
 	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
@@ -457,25 +462,33 @@ func _on_card_hover(card: Card) -> void:
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if not is_instance_valid(self) or not _hovering or not is_instance_valid(card) or card.dragging:
+	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
+			or not is_instance_valid(card) or card.dragging:
 		return
 	var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
 	var tooltip_y: float = preview.global_position.y
-	await _show_keyword_tooltips(card.data, tooltip_x, tooltip_y)
+	await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
 
 func _hide_preview() -> void:
 	preview.hide()
 
-func _on_card_unhover() -> void:
+## `card` : mouse_entered/mouse_exited entre deux cartes de la main adjacentes
+## n'arrivent pas toujours dans un ordre garanti par Godot — un exited périmé
+## (celui de l'ancienne carte survolée, arrivant après l'entered de la
+## nouvelle) doit être ignoré plutôt que d'effacer à tort le survol actif.
+func _on_card_unhover(card: Card) -> void:
+	if card != _hovered_card:
+		return
 	_hovering = false
 	preview.hide()
 	_hide_keyword_tooltips()
-	if _hovered_card != null:
-		_hovered_card = null
-		_update_hand_layout(true)
+	_hovered_card = null
+	_update_hand_layout(true)
 
 
-func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -> void:
+## `owner_card` : même garde-fou que ci-dessus, revérifié après l'await pour
+## ignorer un survol qui n'est plus le survol actif au moment de la reprise.
+func _show_keyword_tooltips(owner_card: Card, card_data: CardData, base_x: float, base_y: float) -> void:
 	_hide_keyword_tooltips()
 	if card_data == null:
 		return
@@ -486,7 +499,8 @@ func _show_keyword_tooltips(card_data: CardData, base_x: float, base_y: float) -
 	_battle.add_child(_tooltip_layer)
 	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
 	await get_tree().process_frame
-	if not is_instance_valid(self) or not is_instance_valid(_tooltip_layer):
+	if not is_instance_valid(self) or not _hovering or owner_card != _hovered_card \
+			or not is_instance_valid(_tooltip_layer):
 		return
 
 	var vp := get_viewport_rect().size
@@ -717,7 +731,7 @@ func _connect_card(card: Card) -> void:
 	if not card.mouse_entered.is_connected(_on_card_hover):
 		card.mouse_entered.connect(_on_card_hover.bind(card))
 	if not card.mouse_exited.is_connected(_on_card_unhover):
-		card.mouse_exited.connect(_on_card_unhover)
+		card.mouse_exited.connect(_on_card_unhover.bind(card))
 	if not card.mulligan_clicked.is_connected(_on_mulligan_card_clicked):
 		card.mulligan_clicked.connect(_on_mulligan_card_clicked.bind(card))
 	if not card.discard_clicked.is_connected(_on_discard_card_clicked):

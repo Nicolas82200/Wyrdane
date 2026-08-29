@@ -43,7 +43,7 @@ corner_radius_bottom_left = 20
 corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wcykg"]
-bg_color = Color(0.4392157, 0.2901961, 0.09803922, 0.78431374)
+bg_color = Color(0.4392157, 0.2901961, 0.09803922, 0.6)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
