@@ -230,6 +230,15 @@ func make_tooltip_panel(title: String, desc: String,
 	desc_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.70, 1.0))
 	desc_label.add_theme_font_size_override("font_size", 12)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	# Largeur minimale posée directement sur le label (pas seulement sur le
+	# panel ancêtre, `custom_minimum_size` ligne 184) : le temps que la mise
+	# en page des conteneurs imbriqués (panel > vbox > margin > label) se
+	# stabilise, Godot peut mesurer ce label à une largeur proche de 0, ce qui
+	# fait exploser sa hauteur calculée (quasi un mot par ligne) et donne un
+	# tooltip énorme de façon intermittente — même famille de bug qu'un autre
+	# label du deck builder déjà rencontré (voir devlogs archivés). Panel min
+	# width 195 - marges gauche/droite (8+8, desc_margin plus bas) = 179.
+	desc_label.custom_minimum_size.x = 179
 	desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# MarginContainer plutôt que des theme overrides "margin_*" posés
