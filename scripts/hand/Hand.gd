@@ -315,6 +315,10 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 # l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
 func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	_mulligan_mode = active
+	# Doit rester au-dessus du MulliganDimOverlay (z_index 90 dans Battle.tscn) :
+	# la main est l'élément d'interaction du mulligan, elle ne doit pas être
+	# assombrie comme le reste du plateau.
+	z_index = 91 if active else 0
 	if active and not _hand_expanded:
 		_hand_expanded = true
 		if transition_duration > 0.0:
