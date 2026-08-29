@@ -477,12 +477,17 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
 	_battle.add_child(_tooltip_layer)
+	# Capturé localement : `_tooltip_layer` (membre partagé) peut avoir été
+	# réassigné par un survol plus récent d'ici la reprise des await ci-dessous
+	# (sortie/re-entrée rapide sur ce même serviteur) — comparer à `my_layer`
+	# plutôt qu'au membre courant évite d'agir sur/pour une session périmée.
+	var my_layer := _tooltip_layer
 
-	var panels: Array[Control] = TooltipData.build_panels_for_minion(minion, _tooltip_layer)
-	panels.append_array(TooltipData.build_status_panels_for_minion(minion, _tooltip_layer))
+	var panels: Array[Control] = TooltipData.build_panels_for_minion(minion, my_layer)
+	panels.append_array(TooltipData.build_status_panels_for_minion(minion, my_layer))
 	await get_tree().process_frame
 
-	if not _mouse_is_over:
+	if not _mouse_is_over or _tooltip_layer != my_layer:
 		_hide_keyword_tooltips()
 		return
 
@@ -513,13 +518,14 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		_keyword_tooltips.append(panel)
 
 	if TooltipData.RACE_DESCRIPTIONS.has(minion.card_data.race):
-		if not is_instance_valid(_tooltip_layer):
+		if _tooltip_layer != my_layer or not is_instance_valid(my_layer):
 			return
 		var race_panel := TooltipData.make_race_tooltip(TooltipData.RACE_DESCRIPTIONS[minion.card_data.race])
 		race_panel.position = Vector2(-9999, -9999)
-		_tooltip_layer.add_child(race_panel)
+		my_layer.add_child(race_panel)
 		await get_tree().process_frame
-		if is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
+		if _tooltip_layer == my_layer and _mouse_is_over \
+				and is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
 			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * 0.9
 			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * 0.9) / 2.0
 			var rx: float = clampf(

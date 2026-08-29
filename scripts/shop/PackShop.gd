@@ -36,6 +36,8 @@ const FIRST_REVEAL_DELAY := 0.25
 const REVEAL_STAGGER := 0.85
 const RARE_RARITIES := ["Epic", "Legendary"]
 const ODDS_TOOLTIP_DURATION := 4.0
+
+var _odds_panel: Control = null
 const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
 # Zone de révélation : partie droite de l'écran, à droite du paquet (voir
 # PackCenter dans PackShop.tscn, ancré sur les ~34% gauches de l'écran).
@@ -488,6 +490,12 @@ func _place_card_instant(entry: Dictionary, slot_pos: Vector2) -> void:
 ## Petit panneau flottant listant les probabilités de tirage par rareté
 ## (miroir client de RARITY_WEIGHTS côté backend, purement indicatif).
 func _on_odds_pressed() -> void:
+	# Clics répétés avant l'expiration du panneau précédent (ODDS_TOOLTIP_DURATION) :
+	# sans ça, chaque clic empilait un nouveau panneau identique au même endroit.
+	if is_instance_valid(_odds_panel):
+		_odds_panel.queue_free()
+		_odds_panel = null
+
 	var weights: Dictionary = CurrencyManager.RARITY_WEIGHTS_DISPLAY
 	var total := 0
 	for w in weights.values():
@@ -501,11 +509,14 @@ func _on_odds_pressed() -> void:
 	var panel := TooltipData.make_tooltip_panel(SettingsManager.t("pack_shop.odds_title"), "\n".join(lines))
 	panel.position = Vector2(-9999, -9999)
 	add_child(panel)
+	_odds_panel = panel
 	await get_tree().process_frame
-	if not is_instance_valid(panel) or not is_instance_valid(odds_button):
+	if not is_instance_valid(panel) or not is_instance_valid(odds_button) or panel != _odds_panel:
 		return
 	panel.global_position = odds_button.global_position + Vector2((odds_button.size.x - panel.size.x) / 2.0, odds_button.size.y + 6.0)
 	await get_tree().create_timer(ODDS_TOOLTIP_DURATION).timeout
+	if panel == _odds_panel:
+		_odds_panel = null
 	if is_instance_valid(panel):
 		panel.queue_free()
 
