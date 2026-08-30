@@ -29,6 +29,7 @@ texture = ExtResource("2_texture")
 cost = 5
 race = 6
 card_type = "Enchantment"
+trigger_once_per_turn = true
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a144")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a145")])
 rarity = "Epic"

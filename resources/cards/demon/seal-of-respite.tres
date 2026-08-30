@@ -13,6 +13,8 @@ type = "OnGrief"
 script = ExtResource("1_cardeffect")
 effect_id = "HealHero"
 value = 1
+condition_type = "TriggerSourceRace"
+condition_race = "Demon"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]

@@ -22,14 +22,13 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Pacte Sanglant"
-description = "Sacrifice 1 (≤2 points de vie) : Invoque un Mort-Vivant 2/2."
+description = "Sacrifice 1 : Invoque un Mort-Vivant 2/2."
 flavour_text = "Chaque tour, le cercle redemande son dû, et chaque fois, il redonne quelque chose en retour."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
 ritual_duration = 3
 sacrifice_count = 1
-sacrifice_max_hp = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_uhbhy")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_1tsg2")])
 rarity = "Epic"
