@@ -248,7 +248,7 @@ func _make_proxy(card_data: CardData, is_player: bool) -> Minion:
 	return Minion.new(card_data, is_player, "")
 
 func _is_spell_cancel_card(card_data: CardData) -> bool:
-	return card_data.effects.any(func(e: CardEffect): return e.effect_id == "CancelSpellOnRaceTarget")
+	return card_data.effects.any(func(e: CardEffect): return e.effect_id in ["CancelSpellOnRaceTarget", "CancelFirstEnemySpellPerTurn"])
 
 # ─── Annulation de sort (Rituel de l'Éclipse Rouge) ──────────────────────────
 # Appelé par CardSystem AVANT de résoudre un sort ciblé : si le camp adverse au
@@ -299,6 +299,28 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 			if effect.effect_id == "CancelSpellOnRaceTarget":
 				continue
 			await battle.effect_manager.execute_effect(battle, proxy, effect)
+		_consume_ritual_charge(entry, owner_is_player)
+		battle.board_visual_system.refresh_board()
+		return true
+	return false
+
+# ─── Annulation du premier sort ennemi du tour (Bouclier de la Foi) ──────────
+# Contrairement à try_cancel_spell (qui ne réagit qu'aux sorts CIBLANT un
+# serviteur du camp du rituel), ceci annule le premier sort ennemi du tour
+# quel que soit son type de cible (serviteur, héros, aucune cible) — gated par
+# CardData.trigger_once_per_turn, comme n'importe quel autre "une fois par tour".
+# Appelé par CardSystem AVANT de résoudre tout sort (Éphémère/Rituel/Enchantement).
+func try_cancel_first_enemy_spell(caster_is_player: bool) -> bool:
+	var owner_is_player: bool = not caster_is_player
+	for entry in _enchantments[owner_is_player].duplicate():
+		var card_data: CardData = entry["card_data"]
+		if not card_data.get_trigger_names().has("OnSpell"):
+			continue
+		if not card_data.effects.any(func(e: CardEffect): return e.effect_id == "CancelFirstEnemySpellPerTurn"):
+			continue
+		if card_data.trigger_once_per_turn and entry["triggered_this_turn"]:
+			continue
+		entry["triggered_this_turn"] = true
 		_consume_ritual_charge(entry, owner_is_player)
 		battle.board_visual_system.refresh_board()
 		return true

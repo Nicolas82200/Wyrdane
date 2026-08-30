@@ -311,6 +311,12 @@ func _cast_spell(card: CardData) -> void:
 	var target: Minion = null
 	if card.requires_target:
 		target = _pick_spell_target(card)
+	# Annulation du premier sort ennemi du tour (Bouclier de la Foi), quel que
+	# soit son ciblage.
+	if await battle.trigger_system.try_cancel_first_enemy_spell(false):
+		battle.enemy_graveyard.add_spell(card)
+		battle.board_visual_system.refresh_board()
+		return
 	# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel du joueur peut
 	# contrer un sort de l'IA ciblant un de ses serviteurs.
 	if target != null and await battle.trigger_system.try_cancel_spell(false, target):
