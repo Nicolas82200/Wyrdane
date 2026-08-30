@@ -130,6 +130,7 @@ func _apply(cmd: Dictionary) -> void:
 			battle.refill_mana_pool(false)
 			battle.update_enemy_mana_ui()
 			if _deck_count > 0:
+				await battle.animate_enemy_draw()
 				_deck_count -= 1
 				_hand_count += 1
 			battle.update_enemy_hand_ui()
@@ -227,6 +228,7 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if _hand_count > 0:
 		_hand_count -= 1
 		battle.update_enemy_hand_ui()
+	await battle.animate_enemy_card_played()
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
