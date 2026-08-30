@@ -117,6 +117,17 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 					continue
 				await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
 	else:
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), quel que
+		# soit son ciblage : vérifiée avant l'annulation par cible (ci-dessous), qui
+		# ne s'applique elle qu'aux sorts visant un serviteur précis.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(true):
+			battle.player_graveyard.add_spell(card_data)
+			battle.board_visual_system.refresh_board()
+			if battle.net_emitter != null:
+				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, target if target is Minion else null)
+			battle.reset_targeting_state()
+			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
 		# contrer un sort ciblant un de ses serviteurs. Le sort est alors défaussé
 		# sans effet (mana déjà payé).
@@ -191,6 +202,15 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi) : voir
+		# resolve_with_target, même mécanisme pour un sort sans cible sélectionnée.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(true):
+			battle.player_graveyard.add_spell(card_data)
+			battle.board_visual_system.refresh_board()
+			if battle.net_emitter != null:
+				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, null)
+			return
 		battle.combat_log.card_played(card_data, true)
 		var shows_popup: bool = card_data.card_type != "Enchantment" \
 			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)

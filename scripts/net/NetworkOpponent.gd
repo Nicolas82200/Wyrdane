@@ -301,6 +301,11 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	else:
 		battle.enemy_graveyard.add_spell(card)
 		var target: Minion = early_target
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), même
+		# vérification que CardSystem côté émetteur, pour rester synchrone.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(false):
+			battle.board_visual_system.refresh_board()
+			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
 		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
 		if target != null and await battle.trigger_system.try_cancel_spell(false, target):

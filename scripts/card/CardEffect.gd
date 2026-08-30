@@ -23,7 +23,7 @@ class_name CardEffect
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
 	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
 	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword",
-	"DrawCardPerAllyDeathThisTurn", "MoveRow"
+	"DrawCardPerAllyDeathThisTurn", "MoveRow", "CancelFirstEnemySpellPerTurn"
 ) var effect_id: String = "Damage"
 
 @export_enum(
