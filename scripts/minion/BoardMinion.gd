@@ -558,28 +558,61 @@ func _hide_keyword_tooltips() -> void:
 
 # ─── Icônes de keywords ───────────────────────────────────────────────────────
 
+# Diamètre du badge rond posé derrière chaque icône de mot-clé. Les icônes
+# elles-mêmes sont des silhouettes blanches sans fond (voir assets/icons/keyword) :
+# sur un board minion à 22px nu, elles se fondaient dans l'artwork de la carte
+# derrière elles dès que celui-ci était clair — le badge sombre + bordure
+# colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
+# constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
+const KEYWORD_BADGE_SIZE := 26.0
+const KEYWORD_ICON_SIZE  := 16.0
+
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:
 		return
+	# Resserré (défaut 4px) pour compenser l'agrandissement du badge (22->26px) :
+	# plusieurs mots-clés sur un même serviteur restent lisibles sans trop déborder
+	# du coin de la carte.
+	keyword_icons.add_theme_constant_override("separation", 2)
 	for child in keyword_icons.get_children():
 		child.queue_free()
 	var pools := [
-		[minion.keywords, TooltipData.KEYWORD_ICONS],
-		[minion.human_keywords, TooltipData.KEYWORD_HUMAN_ICONS],
-		[minion.undead_keywords, TooltipData.KEYWORD_UNDEAD_ICONS],
-		[minion.demon_keywords, TooltipData.KEYWORD_DEMON_ICONS],
-		[minion.abomination_keywords, TooltipData.KEYWORD_ABOMINATION_ICONS],
+		[minion.keywords, TooltipData.KEYWORD_ICONS, TooltipData.COLOR_KEYWORD],
+		[minion.human_keywords, TooltipData.KEYWORD_HUMAN_ICONS, TooltipData.COLOR_KEYWORD_HUMAN],
+		[minion.undead_keywords, TooltipData.KEYWORD_UNDEAD_ICONS, TooltipData.COLOR_KEYWORD_UNDEAD],
+		[minion.demon_keywords, TooltipData.KEYWORD_DEMON_ICONS, TooltipData.COLOR_KEYWORD_DEMON],
+		[minion.abomination_keywords, TooltipData.KEYWORD_ABOMINATION_ICONS, TooltipData.COLOR_KEYWORD_ABOMINATION],
 	]
 	for pool in pools:
 		var pool_keywords: Array = pool[0]
 		var pool_icons: Dictionary = pool[1]
+		var badge_color: Color = pool[2]
 		for keyword in pool_keywords:
 			if not pool_icons.has(keyword):
 				continue
-			var icon := TextureRect.new()
-			icon.texture             = pool_icons[keyword]
-			icon.custom_minimum_size = Vector2(22, 22)
-			icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.mouse_filter        = Control.MOUSE_FILTER_PASS
-			keyword_icons.add_child(icon)
+			keyword_icons.add_child(_make_keyword_badge(pool_icons[keyword], badge_color))
+
+func _make_keyword_badge(texture: Texture2D, badge_color: Color) -> Control:
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = Vector2(KEYWORD_BADGE_SIZE, KEYWORD_BADGE_SIZE)
+	badge.mouse_filter = Control.MOUSE_FILTER_PASS
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.07, 0.06, 0.05, 0.88)
+	bg.set_corner_radius_all(int(KEYWORD_BADGE_SIZE / 2.0))
+	bg.border_width_left   = 2
+	bg.border_width_right  = 2
+	bg.border_width_top    = 2
+	bg.border_width_bottom = 2
+	bg.border_color = badge_color.lightened(0.35)
+	badge.add_theme_stylebox_override("panel", bg)
+
+	var icon := TextureRect.new()
+	icon.texture             = texture
+	icon.custom_minimum_size = Vector2(KEYWORD_ICON_SIZE, KEYWORD_ICON_SIZE)
+	icon.expand_mode         = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode        = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter        = Control.MOUSE_FILTER_IGNORE
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.size_flags_vertical   = Control.SIZE_SHRINK_CENTER
+	badge.add_child(icon)
+	return badge
