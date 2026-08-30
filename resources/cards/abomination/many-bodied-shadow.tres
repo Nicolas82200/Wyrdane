@@ -7,7 +7,7 @@
 
 [sub_resource type="Resource" id="Resource_a063"]
 script = ExtResource("1_kw")
-keyword_type = 7
+name_fr = "Infiltration"
 
 [sub_resource type="Resource" id="Resource_a064"]
 script = ExtResource("2_akw")
@@ -16,7 +16,7 @@ keyword_type = 1
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ombre à Plusieurs Corps"
-description = "AILES NOIRES, FUSION"
+description = "INFILTRATION, FUSION"
 flavour_text = "Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible."
 texture = ExtResource("3_texture")
 cost = 3

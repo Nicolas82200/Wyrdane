@@ -44,6 +44,7 @@ func execute_effect(
 		"DestroyAndResurrect": await _destroy_and_resurrect(battle, source_minion, effect, selected_target)
 		"Silence":          await _silence(battle, source_minion, effect, selected_target)
 		"Transform":        await _transform(battle, source_minion, effect, selected_target)
+		"MimicTarget":      await _mimic_target(battle, source_minion, effect, selected_target)
 		"SummonSelf":       await _summon_self(battle, source_minion, effect)
 		"DamageAll":        await _damage_all(battle, source_minion, effect)
 		"BuffRow":          await _buff_row(battle, source_minion, effect)
@@ -220,7 +221,7 @@ func _resolve_targets(
 func resolve_trigger_target(battle, minion: Minion, trigger_name: String) -> Minion:
 	if not has_trigger(minion, trigger_name):
 		return null
-	for effect in minion.card_data.effects:
+	for effect in _active_effects(minion):
 		if effect.target in ["EnemyMinion", "AllyMinion", "AnyMinion"]:
 			return await _choose_trigger_target(battle, minion, effect)
 	return null
@@ -612,6 +613,29 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 			battle.enemy_minions.erase(target)
 			battle.player_minions.append(target)
 		battle.board_visual_system.reparent_minion_visual(target, to_player)
+
+# L'Innommable : contrairement à StealMinion/Transform, la cible ciblée n'est
+# NI volée NI détruite — elle reste du côté adverse, inchangée. C'est
+# `source_minion` (ex: L'Innommable lui-même) qui devient une version de la
+# carte ciblée : il copie ses mots-clés et ses triggers/effets (mimétisme,
+# voir Minion.is_mimicking/EffectManager._active_trigger_types/_active_effects)
+# mais conserve ses PROPRES statistiques (attaque/PV) — jamais celles de la cible.
+func _mimic_target(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if source_minion == null or selected_target == null or selected_target.card_data == null:
+		return
+	if selected_target.is_mind_control_immune():
+		return
+	await _point_arrows_to(battle, [selected_target], source_minion)
+	var src_card: CardData = selected_target.card_data
+	source_minion.keywords             = src_card.get_keyword_values()
+	source_minion.human_keywords       = src_card.get_human_keyword_values()
+	source_minion.undead_keywords      = src_card.get_undead_keyword_values()
+	source_minion.demon_keywords       = src_card.get_demon_keyword_values()
+	source_minion.abomination_keywords = src_card.get_abomination_keyword_values()
+	source_minion.mimicked_trigger_types = src_card.trigger_types.duplicate()
+	source_minion.mimicked_effects       = src_card.effects.duplicate()
+	source_minion.is_mimicking = true
+	battle.board_visual_system.refresh_board()
 
 # Pioche `count` carte(s) pour le camp propriétaire de `source_minion` (joueur
 # par défaut si absent, ex. carte piochée en main sans source). Le joueur
@@ -1438,10 +1462,19 @@ func _copy_adjacent_keyword_effect(battle, source_minion: Minion, effect: CardEf
 	elif not source.abomination_keywords.is_empty():
 		selected_target.add_abomination_keyword(_rng_pick(battle, source.abomination_keywords))
 
+# Triggers/effets réellement actifs pour ce serviteur : ceux mimés (L'Innommable)
+# s'il en a, sinon ceux de sa propre CardData. Ne jamais lire card_data.trigger_types
+# / card_data.effects directement pour un serviteur qui peut mimer une autre carte.
+func _active_trigger_types(minion: Minion) -> Array:
+	return minion.mimicked_trigger_types if minion.is_mimicking else minion.card_data.trigger_types
+
+func _active_effects(minion: Minion) -> Array:
+	return minion.mimicked_effects if minion.is_mimicking else minion.card_data.effects
+
 func has_trigger(minion: Minion, trigger_name: String) -> bool:
 	if minion == null:
 		return false
-	for trigger in minion.card_data.trigger_types:
+	for trigger in _active_trigger_types(minion):
 		if trigger.type == trigger_name:
 			return true
 	return false
@@ -1468,7 +1501,7 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 	# à l'effet de base, ou le remplace si `pact_replaces_base` est vrai.
 	var base_effects: Array[CardEffect] = []
 	var bonus_effects: Array[CardEffect] = []
-	for effect in minion.card_data.effects:
+	for effect in _active_effects(minion):
 		if effect.trigger != "" and effect.trigger != trigger_name:
 			continue
 		if effect.pact_bonus:

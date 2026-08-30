@@ -193,7 +193,7 @@ var _mulligan_active: bool = false
 signal mulligan_confirmed
 # Nombre maximum d'échanges pendant le mulligan, et suivi des index déjà
 # échangés (une carte reçue en remplacement ne peut pas être re-mulligan).
-const MULLIGAN_MAX_SWAPS := 2
+const MULLIGAN_MAX_SWAPS := 4
 var _mulligan_swap_count: int = 0
 var _mulligan_swapped_indices: Array[int] = []
 
@@ -269,6 +269,10 @@ func _init_systems() -> void:
 	fusion_system.init(self)
 	hand_discard_system.init(self)
 	turn_banner = TurnBanner.new()
+	# Doit rester au-dessus du MulliganDimOverlay (z_index 90, Battle.tscn) : le
+	# bandeau "Choisissez votre main" est l'élément d'interaction du mulligan au
+	# même titre que la main, il ne doit pas être assombri comme le reste du plateau.
+	turn_banner.z_index = 91
 	add_child(turn_banner)
 	vfx_manager = VFXManager.new()
 	add_child(vfx_manager)

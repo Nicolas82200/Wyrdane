@@ -6,12 +6,12 @@
 
 [sub_resource type="Resource" id="Resource_kw1"]
 script = ExtResource("3_kw")
-keyword_type = 6
+name_fr = "Ravage"
 metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
 
 [sub_resource type="Resource" id="Resource_kw2"]
 script = ExtResource("3_kw")
-keyword_type = 5
+name_fr = "Venin mortel"
 metadata/_custom_type_script = "uid://cbo6rhh3g8djf"
 
 [resource]
