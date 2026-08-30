@@ -32,6 +32,12 @@ func register_enchantment(card_data: CardData, is_player: bool, duration: int = 
 		"turns_left": duration,
 		"triggered_this_turn": false
 	})
+	# Une aura de réduction de coût (Présence) doit se refléter immédiatement
+	# sur les cartes en main, pas seulement au prochain tour (CostSystem.get_cost
+	# la recalcule déjà correctement, mais rien ne rafraîchissait l'affichage
+	# avant le prochain appel naturel à refresh_costs()).
+	if battle.hand != null:
+		battle.hand.refresh_costs()
 
 # Réinitialise les enchantements/rituels "une fois par tour" du camp dont le
 # tour commence (appelé depuis TurnSystem.run_turn_start_triggers).
@@ -43,6 +49,8 @@ func unregister_enchantment(card_data: CardData, is_player: bool) -> void:
 	_enchantments[is_player] = _enchantments[is_player].filter(
 		func(e): return e["card_data"] != card_data
 	)
+	if battle.hand != null:
+		battle.hand.refresh_costs()
 
 func get_active_enchantments(is_player: bool) -> Array:
 	return _enchantments[is_player]
