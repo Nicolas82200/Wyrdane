@@ -447,6 +447,19 @@ func build_status_panels_for_minion(minion: Minion, parent: Node) -> Array[Contr
 
 	return panels
 
+# ─── Historique des effets reçus (survol en bataille, affiché à gauche) ──────
+# Distinct des panels d'états ci-dessus : ceux-ci reflètent l'état ACTUEL,
+# celui-ci le JOURNAL chronologique de ce qui est arrivé au serviteur
+# (Minion.buffs, alimenté par EffectManager via record_history) — un seul
+# panel multi-lignes plutôt qu'un par entrée, pour rester compact.
+func build_history_panel_for_minion(minion: Minion, parent: Node) -> Array[Control]:
+	if minion.buffs.is_empty():
+		return []
+	var panel := make_tooltip_panel(_tr("HIST_PANEL_TITLE"), "\n".join(minion.buffs), COLOR_EFFECT)
+	panel.position = Vector2(-9999, -9999)
+	parent.add_child(panel)
+	return [panel]
+
 func _effect_title(effect_id: String) -> String:
 	match effect_id:
 		"Freeze":           return _tr("EFF_FREEZE_NAME")
