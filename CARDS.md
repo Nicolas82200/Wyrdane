@@ -809,7 +809,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A29 | Poussière Qui Change | ↕️ | 3 | 1 | 2 | VIRULENT. Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | *Là où elle se dépose, quelque chose commence toujours à changer.* |
 | A30 | Le Trieur de Chairs | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit un serviteur ennemi ayant 3 points de vie ou moins, puis mute. | *Il ne choisit pas ses proies. Il choisit ce qu'il veut devenir ensuite.* |
 | A31 | Le Sculpteur Sans Mains | 🛡️ | 4 | 2 | 4 | Arrivée : un serviteur allié ciblé gagne un mot-clé Abomination de ton choix, de façon permanente. | *"La forme n'est qu'une suggestion. Je préfère négocier."* |
-| A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | AILES NOIRES. FUSION | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
+| A32 | Ombre à Plusieurs Corps | ⚔️ | 3 | 4 | 2 | INFILTRATION. FUSION | *Elle n'a jamais eu qu'un seul visage à la fois. Elle en emprunte un nouveau à chaque cible.* |
 | A33 | Fureur Sans Forme Fixe | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, MUTATION | *Plus il frappe, moins il ressemble à ce qu'il était en arrivant.* |
 | A34 | Ce-Qui-A-Cessé-de-S'arrêter | ⚔️ | 5 | 3 | 8 | REMPART, ASSIMILATION. Dernier Souffle : Invoque 3 Amas Informes 1/2 en rangée Avant. | *Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.* |
 
@@ -821,7 +821,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : fusionne avec les 2 derniers serviteurs alliés morts ce match — absorbe leurs stats restantes cumulées et un mot-clé de chacun. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
 | A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
-| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur ennemi ciblé, il devient une copie exacte (stats et mots-clés) sous votre contrôle jusqu'à la fin de la partie. | *Il n'a pas de visage. Il porte le tien, à présent.* |
+| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur ennemi ciblé. L'Innommable se transforme en une copie de ses mots-clés et déclencheurs, en conservant ses propres statistiques. La cible reste inchangée du côté adverse. | *Il n'a pas de visage. Il porte le tien, à présent.* |
 
 ---
 

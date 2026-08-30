@@ -102,6 +102,13 @@ func record_history(text: String) -> void:
 	if buffs.size() > HISTORY_MAX_ENTRIES:
 		buffs.pop_front()
 
+# Mimétisme (L'Innommable) : ce serviteur emprunte les triggers/effets d'une
+# autre carte SANS muter sa propre CardData (Resource partagée par toutes les
+# copies de la carte en jeu) — voir EffectManager._mimic_target/_effect_list.
+var is_mimicking: bool = false
+var mimicked_trigger_types: Array = []
+var mimicked_effects: Array = []
+
 # ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
 # Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).
 var star_level: int = 1

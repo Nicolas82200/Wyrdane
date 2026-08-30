@@ -45,6 +45,9 @@ func prompt_trigger_target(card_data: CardData) -> Minion:
 	return result
 
 func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
+	# Un attaquant/groupe d'attaquants deja selectionne accepterait un clic
+	# destine au ciblage du sort comme un ordre d'attaque (meme cible cliquee).
+	battle.selection_system.clear_selection()
 	_pending_card         = card_data
 	_pending_row          = row
 	_pending_insert_index = insert_index

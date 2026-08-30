@@ -6,7 +6,7 @@
 
 [sub_resource type="Resource" id="Resource_a078"]
 script = ExtResource("1_kw")
-keyword_type = 0
+name_fr = "Rempart"
 
 [resource]
 script = ExtResource("3_carddata")

@@ -19,6 +19,10 @@ func end_turn() -> void:
 	if _ending_turn:
 		return
 	_ending_turn = true
+	# Un attaquant reste sélectionné pendant le tour adverse : le prochain clic sur
+	# un serviteur (ex. pour choisir une cible de sort) serait alors interprété
+	# comme une attaque au lieu d'un ciblage.
+	battle.selection_system.clear_selection()
 	# Limite de 10 cartes en main (voir HandDiscardSystem) : si dépassée, bloque
 	# ici tant que le joueur n'a pas défaussé l'excédent (choix ou timeout).
 	await battle.hand_discard_system.run_if_needed()
@@ -232,7 +236,9 @@ func run_mulligan() -> void:
 	battle.update_end_turn_hint()
 
 func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
-	if index in battle._mulligan_swapped_indices or battle._mulligan_swap_count >= battle.MULLIGAN_MAX_SWAPS:
+	# Un slot déjà échangé reste réchangeable (le joueur peut retenter sa chance
+	# sur la même carte) : seul le total de MULLIGAN_MAX_SWAPS échanges est borné.
+	if battle._mulligan_swap_count >= battle.MULLIGAN_MAX_SWAPS:
 		return
 	if battle.tutorial_active and not TutorialDeck.is_swappable_during_tutorial(_card_data):
 		return
@@ -240,7 +246,8 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	if new_data == null:
 		return
 	battle._mulligan_swap_count += 1
-	battle._mulligan_swapped_indices.append(index)
+	if index not in battle._mulligan_swapped_indices:
+		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
 	battle.hand.flip_replace_at(index, new_data)
 	battle.hand.set_card_mulligan_swapped(index, true)

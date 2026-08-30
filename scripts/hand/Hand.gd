@@ -10,6 +10,10 @@ signal discard_card_clicked(index: int, card_data: CardData)
 @onready var container = $CardsContainer
 @onready var preview   = $CardPreview
 
+# Doit rester au-dessus des boutons du plateau (cimetière, deck — z_index 0
+# par défaut) pour que la main ne soit jamais recouverte par eux.
+const CARD_Z_BASE := 20
+
 const CARD_SCENE      := preload("res://scenes/card/Card.tscn")
 const NORMAL_SCALE    := Vector2(0.75, 0.75)
 const SPACING         := 115.0
@@ -349,7 +353,7 @@ func _update_hand_layout_staggered(total_duration: float) -> void:
 		var norm := _card_norm(i, count)
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = i
+		card.z_index = CARD_Z_BASE + i
 		var delay: float = i * gap
 		var tween := create_tween()
 		tween.set_parallel(true)
@@ -618,7 +622,7 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = 100 if i == hovered_index else i
+		card.z_index = 100 if i == hovered_index else CARD_Z_BASE + i
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
