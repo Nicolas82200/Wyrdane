@@ -7,7 +7,7 @@
 
 [sub_resource type="Resource" id="Resource_a045"]
 script = ExtResource("1_kw")
-keyword_type = 6
+name_fr = "Ravage"
 
 [sub_resource type="Resource" id="Resource_a046"]
 script = ExtResource("2_akw")

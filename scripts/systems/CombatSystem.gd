@@ -74,6 +74,13 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.attack(attacker, defender, ids)
 	attacker.is_attacking = false
+	# _execute_damage a déjà rafraîchi l'affichage pendant que is_attacking
+	# était encore vrai (grisage "épuisé" via can_attack()) : un attaquant qui
+	# regagne une attaque ce combat (Contre-Offensive) reste donc assombri à
+	# tort tant qu'aucun autre refresh ne survient. Un second refresh ici,
+	# une fois le verrou levé, corrige l'affichage immédiatement.
+	if not attacker.is_dead():
+		battle.board_visual_system.refresh_board()
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash

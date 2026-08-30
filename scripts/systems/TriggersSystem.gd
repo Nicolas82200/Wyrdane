@@ -287,6 +287,10 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 				continue
 			await battle.hero_system.self_damage(owner_is_player, pact_value)
 		var proxy := _make_proxy(card_data, owner_is_player)
+		# Aucun autre appel n'affiche de popup pour l'annulation elle-même : les
+		# autres effets passent par execute_effect (qui affiche déjà la popup),
+		# mais CancelSpellOnRaceTarget est explicitement sauté ci-dessous.
+		await battle.card_popup_system.show_card_popup(card_data, proxy)
 		for effect in card_data.effects:
 			if effect.effect_id == "CancelSpellOnRaceTarget":
 				continue

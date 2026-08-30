@@ -87,6 +87,12 @@ var grief_adjacent_hint: Array[Minion] = []
 # Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
 var extra_attack_used_this_turn: bool = false
 var buffs: Array = []
+# Mimétisme (L'Innommable) : ce serviteur emprunte les triggers/effets d'une
+# autre carte SANS muter sa propre CardData (Resource partagée par toutes les
+# copies de la carte en jeu) — voir EffectManager._mimic_target/_effect_list.
+var is_mimicking: bool = false
+var mimicked_trigger_types: Array = []
+var mimicked_effects: Array = []
 
 # ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
 # Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).
