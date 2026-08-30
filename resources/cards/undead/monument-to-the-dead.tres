@@ -30,6 +30,7 @@ unit_style = 0
 card_type = "Enchantment"
 attack = 0
 health = 0
+trigger_once_per_turn = true
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_g0crz")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cvwv5")])
 rarity = "Epic"

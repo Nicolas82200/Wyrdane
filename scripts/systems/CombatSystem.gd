@@ -58,6 +58,12 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	var speed_scale := _combo_speed_scale()
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
+	# Effets d'Attaque (ex: mots-clés qui réagissent dès qu'une cible est
+	# choisie) déclenchés AVANT l'animation d'assaut elle-même, pour que ce qui
+	# doit se produire "au moment de l'attaque" soit visible avant le contact
+	# (et non après, comme un effet secondaire retardé de l'impact).
+	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
+	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
 	if attacker_visual and defender_visual:
 		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual, speed_scale)
 	var dealt_to_defender: int = await _execute_damage(attacker, defender)
@@ -83,14 +89,8 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 		battle.board_visual_system.refresh_board()
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
-	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
-	# sur les serviteurs adjacents à la cible).
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
-	# Résonance — enchantements réagissent quand un allié de la même race attaque.
-	# La cible de l'attaque est transmise pour les effets qui la visent
-	# (Aura de Corruption, Idole du Grand Pacte).
-	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
-
+	# OnAttack/OnResonance sont déjà déclenchés par resolve_combat, avant
+	# l'animation d'assaut (voir plus haut) — pas ici.
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	var attacker_had_aegis: bool = attacker.has_keyword(Keyword.Type.AEGIS)

@@ -1072,6 +1072,13 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+			# ASSAUT (Keyword.CHARGE) accordé après l'initialisation du serviteur
+			# (ex. Pacte du Berserker) : attacks_remaining a déjà été figé à 0
+			# par le mal de l'invocation dans Minion._init, il faut le débloquer
+			# manuellement pour que le mot-clé nouvellement acquis soit utilisable.
+			if kw == Keyword.Type.CHARGE and target.attacks_remaining == 0 \
+					and target.frozen_turns == 0 and target.terror_turns == 0:
+				target.attacks_remaining = 1
 
 # ─── Agression ────────────────────────────────────────────────────────────────
 
@@ -1479,6 +1486,13 @@ func has_trigger(minion: Minion, trigger_name: String) -> bool:
 func trigger_effects(battle, minion: Minion, trigger_name: String, selected_target: Minion = null) -> bool:
 	if not has_trigger(minion, trigger_name):
 		return false
+	# Garde-fou anti-boucle (Mur de Lances, Carnage se re-déclenchant sur les
+	# morts qu'il cause lui-même) : un trigger marqué trigger_once_per_turn ne
+	# s'exécute qu'une fois par tour et par nom de trigger.
+	if minion.card_data.trigger_once_per_turn:
+		if minion.triggers_used_this_turn.get(trigger_name, false):
+			return false
+		minion.triggers_used_this_turn[trigger_name] = true
 	# PACTE : l'effet de base (pact_bonus == false) se déclenche toujours,
 	# gratuitement. S'il existe en plus un effet de bonus (pact_bonus == true)
 	# pour CE trigger, le paiement du coût en PV est proposé à chaque

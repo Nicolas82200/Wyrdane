@@ -39,6 +39,7 @@ cost = 3
 race = 5
 card_type = "Ritual"
 ritual_duration = 4
+trigger_once_per_turn = true
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_5ampd")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_oms9w"), SubResource("Resource_bonus")])

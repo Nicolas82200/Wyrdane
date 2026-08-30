@@ -130,6 +130,7 @@ func _apply(cmd: Dictionary) -> void:
 			battle.refill_mana_pool(false)
 			battle.update_enemy_mana_ui()
 			if _deck_count > 0:
+				await battle.animate_enemy_draw()
 				_deck_count -= 1
 				_hand_count += 1
 			battle.update_enemy_hand_ui()
@@ -227,6 +228,7 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if _hand_count > 0:
 		_hand_count -= 1
 		battle.update_enemy_hand_ui()
+	await battle.animate_enemy_card_played()
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
@@ -301,6 +303,11 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	else:
 		battle.enemy_graveyard.add_spell(card)
 		var target: Minion = early_target
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), même
+		# vérification que CardSystem côté émetteur, pour rester synchrone.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(false):
+			battle.board_visual_system.refresh_board()
+			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
 		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
 		if target != null and await battle.trigger_system.try_cancel_spell(false, target):

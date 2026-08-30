@@ -88,7 +88,7 @@ func take_turn() -> void:
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
 	await battle.turn_system.run_turn_start_triggers(false)
-	_start_of_turn_phase()
+	await _start_of_turn_phase()
 	var played_cards := await _play_cards_phase()
 	await _maybe_activate_sacrifice_rituals()
 	await _maybe_activate_fusion()
@@ -118,10 +118,12 @@ func _discard_excess_hand() -> void:
 # début de tour est géré par run_turn_start_triggers ci-dessus (partagé).
 func _start_of_turn_phase() -> void:
 	battle.refill_mana_pool(false)
-	_draw_card()
+	await _draw_card(true)
 	battle.update_enemy_mana_ui()
 
-# Pause AVANT chaque action sauf la première : une action isolée reste fluide
+# Pause AVANT chaque action, y compris la première (contrairement à l'attaque
+# ci-dessous) : la pioche de début de tour vient de se jouer juste avant, on
+# laisse un temps de lecture avant que l'IA n'enchaîne sur sa première pose.
 func _play_cards_phase() -> bool:
 	_maybe_play_resource_card()
 	var played := false
@@ -129,12 +131,12 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
-		if played:
-			await battle.pace_actions()
+		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
 		await battle.cost_system.on_card_played(card, false)
 		refresh_ui()
+		await battle.animate_enemy_card_played()
 		if card.card_type == "Minion":
 			var row: String = _pick_row_for(card)
 			await battle.board_system.summon_minion(card, false, row)
@@ -189,9 +191,15 @@ func _build_deck() -> void:
 		for i in range(RESOURCE_COUNT):
 			deck.append(resource_card)
 
-func _draw_card() -> void:
+# animate : uniquement pour la pioche de début de tour (voir _start_of_turn_phase) —
+# la donne initiale/mulligan et les pioches déclenchées par un effet de carte
+# (draw_card(), interface OpponentDriver partagée avec le réseau) restent
+# synchrones pour ne pas propager `await` dans toute la chaîne d'appel.
+func _draw_card(animate: bool = false) -> void:
 	if deck.is_empty():
 		return
+	if animate:
+		await battle.animate_enemy_draw()
 	hand.append(deck.pop_back())
 	refresh_ui()
 
@@ -311,6 +319,12 @@ func _cast_spell(card: CardData) -> void:
 	var target: Minion = null
 	if card.requires_target:
 		target = _pick_spell_target(card)
+	# Annulation du premier sort ennemi du tour (Bouclier de la Foi), quel que
+	# soit son ciblage.
+	if await battle.trigger_system.try_cancel_first_enemy_spell(false):
+		battle.enemy_graveyard.add_spell(card)
+		battle.board_visual_system.refresh_board()
+		return
 	# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel du joueur peut
 	# contrer un sort de l'IA ciblant un de ses serviteurs.
 	if target != null and await battle.trigger_system.try_cancel_spell(false, target):

@@ -178,7 +178,7 @@ Positionnement (Lane Types)
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
 | 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
-| 54 | Pacte Sanglant | 4 | Épique | 3 charges | Sacrifice 1 (≤2 points de vie) : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
+| 54 | Pacte Sanglant | 4 | Épique | 3 charges | Sacrifice 1 : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
 | 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
 | 56 | Communion avec les Morts | 3 | Rare | 4 charges | Deuil : Piochez 1 carte par Mort-Vivant allié mort ce match (max 4). | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
 | 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Si votre cimetière contient un Mort-Vivant, ramenez-le en main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
@@ -424,7 +424,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque serviteur allié invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage ennemi : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
-| H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois par tour qu'un sort ennemi affecte un de tes serviteurs, réduit ses dégâts de 2 (minimum 0). | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
+| H71 | Bouclier de la Foi | 4 | Épique | Sortilège ennemi : la première fois chaque tour, annule le prochain sort ennemi. | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
 | H72 | Ordre des Anciens | 5 | Épique | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
 | H73 | Mémorial des Héros | 4 | Épique | **Deuil** : si le serviteur allié mort est un Humain Légendaire, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 6 | Légendaire | Éveil : Tous vos serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
@@ -867,7 +867,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
 | A53 | Rituel de la Forme Jamais Fixée | 5 | Épique | 3 charges | Éveil : Un serviteur Abomination allié aléatoire mute immédiatement. | *Le cercle ne s'arrête jamais de proposer de nouvelles formes.* |
-| A54 | Accord de la Chair Neuve | 4 | Épique | 3 charges | Sacrifice 1 (≤2 points de vie) : Invoque un Amas Informe 2/2 doté de MUTATION. | *Chaque offrande revient sous une forme différente.* |
+| A54 | Accord de la Chair Neuve | 4 | Épique | 3 charges | Sacrifice 1 : Invoque un Amas Informe 2/2 doté de MUTATION. | *Chaque offrande revient sous une forme différente.* |
 | A55 | Cercle de l'Assemblage | 5 | Épique | 2 charges | Sacrifice (deux serviteurs alliés adjacents) : fusionne-les en un seul serviteur cumulant leurs stats restantes et tous leurs mots-clés. | *Deux corps entrent. Un seul en ressort — plus grand.* |
 | A56 | Écho des Chutes | 3 | Rare | 4 charges | Dévoration : Piochez 1 carte (une seule fois par tour). | *Chaque mort, où qu'elle soit, nourrit le cercle.* |
 | A57 | Rituel de la Chair Qui Recoud | 4 | Rare | 3 charges | Éveil : le serviteur Abomination allié avec le moins de HP restaure 2 HP. | *La chair se répare mal. Elle se répare quand même.* |

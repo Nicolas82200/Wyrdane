@@ -390,6 +390,61 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 		return
 	await get_tree().create_timer(delay).timeout
 
+# ─── Animations de l'adversaire (IA ou réseau) ─────────────────────────────────
+# La main adverse n'affiche que des dos de carte (EnemyHandDisplay), jamais leur
+# contenu — ces animations restent donc de simples dos de carte qui voyagent,
+# sans le retournement recto/verso de Hand._fly_ghost_card (réservé à la vraie
+# main du joueur local).
+const ENEMY_CARD_FLIGHT_DURATION := 0.35
+
+func animate_enemy_draw() -> void:
+	if enemy_deck_button == null or enemy_hand_display == null \
+			or not is_instance_valid(enemy_deck_button) or not is_instance_valid(enemy_hand_display):
+		return
+	var ghost := _spawn_enemy_card_ghost(enemy_deck_button.global_position + enemy_deck_button.size * 0.5)
+	var target: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
+	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
+	var tween := create_tween()
+	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration).set_delay(duration * 0.6)
+	await tween.finished
+	if is_instance_valid(ghost):
+		ghost.queue_free()
+
+# Petit envol depuis la main adverse vers le plateau, joué juste avant qu'un
+# serviteur/sort adverse ne se résolve réellement (l'IA n'a pas de main
+# individuellement cliquable à faire "glisser" comme le joueur).
+func animate_enemy_card_played() -> void:
+	if enemy_hand_display == null or not is_instance_valid(enemy_hand_display):
+		return
+	var origin: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
+	var ghost := _spawn_enemy_card_ghost(origin)
+	var target: Vector2 = origin + Vector2(0, get_viewport_rect().size.y * 0.22)
+	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
+	var tween := create_tween()
+	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration).set_delay(duration * 0.5)
+	tween.parallel().tween_property(ghost, "scale", ghost.scale * 0.7, duration)
+	await tween.finished
+	if is_instance_valid(ghost):
+		ghost.queue_free()
+
+func _spawn_enemy_card_ghost(at_global_pos: Vector2) -> TextureRect:
+	var ghost := TextureRect.new()
+	ghost.texture = CARD_BACK
+	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ghost.custom_minimum_size = EnemyHandDisplay.CARD_SIZE
+	ghost.size = EnemyHandDisplay.CARD_SIZE
+	ghost.pivot_offset = ghost.size * 0.5
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.z_index = 100
+	add_child(ghost)
+	ghost.global_position = at_global_pos - ghost.size * 0.5
+	return ghost
+
 # ─── Mana ─────────────────────────────────────────────────────────────────────
 # Un pool par race (voir README « Système de Ressources par Race ») : plus de
 # mana générique unique. `race_mana`/`race_max_mana` appartiennent au joueur ;
