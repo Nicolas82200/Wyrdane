@@ -90,7 +90,17 @@ var extra_attack_used_this_turn: bool = false
 # trigger — garde-fou anti-boucle pour un effet capable de se re-déclencher
 # lui-même (ex: Mur de Lances tue via son propre Carnage). Réinitialisé par refresh_attacks.
 var triggers_used_this_turn: Dictionary = {}
-var buffs: Array = []
+# Historique des effets notables reçus (buffs/debuffs de stats, mots-clés
+# accordés, statuts négatifs...), affiché au survol à gauche de la carte
+# (voir TooltipData.build_history_panel_for_minion). Plafonné pour ne pas
+# grossir indéfiniment sur une partie longue.
+var buffs: Array[String] = []
+const HISTORY_MAX_ENTRIES := 8
+
+func record_history(text: String) -> void:
+	buffs.append(text)
+	if buffs.size() > HISTORY_MAX_ENTRIES:
+		buffs.pop_front()
 
 # ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
 # Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).
@@ -238,3 +248,4 @@ func apply_corruption(stacks: int = 1) -> void:
 		return
 	corruption_stacks += stacks
 	base_attack = max(0, base_attack - stacks)
+	record_history(TranslationServer.translate("HIST_CORRUPTED") % stacks)

@@ -326,6 +326,13 @@ func any_condition_met(battle, source_minion: Minion, card_data: CardData, selec
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
+# Nom affiché comme origine d'une entrée d'historique (TooltipData.build_history_panel_for_minion) :
+# celui de la carte source si connue, sinon un libellé générique.
+func _source_label(source_minion: Minion) -> String:
+	if source_minion != null and source_minion.card_data != null:
+		return source_minion.card_data.card_name
+	return TranslationServer.translate("HIST_UNKNOWN_SOURCE")
+
 func _get_adjacent_minions(battle, minion: Minion) -> Array[Minion]:
 	var list: Array[Minion] = battle.player_minions if minion.owner_is_player else battle.enemy_minions
 	var same_row: Array[Minion] = list.filter(func(m: Minion): return m.board_row == minion.board_row)
@@ -444,6 +451,7 @@ func _buff(battle, source_minion, effect, selected_target = null) -> void:
 		target.base_attack     += attack_gain
 		target.base_max_health += effect.value_2
 		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
+		target.record_history(TranslationServer.translate("HIST_STAT_GAIN") % [_source_label(source_minion), attack_gain, effect.value_2])
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_generic_buff(visual, attack_gain, effect.value_2)
@@ -460,6 +468,7 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 		# Applique aussi la perte aux HP actuels, sans plafonner à 1 : un
 		# "-X/-X" doit pouvoir tuer un serviteur déjà bas en vie (Épidémie...)
 		target.health = max(0, old_health - effect.value_2)
+		target.record_history(TranslationServer.translate("HIST_STAT_LOSS") % [_source_label(source_minion), effect.value, effect.value_2])
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_generic_debuff(visual, effect.value, effect.value_2)
@@ -489,6 +498,7 @@ func _silence(battle, source_minion: Minion, effect: CardEffect, selected_target
 		# Instantané "Permanent" (défaut) ; sinon les mots-clés reviennent à
 		# l'expiration (Inquisiteur de Fer, L'Éternel Gardien).
 		battle.temp_effect_system.add_temp_silence(target, effect.duration)
+		target.record_history(TranslationServer.translate("HIST_SILENCED") % _source_label(source_minion))
 		target.keywords.clear()
 		target.human_keywords.clear()
 		target.undead_keywords.clear()
@@ -517,6 +527,7 @@ func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target:
 	for target in targets:
 		var turns: int = effect.value if effect.value > 0 else 1
 		target.frozen_turns = max(target.frozen_turns, turns)
+		target.record_history(TranslationServer.translate("HIST_FROZEN") % _source_label(source_minion))
 		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_freeze(visual)
@@ -525,7 +536,10 @@ func _infect(battle, source_minion: Minion, effect: CardEffect, selected_target:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
+		var stacks_before: int = target.infection_stacks
 		target.infected = true
+		if target.infection_stacks > stacks_before:
+			target.record_history(TranslationServer.translate("HIST_INFECTED") % _source_label(source_minion))
 		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
 		if visual:
 			battle.animation_system.play_infection(visual)
@@ -916,6 +930,8 @@ func _debuff_atk(battle, source_minion, effect, selected_target = null) -> void:
 		var removed: int = min(effect.value, target.base_attack)
 		target.base_attack -= removed
 		battle.temp_effect_system.add_temp_stat_change(target, -removed, 0, effect.duration)
+		if removed > 0:
+			target.record_history(TranslationServer.translate("HIST_STAT_LOSS") % [_source_label(source_minion), removed, 0])
 
 # Détruit les serviteurs ennemis sous un seuil de HP (Faucheur, Purge Sainte)
 # Respecte race_filter/row_filter (ex: "tous les Mort-Vivants ennemis à 3 HP ou moins")
@@ -1023,12 +1039,14 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_abomination_keyword(kw)
 			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
+			target.record_history(TranslationServer.translate("HIST_KEYWORD_GRANTED") % [_source_label(source_minion), KeywordAbomination.get_keyword_name(kw)])
 		elif effect.granted_keyword_is_human:
 			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
 			if target.has_human_keyword(kw):
 				continue
 			target.add_human_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, true, effect.duration)
+			target.record_history(TranslationServer.translate("HIST_KEYWORD_GRANTED") % [_source_label(source_minion), KeywordHuman.get_keyword_name(kw)])
 		elif effect.granted_keyword_is_demon:
 			var kw: int = KeywordDemon.from_name(effect.granted_keyword)
 			if kw == -1:
@@ -1039,6 +1057,7 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 			target.add_demon_keyword(kw)
 			battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
 			battle.aura_system.recompute_all()
+			target.record_history(TranslationServer.translate("HIST_KEYWORD_GRANTED") % [_source_label(source_minion), KeywordDemon.get_keyword_name(kw)])
 		else:
 			var kw: int = Keyword.from_name(effect.granted_keyword)
 			if kw == -1:
@@ -1048,6 +1067,7 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+			target.record_history(TranslationServer.translate("HIST_KEYWORD_GRANTED") % [_source_label(source_minion), Keyword.get_keyword_name(kw)])
 			# ASSAUT (Keyword.CHARGE) accordé après l'initialisation du serviteur
 			# (ex. Pacte du Berserker) : attacks_remaining a déjà été figé à 0
 			# par le mal de l'invocation dans Minion._init, il faut le débloquer

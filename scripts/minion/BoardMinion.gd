@@ -517,6 +517,17 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		base_y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
 
+	# Historique des effets reçus (Minion.buffs) : affiché à GAUCHE de la carte,
+	# symétrique de l'aperçu agrandi + pile de mots-clés qui vont à droite —
+	# pas de conflit possible entre les deux piles.
+	var history_panels: Array[Control] = TooltipData.build_history_panel_for_minion(minion, my_layer)
+	if not history_panels.is_empty() and is_instance_valid(history_panels[0]):
+		var history_panel := history_panels[0]
+		var hx: float = maxf(4.0, global_position.x - history_panel.size.x - 15)
+		var hy: float = clampf(global_position.y, 4.0, maxf(4.0, vp.y - history_panel.size.y - 4.0))
+		history_panel.global_position = Vector2(hx, hy)
+		_keyword_tooltips.append(history_panel)
+
 	if TooltipData.RACE_DESCRIPTIONS.has(minion.card_data.race):
 		if _tooltip_layer != my_layer or not is_instance_valid(my_layer):
 			return
