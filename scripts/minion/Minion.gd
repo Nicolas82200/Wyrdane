@@ -86,6 +86,10 @@ var sacrificed: bool = false
 var grief_adjacent_hint: Array[Minion] = []
 # Attaque bonus déjà accordée ce tour (Rongeur de Chair). Réinitialisée par refresh_attacks.
 var extra_attack_used_this_turn: bool = false
+# Triggers déjà déclenchés ce tour (CardData.trigger_once_per_turn), par nom de
+# trigger — garde-fou anti-boucle pour un effet capable de se re-déclencher
+# lui-même (ex: Mur de Lances tue via son propre Carnage). Réinitialisé par refresh_attacks.
+var triggers_used_this_turn: Dictionary = {}
 var buffs: Array = []
 
 # ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
@@ -127,6 +131,7 @@ func can_attack() -> bool:
 
 func refresh_attacks() -> void:
 	extra_attack_used_this_turn = false
+	triggers_used_this_turn.clear()
 	if frozen_turns > 0 or terror_turns > 0:
 		frozen_turns = max(frozen_turns - 1, 0)
 		terror_turns = max(terror_turns - 1, 0)
