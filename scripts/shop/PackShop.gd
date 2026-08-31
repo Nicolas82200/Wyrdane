@@ -27,13 +27,16 @@ const PACK_SCALE := 1.3
 const PACK_LAYER_COUNT := 4
 const PACK_LAYER_OFFSET := 6.0
 const PACK_FLIP_DURATION := 0.22
-# Rotation d'ambiance (voir _start_idle_spin) : durée d'un demi-cycle (face ->
-# tranche ou tranche -> face). Plus lente que le tour de mélange
-# (PACK_FLIP_DURATION) qui accompagne la révélation d'une carte.
-const IDLE_SPIN_HALF_DURATION := 2.4
 const CARD_FLY_DURATION := 0.45
-const FIRST_REVEAL_DELAY := 0.25
-const REVEAL_STAGGER := 0.85
+const FIRST_REVEAL_DELAY := 0.2
+# Délai entre deux révélations : part de REVEAL_STAGGER puis s'accélère de
+# REVEAL_STAGGER_DECAY par carte déjà révélée dans CETTE séquence (x3/x5 ou
+# plusieurs packs gratuits d'un coup), jusqu'au plancher REVEAL_STAGGER_MIN —
+# ouvrir beaucoup de packs d'affilée devient progressivement plus rapide au
+# lieu de garder un rythme fixe et lassant.
+const REVEAL_STAGGER := 0.7
+const REVEAL_STAGGER_DECAY := 0.05
+const REVEAL_STAGGER_MIN := 0.3
 const RARE_RARITIES := ["Epic", "Legendary"]
 const ODDS_TOOLTIP_DURATION := 4.0
 
@@ -45,7 +48,7 @@ const GRID_AREA_LEFT_RATIO := 0.34
 const GRID_AREA_SIDE_MARGIN := 40.0
 const GRID_AREA_TOP := 150.0
 # Doit rester au-dessus de la pile de boutons ancrée en bas de l'écran (voir
-# OwnedButtonRow/FreeButtonRow/BottomBar/SkipHintLabel dans PackShop.tscn, qui
+# OwnedButtonRow/BottomBar/SkipHintLabel dans PackShop.tscn, qui
 # culmine à 234px du bas) pour que les cartes révélées ne les chevauchent pas.
 const GRID_AREA_BOTTOM := 250.0
 const GRID_MAX_COLUMNS := 5
@@ -62,7 +65,6 @@ const GRID_CELL_PADDING := 0.86
 @onready var pack_stage: Control = $ShakeLayer/PackStage
 @onready var pack_center: CenterContainer = $ShakeLayer/PackStage/PackCenter
 @onready var owned_button: Button = $ShakeLayer/OwnedButtonRow/OpenOwnedButton
-@onready var free_button: Button = $ShakeLayer/FreeButtonRow/FreeButton
 @onready var open_x1_button: Button = $ShakeLayer/BottomBar/OpenX1Button
 @onready var open_x3_button: Button = $ShakeLayer/BottomBar/OpenX3Button
 @onready var open_x5_button: Button = $ShakeLayer/BottomBar/OpenX5Button
@@ -108,11 +110,6 @@ func _ready() -> void:
 	# a au moins un.
 	owned_button.pressed.connect(_open_owned_packs)
 	CurrencyManager.free_packs_changed.connect(func(_n): _update_owned_button())
-	# Bouton d'ouverture gratuite : outil de test, réservé aux builds debug
-	# (l'export release ne l'affiche pas) et refusé côté serveur (403) tant
-	# que DEV_FREE_PACKS n'est pas activé sur le backend.
-	free_button.get_parent().visible = OS.is_debug_build()
-	free_button.pressed.connect(func(): _open_pack(true, 1))
 	close_x_button.set_meta("no_click_sound", true)
 	close_x_button.pressed.connect(func(): AudioManager.play(AudioManager.CLOSE_MENU); hide(); closed.emit())
 	skip_hint_label.gui_input.connect(_on_skip_input)
@@ -168,16 +165,15 @@ func _build_pack_visual(parent: Control) -> Control:
 		_pack_layers.append(layer)
 	return visual
 
-## Rotation lente perpétuelle du paquet tant qu'aucune ouverture n'est en
-## cours (ambiance visuelle de l'écran).
+## Rotation d'ambiance retirée sur demande explicite de l'utilisateur (le
+## paquet ne doit plus tourner sur lui-même au repos) — conservée comme no-op
+## nommé plutôt que supprimée partout : _stop_spin()/_set_layers_scale_x(1.0)
+## restent le point d'entrée qui garantit un paquet face visible et immobile
+## avant/après une révélation, et _pulse_pack_flip (le tour ponctuel qui
+## accompagne CHAQUE carte qui sort) reste inchangé — seule la boucle
+## perpétuelle est retirée.
 func _start_idle_spin() -> void:
 	_stop_spin()
-	if _pack_layers.is_empty():
-		return
-	_idle_spin_tween = create_tween()
-	_idle_spin_tween.set_loops()
-	_idle_spin_tween.tween_method(_set_layers_scale_x, 1.0, 0.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_idle_spin_tween.tween_method(_set_layers_scale_x, 0.0, 1.0, IDLE_SPIN_HALF_DURATION).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 func _stop_spin() -> void:
 	if _idle_spin_tween and _idle_spin_tween.is_valid():
@@ -200,7 +196,6 @@ func _set_action_buttons_disabled(disabled: bool) -> void:
 	open_x3_button.disabled = disabled
 	open_x5_button.disabled = disabled
 	owned_button.disabled = disabled
-	free_button.disabled = disabled
 
 ## Ouvre `quantity` packs d'affilée (l'API backend n'en ouvre qu'un par
 ## requête) puis révèle toutes les cartes tirées dans une seule séquence. Si
@@ -316,10 +311,17 @@ func _compute_grid_slots(count: int) -> Dictionary:
 		var cols_in_row: int = columns if row < rows - 1 else cols_in_last_row
 		var row_left: float = area_left + (area_size.x - cols_in_row * cell_size.x) / 2.0
 		var col: int = i % columns
+		# + global_position : ces coordonnées sont ensuite consommées comme des
+		# global_position par _fly_and_reveal/_place_card_instant, alors que tout
+		# ci-dessus est calculé en LOCAL (relatif à ce Control, via `size`). Sans
+		# ce décalage, une fois PackShop embarqué comme vue du panneau d'infos
+		# (donc plus jamais à l'origine (0,0) de l'écran), les cartes révélées
+		# volaient vers des coordonnées écran qui ignoraient la position réelle
+		# du panneau — elles atterrissaient hors de son cadre.
 		slots.append(Vector2(
 			row_left + (col + 0.5) * cell_size.x,
 			area_top + (row + 0.5) * cell_size.y
-		))
+		) + global_position)
 
 	return {"slots": slots, "scale": reveal_scale}
 
@@ -340,7 +342,8 @@ func _reveal_sequence(entries: Array) -> void:
 	for i in range(entries.size()):
 		var skip_now := _skip_requested
 		if not skip_now:
-			var delay := FIRST_REVEAL_DELAY if i == 0 else REVEAL_STAGGER
+			var delay := FIRST_REVEAL_DELAY if i == 0 \
+				else maxf(REVEAL_STAGGER_MIN, REVEAL_STAGGER - REVEAL_STAGGER_DECAY * (i - 1))
 			await get_tree().create_timer(delay).timeout
 			skip_now = _skip_requested
 		if not is_instance_valid(self):
@@ -416,6 +419,7 @@ func _fly_and_reveal(card_instance: Control, entry: Dictionary, slot_pos: Vector
 		card_instance.show_back(false)
 		card_instance.set_data(card_data)
 		card_instance.set_non_interactive()
+		_make_card_hoverable(card_instance, _reveal_scale)
 		card_instance.pivot_offset = CARD_SIZE / 2.0
 		if entry["dusted"]:
 			_add_dust_badge(card_instance, entry["gold"])
@@ -478,6 +482,7 @@ func _place_card_instant(entry: Dictionary, slot_pos: Vector2) -> void:
 	var card_instance := card_scene.instantiate()
 	pack_stage.add_child(card_instance)
 	card_instance.set_non_interactive()
+	_make_card_hoverable(card_instance, _reveal_scale)
 	card_instance.size = CARD_SIZE
 	card_instance.pivot_offset = CARD_SIZE / 2.0
 	card_instance.scale = Vector2(_reveal_scale, _reveal_scale)
@@ -553,6 +558,33 @@ func _add_dust_badge(card_instance: Control, gold_earned: int) -> void:
 
 	card_instance.add_child(badge_panel)
 
+## Léger agrandissement au survol pour mieux voir la carte gagnée, sans
+## réintroduire le drag-and-drop (set_non_interactive() reste appelé avant,
+## seul mouse_filter est réouvert au survol). base_scale : échelle de repos de
+## la carte (_reveal_scale), pour que le hover reste relatif à sa taille réelle
+## dans la grille plutôt que d'écraser une valeur absolue.
+const PACK_HOVER_ZOOM := 1.15
+const PACK_HOVER_DURATION := 0.12
+
+func _make_card_hoverable(card_instance: Control, base_scale: float) -> void:
+	card_instance.mouse_filter = Control.MOUSE_FILTER_STOP
+	card_instance.mouse_entered.connect(func():
+		if not is_instance_valid(card_instance):
+			return
+		card_instance.z_index = 50
+		var t := create_tween()
+		t.tween_property(card_instance, "scale", Vector2.ONE * base_scale * PACK_HOVER_ZOOM, PACK_HOVER_DURATION) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	)
+	card_instance.mouse_exited.connect(func():
+		if not is_instance_valid(card_instance):
+			return
+		card_instance.z_index = 0
+		var t := create_tween()
+		t.tween_property(card_instance, "scale", Vector2.ONE * base_scale, PACK_HOVER_DURATION) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	)
+
 func _clear_cards() -> void:
 	for child in pack_stage.get_children():
 		if child == pack_center:
@@ -598,7 +630,6 @@ func _retranslate() -> void:
 	open_x3_button.text = SettingsManager.t("pack_shop.open_x3") % (CurrencyManager.PACK_COST * 3)
 	open_x5_button.text = SettingsManager.t("pack_shop.open_x5") % (CurrencyManager.PACK_COST * 5)
 	odds_button.text = SettingsManager.t("pack_shop.odds_button")
-	free_button.text = SettingsManager.t("pack_shop.open_free_button")
 	close_x_button.tooltip_text = SettingsManager.t("pack_shop.close")
 	skip_hint_label.text = SettingsManager.t("pack_shop.skip_hint")
 	status_label.text = SettingsManager.t("pack_shop.error")
