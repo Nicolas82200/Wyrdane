@@ -157,6 +157,9 @@ var hand_cards: Array[CardData]  = []
 # MatchResultReporter.
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
+# Nombre de cartes-ressource jouées par le joueur local ce match (succès Steam
+# "Économie de Guerre" — voir AchievementManager.on_victory).
+var player_resource_cards_played: int = 0
 
 func track_card_played_for_quests(card_data: CardData) -> void:
 	if card_data.race == Race.Type.NONE:
@@ -478,6 +481,7 @@ func play_resource_card(card_data: CardData, is_player: bool = true) -> void:
 	cost_system.play_resource_card(card_data, is_player)
 	if is_player:
 		track_card_played_for_quests(card_data)
+		player_resource_cards_played += 1
 
 # ─── Serviteurs ───────────────────────────────────────────────────────────────
 
@@ -653,6 +657,8 @@ func _show_game_over(result: String) -> void:
 		return
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
+	if result == "victory":
+		AchievementManager.on_victory(player_hero, player_resource_cards_played)
 	game_over_screen.show_result(result, network_manager == null)
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
 			cards_played_by_race, deck_races)
