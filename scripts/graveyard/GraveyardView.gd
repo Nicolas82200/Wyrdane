@@ -57,16 +57,33 @@ func open_deck(cards: Array) -> void:
 		entries.append({"card_data": card, "face_down": false})
 	_open_entries(entries)
 
+## Regroupe les cartes identiques (même resource_path) en une seule vignette
+## avec un badge "xN" au lieu d'en afficher une par copie (ex: 20 cartes-
+## ressource identiques) — les cartes face cachée ne sont jamais regroupées
+## (chacune reste une carte individuelle, sans donnée exploitable pour grouper
+## visuellement sans révéler d'information).
 func _open_entries(entries: Array) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
 	for child in container.get_children():
 		child.queue_free()
+	var grouped: Array = []
+	var index_by_path: Dictionary = {}
 	for entry in entries:
-		_add_card(entry["card_data"], entry["face_down"])
+		if entry["face_down"]:
+			grouped.append({"card_data": entry["card_data"], "face_down": true, "count": 1})
+			continue
+		var path: String = entry["card_data"].resource_path
+		if index_by_path.has(path):
+			grouped[index_by_path[path]]["count"] += 1
+		else:
+			index_by_path[path] = grouped.size()
+			grouped.append({"card_data": entry["card_data"], "face_down": false, "count": 1})
+	for group in grouped:
+		_add_card(group["card_data"], group["face_down"], group["count"])
 	show()
 
-func _add_card(card_data: CardData, face_down: bool) -> void:
+func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 	var wrapper := Control.new()
 	wrapper.custom_minimum_size = GRID_WRAPPER_SIZE
 	wrapper.size                = GRID_WRAPPER_SIZE
@@ -87,8 +104,34 @@ func _add_card(card_data: CardData, face_down: bool) -> void:
 		return
 
 	card_visual.set_data(card_data)
+	if count > 1:
+		_add_count_badge(wrapper, count)
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual, wrapper))
+
+## Badge "xN" en haut à gauche de la vignette, même gabarit visuel que le badge
+## de stock du deck builder (voir DeckBuilder._add_stock_badge).
+func _add_count_badge(wrapper: Control, count: int) -> void:
+	var badge_bg := StyleBoxFlat.new()
+	badge_bg.bg_color = Color(0.05, 0.04, 0.02, 0.85)
+	badge_bg.set_corner_radius_all(3)
+	badge_bg.content_margin_left   = 5
+	badge_bg.content_margin_right  = 5
+	badge_bg.content_margin_top    = 1
+	badge_bg.content_margin_bottom = 1
+
+	var badge_panel := PanelContainer.new()
+	badge_panel.add_theme_stylebox_override("panel", badge_bg)
+	badge_panel.position     = Vector2(4, 4)
+	badge_panel.z_index      = 3
+	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var badge_label := Label.new()
+	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	badge_label.text = SettingsManager.t("deck_view.card_count_badge") % count
+	badge_panel.add_child(badge_label)
+	wrapper.add_child(badge_panel)
 
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
