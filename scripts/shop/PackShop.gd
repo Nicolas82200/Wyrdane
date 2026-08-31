@@ -23,7 +23,10 @@ const CARD_SIZE := Vector2(250, 375)
 # révélation contient plusieurs cartes (voir _compute_grid_slots).
 const HOVER_SCALE := 1.1
 const GRID_MIN_SCALE := 0.55
-const PACK_SCALE := 1.3
+# Réduit (était 1.3) : la colonne du paquet est plus étroite (voir
+# GRID_AREA_LEFT_RATIO) pour laisser plus de place à la grille de révélation —
+# le paquet doit rester lisible sans déborder de sa colonne.
+const PACK_SCALE := 1.1
 const PACK_LAYER_COUNT := 4
 const PACK_LAYER_OFFSET := 6.0
 const PACK_FLIP_DURATION := 0.22
@@ -43,14 +46,15 @@ const ODDS_TOOLTIP_DURATION := 4.0
 var _odds_panel: Control = null
 const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
 # Zone de révélation : partie droite de l'écran, à droite du paquet (voir
-# PackCenter dans PackShop.tscn, ancré sur les ~34% gauches de l'écran).
-const GRID_AREA_LEFT_RATIO := 0.34
+# PackCenter dans PackShop.tscn, ancré sur les ~22% gauches de l'écran —
+# réduit depuis 34% pour laisser plus de place aux cartes révélées).
+const GRID_AREA_LEFT_RATIO := 0.22
 const GRID_AREA_SIDE_MARGIN := 40.0
 const GRID_AREA_TOP := 150.0
 # Doit rester au-dessus de la pile de boutons ancrée en bas de l'écran (voir
 # OwnedButtonRow/BottomBar/SkipHintLabel dans PackShop.tscn, qui
-# culmine à 234px du bas) pour que les cartes révélées ne les chevauchent pas.
-const GRID_AREA_BOTTOM := 250.0
+# culmine à 186px du bas) pour que les cartes révélées ne les chevauchent pas.
+const GRID_AREA_BOTTOM := 196.0
 const GRID_MAX_COLUMNS := 5
 # Fraction de chaque cellule de grille effectivement occupée par la carte (le
 # reste forme l'espacement entre cartes).
@@ -100,6 +104,8 @@ func _ready() -> void:
 	resized.connect(_resize_shake_layer)
 	_pack_visual = _build_pack_visual(pack_center)
 	_style_close_x_button()
+	for btn in [open_x1_button, open_x3_button, open_x5_button, odds_button, owned_button]:
+		_style_action_button(btn)
 	open_x1_button.pressed.connect(func(): _open_pack(false, 1))
 	open_x3_button.pressed.connect(func(): _open_pack(false, 3))
 	open_x5_button.pressed.connect(func(): _open_pack(false, 5))
@@ -623,6 +629,37 @@ func _style_close_x_button() -> void:
 	var hover := normal.duplicate() as StyleBoxFlat
 	hover.bg_color = Color("8b1a1a55")
 	close_x_button.add_theme_stylebox_override("hover", hover)
+
+## Habille un bouton d'action (x1/x3/x5, ?, packs gagnés) dans le même style
+## parchemin/or que le reste des popups custom du jeu (voir
+## DeckBuilder._make_popup_overlay : fond sombre, bordure or, coins arrondis)
+## au lieu du thème Godot par défaut — aucun Theme global n'est configuré
+## pour le projet, donc rien d'autre ne l'aurait fait pour nous.
+func _style_action_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.16, 0.12, 0.06, 0.95)
+	normal.border_color = Color(0.6, 0.45, 0.15, 0.85)
+	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(6)
+
+	var hover := normal.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(0.24, 0.18, 0.08, 0.95)
+	hover.border_color = Color(0.85, 0.65, 0.20, 1.0)
+
+	var pressed := normal.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(0.10, 0.08, 0.04, 0.95)
+
+	var disabled := normal.duplicate() as StyleBoxFlat
+	disabled.bg_color = Color(0.10, 0.09, 0.08, 0.6)
+	disabled.border_color = Color(0.4, 0.35, 0.25, 0.5)
+
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+	btn.add_theme_stylebox_override("disabled", disabled)
+	btn.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	btn.add_theme_color_override("font_hover_color", Color(0.98, 0.88, 0.5, 1))
+	btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.5, 0.45, 0.7))
 
 func _retranslate() -> void:
 	title_label.text = SettingsManager.t("pack_shop.title")
