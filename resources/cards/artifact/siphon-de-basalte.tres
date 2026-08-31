@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_eff1"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "EnemyMinion"
+value = 3
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_eff2"]
+script = ExtResource("1_cardeffect")
+effect_id = "HealHero"
+value = 3
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Siphon de Basalte"
+description = "Inflige 3 dégâts à un serviteur ennemi ciblé. Votre héros regagne 3 points de vie."
+flavour_text = "La pierre prend la force des vaincus, et la rend à qui l'a invoquée."
+cost = 3
+race = 0
+card_type = "Instant"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff1"), SubResource("Resource_eff2")])
+requires_target = true
+rarity = "Rare"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

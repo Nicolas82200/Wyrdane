@@ -28,6 +28,8 @@ func execute_effect(
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
 		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
 		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
+		"AddCardToHand":    _add_card_to_hand(battle, source_minion, effect)
+		"MimicMinion":      await _mimic_minion(battle, source_minion, effect, selected_target)
 		"MoveRow":          await _move_row(battle, source_minion, effect, selected_target)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
@@ -175,6 +177,14 @@ func _get_targets(
 			var allies: Array[Minion] = _filter_targets(battle.get_owner_minions(source_minion), effect)
 			if not allies.is_empty():
 				result.append(_rng_pick(battle, allies))
+		"LowestHPAlly":
+			var candidates: Array[Minion] = _filter_targets(battle.get_owner_minions(source_minion), effect)
+			if not candidates.is_empty():
+				var lowest: Minion = candidates[0]
+				for c in candidates:
+					if c.health < lowest.health:
+						lowest = c
+				result.append(lowest)
 	return result
 
 func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion]:
@@ -195,6 +205,10 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 	if effect.target_max_atk >= 0:
 		result = result.filter(func(t: Minion) -> bool:
 			return t.attack <= effect.target_max_atk
+		)
+	if effect.target_max_cost >= 0:
+		result = result.filter(func(t: Minion) -> bool:
+			return t.card_data != null and t.card_data.cost <= effect.target_max_cost
 		)
 	if effect.requires_resurrected_target:
 		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
@@ -402,6 +416,23 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			var dealt_self: int = await battle.hero_system.self_damage(is_p, effect.value)
 			battle.animation_system.play_damage(hero_panel, dealt_self)
+		"EnemyHeroOrMinion":
+			# selected_target reste null quand le joueur/l'IA a choisi le héros
+			# (CardSystem.resolve_with_target ne transmet le clic que si la
+			# cible est un Minion) : c'est le signal qu'on utilise pour choisir
+			# entre les deux branches, sans dupliquer le typage Minion partout.
+			if selected_target == null:
+				var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
+				battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
+				battle.animation_system.play_damage(hero_panel, effect.value)
+			else:
+				await _point_arrows_to(battle, [selected_target], source_minion)
+				var visual = battle.board_visual_system.get_visual(selected_target)
+				var dealt: int = selected_target.take_damage(effect.value)
+				if visual:
+					battle.animation_system.play_damage(visual, dealt)
+				if dealt > 0:
+					await notify_damaged(battle, selected_target)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
@@ -469,6 +500,12 @@ func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 		# Applique aussi la perte aux HP actuels, sans plafonner à 1 : un
 		# "-X/-X" doit pouvoir tuer un serviteur déjà bas en vie (Épidémie...)
 		target.health = max(0, old_health - effect.value_2)
+		# Symétrique de _buff : un Debuff dont la durée n'est pas "Permanent"
+		# (ex. Fissure Runique, -2/-0 jusqu'à la fin du tour) doit s'annuler à
+		# l'expiration au lieu de rester permanent (add_temp_stat_change est un
+		# no-op pour duration == "Permanent", donc sans risque pour les Debuff
+		# existants qui ne renseignent pas ce champ).
+		battle.temp_effect_system.add_temp_stat_change(target, -effect.value, -effect.value_2, effect.duration)
 		target.record_history(TranslationServer.translate("HIST_STAT_LOSS") % [_source_label(source_minion), effect.value, effect.value_2])
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
@@ -578,6 +615,24 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 		else:
 			battle.ai_system.hand.append(target.card_data)
 
+# Ajoute effect.generated_card à la main du camp propriétaire de source_minion
+# (joueur par défaut si absent, ex: Forge Éteinte au Déclin). Toujours un
+# jeton (is_token) — jamais une vraie carte du deck (même garde-fou que
+# SummonMinion, voir "Jetons d'invocation" dans CLAUDE.md).
+func _add_card_to_hand(battle, source_minion: Minion, effect: CardEffect) -> void:
+	if effect.generated_card == null:
+		return
+	# Mode Arena (SimulatedBattle.gd) : pas de main — no-op plutôt qu'un crash
+	# sur hand_cards absent (même garde-fou que _return_to_hand).
+	if battle.get("hand_cards") == null:
+		return
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
+	if is_player:
+		battle.hand_cards.append(effect.generated_card)
+		battle.hand.set_hand(battle.hand_cards)
+	else:
+		battle.ai_system.hand.append(effect.generated_card)
+
 func _remove_from_board(battle, minion: Minion) -> void:
 	battle.player_minions.erase(minion)
 	battle.enemy_minions.erase(minion)
@@ -627,6 +682,34 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 			battle.enemy_minions.erase(target)
 			battle.player_minions.append(target)
 		battle.board_visual_system.reparent_minion_visual(target, to_player)
+
+# MimicMinion (Artefact, ex: Écho de Pacotille) : source_minion devient une
+# copie EXACTE de la cible (card_data, ATK/PV de base, mots-clés) — contrairement
+# à Transform, la cible n'est ni détruite ni volée (elle reste inchangée, chez
+# son propriétaire), et contrairement à MimicTarget (L'Innommable), les stats
+# sont copiées elles aussi, pas seulement les mots-clés/triggers ; le camp de
+# source_minion ne change jamais.
+func _mimic_minion(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	if source_minion == null:
+		return
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		if target.card_data == null:
+			continue
+		source_minion.card_data        = target.card_data
+		source_minion.base_attack      = target.base_attack
+		source_minion.base_max_health  = target.base_max_health
+		source_minion.aura_attack_bonus = 0
+		source_minion.aura_health_bonus = 0
+		source_minion.damage_taken     = 0
+		source_minion.keywords         = target.keywords.duplicate()
+		source_minion.human_keywords   = target.human_keywords.duplicate()
+		source_minion.undead_keywords  = target.undead_keywords.duplicate()
+		source_minion.demon_keywords   = target.demon_keywords.duplicate()
+		source_minion.abomination_keywords = target.abomination_keywords.duplicate()
+		# Un seul mimétisme a de sens : la première cible valable suffit.
+		break
 
 # L'Innommable : contrairement à StealMinion/Transform, la cible ciblée n'est
 # NI volée NI détruite — elle reste du côté adverse, inchangée. C'est
@@ -1552,10 +1635,35 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 	if not replaces_base:
 		for effect in base_effects:
 			await execute_effect(battle, minion, effect, selected_target)
+		# Écho de trigger (Artefact, ex: Le Veilleur Qui Répète) : chaque allié
+		# en jeu portant echoed_trigger == trigger_name (ou "Any") rejoue les
+		# effets de BASE une fois de plus, cumulable (2 porteurs = 2 rejeux).
+		# Ne rejoue jamais bonus_effects (Pacte) — seul le camp
+		# game/effect_id "base" est concerné par l'écho.
+		var echo_count: int = _echo_count(battle, minion, trigger_name)
+		for i in range(echo_count):
+			for effect in base_effects:
+				await execute_effect(battle, minion, effect, selected_target)
 	if pact_paid:
 		for effect in bonus_effects:
 			await execute_effect(battle, minion, effect, selected_target)
 	return true
+
+# Nombre de déclenchements supplémentaires à rejouer pour ce trigger, d'après
+# les alliés en jeu portant echoed_trigger (Artefact). `minion` lui-même est
+# exclu du décompte : un porteur ne double pas ses propres triggers.
+func _echo_count(battle, minion: Minion, trigger_name: String) -> int:
+	if minion == null:
+		return 0
+	var allies: Array = battle.player_minions if minion.owner_is_player else battle.enemy_minions
+	var count: int = 0
+	for ally in allies:
+		if ally == minion or ally.card_data == null:
+			continue
+		var echoed: String = ally.card_data.echoed_trigger
+		if echoed == trigger_name or echoed == "Any":
+			count += 1
+	return count
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
 # contre un effet hostile (renvoi en main / déplacement).

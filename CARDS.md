@@ -1,6 +1,6 @@
 # Wyrdane CARDS.md
 
-Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
+Liste complète des cartes des races **Mort-Vivant**, **Humain**, **Démon**, **Abomination** et **Artefact**.
 
 > **Notes de révision (à répercuter dans `CLAUDE.md` et `README.md`, et côté code si adopté) :**
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
@@ -938,3 +938,148 @@ Plusieurs cartes ont un comportement simplifié faute de plomberie dédiée (cho
 - **A64 Grand Retour Sous une Autre Forme** : la remise de coût et la mutation automatique au rejeu ne sont pas câblées (`ReturnFromGrave` ramène la carte telle quelle).
 - **A68 La Terre Qui Refuse de Garder** : pas de délai « à la fin du tour », pas de transformation de race, pas de garde-fou « une fois par serviteur » → résurrection immédiate et complète (`ResurrectLast`, toute race).
 - **A71 Effigie Née d'Elle-Même** : la mutation forcée en Dégénérescence sur les cibles du splash n'est pas appliquée (seuls les dégâts splash le sont).
+---
+
+# Race Artefact
+
+## 🎯 Identité de faction
+
+L'Artefact (thème « Reliques Anciennes ») est une race **neutre** (`Race.Type.NONE`) : elle n'a pas de pool de mana dédié, pas de carte-ressource, et peut être mélangée librement dans n'importe quel deck aux côtés des quatre autres races. Ses serviteurs et sorts ne portent jamais de mot-clé exclusif — seulement les mots-clés partagés (REMPART, ASSAUT, FRÉNÉSIE, RAVAGE, INFILTRATION, MOISSON, VENIN MORTEL, ÉGIDE), qu'elle sait généreusement distribuer aux autres races plutôt que produire elle-même une identité mécanique propre.
+
+Trois axes thématiques structurent la race :
+- **Objets qui survivent à leurs porteurs** — plusieurs serviteurs ajoutent une carte-objet (Incantation jeton) à la main à leur mort ou en fin de tour (Golem de Basalte, Urne Scellée, Chambre Funéraire, Forge Éteinte).
+- **Échos et répétitions** — trois serviteurs uniques doublent un type de trigger allié tant qu'ils sont en jeu (Le Veilleur Qui Répète, Le Héraut Du Second Pas, L'Écho Sans Origine), et une famille de six serviteurs copient purement et simplement un autre serviteur en jeu (mimétisme complet stats + mots-clés, de Écho de Pacotille jusqu'au Sans-Visage).
+- **Pierre et poussière** — les sorts utilitaires (buffs/debuffs/soins/destructions) et l'octroi temporaire de mots-clés partagés à d'autres races, dans une esthétique de reliques qui rendent, une dernière fois, un peu de ce qu'elles ont perdu.
+
+Les noms de cette race évoquent délibérément l'archéologie et l'oubli (cercles, sceaux, urnes, échos, poussière, strates) plutôt qu'une civilisation ou un peuple précis — l'Artefact n'appartient à personne, il a juste survécu à tout le monde.
+
+## Mots-clés
+
+L'Artefact ne possède **aucun mot-clé exclusif**. Il utilise uniquement les mots-clés partagés du moteur (rappel) :
+
+| Mot-clé | Effet |
+|---|---|
+| `REMPART` | Doit être attaqué en priorité par les serviteurs ennemis. |
+| `ASSAUT` | Peut attaquer le tour de son invocation. |
+| `FRÉNÉSIE` | Peut attaquer deux fois par tour. |
+| `RAVAGE` | Les dégâts excédentaires sont infligés directement au héros adverse. |
+| `INFILTRATION` | Ignore la rangée Avant ennemie ; peut cibler directement la rangée Arrière ou le héros. |
+| `MOISSON` | Les dégâts infligés par ce serviteur soignent le héros allié d'autant. |
+| `VENIN MORTEL` | Toute blessure infligée par ce serviteur détruit la cible, quelle que soit sa vie restante. |
+| `ÉGIDE` | Annule la première source de dégâts reçue. |
+
+## Mécanique — Écho de trigger
+
+Trois serviteurs légendaires/épiques portent un champ moteur dédié (`CardData.echoed_trigger`, lu par `EffectManager.trigger_effects`) : tant qu'ils sont en jeu, chaque trigger allié visé se déclenche **une fois de plus** (rejoue l'intégralité des effets de base du trigger, jamais les bonus de Pacte). Cumulable : deux porteurs du même écho font se déclencher le trigger visé trois fois au total (1 fois normale + 2 échos).
+
+| Carte | Trigger doublé |
+|---|---|
+| Le Veilleur Qui Répète | Dernier Souffle |
+| Le Héraut Du Second Pas | Arrivée |
+| L'Écho Sans Origine | Tous les triggers alliés |
+
+## Mécanique — Mimétisme complet (`MimicMinion`)
+
+Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet, `MimicMinion` : à l'Arrivée, le serviteur devient une copie exacte de sa cible (même `CardData`, même ATK/PV de base, mêmes mots-clés), sans jamais voler ni détruire la cible (qui reste inchangée chez son propriétaire) et sans jamais changer de camp. C'est différent de `Transform` (qui vole ET transforme la cible) et de `MimicTarget`/L'Innommable — Abomination (qui copie seulement les mots-clés/triggers de la cible, en gardant les stats propres du copieur) : ici, tout est copié, y compris les statistiques.
+
+## Serviteurs
+
+### Communes
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| AR01 | Golem de Basalte | ⚔️ | 3 | 3 | 4 | Dernier Souffle : Ajoute une Pierre Volcanique à votre main. | *Il ne meurt pas. Il se refroidit, et laisse quelque chose derrière.* |
+| AR02 | Urne Scellée | 🛡️ | 2 | 2 | 3 | Dernier Souffle : Ajoute un Éclat de Mémoire à votre main. | *Elle contenait un nom. Le nom s'est perdu. Ce qu'il en reste tient encore debout.* |
+| AR03 | Écho de Pacotille | ↕️ | 1 | 1 | 1 | Arrivée : Devient une copie exacte d'un serviteur allié ciblé de coût 1 ou moins. | *Il ne sait pas qui il est. Il ne sait qu'imiter, et encore, mal.* |
+| AR04 | Faux-Semblant | ↕️ | 1 | 2 | 1 | Arrivée : Devient une copie exacte d'un serviteur allié ciblé de coût 3 ou moins. | *Il porte le visage de quelqu'un d'autre. Il porte aussi, un temps, sa force.* |
+| AR05 | Porteur de Rempart Oublié | 🛡️ | 2 | 2 | 3 | Arrivée : Un serviteur allié ciblé gagne REMPART jusqu'à la fin du tour. | *Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois.* |
+
+### Rares
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| AR06 | Chambre Funéraire | ⚔️ | 4 | 3 | 5 | Dernier Souffle : Ajoute un Fragment Curatif à votre main. | *Elle ne garde pas les morts. Elle garde de quoi soigner les vivants.* |
+| AR07 | Voleur de Visage | ↕️ | 2 | 3 | 2 | Arrivée : Devient une copie exacte d'un serviteur ennemi ciblé de coût 3 ou moins. | *Il ne vole pas les biens. Il vole ce qu'on est.* |
+| AR08 | Gardien de l'Assaut Ancien | ⚔️ | 3 | 3 | 2 | Arrivée : Le serviteur allié adjacent gagne ASSAUT de façon permanente. | *Il ne se souvient plus pourquoi il chargeait. Seulement qu'il fallait le faire.* |
+| AR09 | Relique de la Frénésie | ↕️ | 4 | 4 | 3 | Arrivée : Un serviteur allié ciblé gagne FRÉNÉSIE jusqu'à la fin du tour. | *Elle ne rend personne plus fort. Elle rend juste plus difficile de s'arrêter.* |
+| AR10 | Porte-Chance Fossilisé | ↕️ | 3 | 3 | 4 | Arrivée : Un serviteur allié ciblé gagne MOISSON jusqu'à la fin du tour. | *Il n'a jamais porté chance à personne. Mais on continue d'y croire.* |
+
+### Épiques
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| AR11 | Le Veilleur Qui Répète | ↕️ | 5 | 3 | 5 | Tant que ce serviteur est en jeu, vos Dernier Souffle alliés se déclenchent une fois de plus. | *Il ne pleure pas les morts. Il les fait recommencer.* |
+| AR12 | Le Héraut Du Second Pas | ↕️ | 4 | 3 | 4 | Tant que ce serviteur est en jeu, vos Arrivées alliées se déclenchent une fois de plus. | *Chaque entrée laisse une empreinte. La sienne en laisse deux.* |
+| AR13 | Reflet Trouble | ↕️ | 3 | 5 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé (allié ou ennemi) de coût 5 ou moins. | *Le miroir ne ment pas. Il choisit juste ce qu'il te montre.* |
+| AR14 | Usurpateur | ↕️ | 3 | 6 | 3 | Arrivée : Devient une copie exacte d'un serviteur ennemi ciblé, quel que soit son coût. | *Il ne demande jamais la permission de devenir quelqu'un d'autre.* |
+
+### Légendaires
+
+| ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|:---:|---|---|
+| AR15 | L'Écho Sans Origine | ⚔️ | 8 | 6 | 4 | Tant que ce serviteur est en jeu, tous les triggers de vos serviteurs alliés se déclenchent une fois de plus. | *Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement.* |
+| AR16 | Le Sans-Visage | ↕️ | 4 | 8 | 4 | Arrivée : Devient une copie exacte d'un serviteur ciblé (allié ou ennemi), quel que soit son coût, puis gagne +1/+1 de façon permanente. | *Il n'a pas de visage à lui. Il en a simplement volé un de plus.* |
+
+## Incantations
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|---|---|---|
+| AR17 | Éclat de Grès Vivant | 1 | Commune | Un serviteur allié ciblé gagne +1/+1 de façon permanente. | *La pierre vivante ne pousse pas. Elle se souvient d'avoir été plus grande.* |
+| AR18 | Souffle du Cairn | 3 | Rare | Tous vos serviteurs alliés gagnent +1/+0 jusqu'à la fin du tour. | *Un souffle ancien traverse les pierres empilées, et pour un instant, tout se redresse.* |
+| AR19 | Fissure Runique | 2 | Commune | Un serviteur ennemi ciblé perd -2/-0 jusqu'à la fin du tour. | *La rune se fissure, et avec elle, la force qu'elle retenait.* |
+| AR20 | Poids de la Pierre Ancienne | 3 | Rare | Un serviteur ennemi ciblé perd -1/-1 de façon permanente. | *Elle ne pèse sur personne en particulier. Elle pèse sur tout ce qu'elle touche.* |
+| AR21 | Jugement du Sceau Brisé | 4 | Rare | Détruit un serviteur ennemi ciblé ayant 3 points de vie ou moins. | *Le sceau ne juge personne. Il se contente de rappeler ce qui était déjà brisé.* |
+| AR22 | Effondrement du Sanctuaire | 6 | Épique | Détruit un serviteur ennemi ciblé. | *Ce que le sanctuaire protégeait n'a pas survécu à sa chute.* |
+| AR23 | Larme de Jade Ancienne | 2 | Commune | Restaure 3 points de vie à un serviteur allié ciblé. | *Une larme pétrifiée depuis des siècles, qui n'a rien perdu de sa douceur.* |
+| AR24 | Onde de la Source Tarie | 3 | Commune | Votre héros regagne 4 points de vie. | *La source ne coule plus depuis longtemps. Elle se souvient encore de couler.* |
+| AR25 | Marée de Poussière | 2 | Rare | Renvoie un serviteur ennemi ciblé dans la main de son propriétaire. | *Ce que la poussière recouvre n'est jamais vraiment parti.* |
+| AR26 | Sceau du Silence Oublié | 2 | Rare | Réduit au silence un serviteur ennemi ciblé. | *Certains sceaux ne scellent pas des portes. Ils scellent des voix.* |
+| AR27 | Étreinte Pétrifiante | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. | *L'étreinte n'a rien de tendre. Mais elle a le mérite d'être immobile.* |
+| AR28 | Siphon de Basalte | 3 | Rare | Inflige 3 dégâts à un serviteur ennemi ciblé. Votre héros regagne 3 points de vie. | *La pierre prend la force des vaincus, et la rend à qui l'a invoquée.* |
+| AR29 | Poussière du Temps | 2 | Commune | Piochez 2 cartes. | *Chaque grain contient un instant qui a déjà eu lieu, quelque part, avant.* |
+| AR30 | Veine de Mana Fossile | 2 | Rare | Gagnez 2 points de mana ce tour-ci (perdus au tour suivant s'ils ne sont pas dépensés). | *Une veine ancienne, tarie depuis longtemps, qui laisse encore échapper un peu de sa force.* |
+| AR31 | Bénédiction de Pierre | 2 | Commune | Un serviteur allié ciblé gagne ÉGIDE jusqu'à la fin du prochain tour ennemi. | *La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper.* |
+| AR32 | Rite du Venin Oublié | 3 | Rare | Un serviteur allié ciblé gagne VENIN MORTEL jusqu'à la fin du tour. | *Le rite est ancien. Le poison, lui, n'a pas pris une ride.* |
+| AR33 | Sceau de l'Infiltration | 2 | Rare | Un serviteur allié ciblé gagne INFILTRATION jusqu'à la fin du tour. | *Certains sceaux n'ouvrent pas de portes. Ils en font oublier l'existence.* |
+
+## Rituels
+
+Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X charges** ; chaque charge n'est consommée que lorsque son trigger se déclenche réellement, pas passivement à chaque tour. Il est détruit quand ses charges sont épuisées.
+
+| ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
+|:---:|---|:---:|:---:|:---:|---|---|
+| AR34 | Cercle des Strates Anciennes | 4 | Rare | 3 charges | Éveil : Le serviteur allié avec le moins de points de vie restaure 2 points de vie. | *Chaque strate garde la mémoire d'une guérison passée. Le cercle ne fait que la répéter.* |
+| AR35 | Rituel de la Chambre Scellée | 5 | Épique | 2 charges | Éveil : Ajoute une Pierre Volcanique à votre main. | *La chambre reste fermée. Ce qu'elle laisse filtrer suffit amplement.* |
+| AR36 | Cercle du Jugement Muet | 6 | Légendaire | 2 charges | Éveil : Détruit un serviteur ennemi aléatoire ayant 2 points de vie ou moins. | *Il ne prononce jamais son verdict à voix haute. Il n'en a pas besoin.* |
+
+## Enchantements
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|---|---|---|
+| AR37 | Forge Éteinte | 4 | Épique | Déclin : Ajoute une Pierre Volcanique à votre main (une fois par tour). | *Le feu s'est éteint il y a des siècles. Il tousse encore, parfois, une braise.* |
+| AR38 | Colonne des Pactes Rompus | 3 | Rare | Renfort : Le serviteur allié invoqué gagne RAVAGE jusqu'à la fin du tour. | *Chaque pacte gravé dessus a été rompu. La colonne, elle, s'en souvient encore.* |
+| AR39 | Autel des Dons Perdus | 5 | Épique | Renfort (une fois par tour) : Le serviteur allié invoqué gagne REMPART de façon permanente. | *Il ne donne plus grand-chose. Mais ce qu'il donne encore, il le donne pour de bon.* |
+| AR40 | Vestige de l'Ancien Monde | 6 | Légendaire | Présence : Le premier serviteur allié invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour ennemi. | *Le monde qu'il vient de n'existe plus. Mais il protège encore, par habitude.* |
+
+## Ressource
+
+L'Artefact **n'a pas de carte-ressource** : `Race.Type.NONE` n'a pas de pool de mana dédié (`Battle.race_mana`/`race_max_mana` n'a pas d'entrée pour cette race). `CostSystem.get_race_cost` renvoie 0 pour toute carte de race NONE, donc le coût d'une carte Artefact est intégralement `generic_cost`, payable depuis n'importe quel pool en surplus (Chair, Sceau du Royaume, Âme ou Éclat d'Anomalie) — c'est précisément ce qui permet de mélanger l'Artefact dans n'importe quel deck sans lui dédier de slot de ressource. `DeckManager.race_warnings()` ignore les cartes de race NONE (aucun avertissement de mono-race ne les concerne).
+
+### Jetons
+
+| ID | Nom | ⬡ | Rareté | Effet | Flavour |
+|:---:|---|:---:|---|---|---|
+| AR41 | Pierre Volcanique (jeton) | 1 | Commune | Inflige 2 dégâts à une cible (serviteur ennemi ou héros ennemi). (jeton, ajouté à la main par : Golem de Basalte, Forge Éteinte, Rituel de la Chambre Scellée). | *Elle garde la chaleur d'un monde qui n'existe plus.* |
+| AR42 | Éclat de Mémoire (jeton) | 0 | Commune | Piochez 1 carte. (jeton, ajouté à la main par : Urne Scellée). | *Un fragment de souvenir qui n'est pas le vôtre, mais qui vous éclaire quand même.* |
+| AR43 | Fragment Curatif (jeton) | 1 | Commune | Restaure 4 points de vie à un serviteur allié ciblé. (jeton, ajouté à la main par : Chambre Funéraire). | *La pierre ne guérit pas les blessures. Elle rappelle juste au corps comment se réparer.* |
+
+## ✅ Points d'intégration tranchés (Artefact)
+
+Le support moteur a été ajouté pour cette race (voir « Mécanique — Écho de trigger » et « Mécanique — Mimétisme complet » ci-dessus) ; les 43 ressources `.tres` (dont 3 jetons) sont créées dans `resources/cards/artifact/`.
+
+1. **Ajout de carte en main hors invocation** (`AddCardToHand`) : nouvel effet + `CardEffect.generated_card`, sur le modèle de `summon_card`/`SummonMinion` — ajoute une carte jeton (jamais une vraie carte du deck) à la main du camp propriétaire de la source (`EffectManager._add_card_to_hand`).
+2. **Écho de trigger** (`CardData.echoed_trigger`) : lu par `EffectManager.trigger_effects`, qui rejoue l'intégralité des effets de base (jamais les bonus de Pacte) une fois de plus par allié porteur en jeu (hors le déclencheur lui-même), cumulable.
+3. **Mimétisme complet** (`MimicMinion`) : nouvel effet qui copie `card_data`/ATK/PV de base/tous les mots-clés de la cible sur la source, sans voler la cible ni changer le camp de la source — distinct de `Transform` (vol + camp changé) et de `MimicTarget` (mots-clés/triggers seulement, stats propres conservées).
+4. **Restriction de ciblage par coût** (`CardEffect.target_max_cost`) : même pattern que `target_max_hp`/`target_max_atk`, appliqué à la fois au ciblage (`TargetingSystem._matches_effect_conditions`) et à la résolution (`EffectManager._filter_targets`).
+5. **Ciblage héros-ou-serviteur** (`CardEffect.target = "EnemyHeroOrMinion"`) : Pierre Volcanique peut viser soit un serviteur ennemi, soit le héros ennemi directement. Câblé dans `TargetingSystem` (surbrillance des deux + clic sur `EnemyHeroPanel` accepté) et `EffectManager._damage` (branche dédiée : `selected_target == null` = héros cliqué — signal déjà produit gratuitement par `CardSystem.resolve_with_target`, qui ne transmet un `Minion` à `execute_effect` que si la cible réellement cliquée en est un). L'IA (`AISystem._pick_spell_target`) traite ce ciblage comme `EnemyMinion` : vise le serviteur le plus menaçant si possible, sinon retombe sur le héros.
+6. **Sélecteur "moins de HP"** (`CardEffect.target = "LowestHPAlly"`) : nouveau sélecteur dans `EffectManager._get_targets`, utilisé par Cercle des Strates Anciennes. Générique (pas propre à l'Abomination) — réutilisable par n'importe quelle future carte visant l'allié le plus faible en HP, toutes races confondues.

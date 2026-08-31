@@ -16,6 +16,14 @@ const CARD_SCENE := preload("res://scenes/card/Card.tscn")
 func _make_card(card_type: String, ritual_duration: int = 0) -> Card:
 	var card: Card = CARD_SCENE.instantiate()
 	add_child_autofree(card)
+	# Sans thème de projet appliqué (scène instanciée seule, hors boot complet
+	# du jeu), la taille de police résolue par le thème par défaut de Godot
+	# est trop petite (~10px) pour que "Serviteur" et "Rituel • 3 charges"
+	# se distinguent une fois passés dans le clamp [MIN_WIDTH, MAX_WIDTH] (15px
+	# d'écart seulement) : les deux tombent sur le même plancher MIN_WIDTH. On
+	# fixe donc une taille réaliste explicitement, pour rendre le test
+	# déterministe indépendamment de l'environnement d'exécution.
+	card.type_label.add_theme_font_size_override("font_size", 20)
 	var data := CardData.new()
 	data.card_name = "Carte"
 	data.description = ""

@@ -77,6 +77,7 @@ const RACE_COLORS := {
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
+	Race.Type.NONE:   Color("#c9b389"),
 	Race.Type.UNDEAD: Color("#e2e2e2"),
 	Race.Type.ABOMINATION: Color("#bdeb9c"),
 	Race.Type.HUMAN:  Color("#f2d98f"),
@@ -440,8 +441,16 @@ func _apply_type_style() -> void:
 # TYPE_LABEL_MAX_WIDTH, toujours centre sur le point d'ancrage (voir const
 # ci-dessus).
 func _fit_type_label() -> void:
+	# Repli sur ThemeDB.fallback_font : sans thème de projet appliqué (ex.
+	# scène instanciée seule dans un test GUT headless), get_theme_font("font")
+	# renvoie null et la mesure ne se ferait jamais, laissant le bandeau à sa
+	# largeur par défaut dans Card.tscn quel que soit le texte réel.
 	var font: Font = type_label.get_theme_font("font")
+	if font == null:
+		font = ThemeDB.fallback_font
 	var font_size: int = type_label.get_theme_font_size("font_size")
+	if font_size <= 0:
+		font_size = ThemeDB.fallback_font_size
 	if font == null:
 		return
 	var text_width: float = font.get_string_size(type_label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x

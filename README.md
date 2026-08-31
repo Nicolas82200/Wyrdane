@@ -126,6 +126,16 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
+### 🏺 Mécaniques Artefact
+
+Race neutre (`Race.Type.NONE`, thème « Reliques Anciennes ») : aucune identité de mots-clés exclusifs, aucun pool de mana dédié, mélangeable librement dans n'importe quel deck. Deux systèmes moteur génériques ajoutés pour elle (réutilisables par n'importe quelle race future) :
+
+- **Ajout de carte en main hors invocation** (effet `AddCardToHand` + `CardEffect.generated_card`) : ajoute une carte fixe (toujours un jeton `is_token`, jamais une vraie carte du deck — même garde-fou que `SummonMinion`/`summon_card`) à la main du camp propriétaire de la source. `EffectManager._add_card_to_hand` — no-op en mode Arena (pas de main). Utilisé par Golem de Basalte, Urne Scellée, Chambre Funéraire (Dernier Souffle), Forge Éteinte (Déclin) et deux rituels (Éveil).
+- **Écho de trigger** (`CardData.echoed_trigger` : `""` = aucun, nom exact d'un trigger = ciblé, `"Any"` = tous) : tant qu'un serviteur qui le porte est en jeu, chaque trigger allié visé par cette valeur se déclenche une fois de plus — `EffectManager.trigger_effects` compte les porteurs alliés en jeu (hors la source elle-même) après avoir joué les effets de base une première fois, puis rejoue l'intégralité des effets de base (jamais les bonus de Pacte) autant de fois que de porteurs trouvés. Cumulable. Porté par Le Veilleur Qui Répète (Dernier Souffle), Le Héraut Du Second Pas (Arrivée), L'Écho Sans Origine (tous les triggers).
+- **Mimétisme complet** (effet `MimicMinion`) : la source devient une copie exacte de sa cible — `card_data`, ATK/PV de base et tous les mots-clés (`keywords`/`human_keywords`/`undead_keywords`/`demon_keywords`/`abomination_keywords`) sont recopiés depuis la cible EN JEU sur la source, qui ne change jamais de camp et ne vole/détruit jamais la cible. Distinct de `Transform` (vol de contrôle + transformation de la cible elle-même) et de `MimicTarget`/L'Innommable (copie seulement mots-clés/triggers, la source garde ses propres stats). Porté par six serviteurs (Écho de Pacotille → Le Sans-Visage), avec restriction de coût optionnelle via `CardEffect.target_max_cost` (même pattern que `target_max_hp`/`target_max_atk`, vérifié dans `TargetingSystem` et `EffectManager._filter_targets`).
+
+**⚠️ Simplification connue** : Pierre Volcanique (jeton) cible uniquement un serviteur ennemi (`EnemyMinion`) plutôt que « le héros ennemi OU un serviteur ennemi » — un ciblage hero-ou-minion toucherait plusieurs points du pipeline de ciblage (`TargetingSystem`, `CardSystem.resolve_with_target`) pour un seul jeton non collectible. Voir `CARDS.md` → section Artefact → « Simplifications connues ».
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -338,7 +348,7 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 
 *   `translations/game.csv` (clé, fr, en) — compilé automatiquement par Godot en `game.fr.translation` / `game.en.translation`.
 *   `SettingsManager.t("CLE")` délègue au `TranslationServer` ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`.
-*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 317 cartes** (jetons compris ; noms, effets, flavour).
+*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 360 cartes** (jetons compris ; noms, effets, flavour).
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
@@ -873,10 +883,10 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
-*   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
+*   Cinq races jouables : Mort-Vivant, Humain, Démon, Abomination et Artefact (race neutre, `Race.Type.NONE`, sans pool de mana dédié) (360 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`), Abomination (Mutation, trigger `OnDevoration`) et Artefact (écho de trigger `CardData.echoed_trigger`, mimétisme complet `MimicMinion`, ajout de carte en main `AddCardToHand`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
 *   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
-*   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
+*   **Internationalisation FR/EN** — toute l'UI et les 360 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
@@ -903,6 +913,7 @@ Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) 
 | Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
 | Démon | **Âme** | Âme (`resources/cards/demon/pact-fragment.tres`) |
 | Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
+| Artefact | *(aucune)* | Race neutre (`Race.Type.NONE`) : pas de pool dédié — `CostSystem.get_race_cost` renvoie 0, tout le coût est `generic_cost`, payable depuis n'importe quel pool en surplus. |
 
 ### 🃏 Zone de ressource et pose
 

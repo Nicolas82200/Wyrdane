@@ -63,6 +63,13 @@ class_name CardData
 # qu'un Rampant invoqué ne redéclenche la condition en boucle).
 @export var trigger_once_per_turn: bool = false
 
+# Tant que ce serviteur est en jeu, un trigger allié ciblé (ou tous si "Any")
+# se déclenche une fois de plus (Artefact, ex: Le Veilleur Qui Répète). Valeur
+# = nom interne exact du trigger ("DEATHRATTLE", "ONPLAY"...), "" = aucun echo,
+# "Any" = tous les triggers alliés sont doublés. Cumulable (2 porteurs =
+# 2 déclenchements supplémentaires). Lu par EffectManager.trigger_effects.
+@export var echoed_trigger: String = ""
+
 # ─── Coût de Sacrifice (Rituels à trigger OnSacrifice) ────────────────────────
 # Nombre de serviteurs alliés à sacrifier pour activer le rituel (0 = pas de
 # coût de sacrifice). Le joueur active le rituel en cliquant dessus puis en

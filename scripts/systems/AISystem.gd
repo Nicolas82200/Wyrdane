@@ -280,7 +280,7 @@ func _find_lethal_burn(cards: Array[CardData]) -> CardData:
 		if card.card_type == "Minion" or card.effects.is_empty():
 			continue
 		var effect: CardEffect = card.effects[0]
-		if effect.effect_id == "Damage" and effect.target == "EnemyHero" \
+		if effect.effect_id == "Damage" and effect.target in ["EnemyHero", "EnemyHeroOrMinion"] \
 				and ready + effect.value >= battle.player_hero.health:
 			return card
 	return null
@@ -432,6 +432,8 @@ func _has_valid_spell_target(card: CardData) -> bool:
 				return not battle.enemy_minions.is_empty()
 			return _pick_spell_target(card) != null
 		_:
+			# EnemyHeroOrMinion compris : le héros reste toujours une cible de
+			# repli valide, même sans serviteur ennemi en jeu.
 			return true
 
 # Choisit la cible d'un sort ciblé pour l'IA : le serviteur ennemi (au joueur)
@@ -445,7 +447,9 @@ func _pick_spell_target(card: CardData) -> Minion:
 	if effect.effect_id in AUTO_TARGET_EFFECTS:
 		return null
 	match effect.target:
-		"EnemyMinion":
+		"EnemyMinion", "EnemyHeroOrMinion":
+			# EnemyHeroOrMinion : un serviteur menaçant si possible, sinon null
+			# (résolu comme dégâts directs au héros par EffectManager._damage).
 			return _best_hostile_target(_filter_spell_targets(_exclude_spell_immune(battle.player_minions, card), effect))
 		"AllyMinion":
 			return _best_friendly_target(_filter_spell_targets(battle.enemy_minions, effect))
