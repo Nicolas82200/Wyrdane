@@ -210,6 +210,7 @@ func _process(delta: float) -> void:
 	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
 		and is_visible_in_tree() \
 		and not _is_game_over() \
+		and not _is_ui_blocked() \
 		and get_global_rect().has_point(get_global_mouse_position())
 	if over and not _mouse_is_over:
 		_on_mouse_entered()
@@ -400,6 +401,19 @@ func _is_dragging_card() -> bool:
 
 func _is_game_over() -> bool:
 	return _battle != null and "game_over" in _battle and _battle.game_over
+
+## Coupe le hover du board pendant qu'une vue plein écran (cimetière/deck,
+## réglages) est ouverte par-dessus.
+func _is_ui_blocked() -> bool:
+	if _battle == null:
+		return false
+	if "graveyard_view" in _battle and is_instance_valid(_battle.graveyard_view) \
+			and _battle.graveyard_view.visible:
+		return true
+	if "settings_menu" in _battle and is_instance_valid(_battle.settings_menu) \
+			and _battle.settings_menu.visible:
+		return true
+	return false
 
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
