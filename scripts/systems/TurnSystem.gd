@@ -204,7 +204,7 @@ func run_mulligan() -> void:
 	battle.hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	battle.mulligan_dim_overlay.visible = true
 	battle.turn_banner.show_banner_persistent(
-		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"),
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint") % battle.MULLIGAN_MAX_SWAPS,
 		TurnBanner.MULLIGAN_Y_RATIO)
 	battle._retranslate_battle()
 	battle.end_turn_button.disabled = false
