@@ -10,6 +10,10 @@ signal discard_card_clicked(index: int, card_data: CardData)
 @onready var container = $CardsContainer
 @onready var preview   = $CardPreview
 
+# Trait flouté reliant la carte survolée à sa preview agrandie (voir
+# _on_card_hover) — au-dessus des cartes, en dessous de la preview elle-même.
+var _preview_link: PreviewLinkOverlay = null
+
 # Doit rester au-dessus des boutons du plateau (cimetière, deck — z_index 0
 # par défaut) pour que la main ne soit jamais recouverte par eux.
 const CARD_Z_BASE := 20
@@ -93,6 +97,9 @@ func _ready() -> void:
 	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	preview.z_index = 100
 	preview.hide()
+	_preview_link = PreviewLinkOverlay.new()
+	_preview_link.z_index = 99
+	add_child(_preview_link)
 
 func set_battle(battle: Node) -> void:
 	_battle = battle
@@ -462,6 +469,15 @@ func _on_card_hover(card: Card) -> void:
 		pos.y - preview.size.y * 1.0
 	)
 	preview.show()
+	# Trait reliant la carte à la preview : part de la carte, se connecte par
+	# le bas au centre de la preview.
+	var card_rect := card.get_global_rect()
+	var link_from := card_rect.position + Vector2(card_rect.size.x * 0.5, card_rect.size.y * 0.15)
+	var link_to: Vector2 = preview.global_position + Vector2(
+		preview.size.x * preview.scale.x * 0.5,
+		preview.size.y * preview.scale.y
+	)
+	_preview_link.show_link(link_from, link_to)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
@@ -475,6 +491,7 @@ func _on_card_hover(card: Card) -> void:
 
 func _hide_preview() -> void:
 	preview.hide()
+	_preview_link.hide_link()
 
 ## `card` : mouse_entered/mouse_exited entre deux cartes de la main adjacentes
 ## n'arrivent pas toujours dans un ordre garanti par Godot — un exited périmé
@@ -485,6 +502,7 @@ func _on_card_unhover(card: Card) -> void:
 		return
 	_hovering = false
 	preview.hide()
+	_preview_link.hide_link()
 	_hide_keyword_tooltips()
 	_hovered_card = null
 	_update_hand_layout(true)
