@@ -12,6 +12,8 @@ const SUMMON := "summon"
 # Cartes
 const DRAW := "draw"
 const PLAY_CARD := "play_card"
+const SPELL_CAST := "spell_cast"
+const SPELL_CAST_FREEZE := "spell_cast_freeze"
 
 # Tour
 const TURN_START := "turn_start"
@@ -134,6 +136,44 @@ func load_sounds() -> void:
 			preload("res://assets/audio/sound-effect/global/draw-card-01.mp3"),
 			preload("res://assets/audio/sound-effect/global/draw-card-02.mp3"),
 			preload("res://assets/audio/sound-effect/global/draw-card-03.mp3")
+		],
+		# Son de lancer de sort par race (thème sonore) ; Race.Type.NONE sert de
+		# repli générique pour les races sans thème dédié (Elfe/Nain à venir).
+		SPELL_CAST: {
+			Race.Type.UNDEAD: [
+				preload("res://assets/audio/sound-effect/global/spell-cast-undead-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-undead-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-undead-03.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-undead-04.wav"),
+			],
+			Race.Type.DEMON: [
+				preload("res://assets/audio/sound-effect/global/spell-cast-demon-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-demon-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-demon-03.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-demon-04.wav"),
+			],
+			Race.Type.HUMAN: [
+				preload("res://assets/audio/sound-effect/global/spell-cast-human-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-human-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-human-03.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-human-04.wav"),
+			],
+			Race.Type.ABOMINATION: [
+				preload("res://assets/audio/sound-effect/global/spell-cast-abomination-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-abomination-02.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-abomination-03.wav"),
+			],
+			Race.Type.NONE: [
+				preload("res://assets/audio/sound-effect/global/spell-cast-generic-01.wav"),
+				preload("res://assets/audio/sound-effect/global/spell-cast-generic-02.wav"),
+			],
+		},
+		# Prioritaire sur le thème de race : tout sort avec un effet Freeze
+		# (Démon comme Mort-Vivant) joue un son de gel, indépendamment de la race.
+		SPELL_CAST_FREEZE: [
+			preload("res://assets/audio/sound-effect/global/spell-cast-ice-01.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-ice-02.wav"),
+			preload("res://assets/audio/sound-effect/global/spell-cast-ice-03.wav"),
 		],
 		HIT: [
 			preload("res://assets/audio/sound-effect/global/hit-01.wav"),
@@ -280,6 +320,17 @@ func play_with_pitch(
 	_spawn_player(sound, true, min_pitch, max_pitch)
 
 
+func play_spell_cast(card_data: CardData) -> void:
+	for effect in card_data.effects:
+		if effect.effect_id == "Freeze":
+			play(SPELL_CAST_FREEZE)
+			return
+	var race: int = card_data.race
+	if not sounds[SPELL_CAST].has(race):
+		race = Race.Type.NONE
+	play_for_style(SPELL_CAST, race)
+
+
 func play_for_style(sound_name: String, style: int, pitch_variation := true) -> void:
 	if not sounds.has(sound_name):
 		push_warning("Son introuvable : " + sound_name)
@@ -289,7 +340,7 @@ func play_for_style(sound_name: String, style: int, pitch_variation := true) -> 
 		push_warning("'%s' n'est pas un son par style — utilisez play()" % sound_name)
 		return
 	var variants = entry.get(style)
-	if variants == null:
+	if variants == null or (variants is Array and variants.is_empty()):
 		push_warning("Pas de son pour le style %d dans '%s'" % [style, sound_name])
 		return
 	var sound: AudioStream = variants.pick_random() if variants is Array else variants

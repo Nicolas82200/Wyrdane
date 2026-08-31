@@ -19,7 +19,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Lancier en Ligne"
-description = "FORMATION : tant qu'un allié est adjacent, gagne +1/+1."
+description = "FORMATION"
 flavour_text = "La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux."
 texture = ExtResource("3_texture")
 cost = 2

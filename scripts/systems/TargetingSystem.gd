@@ -45,6 +45,9 @@ func prompt_trigger_target(card_data: CardData) -> Minion:
 	return result
 
 func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
+	# Un attaquant/groupe d'attaquants deja selectionne accepterait un clic
+	# destine au ciblage du sort comme un ordre d'attaque (meme cible cliquee).
+	battle.selection_system.clear_selection()
 	_pending_card         = card_data
 	_pending_row          = row
 	_pending_insert_index = insert_index
@@ -247,7 +250,7 @@ func _is_valid_target_minion(minion: Minion, card_data: CardData) -> bool:
 # ("un serviteur ennemi de 3 HP ou moins", "un Mort-Vivant allié"...)
 func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 	if not effect.race_filter.is_empty() \
-			and minion.card_data.race != Race.from_string(effect.race_filter):
+			and (minion.card_data.race == Race.from_string(effect.race_filter)) == effect.race_filter_exclude:
 		return false
 	if not effect.row_filter.is_empty() and minion.board_row != effect.row_filter:
 		return false
@@ -256,6 +259,10 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
 		return false
 	if effect.requires_resurrected_target and not minion.was_resurrected:
+		return false
+	if effect.exclude_legendary and minion.card_data.rarity == "Legendary":
+		return false
+	if effect.requires_infected_target and not minion.infected:
 		return false
 	return true
 

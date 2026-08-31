@@ -29,7 +29,11 @@ func _ready() -> void:
 	# Les decks arrivent de façon asynchrone (sync backend lancée par MainMenu) :
 	# si elle n'a pas encore fini, on se met simplement à jour quand elle finit.
 	DeckManager.decks_loaded.connect(_refresh)
-	_retranslate()   # appelle aussi _refresh()
+	_retranslate()   # appelle aussi _refresh() avec les données déjà en mémoire
+	# Re-sync à chaque ouverture de l'écran : un deck créé sur le deck builder
+	# web pendant que le jeu tourne n'apparaît sinon qu'au prochain redémarrage
+	# (DeckManager.decks n'est peuplé qu'au chargement initial du jeu).
+	DeckManager.sync_from_backend()
 
 # Met à jour les libellés fixes dans la langue courante (les lignes de deck sont
 # régénérées par _refresh, appelé ici aussi pour relocaliser leurs boutons).
@@ -94,6 +98,11 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	panel.custom_minimum_size = Vector2(0, 52)
 	panel.mouse_entered.connect(func(): panel.add_theme_stylebox_override("panel", bg_hover))
 	panel.mouse_exited.connect(func():  panel.add_theme_stylebox_override("panel", bg))
+	# Deck incomplet/invalide ou contenant des cartes non possédées : pas
+	# bloquant ici (juste une gestion des decks), mais expliqué au survol.
+	var warnings := DeckManager.playability_warnings(deck)
+	if not warnings.is_empty():
+		panel.tooltip_text = "\n".join(warnings)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -117,7 +126,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Nom
 	var name_lbl := Label.new()
-	name_lbl.text = deck.name
+	name_lbl.text = SettingsManager.t(deck.name)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.add_theme_font_size_override("font_size", 18)
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
@@ -125,12 +134,12 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 
 	# Compte de cartes — rouge si deck incomplet
 	var count_lbl := Label.new()
-	count_lbl.text = "%d/40" % deck.size()
+	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(56, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	count_lbl.add_theme_font_size_override("font_size", 14)
 	count_lbl.add_theme_color_override("font_color",
-		Color(0.5, 0.9, 0.5, 1) if deck.size() >= 40 else Color(1, 0.4, 0.4, 1))
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
 
 	# Bouton choisir — désactivé si déjà actif

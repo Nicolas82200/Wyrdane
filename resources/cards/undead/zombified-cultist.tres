@@ -20,8 +20,8 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cultiste Zombifié"
-description = "Dernier Souffle : invoque un Cadavre Errant en rangée Avant."
-flavour_text = "Il a prié pour la mort éternelle. Il a été exaucé — à moitié."
+description = "Dernier Souffle : Invoque un Cadavre Errant en rangée Avant."
+flavour_text = "Il a prié pour la mort éternelle. Il a été exaucé, à moitié."
 texture = ExtResource("3_texture")
 cost = 2
 unit_style = 1

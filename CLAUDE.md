@@ -26,11 +26,13 @@ Framework : **GUT** (`addons/gut`), activé comme plugin dans `project.godot`. T
 - Après un `git pull`/`git clone` (ou si les tests échouent avec des erreurs "class_names have not been imported" / "Failed to instantiate an autoload"), régénérer le cache d'import une fois : `godot --headless --path . --import`
 - Les scripts purs sans dépendance de scène (ex. `Minion`, `CardData`) sont testables directement en instanciant la classe. Éviter de dépendre des autoloads globaux (`CardLibrary`, etc.) dans les tests : le runner GUT (mode `-s`) ne les initialise pas de façon fiable — préférer charger le script cible directement (`load("res://...").new()`) quand c'est possible
 - Toute nouvelle carte ou tout nouveau système de jeu mérite un test si sa logique n'est pas triviale (calcul de dégâts, conditions de trigger, intégrité des ressources `.tres`)
+- Couverture actuelle : 521 tests, incluant `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`). Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles pour un vrai test d'intégration)
 
 ## Structure du projet
 
 ```
 scenes/
+├── arena/           # Prototype Arena/Battle Royale solo local (ArenaBattle.tscn)
 ├── battle/          # Scène de bataille
 ├── card/            # Affichage d'une carte (+ cartes enchantement)
 ├── deck/            # Deck builder et liste des decks
@@ -44,6 +46,7 @@ scenes/
 
 scripts/
 ├── EffectManager/   # Moteur d'exécution des effets de cartes
+├── arena/           # Mode Arena/Battle Royale (prototype solo local) : ArenaMatch (orchestrateur), SimulatedBattle (combat headless réutilisant CombatSystem/DeathSystem 1v1), ArenaCardPool, ArenaMergeSystem, ArenaPairing, GhostBoard, ArenaBotDriver...
 ├── audio/           # AudioManager (autoload)
 ├── battle/          # Battle.gd — orchestrateur central de la bataille
 ├── card/            # CardData, Card (UI), CardEffect, styles
@@ -60,7 +63,8 @@ scripts/
 ├── settings/        # Menus de réglages + SettingsManager (autoload)
 ├── shop/            # PackShop.gd — écran d'ouverture de packs
 ├── systems/         # Systèmes de jeu (AISystem, CombatSystem, TurnSystem, DeathSystem...)
-└── tutorial/        # TutorialManager, TutorialDeck, TutorialOpponent, TutorialContext — tutoriel obligatoire guidé
+├── tutorial/        # TutorialManager, TutorialDeck, TutorialOpponent, TutorialContext — tutoriel obligatoire guidé
+└── ui/              # Petits composants UI partagés (Navbar, ViewFade — fondu générique entre deux vues d'un même écran)
 
 translations/        # Traductions FR/EN (game.csv → .translation compilés par Godot)
 ```
@@ -74,6 +78,7 @@ Autoloads globaux (voir `project.godot`) :
 - `CollectionManager` — `scripts/collection/CollectionManager.gd` (collection de cartes possédées, autoritaire côté backend)
 - `CurrencyManager` — `scripts/collection/CurrencyManager.gd` (solde de monnaie molle, autoritaire côté backend)
 - `BackendClient` — `scripts/net/BackendClient.gd` (client HTTP vers `wyrdane-backend`, auth Steam)
+- `SceneTransition` — `scripts/systems/SceneTransition.gd` (fondu au noir générique entre deux `change_scene_to_file` — à utiliser systématiquement à la place d'un appel brut pour tout changement de scène plein écran)
 
 ## Concepts du jeu (essentiels pour coder les effets)
 
@@ -85,7 +90,7 @@ Autoloads globaux (voir `project.godot`) :
 - **Ressource** — carte de race (coût 0) ; +1 (actuel et max) au pool de mana de sa race, puis retirée de la partie (aucune zone ne la garde — non récupérable). Une seule par tour et par camp. Voir « Système de Ressources par Race » ci-dessous.
 
 ### Système de Ressources par Race
-Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Éclat d'Âme / Sceau du Royaume / Fragment de Pacte / Éclat d'Anomalie). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
+Plus de mana générique unique : chaque race a son propre pool (`Battle.race_mana`/`race_max_mana`, `Dictionary` clé `Race.Type`), alimenté uniquement en jouant une carte-ressource (Chair / Sceau du Royaume / Âme / Éclat d'Anomalie). Plus de choix Mana/Pioche en début de tour : `TurnSystem._begin_player_turn` recharge les pools à leur maximum (`Battle.refill_mana_pool`) et pioche automatiquement. Le coût d'une carte de race se scinde en `race_cost` (payable uniquement depuis le pool de sa race, calculé depuis `CardData.rarity` par `CostSystem.get_race_cost`) et `generic_cost` (payable depuis n'importe quel pool en surplus). Détails complets, formules et deckbuilding dans README.md « Système de Ressources par Race ».
 
 Une fois jouée, la carte-ressource n'est posée dans aucune zone du plateau ni conservée dans une structure de données (cimetière ou autre) : elle disparaît simplement de la partie (`Battle.play_resource_card`), donc aucun effet ne peut jamais la récupérer. La pose visuelle en zone dédiée du plateau (`PlayerResourceZone`/`EnemyResourceZone`, `EnchantmentSystem.add_resource`) est **désactivée** (`Battle.RESOURCE_ZONE_ENABLED = false`) mais conservée telle quelle en vue d'une réactivation future.
 
@@ -95,7 +100,7 @@ Une fois jouée, la carte-ressource n'est posée dans aucune zone du plateau ni 
 - Max 10 serviteurs par rangée, 20 en jeu au total
 
 ### Triggers (déclencheurs d'effets)
-`Invocation`, `Dernier Souffle`, `Assaut`, `Blessure`, `Éveil` (début de tour), `Déclin` (fin de tour), `Ralliement` (unité alliée arrive), `Deuil` (unité alliée meurt), `Sortilège` (sort allié lancé), `Sacrifice`, `Exécution` (unité ennemie meurt), `Carnage` (n'importe quelle unité meurt).
+`Arrivée`, `Dernier Souffle`, `Assaut`, `Blessure`, `Éveil` (début de tour), `Déclin` (fin de tour), `Renfort` (unité alliée arrive), `Deuil` (unité alliée meurt), `Sortilège` (sort allié lancé), `Sacrifice`, `Exécution` (unité ennemie meurt), `Carnage` (n'importe quelle unité meurt).
 
 Implémentation réelle : les triggers sont l'enum `TriggerType.Type` (`scripts/data/TriggerType.gd`) et sont déclenchés par nom via `EffectManager.trigger_effects(battle, minion, "OnAwaken")` ou `TriggerSystem.fire("OnSummon", minion, is_player)`. Les effets eux-mêmes sont **data-driven** : chaque carte (`CardData.effects`) porte des ressources `CardEffect` (effect_id, cible, valeur) exécutées par `EffectManager.execute_effect()` — rien n'est codé en dur dans les serviteurs. **Avant d'ajouter un effet, vérifier si son `effect_id` existe déjà dans le `match` de `EffectManager.gd`.**
 
@@ -106,7 +111,7 @@ Un effet `SummonMinion` (cible fixe via `CardEffect.summon_card`) ne doit **jama
 `REMPART`, `ASSAUT`, `FRÉNÉSIE`, `RAVAGE`, `INFILTRATION`, `MOISSON`, `VENIN MORTEL`, `ÉGIDE` — définitions complètes dans `README.md`.
 
 ### Mécaniques spéciales — Mort-Vivant
-- **Infection** — perte de 1 HP au début du tour adverse, persiste jusqu'à mort
+- **Infection** — cumulable (`Minion.infection_stacks`) : chaque pose ajoute une marque, perte d'autant de HP au début du tour adverse (5 marques = 5 HP/tour), persiste jusqu'à mort ou guérison complète (`CureInfection` retire toutes les marques d'un coup)
 - **Mort-rage** — se déclenche une seule fois, quand le serviteur passe sous 50% HP max
 - **Cimetière** — pile LIFO des serviteurs alliés morts, visible des deux joueurs
 - **Sacrifice** — destruction volontaire d'un allié pour déclencher un effet
@@ -115,7 +120,7 @@ Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`u
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
-- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`), main et pools de mana par race. Tour automatique en 3 phases : début de tour (recharge des pools + pioche automatique), pose de cartes (une ressource par tour puis serviteurs/sorts/rituels/enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
+- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`), main et pools de mana par race. Tour automatique en 3 phases : début de tour (recharge des pools + pioche automatique), pose de cartes (une ressource par tour puis serviteurs/sorts/rituels/enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
 - **`NetworkOpponent`** (`scripts/net/NetworkOpponent.gd`, mode réseau) — ne décide rien : rejoue localement, dans l'ordre, les commandes reçues du joueur distant jusqu'à `END_TURN`.
 
 Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendant le tour adverse.
@@ -129,11 +134,17 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - La déconnexion du pair en cours de partie est gérée (retour propre), et la main/le deck adverses sont affichés en compteurs cosmétiques.
 
 ### Backend (`wyrdane-backend`, dépôt séparé)
-`BackendClient` (autoload, `scripts/net/BackendClient.gd`) parle en HTTP à un backend Node/Express séparé (dépôt local `E:\wyrdane-backend`, hébergé sur Render — `API_URL` en dur dans le script). Authentification par ticket de session Steamworks (`POST /api/auth/steam`), cookie de session porté manuellement sur chaque requête suivante (`request()` générique, callback `(code, parsed_body)`). Toute la progression joueur (collection de cartes possédées, monnaie molle, packs) est **autoritaire côté serveur** : `CollectionManager`/`CurrencyManager` ne mettent jamais en cache hors-ligne, seule la dernière sync fait foi ; tant qu'aucune sync n'a réussi, le deck builder considère le joueur comme ne possédant aucune carte (comportement prudent, pas un bug).
+`BackendClient` (autoload, `scripts/net/BackendClient.gd`) parle en HTTP à un backend Node/Express séparé (dépôt local `E:\wyrdane-backend`, hébergé en prod sur un **VPS OVH** (`137.74.163.226`, `api.wyrdane.com`) via Docker Compose + Nginx — `API_URL` en dur dans le script, voir « Infra & déploiement (VPS) » ci-dessous pour le détail). Authentification par ticket de session Steamworks (`POST /api/auth/steam`), cookie de session porté manuellement sur chaque requête suivante (`request()` générique, callback `(code, parsed_body)`). Toute la progression joueur (collection de cartes possédées, monnaie molle, packs) est **autoritaire côté serveur** : `CollectionManager`/`CurrencyManager` ne mettent jamais en cache hors-ligne, seule la dernière sync fait foi ; tant qu'aucune sync n'a réussi, le deck builder considère le joueur comme ne possédant aucune carte (comportement prudent, pas un bug).
 - `MainMenu._start_backend_sync()` lance `BackendClient.login_with_steam()` à l'ouverture du menu, puis déclenche `CollectionManager.sync_from_backend()` et `CurrencyManager.sync_from_backend()` une fois connecté.
 - `PackShop.gd` (`scripts/shop/`) est l'écran d'ouverture de packs : dépense la monnaie molle (`CurrencyManager.open_pack`, coût affiché `CurrencyManager.PACK_COST`) contre des cartes aléatoires pondérées par rareté, résolues via `CardLibrary.card_by_backend_id`.
-- Le backend local (`E:\wyrdane-backend`, branche `dev`) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `dev` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
+- Le backend local (`E:\wyrdane-backend`, branche **`main`** — `dev` est gelée) est en cours de développement par petites branches (`NNNN-slug` côté backend aussi) ; certaines routes attendues par le client (monnaie, packs, récompenses) peuvent vivre sur une branche pas encore mergée dans `main` — si un appel `BackendClient.request()` échoue en local, vérifier d'abord l'état des branches du backend avant de suspecter un bug côté jeu.
 - Dégradation attendue si le backend est injoignable : les managers restent `is_synced = false`, l'UI affiche les valeurs par défaut (solde 0, collection vide) sans bloquer le joueur.
+
+### Panneau d'actualités (menu principal)
+Le panneau « Actualités » de `MainMenu` (`scripts/mainMenu/MainMenu.gd`, `_fetch_remote_news`) récupère les devlogs/actus créées sur le site (`wyrdane-website`) via `NEWS_FEED_URL = "https://wyrdane.com/feed.json"` — un manifeste JSON bilingue (fr/en) régénéré à chaque build/déploiement du site (`scripts/generate-feed.mjs`, appelé en `predev`/`prebuild`) à partir de `src/content/news/*.json` et `src/content/devlog/*.json`. Aucune action manuelle : ajouter un fichier JSON côté site puis déployer suffit à le faire apparaître en jeu. Si le fetch échoue (site injoignable), repli sur les ressources locales `res://resources/news/*.tres` (`NewsEntry.gd`, conservées pour ce cas).
+
+### Infra & déploiement (VPS)
+Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck builder web) sont hébergés ensemble sur un **VPS OVH** (`137.74.163.226`, Ubuntu, Docker) — plus sur Render. Domaines : `wyrdane.com`/`www.wyrdane.com` (site) et `api.wyrdane.com` (API). Détail complet de la stack (Docker Compose, Nginx, sécurité, CI/CD) documenté dans le `CLAUDE.md` de `wyrdane-backend`. Rien à faire côté `card-game` pour cette infra sinon garder `API_URL` dans `BackendClient.gd` synchronisé si le domaine change.
 
 ### Tutoriel guidé obligatoire
 `TutorialManager` (`scripts/tutorial/TutorialManager.gd`, ~700 lignes) orchestre un tutoriel scripté séquentiel (popups + attentes d'action réelle via `_popup`/`_popup_wait_action`/`_wait_for`) déclenché par `Battle._start_tutorial` avec un deck dédié (`TutorialDeck.gd`) et un adversaire scripté (`TutorialOpponent.gd`, implémente `OpponentDriver`). Couvre notamment une phase de mulligan guidée (`intro_mulligan`/`guided_mulligan`, appelée par `Battle._run_mulligan()`) et se termine par `notify_victory()` : marque le tutoriel complété (`SettingsManager.set_tutorial_completed()`) puis réclame côté backend les 4 decks préfaits + cartes associées (`POST /api/collection/claim-starter`) avant de retourner au menu principal.
@@ -153,6 +164,16 @@ Couche réseau dans `scripts/net/`, en modèle **relais de commandes** : chaque 
 - Actuellement désactivée (`Battle.RESOURCE_ZONE_ENABLED = false`) : une carte-ressource jouée disparaît simplement de la partie au lieu d'être posée. Conservée pour une réactivation future.
 - Les panneaux `Player/EnemyResourcePanel` et `Player/EnemyResourceZone` sont masqués (`visible = false`) dans `Battle.tscn` (nœuds conservés pour la réactivation). Le deck (`Deck/EnemyDeckButton`, affiché en long, tourné à 90°) et le cimetière (`Player/EnemyGraveyardButton`, juste en dessous) occupent désormais cet espace.
 
+### Accessibilité
+
+Réglages centralisés dans `SettingsManager.gd`, tous persistés dans `user://display_settings.cfg` et exposés dans `GraphismSettingsMenu`/`ControlSettingsMenu` (menu Réglages, onglet Graphismes/Contrôles) :
+- **Échelle de l'interface** (`text_scale`, 85%–130%) — `content_scale_factor` du viewport racine.
+- **Assistance daltonisme** (`colorblind_mode` : aucune/protanopie/deutéranopie/tritanopie) — overlay plein écran (`resources/shaders/colorblind_filter.gdshader`) qui décale les teintes confondues plutôt que de les simuler.
+- **Contraste élevé** (`high_contrast`) — overlay plein écran séparé (`resources/shaders/high_contrast_filter.gdshader`, boost contraste + saturation), cumulable avec l'assistance daltonisme.
+- **Réduction des animations** (`reduced_motion`) — désactive le shake d'écran (`AnimationSystem._shake`, y compris le shake inline de `play_attack_lunge`) et raccourcit à 35 % (`SettingsManager.motion_scale()`/`REDUCED_MOTION_SCALE`) la durée des tweens de déplacement/rotation les plus visibles (`AnimationSystem._t()`, `Hand.gd` animation de pioche, `CardPopupSystem.gd` popups d'effet). N'affecte pas les fondus courts (flash, disparition), dont la coupure nette serait plus perturbante que le mouvement.
+- **Rebind clavier** (`REBINDABLE_ACTIONS`) — limité aux 3 actions du projet ayant un raccourci clavier (`end_turn`, `toggle_graveyard`, `toggle_enemy_graveyard`) ; aucune autre action clavier codée en dur à étendre pour l'instant (voir `ControlSettingsMenu.gd`, déjà générique par dictionnaire action→bouton).
+- **Indicateurs non basés sur la seule couleur** : icône « ⚠ » devant les HP du héros sous 30 % de ses HP max (`HeroSystem._hp_label_text`/`LOW_HP_RATIO`), glyphe de palier ranked (`RankTier.TIER_SYMBOLS`, voir « Ranked / paliers » ci-dessous). Les mots-clés (`TooltipData.KEYWORD_ICONS` et variantes par race) étaient déjà iconifiés individuellement, pas seulement colorés. Le bandeau de type d'une carte (`Card.gd`) portait autrefois un symbole de rareté en plus de `RARITY_COLORS` (`●/◆/▲/★`) ; retiré sur demande explicite (préférence visuelle, bandeau jugé trop chargé) — la couleur du bandeau reste le seul indicateur de rareté sur la carte elle-même.
+
 ## Internationalisation (i18n)
 
 Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.csv` (clé, fr, en) compilé en `game.fr.translation` / `game.en.translation`.
@@ -170,7 +191,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 
 ### Isolation des agents
 
-Quand tu travailles sur une nouvelle feature ou tâche indépendante, crée automatiquement un nouveau worktree (et la branche associée, format NNNN-slug) plutôt que de travailler directement dans le dossier courant.
+Dès qu'une modification de fichier est réellement nécessaire pour une nouvelle feature ou tâche indépendante, crée **obligatoirement** un worktree avec une nouvelle branche (format NNNN-slug) via l'outil `EnterWorktree` (name: `NNNN-slug`) — ne modifie jamais de fichiers directement sur `dev` dans le dossier principal. S'il n'y a aucune modification à faire (question, lecture seule, exploration), pas besoin de worktree. Un hook `PreToolUse` bloque toute édition tant que tu es encore sur `dev` dans le dossier principal, pour te le rappeler.
 
 ## Workflow Git
 
@@ -199,16 +220,51 @@ Avant de créer une branche, toujours vérifier le numéro le plus récent plut�
 
 ### Push
 
+- Avant tout push, mettre `dev` à jour (`git fetch origin dev` ou `git checkout dev && git pull`), puis la merger dans la branche courante (`git merge dev`) et résoudre les conflits éventuels avant de continuer
 - Toujours demander confirmation avant de push
 
 ## Roadmap actuelle (voir README.md pour la liste à jour)
 
-- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID de test 480), i18n FR/EN complète (UI + cartes), menu réglages en jeu, écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs)
-- ⬜ À faire : page Steamworks + vrai AppID + build Steam, mode campagne, mode Battle Royale (design finalisé dans `README.md`), animations shaders, tests automatisés (unitaires GUT existants — étendre la couverture), suite du backend (ranked/collection encore en cours de merge côté `wyrdane-backend`)
+- ✅ Implémenté : IA adverse (tous types de cartes, trois niveaux de difficulté), deck builder, quatre races de cartes (Mort-Vivant, Humain, Démon, Abomination — 317 cartes au total, jetons compris) + système de Ressources par Race (pools de mana séparés, carte-ressource et zone dédiée par race, 4 cartes), système d'effets/triggers/enchantements/auras (avec conditions et valeurs dynamiques), multijoueur 1v1 réseau backend Steam (lobby + P2P via GodotSteam optionnel, « Partie rapide », reconnexion après coupure transitoire, AppID Wyrdane 5052390, page Steamworks validée par Valve), suivi MMR/ranked (chaque match réseau est rapporté par les deux clients à `/api/ranked/matches/report`, double-report côté backend, MMR/rang affichés dans le profil et via un badge de palier dérivé côté client — voir « Ranked / paliers » ci-dessous), i18n FR/EN complète (UI + cartes), menu réglages en jeu (options d'accessibilité : échelle de l'interface, assistance daltonisme, contraste élevé, réduction des animations, rebind clavier, indicateurs non basés sur la seule couleur — voir « Accessibilité » ci-dessus), écran de fin de partie (victoire/défaite/déconnexion, rejouer en solo), tutoriel obligatoire guidé (mulligan compris) avec récompense de decks/cartes de départ, prototype Arena/Battle Royale jouable en solo local (8 participants : 1 joueur + 7 bots, `scripts/arena/`, `scenes/arena/ArenaBattle.tscn` — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design, combat auto-résolu réutilisant `CombatSystem`/`DeathSystem` 1v1 via `SimulatedBattle`, voir « État actuel du prototype » dans `README.md`), backend séparé `wyrdane-backend` (auth Steam, collection de cartes possédée, monnaie molle, boutique de packs), déployé sur VPS OVH avec déploiement continu (push sur `main` → auto-déploiement via GitHub Actions)
+- ⬜ À faire : build/dépôt Steam (page Steamworks validée par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`), invitations d'amis Steam, étendre le prototype Arena au réseau à 8 joueurs, nouvelles races (Elfe, Nain), animations shaders, routes backend du matchmaking classé (client déjà prêt côté `card-game`, contrat dans `docs/backend-contracts/ranked-matchmaking-and-retention.md` — à implémenter côté `wyrdane-backend`), saisons ranked avec récompenses de fin de saison, déploiement en prod des routes backend des quêtes hebdomadaires et du parrainage (implémentées côté `wyrdane-backend` sur la branche `0044-weekly-quests-and-referral`, contrat dans `docs/backend-contracts/weekly-quests-and-referral.md`, client déjà prêt côté `card-game` — pas encore mergées/déployées au moment d'écrire ceci), déploiement en prod du chantier quêtes 2026-08-31 (2 slots quotidiens au lieu de 3, 1 slot hebdo au lieu de 3 + quête multi-race, nouvelles quêtes uniques — implémenté côté `wyrdane-backend` sur la branche `0049-quest-system-rework`, client déjà prêt côté `card-game` — pas encore mergé/déployé au moment d'écrire ceci)
+
+### Boucle de rétention (quêtes quotidiennes, récompense de connexion)
+
+Backend (`wyrdane-backend`, PR mergées) : voir « Quêtes quotidiennes »/« Récompense de connexion quotidienne » dans son `CLAUDE.md`. Côté client (`MainMenu.gd`) :
+- **Quêtes** : bouton « Quêtes » (`BottomCenterPanel`) ouvre `InfoView.QUESTS` (`_open_quests_view`), qui appelle `BackendClient.get_daily_quests` (2 slots depuis le 2026-08-31, avant 3) et construit une ligne par quête (`QuestsPanel._add_item`, construction dynamique comme `_add_news_item`) — texte traduit via `description_key` renvoyé par le backend (`QUEST_PLAY_3`, `QUEST_WIN_2`... déjà dans `translations/game.csv`, à tenir synchronisé si de nouveaux `QUEST_TEMPLATES` sont ajoutés côté backend). Bouton Réclamer actif seulement si `progress >= target`, appelle `BackendClient.claim_quest` puis `CurrencyManager.sync_from_backend()`.
+- **Récompense de connexion** : popup automatique (`LoginRewardPopup`, nœud racine caché par défaut) affiché une fois la sync backend terminée (`_fetch_login_reward_status`, appelé depuis `_launch_backend_syncs`) si `claimed_today` est faux. Volontairement, le montant de la récompense n'est **pas** affiché avant réclamation : `/api/login-reward/status` ne renvoie que le palier (`streak_day`), pas la récompense associée, pour ne jamais dupliquer côté client la table `REWARD_BY_DAY` du backend (qui pourrait dériver silencieusement) — le montant n'apparaît qu'après un `claim` réussi, popup qui se referme automatiquement 1,4s après.
+- **Quêtes hebdomadaires** et **parrainage** : client écrit contre `docs/backend-contracts/weekly-quests-and-referral.md`, routes backend implémentées côté `wyrdane-backend` (branche `0044-weekly-quests-and-referral`, pas encore mergée/déployée au moment d'écrire ceci — le client échoue proprement en attendant). Quêtes hebdo : `QuestsPanel._populate_weekly` ajoute une section sous les quêtes quotidiennes dans la même vue (`InfoView.QUESTS`), récompense en packs (`reward_pack`, pas d'or) créditée sur `CurrencyManager.free_packs` (nouveau solde séparé de `balance`, synchronisé par `sync_from_backend`, consommé par `CurrencyManager.open_owned_pack` via le bouton dédié de `PackShop.gd`, visible seulement si `free_packs > 0`). Parrainage : `ReferralPanel.gd` (même pattern statique que `QuestsPanel`/`ProfilePanel`) ajoute une section dynamique en bas de la vue Profil (pas de nouvel écran/bouton de nav) avec le code du joueur, un bouton « copier le lien », le statut du parrainage en cours et un champ pour entrer un code reçu ; le même champ apparaît aussi en popup une seule fois juste après la fin du tutoriel (`ReferralPanel.maybe_show_first_launch_prompt`, `SettingsManager.referral_prompt_seen`), moment plus naturel pour un nouveau joueur que d'aller le chercher dans le menu. Un joueur ne peut parrainer qu'**un seul** ami (contrainte côté serveur, `referrer_id` unique) — récompense (3 packs + 500 or) créditée au parrain quand le filleul termine le tutoriel, pas de nouvelle route dédiée pour ce déclenchement (réutilise `POST /api/collection/claim-starter` existant).
+
+### Ranked / paliers / matchmaking classé
+
+Le MMR est calculé et stocké côté `wyrdane-backend` (`rating` par joueur, mis à jour via double-report de chaque match réseau — voir `Battle._show_game_over`/`BackendClient.report_ranked_match`), mais le backend n'a **aucune notion de palier** : il ne renvoie qu'un MMR brut (`/api/profile` → `ranked.mmr`). Les deux joueurs d'un match classé confirmé (double-report concordant) sont aussi crédités en or selon leur propre résultat (barème par série de victoires, voir « Économie » dans `README.md` — le solo, lui, ne rapporte plus rien depuis 2026-08-26) ; le montant n'est renvoyé dans la réponse HTTP qu'au camp dont le rapport confirme le match en second — si le rapport local arrive en premier (`202 pending`), `MatchResultReporter._report_ranked` réessaie automatiquement quelques secondes avant d'abandonner l'affichage (l'or est de toute façon déjà crédité côté serveur). Les paliers (Bronze/Argent/Or/Légende) sont **dérivés côté client uniquement**, dans `scripts/data/RankTier.gd` (seuils, couleur, glyphe — même logique que `Card.RARITY_SYMBOLS` pour rester lisible sans dépendre de la seule couleur). Affichés à deux endroits dans `MainMenu.gd` : badge persistant dans `PlayerStatusPanel` (mis à jour à chaque sync backend via `_fetch_rank_badge`) et badge détaillé avec progression vers le palier suivant dans la vue Profil (`_populate_profile_stats` → `_apply_rank_badge`). Si les seuils de `RankTier.THRESHOLDS` changent, aucune migration backend n'est nécessaire — c'est un pur affichage.
+
+Le bouton « Partie classée » de `NetLobby.gd` implémente le côté client d'un appariement par MMR (file d'attente backend, contrat complet dans `docs/backend-contracts/ranked-matchmaking-and-retention.md`) : `BackendClient.queue_join/queue_status/queue_report_lobby/queue_cancel` interrogent `/api/matchmaking/queue/...` (routes pas encore implémentées côté `wyrdane-backend` au moment d'écrire ceci — le bouton échoue proprement avec `NET_RANKED_UNAVAILABLE` en attendant). Une fois deux tickets appariés, l'hôte crée un lobby Steam classique (`NetworkManager.host_game_with`) et transmet son id au backend dès qu'il est connu (`NetTransport.session_ready`, nouveau signal émis par `SteamTransport._on_lobby_created` — relayé par `NetworkManager`) ; l'invité récupère ce lobby id au prochain poll et le rejoint directement (`join_game_with(..., {"lobby_id": ...})`, même mécanisme que rejoindre une invitation Steam d'ami). Le reste du flow (handshake, bataille, report du résultat) est strictement identique à la partie rapide — un match classé n'est aujourd'hui distingué d'une partie rapide par aucun champ côté backend (voir le contrat pour ce choix).
 
 ## Notes pour les agents
 
 - Avant d'implémenter une nouvelle carte : lire son entrée exacte dans `CARDS.md`, identifier son trigger, vérifier s'il existe déjà un `effect_id` similaire dans `scripts/EffectManager/EffectManager.gd` pour réutiliser le pattern, et créer la ressource `.tres` dans `resources/cards/<race>/`
 - Ne pas inventer de nouveau mot-clé ou trigger sans qu'il soit d'abord ajouté à `README.md`
 - Le projet est en français dans sa documentation et son contenu visible par le joueur (noms de cartes, effets, UI, tooltips) — garder cette langue pour tout ce qui est visible en jeu. Le code (variables, fonctions) peut rester en anglais sauf convention contraire déjà en place. **Seuls les noms de branches et les commits sont toujours en anglais** (voir Workflow Git ci-dessus).
+
+## Maintenir la documentation à jour
+
+`CLAUDE.md`, `README.md`, `TODO.md` et `CARDS.md` doivent toujours refléter l'état réel du projet. À chaque tâche modifiant le code, avant de considérer le travail terminé (et donc avant tout commit/push) :
+
+- **`CARDS.md`** : toute carte ajoutée, supprimée ou dont les stats/coût/rareté/trigger/texte d'effet changent doit voir son entrée mise à jour dans le tableau de sa race.
+- **`README.md`** : toute règle, mot-clé, trigger, mécanique de race ou système de jeu nouveau ou modifié doit être documenté ici (c'est la référence des règles complètes).
+- **`TODO.md`** : cocher/retirer les tâches terminées par ce travail, ajouter les nouvelles tâches ou suivis identifiés en cours de route.
+- **`CLAUDE.md`** : si la tâche change la structure du projet (nouveau dossier/autoload/système), la roadmap (section « Roadmap actuelle »), ou une convention de travail, mettre à jour la section concernée.
+
+Si une tâche ne touche à aucun de ces aspects (ex. simple refactor interne, correctif visuel sans impact sur les règles), il n'y a rien à mettre à jour — ne pas modifier les `.md` par réflexe. Mais ne jamais laisser la doc devenir obsolète par oubli.
+
+## Devlog hebdomadaire
+
+Un devlog est publié chaque lundi. Pour préparer sa rédaction, chaque session de travail qui modifie du code doit consigner ses changements en brut dans `devlogs/`, avant de considérer le travail terminé. Le dossier `devlogs/` est local uniquement (`.gitignore`) — notes de session brutes, il n'apparaît pas sur GitHub :
+
+- Fichier cible : `devlogs/YYYY-MM-DD-draft.md`, où la date est celle du **prochain lundi strictement après aujourd'hui**. Si on est déjà lundi (dès 00h01), la cible est le lundi *suivant* (+7 jours), jamais la date du jour — le lundi en cours est celui dont le vrai devlog est sur le point d'être écrit avec l'utilisateur, pas une cible d'écriture. Créer le fichier s'il n'existe pas (voir `devlogs/README.md` pour le format).
+- Ajouter une entrée en fin de fichier, sous la date du jour (`## YYYY-MM-DD`), avec une liste à puces brute des changements faits pendant la session — pas de mise en forme, pas de ton marketing, juste les faits (ce qui a été ajouté/corrigé/changé et pourquoi si pertinent).
+- Ne pas réécrire ou reformuler les entrées des sessions précédentes dans ce fichier : c'est un journal brut destiné à être relu et transformé en vrai devlog le lundi, avec l'utilisateur.
+- Ne rien ajouter pour des tâches sans impact utilisateur/projet perceptible (ex. simple refactor interne sans changement de comportement) — même logique que pour les autres docs ci-dessus.
+- Une fois le vrai devlog écrit le lundi, le fichier draft est archivé (`devlogs/archive/`) ou supprimé, et un nouveau draft est créé pour la semaine suivante.
 

@@ -23,7 +23,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cavalier Zombie"
-description = "ASSAUT. Arrivée : attaque immédiatement le serviteur ennemi le plus faible en HP."
+description = "ASSAUT
+Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points de vie."
 flavour_text = "Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte."
 texture = ExtResource("3_texture")
 cost = 4

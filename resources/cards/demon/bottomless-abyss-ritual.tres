@@ -24,8 +24,9 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rituel du Gouffre Sans Fond"
-description = "Sacrifice (un serviteur allié) : pioche 1 carte ; ton héros regagne 1 HP."
-flavour_text = "Le seul rituel démoniaque qui rend plus qu'il ne prend — tant qu'il reste des charges."
+description = "Sacrifice 1 : Piochez une carte.
+Votre héros regagne 1 point de vie."
+flavour_text = "Le seul rituel démoniaque qui rend plus qu'il ne prend, tant qu'il reste des charges."
 texture = ExtResource("3_texture")
 cost = 6
 race = 5

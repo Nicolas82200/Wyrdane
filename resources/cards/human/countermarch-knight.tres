@@ -30,8 +30,9 @@ type = "OnDamaged"
 [resource]
 script = ExtResource("3_wnhmr")
 card_name = "Chevalier de la Contre-Marche"
-description = "CONTRE-ATTAQUE. ASSAUT. Blessure : gagne +2/+0 jusqu'à fin de tour."
-flavour_text = "Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant."
+description = "CONTRE-ATTAQUE, ASSAUT
+Blessure : Gagne +2/+0 jusqu'à la fin du tour."
+flavour_text = "Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire, et c'est suffisant."
 texture = ExtResource("4_knns1")
 cost = 5
 race = 1

@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "La Terre Qui Refuse de Garder"
-description = "Deuil : le serviteur allié mort revient immédiatement en jeu."
+description = "Deuil : Le serviteur allié mort revient immédiatement en jeu."
 flavour_text = "Le sol ici ne garde rien. Il rend, mais jamais tel quel."
 texture = ExtResource("2_texture")
 cost = 5

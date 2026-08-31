@@ -1,18 +1,8 @@
 extends Control
 class_name CombatLogPanel
 
-## Panneau repliable affichant l'historique du CombatLogSystem : le joueur peut
-## le consulter à tout moment pour comprendre un enchaînement d'effets ou
-## rattraper ce qui s'est passé pendant le tour adverse. Panneau collé au bord
-## gauche de l'écran (x=0), avec une extension verticale calculée dynamiquement
-## entre le bas de l'affichage de mana adverse et le haut de la main du joueur
-## (VERTICAL_GAP de marge de chaque côté pour ne recouvrir ni l'un ni l'autre).
-## Le bouton toggle est un onglet flottant à x=0, centré verticalement sur la
-## hauteur du panneau, dessiné par-dessus son bord gauche. Au clic, le panneau
-## se déploie vers la droite (largeur animée). Chaque ligne = une icône + de
-## courtes miniatures d'illustration de carte (bordure verte = vous, rouge =
-## adversaire) et quelques segments texte pour les nombres/flèches — pas de
-## phrase. Créé entièrement en code par Battle (aucun nœud dans Battle.tscn).
+## Panneau repliable affichant l'historique du CombatLogSystem, créé
+## entièrement en code par Battle (aucun nœud dans Battle.tscn).
 ##
 ## Positionnement en pixels ABSOLUS (position/size), pas via anchors : les
 ## enfants ancrés hérités de la taille du parent au moment de leur création
@@ -63,7 +53,7 @@ func _ready() -> void:
 	_build_panel()
 
 	_toggle_button = Button.new()
-	_toggle_button.text = "📜"
+	_toggle_button.text = "≡"
 	_toggle_button.custom_minimum_size = TOGGLE_SIZE
 	_toggle_button.size = TOGGLE_SIZE
 	_toggle_button.position = Vector2(0.0, _panel_top_left.y + _panel_height / 2.0 - TOGGLE_SIZE.y / 2.0)
@@ -245,7 +235,7 @@ func _make_card_thumb(segment: Dictionary) -> Control:
 
 	if is_dead:
 		var skull := Label.new()
-		skull.text = "💀"
+		skull.text = "X"
 		skull.add_theme_font_size_override("font_size", int(THUMB_SIZE.y * 0.65))
 		skull.set_anchors_preset(Control.PRESET_FULL_RECT)
 		skull.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

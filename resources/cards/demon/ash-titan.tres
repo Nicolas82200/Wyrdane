@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://belm8254bcu16" path="res://assets/card_art/demon/ash-titan.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="6_kwd"]
 
 [sub_resource type="Resource" id="Resource_7rom5"]
 script = ExtResource("4_kw")
@@ -14,24 +15,32 @@ name_fr = "Rempart"
 script = ExtResource("5_trig")
 type = "DEATHRATTLE"
 
-[sub_resource type="Resource" id="Resource_ufahl"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("6_kwd")
+keyword_type = 0
 value = 2
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_ytcn7"]
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
 target = "EnemyHero"
-value = 3
+value = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "EnemyHero"
+value = 1
+pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Titan de Cendres"
-description = "REMPART. Dernier Souffle : ton héros perd 2 HP ; inflige 3 dégâts au héros adverse."
+description = "REMPART
+Dernier Souffle : Inflige 2 dégâts au héros adverse.
+Pacte 2 : Inflige 1 dégât de plus."
 flavour_text = "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs."
 texture = ExtResource("3_texture")
 cost = 5
@@ -40,8 +49,9 @@ unit_style = 15
 attack = 4
 health = 6
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_7rom5")])
+demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_83b09")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ufahl"), SubResource("Resource_ytcn7")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_ytcn7"), SubResource("Resource_bonus")])
 rarity = "Rare"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

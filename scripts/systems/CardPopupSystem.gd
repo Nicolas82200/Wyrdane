@@ -92,7 +92,7 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		card.position.x = -card.size.x
 		card.scale = Vector2(STACK_SCALE, STACK_SCALE)
 
-	var entry := {"card": card, "shown": false}
+	var entry := {"card": card, "shown": false, "source_minion": source_minion}
 	# Un nouvel effet déclenché passe DEVANT la file : il se jouera en premier
 	_pending.push_front(entry)
 	_reflow_pending()
@@ -161,9 +161,9 @@ func _reflow_pending() -> void:
 		_kill_popup_tween(card)
 		var t = card.create_tween().set_parallel(true)
 		card.set_meta("popup_tween", t)
-		t.tween_property(card, "position", _waiting_slot_position(i, card.size), 0.25)\
+		t.tween_property(card, "position", _waiting_slot_position(i, card.size), 0.25 * SettingsManager.motion_scale())\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-		t.tween_property(card, "scale", Vector2(STACK_SCALE, STACK_SCALE), 0.25)\
+		t.tween_property(card, "scale", Vector2(STACK_SCALE, STACK_SCALE), 0.25 * SettingsManager.motion_scale())\
 			.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 		t.tween_property(card, "modulate:a", STACK_DIM, 0.25)
 
@@ -184,12 +184,18 @@ func _play_popup(entry: Dictionary) -> void:
 	_kill_popup_tween(card)
 	var t_in = card.create_tween().set_parallel(true)
 	card.set_meta("popup_tween", t_in)
-	t_in.tween_property(card, "position", _get_left_slot_position(card.size), 0.3)\
+	t_in.tween_property(card, "position", _get_left_slot_position(card.size), 0.3 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.3)\
+	t_in.tween_property(card, "scale", Vector2(1.0, 1.0), 0.3 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t_in.tween_property(card, "modulate:a", 1.0, 0.15)
 	await t_in.finished
+
+	# Identifie sur le plateau le serviteur qui déclenche l'effet en cours de
+	# preview (contour pulsant vert/rouge selon le camp, voir
+	# BoardMinion.set_effect_preview_highlight) — pas pour les cartes-ressource,
+	# qui n'ont pas de serviteur source.
+	_set_source_highlight(entry, true)
 
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
@@ -199,6 +205,7 @@ func _play_popup(entry: Dictionary) -> void:
 	if is_resource:
 		await battle.get_tree().create_timer(RESOURCE_HOLD).timeout
 		_active_card = null
+		_set_source_highlight(entry, false)
 		_absorb_resource_popup(card, entry["card_data"])
 		return
 
@@ -208,21 +215,33 @@ func _play_popup(entry: Dictionary) -> void:
 		_effect_card = null
 		clear_effect_arrows()
 	_active_card = null
+	_set_source_highlight(entry, false)
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card)
 
-# Remplace le fondu habituel par la désintégration en fragments de
-# AnimationSystem, depuis la position de la popup vers le pool de mana de la
-# race de la carte — la même animation que Card.gd utilisait auparavant depuis
-# la main, désormais déclenchée depuis l'emplacement de la popup.
+# Active/désactive le halo de preview sur le serviteur source de cette popup
+# (absent pour les cartes-ressource, ou si le serviteur a quitté le plateau
+# entre-temps — ex: il meurt pendant que sa propre popup est encore affichée).
+func _set_source_highlight(entry: Dictionary, active: bool) -> void:
+	var source_minion: Minion = entry.get("source_minion")
+	if source_minion == null:
+		return
+	var visual: BoardMinion = battle.board_visual_system.get_visual(source_minion)
+	if visual != null and is_instance_valid(visual):
+		visual.set_effect_preview_highlight(active, source_minion.owner_is_player)
+
+# Remplace le fondu habituel par la dissolution de AnimationSystem, depuis la
+# position de la popup — la même animation que Card.gd utilisait auparavant
+# depuis la main, désormais déclenchée depuis l'emplacement de la popup. Le
+# pool de mana du joueur "respire" (pulse_max) au même instant, pour que le
+# gain de mana soit visuellement associé à la disparition de la carte.
 func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
 	var color: Color = Color.WHITE
-	var target: Vector2 = card.global_position + card.size * 0.5
 	if battle.get("mana_display"):
-		color  = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
-		target = battle.mana_display.get_race_anchor_global_position(card_data.race)
+		color = ManaDisplay.RACE_MANA_COLORS.get(card_data.race, Color.WHITE)
+		battle.mana_display.pulse_max()
 	if battle.get("animation_system"):
-		battle.animation_system.play_resource_absorb(card, target, color)
+		battle.animation_system.play_resource_absorb(card, color)
 	else:
 		card.queue_free()
 
@@ -251,7 +270,10 @@ func get_effect_popup_tip() -> Vector2:
 # laisse visible un court instant (pour que le joueur voie qui est touché),
 # lance un projectile de sort le long de la même courbe (AnimationSystem),
 # puis rend la main à l'appelant qui applique alors l'effet.
-func show_effect_arrows(target_positions: Array, hold: float = 0.35) -> void:
+# skip_missile : true quand VFXManager a déjà joué un vrai projectile pour ce
+# sort (résolution immédiate d'un Éphémère/Rituel joué, voir CardSystem.gd) —
+# évite d'afficher les deux projectiles en double sur la même carte.
+func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false) -> void:
 	var from: Vector2 = get_effect_popup_tip()
 	if from == Vector2.ZERO or target_positions.is_empty():
 		return
@@ -259,8 +281,8 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35) -> void:
 	for p in target_positions:
 		pts.append(p)
 	_effect_arrow.show_arrows(from, pts)
-	if battle.get("animation_system") and _effect_card != null and is_instance_valid(_effect_card) \
-			and _effect_card.data != null:
+	if not skip_missile and battle.get("animation_system") and _effect_card != null \
+			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
 	await battle.get_tree().create_timer(hold).timeout
@@ -290,10 +312,19 @@ func show_targeting_popup(card_data: CardData) -> void:
 	_persistent_card = card
 
 	var t = card.create_tween().set_parallel(true)
-	t.tween_property(card, "position:x", LEFT_MARGIN, 0.25)\
+	t.tween_property(card, "position:x", LEFT_MARGIN, 0.25 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(card, "modulate:a", 1.0, 0.2)
 	await t.finished
+
+# Accès à la popup persistante et à son calque, pour qu'un système appelant
+# (ex. PactChoiceSystem) puisse positionner sa propre UI de choix juste en
+# dessous de la carte affichée par show_targeting_popup.
+func get_persistent_card() -> Card:
+	return _persistent_card
+
+func get_popup_layer() -> CanvasLayer:
+	return _popup_layer
 
 func hide_targeting_popup() -> void:
 	if _persistent_card == null or not is_instance_valid(_persistent_card):
@@ -302,7 +333,7 @@ func hide_targeting_popup() -> void:
 	var card := _persistent_card
 	_persistent_card = null
 	var t = card.create_tween().set_parallel(true)
-	t.tween_property(card, "position:x", -card.size.x, 0.2)\
+	t.tween_property(card, "position:x", -card.size.x, 0.2 * SettingsManager.motion_scale())\
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
 	t.tween_property(card, "modulate:a", 0.0, 0.15)
 	await t.finished

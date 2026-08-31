@@ -11,7 +11,7 @@ keyword_type = 3
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Emprunt de Peau"
-description = "CHAIR ADAPTATIVE."
+description = "CHAIR ADAPTATIVE"
 flavour_text = "Elle n'a rien à elle. Elle prend ce qui traîne à côté."
 texture = ExtResource("2_texture")
 cost = 3

@@ -41,7 +41,7 @@ func setup(new_data: CardData, new_is_player: bool) -> void:
 func set_turns_left(turns: int) -> void:
 	$TurnsLabel.visible = turns > 0
 	if turns > 0:
-		var fmt := SettingsManager.t("enchant.charges_many") if turns > 1 else SettingsManager.t("enchant.charges_one")
+		var fmt: String = SettingsManager.t("enchant.charges_many") if turns > 1 else SettingsManager.t("enchant.charges_one")
 		$TurnsLabel.text = fmt % turns
 
 # Surbrillance dorée quand le rituel est activable (Sacrifice disponible)
@@ -127,37 +127,57 @@ func _show_keyword_tooltips(anchor_x: float, base_y: float, align_right: bool) -
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
 	_battle.add_child(_tooltip_layer)
+	# Capturé localement : `_tooltip_layer` (membre partagé) peut avoir été
+	# réassigné par un survol plus récent d'ici la reprise des await ci-dessous
+	# (sortie/re-entrée rapide sur cette même carte) — comparer à `my_layer`
+	# plutôt qu'au membre courant évite d'agir sur/pour une session périmée.
+	var my_layer := _tooltip_layer
 
-	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, _tooltip_layer)
+	var panels: Array[Control] = TooltipData.build_panels_for_card(card_data, my_layer)
 	await get_tree().process_frame
 
-	if not _mouse_is_over:
+	if not _mouse_is_over or _tooltip_layer != my_layer:
 		_hide_keyword_tooltips()
 		return
+
+	# Remonte le point de départ si la pile déborde en bas de l'écran, pour
+	# qu'elle reste entièrement visible plutôt que de couler hors du cadre.
+	var vp := get_viewport_rect().size
+	var stack_height := 0.0
+	for panel in panels:
+		if is_instance_valid(panel):
+			stack_height += panel.size.y + 6.0
+	if stack_height > 0.0:
+		stack_height -= 6.0
+		base_y = clampf(base_y, 4.0, maxf(4.0, vp.y - stack_height - 4.0))
 
 	var y := base_y
 	for panel in panels:
 		if not is_instance_valid(panel):
 			continue
 		var panel_x := anchor_x - panel.size.x if align_right else anchor_x
+		panel_x = clampf(panel_x, 4.0, vp.x - panel.size.x - 4.0)
 		panel.global_position = Vector2(panel_x, y)
 		y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
 
 	if TooltipData.RACE_DESCRIPTIONS.has(card_data.race):
-		if not is_instance_valid(_tooltip_layer):
+		if _tooltip_layer != my_layer or not is_instance_valid(my_layer):
 			return
 		var race_panel := TooltipData.make_race_tooltip(TooltipData.RACE_DESCRIPTIONS[card_data.race])
 		race_panel.position = Vector2(-9999, -9999)
-		_tooltip_layer.add_child(race_panel)
+		my_layer.add_child(race_panel)
 		await get_tree().process_frame
-		if is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
+		if _tooltip_layer == my_layer and _mouse_is_over \
+				and is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
 			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * PREVIEW_SCALE
 			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * PREVIEW_SCALE) / 2.0
-			race_panel.global_position = Vector2(
-				preview_center_x - race_panel.size.x / 2.0,
-				preview_bottom + 6
-			)
+			var rx: float = clampf(
+				preview_center_x - race_panel.size.x / 2.0, 4.0, vp.x - race_panel.size.x - 4.0)
+			var ry := preview_bottom + 6
+			if ry + race_panel.size.y > vp.y - 4.0:
+				ry = _hover_preview.global_position.y - race_panel.size.y - 6
+			race_panel.global_position = Vector2(rx, ry)
 			_keyword_tooltips.append(race_panel)
 
 func _hide_keyword_tooltips() -> void:

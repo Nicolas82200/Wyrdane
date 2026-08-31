@@ -561,24 +561,15 @@ func notify_player_turn_began() -> void:
 		await _dismissed
 
 # Appelé par Battle quand le héros ennemi meurt en mode tutoriel : dernière
-# popup de félicitations, déblocage définitif (multijoueur/deckbuilder), puis
-# réclamation des 4 decks préfaits (un par race) et des cartes qu'ils
-# contiennent (voir wyrdane-backend POST /api/collection/claim-starter).
+# popup de félicitations puis déblocage définitif (multijoueur/deckbuilder).
+# La réclamation des 4 decks préfaits (un par race) et des cartes qu'ils
+# contiennent se fait désormais en avance, pendant l'écran de chargement
+# (voir LoadingScreen._sync_backend, appel idempotent à
+# POST /api/collection/claim-starter) — plus besoin d'attendre ici.
 func notify_victory() -> void:
 	await _popup("tutorial.complete", [])
 	SettingsManager.set_tutorial_completed()
-	# Attend la réponse du backend avant de changer de scène : MainMenu relance
-	# aussitôt son propre login+sync (voir MainMenu._start_backend_sync) et
-	# doit trouver les decks déjà créés côté serveur, pas une réponse encore
-	# en vol. Si l'appel échoue (backend down...), on continue quand même —
-	# même philosophie de dégradation que le reste de la sync backend
-	# (DeckManager/CardLibrary), pas de blocage du joueur pour autant.
-	BackendClient.request(HTTPClient.METHOD_POST, "/api/collection/claim-starter", {},
-		func(code: int, _parsed) -> void:
-			if code != 200:
-				push_warning("Échec de la réclamation des decks de départ (HTTP %d)" % code)
-			battle.get_tree().change_scene_to_file(battle.MAIN_MENU_SCENE)
-	)
+	SceneTransition.change_scene(battle.MAIN_MENU_SCENE)
 
 # ─── Attentes ─────────────────────────────────────────────────────────────────
 
@@ -594,20 +585,20 @@ func _wait_card(card: CardData) -> void:
 func _wait_minion() -> void:
 	await _wait_for("card_played", func(p): return p != null and p.card_type == "Minion")
 
-# Appelé par Battle AVANT _run_mulligan() (donc avant run()) : narration pure,
-# fermée au clic, pour présenter la phase de mulligan qui va suivre juste
-# après — elle utilise la vraie mécanique de jeu (Hand/Battle._run_mulligan),
-# pas une popup d'action de ce script.
+# Appelé par TurnSystem.start_match AVANT run_mulligan() (donc avant run()) :
+# narration pure, fermée au clic, pour présenter la phase de mulligan qui va
+# suivre juste après — elle utilise la vraie mécanique de jeu
+# (Hand/TurnSystem.run_mulligan), pas une popup d'action de ce script.
 func intro_mulligan() -> void:
 	await _popup("tutorial.mulligan_intro", [battle.hand, battle.end_turn_button])
 
-# Appelé par Battle._run_mulligan() une fois le mode mulligan actif (cartes
+# Appelé par TurnSystem.run_mulligan() une fois le mode mulligan actif (cartes
 # cliquables) : cible les cartes en main comme _popup_play_card (cartes
 # voisines assombries, aucun cadre de surbrillance, popup positionnée par
 # rapport à toute la main dépliée pour ne jamais la chevaucher) plutôt que le
 # cadre + assombrissement plein écran de _popup_wait_action, qui ne convient
 # qu'aux cibles hors main (zones du plateau, boutons...). Force réellement
-# l'échange de l'un des 3 exemplaires d'Éclat d'Âme avant de laisser le script
+# l'échange de l'un des 3 exemplaires de Chair avant de laisser le script
 # continuer. Le remplacement lui-même reste toujours une nouvelle
 # carte-ressource (voir DeckSystem.mulligan_replace_one), donc peu importe
 # laquelle des 3 est échangée, la main obtenue reste toujours valide pour la
@@ -632,7 +623,7 @@ func guided_mulligan() -> void:
 		battle.hand._force_expanded = false
 	_forced_hand_expanded = false
 
-# Appelé par Battle._on_mulligan_card_clicked() après un échange réussi.
+# Appelé par TurnSystem._on_mulligan_card_clicked() après un échange réussi.
 func notify_mulligan_swap(card_data: CardData) -> void:
 	_event.emit({"kind": "mulligan_swap", "payload": card_data})
 

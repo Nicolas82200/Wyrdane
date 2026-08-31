@@ -9,11 +9,11 @@
 
 [sub_resource type="Resource" id="Resource_a033"]
 script = ExtResource("1_kw")
-keyword_type = 1
+name_fr = "Assaut"
 
 [sub_resource type="Resource" id="Resource_a034"]
 script = ExtResource("1_kw")
-keyword_type = 5
+name_fr = "Venin mortel"
 
 [sub_resource type="Resource" id="Resource_a035"]
 script = ExtResource("5_trig")
@@ -29,7 +29,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Vase Brisé, Encore Plein"
-description = "ASSAUT. VENIN MORTEL. Dernier Souffle : se reforme en Amas Informe 2/2 sous ton contrôle (ne va pas au cimetière)."
+description = "ASSAUT, VENIN MORTEL
+Dernier Souffle : Se reforme en Amas Informe 2/2 sous votre contrôle (ne va pas au cimetière)."
 flavour_text = "Il ne meurt jamais tout à fait. Il se réarrange."
 texture = ExtResource("3_texture")
 cost = 3

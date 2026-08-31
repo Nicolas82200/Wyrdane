@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Soldat Réanimé"
-description = "REVENANT : la première fois qu'il devrait mourir, se relève avec 1 HP."
+description = "REVENANT"
 flavour_text = "La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience."
 texture = ExtResource("3_texture")
 cost = 3

@@ -9,8 +9,8 @@ enum Type {
 	MUTATION,          # Mute (Table de Mutation) chaque fois qu'il survit à une blessure. Permanent, cumulable.
 	FUSION,             # Sacrifice un allié adjacent : absorbe ses stats restantes ET un de ses mots-clés au choix.
 	VIRULENT,           # Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation.
-	CHAIR_ADAPTATIVE,   # Arrivée : copie un mot-clé au choix présent sur un serviteur adjacent (allié ou ennemi).
-	ASSIMILATION,       # Dévoration : absorbe les restes pour gagner +1/+1 permanent (une fois par mort).
+	CHAIR_ADAPTATIVE,   # Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi).
+	ASSIMILATION,       # Dévoration : absorbe les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort).
 	INSTABLE,           # Ne peut pas être ciblé par des effets de soin, alliés ou ennemis.
 }
 

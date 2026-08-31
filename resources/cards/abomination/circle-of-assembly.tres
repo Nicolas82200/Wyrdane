@@ -21,8 +21,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cercle de l'Assemblage"
-description = "Sacrifice (deux serviteurs alliés) : un allié restant aléatoire gagne +2/+2 de façon permanente."
-flavour_text = "Deux corps entrent. Un seul en ressort — plus grand."
+description = "Sacrifice 2 : Un allié restant aléatoire gagne +2/+2 de façon permanente."
+flavour_text = "Deux corps entrent. Un seul en ressort, plus grand."
 texture = ExtResource("2_texture")
 cost = 5
 race = 6

@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://4ntbsx5ua6hg" path="res://assets/card_art/demon/crimson-shadow-assassin.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="4_kw"]
 [ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="6_trig"]
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="7_cardeffect"]
 
 [sub_resource type="Resource" id="Resource_48idk"]
 script = ExtResource("4_kw")
@@ -13,11 +15,26 @@ name_fr = "Infiltration"
 [sub_resource type="Resource" id="Resource_b0fk8"]
 script = ExtResource("5_kwd")
 keyword_type = 0
+value = 3
+
+[sub_resource type="Resource" id="Resource_dr4jk"]
+script = ExtResource("6_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_qz7vn"]
+script = ExtResource("7_cardeffect")
+effect_id = "GrantKeyword"
+target = "Self"
+duration = "Permanent"
+granted_keyword = "AEGIS"
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Assassin des Ombres Rouges"
-description = "INFILTRATION. PACTE."
+description = "INFILTRATION
+Pacte 3 : Ce serviteur acquiert ÉGIDE."
 flavour_text = "Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri."
 texture = ExtResource("3_texture")
 cost = 3
@@ -27,6 +44,8 @@ attack = 4
 health = 2
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_48idk")])
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_b0fk8")])
+trigger_types = Array[ExtResource("6_trig")]([SubResource("Resource_dr4jk")])
+effects = Array[ExtResource("7_cardeffect")]([SubResource("Resource_qz7vn")])
 rarity = "Epic"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

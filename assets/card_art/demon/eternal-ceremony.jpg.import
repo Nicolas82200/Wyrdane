@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbj8socots5ti"
-path.s3tc="res://.godot/imported/eternal-ceremony.jpg-c79c29a096f3c9197b597e7227f92cbe.s3tc.ctex"
+path.bptc="res://.godot/imported/eternal-ceremony.jpg-c79c29a096f3c9197b597e7227f92cbe.bptc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -12,19 +12,19 @@ metadata={
 [deps]
 
 source_file="res://assets/card_art/demon/eternal-ceremony.jpg"
-dest_files=["res://.godot/imported/eternal-ceremony.jpg-c79c29a096f3c9197b597e7227f92cbe.s3tc.ctex"]
+dest_files=["res://.godot/imported/eternal-ceremony.jpg-c79c29a096f3c9197b597e7227f92cbe.bptc.ctex"]
 
 [params]
 
 compress/mode=2
-compress/high_quality=false
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/uastc_level=0
 compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

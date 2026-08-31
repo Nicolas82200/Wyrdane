@@ -17,7 +17,7 @@ keyword_type = 4
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Gargouille de Cendres"
-description = "REMPART. CHAIR DE SOUFRE."
+description = "REMPART, CHAIR DE SOUFRE"
 flavour_text = "Elle a regardé brûler des cathédrales entières sans ciller."
 texture = ExtResource("3_texture")
 cost = 2

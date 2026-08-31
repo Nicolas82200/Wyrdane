@@ -19,7 +19,7 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Vortex des Âmes"
-description = "Carnage : gagne 1 mana temporaire ce tour."
+description = "Carnage : Gagne 1 mana temporaire ce tour."
 flavour_text = "Les âmes qui s'y perdent alimentent quelque chose que personne ne comprend vraiment."
 texture = ExtResource("3_texture")
 cost = 6

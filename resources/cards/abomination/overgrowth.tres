@@ -7,7 +7,7 @@
 
 [sub_resource type="Resource" id="Resource_a025"]
 script = ExtResource("1_kw")
-keyword_type = 0
+name_fr = "Rempart"
 
 [sub_resource type="Resource" id="Resource_a026"]
 script = ExtResource("2_akw")
@@ -16,7 +16,7 @@ keyword_type = 0
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ce-Qui-A-Trop-Poussé"
-description = "REMPART. MUTATION."
+description = "REMPART, MUTATION"
 flavour_text = "On l'a vu changer trois fois dans la même bataille."
 texture = ExtResource("3_texture")
 cost = 5

@@ -20,7 +20,8 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Possédé Hurlant"
-description = "ASSAUT. VENIN MORTEL. Dernier Souffle : retiré du jeu (ne va pas au cimetière)."
+description = "ASSAUT, VENIN MORTEL
+Dernier Souffle : Retiré du jeu (ne va pas au cimetière)."
 flavour_text = "Même les morts refusent de le reprendre."
 texture = ExtResource("3_texture")
 cost = 3

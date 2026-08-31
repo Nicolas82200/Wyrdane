@@ -1,12 +1,12 @@
 extends Node
 class_name BoardSystem
 
-var battle: Node
+var battle
 
 
 var _firing_on_summon: bool = false
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
@@ -16,7 +16,7 @@ func _has_row_overflow_ally(is_player: bool) -> bool:
 	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
 	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
 
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> Minion:
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target: Minion = null) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
@@ -44,15 +44,15 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		battle.animation_system.play_charge_ready(minion_visual)
 
 
-	if minion.has_demon_keyword(KeywordDemon.Type.PACTE):
-		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if is_player else "EnemyHeroPanel")
-		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-		await battle.hero_system.self_damage(is_player, card_data.cost)
-
-
 	if not skip_onplay:
-		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY")
-
+		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY", onplay_target)
+		# Garde-fou : le trigger ONPLAY peut avoir attendu plusieurs secondes un
+		# choix de Pacte (PactChoiceSystem.ask) ; si la scène de bataille a été
+		# détruite entre-temps, `battle` est une instance libérée et tout le
+		# reste de cette fonction (player_minions/enemy_minions...) plantait
+		# dessus (même classe de bug déjà rencontrée sur Hand.gd).
+		if not is_instance_valid(battle):
+			return minion
 
 	if not _firing_on_summon:
 		_firing_on_summon = true
@@ -79,32 +79,36 @@ func _apply_commandement_bonus(minion: Minion, is_player: bool) -> bool:
 			applied = true
 	return applied
 
-# CHAIR ADAPTATIVE (Abomination) : Arrivée — copie un mot-clé présent sur un
-# serviteur ALLIÉ adjacent, de façon permanente. Simplification par rapport au
-# texte (« allié ou ennemi ») : le plateau n'ayant pas de notion de position
-# géométrique inter-camp (les rangées adverses ne sont pas indexées en miroir),
-# seule l'adjacence alliée est résolue ici. Choix déterministe (premier trouvé),
-# faute d'UI de sélection.
+# CHAIR ADAPTATIVE (Abomination) : Arrivée — copie un mot-clé présent sur
+# n'importe quel serviteur en jeu, allié ou ennemi, de façon permanente.
+# Plus de contrainte d'adjacence : elle posait un problème de résolution
+# inter-camp (les rangées adverses ne sont pas indexées en miroir) réglé en
+# élargissant la source aux serviteurs en jeu plutôt qu'en le contournant.
+# Choix déterministe (premier trouvé, alliés d'abord puis ennemis dans
+# l'ordre du plateau), faute d'UI de sélection.
 func _apply_chair_adaptative(minion: Minion) -> Minion:
 	if not minion.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE):
 		return null
-	for adjacent in battle.effect_manager._get_adjacent_minions(battle, minion):
-		if not adjacent.keywords.is_empty():
-			minion.add_keyword(adjacent.keywords[0])
-			return adjacent
-		if not adjacent.human_keywords.is_empty():
-			minion.add_human_keyword(adjacent.human_keywords[0])
-			return adjacent
-		if not adjacent.undead_keywords.is_empty():
-			minion.undead_keywords.append(adjacent.undead_keywords[0])
-			return adjacent
-		if not adjacent.demon_keywords.is_empty():
-			minion.add_demon_keyword(adjacent.demon_keywords[0])
-			return adjacent
-		for kw in adjacent.abomination_keywords:
+	var candidates: Array[Minion] = battle.player_minions + battle.enemy_minions
+	for candidate in candidates:
+		if candidate == minion:
+			continue
+		if not candidate.keywords.is_empty():
+			minion.add_keyword(candidate.keywords[0])
+			return candidate
+		if not candidate.human_keywords.is_empty():
+			minion.add_human_keyword(candidate.human_keywords[0])
+			return candidate
+		if not candidate.undead_keywords.is_empty():
+			minion.undead_keywords.append(candidate.undead_keywords[0])
+			return candidate
+		if not candidate.demon_keywords.is_empty():
+			minion.add_demon_keyword(candidate.demon_keywords[0])
+			return candidate
+		for kw in candidate.abomination_keywords:
 			if kw != KeywordAbomination.Type.CHAIR_ADAPTATIVE:
 				minion.add_abomination_keyword(kw)
-				return adjacent
+				return candidate
 	return null
 
 func _insert(minion: Minion, is_player: bool, row: String, insert_index: int) -> void:
@@ -130,3 +134,88 @@ func _get_row_count(minions: Array[Minion], row: String) -> int:
 
 func _spawn(minion: Minion, is_player: bool) -> void:
 	battle.board_visual_system.spawn_minion_visual(minion, is_player)
+
+# ─── Requêtes de plateau ────────────────────────────────────────────────────
+
+func get_owner_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return battle.player_minions
+	return battle.player_minions if minion.owner_is_player else battle.enemy_minions
+
+func get_enemy_minions(minion: Minion) -> Array[Minion]:
+	if minion == null:
+		return battle.enemy_minions
+	return battle.enemy_minions if minion.owner_is_player else battle.player_minions
+
+func get_row_minions(is_player: bool, row: String) -> Array[Minion]:
+	var source: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
+	return source.filter(func(m: Minion): return m.board_row == row)
+
+func get_front_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, battle.ROW_FRONT)
+
+func get_back_minions(is_player: bool) -> Array[Minion]:
+	return get_row_minions(is_player, battle.ROW_BACK)
+
+func can_summon_to_row(is_player: bool, row: String) -> bool:
+	# Ignore les serviteurs déjà morts (0 PV) mais pas encore physiquement
+	# retirés du plateau : DeathSystem.process_deaths() peut être en cours
+	# (ex. appelé depuis un Dernier Souffle qui invoque à son tour un effet de
+	# résurrection) sans avoir encore réellement retiré la cible de
+	# battle.player_minions/enemy_minions — sans ce filtre, sa place occupée
+	# était comptée à tort comme indisponible.
+	var occupied: int = get_row_minions(is_player, row).filter(
+		func(m: Minion): return not m.is_dead()
+	).size()
+	return occupied < battle.MAX_MINIONS_PER_ROW
+
+func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+	if card_data == null or card_data.card_type != "Minion":
+		return [battle.ROW_FRONT, battle.ROW_BACK]
+	match card_data.board_position:
+		battle.ROW_FRONT: return [battle.ROW_FRONT]
+		battle.ROW_BACK:  return [battle.ROW_BACK]
+		_:                return [battle.ROW_FRONT, battle.ROW_BACK]
+
+func can_play_card_on_row(card_data: CardData, row: String) -> bool:
+	return row in get_allowed_rows_for_card(card_data)
+
+func has_enemy_taunt(attacker: Minion) -> bool:
+	var attackable: Array[Minion] = get_attackable_enemy_minions(attacker)
+	for minion in attackable:
+		if minion.has_keyword(Keyword.Type.TAUNT):
+			return true
+	return false
+
+# Généralisé pour un attaquant de n'importe quel camp (joueur ou IA/réseau) :
+# la rangée/le camp "en face" se déduit de la propriété de l'attaquant plutôt
+# que d'être toujours le camp ennemi du joueur local.
+func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
+	var defending_is_player: bool = attacker != null and not attacker.owner_is_player
+	var defenders: Array[Minion] = battle.player_minions if defending_is_player else battle.enemy_minions
+	if attacker and attacker.has_keyword(Keyword.Type.BLACK_WINGS):
+		return defenders
+	var front: Array[Minion] = get_front_minions(defending_is_player)
+	if not front.is_empty():
+		return front
+	return defenders
+
+# ─── Règles d'attaque ───────────────────────────────────────────────────────
+
+func can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
+	if target not in get_attackable_enemy_minions(attacker):
+		return false
+	if has_enemy_taunt(attacker) and not target.has_keyword(Keyword.Type.TAUNT):
+		return false
+	return true
+
+# Généralisé pour un attaquant de n'importe quel camp : utilisé par
+# SelectionSystem (joueur local), AISystem et NetworkOpponent (revalidation
+# des commandes distantes).
+func can_attack_hero(attacker: Minion) -> bool:
+	if attacker.card_data != null and attacker.card_data.cannot_attack_hero:
+		return false
+	if has_enemy_taunt(attacker):
+		return false
+	var defending_is_player: bool = not attacker.owner_is_player
+	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()

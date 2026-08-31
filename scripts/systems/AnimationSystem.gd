@@ -4,29 +4,143 @@ class_name AnimationSystem
 const SLASH_TEXTURE := preload("res://assets/media-effect/image-effect/slash.png")
 const CLAW_TEXTURE := preload("res://assets/media-effect/image-effect/claw.png")
 
+# Durée totale de play_death (coupe + chute des 2 moitiés) : DeathSystem
+# attend ce délai avant de retirer le nœud du plateau.
+const DEATH_ANIMATION_DURATION := 0.55
+
 var battle
 
 func init(_battle) -> void:
 	battle = _battle
 
+# Durée de tween réduite quand SettingsManager.reduced_motion est actif
+# (accessibilité) : raccourcit les grands déplacements/rotations sans les
+# supprimer complètement, pour conserver un minimum de retour visuel.
+func _t(seconds: float) -> float:
+	return seconds * SettingsManager.motion_scale()
+
+# Angle de départ de play_summon (bascule autour du bas de la carte) : le bas
+# est déjà planté à sa position finale, le haut est encore basculé en arrière
+# et "tombe" ensuite jusqu'à être à plat.
+const SUMMON_TILT_DEGREES := 62.0
+
+## Pose d'un serviteur : le bas de la carte se plante d'abord à sa position
+## finale (pivot ancré en bas), puis le haut bascule vers l'avant jusqu'à
+## être à plat — comme une trappe qui claque au sol plutôt qu'un simple pop.
 func play_summon(visual: BoardMinion) -> void:
-	visual.scale = Vector2(0.2, 0.2)
+	var base_pivot: Vector2 = visual.pivot_offset
+	visual.pivot_offset = Vector2(visual.size.x / 2.0, visual.size.y)
+	visual.rotation_degrees = SUMMON_TILT_DEGREES
+	visual.scale = Vector2.ONE
 	visual.modulate.a = 0.0
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(visual, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(visual, "modulate:a", 1.0, 0.25)
+	tween.tween_property(visual, "modulate:a", 1.0, 0.1)
+	tween.tween_property(visual, "rotation_degrees", 0.0, _t(0.32)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_callback(func():
+		if is_instance_valid(visual):
+			visual.pivot_offset = base_pivot
+	)
 
+## Mort d'un serviteur : l'illustration se déchire en deux moitiés selon une
+## ligne diagonale irrégulière (pas une coupe nette), qui s'écartent à peine
+## en tombant, pendant que le reste de la carte (bordures, stats, icônes)
+## s'efface derrière elles.
 func play_death(visual: BoardMinion) -> Tween:
 	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_split_card_in_half(visual)
 	var tween: Tween = battle.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(visual, "scale", Vector2.ZERO, 0.35)\
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tween.tween_property(visual, "modulate:a", 0.0, 0.25)
+	tween.tween_property(visual, "modulate:a", 0.0, 0.2).set_delay(0.05)
 	return tween
 
-func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
+# Nombre de bandes horizontales utilisées pour approximer une ligne de coupe
+# diagonale et irrégulière à partir de simples régions rectangulaires
+# (AtlasTexture ne permet pas de région oblique sans shader/masque).
+const _DEATH_CUT_BANDS := 5
+# Dérive progressive du point de coupe d'une bande à l'autre (tendance
+# diagonale), en fraction de la largeur de la texture.
+const _DEATH_CUT_SLOPE := 0.09
+# Aléa ajouté par bande pour que la ligne de coupe ne soit jamais nette.
+const _DEATH_CUT_JITTER := 0.07
+
+func _split_card_in_half(visual: BoardMinion) -> void:
+	var art: TextureRect = visual.art
+	if art == null or art.texture == null:
+		return
+	var texture: Texture2D = art.texture
+	var art_rect: Rect2 = Rect2(art.global_position, art.size)
+	if art_rect.size.x <= 0.0 or art_rect.size.y <= 0.0:
+		return
+	var tex_size: Vector2 = texture.get_size()
+	var screen_scale: float = art_rect.size.x / tex_size.x
+
+	var band_h_tex: float = tex_size.y / float(_DEATH_CUT_BANDS)
+	var band_h_screen: float = art_rect.size.y / float(_DEATH_CUT_BANDS)
+
+	for i in range(_DEATH_CUT_BANDS):
+		var slope_offset: float = (i - (_DEATH_CUT_BANDS - 1) * 0.5) * _DEATH_CUT_SLOPE * tex_size.x
+		var jitter: float = randf_range(-_DEATH_CUT_JITTER, _DEATH_CUT_JITTER) * tex_size.x
+		var cut_x: float = clampf(tex_size.x * 0.5 + slope_offset + jitter, tex_size.x * 0.2, tex_size.x * 0.8)
+		var band_y_tex: float = i * band_h_tex
+		var band_y_screen: float = art_rect.position.y + i * band_h_screen
+
+		# Éclair blanc bref sur ce segment de la ligne de coupe.
+		var cut_seg := Panel.new()
+		var cut_style := StyleBoxFlat.new()
+		cut_style.bg_color = Color(1.0, 1.0, 1.0, 0.85)
+		cut_seg.add_theme_stylebox_override("panel", cut_style)
+		cut_seg.size = Vector2(3, band_h_screen)
+		cut_seg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cut_seg.z_index = 110
+		battle.add_child(cut_seg)
+		cut_seg.global_position = Vector2(art_rect.position.x + cut_x * screen_scale - 1.5, band_y_screen)
+		var cut_tween: Tween = battle.create_tween()
+		cut_tween.tween_property(cut_seg, "modulate:a", 0.0, 0.16).set_delay(0.04)
+		cut_tween.tween_callback(cut_seg.queue_free)
+
+		for side in range(2):
+			var region_x: float = 0.0 if side == 0 else cut_x
+			var region_w: float = cut_x if side == 0 else (tex_size.x - cut_x)
+			if region_w <= 0.0:
+				continue
+
+			var atlas := AtlasTexture.new()
+			atlas.atlas = texture
+			atlas.region = Rect2(Vector2(region_x, band_y_tex), Vector2(region_w, band_h_tex))
+
+			var piece := TextureRect.new()
+			piece.texture = atlas
+			piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			piece.stretch_mode = TextureRect.STRETCH_SCALE
+			piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			piece.size = Vector2(region_w * screen_scale, band_h_screen)
+			piece.z_index = 100
+			var piece_pos := Vector2(art_rect.position.x + region_x * screen_scale, band_y_screen)
+			piece.global_position = piece_pos
+			piece.pivot_offset = piece.size * 0.5
+			battle.add_child(piece)
+
+			# Séparation discrète : un peu à l'écart et vers le bas, avec un
+			# petit aléa pour que les deux moitiés ne bougent pas en bloc rigide.
+			var dir: float = -1.0 if side == 0 else 1.0
+			var travel := Vector2(dir * 18.0, 30.0) + Vector2(randf_range(-4.0, 4.0), randf_range(-3.0, 3.0))
+			var spin: float = dir * randf_range(8.0, 16.0)
+
+			var tween: Tween = battle.create_tween()
+			tween.set_parallel(true)
+			tween.tween_property(piece, "global_position", piece_pos + travel, _t(0.45))\
+				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tween.tween_property(piece, "rotation_degrees", spin, _t(0.45))\
+				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(piece, "modulate:a", 0.0, 0.3).set_delay(_t(0.2))
+			tween.chain().tween_callback(piece.queue_free)
+
+# speed_scale : facteur additionnel de vitesse (1.0 = normal, < 1.0 = plus
+# rapide), fourni par CombatSystem._combo_speed_scale quand plusieurs attaques
+# s'enchaînent vite (voir son commentaire) — indépendant de motion_scale()
+# (accessibilité), qui reste appliqué en plus via _t().
+func play_attack_lunge(attacker_visual: BoardMinion, target: Control, speed_scale: float = 1.0) -> void:
 	if not is_instance_valid(attacker_visual) or not is_instance_valid(target):
 		return
 	var start_pos := attacker_visual.position
@@ -36,117 +150,52 @@ func play_attack_lunge(attacker_visual: BoardMinion, target: Control) -> void:
 		return
 	attacker_visual.z_index = 50
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, 0.15)\
+	tween.tween_property(attacker_visual, "position", start_pos + Vector2(0, -15) - direction * 0.08, _t(0.15 * speed_scale))\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, 0.12)\
+	tween.tween_property(attacker_visual, "position", start_pos + direction * 0.95, _t(0.12 * speed_scale))\
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_callback(func():
 		if not is_instance_valid(target):
 			return
-		# Shake
-		var hit_pos := target.position
-		var shake: Tween = battle.create_tween()
-		shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05)
-		shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05)
-		shake.tween_property(target, "position", hit_pos, 0.05)
+		# Shake (accessibilité : désactivé si SettingsManager.reduced_motion)
+		if not SettingsManager.reduced_motion:
+			var hit_pos := target.position
+			var shake: Tween = battle.create_tween()
+			shake.tween_property(target, "position", hit_pos + Vector2(10, 0), 0.05 * speed_scale)
+			shake.tween_property(target, "position", hit_pos - Vector2(10, 0), 0.05 * speed_scale)
+			shake.tween_property(target, "position", hit_pos, 0.05 * speed_scale)
 		# Flash rouge
 		var flash: Tween = battle.create_tween()
-		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04)
-		flash.tween_property(target, "modulate", rest_tint(target), 0.18)
+		flash.tween_property(target, "modulate", Color(1.8, 0.3, 0.3, 1.0), 0.04 * speed_scale)
+		flash.tween_property(target, "modulate", rest_tint(target), 0.18 * speed_scale)
 		flash.tween_callback(func(): reapply_status_tint(target))
 		play_hit_mark(attacker_visual, target)
 	)
-	tween.tween_property(attacker_visual, "position", start_pos, 0.25)\
+	tween.tween_property(attacker_visual, "position", start_pos, _t(0.25 * speed_scale))\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	if is_instance_valid(attacker_visual):
 		attacker_visual.z_index = 0
 
-## Absorption d'une carte-ressource jouée : la carte se désintègre en fragments
-## dispersés aléatoirement, puis une boule de lumière part du point de
-## désintégration vers le pool de mana de sa race (`target`, teintée `color`).
-## Libère `card` (queue_free) une fois les fragments envolés.
-func play_resource_absorb(card: Card, target: Vector2, color: Color) -> void:
+## Absorption d'une carte-ressource jouée : la carte se dissout simplement sur
+## place (fondu + léger rétrécissement, teintée `color` en cours de route) au
+## lieu de se déchirer. Libère `card` (queue_free) une fois dissoute.
+func play_resource_absorb(card: Card, color: Color) -> void:
 	if not is_instance_valid(card):
 		return
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.z_index = 100
+	card.pivot_offset = card.size * 0.5
 
-	var burst_center: Vector2 = card.global_position + card.size * 0.5
-	_shatter_card_art(card, color)
-
-	# Le reste de la carte (bordure, labels, coût...) s'efface pendant que
-	# l'illustration part en éclats, pour que la transition reste homogène.
-	var fade_tween: Tween = battle.create_tween()
-	fade_tween.tween_property(card, "modulate:a", 0.0, 0.16)
-	fade_tween.tween_callback(func():
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(card, "modulate", Color(color.r, color.g, color.b, 0.0), _t(0.35))
+	tween.tween_property(card, "scale", card.scale * 0.75, _t(0.35))
+	tween.chain().tween_callback(func():
 		if is_instance_valid(card):
 			card.queue_free()
 	)
-
-	await battle.get_tree().create_timer(0.14).timeout
-	_travel_light_orb(burst_center, target, color)
-
-## Découpe `card.art` en une grille de fragments qui s'envolent dans des
-## directions aléatoires (biaisées vers l'extérieur) en tournant et en s'effaçant.
-func _shatter_card_art(card: Card, color: Color) -> void:
-	var art: TextureRect = card.art
-	if art == null or art.texture == null:
-		return
-	var texture: Texture2D = art.texture
-	var art_rect: Rect2 = Rect2(art.global_position, art.size)
-	if art_rect.size.x <= 0.0 or art_rect.size.y <= 0.0:
-		return
-
-	const COLS := 5
-	const ROWS := 6
-	var tex_size: Vector2 = texture.get_size()
-	var cell_tex: Vector2 = tex_size / Vector2(COLS, ROWS)
-	var cell_screen: Vector2 = art_rect.size / Vector2(COLS, ROWS)
-	var center: Vector2 = art_rect.position + art_rect.size * 0.5
-
-	for row in range(ROWS):
-		for col in range(COLS):
-			var atlas := AtlasTexture.new()
-			atlas.atlas = texture
-			atlas.region = Rect2(Vector2(col, row) * cell_tex, cell_tex)
-
-			var piece := TextureRect.new()
-			piece.texture = atlas
-			piece.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			piece.stretch_mode = TextureRect.STRETCH_SCALE
-			piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			piece.size = cell_screen
-			piece.z_index = 100
-			var piece_pos: Vector2 = art_rect.position + Vector2(col, row) * cell_screen
-			piece.global_position = piece_pos
-			piece.pivot_offset = cell_screen * 0.5
-			battle.add_child(piece)
-
-			var piece_center: Vector2 = piece_pos + cell_screen * 0.5
-			var outward: Vector2 = piece_center - center
-			if outward.length() < 1.0:
-				outward = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0))
-			outward = outward.normalized()
-			var jitter := Vector2(randf_range(-0.6, 0.6), randf_range(-0.6, 0.6))
-			var travel: Vector2 = (outward + jitter).normalized() * randf_range(35.0, 95.0)
-			var spin: float = randf_range(-260.0, 260.0)
-			var delay: float = randf_range(0.0, 0.06)
-			var duration: float = randf_range(0.32, 0.5)
-
-			var tween: Tween = battle.create_tween()
-			tween.set_parallel(true)
-			if delay > 0.0:
-				tween.tween_interval(delay)
-			tween.tween_property(piece, "global_position", piece_pos + travel, duration)\
-				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-			tween.tween_property(piece, "rotation_degrees", spin, duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(piece, "scale", Vector2(0.35, 0.35), duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.tween_property(piece, "modulate", Color(color.r, color.g, color.b, 0.0), duration)\
-				.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.chain().tween_callback(piece.queue_free)
 
 ## SORT : projectile qui file de la popup d'effet (`from`) vers chaque cible
 ## touchée (`targets`), en suivant la même courbe que la flèche de ciblage
@@ -176,7 +225,7 @@ func _fire_missile(start: Vector2, target: Vector2, color: Color, delay: float) 
 	battle.add_child(bolt)
 	bolt.global_position = start - bolt.size / 2.0
 
-	var duration: float = clampf(start.distance_to(target) / 1300.0, 0.18, 0.45)
+	var duration: float = _t(clampf(start.distance_to(target) / 1300.0, 0.18, 0.45))
 	var perp: Vector2 = (target - start).orthogonal().normalized()
 	var trail_spawned := {}
 
@@ -234,60 +283,6 @@ func _missile_impact(pos: Vector2, color: Color) -> void:
 	tween.tween_property(flash, "modulate:a", 0.0, 0.22)
 	tween.chain().tween_callback(flash.queue_free)
 
-## Boule de lumière qui voyage de `start` à `target` avec un halo et une
-## traînée d'après-images, façon "âme" absorbée vers le pool de mana.
-func _travel_light_orb(start: Vector2, target: Vector2, color: Color) -> void:
-	var glow_color: Color = color.lightened(0.5)
-	var core := Panel.new()
-	var core_style := StyleBoxFlat.new()
-	core_style.bg_color = glow_color
-	core_style.set_corner_radius_all(7)
-	core.add_theme_stylebox_override("panel", core_style)
-	core.size = Vector2(14, 14)
-	core.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	core.z_index = 101
-
-	var glow := Panel.new()
-	var glow_style := StyleBoxFlat.new()
-	glow_style.bg_color = Color(glow_color.r, glow_color.g, glow_color.b, 0.35)
-	glow_style.set_corner_radius_all(14)
-	glow.add_theme_stylebox_override("panel", glow_style)
-	glow.size = Vector2(28, 28)
-	glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	glow.z_index = 100
-
-	battle.add_child(glow)
-	battle.add_child(core)
-	glow.global_position = start - glow.size / 2.0
-	core.global_position = start - core.size / 2.0
-
-	var duration := 0.4
-	var perp: Vector2 = (target - start).orthogonal().normalized()
-	var trail_spawned := {}
-
-	var step := func(t: float):
-		if not is_instance_valid(core) or not is_instance_valid(glow):
-			return
-		var pos_t: float = t * t * (3.0 - 2.0 * t)
-		var arc: float = sin(t * PI) * 18.0
-		var pos: Vector2 = start.lerp(target, pos_t) + perp * arc
-		core.global_position = pos - core.size / 2.0
-		glow.global_position = pos - glow.size / 2.0
-		# Traînée : quelques après-images fantômes déposées le long du trajet.
-		var step10: int = int(t * 10.0)
-		if step10 % 2 == 0 and not trail_spawned.has(step10):
-			trail_spawned[step10] = true
-			_travel_spark(pos, pos, glow_color, 0.0, 0.22, 8.0)
-
-	var tween: Tween = battle.create_tween()
-	tween.tween_method(step, 0.0, 1.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	tween.tween_callback(func():
-		if is_instance_valid(core):
-			core.queue_free()
-		if is_instance_valid(glow):
-			glow.queue_free()
-	)
-
 # ─── Primitives réutilisées par les animations de mots-clés ───────────────────
 
 ## Petit point coloré qui voyage de `start` à `target` en fondu, façon étincelle.
@@ -307,7 +302,16 @@ func _travel_spark(start: Vector2, target: Vector2, color: Color, delay: float =
 	var tween: Tween = battle.create_tween()
 	if delay > 0.0:
 		tween.tween_interval(delay)
-	tween.tween_callback(func(): spark.modulate.a = 1.0)
+	# Gardé (contrairement au reste de la traînée, déjà protégé) : cet appel
+	# est le tout premier de la séquence, avant même que `duration`/`delay`
+	# ne se soient écoulés — la fenêtre la plus longue pendant laquelle
+	# `spark` peut être libéré ailleurs (ex. transition de manche Arena) avant
+	# que ce callback ne s'exécute, provoquant sinon un crash "Lambda capture
+	# ... was freed" en tentant d'accéder à `.modulate` sur une référence nulle.
+	tween.tween_callback(func():
+		if is_instance_valid(spark):
+			spark.modulate.a = 1.0
+	)
 	tween.tween_property(spark, "global_position", target - spark.size / 2.0, duration)\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.parallel().tween_property(spark, "modulate:a", 0.0, duration)
@@ -337,9 +341,10 @@ func reapply_status_tint(visual: CanvasItem) -> void:
 	if is_instance_valid(visual) and visual.has_method("status_tint"):
 		visual.update_display()
 
-## Petit shake horizontal (ex: peur, choc encaissé).
+## Petit shake horizontal (ex: peur, choc encaissé). Désactivé si
+## SettingsManager.reduced_motion est actif (accessibilité).
 func _shake(visual: Control, amount: float = 8.0, step: float = 0.05) -> void:
-	if not is_instance_valid(visual):
+	if not is_instance_valid(visual) or SettingsManager.reduced_motion:
 		return
 	var base_pos := visual.position
 	var tween: Tween = battle.create_tween()
@@ -438,13 +443,13 @@ func play_revenant(visual: Control) -> void:
 		return
 	visual.pivot_offset = visual.size / 2.0
 	var tween: Tween = battle.create_tween()
-	tween.tween_property(visual, "scale", Vector2(0.85, 0.6), 0.18)\
+	tween.tween_property(visual, "scale", Vector2(0.85, 0.6), _t(0.18))\
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.tween_property(visual, "modulate", Color(0.6, 1.0, 0.9, 0.5), 0.1)
-	tween.tween_property(visual, "scale", Vector2(1.2, 1.2), 0.16)\
+	tween.tween_property(visual, "scale", Vector2(1.2, 1.2), _t(0.16))\
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(visual, "modulate", Color(0.6, 1.0, 0.9, 1.0), 0.12)
-	tween.tween_property(visual, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual, "scale", Vector2.ONE, _t(0.14)).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(visual, "modulate", rest_tint(visual), 0.25)
 	tween.chain().tween_callback(func(): reapply_status_tint(visual))
 	_floating_text(visual, "%s !" % KeywordUndead.get_keyword_name(KeywordUndead.Type.REVENANT), Color(0.6, 1.0, 0.9))
@@ -593,3 +598,74 @@ func play_death_rage(visual: Control) -> void:
 	_pulse_scale(visual, 1.22, 0.3)
 	_flash(visual, Color(0.85, 0.15, 0.1), 0.35)
 	_floating_text(visual, TranslationServer.translate("TRIG_ONDEATHRAGE_NAME"), Color(0.9, 0.25, 0.2))
+
+# ─── Feedback générique : dégâts / soin / buff / debuff bruts ────────────────
+# Utilisé par les effets "Damage"/"Heal"/"Buff"/"Debuff" qui n'ont pas de
+# mot-clé dédié (donc pas d'animation spécifique ci-dessus) — serviteur ou
+# héros, `visual` étant dans les deux cas un simple Control.
+
+## Dégâts génériques : flash rouge (toujours, même bloqué à 0) + texte "-X"
+## si des dégâts ont réellement été infligés.
+func play_damage(visual: Control, amount: int) -> void:
+	if not is_instance_valid(visual):
+		return
+	_flash(visual, Color(1.8, 0.3, 0.3, 1.0), 0.18)
+	if amount > 0:
+		_floating_text(visual, "-%d" % amount, Color(1.0, 0.35, 0.3))
+
+## Soin générique : flash vert + texte "+X".
+func play_heal(visual: Control, amount: int) -> void:
+	if not is_instance_valid(visual) or amount <= 0:
+		return
+	_flash(visual, Color(0.4, 1.0, 0.5, 1.0), 0.22)
+	_floating_text(visual, "+%d" % amount, Color(0.45, 1.0, 0.55))
+
+## Buff stat générique (effet "Buff" brut, hors mot-clé dédié) : pulse doré +
+## texte récapitulatif du delta ATK/PV.
+func play_generic_buff(visual: Control, attack_gain: int, health_gain: int) -> void:
+	if not is_instance_valid(visual) or (attack_gain <= 0 and health_gain <= 0):
+		return
+	_pulse_scale(visual, 1.12)
+	_flash(visual, Color(0.9, 0.8, 0.35), 0.2)
+	_floating_text(visual, _stat_delta_text(attack_gain, health_gain), Color(0.4, 0.95, 0.4))
+
+## Debuff stat générique (effet "Debuff" brut, hors mot-clé dédié) : flash
+## sombre + texte récapitulatif du delta ATK/PV.
+func play_generic_debuff(visual: Control, attack_loss: int, health_loss: int) -> void:
+	if not is_instance_valid(visual) or (attack_loss <= 0 and health_loss <= 0):
+		return
+	_flash(visual, Color(0.55, 0.15, 0.6), 0.25)
+	_floating_text(visual, _stat_delta_text(-attack_loss, -health_loss), Color(0.95, 0.35, 0.35))
+
+func _stat_delta_text(attack_delta: int, health_delta: int) -> String:
+	if attack_delta != 0 and health_delta != 0:
+		return "%+d/%+d" % [attack_delta, health_delta]
+	if attack_delta != 0:
+		return "%+d ATK" % attack_delta
+	return "%+d PV" % health_delta
+
+# ─── Apparition / disparition génériques (Enchantements, Rituels) ────────────
+
+## Apparition générique : léger scale-in + fade-in (Enchantement/Rituel posé).
+func play_appear(visual: Control) -> void:
+	if not is_instance_valid(visual):
+		return
+	visual.pivot_offset = visual.size / 2.0
+	visual.scale = Vector2(0.3, 0.3)
+	visual.modulate.a = 0.0
+	var tween: Tween = battle.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(visual, "scale", Vector2.ONE, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visual, "modulate:a", 1.0, 0.22)
+
+## Disparition générique : fade-out + léger repli d'échelle (Enchantement/
+## Rituel détruit). Retourne le Tween pour enchaîner sa destruction réelle.
+func play_disappear(visual: Control) -> Tween:
+	var tween: Tween = battle.create_tween()
+	if not is_instance_valid(visual):
+		return tween
+	visual.pivot_offset = visual.size / 2.0
+	tween.set_parallel(true)
+	tween.tween_property(visual, "scale", Vector2(0.6, 0.6), 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(visual, "modulate:a", 0.0, 0.25)
+	return tween

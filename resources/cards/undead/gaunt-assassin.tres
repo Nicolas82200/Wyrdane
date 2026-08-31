@@ -13,7 +13,8 @@ name_fr = "Infiltration"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Assassin Décharné"
-description = "INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque."
+description = "INFILTRATION
+Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque."
 flavour_text = "On ne le voit pas venir. On ne le voit que partir."
 texture = ExtResource("3_texture")
 cost = 3

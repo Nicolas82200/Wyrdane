@@ -44,17 +44,17 @@ static func enemy_zombie_card() -> CardData:
 static func enemy_pestilent_card() -> CardData:
 	return load(ENEMY_PESTILENT) as CardData
 
-# Le mulligan (voir Battle._run_mulligan) est activé pendant le tutoriel pour
+# Le mulligan (voir TurnSystem.run_mulligan) est activé pendant le tutoriel pour
 # enseigner ce système, mais chaque carte de la main de départ (hors Éclat
 # d'Âme, présent en 3 exemplaires) est requise telle quelle par une étape
 # précise du script (voir TutorialManager.run()) : l'échanger la ferait
 # attendre indéfiniment une carte qui n'est plus en main. Seules les cartes-
 # ressource (interchangeables entre elles) restent réellement échangeables ;
-# les autres clics du mulligan sont ignorés (voir Battle._on_mulligan_card_clicked).
+# les autres clics du mulligan sont ignorés (voir TurnSystem._on_mulligan_card_clicked).
 static func is_swappable_during_tutorial(card: CardData) -> bool:
 	return card != null and card.resource_path == RESOURCE
 
-# Main de départ du joueur. Les 3 exemplaires d'Éclat d'Âme sont groupés
+# Main de départ du joueur. Les 3 exemplaires de Chair sont groupés
 # côte à côte (plutôt qu'éparpillés) : TutorialManager surligne les cartes
 # interchangeables en fusionnant leurs rectangles en une seule zone —
 # éparpillées, cette zone s'étendrait sur toute la largeur de la main.

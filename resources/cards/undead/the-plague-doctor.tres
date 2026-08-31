@@ -20,7 +20,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Le Médecin de la Peste"
-description = "Éveil : invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant."
+description = "Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant."
 flavour_text = "Il soignait les vivants autrefois. Il a simplement changé de patientèle."
 texture = ExtResource("3_texture")
 cost = 6

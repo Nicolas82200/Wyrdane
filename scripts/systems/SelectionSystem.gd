@@ -17,14 +17,15 @@ func init(_battle) -> void:
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or not minion.can_attack():
 		return
-	# Clic destiné au ciblage (sort/effet) ou au choix d'une victime de Sacrifice :
-	# pas une sélection d'attaquant.
-	if battle.targeting_system.is_targeting() or battle.sacrifice_system.is_active():
+	# Clic destiné au ciblage (sort/effet) ou au choix d'une victime de
+	# Sacrifice/FUSION : pas une sélection d'attaquant.
+	if battle.targeting_system.is_targeting() or battle.sacrifice_system.is_active() \
+			or battle.fusion_system.is_active():
 		return
 
 	var ctrl_held := Input.is_key_pressed(KEY_CTRL)
 
-	if ctrl_held:
+	if ctrl_held or is_multi_selecting:
 		if not is_multi_selecting and selected_attacker != null and selected_board_minion != null:
 			selected_attackers.append(selected_attacker)
 			selected_board_minions.append(selected_board_minion)

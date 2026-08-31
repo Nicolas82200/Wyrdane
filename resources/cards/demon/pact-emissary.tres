@@ -9,6 +9,7 @@
 [sub_resource type="Resource" id="Resource_nux0y"]
 script = ExtResource("4_kwd")
 keyword_type = 0
+value = 3
 
 [sub_resource type="Resource" id="Resource_wp5dt"]
 script = ExtResource("5_trig")
@@ -20,11 +21,19 @@ effect_id = "DrawCard"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "DrawCard"
+value = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Émissaire du Pacte"
-description = "PACTE. Arrivée : pioche 1 carte."
-flavour_text = "Il apporte toujours plus qu'il ne semble offrir — dans les deux sens."
+description = "Arrivée : Piochez une carte.
+Pacte 3 : Piochez une carte supplémentaire."
+flavour_text = "Il apporte toujours plus qu'il ne semble offrir, dans les deux sens."
 texture = ExtResource("3_texture")
 cost = 3
 race = 5
@@ -33,7 +42,7 @@ attack = 2
 health = 3
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_nux0y")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_wp5dt")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_tks7z")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_tks7z"), SubResource("Resource_bonus")])
 rarity = "Rare"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

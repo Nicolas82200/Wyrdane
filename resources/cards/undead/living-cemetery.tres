@@ -19,7 +19,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cimetière Vivant"
-description = "Deuil : ce Mort-Vivant revient en jeu à la fin du tour avec 1 HP. (Une seule fois par serviteur.)"
+description = "Deuil : Ce Mort-Vivant revient en jeu à la fin du tour avec 1 point de vie. (Une seule fois par serviteur.)"
 flavour_text = "Le sol ici ne garde rien. Il régurgite."
 texture = ExtResource("3_texture")
 cost = 5

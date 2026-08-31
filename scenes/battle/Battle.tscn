@@ -595,6 +595,7 @@ mouse_filter = 2
 alignment = 1
 
 [node name="EnemyResourcePanel" type="Panel" parent="Board" unique_id=900000001]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -611,6 +612,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="EnemyResourceZone" type="HBoxContainer" parent="Board" unique_id=900000002]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -629,6 +631,7 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="PlayerResourcePanel" type="Panel" parent="Board" unique_id=900000003]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
@@ -645,6 +648,7 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_resourcezone")
 
 [node name="PlayerResourceZone" type="HBoxContainer" parent="Board" unique_id=900000004]
+visible = false
 custom_minimum_size = Vector2(330, 150)
 layout_mode = 1
 anchors_preset = -1
@@ -669,6 +673,18 @@ anchor_top = 0.0
 offset_top = 0.0
 grow_vertical = 2
 
+[node name="MulliganDimOverlay" type="ColorRect" parent="." unique_id=900000005]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+z_index = 90
+
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 1
@@ -683,6 +699,7 @@ offset_right = -60.0
 offset_bottom = -56.0
 grow_horizontal = 0
 grow_vertical = 0
+z_index = 91
 action_mode = 0
 text = "Fin du tour"
 script = ExtResource("13_etbtn")
@@ -799,7 +816,6 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
-z_index = -1
 custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
 anchors_preset = -1
@@ -974,7 +990,16 @@ script = ExtResource("16_enhand")
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
-text = "⚙️"
+z_index = 91
+text = "S"
+
+[node name="HelpButton" type="Button" parent="." unique_id=1329099648]
+layout_mode = 0
+offset_left = 46.0
+offset_right = 54.0
+offset_bottom = 8.0
+z_index = 91
+text = "?"
 
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
 layout_mode = 1

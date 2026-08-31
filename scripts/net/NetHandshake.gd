@@ -42,6 +42,9 @@ var _finished: bool = false
 var _local_seed_contribution: int = randi()
 var _remote_seed_contribution: int = 0
 var _seed: int = 0
+# Id backend du pair distant (0 si non authentifié côté pair), reçu dans son
+# HELLO — voir BackendClient.report_ranked_match, appelé depuis Battle.gd.
+var _remote_backend_id: int = 0
 var _first_player_is_host: bool = true
 var _resend_clock: float = 0.0
 var _resend_count: int = 0
@@ -72,7 +75,7 @@ func _process(delta: float) -> void:
 	progress.emit("Handshake : HELLO renvoyé (%d) — en attente du pair…" % _resend_count)
 
 func _send_hello() -> void:
-	var hello := NetCommand.hello(_local_deck, _local_start_id(), _local_stride(), _local_seed_contribution)
+	var hello := NetCommand.hello(_local_deck, _local_start_id(), _local_stride(), _local_seed_contribution, BackendClient.local_user_id())
 	_net.send_command(hello)
 
 # ─── Réception ────────────────────────────────────────────────────────────────
@@ -88,6 +91,7 @@ func _on_command_received(command: Dictionary) -> void:
 			# après coup) : les deux clients obtiennent la même graine et le même
 			# premier joueur sans qu'aucun des deux ne les impose seul.
 			_remote_seed_contribution = int(command.get("seed", 0))
+			_remote_backend_id = int(command.get("backend_id", 0))
 			_seed = _local_seed_contribution ^ _remote_seed_contribution
 			# Fait global (pas relatif à "moi") : les deux clients calculent la
 			# même graine combinée, donc la même valeur ici.
@@ -133,9 +137,34 @@ func _finish() -> void:
 		"local_first": _is_host == _first_player_is_host,
 		"parity_start": _local_start_id(),
 		"parity_stride": _local_stride(),
+		"opponent_backend_id": _remote_backend_id,
+		"client_match_id": _client_match_id(),
 	}
 	_net.command_received.disconnect(_on_command_received)
 	completed.emit(setup)
+
+# Annule un handshake abandonné (ex. nouvelle tentative de connexion reçue
+# alors que celui-ci attendait toujours son pair) : se désabonne
+# immédiatement de command_received. Indispensable en plus de queue_free() —
+# lui seul ne libère qu'en fin de frame, laissant une fenêtre où ce handshake
+# périmé pourrait encore réagir à un HELLO/HELLO_ACK entre-temps et ré-émettre
+# `completed` avec un setup (seed RNG, parité d'ids) obsolète.
+func cancel() -> void:
+	if _finished:
+		return
+	_finished = true
+	set_process(false)
+	if _net.command_received.is_connected(_on_command_received):
+		_net.command_received.disconnect(_on_command_received)
+
+# Identifiant de match partagé par les deux clients, calculé indépendamment
+# des rôles hôte/invité (paire ordonnée des deux contributions de graine, déjà
+# échangées) : collision négligeable (2⁻⁶⁴) sans ajouter de champ réseau dédié.
+# Consommé par BackendClient.report_ranked_match (voir Battle._show_game_over).
+func _client_match_id() -> String:
+	var a := _local_seed_contribution
+	var b := _remote_seed_contribution
+	return "%d_%d" % [min(a, b), max(a, b)]
 
 # ─── Parité d'ids locale ──────────────────────────────────────────────────────
 

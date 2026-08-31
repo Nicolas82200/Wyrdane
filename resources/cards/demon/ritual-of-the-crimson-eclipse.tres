@@ -15,17 +15,10 @@ effect_id = "CancelSpellOnRaceTarget"
 race_filter = "Demon"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_odxm7"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
-value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rituel de l'Éclipse Rouge"
-description = "Sortilège ennemi : annulé s'il cible un de tes Démons ; ton héros perd 1 HP à chaque annulation."
+description = "Sortilège ennemi : Annulé s'il cible un de vos Démons."
 flavour_text = "Sous cette éclipse, même se protéger a un prix, à répétition."
 texture = ExtResource("3_texture")
 cost = 6
@@ -33,6 +26,6 @@ race = 5
 card_type = "Ritual"
 ritual_duration = 3
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_i87qq")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lvjkj"), SubResource("Resource_odxm7")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_lvjkj")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

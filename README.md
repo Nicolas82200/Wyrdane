@@ -1,5 +1,7 @@
 Wyrdane est un jeu de cartes développé avec Godot 4 et GDScript, centré sur des mécaniques de combat tactiques et un système de gestion de plateau dynamique.
 
+**Licence** : projet propriétaire, tous droits réservés — voir [`LICENSE.md`](./LICENSE.md). Aucune réutilisation, copie ou redistribution du code ou des assets n'est autorisée sans accord écrit préalable de l'auteur.
+
 ---
 
 ## 🧠 Architecture interne (dev)
@@ -49,11 +51,22 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 3.  Application des dégâts simultanés.
 4.  Effets spéciaux :
     *   Poison / Deadly
-    *   Lifesteal
+    *   Harvest
 5.  Trigger `OnDamaged` (géré par `EffectManager`)
 6.  Mise à jour UI
 7.  `remove_dead_minions()` (dans `DeathSystem`)
 8.  `check_game_end()`
+
+### 🖐️ Limite de main
+
+`HandDiscardSystem` (`scripts/systems/HandDiscardSystem.gd`), appelé en tout début de `TurnSystem.end_turn()` : si le joueur local a plus de **10 cartes** en main au moment de terminer son tour, il doit en défausser l'excédent avant que le tour ne se termine réellement.
+
+- La main passe en mode sélection (`Hand.set_discard_mode`) : un simple clic sur une carte la sélectionne/désélectionne pour la défausse (pas de drag, même patron que le mulligan) — teintée en rouge tant que sélectionnée.
+- Un décompte de **15 secondes** démarre (réutilise `TurnTimer`, le décompte normal de fin de tour étant suspendu le temps de cette sous-phase). Dès que le nombre de cartes requis est sélectionné, la défausse est immédiate.
+- À l'expiration du décompte, le reste de la sélection requise est complété **aléatoirement** parmi les cartes pas encore choisies.
+- Les cartes défaussées rejoignent le cimetière **face cachée** (`Graveyard.Origin.CARD_DISCARDED`, déjà prévu par `is_face_down()`).
+- En réseau : seul le **nombre** de cartes défaussées est transmis (`NetCommand.DISCARD`), pas leur identité — met à jour le compteur cosmétique de main adverse, comme le mulligan.
+- L'IA n'a pas cette UI : `AISystem._discard_excess_hand()` défausse silencieusement un excédent aléatoire à la fin de son tour (un effet "Piochez X cartes" peut la faire dépasser 10, pas seulement la pioche automatique d'1 carte/tour).
 
 ### 🛡️ Mécaniques défensives
 
@@ -76,7 +89,7 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 
 | Mot-clé | Effet | Implémentation |
 |---|---|---|
-| `PACTE` | À l'arrivée en jeu, ton héros perd son coût en mana en HP ; gagne ASSAUT. | ASSAUT dans `Minion._init`, coût en HP dans `BoardSystem.summon_minion_return` |
+| `PACTE X` | L'effet de la carte se déclenche toujours gratuitement (effet de base). En plus, le joueur peut payer X PV (valeur propre à la carte) pour activer un effet bonus qui s'ajoute au résultat de base, ou le remplace. Redemandé à chaque déclenchement — une seule fois à l'Arrivée pour un serviteur, à chaque occurrence pour tout autre trigger. | `CardEffect.pact_bonus`/`pact_replaces_base`, `KeywordChoiceDemon.value` (X), popup `PactChoiceSystem` (`ask` en solo, `resolve_trigger`/`heuristic_decision` sinon), résolu dans `EffectManager.trigger_effects` (tous triggers de serviteur, Arrivée comprise) et `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` (Rituels/Enchantements) |
 | `CORRUPTION` | Les attaques infligent Corruption en plus des dégâts. | `CombatSystem._execute_damage` |
 | `TERREUR` | La cible attaquée ne peut pas attaquer au prochain tour adverse. | `Minion.terror_turns` (séparé du Gel), immunités à la peur respectées |
 | `RANG INFERNAL` | +1/+0 par tranche de 10 HP manquants sur ton héros. | Aura recalculée (`AuraSystem._apply_infernal_rank`) |
@@ -90,6 +103,7 @@ Mots-clés exclusifs (`KeywordDemon.gd`, définitions complètes dans `CARDS.md`
 - **Annulation de sort** (`TriggerSystem.try_cancel_spell` + effet `CancelSpellOnRaceTarget`) : un rituel adverse à trigger `OnSpell` peut contrer un sort ciblant un de ses serviteurs de la race demandée (Rituel de l'Éclipse Rouge) ; le sort est défaussé sans effet, les autres effets du rituel s'exécutent et une charge est consommée. Vérifiée dans `CardSystem.resolve_with_target` et rejouée à l'identique par `NetworkOpponent`.
 - **Vol temporaire** (effet `StealMinionThenDestroy` + `TempEffectSystem.add_destroy_at_expiry`) : prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit (Emprise Écarlate). Immunités au contrôle mental respectées.
 - **Drain de héros** (effet `StealHealthFromHero`) : vole X HP au héros ennemi et en soigne le héros allié d'autant (Suceur d'Âmes).
+- **Choix du Pacte** (`PactChoiceSystem` + `CardEffect.pact_bonus`) : chaque effet d'une carte PACTE X est marqué "de base" (toujours exécuté, gratuitement) ou "bonus" (`pact_bonus = true`, ne s'exécute que si le joueur paie X PV). `EffectManager.trigger_effects` sépare les deux listes à chaque déclenchement du trigger concerné (Arrivée comprise pour un serviteur — aucun traitement à part, ni choix fait en amont à la pose de la carte) : les effets de base s'exécutent toujours ; s'il existe un bonus pour ce trigger, `PactChoiceSystem.resolve_trigger` est appelé (popup pour le joueur local hors réseau, heuristique de marge de PV pour l'IA et pour les deux camps en partie réseau — `heuristic_decision`, aucun canal réseau dédié à ce choix répété) ; payé, le coût est appliqué (`HeroSystem.self_damage`) et les effets bonus s'exécutent en plus des effets de base, ou à leur place si `pact_replaces_base` est vrai sur le bonus (ex: invoque un serviteur amélioré au lieu du serviteur de base). Même logique côté Rituel/Enchantement dans `TriggerSystem._fire_on_enchantments`/`activate_sacrifice_ritual`/`try_cancel_spell` — la charge d'un Rituel est consommée que le bonus soit payé ou non.
 
 ### 🧬 Mécaniques Abomination
 
@@ -98,16 +112,17 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 | Mot-clé | Effet | Implémentation |
 |---|---|---|
 | `MUTATION` | Mute (Table de Mutation) chaque fois que ce serviteur survit à une blessure. Permanent, cumulable. | `EffectManager.notify_damaged` → `EffectManager.roll_mutation` |
-| `FUSION` | Sacrifice un allié adjacent : absorbe ses stats restantes ET un mot-clé au choix. | Mot-clé affiché ; **aucune UI d'activation n'est câblée** (voir limitation ci-dessous) |
+| `FUSION` | Activation volontaire : sacrifie un allié adjacent, absorbe ses stats restantes ET un de ses mots-clés au choix. | `FusionSystem.gd` — bouton dédié sur le serviteur, ciblage de la victime puis popup de choix du mot-clé ; synchronisé réseau (`NetCommand.ACTIVATE_FUSION`) |
 | `VIRULENT` | Dernier Souffle : le serviteur allié adjacent déclenche immédiatement une mutation. | `DeathSystem._collect_virulent_adjacent` (capturé avant retrait du plateau) + `roll_mutation` |
-| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur ALLIÉ adjacent, de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé ; pas d'adjacence inter-camp, voir limitation) |
-| `ASSIMILATION` | Dévoration : gagne +1/+1 permanent (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
+| `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé présent sur un serviteur EN JEU (allié ou ennemi), de façon permanente. | `BoardSystem._apply_chair_adaptative` (choix déterministe, premier mot-clé trouvé, alliés d'abord) |
+| `ASSIMILATION` | Dévoration : gagne +1/+1 jusqu'au début du prochain tour (une fois par vague de morts, pas par mort individuelle). | `DeathSystem._trigger_devoration` |
 | `INSTABLE` | Ne peut pas être ciblé par des effets de soin, alliés ou ennemis. | `Minion.is_heal_immune` (lu par `Minion.heal`) |
 
 - **Table de Mutation** (`EffectManager.roll_mutation`) : tirage sur le RNG de jeu partagé (déterministe/synchronisé réseau) — 40 % Croissance (+2/+0 permanent), 40 % Renforcement (+0/+2 permanent), 20 % Dégénérescence (-1/-1 permanent, peut tuer si les dégâts déjà subis dépassent le nouveau maximum). `Minion.mutation_stacks` / `Minion.mutations` gardent une trace pour l'affichage.
-- **Trigger `OnMutation`** (« Résonance » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
+- **Trigger `OnMutation`** (« Mutation » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
 - **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
 - **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
+- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
@@ -182,13 +197,12 @@ EffectManager.execute_targeted_effect()
 
 Triggers disponibles (`TriggerType.gd`) :
 
-*   `ONPLAY` (Invocation) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
-*   `OnDamaged` (Blessure) / `OnAttack` / `OnExecution` (Exécution)
-*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire
-*   `OnTurnStart` / `OnTurnEnd`
-*   `OnRally` (Ralliement) / `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
-*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage)
-*   `OnSummon` (Appel) / `OnAura` (Présence) / `OnResonance` (Résonance)
+*   `ONPLAY` (Arrivée) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
+*   `OnDamaged` (Blessure) / `OnAttack` (Attaque — fusionne l'ancien `OnRally`/Ralliement) / `OnExecution` (Exécution)
+*   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire (plus de `OnTurnStart`/`OnTurnEnd` symétriques, retirés)
+*   `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
+*   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage — une fois, sous 50% HP max)
+*   `OnSummon` (Renfort) / `OnAura` (Présence) / `OnResonance` (Résonance)
 *   `OnSelfDamage` (Sacrifice du sang — le héros du camp perd des HP à cause de ses propres cartes)
 
 👉 Les effets sont **data-driven (CardData)**, pas hardcodés dans les minions. Le système `EnchantmentSystem` gère également des modifications permanentes ou temporaires aux minions.
@@ -220,7 +234,7 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Éclat d'Âme via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
+L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
@@ -241,7 +255,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 *   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
 *   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
-*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID de test 480 (Spacewar) en attendant le vrai AppID Wyrdane — instructions d'installation dans l'en-tête du fichier.
+*   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page validée par Valve — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).
 
@@ -253,7 +267,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Protocole (`NetCommand.gd`)
 
-Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
+Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `row = "Resource"`), `ATTACK`, `ATTACK_HERO`, `END_TURN`, `TURN_START`, `DISCARD` (défausse de fin de tour, contenu privé — voir « Limite de main » ci-dessous), `HELLO` (handshake). Une carte est désignée par son `resource_path` (identique sur les deux clients), un serviteur par un `net_id` stable attribué par `NetRegistry`.
 
 *   `NetEmitter` — émet les actions du joueur local sous forme de commandes.
 *   `NetworkOpponent` — met en file les commandes distantes et les rejoue dans l'ordre jusqu'à `END_TURN`.
@@ -265,6 +279,59 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
+### 🗄️ Backend & progression persistante
+
+La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
+
+### 💰 Économie (méta-jeu, monnaie molle)
+
+À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
+
+**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie depuis 2026-08-26 (seuls les stats `solo_stats` et la progression des quêtes continuent) : jouer/gagner en solo ne rapporte plus d'or, pour ne pas concurrencer le classé.
+
+**Victoires/défaites en 1v1 classé (réseau)** — pas de plafond quotidien, même barème que l'ancienne récompense solo, désormais crédité aux **deux** joueurs selon leur propre résultat :
+| Résultat | Montant |
+|---|---|
+| Défaite | 5 or (fixe) |
+| Victoire, série de 1-2 | 10 or |
+| Victoire, série de 3-4 | 15 or |
+| Victoire, série de 5-6 | 20 or |
+| Victoire, série de 7 ou plus | 25 or |
+
+La série de victoires (win streak) ne compte que les victoires classées consécutives *de ce joueur* (suivie par joueur dans `ranked_stats.win_streak`, distinct côté serveur de `wins`/`losses` qui ne font qu'accumuler) ; une défaite la ramène immédiatement à 0.
+
+Le montant n'est crédité (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'or est de toute façon déjà crédité en base dès la confirmation, que la popup ait pu s'afficher ou non.
+
+**Autres gains**
+| Source | Montant | Limite |
+|---|---|---|
+| Récompense de connexion quotidienne (streak 7 jours, cycle) | 10 → 15 → 20 → 25 → 30 → 40 → 60 or | 1×/jour, réinitialisée si un jour est manqué |
+| Quête « Jouer 3 parties » | 30 or | — |
+| Quête « Jouer 5 parties » | 60 or | — |
+| Quête « Gagner 2 parties » | 50 or | — |
+| Quête « Gagner 3 parties » | 70 or | — |
+| Quête « Gagner 1 partie classée » | 80 or | — |
+| Quête « Jouer 10 cartes Mort-Vivant » | 40 or | — |
+| Quête « Jouer 10 cartes Humain » | 40 or | — |
+| Quête « Jouer 10 cartes Démon » | 40 or | — |
+| Quête « Jouer 10 cartes Abomination » | 40 or | — |
+| Quête « Gagner 2 parties avec un deck Mort-Vivant » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Humain » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Démon » | 60 or | — |
+| Quête « Gagner 2 parties avec un deck Abomination » | 60 or | — |
+
+3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+
+**Dépenses**
+| Achat | Coût | Détail |
+|---|---|---|
+| Pack de cartes | 500 or | 4 cartes par pack, pondération par rareté Commune 60 / Rare 25 / Épique 12 / Légendaire 3 (ratio, somme non normalisée à 100) |
+| Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
+
+**Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
+
+Toutes ces valeurs vivent en dur dans le code (`CurrencyManager.gd` côté client à titre indicatif, `packModel.ts`/`collectionModel.ts`/`questModel.ts`/`loginRewardModel.ts`/`rewardsController.ts` côté `wyrdane-backend` en source de vérité) — les deux côtés doivent rester synchronisés manuellement, voir les commentaires croisés dans chaque fichier.
+
 ### 🌍 Internationalisation (i18n)
 
 Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
@@ -274,6 +341,16 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 *   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 317 cartes** (jetons compris ; noms, effets, flavour).
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
+
+### ♿ Accessibilité
+
+Réglages persistants (`SettingsManager.gd`, menu Réglages → onglets Graphismes/Contrôles) :
+
+*   **Échelle de l'interface** (85 %–130 %) et **assistance daltonisme** (protanopie/deutéranopie/tritanopie, via overlay shader qui décale les teintes confondues).
+*   **Contraste élevé** — overlay shader dédié (boost contraste + saturation), cumulable avec l'assistance daltonisme.
+*   **Réduction des animations** — coupe le shake d'écran et raccourcit les tweens de déplacement les plus visibles (pose/mort de serviteur, charge d'attaque, popups d'effet, animation de pioche), sans supprimer les fondus/flashs courts.
+*   **Rebind clavier** des 3 actions ayant un raccourci (fin de tour, cimetière allié/ennemi).
+*   **Indicateurs non basés sur la seule couleur** : symbole de rareté sur le bandeau de type d'une carte (●/◆/▲/★), icône d'alerte devant les HP du héros sous 30 % de ses HP max, mots-clés déjà iconifiés individuellement (`TooltipData`).
 
 ### 🚨 Systèmes de protection anti-bug
 
@@ -470,7 +547,20 @@ Le projet utilise des singletons pour des systèmes globaux :
 ---
 
 ## 🎮 Mode Battle Royale (8 joueurs) — Design (v1)
-*Document de design — en cours de discussion*
+*Document de design — cible visée à terme (réseau, 8 joueurs). Voir « État actuel du prototype » ci-dessous pour ce qui existe réellement en jeu aujourd'hui.*
+
+### 🚧 État actuel du prototype (`scripts/arena/`, scène `scenes/arena/ArenaBattle.tscn`)
+
+Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
+
+- **8 participants, solo local uniquement** (1 joueur humain + 7 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels, mais chacun sur sa propre machine/session ; ici tous simulés localement pour tester les conditions réelles d'une partie complète).
+- **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board, anti-répétition d'appariement et gel de la boutique façon TFT (bouton flocon, préserve l'offre ENTIÈRE — pas une carte à la fois — pour la manche suivante, dégelé automatiquement dès qu'il a servi une fois ou qu'un reroll manuel est demandé) : tout ça est implémenté tel que décrit plus bas.
+- **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 25 secondes (seul le joueur humain y est contraint, les bots jouent après coup), phase Combat 15 secondes (affichage du résultat), enchaînement automatique par défaut, mais un bouton Prêt permet de terminer la phase Boutique en avance sans attendre l'expiration du minuteur.
+- **Combat du joueur humain rejoué avec animation** (réutilise telle quelle `CombatSystem`/`AnimationSystem`/`BoardVisualSystem`/`DeathSystem` du 1v1, sur les propres rangées Avant/Arrière du joueur + les rangées de la boutique reconverties en plateau adverse le temps du combat) — contrairement à la note « pas de ralenti visuel » plus bas, qui décrivait l'intention initiale avant que l'animation ne soit ajoutée. Les combats bots-contre-bots que le joueur ne voit pas restent résolus headless et instantanément (`SimulatedBattle`).
+- **Une seule main** pour les serviteurs ET les Incantations achetées (`Hand.gd`/`Hand.tscn`, réutilisé tel quel), pas deux zones séparées.
+- **Cartes Arena-only** (`CardData.arena_only`) : quelques serviteurs et Incantations exclusifs à ce mode existent déjà en plus du pool 1v1 normal, voir `CardLibrary.arena_only_cards`.
+- **Repositionnement d'un serviteur déjà posé** (glisser-déposer, phase Boutique) : réordonner au sein de sa ligne, toujours possible ; changer de ligne (Avant ↔ Arrière) après la pose n'est permis que pour un serviteur Hybride (`CardData.board_position == "Hybrid"`) — un serviteur Avant/Arrière strict garde la ligne choisie à la pose (`ArenaBoardRow._can_drop_data`).
+- **UI calquée sur le plateau 1v1** (mêmes coordonnées de rangées/héros que `Battle.tscn`, mêmes indicateurs de rangée et surlignage de dépôt, écran de fin de partie stylé pareil) — pas d'emplacements Rituel/Enchantement, pas de deck/cimetière (inutiles ici : pas de pioche, pas de mort permanente hors combat).
 
 ### 🎯 Concept général
 
@@ -478,7 +568,7 @@ Mode autobattler à 8 joueurs mêlant TFT (boutique, pool partagé, économie) e
 
 ### ⚔️ Structure d'un round
 
-1. **Phase Boutique** — achat/reroll/verrouillage de cartes.
+1. **Phase Boutique** — achat/reroll/gel de la boutique.
 2. **Phase Positionnement** — organisation du plateau (Avant/Arrière).
 3. **Phase Combat** — appariement aléatoire contre un adversaire, combat résolu automatiquement (`CombatSystem`, sans input joueur).
 4. Le perdant du combat perd des PV de héros (montant fonction des survivants du gagnant).
@@ -517,7 +607,7 @@ Mode autobattler à 8 joueurs mêlant TFT (boutique, pool partagé, économie) e
 
 #### Fin de partie (validé)
 - **Classement brut uniquement** (1er → 8e, basé sur l'ordre d'élimination), affiché en fin de partie.
-- **Aucune récompense méta en v1** (pas de monnaie, pas de déblocage, pas de points de rang) — le projet n'a pas encore de système de compte/progression persistante sur lequel accrocher ça (le mode campagne/collection de cartes est un chantier séparé de la roadmap).
+- **Aucune récompense méta en v1** (pas de monnaie, pas de déblocage, pas de points de rang) — le projet n'a pas encore de système de compte/progression persistante sur lequel accrocher ça (la collection de cartes est un chantier séparé de la roadmap).
 - *Extension future* : historique de parties, système de points de classement simple, cosmétiques débloqués par performance — une fois qu'un système de compte/progression existe ailleurs dans le jeu.
 
 #### Ghost Board (appariement à effectif impair)
@@ -579,7 +669,7 @@ Toutes les cartes proviennent d'un pool commun aux 8 joueurs.
 #### Règle de verrouillage
 - Toute carte en **main ou sur le plateau** d'un joueur est retirée du pool partagé (indisponible pour les autres).
 - Elle **retourne au pool** quand elle est vendue (main ou plateau), **ou quand son possesseur est éliminé** (voir Ghost Board ci-dessous — l'élimination libère les cartes réelles, le fantôme n'est qu'une copie/simulation indépendante).
-- **Fusion 2★** : les 3 copies fusionnées restent **verrouillées hors du pool tant que la carte 2★ existe**. Vendre la 2★ ne remet qu'**une seule copie** au pool (cohérent avec son remboursement à prix d'1 copie) — les 2 autres copies investies sont définitivement perdues pour le pool commun, comme dans TFT.
+- **Fusion 2★** (un seul palier, pas de 3★ — voir « Upgrade de cartes ») : les 3 copies fusionnées restent **verrouillées hors du pool tant que la carte 2★ existe**. Vendre (ou perdre à l'élimination) la 2★ rend **les 3 copies de base** au pool, comme si elle n'avait jamais été fusionnée — pas une seule copie.
 
 #### Tirage en boutique : deux étapes indépendantes
 Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étapes :
@@ -615,7 +705,7 @@ Plutôt qu'une matrice croisée rareté×coût, le tirage se fait en deux étape
 - 3 copies identiques → version améliorée (**stats renforcées uniquement, texte/effet inchangé**).
 - **Bonus de stats** : addition des stats des 3 cartes fusionnées (donc une base 2/2 + 2/2 + 2/2 → 6/6 sur la carte 2★, pas un simple +1/+1 fixe ni un doublement).
 - **Buffs permanents accumulés** (ex: NÉCROPHAGE) sur une ou plusieurs des 3 copies avant fusion : **conservés et additionnés** sur la carte 2★ résultante — aucune perte de progression en fusionnant.
-- **Vente d'une carte 2★** : remboursement calculé comme pour **une seule copie normale** (pas de bonus lié aux 3 cartes investies) — la fusion est donc un choix engageant, pas juste un "stockage de valeur" réversible sans perte.
+- **Vente d'une carte 2★** : le remboursement en **or** reste calculé comme pour une seule copie normale (pas de bonus lié aux 3 cartes investies), mais **les 3 copies de base** retournent au **pool partagé** — voir « Règle de verrouillage » ci-dessus. Pas de palier au-delà du 2★ (pas de carte 3★) : 3 copies d'une 2★ ne fusionnent jamais entre elles.
 - Choix fait pour rester simple à générer sur les ~150 cartes existantes sans réécrire de texte par carte.
 
 #### Affichage et déclenchement de la fusion (validé)
@@ -712,7 +802,27 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 
 **Bilan** : sur 26 sorts, 19 éligibles (dont 7 à adapter sur la formulation durée/cible), 5 exclus (pioche×3, retour en main×1, Sacrifice×1, enchantement×1), 1 exclu par obsolescence.
 
-**Note** : cette passe d'éligibilité n'a pas encore été refaite pour la race Démon (ajoutée depuis, voir `CARDS.md`) — plusieurs de ses Incantations ciblent explicitement "ton héros" plutôt qu'un serviteur, un cas de figure qui n'existait pas encore lors de cette analyse.
+**Verdict carte par carte — Démon (D40-D52)**
+
+| ID | Nom | Verdict | Raison |
+|:---:|---|:---:|---|
+| D40 | Flamme Infernale | ✅ Éligible | Dégât ciblé, direct |
+| D41 | Pacte Hâtif | ❌ Exclu | Pioche de carte |
+| D42 | Vague de Corruption | ✅ Éligible | Effet de zone, ciblage adversaire résolu |
+| D43 | Rite de Sang | ❌ Exclu | Sacrifice (trigger exclu du mode) |
+| D44 | Étreinte du Gouffre | ✅ Adapté | "1 tour" → "ce combat" |
+| D45 | Marque du Pacte | ✅ Adapté | "Jusqu'à fin de tour" → "ce combat" |
+| D46 | Hurlement Écarlate | ✅ Adapté | "Ce tour" → "ce combat" |
+| D47 | Emprise Écarlate | ✅ Adapté | Prise de contrôle temporaire puis destruction — durée recadrée sur "ce combat", ciblage adversaire révélé résolu |
+| D48 | Communion Écarlate | ❌ Exclu | Pioche de carte |
+| D49 | Ultime Sacrifice | ❌ Exclu | Sacrifice (trigger exclu du mode) et pioche de carte |
+| D50 | Absolution Écarlate | ✅ Adapté | "Ce tour" → "ce combat" |
+| D51 | Souffle Corrupteur | ✅ Éligible | Debuff permanent ciblé — cohérent avec les règles de buffs/debuffs persistants |
+| D52 | Doigt Écarlate | ❌ Exclu | Pioche de carte |
+
+**Bilan Démon** : sur 13 sorts, 8 éligibles (dont 5 à adapter sur la formulation durée/cible), 5 exclus (pioche×4 — dont Ultime Sacrifice qui cumule pioche et Sacrifice —, Sacrifice×2).
+
+**Note** : passe d'éligibilité Démon désormais faite (voir tableau ci-dessus). Les Incantations ciblant explicitement "ton héros" plutôt qu'un serviteur (perte/regain de HP en contrepartie de l'effet) ne posent aucun problème de recadrage : les PV de héros sont une ressource persistante entre rounds (contrairement au plateau, restauré à chaque round), donc ces effets s'appliquent tels quels sans réinterprétation de durée ou de cible.
 
 ### 🔥 Triggers en combat simulé
 
@@ -724,8 +834,8 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 | Mort-rage (OnDeathRage) | ✅ Oui |
 | Blessure (OnDamaged) | ✅ Oui |
 | Exécution (OnExecution) | ✅ Oui |
-| Ralliement (OnRally) | ✅ Oui |
-| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Appel / Présence / Résonance | ✅ Oui |
+| Attaque (OnAttack) | ✅ Oui |
+| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Renfort / Présence / Résonance | ✅ Oui |
 
 #### Règle NÉCROPHAGE (et effets similaires)
 - Les morts sont traitées **dans l'ordre chronologique** pendant la simulation (comme `DeathSystem` actuel en batch).
@@ -756,7 +866,6 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 ### 📋 Points encore à trancher (mode BR)
 
 1. Réseau/lobby pour 8 joueurs — hébergement, simulation centralisée vs déterministe (voir section Réseau ci-dessus).
-2. Passe d'éligibilité des Incantations à refaire pour la race Démon (non couverte lors de l'analyse initiale, voir note ci-dessus).
 
 ---
 
@@ -766,22 +875,20 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID de test (480) en attendant la page Steam
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
-*   **Tests automatisés** (GUT, `addons/gut`) — tests unitaires sur `Minion`, `CardLibrary`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, la mutation Abomination et le timer de tour (voir « Tests automatisés » dans `CLAUDE.md`)
+*   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
-*   Design complet du mode Battle Royale 8 joueurs (voir section dédiée ci-dessus) — implémentation restant à faire
+*   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : obtenir le vrai AppID (page Steamworks), remplacer l'AppID de test 480, invitations d'amis, puis build/dépôt Steam
-*   Implémentation du mode Battle Royale (design finalisé, voir section dédiée) — nécessite d'étendre le réseau à 8 joueurs
-*   Cartes Démon : passe d'éligibilité des Incantations (non couverte lors de l'analyse initiale)
+*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`)
+*   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
-*   Mode campagne et collection de cartes
 *   Animations shaders
-*   Étendre la couverture de tests automatisés (systèmes de combat/triggers en plus des tests d'intégrité des cartes déjà en place)
+*   Mise en prod côté `wyrdane-backend` des routes de matchmaking classé et des quêtes hebdomadaires/parrainage (client déjà prêt, voir sections dédiées ci-dessous)
 ---
 
 ## 💠 Système de Ressources par Race
@@ -792,9 +899,9 @@ Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) 
 
 | Race | Ressource | Carte |
 |---|---|---|
-| Mort-Vivant | **Âme** | Éclat d'Âme (`resources/cards/undead/soul-shard.tres`) |
+| Mort-Vivant | **Chair** | Chair (`resources/cards/undead/soul-shard.tres`) |
 | Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
-| Démon | **Pacte** | Fragment de Pacte (`resources/cards/demon/pact-fragment.tres`) |
+| Démon | **Âme** | Âme (`resources/cards/demon/pact-fragment.tres`) |
 | Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
 
 ### 🃏 Zone de ressource et pose
@@ -811,8 +918,9 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 ### ⚖️ Composition du deck
 
 - **Minimum 40 cartes jouables** (Serviteur/Éphémère/Rituel/Enchantement), **sans maximum** — le plafond historique de 60 cartes est supprimé (`DeckManager`/`DeckBuilder`).
-- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._on_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
-- Les cartes-ressource sont **exemptées de la limite de 4 copies** (`MAX_COPIES_PER_CARD`) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum.
+- **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
+- Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
+- Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
 - Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
@@ -820,7 +928,7 @@ ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums l'est.)*
+*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -846,8 +954,8 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - Mana `int` unique → `Dictionary` par race (`Battle.race_mana`/`race_max_mana`, `OpponentDriver.race_mana`/`race_max_mana`) — un bucket `Race.Type.NONE` sert de générique pour `GainMana`.
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
-- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource exemptées de la limite de copies.
-- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Éclat d'Âme), pose d'une ressource par tour avant sa phase de jeu normale.
+- `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée), avertissements bloquant la sauvegarde en cas d'incohérence race/ressource, dédoublonnage automatique des noms de deck (`DeckManager.make_unique_name`), bouton Sauvegarder désactivé tant que rien n'a changé, confirmation avant de quitter avec des modifications non sauvegardées.
+- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
 ### 📋 Points encore ouverts

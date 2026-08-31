@@ -17,7 +17,7 @@ keyword_type = 2
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Possédé Écarlate"
-description = "ASSAUT. TERREUR."
+description = "ASSAUT, TERREUR"
 flavour_text = "Il ne réfléchit plus. Quelque chose réfléchit à sa place, et ça va vite."
 texture = ExtResource("3_texture")
 cost = 3

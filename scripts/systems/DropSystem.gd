@@ -6,7 +6,7 @@ const BOARD_MINION_SIZE           := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(0.5, 0.85, 0.55, 0.1)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(0.55, 0.85, 0.6, 0.45)
 
-var battle: Node
+var battle
 
 var _drop_highlights:        Dictionary = {}
 var _drop_placeholder:       Control    = null
@@ -17,7 +17,7 @@ var _drop_placeholder_index: int        = -1
 var _last_placeholder_index: int        = -1
 var _last_placeholder_row:   String     = ""
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 # ─── Highlight ────────────────────────────────────────────────────────────────

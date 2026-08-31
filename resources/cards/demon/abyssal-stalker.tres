@@ -12,7 +12,7 @@ keyword_type = 1
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Chasseur des Abysses"
-description = "CORRUPTION."
+description = "CORRUPTION"
 flavour_text = "Il ne tue pas toujours. Parfois, il préfère laisser pourrir."
 texture = ExtResource("3_texture")
 cost = 2

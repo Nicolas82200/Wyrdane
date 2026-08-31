@@ -1,0 +1,376 @@
+extends GutTest
+
+# Test de fumée : instancie la scène Arena headless et déroule un round
+# complet via les mêmes handlers que les boutons UI, pour vérifier que la
+# scène ne plante pas de bout en bout (achat, pose, combat, round suivant).
+
+var scene: Control
+
+func before_each() -> void:
+	var packed: PackedScene = load("res://scenes/arena/ArenaBattle.tscn")
+	scene = packed.instantiate()
+	add_child_autofree(scene)
+
+func test_scene_builds_ui_and_starts_a_shop_phase() -> void:
+	assert_not_null(scene.match_)
+	assert_eq(scene.match_.round_number, 1)
+	assert_eq(scene.human.shop_offer.size(), ArenaConstants.SHOP_SIZE)
+	var shown_cards: int = scene.shop_front_row.get_child_count() + scene.shop_back_row.get_child_count()
+	assert_eq(shown_cards, ArenaConstants.SHOP_SIZE, "chaque carte proposée doit être visible dans la rangée Avant ou Arrière de la boutique")
+
+func test_scene_spawns_one_human_and_the_rest_as_bots() -> void:
+	assert_eq(scene.bots.size(), ArenaConstants.PARTICIPANT_COUNT - 1,
+		"le nombre de bots doit suivre PARTICIPANT_COUNT (8 joueurs = 1 humain + 7 bots)")
+	assert_eq(scene.match_.players.size(), ArenaConstants.PARTICIPANT_COUNT)
+	for bot in scene.bots:
+		assert_true(bot.is_bot)
+
+func test_full_round_loop_does_not_crash() -> void:
+	# Simule un drag & drop d'achat (ArenaShopCardSlot -> ArenaBoardRow), pose
+	# le reste de la main en Avant, puis résout le combat (normalement déclenché
+	# par l'expiration du minuteur de phase, voir _on_phase_timer_timeout).
+	for i in scene.human.shop_offer.size():
+		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
+			scene._on_shop_card_dropped(i, true)
+			break
+	for minion in scene.human.hand.duplicate():
+		scene._on_place_pressed(minion, true)
+	await scene._resolve_combat_phase()
+	# Le combat terminé enchaîne désormais tout de suite sur la manche
+	# suivante (demande explicite du joueur : plus d'attente du reste du
+	# décompte après un combat déjà résolu) — round_number avance donc DANS
+	# le même await, sans appel manuel à _advance_round().
+	if not scene.game_over:
+		assert_eq(scene.match_.round_number, 2, "le combat terminé doit enchaîner immédiatement sur la manche suivante")
+
+func test_shop_card_drop_buys_into_hand_without_placing() -> void:
+	var affordable_index := -1
+	for i in scene.human.shop_offer.size():
+		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
+			affordable_index = i
+			break
+	assert_gte(affordable_index, 0, "au round 1 (or=1), au moins une carte à 1⬡ doit être proposée")
+	var gold_before: int = scene.human.gold
+	scene._on_shop_card_dropped(affordable_index, true)
+	assert_lt(scene.human.gold, gold_before, "le drop doit débiter l'or (achat)")
+	assert_eq(scene.human.hand.size(), 1, "la carte achetée doit rejoindre la main")
+	assert_true(scene.human.board_front.is_empty(), "la pose reste une action séparée, pas automatique au drop")
+
+func test_shop_cards_are_routed_to_the_row_matching_their_board_position() -> void:
+	# Laisse d'abord le premier queue_free() (déclenché par _start_match() dans
+	# before_each) se terminer, sinon les enfants de la boutique initiale sont
+	# encore comptés en plus des nouveaux (queue_free() est différé).
+	await get_tree().process_frame
+	var front_card := CardData.new()
+	front_card.card_name = "FrontOffer"
+	front_card.card_type = "Minion"
+	front_card.board_position = "Front"
+	var back_card := CardData.new()
+	back_card.card_name = "BackOffer"
+	back_card.card_type = "Minion"
+	back_card.board_position = "Back"
+	var offer: Array[CardData] = [front_card, back_card, null, null, null]
+	scene.human.shop_offer = offer
+	scene._refresh_ui()
+	await get_tree().process_frame
+	assert_eq(scene.shop_front_row.get_child_count(), 1, "une carte board_position=Front doit apparaître dans la rangée Avant de la boutique")
+	assert_eq(scene.shop_back_row.get_child_count(), 1, "une carte board_position=Back doit apparaître dans la rangée Arrière de la boutique")
+
+func test_clicking_a_bot_portrait_switches_the_displayed_board_read_only() -> void:
+	assert_eq(scene.viewed_target, scene.human, "par défaut, on consulte son propre plateau")
+	var bot: ArenaPlayerState = scene.bots[0]
+	scene._on_view_board_pressed(bot)
+	assert_eq(scene.viewed_target, bot)
+	assert_eq(scene.front_row.on_drop, Callable(), "le plateau d'un autre joueur ne doit pas accepter d'achat par drop")
+
+	scene._on_view_board_pressed(scene.human)
+	assert_eq(scene.viewed_target, scene.human)
+	assert_true(scene.front_row.on_drop.is_valid(), "revenir sur son propre plateau doit réactiver le drop d'achat")
+
+func test_viewed_target_resets_to_self_if_eliminated() -> void:
+	var bot: ArenaPlayerState = scene.bots[0]
+	scene._on_view_board_pressed(bot)
+	bot.is_eliminated = true
+	scene._refresh_ui()
+	assert_eq(scene.viewed_target, scene.human, "consulter un plateau qui vient d'être éliminé doit revenir sur le sien")
+
+func test_dragging_a_board_minion_reorders_it_within_its_own_row() -> void:
+	var card_a := CardData.new()
+	card_a.card_name = "A"
+	var card_b := CardData.new()
+	card_b.card_name = "B"
+	var minion_a := Minion.new(card_a, true, "Front")
+	var minion_b := Minion.new(card_b, true, "Front")
+	scene.human.board_front.append(minion_a)
+	scene.human.board_front.append(minion_b)
+	scene._on_board_minion_dropped(minion_b, true, 0)
+	assert_eq(scene.human.board_front, [minion_b, minion_a], "le serviteur doit changer de place au sein de sa ligne")
+
+func test_a_board_minion_cannot_be_dropped_on_the_other_row() -> void:
+	var card := CardData.new()
+	card.card_name = "Filler"
+	var minion := Minion.new(card, true, "Front")
+	scene.human.board_front.append(minion)
+	assert_false(scene.back_row._can_drop_data(Vector2.ZERO, {"arena_board_minion": minion}),
+		"un serviteur de l'Avant ne doit pas pouvoir être lâché sur l'Arrière")
+	assert_true(scene.front_row._can_drop_data(Vector2.ZERO, {"arena_board_minion": minion}),
+		"un serviteur de l'Avant doit pouvoir être lâché sur sa propre ligne")
+
+func test_dragging_a_board_minion_onto_the_shop_sells_it() -> void:
+	var card := CardData.new()
+	card.card_name = "Filler"
+	card.cost = 4
+	var minion := Minion.new(card, true, "Front")
+	scene.human.board_front.append(minion)
+	var gold_before: int = scene.human.gold
+	scene._on_board_minion_sold(minion)
+	assert_false(scene.human.board_front.has(minion), "le serviteur vendu doit quitter le plateau")
+	assert_gt(scene.human.gold, gold_before, "vendre doit rapporter de l'or")
+
+func test_ghost_board_is_never_shown_as_a_clickable_portrait() -> void:
+	scene.match_.ghost_board = GhostBoard.new()
+	scene._refresh_ui()
+	await get_tree().process_frame
+	assert_eq(scene.portraits_column.get_child_count(), scene.match_.players.size(),
+		"le Fantôme ne doit jamais apparaître comme un portrait cliquable")
+
+func test_shop_is_only_interactable_during_the_shop_phase() -> void:
+	assert_eq(scene.reroll_button.disabled, scene.human.gold < ArenaConstants.REROLL_COST,
+		"en phase Boutique, seul l'or manquant doit désactiver le reroll")
+	await scene._resolve_combat_phase()
+	# Le combat résolu enchaîne directement sur la phase Boutique de la manche
+	# suivante (voir _resolve_combat_phase) : la boutique redevient donc
+	# interactive dans la foulée, plus de pause "affichage du combat" à
+	# observer séparément depuis un test synchrone.
+	if not scene.game_over:
+		assert_eq(scene.current_phase, 0, "le combat terminé doit ramener directement en phase Boutique (0 = Phase.SHOP)")
+		assert_eq(scene.reroll_button.disabled, scene.human.gold < ArenaConstants.REROLL_COST,
+			"la boutique de la manche suivante doit être normalement interactive")
+
+# Prêt (README « État actuel du prototype ») : termine la phase Boutique tout
+# de suite au lieu d'attendre l'expiration du minuteur (voir _on_ready_pressed).
+func test_ready_button_ends_the_shop_phase_immediately() -> void:
+	assert_eq(scene.current_phase, 0, "phase Boutique au départ (0 = Phase.SHOP)")
+	var round_before: int = scene.match_.round_number
+	await scene._on_ready_pressed()
+	# Le combat déclenché par Prêt enchaîne lui aussi directement sur la
+	# manche suivante (voir _resolve_combat_phase) — round_number avance donc
+	# dans le même await, current_phase repasse à SHOP plutôt que de rester
+	# bloqué en COMBAT en attendant le reste du décompte.
+	if not scene.game_over:
+		assert_eq(scene.match_.round_number, round_before + 1,
+			"cliquer Prêt doit lancer le combat puis enchaîner directement sur la manche suivante, sans attendre le minuteur")
+
+# Régression : _is_shop_interaction_allowed() doit rejeter toute action joueur
+# hors phase Boutique, pas seulement désactiver visuellement les boutons — un
+# drop dont le payload a été capturé juste avant la fin de la manche pouvait
+# encore atteindre ces handlers après le basculement de phase (voir le
+# correctif de _resolve_combat_phase / _is_shop_interaction_allowed).
+func test_action_handlers_are_no_ops_outside_the_shop_phase() -> void:
+	# ArenaBattle.gd est un script de scène racine sans `class_name` : son enum
+	# `Phase { SHOP, COMBAT }` n'est pas accessible par nom depuis l'extérieur
+	# (référencer `ArenaBattle.Phase.COMBAT` ici ferait échouer le parsing de
+	# tout ce fichier de test). 1 = Phase.COMBAT.
+	scene.current_phase = 1
+
+	var gold_before: int = scene.human.gold
+	scene._on_reroll_pressed()
+	assert_eq(scene.human.gold, gold_before, "reroll hors phase Boutique ne doit pas débiter d'or")
+
+	scene._on_buy_xp_pressed()
+	assert_eq(scene.human.gold, gold_before, "achat d'XP hors phase Boutique ne doit pas débiter d'or")
+
+	var frozen_before: bool = scene.human.shop_frozen
+	scene._on_freeze_pressed()
+	assert_eq(scene.human.shop_frozen, frozen_before, "geler la boutique hors phase Boutique ne doit rien changer")
+
+	var phase_before = scene.current_phase
+	scene._on_ready_pressed()
+	assert_eq(scene.current_phase, phase_before, "cliquer Prêt hors phase Boutique ne doit pas déclencher de résolution de combat")
+
+	var affordable_index := -1
+	for i in scene.human.shop_offer.size():
+		if scene.human.shop_offer[i] != null and scene.human.shop_offer[i].cost <= scene.human.gold:
+			affordable_index = i
+			break
+	if affordable_index >= 0:
+		var hand_size_before: int = scene.human.hand.size()
+		scene._on_shop_card_dropped(affordable_index, true)
+		assert_eq(scene.human.hand.size(), hand_size_before, "achat en boutique hors phase Boutique ne doit rien ajouter à la main")
+		assert_eq(scene.human.gold, gold_before, "achat en boutique hors phase Boutique ne doit pas débiter d'or")
+
+	var card := CardData.new()
+	card.card_name = "Filler"
+	var minion := Minion.new(card, true, "Front")
+	scene.human.hand.append(minion)
+	scene._on_place_pressed(minion, true)
+	assert_true(scene.human.hand.has(minion), "poser un serviteur hors phase Boutique ne doit pas le retirer de la main")
+	assert_false(scene.human.board_front.has(minion), "poser un serviteur hors phase Boutique ne doit pas l'ajouter au plateau")
+
+	scene.human.hand.erase(minion)
+	scene.human.board_front.append(minion)
+	scene._on_board_minion_sold(minion)
+	assert_true(scene.human.board_front.has(minion), "vendre un serviteur hors phase Boutique ne doit pas le retirer du plateau")
+	assert_eq(scene.human.gold, gold_before, "vendre un serviteur hors phase Boutique ne doit pas rapporter d'or")
+
+func test_hand_contains_both_minions_and_purchased_spells_together() -> void:
+	# Une seule main : pas de zone séparée pour les Incantations achetées.
+	var minion_card := CardData.new()
+	minion_card.card_name = "Filler"
+	scene.human.hand.append(Minion.new(minion_card, true, "Front"))
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	scene.human.spell_hand.append(spell_card)
+	await scene._refresh_hand()
+	assert_eq(scene.hand.container.get_child_count(), 2,
+		"la main doit afficher le serviteur et l'Incantation ensemble")
+
+func test_merged_minion_shows_a_star_overlay_in_hand_and_on_board() -> void:
+	var card := CardData.new()
+	card.card_name = "Merged"
+	var merged := Minion.new(card, true, "Front")
+	merged.star_level = 2
+	scene.human.hand.append(merged)
+	await scene._refresh_hand()
+	var hand_card: Card = scene.hand.container.get_child(0)
+	var hand_has_star_badge := false
+	for child in hand_card.get_children():
+		if child is HBoxContainer:
+			hand_has_star_badge = true
+	assert_true(hand_has_star_badge, "la carte en main doit porter l'overlay étoile")
+
+	scene.human.hand.erase(merged)
+	scene.human.board_front.append(merged)
+	scene._refresh_board()
+	await get_tree().process_frame
+	var slot: ArenaBoardMinionSlot = scene.front_row.get_child(0)
+	var visual: BoardMinion = slot.get_child(0)
+	var has_star_badge := false
+	for child in visual.get_children():
+		if child is HBoxContainer:
+			has_star_badge = true
+	assert_true(has_star_badge, "le serviteur fusionné doit porter l'overlay étoile sur le plateau")
+
+func test_dropping_a_purchased_spell_onto_the_board_casts_it() -> void:
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	spell_card.effects = []
+	scene.human.spell_hand.append(spell_card)
+	await scene._on_hand_card_played(spell_card, scene.ROW_FRONT, -1)
+	assert_false(scene.human.spell_hand.has(spell_card), "l'Incantation lancée doit quitter la main")
+
+func test_dropping_a_purchased_spell_onto_the_shop_sells_it() -> void:
+	var spell_card := CardData.new()
+	spell_card.card_name = "Buff"
+	spell_card.card_type = "Instant"
+	spell_card.cost = 3
+	scene.human.spell_hand.append(spell_card)
+	var gold_before: int = scene.human.gold
+	scene._on_hand_card_played(spell_card, ArenaDropSystem.ROW_SHOP, -1)
+	assert_false(scene.human.spell_hand.has(spell_card), "l'Incantation vendue doit quitter la main")
+	assert_gt(scene.human.gold, gold_before, "vendre l'Incantation doit rapporter de l'or")
+
+func test_clicking_a_hand_card_without_dragging_does_not_duplicate_it() -> void:
+	var minion_card := CardData.new()
+	minion_card.card_name = "Filler"
+	scene.human.hand.append(Minion.new(minion_card, true, "Front"))
+	await scene._refresh_hand()
+	assert_eq(scene.hand.container.get_child_count(), 1)
+
+	var card: Card = scene.hand.container.get_child(0)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	card._gui_input(press)
+
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	card._input(release)
+
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var cards_in_hand: int = 0
+	var minions_on_root: int = 0
+	for child in scene.get_children():
+		if child is BoardMinion:
+			minions_on_root += 1
+	for child in scene.hand.container.get_children():
+		if child is Card:
+			cards_in_hand += 1
+	assert_eq(cards_in_hand, 1, "un simple clic sans glisser ne doit pas dupliquer la carte dans la main")
+	assert_eq(minions_on_root, 0, "l'aperçu de glisser-déposer ne doit pas rester orphelin après un clic")
+
+func test_board_rows_stay_at_the_same_screen_position_across_phases() -> void:
+	await get_tree().process_frame
+	var front_row_top_shop_phase: float = scene.front_row.get_parent().global_position.y
+	await scene._resolve_combat_phase()
+	await get_tree().process_frame
+	var front_row_top_combat_phase: float = scene.front_row.get_parent().global_position.y
+	# Tolérance : le texte réel des cartes de boutique tirées au hasard (nom/
+	# description) peut faire varier la taille minimale rendue de quelques
+	# pixels d'une carte à l'autre ; ce test vérifie l'absence de décalage
+	# grossier (ex. la boutique qui grandit/rétrécit franchement), pas une
+	# égalité au pixel près.
+	assert_almost_eq(front_row_top_combat_phase, front_row_top_shop_phase, 20.0,
+		"le plateau ne doit pas se déplacer entre la phase Boutique et la phase Combat")
+
+func test_resolving_combat_shows_the_enemy_board_and_banner_then_hides_them() -> void:
+	var player_card := CardData.new()
+	player_card.card_name = "PlayerFighter"
+	player_card.attack = 3
+	player_card.health = 3
+	scene.human.board_front.append(Minion.new(player_card, true, "Front"))
+	for bot in scene.bots:
+		var bot_card := CardData.new()
+		bot_card.card_name = "BotFighter"
+		bot_card.attack = 2
+		bot_card.health = 2
+		bot.board_front.append(Minion.new(bot_card, true, "Front"))
+
+	assert_false(scene.combat_banner_label.visible, "la banderole doit être cachée en phase Boutique")
+	assert_false(scene.enemy_hero_panel.visible, "le portrait adverse doit être caché en phase Boutique")
+	await scene._resolve_combat_phase()
+	await get_tree().process_frame  # queue_free() des visuels est différé
+	assert_false(scene.combat_banner_label.visible, "la banderole doit être re-cachée une fois le combat résolu")
+	assert_false(scene.enemy_hero_panel.visible, "le portrait adverse doit être re-caché une fois le combat résolu")
+	assert_null(scene._live_sim, "la référence au combat en direct doit être nettoyée après résolution")
+	# Le combat résolu enchaîne directement sur la phase Boutique de la manche
+	# suivante (voir _resolve_combat_phase) : une nouvelle offre y est donc
+	# déjà affichée, plus une boutique vide comme du temps où le minuteur
+	# post-combat retardait le retour en phase Boutique.
+	if not scene.game_over:
+		var shown_cards: int = scene.shop_front_row.get_child_count() + scene.shop_back_row.get_child_count()
+		assert_eq(shown_cards, ArenaConstants.SHOP_SIZE, "une nouvelle offre de boutique doit être affichée pour la manche suivante")
+
+func test_game_over_shows_the_styled_end_screen() -> void:
+	assert_false(scene.end_game_overlay.visible, "l'écran de fin ne doit pas être visible en cours de partie")
+	scene.human.is_eliminated = true
+	scene._show_game_over()
+	assert_true(scene.end_game_overlay.visible, "le voile doit s'afficher à la fin de partie")
+	assert_true(scene.end_game_screen_panel.visible, "le panneau doit s'afficher à la fin de partie")
+	assert_eq(scene.end_game_title_label.text, SettingsManager.t("ARENA_DEFEAT_TITLE"))
+	assert_true(scene.end_game_label.text.length() > 0, "le classement doit être affiché")
+
+func test_full_match_plays_to_completion_without_crashing() -> void:
+	# Simule une partie complète (le joueur humain ne fait rien, seuls les
+	# bots achètent/positionnent chaque round) jusqu'à l'élimination de tous
+	# sauf un — vérifie l'intégration bout en bout (UI + IA + combat animé +
+	# fusion + élimination + Ghost Board) sans se limiter à des cas isolés.
+	var rounds := 0
+	var max_rounds := 40  # garde-fou anti-boucle infinie si un bug bloquait l'élimination
+	while not scene.game_over and rounds < max_rounds:
+		await scene._resolve_combat_phase()
+		if scene.game_over:
+			break
+		scene._advance_round()
+		rounds += 1
+	assert_true(scene.game_over, "la partie doit se terminer avant %d rounds" % max_rounds)
+	# La partie se termine pour le joueur dès SON élimination, même si des
+	# bots survivent encore entre eux (voir _resolve_combat_phase) — pas
+	# nécessairement quand il ne reste qu'un seul participant au global.
+	assert_true(scene.human.is_eliminated or scene.match_.is_match_over(),
+		"la partie doit se terminer soit par l'élimination du joueur, soit par la fin de la partie au global")

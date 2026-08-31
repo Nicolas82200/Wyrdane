@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Fosse Écarlate"
-description = "Appel : si 3 Démons alliés ou plus sont en jeu, invoque une Larve Infernale 2/1."
+description = "Renfort : Si 3 Démons alliés ou plus sont en jeu, invoque une Larve Infernale 2/1."
 flavour_text = "Plus elle se remplit, plus elle déborde de quelque chose d'affamé."
 texture = ExtResource("3_texture")
 cost = 4

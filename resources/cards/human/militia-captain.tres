@@ -26,7 +26,8 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Capitaine de Milice"
-description = "COMMANDEMENT. Arrivée : invoque un Milicien du Bourg 2/1 en rangée Avant."
+description = "COMMANDEMENT
+Arrivée : Invoque un Milicien du Bourg 2/1 en rangée Avant."
 flavour_text = "Il n'avait pas prévu de commander. Mais quelqu'un devait le faire."
 texture = ExtResource("3_texture")
 cost = 4

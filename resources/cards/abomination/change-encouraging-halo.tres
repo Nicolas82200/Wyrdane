@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Halo Qui Encourage le Changement"
-description = "Résonance : le serviteur qui vient de muter gagne +1/+0 supplémentaire de façon permanente."
+description = "Mutation : Le serviteur qui vient de muter gagne +1/+0 supplémentaire de façon permanente."
 flavour_text = "Chaque changement en appelle un autre, plus franc."
 texture = ExtResource("2_texture")
 cost = 3

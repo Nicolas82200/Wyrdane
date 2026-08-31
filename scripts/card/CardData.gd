@@ -11,6 +11,11 @@ class_name CardData
 # (CardEffect.summon_card) pour éviter d'invoquer une vraie carte du deck
 # et les réactions en chaîne que ses propres triggers pourraient déclencher.
 @export var is_token: bool = false
+# Carte exclusive au mode Arena : jamais proposée au deckbuilder, au pool
+# IA ou à SummonRandom (CardLibrary.all_cards), mais bien scannée dans
+# CardLibrary.arena_only_cards pour le pool Arena (voir ArenaCardPool).
+# Sert à introduire des archétypes propres à l'Arena sans polluer le 1v1.
+@export var arena_only: bool = false
 
 
 @export var race: Race.Type = Race.Type.UNDEAD
@@ -114,6 +119,13 @@ func get_demon_keyword_values() -> Array[int]:
 	for kw in demon_keywords:
 		values.append(kw.keyword_type)
 	return values
+
+# Coût en PV (X) du mot-clé PACTE porté par cette carte, 0 si absent ou non-Pacte.
+func get_demon_keyword_value(type: int) -> int:
+	for kw in demon_keywords:
+		if kw.keyword_type == type:
+			return kw.value
+	return 0
 
 func get_abomination_keyword_values() -> Array[int]:
 	var values: Array[int] = []

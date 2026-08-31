@@ -8,6 +8,7 @@
 
 [sub_resource type="Resource" id="Resource_w0w18"]
 script = ExtResource("1_vfw1h")
+effect_id = "Damage"
 target = "RandomEnemy"
 value = 1
 row_filter = "Front"
@@ -20,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_k6lv7")
 card_name = "Archer de Guet"
-description = "Éveil : inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant."
+description = "Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant."
 flavour_text = "Il ne rate pas. Il attend juste le bon moment."
 texture = ExtResource("4_xbky5")
 cost = 2

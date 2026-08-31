@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Émissaire de la Peste"
-description = "PESTIFÉRÉ : ses attaques infligent Infection en plus des dégâts."
+description = "PESTIFÉRÉ"
 flavour_text = "Il ne vient pas combattre. Il vient annoncer."
 texture = ExtResource("3_texture")
 cost = 4

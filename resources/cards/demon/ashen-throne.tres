@@ -17,7 +17,7 @@ keyword_type = 3
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Trône de Cendres"
-description = "REMPART. RANG INFERNAL."
+description = "REMPART, RANG INFERNAL"
 flavour_text = "Il siège sur ce que ton héros a déjà perdu."
 texture = ExtResource("3_texture")
 cost = 5

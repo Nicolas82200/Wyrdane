@@ -8,8 +8,10 @@
 
 [sub_resource type="Resource" id="Resource_umzhr"]
 script = ExtResource("1_cardeffect")
+effect_id = "Damage"
 target = "AllEnemies"
 value = 1
+requires_infected_target = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_3n6at"]
@@ -19,7 +21,7 @@ type = "OnDecline"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Brouillard Pestilentiel"
-description = "Présence : à chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 HP supplémentaire."
+description = "Présence : À chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 point de vie supplémentaire."
 flavour_text = "On ne le voit pas. On ne le sent même plus, après un moment."
 texture = ExtResource("3_texture")
 cost = 3

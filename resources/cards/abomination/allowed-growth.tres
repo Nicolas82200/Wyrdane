@@ -22,12 +22,14 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Ce Qu'on a Laissé Pousser"
-description = "Deuil : invoque 2 Abominations aléatoires de coût ≤3 ; elles mutent immédiatement."
+description = "Deuil : Invoque 2 Abominations aléatoires de coût ≤3.
+Elles mutent immédiatement."
 flavour_text = "On l'a érigé pour se souvenir des disparus. Il préfère les remplacer."
 texture = ExtResource("2_texture")
 cost = 5
 race = 6
 card_type = "Enchantment"
+trigger_once_per_turn = true
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_a144")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_a145")])
 rarity = "Epic"

@@ -130,10 +130,16 @@ func _apply(cmd: Dictionary) -> void:
 			battle.refill_mana_pool(false)
 			battle.update_enemy_mana_ui()
 			if _deck_count > 0:
+				await battle.animate_enemy_draw()
 				_deck_count -= 1
 				_hand_count += 1
 			battle.update_enemy_hand_ui()
 			battle.deck_system.update_enemy_deck_ui()
+		NetCommand.DISCARD:
+			# Défausse de fin de tour (limite 10 cartes) : contenu privé, seul le
+			# compteur cosmétique de main adverse est mis à jour.
+			_hand_count = maxi(0, _hand_count - int(cmd.get("count", 0)))
+			battle.update_enemy_hand_ui()
 		NetCommand.PLAY_CARD:
 			await _apply_play_card(cmd)
 		NetCommand.ATTACK:
@@ -144,17 +150,29 @@ func _apply(cmd: Dictionary) -> void:
 			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
 			if attacker != null and defender != null \
 					and not attacker.owner_is_player and defender.owner_is_player:
+				# ids imposés : voir CombatSystem.resolve_combat (capture des
+				# serviteurs invoqués par un Dernier Souffle déclenché en combat).
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.resolve_combat(attacker, defender)
+				battle.net_registry.set_imposed_ids([])
 			else:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			if attacker != null and not attacker.owner_is_player:
+			# Revalide la règle "Rangée Avant vide"/Rempart côté réception (battle._can_attack_hero
+			# est généralisé pour n'importe quel camp attaquant) : un pair distant désynchronisé
+			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
+			# perform_hero_attack lui-même n'effectue aucune validation.
+			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
+				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.combat_system.perform_hero_attack(attacker)
+				battle.net_registry.set_imposed_ids([])
 			elif attacker != null:
-				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
+		NetCommand.ACTIVATE_FUSION:
+			await _apply_activate_fusion(cmd)
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
@@ -210,17 +228,16 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	if _hand_count > 0:
 		_hand_count -= 1
 		battle.update_enemy_hand_ui()
+	await battle.animate_enemy_card_played()
 	if card.card_type == "Minion":
 		var row: String = cmd.get("row", "Front")
 		var index: int = cmd.get("index", -1)
-		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index)
-		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : on rejoue la
-		# boucle d'effets avec la cible résolue par net_id, comme côté émetteur.
+		# Jeu ciblé (résolu via resolve_with_target chez l'émetteur) : la cible est
+		# résolue par net_id puis transmise directement au déclenchement ONPLAY,
+		# comme côté émetteur (voir CardSystem.resolve_with_target).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
-		if target_id != NetCommand.TARGET_NONE and summoned != null:
-			var target: Minion = battle.net_registry.resolve(target_id)
-			for effect in card.effects:
-				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
+		var target: Minion = battle.net_registry.resolve(target_id) if target_id != NetCommand.TARGET_NONE else null
+		await battle.board_system.summon_minion_return(card, false, row, index, false, target)
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
@@ -243,11 +260,36 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 	await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
 	battle.net_registry.set_imposed_ids([])
 
+# Rejoue l'activation distante du mot-clé FUSION côté ENNEMI : source et
+# victime doivent toutes deux appartenir au camp distant (comme ATTACK), sans
+# quoi un pair malveillant pourrait désigner un net_id de notre propre camp.
+func _apply_activate_fusion(cmd: Dictionary) -> void:
+	var source: Minion = battle.net_registry.resolve(cmd.get("source", 0))
+	var victim: Minion = battle.net_registry.resolve(cmd.get("victim", 0))
+	if source == null or victim == null or source.owner_is_player or victim.owner_is_player:
+		push_warning("NetworkOpponent : ACTIVATE_FUSION invalide (propriété incohérente)")
+		return
+	var pool: String = cmd.get("pool", "")
+	var keyword: int = FusionSystem.keyword_from_name(pool, cmd.get("keyword", "")) if pool != "" else -1
+	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+	await battle.fusion_system.apply_fusion(source, victim, pool, keyword)
+	battle.net_registry.set_imposed_ids([])
+
 # Rejoue un sort / rituel / enchantement du pair côté ENNEMI. Un proxy
 # owner_is_player=false sert de lanceur pour que EffectManager résolve les cibles
 # du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
 func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	battle.combat_log.card_played(card, false)
+	var early_target: Minion = null
+	if target_id != NetCommand.TARGET_NONE:
+		early_target = battle.net_registry.resolve(target_id)
+	var shows_popup: bool = card.card_type != "Enchantment" \
+		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
+	if shows_popup:
+		await battle.card_popup_system.show_card_popup(card)
+	if card.card_type == "Instant" or card.card_type == "Ritual":
+		AudioManager.play_spell_cast(card)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target)
 	if card.card_type == "Enchantment":
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
@@ -260,9 +302,12 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
-		var target: Minion = null
-		if target_id != NetCommand.TARGET_NONE:
-			target = battle.net_registry.resolve(target_id)
+		var target: Minion = early_target
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), même
+		# vérification que CardSystem côté émetteur, pour rester synchrone.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(false):
+			battle.board_visual_system.refresh_board()
+			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
 		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
 		if target != null and await battle.trigger_system.try_cancel_spell(false, target):
@@ -271,6 +316,7 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent
 		# AVANT les effets du sort, comme dans CardSystem, pour garder l'ordre
 		# d'attribution des ids identique entre les deux clients.
+		await battle.trigger_system.fire("OnSpell", null, true)
 		for ally in battle.enemy_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		var proxy := Minion.new(card, false, "")

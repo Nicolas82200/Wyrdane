@@ -4,15 +4,31 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://drslmgmf48iuv" path="res://assets/card_art/demon/hellspawn-larva.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="4_kwd"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
 
 [sub_resource type="Resource" id="Resource_9mlqc"]
 script = ExtResource("4_kwd")
 keyword_type = 0
+value = 1
+
+[sub_resource type="Resource" id="Resource_h2wqf"]
+script = ExtResource("5_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_v3tzk"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "Self"
+duration = "Permanent"
+value = 1
+value_2 = 1
+pact_bonus = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Larve Infernale"
-description = "PACTE."
+description = "Pacte 1 : Ce serviteur gagne +1/+1 de façon permanente."
 flavour_text = "Elle ne demande rien. Elle prend juste sa part avant même d'arriver."
 texture = ExtResource("3_texture")
 cost = 1
@@ -21,6 +37,8 @@ unit_style = 18
 attack = 2
 health = 1
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_9mlqc")])
+trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_h2wqf")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v3tzk")])
 rarity = "Common"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

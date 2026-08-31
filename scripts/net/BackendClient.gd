@@ -7,7 +7,7 @@ extends Node
 # comme un navigateur, donc on doit le lire dans Set-Cookie et le renvoyer
 # nous-mêmes en header Cookie sur chaque appel.
 #
-const API_URL := "https://wyrdane-backend.onrender.com"
+const API_URL = "https://api.wyrdane.com"
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en
@@ -23,6 +23,13 @@ signal login_failed(reason: String)
 var _session_cookie: String = ""
 var _pending_ticket_id: int = 0
 var _pending_ticket_buffer: PackedByteArray = PackedByteArray()
+# Id utilisateur backend local, extrait de la réponse de login (voir
+# _on_login_response) : sert à rapporter les matchs réseau (NetHandshake) et
+# récupérer son propre profil. Reste à 0 tant qu'aucun login n'a réussi.
+var _user_id: int = 0
+
+func local_user_id() -> int:
+	return _user_id
 
 # Les callbacks Steamworks (dont get_auth_session_ticket_response) ne sont
 # livrés que si Steam.run_callbacks() est pompé régulièrement. SteamTransport
@@ -90,7 +97,9 @@ func _on_login_response(_result: int, response_code: int, headers: PackedStringA
 
 	_session_cookie = _extract_cookie(headers)
 	var parsed = JSON.parse_string(body.get_string_from_utf8())
-	login_succeeded.emit(parsed.get("users", {}) if parsed is Dictionary else {})
+	var user: Dictionary = parsed.get("users", {}) if parsed is Dictionary else {}
+	_user_id = int(user.get("id", 0))
+	login_succeeded.emit(user)
 
 func _extract_cookie(headers: PackedStringArray) -> String:
 	for header in headers:
@@ -124,3 +133,198 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		http.queue_free()
 		if on_complete.is_valid():
 			on_complete.call(-1, null)
+
+# Profil agrégé du joueur connecté (GET /api/profile) : date de création de
+# compte, nombre de cartes en collection, stats solo/ranked — voir
+# MainMenu._show_info_view(PROFILE). on_profile est appelé avec (success: bool, data: Dictionary).
+func get_profile(on_profile: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/profile", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_profile.call(true, parsed)
+		else:
+			on_profile.call(false, {})
+	)
+
+# Rapporte le résultat d'un match réseau (POST /api/ranked/matches/report) —
+# voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
+# indépendamment ; le backend ne valide (MMR, historique) que si les deux
+# rapports concordent (double-report, voir rankedController côté backend).
+func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
+		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
+		"clientMatchId": client_match_id,
+		"opponentId": opponent_id,
+		"winnerId": winner_id,
+		"cardsPlayedByRace": cards_played_by_race,
+		"deckRaces": deck_races,
+	}, on_complete)
+
+# ─── Matchmaking classé ─────────────────────────────────────────────────────
+# Contrat détaillé (à implémenter côté wyrdane-backend) :
+# docs/backend-contracts/ranked-matchmaking-and-retention.md
+# Appariement par MMR, fenêtre élargie progressivement. Une fois deux tickets
+# appariés, le backend désigne un hôte (déterministe, ex. plus petit user id)
+# ; l'hôte crée un lobby Steam (voir NetLobby._on_ranked_matched) et rapporte
+# son lobby_id via queue_report_lobby — le camp invité le récupère au prochain
+# poll de queue_status et le rejoint directement (NetTransport.join avec
+# {"lobby_id": ...}), sans passer par la recherche de lobby publique.
+
+# Rejoint la file d'attente classée. on_complete(success, {ticket_id}).
+func queue_join(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, {})
+	)
+
+# Interroge l'état d'un ticket. on_complete(success, {status, role, opponent_id, steam_lobby_id}).
+# status : "waiting" | "matched" | "cancelled" | "expired". role ("host"/"guest")
+# et steam_lobby_id ne sont présents qu'une fois status == "matched".
+func queue_status(ticket_id: String, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/matchmaking/queue/%s" % ticket_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, {})
+	)
+
+# Hôte uniquement : transmet le lobby Steam qu'il vient de créer, pour que
+# l'invité puisse le rejoindre directement au prochain queue_status.
+func queue_report_lobby(ticket_id: String, steam_lobby_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue/%s/report-lobby" % ticket_id, {
+		"steamLobbyId": steam_lobby_id,
+	}, on_complete)
+
+# Quitte la file d'attente (bouton Annuler, ou changement de scène).
+func queue_cancel(ticket_id: String, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_DELETE, "/api/matchmaking/queue/%s" % ticket_id, {}, on_complete)
+
+# ─── Quêtes quotidiennes & récompense de connexion ─────────────────────────
+# Implémenté côté wyrdane-backend (voir questModel.ts/loginRewardModel.ts).
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, claimed}], resets_at}).
+func get_daily_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/daily", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, reward_currency}).
+func claim_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed_today, streak_day}).
+func get_login_reward_status(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/login-reward/status", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {streak_day, reward_currency, balance}).
+func claim_login_reward(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/login-reward/claim", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# ─── Quêtes hebdomadaires & parrainage ──────────────────────────────────────
+# Contrat détaillé (à implémenter côté wyrdane-backend) :
+# docs/backend-contracts/weekly-quests-and-referral.md
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_pack, claimed}], resets_at}).
+func get_weekly_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/weekly", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {free_packs, reward_pack}).
+func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/weekly/%s/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# ─── Quêtes uniques (one-shot, jamais reset) ────────────────────────────────
+# Implémenté côté wyrdane-backend (voir uniqueQuestModel.ts).
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, reward_pack, claimed}]}) — pas de resets_at,
+# ces quêtes ne resettent jamais.
+func get_unique_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/unique", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, free_packs, reward_currency, reward_pack}).
+func claim_unique_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/unique/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {code}). Génère le code au premier appel côté
+# serveur (idempotent ensuite) — voir contrat.
+func get_referral_code(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/referral/code", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {code, referred_username, status, reward_granted}).
+# status : "none" | "pending" | "completed".
+func get_referral_status(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/referral/status", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, error_code). error_code vide si succès, sinon
+# une des clés REFERRAL_INVALID_CODE / REFERRAL_SELF / REFERRAL_ALREADY_REFERRED
+# / REFERRAL_CODE_USED (traduites côté appelant).
+func redeem_referral_code(code: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/referral/redeem", {"code": code}, func(response_code: int, parsed: Variant):
+		if response_code == 200:
+			on_data.call(true, "")
+		else:
+			var error_code := String(parsed.get("error", "")) if parsed is Dictionary else ""
+			on_data.call(false, error_code)
+	)
+
+# Signale un bug ou un joueur pour triche (POST /api/reports) — voir
+# ReportDialog. Pas de table dédiée côté backend : le signalement part par
+# mail à l'équipe (même mécanisme que le formulaire de contact du site).
+func report_issue(type: String, description: String, reported_user_id: int = 0, match_id: String = "", on_complete: Callable = Callable()) -> void:
+	var body := {"type": type, "description": description}
+	if reported_user_id > 0:
+		body["reportedUserId"] = reported_user_id
+	if match_id != "":
+		body["matchId"] = match_id
+	request(HTTPClient.METHOD_POST, "/api/reports", body, on_complete)

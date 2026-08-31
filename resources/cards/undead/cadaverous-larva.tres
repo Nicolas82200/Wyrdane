@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Larve Cadavérique"
-description = "NÉCROPHAGE : gagne +1/+1 de façon permanente quand un serviteur allié meurt."
+description = "NÉCROPHAGE"
 flavour_text = "Elle n'est pas née de la vie. Elle est née de ce qui reste."
 texture = ExtResource("3_texture")
 unit_style = 18

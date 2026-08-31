@@ -21,6 +21,7 @@ const RACE_MANA_COLORS := {
 	Race.Type.UNDEAD:     Color("9fd0d6"),
 	Race.Type.DEMON:      Color("e0574a"),
 	Race.Type.ABOMINATION: Color("7ee23a"),
+	Race.Type.NONE:       Color("c9a6ff"),
 }
 
 const RACE_TRANSLATION_KEYS := {
@@ -132,6 +133,23 @@ func _update_row(race: int, current: int, maximum: int) -> void:
 		var filled: bool = i < mini(current, shown)
 		crystal.add_theme_color_override("font_color", color if filled else color_empty)
 
+# Mana temporaire (Race.Type.NONE, ex: Vortex des Âmes) : surplus hors-race
+# sans maximum (jamais rechargé, perdu au tour suivant) — affiché "+N" au lieu
+# du format "X/Y" des pools de race, tous les cristaux visibles étant remplis.
+func _update_temp_row(current: int) -> void:
+	var row: Dictionary = _rows[Race.Type.NONE]
+	var color: Color = RACE_MANA_COLORS.get(Race.Type.NONE, Color.WHITE)
+
+	var amount_label: Label = row["amount_label"]
+	amount_label.text = "+%d" % current
+
+	var crystals: Array = row["crystals"]
+	var shown: int = mini(current, ROW_MAX_CRYSTALS)
+	for i in range(ROW_MAX_CRYSTALS):
+		var crystal: Label = crystals[i]
+		crystal.visible = i < shown
+		crystal.add_theme_color_override("font_color", color)
+
 ## Point d'entrée principal : reçoit les pools de mana par race (`Battle.race_mana`
 ## / `race_max_mana` ou leurs équivalents adverses) et construit une rangée par
 ## race active (max_pool[race] > 0).
@@ -153,6 +171,17 @@ func set_mana_pools(pool: Dictionary, max_pool: Dictionary) -> void:
 		var race_name: String = SettingsManager.t(race_key) if race_key != "" else Race.get_race_name(race)
 		tooltip_lines.append("%s : %d / %d" % [race_name, cur_v, max_v])
 
+	# Mana temporaire (Race.Type.NONE) : surplus hors-race gagné en combat
+	# (ex: Vortex des Âmes), jamais rechargé — sans entrée dans RACE_ORDER (pas
+	# de max_pool associé), donc affiché séparément tant qu'il en reste.
+	var temp_mana: int = int(pool.get(Race.Type.NONE, 0))
+	if temp_mana > 0:
+		total_current += temp_mana
+		active[Race.Type.NONE] = true
+		_ensure_row(Race.Type.NONE)
+		_update_temp_row(temp_mana)
+		tooltip_lines.append("%s : +%d" % [SettingsManager.t("MANA_TEMPORARY"), temp_mana])
+
 	for race in _rows.keys().duplicate():
 		if not active.has(race):
 			_rows[race]["hbox"].queue_free()
@@ -163,16 +192,6 @@ func set_mana_pools(pool: Dictionary, max_pool: Dictionary) -> void:
 	if total_current > _last_total and _last_total >= 0:
 		_pulse()
 	_last_total = total_current
-
-## Point d'ancrage global de la rangée d'une race (centre du swatch coloré),
-## utilisé par les animations qui doivent converger vers le pool de mana
-## correspondant (ex. absorption d'une carte-ressource jouée). Si la rangée
-## n'existe pas encore, retombe sur le centre du panneau entier.
-func get_race_anchor_global_position(race: int) -> Vector2:
-	if _rows.has(race):
-		var swatch: ColorRect = _rows[race]["swatch"]
-		return swatch.global_position + swatch.size / 2.0
-	return global_position + size / 2.0
 
 func _pulse() -> void:
 	pivot_offset = size / 2.0

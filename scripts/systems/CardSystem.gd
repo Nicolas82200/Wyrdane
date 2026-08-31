@@ -1,9 +1,9 @@
 extends Node
 class_name CardSystem
 
-var battle: Node
+var battle
 
-func init(_battle: Node) -> void:
+func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
@@ -32,6 +32,7 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		push_warning("Conditions non remplies pour jouer %s." % card_data.card_name)
 		battle.hand.set_hand(battle.hand_cards)
 		return
+
 	if card_data.requires_target:
 		# Serviteur à effet ciblé sans cible valide : on le pose quand même,
 		# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
@@ -80,6 +81,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
 	await battle.cost_system.on_card_played(card_data, true)
+	battle.track_card_played_for_quests(card_data)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
@@ -90,6 +92,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
 	battle.update_mana_ui()
+	battle.track_card_played_for_quests(card_data)
 	await battle.cost_system.on_card_played(card_data, true)
 	_remove_from_hand(card_data)
 	await battle.get_tree().process_frame
@@ -101,15 +104,30 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		summoned = await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
-		for effect in card_data.effects:
-			if target is Minion:
-				await battle.effect_manager.execute_effect(battle, summoned, effect, target)
-			elif target is CardData:
+		# La cible (si Minion) est transmise directement au déclenchement ONPLAY :
+		# EffectManager.trigger_effects s'en sert pour les effets qui en ont besoin
+		# (EnemyMinion/AllyMinion/AnyMinion), base ET bonus de Pacte compris.
+		# Un ciblage d'enchantement (CardData) n'est pas géré par ce pipeline —
+		# encore résolu manuellement ci-dessous, cas rare non concerné par PACTE.
+		summoned = await battle.board_system.summon_minion_return(
+			card_data, true, row, insert_index, false, target if target is Minion else null)
+		if target is CardData:
+			for effect in card_data.effects:
+				if effect.pact_bonus:
+					continue
 				await battle.effect_manager.execute_enchantment_targeted_effect(battle, summoned, effect, target)
-			else:
-				await battle.effect_manager.execute_effect(battle, summoned, effect)
 	else:
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), quel que
+		# soit son ciblage : vérifiée avant l'annulation par cible (ci-dessous), qui
+		# ne s'applique elle qu'aux sorts visant un serviteur précis.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(true):
+			battle.player_graveyard.add_spell(card_data)
+			battle.board_visual_system.refresh_board()
+			if battle.net_emitter != null:
+				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, target if target is Minion else null)
+			battle.reset_targeting_state()
+			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
 		# contrer un sort ciblant un de ses serviteurs. Le sort est alors défaussé
 		# sans effet (mana déjà payé).
@@ -122,6 +140,14 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.reset_targeting_state()
 			return
 		battle.combat_log.card_played(card_data, true)
+		# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
+		# que l'effet ne se joue — uniquement en résolution immédiate (Éphémère,
+		# Rituel sans durée) ; un Enchantement/Rituel à durée rejoint sa zone
+		# sans reveal, donc pas de popup pour lui.
+		var shows_popup: bool = card_data.card_type != "Enchantment" \
+			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
+		if shows_popup:
+			await battle.card_popup_system.show_card_popup(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -135,15 +161,18 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 			await battle.death_system.process_deaths()
 		else:
+			# Son/VFX joués juste avant la résolution effective de l'effet (et
+			# non avant), pour rester synchronisés avec ce qui se passe réellement.
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, target if target is Minion else null)
 			battle.player_graveyard.add_spell(card_data)
-			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
-			# que l'effet ne se joue
-			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				if target is Minion:
 					await battle.effect_manager.execute_effect(battle, null, effect, target)
@@ -173,7 +202,20 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
+		# Annulation du premier sort ennemi du tour (Bouclier de la Foi) : voir
+		# resolve_with_target, même mécanisme pour un sort sans cible sélectionnée.
+		if await battle.trigger_system.try_cancel_first_enemy_spell(true):
+			battle.player_graveyard.add_spell(card_data)
+			battle.board_visual_system.refresh_board()
+			if battle.net_emitter != null:
+				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, null)
+			return
 		battle.combat_log.card_played(card_data, true)
+		var shows_popup: bool = card_data.card_type != "Enchantment" \
+			and not (card_data.card_type == "Ritual" and card_data.ritual_duration != 0)
+		if shows_popup:
+			await battle.card_popup_system.show_card_popup(card_data)
 		# Sortilège — enchantements adverses réagissent
 		await battle.trigger_system.fire("OnSpell", null, false)
 		for ally in battle.player_minions.duplicate():
@@ -187,15 +229,18 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
 			# déclenchement effectif consomme une charge (voir _consume_ritual_charge)
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
 			await battle.death_system.process_deaths()
 		else:
+			# Son/VFX joués juste avant la résolution effective de l'effet (et
+			# non avant), pour rester synchronisés avec ce qui se passe réellement.
+			AudioManager.play_spell_cast(card_data)
+			battle.vfx_manager.spawn_for_spell(battle, card_data, true, null)
 			battle.player_graveyard.add_spell(card_data)
-			# Popup de la carte (glisse depuis la gauche) affichée et lisible AVANT
-			# que l'effet ne se joue
-			await battle.card_popup_system.show_card_popup(card_data)
 			for effect in card_data.effects:
 				await battle.effect_manager.execute_effect(battle, null, effect)
 		battle.board_visual_system.refresh_board()

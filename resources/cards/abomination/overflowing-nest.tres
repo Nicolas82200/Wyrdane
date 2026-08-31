@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Nid Débordant"
-description = "Appel : si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour)."
+description = "Renfort : Si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour)."
 flavour_text = "Plus il se remplit, plus il en sort."
 texture = ExtResource("2_texture")
 cost = 4

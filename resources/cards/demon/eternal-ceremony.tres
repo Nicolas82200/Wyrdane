@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Absolution Écarlate"
-description = "Les dégâts que tes cartes infligeraient à ton héros ce tour sont annulés."
+description = "Les dégâts que vos cartes infligeraient à votre héros ce tour sont annulés."
 flavour_text = "Pour une fois, le contrat se tait."
 texture = ExtResource("3_texture")
 cost = 3

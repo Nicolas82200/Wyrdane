@@ -3,20 +3,71 @@ class_name CombatSystem
 
 var battle
 
+# Accélération des attaques en rafale : plus des attaques s'enchaînent vite
+# (plusieurs serviteurs de l'IA, ou le joueur qui enchaîne ses clics), plus
+# l'animation de charge de chacune est courte — jusqu'à un plancher, jamais
+# instantané. Le combo retombe à zéro dès qu'un délai réel dépasse
+# COMBO_RESET_MS entre deux attaques (ex: le joueur réfléchit entre deux
+# coups) : basé sur le temps réel écoulé, pas sur un compteur remis à zéro
+# manuellement à un moment arbitraire du tour.
+var _consecutive_attacks := 0
+var _last_attack_time_msec := 0
+const COMBO_RESET_MS := 1500
+const COMBO_SPEED_STEP := 0.15
+const COMBO_MIN_SPEED_SCALE := 0.4
+
+func _combo_speed_scale() -> float:
+	var now := Time.get_ticks_msec()
+	if now - _last_attack_time_msec > COMBO_RESET_MS:
+		_consecutive_attacks = 0
+	_consecutive_attacks += 1
+	_last_attack_time_msec = now
+	return maxf(COMBO_MIN_SPEED_SCALE, 1.0 - COMBO_SPEED_STEP * (_consecutive_attacks - 1))
+
 func init(_battle) -> void:
 	battle = _battle
 
+# `"play_sfx" in battle` : duck-typing, seul `SimulatedBattle` (combat Arena)
+# porte cette propriété — absente sur le vrai `Battle` (1v1), qui joue donc
+# toujours son son. `SimulatedBattle.play_sfx` reste faux par défaut (combat
+# bot-contre-bot headless, jamais montré) et n'est mis à true que pour le
+# combat réellement affiché au joueur (voir SimulatedBattle.enable_live_visuals)
+# — sans ce garde-fou, chaque combat simulé en parallèle (jusqu'à 3-4 à
+# 8 joueurs) ferait sonner ses propres coups en plus de celui qu'on regarde.
+func _play_hit_sound() -> void:
+	if not ("play_sfx" in battle) or battle.play_sfx:
+		AudioManager.play(AudioManager.HIT)
+
 func resolve_combat(attacker: Minion, defender: Minion) -> void:
+	# Verrou de ré-entrance : empêche un effet déclenché en chaîne pendant cette
+	# attaque (OnAttack, OnResonance, attaque immédiate...) de relancer une attaque
+	# avec ce même serviteur avant que celle-ci soit terminée.
+	if attacker.is_attacking:
+		return
+	attacker.is_attacking = true
 	# Émission réseau : uniquement les attaques initiées par le joueur LOCAL.
 	# Les attaques rejouées du pair (serviteur ennemi) ne réémettent pas.
-	if battle.net_emitter != null and attacker.owner_is_player:
-		battle.net_emitter.attack(attacker, defender)
+	# begin_capture/end_capture (comme CardSystem.resolve_with_target) : un
+	# Dernier Souffle déclenché par cette attaque (ex. le défenseur meurt et
+	# invoque un jeton) doit imposer le MÊME net_id côté pair — sans capture,
+	# chaque client attribuerait son propre id local au jeton et divergerait
+	# durablement sur toute référence future à ce serviteur.
+	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	if is_local_attack:
+		battle.net_registry.begin_capture()
+	var speed_scale := _combo_speed_scale()
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
+	# Effets d'Attaque (ex: mots-clés qui réagissent dès qu'une cible est
+	# choisie) déclenchés AVANT l'animation d'assaut elle-même, pour que ce qui
+	# doit se produire "au moment de l'attaque" soit visible avant le contact
+	# (et non après, comme un effet secondaire retardé de l'impact).
+	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
+	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
 	if attacker_visual and defender_visual:
-		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual)
+		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual, speed_scale)
 	var dealt_to_defender: int = await _execute_damage(attacker, defender)
-	await battle.get_tree().create_timer(0.05).timeout
+	await battle.get_tree().create_timer(0.05 * speed_scale).timeout
 	# Le résultat (mort ou non) n'est logué qu'une fois la résolution de mort
 	# terminée (REVENANT peut relever le serviteur) ; les deux serviteurs sont
 	# passés en "silent" pour que DeathSystem ne double-logue pas leur mort
@@ -25,17 +76,21 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	battle.combat_log.attack(attacker, defender, dealt_to_defender, attacker.is_dead(), defender.is_dead())
 	battle.hero_system.update_ui()
 	battle.check_game_end()
+	if is_local_attack:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.attack(attacker, defender, ids)
+	attacker.is_attacking = false
+	# _execute_damage a déjà rafraîchi l'affichage pendant que is_attacking
+	# était encore vrai (grisage "épuisé" via can_attack()) : un attaquant qui
+	# regagne une attaque ce combat (Contre-Offensive) reste donc assombri à
+	# tort tant qu'aucun autre refresh ne survient. Un second refresh ici,
+	# une fois le verrou levé, corrige l'affichage immédiatement.
+	if not attacker.is_dead():
+		battle.board_visual_system.refresh_board()
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
-	# defender passé en cible pour les effets d'attaque (ex: Mâcheur d'Os = splash
-	# sur les serviteurs adjacents à la cible).
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
-	# Résonance — enchantements réagissent quand un allié de la même race attaque.
-	# La cible de l'attaque est transmise pour les effets qui la visent
-	# (Aura de Corruption, Idole du Grand Pacte).
-	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
-
+	# OnAttack/OnResonance sont déjà déclenchés par resolve_combat, avant
+	# l'animation d'assaut (voir plus haut) — pas ici.
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
 	var attacker_had_aegis: bool = attacker.has_keyword(Keyword.Type.AEGIS)
@@ -43,9 +98,10 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 
 	var a_dmg: int = attacker.attack
 	var d_dmg: int = defender.attack
+	var defender_health_before: int = defender.health
 	var dealt_to_defender: int = defender.take_damage(a_dmg)
 	var dealt_to_attacker: int = attacker.take_damage(d_dmg)
-	AudioManager.play(AudioManager.HIT)
+	_play_hit_sound()
 
 	if defender_had_aegis and not defender.has_keyword(Keyword.Type.AEGIS):
 		battle.animation_system.play_aegis_break(defender_visual)
@@ -96,10 +152,17 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 		battle.animation_system.play_lifesteal(attacker_visual, hero_panel, dealt_to_defender)
 
+	# MOISSON côté défenseur : un serviteur qui inflige des dégâts EN DÉFENDANT
+	# (ex: Esprit Vorace) doit soigner son héros au même titre que l'attaquant.
+	if defender.has_keyword(Keyword.Type.LIFESTEAL) and dealt_to_attacker > 0:
+		battle.hero_system.get_owner_hero(defender).heal(dealt_to_attacker)
+		var defender_hero_panel: Control = battle.get_node("PlayerHeroPanel" if defender.owner_is_player else "EnemyHeroPanel")
+		battle.animation_system.play_lifesteal(defender_visual, defender_hero_panel, dealt_to_attacker)
+
 	if defender.is_dead():
 		await battle.effect_manager.trigger_effects(battle, attacker, "OnExecution")
 		if attacker.has_keyword(Keyword.Type.RAVAGE) and not defender.card_data.blocks_overkill:
-			var excess: int = a_dmg - defender.max_health
+			var excess: int = a_dmg - defender_health_before
 			if excess > 0:
 				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
 				var enemy_hero_panel: Control = battle.get_node("EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel")
@@ -114,17 +177,29 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	return dealt_to_defender
 
 func perform_hero_attack(attacker: Minion) -> void:
-	if battle.net_emitter != null and attacker.owner_is_player:
-		battle.net_emitter.attack_hero(attacker)
+	# Voir resolve_combat : même verrou de ré-entrance, même capture d'ids
+	# réseau (le trigger OnAttack ci-dessous peut invoquer un serviteur).
+	if attacker.is_attacking:
+		return
+	attacker.is_attacking = true
+	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	if is_local_attack:
+		battle.net_registry.begin_capture()
+	var speed_scale := _combo_speed_scale()
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	if visual:
 		var hero_panel: Control = battle.get_node(panel_name)
-		await battle.animation_system.play_attack_lunge(visual, hero_panel)
-	AudioManager.play(AudioManager.HIT)
+		await battle.animation_system.play_attack_lunge(visual, hero_panel, speed_scale)
+	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
-	await battle.effect_manager.trigger_effects(battle, attacker, "OnRally")
-	await battle.trigger_system.fire("OnRally", attacker, attacker.owner_is_player)
+	# Résonance — enchantements réagissent aussi quand un allié attaque le héros
+	# directement (voir _execute_damage pour l'attaque d'un serviteur). Pas de
+	# serviteur ciblé ici (target: null explicite) : les effets qui visent une
+	# cible précise (ex: Aura de Corruption, Idole du Grand Pacte) n'ont
+	# simplement rien à faire, seuls ceux visant l'attaquant lui-même
+	# (ex: Aura de Décrépitude, via TriggerSource) s'appliquent.
+	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": null})
 	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:
@@ -132,4 +207,8 @@ func perform_hero_attack(attacker: Minion) -> void:
 		if visual:
 			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)
+	if is_local_attack:
+		var ids: Array = battle.net_registry.end_capture()
+		battle.net_emitter.attack_hero(attacker, ids)
 	attacker.consume_attack()
+	attacker.is_attacking = false

@@ -19,10 +19,13 @@ const ATTACK_HERO := "ATTACK_HERO"  # un serviteur attaque le héros adverse
 const END_TURN    := "END_TURN"     # le pair distant termine son tour
 const TURN_START  := "TURN_START"   # début du tour distant (déclencheurs Éveil…)
 const ACTIVATE_RITUAL := "ACTIVATE_RITUAL"  # activation d'un Rituel de Sacrifice
+const ACTIVATE_FUSION := "ACTIVATE_FUSION"  # activation volontaire du mot-clé FUSION
 const HELLO       := "HELLO"        # handshake d'ouverture (deck, parité, seed)
 const HELLO_ACK   := "HELLO_ACK"    # accusé de réception du HELLO du pair
 const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
+const DISCARD := "DISCARD"  # défausse de fin de tour (limite 10 cartes) — nombre seulement, contenu privé
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
+const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -44,11 +47,14 @@ static func play_card(card_path: String, row: String, insert_index: int,
 		"target": target_net_id,
 	}
 
-static func attack(attacker_net_id: int, defender_net_id: int) -> Dictionary:
-	return {"type": ATTACK, "attacker": attacker_net_id, "defender": defender_net_id}
+# ids : net_id des serviteurs créés pendant la résolution de l'attaque (ex.
+# invocation par un Dernier Souffle qui meurt au combat), à imposer au rejeu —
+# même mécanique que play_card.
+static func attack(attacker_net_id: int, defender_net_id: int, ids: Array = []) -> Dictionary:
+	return {"type": ATTACK, "attacker": attacker_net_id, "defender": defender_net_id, "ids": ids}
 
-static func attack_hero(attacker_net_id: int) -> Dictionary:
-	return {"type": ATTACK_HERO, "attacker": attacker_net_id}
+static func attack_hero(attacker_net_id: int, ids: Array = []) -> Dictionary:
+	return {"type": ATTACK_HERO, "attacker": attacker_net_id, "ids": ids}
 
 # ids : net_id des serviteurs créés par les déclencheurs de fin de tour, à imposer
 # lors du rejeu de cette phase sur le pair.
@@ -70,16 +76,35 @@ static func activate_ritual(card_path: String, victim_ids: Array, ids: Array = [
 		"ids": ids,
 	}
 
+# Activation volontaire de FUSION : source/victime désignées par net_id, le
+# mot-clé absorbé par son pool ("keywords"/"human_keywords"/"undead_keywords"/
+# "demon_keywords"/"abomination_keywords") et son nom (Type.keys()[value]),
+# résolu via le from_name() de l'enum correspondant.
+# ids : serviteurs créés pendant la résolution (ex. Dernier Souffle du
+# sacrifié), à imposer au rejeu — même mécanique que play_card.
+static func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> Dictionary:
+	return {
+		"type": ACTIVATE_FUSION,
+		"source": source_id,
+		"victim": victim_id,
+		"pool": keyword_pool,
+		"keyword": keyword_name,
+		"ids": ids,
+	}
+
 # deck_paths : liste des resource_path des cartes du deck local, dans l'ordre
 # déjà mélangé. start_id/stride : parité d'ids réseau du pair (voir NetRegistry).
 # seed : graine RNG partagée pour que les tirages aléatoires soient identiques.
-static func hello(deck_paths: Array, start_id: int, stride: int, seed: int) -> Dictionary:
+# backend_id : id utilisateur backend local (0 si non authentifié), utilisé
+# côté profil/ranked pour rapporter le résultat du match (voir NetHandshake).
+static func hello(deck_paths: Array, start_id: int, stride: int, seed: int, backend_id: int = 0) -> Dictionary:
 	return {
 		"type": HELLO,
 		"deck": deck_paths,
 		"start_id": start_id,
 		"stride": stride,
 		"seed": seed,
+		"backend_id": backend_id,
 	}
 
 # Accusé de réception du HELLO : garantit à l'émetteur que son deck est bien
@@ -93,12 +118,23 @@ static func hello_ack() -> Dictionary:
 static func mulligan_done() -> Dictionary:
 	return {"type": MULLIGAN_DONE}
 
+# Défausse de fin de tour (limite 10 cartes, voir HandDiscardSystem) : seul le
+# nombre de cartes défaussées est transmis, pour garder à jour le compteur
+# cosmétique de main adverse — comme pour le mulligan, le contenu reste privé.
+static func discard(count: int) -> Dictionary:
+	return {"type": DISCARD, "count": count}
+
 # Envoyé juste avant de fermer volontairement la connexion (concède/retour au
 # menu) : permet au pair de distinguer un départ délibéré d'une coupure réseau
 # transitoire, et donc de ne pas attendre inutilement une reconnexion qui ne
 # viendra jamais (voir NetworkManager._on_packet_received).
 static func leave_match() -> Dictionary:
 	return {"type": LEAVE_MATCH}
+
+# Signale que ce client a fini le handshake et son chargement local, et
+# n'attend plus que le pair pour entrer dans Battle.tscn (voir NetBattleSync).
+static func battle_ready() -> Dictionary:
+	return {"type": BATTLE_READY}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

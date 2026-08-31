@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="2_carddata"]
 [ext_resource type="Texture2D" uid="uid://c36r81oe65j50" path="res://assets/card_art/demon/abyss-reaper.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="5_kwd"]
 
 [sub_resource type="Resource" id="Resource_39ozv"]
 script = ExtResource("4_trig")
@@ -15,17 +16,24 @@ effect_id = "DestroyLowHP"
 value = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_a33hk"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
+[sub_resource type="Resource" id="Resource_kwpacte"]
+script = ExtResource("5_kwd")
+keyword_type = 0
 value = 2
+
+[sub_resource type="Resource" id="Resource_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "DestroyLowHP"
+value = 5
+pact_bonus = true
+pact_replaces_base = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Faucheur des Abysses"
-description = "Arrivée : détruit tous les serviteurs ennemis ayant 3 HP ou moins ; ton héros perd 2 HP."
+description = "Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins.
+Pacte 2 : Détruit tous les serviteurs ennemis ayant 5 points de vie ou moins à la place."
 flavour_text = "Il choisit les plus faibles. Toi, tu paies pour son jugement."
 texture = ExtResource("3_texture")
 cost = 5
@@ -33,8 +41,9 @@ race = 5
 unit_style = 15
 attack = 5
 health = 5
+demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_39ozv")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0rmbf"), SubResource("Resource_a33hk")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0rmbf"), SubResource("Resource_bonus")])
 rarity = "Epic"
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
