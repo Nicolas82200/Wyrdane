@@ -447,18 +447,48 @@ func build_status_panels_for_minion(minion: Minion, parent: Node) -> Array[Contr
 
 	return panels
 
-# ─── Historique des effets reçus (survol en bataille, affiché à gauche) ──────
-# Distinct des panels d'états ci-dessus : ceux-ci reflètent l'état ACTUEL,
-# celui-ci le JOURNAL chronologique de ce qui est arrivé au serviteur
-# (Minion.buffs, alimenté par EffectManager via record_history) — un seul
-# panel multi-lignes plutôt qu'un par entrée, pour rester compact.
-func build_history_panel_for_minion(minion: Minion, parent: Node) -> Array[Control]:
-	if minion.buffs.is_empty():
+# ─── Modificateurs actuellement actifs (survol en bataille, affiché à gauche) ─
+# Contrairement à un historique (chaque ligne pourrait rester affichée après
+# l'expiration du buff temporaire qui l'a produite), ceci relit l'état RUNTIME
+# du serviteur au moment du survol et agrège tout en un seul delta net — un
+# serviteur ayant reçu +5/+5 puis -2/-3 affiche "+3/+2", jamais les deux entrées
+# séparément (TempEffectSystem réapplique déjà chaque expiration sur
+# base_attack/base_max_health, donc comparer à card_data suffit : aucun état
+# séparé à maintenir soi-même, ce qui élimine par construction tout "buff
+# fantôme" resté affiché après expiration).
+func build_active_modifiers_panel_for_minion(minion: Minion, parent: Node) -> Array[Control]:
+	if minion.card_data == null:
 		return []
-	var panel := make_tooltip_panel(_tr("HIST_PANEL_TITLE"), "\n".join(minion.buffs), COLOR_EFFECT)
+	var lines: PackedStringArray = []
+	var atk_delta: int = minion.base_attack - minion.card_data.attack
+	var hp_delta: int = minion.base_max_health - minion.card_data.health
+	if atk_delta != 0 or hp_delta != 0:
+		lines.append("%s/%s" % [_signed(atk_delta), _signed(hp_delta)])
+	lines.append_array(_gained_keyword_lines(minion.keywords, minion.card_data.get_keyword_values(), Keyword))
+	lines.append_array(_gained_keyword_lines(minion.human_keywords, minion.card_data.get_human_keyword_values(), KeywordHuman))
+	lines.append_array(_gained_keyword_lines(minion.undead_keywords, minion.card_data.get_undead_keyword_values(), KeywordUndead))
+	lines.append_array(_gained_keyword_lines(minion.demon_keywords, minion.card_data.get_demon_keyword_values(), KeywordDemon))
+	lines.append_array(_gained_keyword_lines(minion.abomination_keywords, minion.card_data.get_abomination_keyword_values(), KeywordAbomination))
+	if lines.is_empty():
+		return []
+	var panel := make_tooltip_panel(_tr("ACTIVE_MODIFIERS_TITLE"), "\n".join(lines), COLOR_EFFECT)
 	panel.position = Vector2(-9999, -9999)
 	parent.add_child(panel)
 	return [panel]
+
+func _signed(n: int) -> String:
+	return ("+%d" % n) if n >= 0 else str(n)
+
+# Mots-clés présents dans `current` mais absents de `base` (la carte d'origine) :
+# des mots-clés gagnés EN COURS DE PARTIE (GrantKeyword...), permanents ou
+# temporaires encore actifs — un mot-clé expiré est déjà retiré de `current`
+# par TempEffectSystem, donc là aussi rien à suivre manuellement.
+func _gained_keyword_lines(current: Array, base: Array, keyword_class) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	for kw in current:
+		if kw not in base:
+			lines.append(keyword_class.get_keyword_name(kw))
+	return lines
 
 func _effect_title(effect_id: String) -> String:
 	match effect_id:
