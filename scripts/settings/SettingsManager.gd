@@ -82,6 +82,10 @@ var referral_prompt_seen: bool = false
 # réseau, tutoriel exclu (voir Battle._show_game_over).
 var match_wins: int = 0
 var match_losses: int = 0
+# Série de victoires consécutives sans jamais passer sous 20 PV de héros
+# (succès Steam "Gardien", voir AchievementManager.ACH_GUARDIAN_STREAK) —
+# cassée par toute défaite ou toute victoire où le PV plancher est franchi.
+var high_hp_win_streak: int = 0
 
 var resolution: Vector2i = DEFAULT_RESOLUTION
 var fullscreen: bool = false
@@ -157,6 +161,13 @@ func record_match_result(won: bool) -> void:
 		match_losses += 1
 	_save()
 	match_stats_changed.emit(match_wins, match_losses)
+
+# Met à jour la série "sans passer sous 20 PV" (qualifies = ce match la
+# prolonge) et retourne la nouvelle valeur du compteur.
+func record_high_hp_win_streak(qualifies: bool) -> int:
+	high_hp_win_streak = high_hp_win_streak + 1 if qualifies else 0
+	_save()
+	return high_hp_win_streak
 
 # --- Affichage (résolution / plein écran / vsync / qualité) ---------------
 
@@ -382,6 +393,7 @@ func _save() -> void:
 	cfg.set_value("display", "quality", quality)
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
+	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
@@ -413,6 +425,7 @@ func _load() -> void:
 		quality = DEFAULT_QUALITY
 	match_wins = cfg.get_value("stats", "match_wins", 0) as int
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
+	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String

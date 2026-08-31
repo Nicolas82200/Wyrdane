@@ -29,6 +29,8 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 	battle.combat_log.card_played(card_data, is_player)
 	_insert(minion, is_player, row, insert_index)
 	var commandement_applied: bool = _apply_commandement_bonus(minion, is_player)
+	if commandement_applied and is_player:
+		battle.player_commandement_triggers_this_match += 1
 	var chair_adaptative_source: Minion = _apply_chair_adaptative(minion)
 	_spawn(minion, is_player)
 	AudioManager.play_for_style(AudioManager.SUMMON, card_data.unit_style)

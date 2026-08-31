@@ -28,6 +28,10 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 	if card_data.card_type == "Minion" and not battle.can_summon_to_row(true, row):
 		push_warning("Rangée %s pleine." % row)
 		return
+	# Succès Steam "Sans-recul" (voir AchievementManager) : ce serviteur va bien
+	# être posé en Arrière (les vérifications ci-dessus sont passées).
+	if card_data.card_type == "Minion" and row == battle.ROW_BACK:
+		battle.player_used_back_row_this_match = true
 	if not conditions_met(card_data):
 		push_warning("Conditions non remplies pour jouer %s." % card_data.card_name)
 		battle.hand.set_hand(battle.hand_cards)

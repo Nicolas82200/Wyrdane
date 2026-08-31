@@ -157,9 +157,22 @@ var hand_cards: Array[CardData]  = []
 # MatchResultReporter.
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
-# Nombre de cartes-ressource jouées par le joueur local ce match (succès Steam
-# "Économie de Guerre" — voir AchievementManager.on_victory).
+# Compteurs de succès Steam (voir AchievementManager) accumulés au fil du
+# match courant, consultés/déclenchés depuis Battle._show_game_over.
 var player_resource_cards_played: int = 0
+var player_min_hp_this_match: int = 30
+var player_was_low_hp_this_match: bool = false
+var player_kills_this_turn: int = 0
+var player_infection_damage_dealt: int = 0
+var player_used_back_row_this_match: bool = false
+var player_commandement_triggers_this_match: int = 0
+var player_black_blood_triggers_this_match: int = 0
+var deck_has_legendary: bool = false
+# Ce match provient-il de la file d'appariement classé (bouton "Partie
+# classée" de NetLobby) plutôt que d'une "Partie rapide" ? Le backend ne fait
+# lui-même aucune distinction entre les deux (voir CLAUDE.md § Ranked) : ce
+# flag n'existe que côté client, propagé via NetContext.setup.
+var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
 	if card_data.race == Race.Type.NONE:
@@ -212,6 +225,7 @@ func _ready() -> void:
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
 	player_hero = Hero.new(30)
+	player_min_hp_this_match = player_hero.health
 	# HP réduits en tutoriel : l'adversaire scripté ne joue que 2 serviteurs et
 	# n'attaque jamais, la victoire doit rester atteignable en quelques tours.
 	enemy_hero  = Hero.new(8 if tutorial_active else 30)
@@ -259,6 +273,7 @@ func _init_systems() -> void:
 		add_child(tutorial_manager)
 		tutorial_manager.init(self)
 	elif NetContext.active:
+		is_ranked_match = bool(NetContext.setup.get("is_ranked", false))
 		net_session_system.setup()
 	enchantment_system.init(self)
 	card_popup_system = CardPopupSystem.new()
@@ -658,7 +673,9 @@ func _show_game_over(result: String) -> void:
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
 	if result == "victory":
-		AchievementManager.on_victory(player_hero, player_resource_cards_played)
+		AchievementManager.on_victory(self)
+	elif result == "defeat":
+		AchievementManager.on_defeat()
 	game_over_screen.show_result(result, network_manager == null)
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
 			cards_played_by_race, deck_races)

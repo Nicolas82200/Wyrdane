@@ -87,6 +87,10 @@ func run_turn_start_triggers(is_local_turn: bool) -> void:
 	battle.trigger_system.reset_once_per_turn(is_local_turn)
 	battle.resource_played_this_turn[is_local_turn] = false
 	battle.undead_ally_deaths_this_turn[is_local_turn] = 0
+	if is_local_turn:
+		# Succès Steam "Exécuteur" (voir AchievementManager) : compteur remis à
+		# zéro à chaque nouveau tour du joueur local.
+		battle.player_kills_this_turn = 0
 	# Réarmé par Ordre de Tenir (OnAwaken) si le rituel est encore actif.
 	battle.front_line_protected[is_local_turn] = false
 	var turn_minions: Array = battle.player_minions if is_local_turn else battle.enemy_minions
@@ -123,6 +127,11 @@ func _apply_infection_damage() -> void:
 			var dealt: int = minion.take_damage(minion.infection_stacks)
 			if dealt > 0:
 				battle.combat_log.infection_tick(minion, dealt)
+				# Succès Steam "Peste noire" (voir AchievementManager) : seuls les
+				# dégâts d'Infection subis par un serviteur ennemi comptent (les
+				# marques ont forcément été posées par des cartes du joueur local).
+				if not minion.owner_is_player:
+					battle.player_infection_damage_dealt += dealt
 				var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 				if visual:
 					battle.animation_system.play_infection_tick(visual, dealt)

@@ -1396,6 +1396,7 @@ func roll_mutation(battle, minion: Minion) -> void:
 		outcome = "Dégénérescence"
 	minion.mutations.append(outcome)
 	minion.mutation_stacks += 1
+	AchievementManager.on_minion_mutated(minion)
 	var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 	if visual and not minion.is_dead():
 		battle.animation_system.play_mutation(visual, outcome)

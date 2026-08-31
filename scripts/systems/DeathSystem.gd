@@ -30,6 +30,11 @@ func process_deaths(silent: Array = []) -> void:
 	var dead_all:    Array[Minion] = []
 	dead_all.append_array(dead_player)
 	dead_all.append_array(dead_enemy)
+	# Succès Steam "Exécuteur" (voir AchievementManager) : ne compte que les
+	# morts ennemies survenant pendant le tour du joueur local.
+	if not dead_enemy.is_empty() and not battle.enemy_turn_active:
+		battle.player_kills_this_turn += dead_enemy.size()
+		AchievementManager.on_enemy_kills_this_turn(battle.player_kills_this_turn)
 	if dead_all.is_empty():
 		processing_deaths = false
 		# Si REVENANT a relevé un serviteur (health 0 → 1) sans qu'aucune mort ne
