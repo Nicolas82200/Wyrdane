@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Souffle Nécrotique"
-description = "Inflige 2 dégâts à un serviteur ennemi ciblé."
+description = "Inflige 2 points de dégâts à un serviteur ennemi ciblé."
 flavour_text = "Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien."
 texture = ExtResource("3_texture")
 cost = 2
