@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_92g8t"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
-target = "AllAlliesFront"
+target = "AllAllies"
 duration = "UntilEndOfTurn"
 race_filter = "Undead"
 value = 1
@@ -22,7 +22,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Hurleur Nécrotique"
-description = "Arrivée : Serviteurs Mort-Vivants alliés en rangée Avant +1/+0 jusqu'à la fin du tour."
+description = "Arrivée : Tous vos Mort-Vivants gagnent +1/+0 jusqu'à la fin du tour."
 flavour_text = "Son cri ne terrorise plus. Il réveille."
 texture = ExtResource("3_texture")
 cost = 3

@@ -20,7 +20,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cercle de Convocation"
-description = "Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement."
+description = "Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2."
 flavour_text = "Le cercle appelle. Les morts n'ont pas appris à décliner."
 texture = ExtResource("3_texture")
 cost = 5

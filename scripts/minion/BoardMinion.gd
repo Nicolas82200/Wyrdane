@@ -592,17 +592,17 @@ func _hide_keyword_tooltips() -> void:
 # derrière elles dès que celui-ci était clair — le badge sombre + bordure
 # colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
 # constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
-# Réduit sur demande explicite (était 26/16) : le cercle autour de chaque icône
-# prenait trop de place dans le coin de la carte.
-const KEYWORD_BADGE_SIZE := 18.0
-const KEYWORD_ICON_SIZE  := 11.0
+# Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
+# icône 11->13) : les icônes doivent rester lisibles alignées verticalement le
+# long du bord gauche de la carte sans que la bulle ne prenne toute la place.
+const KEYWORD_BADGE_SIZE := 15.0
+const KEYWORD_ICON_SIZE  := 13.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:
 		return
-	# Resserré (défaut 4px) pour compenser l'agrandissement du badge (22->26px) :
-	# plusieurs mots-clés sur un même serviteur restent lisibles sans trop déborder
-	# du coin de la carte.
+	# Resserré pour empiler plusieurs mots-clés le long du bord gauche de la
+	# carte sans déborder de sa hauteur.
 	keyword_icons.add_theme_constant_override("separation", 2)
 	for child in keyword_icons.get_children():
 		child.queue_free()

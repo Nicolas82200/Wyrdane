@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Flamme Infernale"
-description = "Inflige 2 dégâts à un serviteur ennemi ciblé.
+description = "Inflige 2 points de dégâts à un serviteur ennemi ciblé.
 Votre héros perd 1 point de vie."
 flavour_text = "Le feu ne fait pas de distinction. Il te lèche un peu au passage."
 texture = ExtResource("3_texture")

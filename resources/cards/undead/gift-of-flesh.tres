@@ -18,19 +18,19 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_qf0kl"]
 script = ExtResource("1_cardeffect")
-target = "EnemyHero"
+target = "EnemyAny"
 value = 3
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Don de Chair"
-description = "Sacrifice 1 : Inflige 3 dégâts au héros ennemi."
+description = "Sacrifie votre serviteur le plus faible : Inflige 3 points de dégâts à la cible (joueur ou serviteur ennemi)."
 flavour_text = "Il a donné son corps. Il n'avait plus besoin de consentir."
 texture = ExtResource("3_texture")
 cost = 1
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_sac"), SubResource("Resource_qf0kl")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_qf0kl"), SubResource("Resource_sac")])
 requires_target = true
 rarity = "Rare"
 race_cost_override = 1

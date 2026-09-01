@@ -14,21 +14,15 @@ name_fr = "Assaut"
 script = ExtResource("2_kw")
 name_fr = "Venin mortel"
 
-[sub_resource type="Resource" id="Resource_zva7e"]
-script = ExtResource("5_trig")
-
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Possédé Hurlant"
-description = "ASSAUT, VENIN MORTEL
-Dernier Souffle : Retiré du jeu (ne va pas au cimetière)."
+description = "ASSAUT, VENIN MORTEL"
 flavour_text = "Même les morts refusent de le reprendre."
 texture = ExtResource("3_texture")
 cost = 3
-attack = 5
-health = 1
-exile_on_death = true
+attack = 1
+health = 5
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_lv5ii"), SubResource("Resource_uxx7u")])
-trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_zva7e")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

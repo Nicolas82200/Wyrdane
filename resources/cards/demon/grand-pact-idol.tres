@@ -33,8 +33,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Idole du Grand Pacte"
-description = "Résonance : Le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible.
-Pacte 2 : +1 dégât splash supplémentaire."
+description = "Résonance : Le Démon attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible.
+Pacte 2 : +1 point de dégât supplémentaire."
 flavour_text = "On ne l'a pas sculptée. Elle a simplement accepté de rester."
 texture = ExtResource("3_texture")
 cost = 6
