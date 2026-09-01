@@ -30,7 +30,7 @@ type = "OnExecution"
 script = ExtResource("4_carddata")
 card_name = "Mur de Lances"
 description = "REMPART, FORMATION
-Exécution : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant."
+Exécution : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en rangée Avant."
 flavour_text = "Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser."
 texture = ExtResource("3_texture")
 cost = 4

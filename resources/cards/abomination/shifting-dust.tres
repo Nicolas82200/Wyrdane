@@ -25,7 +25,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("4_carddata")
 card_name = "Poussière Qui Change"
 description = "VIRULENT
-Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu."
+Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu."
 flavour_text = "Là où elle se dépose, quelque chose commence toujours à changer."
 texture = ExtResource("3_texture")
 cost = 3

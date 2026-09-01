@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Emprunt Instantané"
-description = "Un serviteur allié ciblé copie un mot-clé présent sur un autre serviteur en jeu tiré au hasard (allié ou ennemi)."
+description = "Un serviteur ciblé que vous contrôlez copie un mot-clé présent sur un autre serviteur en jeu tiré au hasard (allié ou ennemi)."
 flavour_text = "Il n'a rien inventé. Il a juste regardé, et pris."
 texture = ExtResource("2_texture")
 cost = 1

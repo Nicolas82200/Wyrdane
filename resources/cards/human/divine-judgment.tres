@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Jugement Divin"
-description = "Détruit un serviteur ennemi ciblé."
+description = "Détruit un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé."
 texture = ExtResource("3_texture")
 cost = 4

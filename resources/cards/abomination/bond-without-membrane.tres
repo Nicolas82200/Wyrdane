@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Lien Sans Membrane"
-description = "Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur Abomination allié en rangée Avant."
+description = "Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par Abomination que vous contrôlez en rangée Avant."
 flavour_text = "Ceux de devant absorbent. Ceux de derrière en profitent."
 texture = ExtResource("2_texture")
 cost = 5

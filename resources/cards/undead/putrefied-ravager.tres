@@ -27,7 +27,7 @@ type = "OnDeathRage"
 script = ExtResource("4_carddata")
 card_name = "Ravageur Putréfié"
 description = "RAVAGE
-Mort-rage : Serviteurs Mort-Vivants alliés +2/+2."
+Mort-rage : Mort-Vivants que vous contrôlez +2/+2."
 flavour_text = "Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts."
 texture = ExtResource("3_texture")
 cost = 5

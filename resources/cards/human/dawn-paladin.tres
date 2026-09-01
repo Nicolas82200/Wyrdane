@@ -36,7 +36,7 @@ type = "ONPLAY"
 script = ExtResource("4_carddata")
 card_name = "Paladin de l'Aube"
 description = "ÉGIDE, MOISSON, DISCIPLINE
-Arrivée : Un serviteur allié ciblé gagne ÉGIDE."
+Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE."
 flavour_text = "Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois."
 texture = ExtResource("3_texture")
 cost = 6

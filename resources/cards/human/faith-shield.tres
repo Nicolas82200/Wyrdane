@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_g1sms")
 card_name = "Bouclier de Foi"
-description = "Donne ÉGIDE à un serviteur Humain allié ciblé jusqu'à la fin du prochain tour adverse."
+description = "Donne ÉGIDE à un Humain ciblé que vous contrôlez jusqu'à la fin du prochain tour adverse."
 flavour_text = "La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup."
 texture = ExtResource("4_eukrp")
 race = 1

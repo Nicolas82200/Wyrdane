@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Emprise Écarlate"
-description = "Prend le contrôle d'un serviteur ennemi ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit."
+description = "Prend le contrôle d'un serviteur que votre adversaire contrôle ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit."
 flavour_text = "Elle n'emprunte jamais rien. Elle rend, mais brisé."
 texture = ExtResource("3_texture")
 cost = 2

@@ -21,7 +21,7 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Forteresse Imprenable"
-description = "Carnage : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour."
+description = "Carnage : Chaque fois qu'un serviteur que votre adversaire contrôle meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour."
 flavour_text = "Chaque ennemi abattu consolide ce qui reste debout."
 texture = ExtResource("3_texture")
 cost = 5

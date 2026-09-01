@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Étreinte du Gouffre"
-description = "Gèle un serviteur ennemi ciblé un tour.
+description = "Gèle un serviteur ciblé que votre adversaire contrôle un tour.
 Votre héros perd 1 point de vie."
 flavour_text = "Le froid des Abysses n'épargne personne, pas même celui qui l'invoque."
 texture = ExtResource("3_texture")
