@@ -11,7 +11,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
-duration = "UntilEndOfTurn"
+race_filter = "Undead"
 value = 1
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -23,7 +23,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cercle de Sacrifice"
-description = "Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour."
+description = "Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente."
 flavour_text = "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande."
 texture = ExtResource("3_texture")
 cost = 6
