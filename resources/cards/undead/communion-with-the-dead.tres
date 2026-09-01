@@ -8,23 +8,24 @@
 
 [sub_resource type="Resource" id="Resource_p1oe4"]
 script = ExtResource("1_cardeffect")
-effect_id = "DrawCard"
-value = 1
+effect_id = "ReturnFromGrave"
+race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_e9tl2"]
 script = ExtResource("5_trig")
-type = "OnGrief"
+type = "OnSacrifice"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Communion avec les Morts"
-description = "Deuil : Piochez 1 carte par Mort-Vivant allié mort ce match (max 4)."
+description = "Sacrifice 1 : Ramène le dernier Mort-Vivant mort depuis votre cimetière dans votre main."
 flavour_text = "Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter."
 texture = ExtResource("3_texture")
 cost = 4
 card_type = "Ritual"
-ritual_duration = 4
+ritual_duration = 2
+sacrifice_count = 1
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_e9tl2")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_p1oe4")])
 rarity = "Rare"

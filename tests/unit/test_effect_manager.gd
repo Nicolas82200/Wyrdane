@@ -53,6 +53,19 @@ func test_damage_owner_hero_uses_self_damage_pipeline() -> void:
 	await effect_manager.execute_effect(battle, source, effect)
 	assert_eq(battle.player_hero.health, 1, "self_damage ne doit jamais faire tomber le héros à 0")
 
+# ─── Damage "EnemyAny" (Souffle Nécrotique, Don de Chair) ───────────────────
+
+func test_damage_enemy_any_hits_enemy_hero_when_selected() -> void:
+	var effect := _effect("Damage", "EnemyAny", 2)
+	await effect_manager.execute_effect(battle, null, effect, battle.enemy_hero)
+	assert_eq(battle.enemy_hero.health, battle.enemy_hero.max_health - 2)
+
+func test_damage_enemy_any_hits_enemy_minion_when_selected() -> void:
+	var target := _minion(2, 5, false)
+	var effect := _effect("Damage", "EnemyAny", 2)
+	await effect_manager.execute_effect(battle, null, effect, target)
+	assert_eq(target.health, 3)
+
 func test_damage_targets_minion_and_kills_it() -> void:
 	var source := _minion(2, 5, true)
 	var target := _minion(2, 3, false)
@@ -282,13 +295,13 @@ func test_resurrect_self_revives_dead_ally_with_one_hp() -> void:
 	assert_eq(revived.health, 1)
 	assert_true(revived.was_resurrected)
 
-func test_resurrect_self_ignores_already_resurrected_target() -> void:
+func test_resurrect_self_can_revive_an_already_resurrected_target_again() -> void:
 	var dead := _minion(3, 5, true)
 	dead.health = 0
 	dead.was_resurrected = true
 	var effect := _effect("ResurrectSelf", "AllyMinion")
 	await effect_manager.execute_effect(battle, null, effect, dead)
-	assert_eq(battle.player_minions.size(), 1, "une seule fois par serviteur : pas de nouvelle invocation")
+	assert_eq(battle.player_minions.size(), 2, "aucune limite par serviteur : peut revivre plusieurs fois au fil de la partie")
 
 # ─── InfectEnemy / InfectAdjacent ───────────────────────────────────────────
 
@@ -586,6 +599,19 @@ func test_sacrifice_ally_kills_selected_target() -> void:
 	await effect_manager.execute_effect(battle, source, effect, target)
 	assert_true(target.sacrificed)
 	assert_true(target.is_dead())
+
+# Don de Chair passe désormais la cible ennemie de son effet Damage (EnemyAny)
+# à SacrificeAlly aussi (même selected_target pour tous les effets de la
+# carte) : un serviteur ennemi ne doit jamais être sacrifié à la place d'un allié.
+func test_sacrifice_ally_ignores_enemy_selected_target_and_picks_weakest_ally() -> void:
+	var weakest := _minion(1, 1, true)
+	_minion(5, 10, true)
+	var enemy_target := _minion(2, 5, false)
+	var effect := _effect("SacrificeAlly", "AllyMinion")
+	effect.count = 1
+	await effect_manager.execute_effect(battle, null, effect, enemy_target)
+	assert_false(enemy_target.sacrificed)
+	assert_true(weakest.sacrificed)
 
 func test_sacrifice_ally_without_target_picks_weakest_allies() -> void:
 	var source := _minion(5, 10, true)
