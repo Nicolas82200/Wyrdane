@@ -21,7 +21,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Nuée d'Insectes Cadavériques"
-description = "Arrivée : Inflige 1 dégât à tous les serviteurs que votre adversaire contrôle en jeu."
+description = "Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu."
 flavour_text = "Là où elle passe, rien ne guérit vraiment."
 texture = ExtResource("3_texture")
 cost = 3

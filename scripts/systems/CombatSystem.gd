@@ -108,12 +108,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	if attacker_had_aegis and not attacker.has_keyword(Keyword.Type.AEGIS):
 		battle.animation_system.play_aegis_break(attacker_visual)
 
-	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
-	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+	# VENIN MORTEL n'est pas un effet néfaste racial (CHAIR MORTE/DISCIPLINE ne
+	# le bloquent plus) : détruit sa cible sans exception.
+	if attacker.has_keyword(Keyword.Type.DEADLY_POISON):
 		if not defender.is_dead():
 			battle.animation_system.play_deadly_poison(defender_visual)
 		defender.health = 0
-	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and not attacker.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+	if defender.has_keyword(Keyword.Type.DEADLY_POISON):
 		if not attacker.is_dead():
 			battle.animation_system.play_deadly_poison(attacker_visual)
 		attacker.health = 0
@@ -139,6 +140,14 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 
 	if dealt_to_attacker > 0:
 		await battle.effect_manager.notify_damaged(battle, attacker)
+		# CONTRE-ATTAQUE côté attaquant : s'il survit aux dégâts reçus en
+		# attaquant (ex: le défenseur ripostait déjà), il inflige à nouveau
+		# ses dégâts au défenseur. Symétrique au cas défenseur ci-dessous.
+		if not attacker.is_dead() and not defender.is_dead() and attacker.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):
+			var counter_atk: int = defender.take_damage(attacker.attack)
+			if counter_atk > 0:
+				battle.animation_system.play_counter_attack(attacker_visual, defender_visual)
+				await battle.effect_manager.notify_damaged(battle, defender)
 	if dealt_to_defender > 0 and not defender.is_dead():
 		await battle.effect_manager.notify_damaged(battle, defender)
 		if defender.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):

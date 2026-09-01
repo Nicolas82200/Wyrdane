@@ -19,6 +19,8 @@ target = "AllAllies"
 duration = "UntilEndOfTurn"
 race_filter = "Human"
 value = 1
+value_2 = 1
+random_atk_or_health = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_0qot7"]
@@ -29,7 +31,7 @@ type = "OnAwaken"
 script = ExtResource("3_e1yr3")
 card_name = "Maréchal de Campagne"
 description = "COMMANDEMENT
-Éveil : Tous les Humains que vous contrôlez gagnent +1/+0 jusqu'à la fin du tour."
+Éveil : Tous les Humains que vous contrôlez gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour."
 flavour_text = "Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit."
 texture = ExtResource("4_h8730")
 cost = 5

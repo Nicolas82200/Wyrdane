@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Effigie Née d'Elle-Même"
-description = "Résonance : Le serviteur Abomination attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible."
+description = "Résonance : Le serviteur Abomination attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible."
 flavour_text = "On ne l'a pas sculptée. Elle a poussé, un jour, et personne ne l'a arrêtée."
 texture = ExtResource("2_texture")
 cost = 6

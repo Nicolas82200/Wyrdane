@@ -8,9 +8,9 @@
 
 [sub_resource type="Resource" id="Resource_lqlv9"]
 script = ExtResource("1_cardeffect")
-effect_id = "Heal"
+effect_id = "Buff"
 target = "RandomAlly"
-value = 1
+value_2 = 1
 race_filter = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -21,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Guérisseur de Camp"
-description = "Éveil : Restaure 1 point de vie à un Humain aléatoire que vous contrôlez."
+description = "Éveil : Donne +0/+1 à un Humain que vous contrôlez, au hasard."
 flavour_text = "Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame."
 texture = ExtResource("3_texture")
 cost = 3

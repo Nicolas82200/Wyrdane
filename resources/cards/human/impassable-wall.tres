@@ -14,13 +14,12 @@ type = "OnSpell"
 script = ExtResource("1_cardeffect")
 effect_id = "CancelSpellOnRaceTarget"
 race_filter = "Human"
-row_filter = "Front"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mur Infranchissable"
-description = "Sortilège ennemi : Annulé s'il cible un Humain que vous contrôlez en rangée Avant."
+description = "Sortilège ennemi : Annulé s'il cible un Humain que vous contrôlez."
 flavour_text = "La magie s'arrête là où la volonté commence."
 texture = ExtResource("3_texture")
 cost = 6

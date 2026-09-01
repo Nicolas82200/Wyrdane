@@ -9,14 +9,13 @@
 [sub_resource type="Resource" id="Resource_r1vrm"]
 script = ExtResource("1_cardeffect")
 effect_id = "ReturnToHand"
-target = "EnemyMinion"
-target_max_hp = 3
+target = "AnyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Poigne du Cimetière"
-description = "Renvoie un serviteur que votre adversaire contrôle ayant 3 points de vie ou moins dans la main de son propriétaire."
+description = "Renvoie un serviteur (allié ou ennemi) dans la main de son propriétaire."
 flavour_text = "Les morts n'oublient pas ceux qui les ont enterrés."
 texture = ExtResource("3_texture")
 cost = 2

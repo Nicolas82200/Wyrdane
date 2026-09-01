@@ -5,7 +5,7 @@ func execute_effect(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target: Minion = null
+	selected_target = null
 ) -> void:
 	# Garde-fou : execute_effect peut être appelé après un await potentiellement
 	# long (ex. PactChoiceSystem.ask attendant le clic Oui/Non du joueur) — si la
@@ -59,6 +59,7 @@ func execute_effect(
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
+		"CureCorruption":   await _cure_corruption(battle, source_minion, effect, selected_target)
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		"ProtectFrontLine": _protect_front_line(battle, source_minion, effect)
@@ -125,7 +126,7 @@ func _get_targets(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target: Minion = null
+	selected_target = null
 ) -> Array[Minion]:
 	var result: Array[Minion] = []
 	match effect.target:
@@ -137,6 +138,11 @@ func _get_targets(
 				result.append(selected_target)
 			else:
 				push_warning("Effet '%s' attend une cible mais selected_target est null." % effect.effect_id)
+		"EnemyAny":
+			# Le héros ennemi est géré à part par l'appelant (ex: EffectManager._damage) ;
+			# ici on ne résout que le cas "cible = serviteur".
+			if selected_target is Minion:
+				result.append(selected_target)
 		"TriggerSource":
 			# Le serviteur à l'origine de l'évènement (ex: l'attaquant pour
 			# OnResonance) — distinct de selected_target qui, pour ce trigger,
@@ -208,7 +214,7 @@ func _resolve_targets(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target: Minion = null
+	selected_target = null
 ) -> Array[Minion]:
 	return _filter_targets(_get_targets(battle, source_minion, effect, selected_target), effect)
 
@@ -272,7 +278,7 @@ func _cmp(value: int, op: String, target: int) -> bool:
 		"Equal":          return value == target
 		_:                return true
 
-func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> bool:
+func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_target = null) -> bool:
 	if effect.condition_type == "None":
 		return true
 	var race: int = Race.from_string(effect.condition_race) if not effect.condition_race.is_empty() else -1
@@ -314,7 +320,9 @@ func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_
 		"TriggerSourceRace":
 			if selected_target == null or selected_target.card_data == null:
 				return false
-			return race == -1 or selected_target.card_data.race == race
+			if race == -1:
+				return true
+			return (selected_target.card_data.race == race) != effect.condition_race_exclude
 	return true
 
 # True si au moins un effet de la carte peut s'appliquer (condition remplie).
@@ -382,7 +390,7 @@ func _point_arrow_to_hero(battle, is_enemy: bool, source_minion: Minion = null) 
 
 # ─── Effets existants ─────────────────────────────────────────────────────────
 
-func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target = null) -> void:
 	match effect.target:
 		"EnemyHero":
 			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
@@ -395,6 +403,10 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target:
 			var is_p: bool = source_minion == null or source_minion.owner_is_player
 			var dealt_self: int = await battle.hero_system.self_damage(is_p, effect.value)
 			battle.animation_system.play_damage(hero_panel, dealt_self)
+		"EnemyAny" when selected_target is Hero:
+			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
+			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
+			battle.animation_system.play_damage(hero_panel, effect.value)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
@@ -440,14 +452,22 @@ func _heal_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _buff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	var attack_gain: int = _effective_value(effect, targets.size())
+	var health_gain: int = effect.value_2
+	# Un seul tirage par déclenchement (pas par cible) : soit +ATK, soit +PV
+	# pour tout le groupe (ex: Maréchal de Campagne).
+	if effect.random_atk_or_health:
+		if battle.game_rng.randi() % 2 == 0:
+			health_gain = 0
+		else:
+			attack_gain = 0
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.base_attack     += attack_gain
-		target.base_max_health += effect.value_2
-		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
+		target.base_max_health += health_gain
+		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, health_gain, effect.duration)
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
-			battle.animation_system.play_generic_buff(visual, attack_gain, effect.value_2)
+			battle.animation_system.play_generic_buff(visual, attack_gain, health_gain)
 
 func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -1001,13 +1021,15 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 		battle.ai_system.hand.append(card_data)
 
 # Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
-# 1 HP (Cimetière Vivant : "ce Mort-Vivant revient en jeu à la fin du tour").
-# Contrairement à _resurrect_last (qui pioche le dernier mort du cimetière),
-# vise précisément selected_target = le serviteur mort ayant déclenché OnGrief.
-# "Une seule fois par serviteur" : ignore les serviteurs déjà ressuscités
-# (was_resurrected), pour ne pas boucler indéfiniment sur le même serviteur.
+# 1 HP (Cimetière Vivant : "le premier Mort-Vivant qui meurt chaque tour revient
+# en jeu à la fin du tour"). Contrairement à _resurrect_last (qui pioche le
+# dernier mort du cimetière), vise précisément selected_target = le serviteur
+# mort ayant déclenché OnGrief. Aucune limite par serviteur : un même serviteur
+# peut revivre plusieurs fois au fil de la partie s'il meurt à nouveau lors
+# d'un tour ultérieur — seul `trigger_once_per_turn` (sur la carte) borne le
+# nombre de résurrections à une par tour.
 func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
-	if selected_target == null or selected_target.card_data == null or selected_target.was_resurrected:
+	if selected_target == null or selected_target.card_data == null:
 		return
 	await _resurrect_card_data(battle, selected_target.card_data, selected_target.owner_is_player)
 
@@ -1121,6 +1143,14 @@ func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected
 	for target in targets:
 		target.infected = false
 
+# Retire la Corruption des cibles, en miroir de _cure_infection (Inquisiteur
+# Suprême, Purification).
+func _cure_corruption(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		target.cure_corruption()
+
 # Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
 # Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,
 # offrant donc une relance nette une seule fois dans le tour.
@@ -1130,12 +1160,16 @@ func _grant_extra_attack(_battle, source_minion: Minion, _effect: CardEffect) ->
 	source_minion.extra_attack_used_this_turn = true
 	source_minion.attacks_remaining += 1
 
-# Sacrifie `count` alliés (coût du Don de Chair). Si une cible a été choisie par
-# le joueur (target "AllyMinion" + requires_target), c'est elle qui est sacrifiée ;
-# sinon (IA, pas de ciblage) on choisit automatiquement les plus faibles (HP puis
-# ATK). Marqués `sacrificed` pour déclencher OnSacrifice et empêcher REVENANT.
-func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
-	if selected_target != null and not selected_target.is_dead():
+# Sacrifie `count` alliés (coût du Don de Chair). Si une cible Minion a été
+# choisie par le joueur (target "AllyMinion" + requires_target), c'est elle qui
+# est sacrifiée ; sinon (IA, pas de ciblage, ou la carte cible en fait un autre
+# effet — ex: Don de Chair cible désormais le héros/serviteur ennemi pour ses
+# dégâts, `selected_target` n'est alors pas un allié) on choisit automatiquement
+# les plus faibles (HP puis ATK). Marqués `sacrificed` pour déclencher
+# OnSacrifice et empêcher REVENANT.
+func _sacrifice_ally(battle, source_minion: Minion, effect: CardEffect, selected_target = null) -> void:
+	var caster_is_player: bool = source_minion.owner_is_player if source_minion else true
+	if selected_target is Minion and selected_target.owner_is_player == caster_is_player and not selected_target.is_dead():
 		await _point_arrows_to(battle, [selected_target], source_minion)
 		selected_target.sacrificed = true
 		selected_target.health = 0
