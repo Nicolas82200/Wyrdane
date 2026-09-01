@@ -115,7 +115,7 @@ Positionnement (Lane Types)
 | 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
 | 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE Mort-rage : Serviteurs Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
 | 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : Invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
-| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE, REVENANT. Immunisé au débordement de RAVAGE : Les dégâts excédentaires ne se propagent jamais sur votre héros. | Les lames disparaissent dans sa masse. Il continue d'avancer. |
+| 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE, REVENANT | Les lames disparaissent dans sa masse. Il continue d'avancer. |
 | 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 2 points de vie au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
 | 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu. | Là où elle passe, rien ne guérit vraiment. |
 | 30 | Faucheur de la Plaie | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
