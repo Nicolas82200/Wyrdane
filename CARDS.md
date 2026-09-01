@@ -419,7 +419,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | H65 | Citadelle des Hommes | 4 | Rare | Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
-| H66 | Lignée des Braves | 3 | Rare | Deuil : Quand un Humain allié meurt, piochez 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
+| H66 | Lignée des Braves | 3 | Rare | Quand un Humain que vous contrôlez meurt, piochez 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
 | H67 | Pacte de Résistance | 3 | Rare | Présence : Les serviteurs Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
 | H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque Humain que vous contrôlez invoqué gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
