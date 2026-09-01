@@ -10,7 +10,7 @@ enum Type {
 	NECROPHAGE,   # Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente.
 	HORDE,        # Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0.
 	REVENANT,     # La première fois qu'il devrait mourir, se relève avec 1 HP à la place (une fois par partie).
-	CHAIR_MORTE,  # Immunisé à l'Infection, au poison (Venin mortel) et aux effets de peur.
+	CHAIR_MORTE,  # Immunisé aux effets néfastes raciaux (Infection, Corruption), au poison (Venin mortel) et aux effets de peur. Pas immunisé aux débuffs de stats génériques ni au Gel.
 }
 
 # Nommé get_keyword_name (et non get_name) : un static get_name est masqué

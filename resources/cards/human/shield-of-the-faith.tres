@@ -10,17 +10,21 @@
 
 [sub_resource type="Resource" id="Resource_3b7ht"]
 script = ExtResource("5_trig")
-type = "OnSpell"
+type = "OnAttack"
 
 [sub_resource type="Resource" id="Resource_reduction"]
 script = ExtResource("1_cardeffect")
-effect_id = "CancelFirstEnemySpellPerTurn"
+effect_id = "GrantKeyword"
+target = "TriggerSource"
+duration = "UntilEndOfTurn"
+race_filter = "Human"
+granted_keyword = "AEGIS"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bouclier de la Foi"
-description = "Sortilège ennemi : la première fois chaque tour, annule le prochain sort ennemi."
+description = "La première fois chaque tour qu'un Humain que vous contrôlez attaque, il gagne ÉGIDE."
 flavour_text = "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner."
 texture = ExtResource("5_x4yxw")
 cost = 4

@@ -178,6 +178,15 @@ func test_contre_attaque_deals_counter_damage_to_attacker() -> void:
 	# attaquant subit 3 (combat) + 3 (riposte) = 6
 	assert_eq(attacker.health, 4)
 
+# Symétrique : un ATTAQUANT avec CONTRE-ATTAQUE qui survit aux dégâts reçus en
+# attaquant riposte aussi, pas seulement le défenseur.
+func test_contre_attaque_also_triggers_for_surviving_attacker() -> void:
+	var attacker := _minion(2, 10, true, Race.Type.HUMAN, -1, -1, -1, KeywordHuman.Type.CONTRE_ATTAQUE)
+	var defender := _minion(3, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	# défenseur subit 2 (combat) + 2 (riposte de l'attaquant) = 4
+	assert_eq(defender.health, 6)
+
 # ─── PESTIFÉRÉ ───────────────────────────────────────────────────────────────
 
 func test_pestifere_infects_surviving_defender() -> void:

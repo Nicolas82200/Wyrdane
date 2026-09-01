@@ -139,6 +139,14 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 
 	if dealt_to_attacker > 0:
 		await battle.effect_manager.notify_damaged(battle, attacker)
+		# CONTRE-ATTAQUE côté attaquant : s'il survit aux dégâts reçus en
+		# attaquant (ex: le défenseur ripostait déjà), il inflige à nouveau
+		# ses dégâts au défenseur. Symétrique au cas défenseur ci-dessous.
+		if not attacker.is_dead() and not defender.is_dead() and attacker.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):
+			var counter_atk: int = defender.take_damage(attacker.attack)
+			if counter_atk > 0:
+				battle.animation_system.play_counter_attack(attacker_visual, defender_visual)
+				await battle.effect_manager.notify_damaged(battle, defender)
 	if dealt_to_defender > 0 and not defender.is_dead():
 		await battle.effect_manager.notify_damaged(battle, defender)
 		if defender.has_human_keyword(KeywordHuman.Type.CONTRE_ATTAQUE):

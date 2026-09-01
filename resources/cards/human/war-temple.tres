@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllyMinion"
+race_filter = "Human"
 value = 1
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -21,7 +22,7 @@ type = "OnSummon"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Temple de Guerre"
-description = "Renfort : Chaque serviteur allié invoqué gagne +1/+1 de façon permanente."
+description = "Renfort : Chaque Humain que vous contrôlez invoqué gagne +1/+1 de façon permanente."
 flavour_text = "On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne."
 texture = ExtResource("3_texture")
 cost = 5
