@@ -29,7 +29,7 @@ description = "COMMANDEMENT
 Dernier Souffle : Ressuscite jusqu'à 5 serviteurs Humains alliés morts avec 1 point de vie en rangée Avant."
 flavour_text = "Sa mort n'est pas une fin. C'est un dernier ordre."
 texture = ExtResource("4_ym8rn")
-cost = 7
+cost = 8
 race = 1
 unit_style = 19
 attack = 5
@@ -38,4 +38,5 @@ human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
 trigger_types = Array[ExtResource("5_y783d")]([SubResource("Resource_xa6ip")])
 effects = Array[ExtResource("1_6rttt")]([SubResource("Resource_w09el")])
 rarity = "Legendary"
+race_cost_override = 5
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
