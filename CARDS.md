@@ -164,7 +164,7 @@ Positionnement (Lane Types)
 | 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
 | 45 | Morsure Infectieuse | 3 | Rare | Transforme un serviteur ennemi non-Légendaire en Zombie 1/1 sous votre contrôle. | Une seule morsure suffit. Le reste, c'est une question de temps. |
 | 46 | Cri des Damnés | 3 | Rare | Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place. | Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain. |
-| 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur ennemi ayant 3 points de vie ou moins dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
+| 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur (allié ou ennemi) dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
 | 48 | Exhalation Toxique | 1 | Commune | Inflige 1 dégât à tous les serviteurs en jeu. | Même ses alliés évitent de respirer trop près. |
 | 49 | Dernier Soupir | 3 | Épique | Piochez 1 carte par Mort-Vivant allié mort ce tour (max 3). | Leurs voix ne portent plus. Mais leurs secrets, si. |
 | 50 | Éclat de Putréfaction | 2 | Rare | Détruit un enchantement ou équipement ennemi. Si enchantement : invoque un Rampant 1/1. | La corruption ne respecte pas la magie. Elle la digère. |
