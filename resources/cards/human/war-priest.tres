@@ -9,9 +9,9 @@
 
 [sub_resource type="Resource" id="Resource_d74gr"]
 script = ExtResource("1_cardeffect")
-effect_id = "Heal"
+effect_id = "Buff"
 target = "RandomAlly"
-value = 2
+value_2 = 2
 race_filter = "Human"
 trigger = "OnAwaken"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -34,7 +34,7 @@ type = "DEATHRATTLE"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Prêtre de Guerre"
-description = "Éveil : Restaure 2 points de vie à un serviteur Humain allié aléatoire.
+description = "Éveil : Donne +0/+2 à un Humain que vous contrôlez, au hasard.
 Dernier Souffle : Invoque un Éclaireur Rapide 1/1."
 flavour_text = "Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps."
 texture = ExtResource("3_texture")

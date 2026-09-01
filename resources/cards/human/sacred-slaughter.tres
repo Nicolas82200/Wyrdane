@@ -9,15 +9,16 @@
 [sub_resource type="Resource" id="Resource_5lhvq"]
 script = ExtResource("1_xs656")
 effect_id = "Damage"
-target = "AllEnemies"
+target = "AllMinions"
 value = 3
-race_filter = "Undead"
+race_filter = "Human"
+race_filter_exclude = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_p6l2f")
 card_name = "Massacre Sacré"
-description = "Inflige 3 points de dégâts à tous les serviteurs Mort-Vivants ennemis en jeu."
+description = "Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu."
 flavour_text = "La lumière ne guérit pas les morts. Elle les brûle. C'est mieux."
 texture = ExtResource("4_allhh")
 cost = 4

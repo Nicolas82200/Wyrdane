@@ -59,6 +59,7 @@ func execute_effect(
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
 		"CureInfection":    await _cure_infection(battle, source_minion, effect, selected_target)
+		"CureCorruption":   await _cure_corruption(battle, source_minion, effect, selected_target)
 		"SacrificeAlly":    await _sacrifice_ally(battle, source_minion, effect, selected_target)
 		"GrantCounterOffensive": _grant_counter_offensive(battle, source_minion, effect)
 		"ProtectFrontLine": _protect_front_line(battle, source_minion, effect)
@@ -319,7 +320,9 @@ func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_
 		"TriggerSourceRace":
 			if selected_target == null or selected_target.card_data == null:
 				return false
-			return race == -1 or selected_target.card_data.race == race
+			if race == -1:
+				return true
+			return (selected_target.card_data.race == race) != effect.condition_race_exclude
 	return true
 
 # True si au moins un effet de la carte peut s'appliquer (condition remplie).
@@ -449,14 +452,22 @@ func _heal_hero(battle, source_minion: Minion, effect: CardEffect) -> void:
 func _buff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	var attack_gain: int = _effective_value(effect, targets.size())
+	var health_gain: int = effect.value_2
+	# Un seul tirage par déclenchement (pas par cible) : soit +ATK, soit +PV
+	# pour tout le groupe (ex: Maréchal de Campagne).
+	if effect.random_atk_or_health:
+		if battle.game_rng.randi() % 2 == 0:
+			health_gain = 0
+		else:
+			attack_gain = 0
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.base_attack     += attack_gain
-		target.base_max_health += effect.value_2
-		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, effect.value_2, effect.duration)
+		target.base_max_health += health_gain
+		battle.temp_effect_system.add_temp_stat_change(target, attack_gain, health_gain, effect.duration)
 		var visual = battle.board_visual_system.get_visual(target)
 		if visual:
-			battle.animation_system.play_generic_buff(visual, attack_gain, effect.value_2)
+			battle.animation_system.play_generic_buff(visual, attack_gain, health_gain)
 
 func _debuff(battle, source_minion, effect, selected_target = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -1131,6 +1142,14 @@ func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
 		target.infected = false
+
+# Retire la Corruption des cibles, en miroir de _cure_infection (Inquisiteur
+# Suprême, Purification).
+func _cure_corruption(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		target.cure_corruption()
 
 # Accorde une attaque supplémentaire, au plus une fois par tour (Rongeur de Chair).
 # Déclenché sur Exécution AVANT consume_attack : le +1 compense la consommation,

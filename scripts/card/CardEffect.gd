@@ -47,6 +47,10 @@ class_name CardEffect
 
 @export var value: int = 0
 @export var value_2: int = 0
+# Buff uniquement : au lieu d'appliquer value/value_2 tels quels, tire au sort
+# une seule fois par déclenchement entre value/0 (ATK) et 0/value_2 (PV) — ex:
+# Maréchal de Campagne, "+0/+1 ou +1/+0 au hasard".
+@export var random_atk_or_health: bool = false
 @export var count: int = 1
 @export var summon_card: CardData
 @export var transform_card: CardData
@@ -85,6 +89,9 @@ class_name CardEffect
 @export_enum("GreaterOrEqual", "LessOrEqual", "Equal") var condition_op: String = "GreaterOrEqual"
 @export var condition_count: int = 1
 @export var condition_race: String = ""   # "Human", "Undead"... ou "" = toutes races
+# Inverse le test TriggerSourceRace : condition remplie si la race NE correspond
+# PAS à condition_race (ex: Briseur de Horde, "si la cible n'est pas Humaine").
+@export var condition_race_exclude: bool = false
 
 # ─── Compte dynamique (SummonMinion) ──────────────────────────────────────────
 # "Fixed"        : invoque `count` serviteurs.

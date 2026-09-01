@@ -6,9 +6,9 @@ extends RefCounted
 class_name KeywordHuman
 
 enum Type {
-	DISCIPLINE,      # Immunisé aux effets de silence, contrôle mental et peur ennemis.
+	DISCIPLINE,      # Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats génériques ni au Gel.
 	FORMATION,       # Tant qu'un allié est adjacent, ce serviteur gagne +1/+1.
-	CONTRE_ATTAQUE,  # Blessure : si ce serviteur survit, inflige son ATK en retour à l'attaquant.
+	CONTRE_ATTAQUE,  # Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts.
 	COMMANDEMENT,    # Les Humains alliés invoqués après lui gagnent +1/+0 de façon permanente.
 	FORTIFICATION,   # Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis.
 }
