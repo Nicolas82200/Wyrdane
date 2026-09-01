@@ -108,12 +108,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	if attacker_had_aegis and not attacker.has_keyword(Keyword.Type.AEGIS):
 		battle.animation_system.play_aegis_break(attacker_visual)
 
-	# CHAIR MORTE : immunisé au poison — Venin mortel ne détruit pas la cible
-	if attacker.has_keyword(Keyword.Type.DEADLY_POISON) and not defender.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+	# VENIN MORTEL n'est pas un effet néfaste racial (CHAIR MORTE/DISCIPLINE ne
+	# le bloquent plus) : détruit sa cible sans exception.
+	if attacker.has_keyword(Keyword.Type.DEADLY_POISON):
 		if not defender.is_dead():
 			battle.animation_system.play_deadly_poison(defender_visual)
 		defender.health = 0
-	if defender.has_keyword(Keyword.Type.DEADLY_POISON) and not attacker.has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE):
+	if defender.has_keyword(Keyword.Type.DEADLY_POISON):
 		if not attacker.is_dead():
 			battle.animation_system.play_deadly_poison(attacker_visual)
 		attacker.health = 0

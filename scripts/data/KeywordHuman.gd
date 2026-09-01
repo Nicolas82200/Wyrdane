@@ -6,7 +6,7 @@ extends RefCounted
 class_name KeywordHuman
 
 enum Type {
-	DISCIPLINE,      # Immunisé aux effets néfastes raciaux (Infection, Corruption), au silence, au contrôle mental et à la peur ennemis. Pas immunisé aux débuffs de stats génériques ni au Gel.
+	DISCIPLINE,      # Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats génériques ni au Gel.
 	FORMATION,       # Tant qu'un allié est adjacent, ce serviteur gagne +1/+1.
 	CONTRE_ATTAQUE,  # Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts.
 	COMMANDEMENT,    # Les Humains alliés invoqués après lui gagnent +1/+0 de façon permanente.

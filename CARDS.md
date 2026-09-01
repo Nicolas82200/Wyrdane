@@ -32,7 +32,7 @@ Positionnement (Lane Types)
 | `NÉCROPHAGE` | Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente. |
 | `HORDE` | Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0. |
 | `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie). Ne se déclenche pas en cas de Sacrifice. |
-| `CHAIR MORTE` | Immunisé aux effets néfastes raciaux (Infection, Corruption), au poison et aux effets de peur. Pas immunisé aux débuffs de stats ni au Gel. |
+| `CHAIR MORTE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur). Pas immunisé aux débuffs de stats ni au Gel. |
 
 ---
 
@@ -251,7 +251,7 @@ Liste complète des cartes de la race **Humain**.
 
 | Mot-clé | Effet |
 |---|---|
-| `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption), au silence, au contrôle mental et à la peur ennemis. Pas immunisé aux débuffs de stats ni au Gel. |
+| `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats ni au Gel. |
 | `FORMATION` | Tant qu'un serviteur allié est adjacent, ce serviteur gagne +1/+1. |
 | `CONTRE-ATTAQUE` | Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts. |
 | `COMMANDEMENT` | Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente. |
