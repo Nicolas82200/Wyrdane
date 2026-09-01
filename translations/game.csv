@@ -343,7 +343,7 @@ GLOSSARY_SECTION_TRIGGERS,"Déclencheurs","Triggers"
 EFF_FREEZE_NAME,"Gel","Freeze"
 EFF_FREEZE_DESC,"Empêche un serviteur d'attaquer.","Prevents a minion from attacking."
 EFF_INFECT_NAME,"Infection","Infection"
-EFF_INFECT_ENEMY_DESC,"Inflige 1 dégât chaque tour.","Deals 1 damage each turn."
+EFF_INFECT_ENEMY_DESC,"Inflige 1 point de dégât chaque tour.","Deals 1 damage each turn."
 EFF_INFECT_ADJ_DESC,"Inflige l'Infection à un serviteur ennemi adjacent.","Inflicts Infection on an adjacent enemy minion."
 EFF_TRANSFORM_NAME,"Transformation","Transformation"
 EFF_TRANSFORM_DESC,"Transforme un serviteur en une autre créature.","Transforms a minion into another creature."
@@ -356,7 +356,7 @@ EFF_CORRUPT_NAME,"Corruption","Corruption"
 EFF_CORRUPT_DESC,"La cible perd 1 ATK de façon permanente (cumulable).","The target permanently loses 1 ATK (stackable)."
 EFF_STEAL_DESTROY_DESC,"Prend le contrôle d'un serviteur ennemi jusqu'à la fin du tour, puis le détruit.","Takes control of an enemy minion until end of turn, then destroys it."
 STATUS_INFECTED_NAME,"Infecté","Infected"
-STATUS_INFECTED_DESC,"Subit %d point(s) de dégâts au début du tour adverse (cumulable, une marque = 1 dégât).","Takes %d damage at the start of the enemy turn (stacks, one mark = 1 damage)."
+STATUS_INFECTED_DESC,"Subit %d point(s) de dégâts au début du tour adverse (cumulable, une marque = 1 point de dégât).","Takes %d damage at the start of the enemy turn (stacks, one mark = 1 damage)."
 STATUS_FROZEN_NAME,"Gelé","Frozen"
 STATUS_FROZEN_DESC,"Ne peut pas attaquer pendant encore %d tour(s).","Cannot attack for %d more turn(s)."
 STATUS_TERROR_NAME,"Terrifié","Terrified"
@@ -465,7 +465,7 @@ If your Front row is empty: Summon 3 Town Militia instead."
 "INFILTRATION","INFILTRATION","INFILTRATION"
 "La rangée Avant n'est pas un obstacle. C'est un couloir.","La rangée Avant n'est pas un obstacle. C'est un couloir.","The Front row is not an obstacle. It is a corridor."
 "Archer de Guet","Archer de Guet","Watchtower Archer"
-"Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant.","Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire en rangée Avant.","Awakening: Deal 1 damage to a random enemy minion in the Front row."
+"Éveil : Inflige 1 point de dégât à un serviteur ennemi aléatoire en rangée Avant.","Éveil : Inflige 1 point de dégât à un serviteur ennemi aléatoire en rangée Avant.","Awakening: Deal 1 damage to a random enemy minion in the Front row."
 "Il ne rate pas. Il attend juste le bon moment.","Il ne rate pas. Il attend juste le bon moment.","He does not miss. He simply waits for the right moment."
 "Architecte de la Horde","Architecte de la Horde","Horde Architect"
 "Il ne construit pas d'armée. Il la sécrète.","Il ne construit pas d'armée. Il la sécrète.","He does not build an army. He secretes one."
@@ -479,7 +479,7 @@ Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque.","
 Cannot be targeted by enemy spells until its first attack."
 "On ne le voit pas venir. On ne le voit que partir.","On ne le voit pas venir. On ne le voit que partir.","You never see him coming. You only see him leave."
 "Aura de Décrépitude","Aura de Décrépitude","Aura of Decrepitude"
-"Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente.","Résonance : Ce serviteur Mort-Vivant attaquant gagne +1/+0 de façon permanente.","Resonance: This attacking Undead minion permanently gains +1/+0."
+"Chaque fois qu'un de vos Mort-Vivants attaque, il gagne +1/+0 de façon permanente.","Chaque fois qu'un de vos Mort-Vivants attaque, il gagne +1/+0 de façon permanente.","Whenever one of your Undead attacks, it permanently gains +1/+0."
 "La décrépitude n'est pas une faiblesse. C'est une accumulation.","La décrépitude n'est pas une faiblesse. C'est une accumulation.","Decrepitude is not a weakness. It is an accumulation."
 "Autel des Damnés","Autel des Damnés","Altar of the Damned"
 "Deuil : Piochez 1 carte. (Une seule fois par tour.)","Deuil : Piochez 1 carte. (Une seule fois par tour.)","Mourning: Draw 1 card. (Once per turn.)"
@@ -505,7 +505,7 @@ Death Rage: +3/+0."
 "Brise-Mort","Brise-Mort","Death-Breaker"
 "Arrivée : Détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé.","Arrivée : Détruit un serviteur ennemi ressuscité ou réanimé depuis le cimetière ciblé.","Arrival: Destroy target enemy minion resurrected or reanimated from the graveyard."
 "Briseur de Horde","Briseur de Horde","Horde Breaker"
-"Attaque : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires.","Attaque : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires.","Attack: If the target is Undead, deal 2 extra damage."
+"Attaque : Si la cible est un Mort-Vivant, inflige 2 points de dégâts supplémentaires.","Attaque : Si la cible est un Mort-Vivant, inflige 2 points de dégâts supplémentaires.","Attack: If the target is Undead, deal 2 extra damage."
 "Il a perdu son village à la première vague. Il n'a pas perdu la rage.","Il a perdu son village à la première vague. Il n'a pas perdu la rage.","He lost his village to the first wave. He did not lose his rage."
 "Brouillard Pestilentiel","Brouillard Pestilentiel","Pestilential Fog"
 "Présence : À chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 point de vie supplémentaire.","Présence : À chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 point de vie supplémentaire.","Presence: At the start of each enemy turn, infected enemy minions lose 1 additional HP."
@@ -532,7 +532,7 @@ Arrival: Immediately attack the enemy minion with the lowest HP."
 "Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Awakening: If you have a Commander in play (a card with COMMAND), all allied Humans gain +1/+0 this turn."
 "Un commandant suffit. Le cercle fait le reste.","Un commandant suffit. Le cercle fait le reste.","One commander is enough. The circle does the rest."
 "Cercle de Convocation","Cercle de Convocation","Circle of Summoning"
-"Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement.","Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2 gratuitement.","Awakening: Summon a random Undead of cost ≤2 for free."
+"Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2.","Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2.","Awakening: Summon a random Undead of cost ≤2."
 "Le cercle appelle. Les morts n'ont pas appris à décliner.","Le cercle appelle. Les morts n'ont pas appris à décliner.","The circle calls. The dead never learned to refuse."
 "Cercle de Sacrifice","Cercle de Sacrifice","Circle of Sacrifice"
 "Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.","Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.","Sacrifice 1: Your remaining minions gain +1/+1 until end of turn."
@@ -559,7 +559,7 @@ Wounded: Gains +2/+0 until end of turn."
 "Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente.","Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente.","Presence: Your minions in the Front row permanently gain +0/+1."
 "Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.","Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.","These walls were not built to last. They lasted anyway."
 "Code du Chevalier","Code du Chevalier","Knight's Code"
-"Assaut : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire.","Assaut : chaque serviteur Humain allié qui attaque inflige 1 dégât supplémentaire.","Charge: each allied Human minion that attacks deals 1 extra damage."
+"Assaut : chaque serviteur Humain allié qui attaque inflige 1 point de dégât supplémentaire.","Assaut : chaque serviteur Humain allié qui attaque inflige 1 point de dégât supplémentaire.","Charge: each allied Human minion that attacks deals 1 extra damage."
 "L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.","L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.","Honor does not protect. But it gives an extra edge."
 "Colosse Décomposé","Colosse Décomposé","Decayed Colossus"
 "REMPART. CHAIR MORTE. Blessure : les dégâts excédentaires ne se propagent pas.","REMPART. CHAIR MORTE. Blessure : les dégâts excédentaires ne se propagent pas.","TAUNT. DEAD FLESH. Wounded: excess damage does not carry over."
@@ -601,7 +601,7 @@ Si c'est un Mort-Vivant, il coûte 1 de moins ce tour.","Draw 1 card.
 If it is an Undead, it costs 1 less this turn."
 "Il désigne. Quelque chose, quelque part, répond.","Il désigne. Quelque chose, quelque part, répond.","It points. Something, somewhere, answers."
 "Don de Chair","Don de Chair","Gift of Flesh"
-"Sacrifice 1 : Inflige 3 dégâts au héros ennemi.","Sacrifice 1 : Inflige 3 dégâts au héros ennemi.","Sacrifice 1: Deal 3 damage to the enemy hero."
+"Sacrifice 1 : Inflige 3 points de dégâts au héros ennemi.","Sacrifice 1 : Inflige 3 points de dégâts au héros ennemi.","Sacrifice 1: Deal 3 damage to the enemy hero."
 "Il a donné son corps. Il n'avait plus besoin de consentir.","Il a donné son corps. Il n'avait plus besoin de consentir.","He gave his body. He no longer needed to consent."
 "Décret Royal","Décret Royal","Royal Decree"
 "Éveil : Tous vos serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.)","Éveil : Tous vos serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.)","Awakening: All your Human minions gain +1/+1. (Stacks each turn.)"
@@ -619,7 +619,7 @@ Arrivée : Vole 2 points de vie au héros ennemi.","HARVEST
 Arrival: Steal 2 HP from the enemy hero."
 "Il ne prend pas ta vie. Il la déplace, dans les mauvaises mains.","Il ne prend pas ta vie. Il la déplace, dans les mauvaises mains.","It does not take your life. It moves it, into the wrong hands."
 "Exhalation Toxique","Exhalation Toxique","Toxic Exhalation"
-"Inflige 1 dégât à tous les serviteurs en jeu.","Inflige 1 dégât à tous les serviteurs en jeu.","Deal 1 damage to all minions in play."
+"Inflige 1 point de dégât à tous les serviteurs en jeu.","Inflige 1 point de dégât à tous les serviteurs en jeu.","Deal 1 damage to all minions in play."
 "Même ses alliés évitent de respirer trop près.","Même ses alliés évitent de respirer trop près.","Even its allies avoid breathing too close."
 "Fantassin Aguerri","Fantassin Aguerri","Seasoned Footman"
 "FORMATION","FORMATION","FORMATION"
@@ -637,7 +637,7 @@ Wounded: Gains TAUNT until end of turn."
 "Tous vos serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse.","Tous vos serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse.","All your Front row minions gain TAUNT and +0/+2 until the end of the enemy turn."
 "Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.","Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.","They close ranks. The line becomes a wall. The wall does not move."
 "Forteresse Imprenable","Forteresse Imprenable","Impregnable Fortress"
-"Carnage ennemi : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Carnage ennemi : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Enemy carnage: Whenever an enemy minion dies, your Front row minions gain +0/+1 until end of turn."
+"Carnage : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Carnage : Chaque fois qu'un serviteur ennemi meurt, vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Carnage: Whenever an enemy minion dies, your Front row minions gain +0/+1 until end of turn."
 "Chaque ennemi abattu consolide ce qui reste debout.","Chaque ennemi abattu consolide ce qui reste debout.","Every fallen enemy reinforces what still stands."
 "Fortification des Lignes","Fortification des Lignes","Line Fortification"
 "Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour.","Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour.","Awakening: If your Front row has 5 or more minions, they all gain TAUNT until end of turn."
@@ -668,7 +668,7 @@ Deathrattle: Draw 1 card."
 "Éveil : Restaure 1 point de vie à un serviteur Humain allié aléatoire.","Éveil : Restaure 1 point de vie à un serviteur Humain allié aléatoire.","Awakening: Restore 1 HP to a random allied Human minion."
 "Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.","Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.","He never held a sword. Yet his hands saved more lives than any blade."
 "Géant Boursouflé","Géant Boursouflé","Bloated Giant"
-"Dernier Souffle : Inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant.","Dernier Souffle : Inflige 2 dégâts à tous les serviteurs ennemis en rangée Avant.","Deathrattle: Deal 2 damage to all enemy minions in the Front row."
+"Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant.","Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant.","Deathrattle: Deal 2 damage to all enemy minions in the Front row."
 "Sa mort est plus dangereuse que sa vie.","Sa mort est plus dangereuse que sa vie.","His death is more dangerous than his life."
 "Général de Brigade","Général de Brigade","Brigade General"
 "COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu.","COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu.","COMMAND. Awakening: summon a Wall Knight 2/5 in the Front row if you have 4 or more Humans in play."
@@ -687,7 +687,7 @@ Awakening: Summon a Seasoned Footman 2/2 in the Front row if you have 4 or more 
 "Renfort : Le serviteur Humain invoqué gagne +1/+1.","Renfort : Le serviteur Humain invoqué gagne +1/+1.","Reinforcement: The summoned Human minion gains +1/+1."
 "Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.","Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.","The song does not make them invincible. It reminds them they are not alone."
 "Idole de l'Apocalypse","Idole de l'Apocalypse","Idol of the Apocalypse"
-"Résonance : Chaque Mort-Vivant attaquant inflige 1 dégât aux serviteurs adjacents à la cible.","Résonance : Chaque Mort-Vivant attaquant inflige 1 dégât aux serviteurs adjacents à la cible.","Resonance: Each attacking Undead deals 1 damage to the minions adjacent to the target."
+"Chaque fois qu'un de vos Mort-Vivants attaque, il inflige 1 point de dégât aux serviteurs adjacents à sa cible.","Chaque fois qu'un de vos Mort-Vivants attaque, il inflige 1 point de dégât aux serviteurs adjacents à sa cible.","Whenever one of your Undead attacks, it deals 1 damage to the minions adjacent to its target."
 "On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines.","On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines.","No one carved it. It was found this way, standing, amid the ruins."
 "Infecté Récent","Infecté Récent","Recently Infected"
 "Mort-rage : +1/+1 par ennemi infecté en jeu.","Mort-rage : +1/+1 par ennemi infecté en jeu.","Death Rage: +1/+1 for each infected enemy in play."
@@ -733,8 +733,8 @@ Execution: Permanently gains +1/+1."
 "On n'a jamais su d'où il venait. On a fini par ne plus chercher.","On n'a jamais su d'où il venait. On a fini par ne plus chercher.","No one ever knew where he came from. Eventually, they stopped looking."
 "Le Rempart Vivant","Le Rempart Vivant","The Living Rampart"
 "REMPART, FORTIFICATION, CONTRE-ATTAQUE
-Blessure : Invoque un Porteur de Bouclier 1/4 REMPART.","REMPART, FORTIFICATION, CONTRE-ATTAQUE
-Blessure : Invoque un Porteur de Bouclier 1/4 REMPART.","TAUNT, FORTIFICATION, COUNTERATTACK
+Blessure (une fois par tour) : Invoque un Porteur de Bouclier 1/4 REMPART.","REMPART, FORTIFICATION, CONTRE-ATTAQUE
+Blessure (une fois par tour) : Invoque un Porteur de Bouclier 1/4 REMPART.","TAUNT, FORTIFICATION, COUNTERATTACK
 Wounded: Summon a Shield Bearer 1/4 with TAUNT."
 "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.","On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.","They asked how long he could hold. He did not answer. He is still holding."
 "Le Roi Soldat","Le Roi Soldat","The Soldier King"
@@ -753,7 +753,7 @@ Arrivée : Serviteurs Mort-Vivants alliés +2/+2.","TAUNT
 Arrival: Allied Undead minions +2/+2."
 "Les mers l'ont recraché. Elles non plus ne voulaient plus de lui.","Les mers l'ont recraché. Elles non plus ne voulaient plus de lui.","The seas spat him back out. They too no longer wanted him."
 "Marche Forcée","Marche Forcée","Forced March"
-"Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement.","Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant gratuitement.","Awakening: Summon a Swift Scout 1/1 in the Front row for free."
+"Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant.","Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant.","Awakening: Summon a Swift Scout 1/1 in the Front row."
 "Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.","Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.","No rest. No stopping. The line advances because to stop is to die."
 "Maréchal de Campagne","Maréchal de Campagne","Campaign Marshal"
 "COMMANDEMENT
@@ -762,7 +762,7 @@ Arrival: Allied Undead minions +2/+2."
 Awakening: All allied Human minions gain +1/+0 until end of turn."
 "Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.","Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.","He does not shout his orders. He says them once, calmly. That is enough."
 "Massacre Sacré","Massacre Sacré","Sacred Slaughter"
-"Inflige 3 dégâts à tous les serviteurs Mort-Vivants ennemis en jeu.","Inflige 3 dégâts à tous les serviteurs Mort-Vivants ennemis en jeu.","Deal 3 damage to all enemy Undead minions in play."
+"Inflige 3 points de dégâts à tous les serviteurs Mort-Vivants ennemis en jeu.","Inflige 3 points de dégâts à tous les serviteurs Mort-Vivants ennemis en jeu.","Deal 3 damage to all enemy Undead minions in play."
 "La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.","La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.","Light does not heal the dead. It burns them. That is better."
 "Milicien du Bourg","Milicien du Bourg","Town Militia"
 "Dernier Souffle : Invoque un Éclaireur Rapide 1/1.","Dernier Souffle : Invoque un Éclaireur Rapide 1/1.","Deathrattle: Summon a Swift Scout 1/1."
@@ -781,8 +781,8 @@ Awakening: All allied Human minions gain +1/+0 until end of turn."
 "La magie s'arrête là où la volonté commence.","La magie s'arrête là où la volonté commence.","Magic stops where will begins."
 "Mur de Lances","Mur de Lances","Spear Wall"
 "REMPART, FORMATION
-Carnage : Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","REMPART, FORMATION
-Carnage : Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","TAUNT, FORMATION
+Carnage : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","REMPART, FORMATION
+Carnage : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","TAUNT, FORMATION
 Carnage: Deal 1 damage to all enemy minions in the Front row."
 "Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.","Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.","They do not move. The line holds. The spears, though, always find something to run through."
 "Murmure Funeste","Murmure Funeste","Doomed Whisper"
@@ -790,8 +790,8 @@ Carnage: Deal 1 damage to all enemy minions in the Front row."
 "On ne l'entend pas. On sent juste que quelque chose a dit oui.","On ne l'entend pas. On sent juste que quelque chose a dit oui.","You cannot hear it. You just feel that something said yes."
 "Mâcheur d'Os","Mâcheur d'Os","Bone Chewer"
 "ASSAUT
-Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible.","ASSAUT
-Attaque : Inflige 1 dégât splash aux serviteurs adjacents à la cible.","CHARGE
+Attaque : Inflige 1 point de dégât aux serviteurs adjacents à la cible.","ASSAUT
+Attaque : Inflige 1 point de dégât aux serviteurs adjacents à la cible.","CHARGE
 Attack: Deal 1 splash damage to the minions adjacent to the target."
 "Le craquement des os est le seul son qu'il comprend encore.","Le craquement des os est le seul son qu'il comprend encore.","The crunch of bone is the only sound he still understands."
 "Mémorial des Héros","Mémorial des Héros","Heroes' Memorial"
@@ -799,7 +799,7 @@ Attack: Deal 1 splash damage to the minions adjacent to the target."
 "Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Deathrattle: when an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2 and a Town Militia 2/1 in the Front row."
 "On grave les noms pour ne pas oublier. On continue pour la même raison.","On grave les noms pour ne pas oublier. On continue pour la même raison.","We engrave the names so as not to forget. We carry on for the same reason."
 "Nuée d'Insectes Cadavériques","Nuée d'Insectes Cadavériques","Cadaverous Insect Swarm"
-"Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","Arrival: Deal 1 damage to all enemy minions in play."
+"Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","Arrival: Deal 1 damage to all enemy minions in play."
 "Là où elle passe, rien ne guérit vraiment.","Là où elle passe, rien ne guérit vraiment.","Wherever it passes, nothing truly heals."
 "Nécromancien Putride","Nécromancien Putride","Putrid Necromancer"
 "Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant.","Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant.","Arrival: Resurrect the last allied Undead that died with 1 HP in the Front row."
@@ -816,7 +816,7 @@ Attack: Deal 1 splash damage to the minions adjacent to the target."
 "Sacrifice 1 (≤2 points de vie) : Invoque un Mort-Vivant 2/2.","Sacrifice 1 (≤2 points de vie) : Invoque un Mort-Vivant 2/2.","Sacrifice 1 (≤2 HP): Summon a 2/2 Undead."
 "Chaque tour, le cercle redemande son dû, et chaque fois, il redonne quelque chose en retour.","Chaque tour, le cercle redemande son dû, et chaque fois, il redonne quelque chose en retour.","Each turn, the circle demands its due, and each time, it gives something back."
 "Pacte de Résistance","Pacte de Résistance","Pact of Resistance"
-"Présence : Les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1).","Présence : Les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1).","Presence: Allied Human minions take 1 less damage from any source (minimum 1)."
+"Présence : Les serviteurs Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1).","Présence : Les serviteurs Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1).","Presence: Allied Human minions take 1 less damage from any source (minimum 1)."
 "Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.","Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.","They signed together. None of them remembers it exactly. All of them remember it enough."
 "Paladin de l'Aube","Paladin de l'Aube","Dawn Paladin"
 "ÉGIDE, MOISSON
@@ -882,7 +882,7 @@ It keeps its effects."
 "Sacrifice 1 : Piochez 1 carte.","Sacrifice 1 : Piochez 1 carte.","Sacrifice 1: Draw 1 card."
 "Il a tout donné. Il savait exactement ce que ça valait, un peu à la fois.","Il a tout donné. Il savait exactement ce que ça valait, un peu à la fois.","He gave everything. He knew exactly what it was worth, a little at a time."
 "Rituel du Lien Funeste","Rituel du Lien Funeste","Doomed Bond Ritual"
-"Deuil : Inflige 2 dégâts au héros ennemi.","Deuil : Inflige 2 dégâts au héros ennemi.","Mourning: Deal 2 damage to the enemy hero."
+"Deuil : Inflige 2 points de dégâts au héros ennemi.","Deuil : Inflige 2 points de dégâts au héros ennemi.","Mourning: Deal 2 damage to the enemy hero."
 "Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction.","Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction.","Every ally who falls pulls a thread. The enemy eventually feels the tug."
 "Roi Liche Zombie","Roi Liche Zombie","Zombie Lich King"
 "Arrivée : Ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 point de vie en rangée Avant.","Arrivée : Ressuscite les 3 derniers Mort-Vivants alliés morts ce match avec 1 point de vie en rangée Avant.","Arrival: Resurrect the last 3 allied Undead that died this match with 1 HP in the Front row."
@@ -906,7 +906,7 @@ It keeps its effects."
 "Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Arrival: Allied Human minions in the Front row gain +0/+1 until end of turn."
 "Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.","Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.","His voice carries farther than the din of battle. That is why he is still alive."
 "Serment du Sang","Serment du Sang","Blood Oath"
-"Deuil : Quand un Humain allié meurt, le serviteur allié adjacent gagne +1/+1.","Deuil : Quand un Humain allié meurt, le serviteur allié adjacent gagne +1/+1.","Mourning: When an allied Human dies, the adjacent allied minion gains +1/+1."
+"Quand un Humain que vous contrôlez meurt, le serviteur allié adjacent gagne +1/+1.","Quand un Humain que vous contrôlez meurt, le serviteur allié adjacent gagne +1/+1.","When a Human you control dies, the adjacent allied minion gains +1/+1."
 "Le serment survit à celui qui l'a fait. C'est l'idée.","Le serment survit à celui qui l'a fait. C'est l'idée.","The oath outlives the one who swore it. That is the point."
 "Servant Décharné","Servant Décharné","Gaunt Servant"
 "Attaque : Vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Attaque : Vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Attack: Your Front row minions gain +0/+1 until end of turn."
@@ -921,7 +921,7 @@ Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant.","AEGIS
 Deathrattle: Summon a Town Militia 2/1 in the Front row."
 "Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","He believed in something. That something protected him, once."
 "Souffle Nécrotique","Souffle Nécrotique","Necrotic Breath"
-"Inflige 2 dégâts à un serviteur ennemi ciblé.","Inflige 2 dégâts à un serviteur ennemi ciblé.","Deal 2 damage to target enemy minion."
+"Inflige 2 points de dégâts à un serviteur ennemi ciblé.","Inflige 2 points de dégâts à un serviteur ennemi ciblé.","Deal 2 damage to target enemy minion."
 "Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien.","Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien.","It is not wind. It is what remains when lungs no longer serve any purpose."
 "Souffle du Charnier","Souffle du Charnier","Charnel Breath"
 "Un Mort-Vivant allié ciblé gagne +0/+2.","Un Mort-Vivant allié ciblé gagne +0/+2.","Target allied Undead gains +0/+2."
@@ -941,12 +941,12 @@ Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant.","TAUNT
 Deathrattle: Summon 3 Crawlers 1/1 in the Front row."
 "Il n'était pas un monstre. Il était une fosse commune.","Il n'était pas un monstre. Il était une fosse commune.","He was not a monster. He was a mass grave."
 "Vague de Putréfaction","Vague de Putréfaction","Wave of Putrefaction"
-"Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.","Deal 1 damage to all enemy minions in the Front row."
+"Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","Deal 1 damage to all enemy minions in the Front row."
 "La peste ne choisit pas. Elle couvre.","La peste ne choisit pas. Elle couvre.","The plague does not choose. It covers."
 "Volée de Flèches","Volée de Flèches","Arrow Volley"
-"Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
-Si 4 ou plus en rangée Avant : 2 dégâts à la place.","Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
-Si 4 ou plus en rangée Avant : 2 dégâts à la place.","Deal 1 damage to all enemy minions in the Front row.
+"Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.
+Si 4 ou plus en rangée Avant : 2 points de dégâts à la place.","Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.
+Si 4 ou plus en rangée Avant : 2 points de dégâts à la place.","Deal 1 damage to all enemy minions in the Front row.
 If 4 or more in the Front row: 2 damage instead."
 "Plus ils sont nombreux, plus ça fait de cibles.","Plus ils sont nombreux, plus ça fait de cibles.","The more of them there are, the more targets there are."
 "Vortex des Âmes","Vortex des Âmes","Vortex of Souls"
@@ -981,7 +981,7 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "Il ne vient pas combattre. Il vient annoncer.","Il ne vient pas combattre. Il vient annoncer.","He does not come to fight. He comes to announce."
 "Arrivée : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse.","Arrivée : -2 ATK à un serviteur ennemi ciblé jusqu'à fin du tour adverse.","Arrival: -2 ATK to target enemy minion until the end of the enemy turn."
 "Épidémie","Épidémie","Epidemic"
-"Présence : Serviteurs non Mort-Vivants ennemis -1/-1.","Présence : Serviteurs non Mort-Vivants ennemis -1/-1.","Presence: Enemy non-Undead minions -1/-1."
+"Présence : Tous les serviteurs non Mort-Vivants ennemis subissent -1/-1.","Présence : Tous les serviteurs non Mort-Vivants ennemis subissent -1/-1.","Presence: All enemy non-Undead minions suffer -1/-1."
 "Elle ne tue pas. Elle prépare, jour après jour.","Elle ne tue pas. Elle prépare, jour après jour.","It does not kill. It prepares, day after day."
 "Étreinte Glaciale","Étreinte Glaciale","Icy Embrace"
 "Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.)","Gèle un serviteur ennemi ciblé un tour. (L'Infection continue.)","Freeze target enemy minion for one turn. (Infection continues.)"
@@ -996,7 +996,7 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "REMPART, CHAIR DE SOUFRE","REMPART, CHAIR DE SOUFRE","TAUNT, SULFUR FLESH"
 "Elle a regardé brûler des cathédrales entières sans ciller.","Elle a regardé brûler des cathédrales entières sans ciller.","It has watched entire cathedrals burn without so much as a flinch."
 "Croc de Braise","Croc de Braise","Embermaw"
-"Pacte 3 : Inflige 2 dégâts à un serviteur ennemi ciblé.","Pacte 3 : Inflige 2 dégâts à un serviteur ennemi ciblé.","Pact 3: Deal 2 damage to target enemy minion."
+"Pacte 3 : Inflige 2 points de dégâts à un serviteur ennemi ciblé.","Pacte 3 : Inflige 2 points de dégâts à un serviteur ennemi ciblé.","Pact 3: Deal 2 damage to target enemy minion."
 "Chaque morsure lui coûte, à toi aussi.","Chaque morsure lui coûte, à toi aussi.","Every bite costs it something, and costs you too."
 "Chuchoteur Malin","Chuchoteur Malin","Whisperfiend"
 "Arrivée : Piochez une carte.
@@ -1051,10 +1051,10 @@ Pact 3: Draw an additional card."
 "Elle grandit dans les cicatrices, pas dans la lumière.","Elle grandit dans les cicatrices, pas dans la lumière.","It grows in scar tissue, not in light."
 "Titan de Cendres","Titan de Cendres","Ash Titan"
 "REMPART
-Dernier Souffle : Inflige 2 dégâts au héros adverse.
-Pacte 2 : Inflige 1 dégât de plus.","REMPART
-Dernier Souffle : Inflige 2 dégâts au héros adverse.
-Pacte 2 : Inflige 1 dégât de plus.","TAUNT
+Dernier Souffle : Inflige 2 points de dégâts au héros adverse.
+Pacte 2 : Inflige 1 point de dégât de plus.","REMPART
+Dernier Souffle : Inflige 2 points de dégâts au héros adverse.
+Pacte 2 : Inflige 1 point de dégât de plus.","TAUNT
 Deathrattle: Deal 2 damage to the enemy hero.
 Pact 2: Deal 1 more damage."
 "Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.","Sa chute n'éteint rien. Elle propage juste l'incendie ailleurs.","Its fall extinguishes nothing. It simply spreads the fire elsewhere."
@@ -1114,8 +1114,8 @@ Pact 3: Steal 2 more HP."
 "Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","It takes from both sides. That is what makes the deal worthwhile, for it."
 "Nuée de Tourments","Nuée de Tourments","Swarm of Torments"
 "TERREUR
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERREUR
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","TERROR
+Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","TERREUR
+Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","TERROR
 Arrival: Deal 1 damage to all enemy minions in play."
 "Elle ne mord pas fort. Elle mord partout, et longtemps.","Elle ne mord pas fort. Elle mord partout, et longtemps.","It does not bite hard. It bites everywhere, and for a long time."
 "Faucheur des Abysses","Faucheur des Abysses","Abyss Reaper"
@@ -1173,8 +1173,8 @@ Pact 5: +2/+2 more."
 "Pacte 4 : Détruit un serviteur ennemi ciblé.","Pacte 4 : Détruit un serviteur ennemi ciblé.","Pact 4: Destroy target enemy minion."
 "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","It never asks for permission. It simply notes what you are willing to lose."
 "Flamme Infernale","Flamme Infernale","Infernal Flame"
-"Inflige 2 dégâts à un serviteur ennemi ciblé.
-Votre héros perd 1 point de vie.","Inflige 2 dégâts à un serviteur ennemi ciblé.
+"Inflige 2 points de dégâts à un serviteur ennemi ciblé.
+Votre héros perd 1 point de vie.","Inflige 2 points de dégâts à un serviteur ennemi ciblé.
 Votre héros perd 1 point de vie.","Deal 2 damage to target enemy minion.
 Your hero loses 1 HP."
 "Le feu ne fait pas de distinction. Il te lèche un peu au passage.","Le feu ne fait pas de distinction. Il te lèche un peu au passage.","Fire makes no distinctions. It licks at you a little on its way past."
@@ -1323,9 +1323,9 @@ Pact 2: An additional +1/+0."
 "Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur Démon allié en rangée Avant.","Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur Démon allié en rangée Avant.","Presence: Your Back row minions gain +0/+1 per allied Demon minion in the Front row."
 "Ceux de devant brûlent. Ceux de derrière se nourrissent de la chaleur.","Ceux de devant brûlent. Ceux de derrière se nourrissent de la chaleur.","Those at the front burn. Those behind feed on the warmth."
 "Idole du Grand Pacte","Idole du Grand Pacte","Idol of the Grand Pact"
-"Résonance : Le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible.
-Pacte 2 : +1 dégât splash supplémentaire.","Résonance : Le Démon attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible.
-Pacte 2 : +1 dégât splash supplémentaire.","Resonance: The attacking Demon deals 1 splash damage to minions adjacent to its target.
+"Résonance : Le Démon attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible.
+Pacte 2 : +1 point de dégât supplémentaire.","Résonance : Le Démon attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible.
+Pacte 2 : +1 point de dégât supplémentaire.","Resonance: The attacking Demon deals 1 splash damage to minions adjacent to its target.
 Pact 2: 1 additional splash damage."
 "On ne l'a pas sculptée. Elle a simplement accepté de rester.","On ne l'a pas sculptée. Elle a simplement accepté de rester.","No one carved it. It simply agreed to stay."
 "Sanctuaire Écarlate","Sanctuaire Écarlate","Crimson Sanctuary"
@@ -1368,14 +1368,14 @@ You can only play one resource per turn."
 "Ajoute 1 Âme à votre réserve. Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Âme à votre réserve. Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Soul to your reserve. You can only play one resource per turn."
 "Une clause parmi tant d'autres. Elle aussi se paiera.","Une clause parmi tant d'autres. Elle aussi se paiera.","One clause among many. This one, too, will be paid."
 "Morsure de l'Air","Morsure de l'Air","Air Bite"
-"Inflige 2 dégâts à un serviteur ennemi ciblé.
-S'il survit, il perd 1 ATK de façon permanente.","Inflige 2 dégâts à un serviteur ennemi ciblé.
+"Inflige 2 points de dégâts à un serviteur ennemi ciblé.
+S'il survit, il perd 1 ATK de façon permanente.","Inflige 2 points de dégâts à un serviteur ennemi ciblé.
 S'il survit, il perd 1 ATK de façon permanente.","Deal 2 damage to target enemy minion.
 If it survives, it permanently loses 1 ATK."
 "Ce qui ne tue pas ronge quand même.","Ce qui ne tue pas ronge quand même.","What doesn't kill still gnaws."
 "Respir Qui Change Tout","Respir Qui Change Tout","The Breath That Changes Everything"
-"Inflige 1 dégât à tous les serviteurs en jeu.
-Les Abominations alliées touchées mutent à la place de perdre des points de vie.","Inflige 1 dégât à tous les serviteurs en jeu.
+"Inflige 1 point de dégât à tous les serviteurs en jeu.
+Les Abominations alliées touchées mutent à la place de perdre des points de vie.","Inflige 1 point de dégât à tous les serviteurs en jeu.
 Les Abominations alliées touchées mutent à la place de perdre des points de vie.","Deal 1 damage to all minions in play.
 Allied Abominations hit mutate instead of losing HP."
 "Même tes alliés changent, un peu, à chaque respiration.","Même tes alliés changent, un peu, à chaque respiration.","Even your allies change, a little, with every breath."
@@ -1437,7 +1437,7 @@ If it's an Abomination, it costs 1 less this turn."
 "Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence.","Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence.","Sacrifice 1: All enemy Front row minions undergo a forced Degeneration mutation."
 "Ce que le cercle ne peut pas améliorer, il le corrompt.","Ce que le cercle ne peut pas améliorer, il le corrompt.","What the circle cannot improve, it corrupts."
 "Vapeur Qui S'Accroche","Vapeur Qui S'Accroche","Clinging Vapor"
-"Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire.","Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire.","Awakening: Deal 1 damage to a random enemy minion."
+"Éveil : Inflige 1 point de dégât à un serviteur ennemi aléatoire.","Éveil : Inflige 1 point de dégât à un serviteur ennemi aléatoire.","Awakening: Deal 1 damage to a random enemy minion."
 "On ne la voit pas. On sent juste que quelque chose continue de ronger.","On ne la voit pas. On sent juste que quelque chose continue de ronger.","You cannot see it. You can only feel something still gnawing."
 "Main-Qui-Choisit","Main-Qui-Choisit","The Choosing Hand"
 "Exécution : Déclenche immédiatement une mutation.","Exécution : Déclenche immédiatement une mutation.","Execution: Immediately triggers a mutation."
@@ -1533,8 +1533,8 @@ Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points d
 Arrival: Immediately attacks the enemy minion with the lowest HP, then mutates."
 "On ne sait plus lequel des deux dirige encore l'autre.","On ne sait plus lequel des deux dirige encore l'autre.","No one knows anymore which of the two still leads the other."
 "Pluie Qui Change","Pluie Qui Change","Changing Rain"
-"Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
-Les survivants ont -1 ATK jusqu'à la fin du tour.","Inflige 1 dégât à tous les serviteurs ennemis en rangée Avant.
+"Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.
+Les survivants ont -1 ATK jusqu'à la fin du tour.","Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.
 Les survivants ont -1 ATK jusqu'à la fin du tour.","Deal 1 damage to all enemy Front row minions.
 Survivors have -1 ATK until end of turn."
 "L'air lui-même devient hostile en son sillage.","L'air lui-même devient hostile en son sillage.","The very air turns hostile in its wake."
@@ -1574,7 +1574,7 @@ Arrivée : Piochez 1 carte.","ADAPTIVE FLESH
 Arrival: Draw 1 card."
 "Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes.","Il voit ce que les autres pourraient devenir, avant qu'ils ne le sachent eux-mêmes.","It sees what others might become, before they know it themselves."
 "Effigie Née d'Elle-Même","Effigie Née d'Elle-Même","Self-Born Effigy"
-"Résonance : Le serviteur Abomination attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible.","Résonance : Le serviteur Abomination attaquant inflige 1 dégât splash aux serviteurs adjacents à la cible.","Resonance: The attacking Abomination minion deals 1 splash damage to minions adjacent to the target."
+"Résonance : Le serviteur Abomination attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible.","Résonance : Le serviteur Abomination attaquant inflige 1 point de dégât aux serviteurs adjacents à la cible.","Resonance: The attacking Abomination minion deals 1 splash damage to minions adjacent to the target."
 "On ne l'a pas sculptée. Elle a poussé, un jour, et personne ne l'a arrêtée.","On ne l'a pas sculptée. Elle a poussé, un jour, et personne ne l'a arrêtée.","It wasn't sculpted. It grew, one day, and no one stopped it."
 "Ce-Qui-Se-Partage","Ce-Qui-Se-Partage","That-Which-Shares-Itself"
 "Dernier Souffle : Le serviteur allié adjacent gagne +1/+1 permanent.","Dernier Souffle : Le serviteur allié adjacent gagne +1/+1 permanent.","Deathrattle: The adjacent allied minion permanently gains +1/+1."
@@ -1590,8 +1590,8 @@ Deathrattle: Reforms into a Formless Mass 2/2 under your control (does not go to
 "Il ne meurt jamais tout à fait. Il se réarrange.","Il ne meurt jamais tout à fait. Il se réarrange.","It never quite dies. It rearranges itself."
 "Poussière Qui Change","Poussière Qui Change","Changing Dust"
 "VIRULENT
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","VIRULENT
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu.","VIRULENT
+Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","VIRULENT
+Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu.","VIRULENT
 Arrival: Deal 1 damage to all enemy minions in play."
 "Là où elle se dépose, quelque chose commence toujours à changer.","Là où elle se dépose, quelque chose commence toujours à changer.","Wherever it settles, something always begins to change."
 "Rituel de l'Œil Sans Sommeil","Rituel de l'Œil Sans Sommeil","Sleepless Eye Ritual"
@@ -1690,7 +1690,7 @@ Pact 2: Destroy all enemy minions with 5 HP or less instead."
 "Carnage : Quand un serviteur ennemi meurt, votre héros regagne 1 point de vie.","Carnage : Quand un serviteur ennemi meurt, votre héros regagne 1 point de vie.","Carnage: When an enemy minion dies, your hero regains 1 HP."
 "Deuil : Quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Deuil : Quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Mourning: When an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2 and a Town Militia 2/1 in the Front row."
 "Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrival: all enemy minions in the Back row cannot be targeted by enemy spells this turn."
-"Résonance : Chaque fois qu'un serviteur Humain allié attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente.","Résonance : Chaque fois qu'un serviteur Humain allié attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente.","Resonance: Whenever an allied Human minion attacks, all your allied minions permanently gain +1 ATK."
+"Chaque fois qu'un Humain que vous contrôlez attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente.","Chaque fois qu'un Humain que vous contrôlez attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente.","Whenever a Human you control attacks, all your allied minions permanently gain +1 ATK."
 "COMMANDEMENT
 Dernier Souffle : Ressuscite jusqu'à 5 serviteurs Humains alliés morts avec 1 point de vie en rangée Avant.","COMMANDEMENT
 Dernier Souffle : Ressuscite jusqu'à 5 serviteurs Humains alliés morts avec 1 point de vie en rangée Avant.","COMMAND
@@ -1698,7 +1698,7 @@ Deathrattle: Resurrect up to 5 dead allied Human minions with 1 HP in the Front 
 "COMMANDEMENT","COMMANDEMENT","COMMAND"
 "Guérit l'Infection sur un serviteur allié ciblé.","Guérit l'Infection sur un serviteur allié ciblé.","Heals Infection on a target allied minion."
 "Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer.","Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer.","Presence: An ally summoned into a full row is placed in the other row instead of failing."
-"Présence : Vos serviteurs alliés reçoivent 2 dégâts de moins de toute source (minimum 1).","Présence : Vos serviteurs alliés reçoivent 2 dégâts de moins de toute source (minimum 1).","Presence: Your allied minions take 2 less damage from any source (minimum 1)."
+"Présence : Vos serviteurs alliés reçoivent 2 points de dégâts de moins de toute source (minimum 1).","Présence : Vos serviteurs alliés reçoivent 2 points de dégâts de moins de toute source (minimum 1).","Presence: Your allied minions take 2 less damage from any source (minimum 1)."
 "DISCIPLINE
 Arrivée : Annule tous les effets Infection sur vos serviteurs alliés.","DISCIPLINE
 Arrivée : Annule tous les effets Infection sur vos serviteurs alliés.","DISCIPLINE
