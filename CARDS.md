@@ -200,7 +200,7 @@ Positionnement (Lane Types)
 | 66 | Fosse Commune | 4 | Rare | Renfort : Si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
 | 67 | Aura de Décrépitude | 3 | Rare | Chaque fois qu'un de vos Mort-Vivants attaque, il gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
 | 68 | Cimetière Vivant | 5 | Épique | À chaque tour, le premier Mort-Vivant que vous contrôlez qui meurt revient en jeu à la fin du tour avec 1 point de vie. | Le sol ici ne garde rien. Il régurgite. |
-| 69 | Brouillard Pestilentiel | 3 | Rare | Présence : Les serviteurs que votre adversaire contrôle infectés subissent 1 point de dégât d'infection supplémentaire à chaque tour. | On ne le voit pas. On ne le sent même plus, après un moment. |
+| 69 | Brouillard Pestilentiel | 3 | Rare | Présence : À chaque début du tour adverse, les serviteurs infectés que votre adversaire contrôle perdent 1 point de vie supplémentaire. | On ne le voit pas. On ne le sent même plus, après un moment. |
 | 70 | Symbiose Cadavérique | 5 | Épique | Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur que vous contrôlez en rangée Avant. | Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste. |
 | 71 | Idole de l'Apocalypse | 6 | Légendaire | Chaque fois qu'un de vos Mort-Vivants attaque, il inflige 1 point de dégât aux serviteurs adjacents à sa cible. | On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines. |
 | 72 | Sanctuaire Nécrotique | 4 | Épique | Présence : Les sorts alliés coûtent 1 de moins (min 1). | Dans ses murs, la magie de mort coule comme de l'eau froidenaturellement. |
@@ -387,7 +387,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un Humain ciblé que vous contrôlez jusqu'à la fin du prochain tour adverse. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
 | H46 | Jugement Divin | 4 | Rare | Détruit un serviteur ciblé que votre adversaire contrôle. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
 | H47 | Ordre d'Avancer | 2 | Rare | Tous les Humains que vous contrôlez en rangée Avant gagnent +1 ATK de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
-| H48 | Contre-Offensive | 3 | Rare | Ce tour, chaque Humain que vous contrôlez qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
+| H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : Chaque Humain que vous contrôlez qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
 | H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un Humain ciblé que vous contrôlez gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
 | H51 | Massacre Sacré | 4 | Épique | Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
@@ -402,14 +402,14 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, vos serviteurs en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
 | H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
 | H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
-| H56 | Serment du Sang | 4 | Rare | 3 charges | Quand un Humain que vous contrôlez meurt, **le serviteur que vous contrôlez qui lui était adjacent** gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
+| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un Humain que vous contrôlez meurt, le serviteur adjacent que vous contrôlez gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains que vous contrôlez gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain que vous contrôlez attaque, tous vos serviteurs gagnent +1 ATK de façon permanente. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
 | H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : Annulé s'il cible un Humain que vous contrôlez. | *La magie s'arrête là où la volonté commence.* |
 | H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
 | H62 | Résistance Acharnée | 4 | Épique | 3 charges | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
-| H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : Détruit 2 serviteurs non-Humains ennemis aléatoires. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
+| H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : Détruit 2 serviteurs aléatoires non-Humains que votre adversaire contrôle. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
 | H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
 
 ---
