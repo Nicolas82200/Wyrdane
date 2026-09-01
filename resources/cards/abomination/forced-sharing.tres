@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Partage Forcé"
-description = "Sacrifice 1 : Le serviteur allié adjacent absorbe ses stats restantes de façon permanente."
+description = "Sacrifice 1 : Le serviteur adjacent que vous contrôlez absorbe ses stats restantes de façon permanente."
 flavour_text = "Rien ne se perd. Tout se recompose."
 texture = ExtResource("2_texture")
 cost = 2

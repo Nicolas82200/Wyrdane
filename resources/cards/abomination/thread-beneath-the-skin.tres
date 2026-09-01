@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel du Fil Sous la Peau"
-description = "Deuil : Un serviteur Abomination allié aléatoire mute immédiatement."
+description = "Deuil : Une Abomination aléatoire que vous contrôlez mute immédiatement."
 flavour_text = "Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture."
 texture = ExtResource("2_texture")
 cost = 4

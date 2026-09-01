@@ -21,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purge Sainte"
-description = "Éveil : Détruit les serviteurs Mort-Vivants ennemis ayant 3 points de vie ou moins."
+description = "Éveil : Détruit les Mort-Vivants que votre adversaire contrôle ayant 3 points de vie ou moins."
 flavour_text = "Ce n'est pas une prière. C'est une déclaration."
 texture = ExtResource("3_texture")
 cost = 6

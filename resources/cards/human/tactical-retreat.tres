@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Repli Tactique"
-description = "Déplace un serviteur allié de la rangée Avant vers la rangée Arrière (ou inversement).
+description = "Déplace un serviteur que vous contrôlez de la rangée Avant vers la rangée Arrière (ou inversement).
 Il conserve ses effets."
 flavour_text = "Reculer n'est pas fuir. C'est choisir où mourir."
 texture = ExtResource("3_texture")

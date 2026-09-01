@@ -25,7 +25,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rituel de la Chair Qui Recoud"
-description = "Éveil : Un serviteur Abomination allié aléatoire restaure 2 points de vie."
+description = "Éveil : Une Abomination aléatoire que vous contrôlez restaure 2 points de vie."
 flavour_text = "La chair se répare mal. Elle se répare quand même."
 texture = ExtResource("2_texture")
 cost = 4

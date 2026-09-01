@@ -20,7 +20,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Pacte de Résistance"
-description = "Présence : Les serviteurs Humains alliés reçoivent 1 dégât de moins de toute source (minimum 1)."
+description = "Présence : Les Humains que vous contrôlez reçoivent 1 dégât de moins de toute source (minimum 1)."
 flavour_text = "Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment."
 texture = ExtResource("3_texture")
 cost = 3

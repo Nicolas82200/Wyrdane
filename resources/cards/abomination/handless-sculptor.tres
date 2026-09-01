@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Sculpteur Sans Mains"
-description = "Arrivée : Un serviteur allié ciblé gagne MUTATION de façon permanente."
+description = "Arrivée : Un serviteur ciblé que vous contrôlez gagne MUTATION de façon permanente."
 flavour_text = "\"La forme n'est qu'une suggestion. Je préfère négocier.\""
 texture = ExtResource("2_texture")
 cost = 4

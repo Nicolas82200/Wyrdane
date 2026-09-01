@@ -20,7 +20,7 @@ type = "OnResonance"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Code du Chevalier"
-description = "Résonance : Chaque fois qu'un serviteur Humain allié attaque, tous vos serviteurs alliés gagnent +1 ATK de façon permanente."
+description = "Résonance : Chaque fois qu'un Humain que vous contrôlez attaque, tous vos serviteurs gagnent +1 ATK de façon permanente."
 flavour_text = "L'honneur ne protège pas. Mais il donne un tranchant supplémentaire."
 texture = ExtResource("3_texture")
 cost = 5

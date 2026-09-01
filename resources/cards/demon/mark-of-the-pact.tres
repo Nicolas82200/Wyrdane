@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Marque du Pacte"
-description = "Un serviteur Démon allié ciblé gagne RANG INFERNAL jusqu'à fin de tour."
+description = "Un Démon ciblé que vous contrôlez gagne RANG INFERNAL jusqu'à fin de tour."
 flavour_text = "La marque ne s'efface pas. Elle attend juste son heure."
 texture = ExtResource("3_texture")
 cost = 3

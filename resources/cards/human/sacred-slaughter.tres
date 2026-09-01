@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_p6l2f")
 card_name = "Massacre Sacré"
-description = "Inflige 3 dégâts à tous les serviteurs Mort-Vivants ennemis en jeu."
+description = "Inflige 3 dégâts à tous les Mort-Vivants que votre adversaire contrôle en jeu."
 flavour_text = "La lumière ne guérit pas les morts. Elle les brûle. C'est mieux."
 texture = ExtResource("4_allhh")
 cost = 4

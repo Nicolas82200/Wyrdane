@@ -34,7 +34,7 @@ type = "DEATHRATTLE"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Prêtre de Guerre"
-description = "Éveil : Restaure 2 points de vie à un serviteur Humain allié aléatoire.
+description = "Éveil : Restaure 2 points de vie à un Humain aléatoire que vous contrôlez.
 Dernier Souffle : Invoque un Éclaireur Rapide 1/1."
 flavour_text = "Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps."
 texture = ExtResource("3_texture")

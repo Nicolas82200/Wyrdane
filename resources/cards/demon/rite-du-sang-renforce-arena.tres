@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Rite du Sang Renforcé"
-description = "Tous vos serviteurs alliés gagnent +2/+0 de façon permanente."
+description = "Tous vos serviteurs gagnent +2/+0 de façon permanente."
 flavour_text = "Le sang versé n'appelle pas la pitié. Il appelle la force de frapper plus fort."
 texture = ExtResource("2_texture")
 cost = 4
