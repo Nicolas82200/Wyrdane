@@ -455,7 +455,7 @@ func _on_card_hover(card: Card) -> void:
 	preview.set_data(card.data)
 	if display_cost.is_valid():
 		preview.set_display_cost(display_cost.call(card.data))
-	preview.scale   = Vector2(1.1, 1.1)
+	preview.scale   = Vector2(1.375, 1.375)
 	preview.z_index = 100
 	# Centré horizontalement par rapport à la carte survolée : card.pivot_offset
 	# est calé sur son centre horizontal (voir _set_hand_instant), donc son point

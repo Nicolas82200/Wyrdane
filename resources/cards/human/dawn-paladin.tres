@@ -32,7 +32,7 @@ description = "ÉGIDE, MOISSON
 Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant."
 flavour_text = "Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois."
 texture = ExtResource("3_texture")
-cost = 5
+cost = 6
 race = 1
 unit_style = 8
 attack = 4
@@ -41,4 +41,5 @@ keywords = Array[ExtResource("2_kw")]([SubResource("Resource_8oqg8"), SubResourc
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_t3btl")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_r72w7")])
 rarity = "Epic"
+race_cost_override = 3
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

@@ -35,7 +35,7 @@ type = "OnDamaged"
 script = ExtResource("3_385w7")
 card_name = "Le Rempart Vivant"
 description = "REMPART, FORTIFICATION, CONTRE-ATTAQUE
-Blessure : Invoque un Porteur de Bouclier 1/4 REMPART."
+Blessure (une fois par tour) : Invoque un Porteur de Bouclier 1/4 REMPART."
 flavour_text = "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore."
 texture = ExtResource("4_lsemj")
 cost = 6
@@ -47,5 +47,6 @@ keywords = Array[ExtResource("2_d7r1c")]([SubResource("Resource_cdn7p")])
 human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1"), SubResource("Resource_hkw2")])
 trigger_types = Array[ExtResource("5_gtmur")]([SubResource("Resource_xqt8n")])
 effects = Array[ExtResource("1_gfohq")]([SubResource("Resource_yair7")])
+trigger_once_per_turn = true
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

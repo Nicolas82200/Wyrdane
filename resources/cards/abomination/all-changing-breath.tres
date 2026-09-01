@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Respir Qui Change Tout"
-description = "Inflige 1 dégât à tous les serviteurs en jeu.
+description = "Inflige 1 point de dégât à tous les serviteurs en jeu.
 Les Abominations alliées touchées mutent à la place de perdre des points de vie."
 flavour_text = "Même tes alliés changent, un peu, à chaque respiration."
 texture = ExtResource("2_texture")

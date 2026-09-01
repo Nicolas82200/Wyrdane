@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Vapeur Qui S'Accroche"
-description = "Éveil : Inflige 1 dégât à un serviteur ennemi aléatoire."
+description = "Éveil : Inflige 1 point de dégât à un serviteur ennemi aléatoire."
 flavour_text = "On ne la voit pas. On sent juste que quelque chose continue de ronger."
 texture = ExtResource("2_texture")
 cost = 3
