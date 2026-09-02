@@ -21,7 +21,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Servant Décharné"
-description = "Attaque : Vos serviteurs en rangée Avant gagnent +0/+1 jusqu'à la fin du tour."
+description = "Attaque : Les serviteurs que vous contrôlez en rangée Avant gagnent +0/+1 jusqu'à la fin du tour."
 flavour_text = "Il ne commande pas. Il pousse. Et ça suffit."
 texture = ExtResource("3_texture")
 cost = 3
