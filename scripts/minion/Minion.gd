@@ -240,6 +240,16 @@ func is_fear_immune() -> bool:
 		or has_human_keyword(KeywordHuman.Type.DISCIPLINE) \
 		or has_demon_keyword(KeywordDemon.Type.CHAIR_DE_SOUFRE)
 
+# Applique Terreur à ce serviteur (ne peut pas attaquer lors du prochain tour
+# de son contrôleur), sauf s'il y est immunisé (CHAIR MORTE/DISCIPLINE/CHAIR
+# DE SOUFRE). Retourne true si Terreur a bien été appliquée (pour déclencher
+# l'animation côté appelant).
+func apply_terror() -> bool:
+	if is_dead() or is_fear_immune():
+		return false
+	terror_turns = max(terror_turns, 1)
+	return true
+
 func is_mind_control_immune() -> bool:
 	return has_human_keyword(KeywordHuman.Type.DISCIPLINE) \
 		or has_demon_keyword(KeywordDemon.Type.CHAIR_DE_SOUFRE)

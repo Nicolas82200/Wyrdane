@@ -39,7 +39,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cœur du Gouffre"
-description = "Éveil : Tous vos serviteurs Démons gagnent +1/+0 jusqu'à la fin du tour.
+description = "Éveil : Tous les serviteurs Démons que vous contrôlez gagnent +1/+0 jusqu'à la fin du tour.
 Pacte 2 : +1/+0 supplémentaire."
 flavour_text = "Il bat au rythme de ce que tu es prêt à sacrifier chaque matin."
 texture = ExtResource("3_texture")
