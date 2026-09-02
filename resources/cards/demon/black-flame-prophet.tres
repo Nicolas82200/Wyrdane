@@ -28,7 +28,7 @@ description = "CORRUPTION
 Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser."
 texture = ExtResource("3_texture")
-cost = 4
+cost = 5
 race = 5
 unit_style = 16
 attack = 2
@@ -38,5 +38,6 @@ trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_lvj4r")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_o086b")])
 requires_target = true
 rarity = "Epic"
+race_cost_override = 3
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
