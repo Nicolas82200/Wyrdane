@@ -10,7 +10,7 @@
 script = ExtResource("1_4eter")
 effect_id = "HealHero"
 target = "OwnerHero"
-value = 1
+value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_0erb5"]
@@ -20,7 +20,7 @@ type = "OnCarnage"
 [resource]
 script = ExtResource("3_gqd7o")
 card_name = "Résistance Acharnée"
-description = "Carnage : Quand un serviteur que votre adversaire contrôle meurt, votre héros regagne 1 point de vie."
+description = "Carnage : Quand un serviteur que votre adversaire contrôle meurt, votre héros récupère 2 points de vie."
 flavour_text = "Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu, de précieux."
 texture = ExtResource("4_qgakc")
 cost = 4
