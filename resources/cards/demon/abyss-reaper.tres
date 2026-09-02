@@ -36,7 +36,7 @@ description = "Arrivée : Détruit tous les serviteurs que votre adversaire cont
 Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 4 points de vie ou moins à la place."
 flavour_text = "Il choisit les plus faibles. Toi, tu paies pour son jugement."
 texture = ExtResource("3_texture")
-cost = 5
+cost = 6
 race = 5
 unit_style = 15
 attack = 5
@@ -45,5 +45,6 @@ demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_39ozv")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0rmbf"), SubResource("Resource_bonus")])
 rarity = "Epic"
+race_cost_override = 4
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

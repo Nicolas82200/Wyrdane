@@ -37,7 +37,7 @@ description = "Renfort : Détruit un serviteur que votre adversaire contrôle ay
 Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place."
 flavour_text = "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre."
 texture = ExtResource("3_texture")
-cost = 7
+cost = 8
 race = 5
 unit_style = 15
 attack = 7
@@ -46,5 +46,6 @@ demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_qe3aa")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_561u4")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_base"), SubResource("Resource_zgqtz")])
 rarity = "Legendary"
+race_cost_override = 5
 board_position = "Front"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

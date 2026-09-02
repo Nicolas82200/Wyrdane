@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Symbiose Infernale"
-description = "Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par Démon que vous contrôlez en rangée Avant."
+description = "Présence : Les serviteurs que vous contrôlez en rangée Arrière gagnent +0/+1 par Démon que vous contrôlez en rangée Avant."
 flavour_text = "Ceux de devant brûlent. Ceux de derrière se nourrissent de la chaleur."
 texture = ExtResource("3_texture")
 cost = 5
