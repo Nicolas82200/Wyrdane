@@ -19,7 +19,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Lignée des Braves"
-description = "Deuil : Quand un Humain allié meurt, piochez 1 carte. (Une seule fois par tour.)"
+description = "Deuil : Quand un de vos serviteurs Humains meurt, piochez 1 carte. (Une seule fois par tour.)"
 flavour_text = "Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire."
 texture = ExtResource("3_texture")
 cost = 3

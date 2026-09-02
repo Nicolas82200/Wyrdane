@@ -34,7 +34,7 @@ type = "ONPLAY"
 script = ExtResource("3_k2ytj")
 card_name = "L'Éternel Gardien"
 description = "REMPART, ÉGIDE, DISCIPLINE
-Arrivée : Tous les serviteurs que votre adversaire contrôle perdent leurs mots-clés jusqu'à la fin du prochain tour adverse."
+Arrivée : Tous les serviteurs que votre adversaire contrôle perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire."
 flavour_text = "Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend."
 texture = ExtResource("4_aiwu0")
 cost = 8

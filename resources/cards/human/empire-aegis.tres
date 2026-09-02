@@ -29,7 +29,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("3_13sdd")
 card_name = "Aegis de l'Empire"
-description = "Présence : Vos Humains en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour."
+description = "Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour."
 flavour_text = "L'Empire ne cède pas à la pourriture. Ce n'est pas de l'orgueil. C'est de l'obstination."
 texture = ExtResource("4_twgc8")
 cost = 5

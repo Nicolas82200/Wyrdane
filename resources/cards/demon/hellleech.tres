@@ -31,8 +31,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Sangsue Infernale"
-description = "Arrivée : Regagnez 2 points de vie.
-Pacte 1 : Vous regagnez 2 points de vie supplémentaires."
+description = "Arrivée : Votre héros récupère 2 points de vie.
+Pacte 1 : Votre héros récupère 2 points de vie supplémentaires."
 flavour_text = "Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement."
 texture = ExtResource("3_texture")
 cost = 2
