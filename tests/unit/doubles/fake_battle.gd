@@ -11,6 +11,7 @@ var player_minions: Array[Minion] = []
 var enemy_minions: Array[Minion] = []
 
 var hero_system: FakeHeroSystem = FakeHeroSystem.new(self)
+var pact_choice_system: FakePactChoiceSystem = FakePactChoiceSystem.new()
 var temp_effect_system: TempEffectSystem = TempEffectSystem.new()
 var board_visual_system: FakeBoardVisualSystem = FakeBoardVisualSystem.new()
 var card_popup_system: FakeCardPopupSystem = FakeCardPopupSystem.new()
@@ -226,6 +227,20 @@ class FakeHeroSystem:
 		return dealt
 	func update_ui() -> void:
 		pass
+
+
+class FakePactChoiceSystem:
+	var next_result: bool = false
+	var calls: Array = []
+	# Instantané de l'état passé en argument à l'appel : permet aux tests de
+	# vérifier que l'effet de base s'est déjà exécuté AVANT ce point (ex.
+	# lire hero.health ici doit déjà refléter le heal de base).
+	var on_resolve: Callable = Callable()
+	func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
+		calls.append({"card_data": card_data, "is_player": is_player})
+		if on_resolve.is_valid():
+			on_resolve.call()
+		return next_result
 
 
 class FakeBoardVisualSystem:

@@ -132,10 +132,9 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 		defender.apply_corruption(1)
 		battle.animation_system.play_corruption(defender_visual)
 
-	# TERREUR : la cible ne peut pas attaquer lors du prochain tour adverse
-	# (sans effet sur les serviteurs immunisés à la peur)
-	if attacker.has_demon_keyword(KeywordDemon.Type.TERREUR) and not defender.is_dead() and not defender.is_fear_immune():
-		defender.terror_turns = max(defender.terror_turns, 1)
+	# TERREUR : la cible ne peut pas attaquer lors du prochain tour de son
+	# contrôleur (sans effet sur les serviteurs immunisés à la peur)
+	if attacker.has_demon_keyword(KeywordDemon.Type.TERREUR) and dealt_to_defender > 0 and defender.apply_terror():
 		battle.animation_system.play_terror(defender_visual)
 
 	if dealt_to_attacker > 0:
