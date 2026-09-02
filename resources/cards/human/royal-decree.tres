@@ -22,7 +22,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Décret Royal"
-description = "Éveil : Tous vos serviteurs Humains gagnent +1/+1. (S'accumule chaque tour.)"
+description = "Éveil : Tous les serviteurs Humains que vous contrôlez gagnent +1/+1. (S'accumule chaque tour.)"
 flavour_text = "Le décret n'a pas de date d'expiration. La guerre non plus."
 texture = ExtResource("3_texture")
 cost = 7
