@@ -17,7 +17,21 @@ type = "ONPLAY"
 [sub_resource type="Resource" id="Resource_o086b"]
 script = ExtResource("1_cardeffect")
 effect_id = "Corrupt"
-target = "EnemyMinion"
+target = "RandomEnemy"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_o086b2"]
+script = ExtResource("1_cardeffect")
+effect_id = "Corrupt"
+target = "RandomEnemy"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_o086b3"]
+script = ExtResource("1_cardeffect")
+effect_id = "Corrupt"
+target = "RandomEnemy"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -25,7 +39,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Grand Prophète Écarlate"
 description = "CORRUPTION
-Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle."
+Arrivée : Inflige Corruption à 3 serviteurs aléatoires que votre adversaire contrôle."
 flavour_text = "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser."
 texture = ExtResource("3_texture")
 cost = 5
@@ -35,8 +49,7 @@ attack = 2
 health = 4
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_kyru4")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_lvj4r")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_o086b")])
-requires_target = true
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_o086b"), SubResource("Resource_o086b2"), SubResource("Resource_o086b3")])
 rarity = "Epic"
 race_cost_override = 3
 board_position = "Back"

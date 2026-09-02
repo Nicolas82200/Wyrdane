@@ -10,6 +10,10 @@
 script = ExtResource("4_kwd")
 keyword_type = 3
 
+[sub_resource type="Resource" id="Resource_sangnoir"]
+script = ExtResource("4_kwd")
+keyword_type = 5
+
 [sub_resource type="Resource" id="Resource_esfk0"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
@@ -31,21 +35,21 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_bonus"]
 script = ExtResource("1_cardeffect")
-effect_id = "Buff"
+effect_id = "GrantKeyword"
 target = "AllAllies"
 duration = "Permanent"
 race_filter = "Demon"
-value = 2
-value_2 = 2
+granted_keyword = "SANG_NOIR"
+granted_keyword_is_demon = true
 pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Apocalypse Infernale"
-description = "RANG INFERNAL
+description = "SANG NOIR, RANG INFERNAL
 Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente.
-Pacte 5 : +2/+2 de plus."
+Pacte 5 : Ils acquièrent SANG NOIR."
 flavour_text = "Ce n'était pas une invasion. C'était le prix qu'il fallait payer."
 texture = ExtResource("3_texture")
 cost = 9
@@ -53,7 +57,7 @@ race = 5
 unit_style = 15
 attack = 9
 health = 9
-demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_7fjf4"), SubResource("Resource_kwpacte")])
+demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_7fjf4"), SubResource("Resource_sangnoir"), SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_esfk0")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_rkxqk"), SubResource("Resource_bonus")])
 rarity = "Legendary"

@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Sceau du Répit"
-description = "Deuil : Votre héros regagne 1 point de vie si le serviteur mort était un Démon allié."
+description = "Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon que vous contrôliez."
 flavour_text = "Chaque perte laisse une trace. Celle-ci, au moins, te profite."
 texture = ExtResource("3_texture")
 cost = 3

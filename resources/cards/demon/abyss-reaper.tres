@@ -13,7 +13,7 @@ type = "ONPLAY"
 [sub_resource type="Resource" id="Resource_0rmbf"]
 script = ExtResource("1_cardeffect")
 effect_id = "DestroyLowHP"
-value = 3
+value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_kwpacte"]
@@ -24,7 +24,7 @@ value = 2
 [sub_resource type="Resource" id="Resource_bonus"]
 script = ExtResource("1_cardeffect")
 effect_id = "DestroyLowHP"
-value = 5
+value = 4
 pact_bonus = true
 pact_replaces_base = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -32,8 +32,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Faucheur des Abysses"
-description = "Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 5 points de vie ou moins à la place."
+description = "Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 2 points de vie ou moins.
+Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 4 points de vie ou moins à la place."
 flavour_text = "Il choisit les plus faibles. Toi, tu paies pour son jugement."
 texture = ExtResource("3_texture")
 cost = 6

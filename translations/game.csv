@@ -990,12 +990,12 @@ Arrival: Draw 1 card if the enemy Front row has 3 or more minions."
 "REMPART, CHAIR DE SOUFRE","REMPART, CHAIR DE SOUFRE","TAUNT, SULFUR FLESH"
 "Elle a regardé brûler des cathédrales entières sans ciller.","Elle a regardé brûler des cathédrales entières sans ciller.","It has watched entire cathedrals burn without so much as a flinch."
 "Croc de Braise","Croc de Braise","Embermaw"
-"Pacte 3 : Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle.","Pacte 3 : Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle.","Pact 3: Deal 2 damage to target enemy minion."
+"Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Pact 3: Deal 2 damage to target enemy minion."
 "Chaque morsure lui coûte, à toi aussi.","Chaque morsure lui coûte, à toi aussi.","Every bite costs it something, and costs you too."
 "Chuchoteur Malin","Chuchoteur Malin","Whisperfiend"
 "Arrivée : Piochez une carte.
-Pacte 4 : Piochez une carte supplémentaire.","Arrivée : Piochez une carte.
-Pacte 4 : Piochez une carte supplémentaire.","Arrival: Draw a card.
+Pacte 2 : Piochez une carte supplémentaire.","Arrivée : Piochez une carte.
+Pacte 2 : Piochez une carte supplémentaire.","Arrival: Draw a card.
 Pact 4: Draw an additional card."
 "Il murmure une vérité. Elle a toujours un prix.","Il murmure une vérité. Elle a toujours un prix.","It whispers a truth. Truths always have a price."
 "Sangsue Infernale","Sangsue Infernale","Hellleech"
@@ -1018,8 +1018,10 @@ Pact 1: It also gains +0/+1."
 "Chaque exécution le nourrit, et te vide un peu.","Chaque exécution le nourrit, et te vide un peu.","Every execution feeds it, and drains a little more of you."
 "Sentinelle du Gouffre","Sentinelle du Gouffre","Abyssal Sentinel"
 "REMPART.
-Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie.","REMPART.
-Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie.","TAUNT.
+Blessure : Ce serviteur récupère 1 point de vie.
+Pacte 2 : Il gagne aussi +0/+1 de façon permanente.","REMPART.
+Blessure : Ce serviteur récupère 1 point de vie.
+Pacte 2 : Il gagne aussi +0/+1 de façon permanente.","TAUNT.
 Pact 1: Wounded: This minion regains 1 HP."
 "Elle boit la douleur des autres. La tienne fera l'affaire.","Elle boit la douleur des autres. La tienne fera l'affaire.","It drinks the pain of others. Yours will do just fine."
 "Invocateur Novice","Invocateur Novice","Novice Summoner"
@@ -1033,8 +1035,8 @@ Pact 1: Wounded: This minion regains 1 HP."
 "Il ne ressent pas ta douleur. Il l'absorbe, littéralement.","Il ne ressent pas ta douleur. Il l'absorbe, littéralement.","It does not feel your pain. It absorbs it, quite literally."
 "Émissaire du Pacte","Émissaire du Pacte","Pact Emissary"
 "Arrivée : Piochez une carte.
-Pacte 3 : Piochez une carte supplémentaire.","Arrivée : Piochez une carte.
-Pacte 3 : Piochez une carte supplémentaire.","Arrival: Draw a card.
+Pacte 2 : Piochez une carte supplémentaire.","Arrivée : Piochez une carte.
+Pacte 2 : Piochez une carte supplémentaire.","Arrival: Draw a card.
 Pact 3: Draw an additional card."
 "Il apporte toujours plus qu'il ne semble offrir, dans les deux sens.","Il apporte toujours plus qu'il ne semble offrir, dans les deux sens.","It always brings more than it seems to offer, in both directions."
 "Bourreau des Flammes","Bourreau des Flammes","Flame Executioner"
@@ -1099,17 +1101,17 @@ Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instea
 "Plus tu payes, plus il devient difficile à ignorer.","Plus tu payes, plus il devient difficile à ignorer.","The more you pay, the harder it becomes to ignore."
 "Suceur d'Âmes","Suceur d'Âmes","Soul Devourer"
 "MOISSON
-Arrivée : Vole 4 points de vie au héros ennemi.
+Arrivée : Vole 2 points de vie au héros ennemi.
 Pacte 3 : Vole 2 points de vie supplémentaires.","MOISSON
-Arrivée : Vole 4 points de vie au héros ennemi.
+Arrivée : Vole 2 points de vie au héros ennemi.
 Pacte 3 : Vole 2 points de vie supplémentaires.","HARVEST
 Arrival: Steal 4 HP from the enemy hero.
 Pact 3: Steal 2 more HP."
 "Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.","It takes from both sides. That is what makes the deal worthwhile, for it."
 "Nuée de Tourments","Nuée de Tourments","Swarm of Torments"
 "TERREUR
-Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu.","TERREUR
-Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu.","TERROR
+Arrivée : Inflige 1 point de dégât à 2 serviteurs que votre adversaire contrôle.","TERREUR
+Arrivée : Inflige 1 point de dégât à 2 serviteurs que votre adversaire contrôle.","TERROR
 Arrival: Deal 1 damage to all enemy minions in play."
 "Elle ne mord pas fort. Elle mord partout, et longtemps.","Elle ne mord pas fort. Elle mord partout, et longtemps.","It does not bite hard. It bites everywhere, and for a long time."
 "Faucheur des Abysses","Faucheur des Abysses","Abyss Reaper"
@@ -1117,8 +1119,8 @@ Arrival: Deal 1 damage to all enemy minions in play."
 "Il choisit les plus faibles. Toi, tu paies pour son jugement.","Il choisit les plus faibles. Toi, tu paies pour son jugement.","It picks off the weakest. You are the one who pays for its judgment."
 "Grand Prophète Écarlate","Grand Prophète Écarlate","Black Flame Prophet"
 "CORRUPTION
-Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle.","CORRUPTION
-Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle.","CORRUPTION
+Arrivée : Inflige Corruption à 3 serviteurs aléatoires que votre adversaire contrôle.","CORRUPTION
+Arrivée : Inflige Corruption à 3 serviteurs aléatoires que votre adversaire contrôle.","CORRUPTION
 Arrival: Inflict Corruption on target enemy minion."
 "Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.","Its visions never lie. They simply make sure they come true."
 "Assassin des Ombres Rouges","Assassin des Ombres Rouges","Crimson Shadow Assassin"
@@ -1138,8 +1140,8 @@ Pact 3: This minion gains CHARGE."
 "Il siège sur ce que ton héros a déjà perdu.","Il siège sur ce que ton héros a déjà perdu.","It sits upon everything your hero has already lost."
 "Le Marchand d'Âmes","Le Marchand d'Âmes","The Soul Merchant"
 "Éveil : Piochez une carte.
-Pacte 2 : Piochez une carte supplémentaire.","Éveil : Piochez une carte.
-Pacte 2 : Piochez une carte supplémentaire.","Awaken: Draw a card.
+Pacte 3 : Piochez une carte supplémentaire.","Éveil : Piochez une carte.
+Pacte 3 : Piochez une carte supplémentaire.","Awaken: Draw a card.
 Pact 2: Draw an additional card."
 "Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour.","Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour.","It does not fight. It does not need to, the contract works for it, turn after turn."
 "Roi Démon Écarlate","Roi Démon Écarlate","Crimson Demon King"
@@ -1152,24 +1154,24 @@ Arrival: Inflict Corruption on all enemy minions.
 Pact 3: Inflict one more stack of Corruption."
 "Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.","Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.","His kingdom does not grow through conquest. It grows through what it makes you accept."
 "Apocalypse Infernale","Apocalypse Infernale","Infernal Apocalypse"
-"RANG INFERNAL
+"SANG NOIR, RANG INFERNAL
 Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente.
-Pacte 5 : +2/+2 de plus.","RANG INFERNAL
+Pacte 5 : Ils acquièrent SANG NOIR.","SANG NOIR, RANG INFERNAL
 Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente.
-Pacte 5 : +2/+2 de plus.","INFERNAL RANK
+Pacte 5 : Ils acquièrent SANG NOIR.","BLACK BLOOD, INFERNAL RANK
 Arrival: All your Demon minions permanently gain +2/+2.
-Pact 5: +2/+2 more."
+Pact 5: They gain BLACK BLOOD."
 "Ce n'était pas une invasion. C'était le prix qu'il fallait payer.","Ce n'était pas une invasion. C'était le prix qu'il fallait payer.","It was not an invasion. It was the price that had to be paid."
 "Le Gardien du Pacte Brisé","Le Gardien du Pacte Brisé","Keeper of the Broken Pact"
 "Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés.","Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés.","While this minion is in play, damage your own cards would deal to your hero is negated."
 "Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus.","Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus.","It read every clause of the contract. It decided none of them would apply anymore."
 "Le Grand Pacte","Le Grand Pacte","The Grand Pact"
-"Pacte 4 : Détruit un serviteur ciblé que votre adversaire contrôle.","Pacte 4 : Détruit un serviteur ciblé que votre adversaire contrôle.","Pact 4: Destroy target enemy minion."
+"Renfort : Détruit un serviteur que votre adversaire contrôle ayant un coût de ressource de 2 ou moins.
+Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place.","Renfort : Détruit un serviteur que votre adversaire contrôle ayant un coût de ressource de 2 ou moins.
+Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place.","Pact 4: Destroy target enemy minion."
 "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","It never asks for permission. It simply notes what you are willing to lose."
 "Flamme Infernale","Flamme Infernale","Infernal Flame"
-"Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle.
-Votre héros perd 1 point de vie.","Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle.
-Votre héros perd 1 point de vie.","Deal 2 damage to target enemy minion.
+"Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Deal 2 damage to target enemy minion.
 Your hero loses 1 HP."
 "Le feu ne fait pas de distinction. Il te lèche un peu au passage.","Le feu ne fait pas de distinction. Il te lèche un peu au passage.","Fire makes no distinctions. It licks at you a little on its way past."
 "Pacte Hâtif","Pacte Hâtif","Hasty Pact"
@@ -1182,23 +1184,21 @@ Draw 2 cards."
 "Inflige Corruption à tous les serviteurs que votre adversaire contrôle en rangée Avant.","Inflige Corruption à tous les serviteurs que votre adversaire contrôle en rangée Avant.","Inflict Corruption on all enemy minions in the Front row."
 "Rien ne pourrit d'un coup. Tout pourrit, éventuellement.","Rien ne pourrit d'un coup. Tout pourrit, éventuellement.","Nothing rots all at once. Everything rots, eventually."
 "Rite de Sang","Rite de Sang","Blood Rite"
-"Sacrifice 1 : Votre héros vole 1 point de vie au héros adverse.","Sacrifice 1 : Votre héros vole 1 point de vie au héros adverse.","Sacrifice 1: Your hero steals 1 HP from the enemy hero."
+"Votre héros récupère 2 points de vie.
+Sacrifice 1 : Le héros adverse subit 2 points de dégâts.","Votre héros récupère 2 points de vie.
+Sacrifice 1 : Le héros adverse subit 2 points de dégâts.","Sacrifice 1: Your hero steals 1 HP from the enemy hero."
 "Un sang pour un autre. L'échange est rarement équitable, sauf pour toi, cette fois.","Un sang pour un autre. L'échange est rarement équitable, sauf pour toi, cette fois.","One blood for another. The exchange is rarely fair, except for you, this time."
 "Étreinte du Gouffre","Étreinte du Gouffre","Abyssal Grasp"
-"Gèle un serviteur ciblé que votre adversaire contrôle un tour.
-Votre héros perd 1 point de vie.","Gèle un serviteur ciblé que votre adversaire contrôle un tour.
-Votre héros perd 1 point de vie.","Freeze target enemy minion for one turn.
+"Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour.","Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour.","Freeze target enemy minion for one turn.
 Your hero loses 1 HP."
 "Le froid des Abysses n'épargne personne, pas même celui qui l'invoque.","Le froid des Abysses n'épargne personne, pas même celui qui l'invoque.","The cold of the Abyss spares no one, not even the one who summons it."
 "Marque du Pacte","Marque du Pacte","Pact Brand"
-"Un Démon ciblé que vous contrôlez gagne RANG INFERNAL jusqu'à fin de tour.","Un Démon ciblé que vous contrôlez gagne RANG INFERNAL jusqu'à fin de tour.","Target allied Demon minion gains Infernal Rank until end of turn."
+"Un Démon ciblé que vous contrôlez acquiert SANG NOIR de façon permanente.","Un Démon ciblé que vous contrôlez acquiert SANG NOIR de façon permanente.","Target allied Demon minion gains Infernal Rank until end of turn."
 "La marque ne s'efface pas. Elle attend juste son heure.","La marque ne s'efface pas. Elle attend juste son heure.","The mark does not fade. It simply waits for its moment."
 "Hurlement Écarlate","Hurlement Écarlate","Crimson Wail"
-"Vos Démons alliés gagnent +1/+0 ce tour.
-Votre héros perd 2 points de vie.
-Si 5 Démons alliés ou plus sont en jeu, +2/+0 à la place.","Vos Démons alliés gagnent +1/+0 ce tour.
-Votre héros perd 2 points de vie.
-Si 5 Démons alliés ou plus sont en jeu, +2/+0 à la place.","Your allied Demons gain +1/+0 this turn.
+"Vos Démons alliés gagnent +1/+0 ce tour et votre héros perd 2 points de vie.
+Si vous contrôlez 5 Démons ou plus, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place.","Vos Démons alliés gagnent +1/+0 ce tour et votre héros perd 2 points de vie.
+Si vous contrôlez 5 Démons ou plus, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place.","Your allied Demons gain +1/+0 this turn.
 Your hero loses 2 HP.
 If 5 or more allied Demons are in play, +2/+0 instead."
 "Plus ils sont nombreux à hurler, plus le prix grimpe, pour toi.","Plus ils sont nombreux à hurler, plus le prix grimpe, pour toi.","The more voices join the scream, the higher the price climbs, for you."
@@ -1233,10 +1233,10 @@ Your hero loses 1 HP.
 If it is a Demon, it costs 1 less this turn."
 "Il désigne. Ce qu'il montre a toujours un prix, y compris pour toi.","Il désigne. Ce qu'il montre a toujours un prix, y compris pour toi.","It points. Whatever it singles out always carries a price, even for you."
 "Rituel du Pacte Éternel","Rituel du Pacte Éternel","Eternal Pact Ritual"
-"Éveil : Invoque une Larve Infernale 2/1 en rangée Avant.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Éveil : Invoque une Larve Infernale 2/1 en rangée Avant.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Awaken: Summon a 2/1 Hellspawn Larva to the Front row.
-Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instead."
+"Éveil : Invoque un Suppôt des Abysses 1/2 en rangée Avant.
+Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) en Avant à la place.","Éveil : Invoque un Suppôt des Abysses 1/2 en rangée Avant.
+Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) en Avant à la place.","Awaken: Summon a 1/2 Abyssal Thrall to the Front row.
+Pact 2: Summon a 3/2 Abyssal Stalker (CORRUPTION) to the Front row instead."
 "Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.","Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.","The pact never truly closes. It is written into the smallest print."
 "Marché de Sang","Marché de Sang","Blood Market"
 "Deuil : Invoque une Larve Infernale 2/1.
@@ -1258,21 +1258,21 @@ Pact 2: Draw an additional card."
 "Même les Abysses savent qu'un pacte mort ne rapporte plus rien.","Même les Abysses savent qu'un pacte mort ne rapporte plus rien.","Even the Abyss knows a dead pact yields nothing more."
 "Cercle du Grand Pacte","Cercle du Grand Pacte","Circle of the Grand Pact"
 "Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.
-Pacte 1 : +1/+1 supplémentaire.","Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.
-Pacte 1 : +1/+1 supplémentaire.","Sacrifice 1: Your remaining minions gain +1/+1 until end of turn.
+Pacte 1 : Ils le gagnent de façon permanente à la place.","Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.
+Pacte 1 : Ils le gagnent de façon permanente à la place.","Sacrifice 1: Your remaining minions gain +1/+1 until end of turn.
 Pact 1: An additional +1/+1."
 "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande.","Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande.","The circle never tires of asking. It simply waits for the next offering."
 "Rituel de la Terreur","Rituel de la Terreur","Terror Ritual"
 "Deuil : Le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour.","Deuil : Le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour.","Mourning: The enemy hero cannot heal until the end of their next turn."
 "La peur ne referme aucune plaie. C'est précisément le but, encore et encore.","La peur ne referme aucune plaie. C'est précisément le but, encore et encore.","Fear closes no wound. That is precisely the point, again and again."
 "Invasion Écarlate","Invasion Écarlate","Crimson Invasion"
-"Éveil : Invoque un Démon aléatoire de coût 4 ou moins.
-Pacte 4 : Invoque à la place un Démon aléatoire de coût 6 ou moins.","Éveil : Invoque un Démon aléatoire de coût 4 ou moins.
-Pacte 4 : Invoque à la place un Démon aléatoire de coût 6 ou moins.","Awaken: Summon a random Demon with cost 4 or less.
+"Éveil : Invoque un Démon aléatoire de coût 2 ou moins.
+Pacte 3 : Invoque à la place un Démon aléatoire de coût 4 ou moins.","Éveil : Invoque un Démon aléatoire de coût 2 ou moins.
+Pacte 3 : Invoque à la place un Démon aléatoire de coût 4 ou moins.","Awaken: Summon a random Demon with cost 4 or less.
 Pact 4: Summon a random Demon with cost 6 or less instead."
 "Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour.","Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour.","They do not ask permission to enter. They simply return, turn after turn."
 "Rituel de l'Éclipse Rouge","Rituel de l'Éclipse Rouge","Crimson Eclipse Ritual"
-"Sortilège ennemi : Annulé s'il cible un de vos Démons.","Sortilège ennemi : Annulé s'il cible un de vos Démons.","Enemy spell: Negated if it targets one of your Demons."
+"Éveil : Jusqu'à la fin du prochain tour adverse, vos Démons sont insensibles aux incantations.","Éveil : Jusqu'à la fin du prochain tour adverse, vos Démons sont insensibles aux incantations.","Enemy spell: Negated if it targets one of your Demons."
 "Sous cette éclipse, même se protéger a un prix, à répétition.","Sous cette éclipse, même se protéger a un prix, à répétition.","Under this eclipse, even self-protection carries a price, again and again."
 "Rituel du Gouffre Sans Fond","Rituel du Gouffre Sans Fond","Bottomless Abyss Ritual"
 "Sacrifice 1 : Piochez une carte.
@@ -1287,9 +1287,9 @@ Pacte 2 : -1/-1 supplémentaire.","Awaken: Non-Demon enemy minions suffer -1/-1.
 Pact 2: An additional -1/-1."
 "Le fléau ne fait pas de tri. Il revient juste, patiemment.","Le fléau ne fait pas de tri. Il revient juste, patiemment.","The scourge does not sort its victims. It simply returns, patiently."
 "Grand Rituel du Pacte","Grand Rituel du Pacte","Grand Pact Ritual"
-"Deuil : Ramène en main le Démon allié le plus récemment mort.
-Pacte 2 : Ramène aussi le suivant.","Deuil : Ramène en main le Démon allié le plus récemment mort.
-Pacte 2 : Ramène aussi le suivant.","Mourning: Return the most recently killed allied Demon to your hand.
+"Deuil : Ramène en main le dernier Démon que vous contrôlez mort depuis le cimetière.
+Pacte 3 : Le renvoie directement en jeu à la place.","Deuil : Ramène en main le dernier Démon que vous contrôlez mort depuis le cimetière.
+Pacte 3 : Le renvoie directement en jeu à la place.","Mourning: Return the most recently killed allied Demon to your hand.
 Pact 2: Also return the next one."
 "Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut.","Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut.","I did not resurrect them. I merely call them back, one by one, as often as it takes."
 "Autel des Sacrifices","Autel des Sacrifices","Altar of Sacrifice"
@@ -1311,7 +1311,7 @@ Pacte 2 : +1/+0 supplémentaire.","Awaken: All your Demon minions gain +1/+0 unt
 Pact 2: An additional +1/+0."
 "Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.","Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.","It beats to the rhythm of what you are willing to sacrifice each morning."
 "Sceau du Répit","Sceau du Répit","Seal of Respite"
-"Deuil : Votre héros regagne 1 point de vie si le serviteur mort était un Démon allié.","Deuil : Votre héros regagne 1 point de vie si le serviteur mort était un Démon allié.","Mourning: Your hero regains 1 HP if the dead minion was an allied Demon."
+"Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon que vous contrôliez.","Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon que vous contrôliez.","Mourning: Your hero regains 1 HP if the dead minion was an allied Demon."
 "Chaque perte laisse une trace. Celle-ci, au moins, te profite.","Chaque perte laisse une trace. Celle-ci, au moins, te profite.","Every loss leaves a mark. This one, at least, works in your favor."
 "Symbiose Infernale","Symbiose Infernale","Infernal Symbiosis"
 "Présence : Les serviteurs que vous contrôlez en rangée Arrière gagnent +0/+1 par Démon que vous contrôlez en rangée Avant.","Présence : Les serviteurs que vous contrôlez en rangée Arrière gagnent +0/+1 par Démon que vous contrôlez en rangée Avant.","Presence: Your Back row minions gain +0/+1 per allied Demon minion in the Front row."
@@ -1674,9 +1674,9 @@ tutorial.enchantment_intro,"Il te reste 1 mana : joue le Murmure Funeste. C'est 
 tutorial.trigger_intro,"Joue le Servant Décharné. Il a un déclencheur d'Arrivée : son effet se déclenche automatiquement dès qu'il arrive sur le plateau.","Play the Gaunt Servant. It has an Arrival (OnPlay) trigger: its effect fires automatically the moment it enters play."
 tutorial.finish_intro,"Tu connais l'essentiel ! Continue à jouer des cartes et à attaquer jusqu'à réduire le héros ennemi à 0 HP pour terminer ce tutoriel.","You know the basics now! Keep playing cards and attacking until the enemy hero's HP reaches 0 to finish this tutorial."
 tutorial.complete,"Tutoriel terminé, bravo ! Le multijoueur et le deckbuilder sont maintenant débloqués. Retour au menu…","Tutorial complete, well done! Multiplayer and the deckbuilder are now unlocked. Returning to the menu…"
-"Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 5 points de vie ou moins à la place.","Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 5 points de vie ou moins à la place.","Arrival: Destroy all enemy minions with 3 HP or less.
+"Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 2 points de vie ou moins.
+Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 4 points de vie ou moins à la place.","Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 2 points de vie ou moins.
+Pacte 2 : Détruit tous les serviteurs que votre adversaire contrôle ayant 4 points de vie ou moins à la place.","Arrival: Destroy all enemy minions with 3 HP or less.
 Pact 2: Destroy all enemy minions with 5 HP or less instead."
 "Tous les serviteurs Humains que vous contrôlez en rangée Avant gagnent +1/+0 de façon permanente.","Tous les serviteurs Humains que vous contrôlez en rangée Avant gagnent +1/+0 de façon permanente.","All Humans you control in the Front row permanently gain +1 ATK."
 "Attaque : Les serviteurs adjacents que vous contrôlez gagnent +0/+1.","Attaque : Les serviteurs adjacents que vous contrôlez gagnent +0/+1.","Attack: Adjacent allied minions gain +0/+1."

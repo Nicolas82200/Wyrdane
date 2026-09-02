@@ -478,6 +478,8 @@ func _filter_spell_targets(minions: Array[Minion], effect: CardEffect) -> Array[
 			return false
 		if effect.target_max_atk >= 0 and m.attack > effect.target_max_atk:
 			return false
+		if effect.target_max_cost >= 0 and m.card_data.cost > effect.target_max_cost:
+			return false
 		return true
 	)
 
