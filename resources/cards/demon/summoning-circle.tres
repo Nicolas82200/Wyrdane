@@ -37,7 +37,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Rituel du Pacte Éternel"
 description = "Éveil : Invoque une Larve Infernale 2/1 en rangée Avant.
-Pacte 2 : Invoque une Larve Ascendante 1/2 (RANG INFERNAL) en Avant à la place."
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place."
 flavour_text = "Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites."
 texture = ExtResource("3_texture")
 cost = 5
