@@ -575,8 +575,8 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D27 | Grand Inquisiteur du Sang | ⚔️ | 5 | 3 | 5 | SANG NOIR, RANG INFERNAL | *Plus tu payes, plus il devient difficile à ignorer.* |
 | D28 | Suceur d'Âmes | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 4 points de vie au héros ennemi. Pacte 3 : Vole 2 points de vie supplémentaires. | *Il prélève des deux côtés. C'est ce qui rend le marché intéressant, pour lui.* |
 | D29 | Nuée de Tourments | ↕️ | 3 | 1 | 2 | TERREUR. Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu. | *Elle ne mord pas fort. Elle mord partout, et longtemps.* |
-| D30 | Faucheur des Abysses | ⚔️ | 5 | 5 | 5 | Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins. Pacte 2 : Seuil porté à 5 points de vie. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
-| D31 | Grand Prophète Écarlate | 🛡️ | 4 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
+| D30 | Faucheur des Abysses | ⚔️ | 6 | 5 | 5 | Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins. Pacte 2 : Seuil porté à 5 points de vie. | *Il choisit les plus faibles. Toi, tu paies pour son jugement.* |
+| D31 | Grand Prophète Écarlate | 🛡️ | 5 | 2 | 4 | CORRUPTION. Arrivée : Inflige Corruption à un serviteur ciblé que votre adversaire contrôle. | *Ses visions ne mentent jamais. Elles s'assurent juste de se réaliser.* |
 | D32 | Assassin des Ombres Rouges | ⚔️ | 3 | 4 | 2 | INFILTRATION. Pacte 3 : Ce serviteur acquiert ÉGIDE. | *Il ne frappe jamais ce qu'on protège. Il frappe ce qu'on croyait à l'abri.* |
 | D33 | Berserker du Pacte | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE. Pacte 3 : Ce serviteur acquiert ASSAUT. | *Chaque contrat qu'il signe le rend plus rapide, et toi plus vulnérable.* |
 | D34 | Trône de Cendres | ⚔️ | 5 | 3 | 8 | REMPART, RANG INFERNAL | *Il siège sur ce que ton héros a déjà perdu.* |
@@ -586,10 +586,10 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | D35 | Le Marchand d'Âmes | 🛡️ | 6 | 0 | 4 | Éveil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *Il ne se bat pas. Il n'en a pas besoin — le contrat travaille pour lui, tour après tour.* |
-| D36 | Roi Démon Écarlate | ⚔️ | 7 | 6 | 8 | CORRUPTION. Arrivée : Inflige Corruption à tous les serviteurs que votre adversaire contrôle. Pacte 3 : Une marque de Corruption supplémentaire. | *Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.* |
-| D37 | Apocalypse Infernale | ⚔️ | 8 | 9 | 9 | RANG INFERNAL. Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente. Pacte 5 : +2/+2 de plus. | *Ce n'était pas une invasion. C'était le prix qu'il fallait payer.* |
+| D36 | Roi Démon Écarlate | ⚔️ | 8 | 6 | 8 | CORRUPTION. Arrivée : Inflige Corruption à tous les serviteurs que votre adversaire contrôle. Pacte 3 : Une marque de Corruption supplémentaire. | *Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.* |
+| D37 | Apocalypse Infernale | ⚔️ | 9 | 9 | 9 | RANG INFERNAL. Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente. Pacte 5 : +2/+2 de plus. | *Ce n'était pas une invasion. C'était le prix qu'il fallait payer.* |
 | D38 | Le Gardien du Pacte Brisé | 🛡️ | 6 | 5 | 7 | Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés. | *Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus.* |
-| D39 | Le Grand Pacte | ⚔️ | 7 | 7 | 6 | Pacte 4 : Détruit un serviteur ciblé que votre adversaire contrôle. | *Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.* |
+| D39 | Le Grand Pacte | ⚔️ | 8 | 7 | 6 | Pacte 4 : Détruit un serviteur ciblé que votre adversaire contrôle. | *Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.* |
 
 ---
 
@@ -615,14 +615,14 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
 | D40 | Flamme Infernale | 2 | Commune | Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle. Votre héros perd 1 point de vie. | *Le feu ne fait pas de distinction. Il te lèche un peu au passage.* |
-| D41 | Pacte Hâtif | 1 | Commune | Votre héros perd 2 points de vie. Piochez 2 cartes. | *Signer vite coûte cher. Signer tard coûte pareil.* |
+| D41 | Pacte Hâtif | 2 | Commune | Votre héros perd 2 points de vie. Piochez 2 cartes. | *Signer vite coûte cher. Signer tard coûte pareil.* |
 | D42 | Vague de Corruption | 3 | Commune | Inflige Corruption à tous les serviteurs que votre adversaire contrôle en rangée Avant. | *Rien ne pourrit d'un coup. Tout pourrit, éventuellement.* |
 | D43 | Rite de Sang | 2 | Rare | Sacrifice 1 : Votre héros vole 1 point de vie au héros adverse. | *Un sang pour un autre. L'échange est rarement équitable — sauf pour toi, cette fois.* |
 | D44 | Étreinte du Gouffre | 2 | Commune | Gèle un serviteur ciblé que votre adversaire contrôle un tour. Votre héros perd 1 point de vie. | *Le froid des Abysses n'épargne personne, pas même celui qui l'invoque.* |
 | D45 | Marque du Pacte | 3 | Rare | Un Démon ciblé que vous contrôlez gagne RANG INFERNAL jusqu'à fin de tour. | *La marque ne s'efface pas. Elle attend juste son heure.* |
 | D46 | Hurlement Écarlate | 3 | Rare | Vos Démons alliés gagnent +1/+0 ce tour. Votre héros perd 2 points de vie. Si 5 Démons alliés ou plus sont en jeu, +2/+0 à la place. | *Plus ils sont nombreux à hurler, plus le prix grimpe — pour toi.* |
-| D47 | Emprise Écarlate | 2 | Rare | Prend le contrôle d'un serviteur que votre adversaire contrôle ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit. | *Elle n'emprunte jamais rien. Elle rend, mais brisé.* |
-| D48 | Communion Écarlate | 2 | Commune | Votre héros regagne 3 points de vie. Piochez une carte. | *Le pacte n'est pas qu'une dette. Parfois, il rembourse.* |
+| D47 | Emprise Écarlate | 4 | Rare | Prend le contrôle d'un serviteur que votre adversaire contrôle ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit. | *Elle n'emprunte jamais rien. Elle rend, mais brisé.* |
+| D48 | Communion Écarlate | 3 | Commune | Votre héros regagne 3 points de vie. Piochez une carte. | *Le pacte n'est pas qu'une dette. Parfois, il rembourse.* |
 | D49 | Ultime Sacrifice | 3 | Épique | Sacrifice jusqu'à 3 : Piochez une carte par serviteur sacrifié. Votre héros perd 1 point de vie par serviteur sacrifié. | *Ils ne meurent pas pour rien. Ils meurent pour que tu continues — de justesse.* |
 | D50 | Absolution Écarlate | 3 | Rare | Les dégâts que vos cartes infligeraient à votre héros ce tour sont annulés. | *Pour une fois, le contrat se tait.* |
 | D51 | Souffle Corrupteur | 1 | Commune | Un serviteur ciblé que votre adversaire contrôle perd 1 ATK de façon permanente (Corruption). | *Un murmure suffit. Le reste se fait tout seul, avec le temps.* |
