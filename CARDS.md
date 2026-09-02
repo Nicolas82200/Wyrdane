@@ -486,7 +486,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 |---|---|
 | `PACTE X` | L'effet de la carte se déclenche toujours gratuitement. En plus, le joueur peut payer X PV pour activer un effet bonus qui s'ajoute au (ou remplace le) résultat de base. Redemandé à chaque déclenchement — une seule fois à l'Arrivée pour un serviteur, à chaque occurrence pour tout autre trigger. |
 | `CORRUPTION` | Les attaques de ce serviteur infligent Corruption en plus des dégâts (la cible perd 1 ATK de façon permanente, cumulable). |
-| `TERREUR` | Quand ce serviteur attaque, la cible ne peut pas attaquer lors du prochain tour adverse. |
+| `TERREUR` | Quand ce serviteur inflige des dégâts (combat ou effet), la ou les cibles touchées ne peuvent pas attaquer lors du prochain tour de leur contrôleur. |
 | `RANG INFERNAL` | Ce serviteur gagne +1/+0 pour chaque tranche de 10 HP manquants sur ton héros. |
 | `CHAIR DE SOUFRE` | Immunisé à Corruption, à la peur et aux effets de contrôle mental. |
 | `SANG NOIR` | Chaque fois que ton héros perd des HP à cause d'une de tes propres cartes, ce serviteur gagne +1/+0 de façon permanente. |
