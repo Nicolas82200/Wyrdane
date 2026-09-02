@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Doigt-Dans-les-Nerfs"
-description = "Arrivée : Réduit l'ATK d'un serviteur ciblé que votre adversaire contrôle de 1 jusqu'à la fin du prochain tour adverse."
+description = "Arrivée : Réduit l'ATK d'un serviteur ciblé que votre adversaire contrôle de 1 jusqu'à la fin du prochain tour de votre adversaire."
 flavour_text = "Un seul contact suffit à dérégler ce qui reste de coordination."
 texture = ExtResource("2_texture")
 cost = 4

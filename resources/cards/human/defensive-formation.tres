@@ -25,7 +25,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Formation Défensive"
-description = "Tous vos serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse."
+description = "Tous les serviteurs que vous contrôlez en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse."
 flavour_text = "Ils se serrent. La ligne devient un mur. Le mur ne bouge pas."
 texture = ExtResource("3_texture")
 cost = 3
