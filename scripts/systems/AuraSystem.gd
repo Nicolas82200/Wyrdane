@@ -83,6 +83,10 @@ func _aura_buff_row(effect: CardEffect, is_player: bool) -> void:
 	match effect.target:
 		"AllAlliesFront": targets = battle.get_front_minions(is_player)
 		"AllAlliesBack":  targets = battle.get_back_minions(is_player)
+	# race_filter optionnel (Citadelle des Hommes : seulement les Humains alliés).
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	if race != -1:
+		targets = targets.filter(func(m: Minion): return m.card_data.race == race)
 	for t in targets:
 		t.aura_attack_bonus += effect.value
 		t.aura_health_bonus += effect.value_2

@@ -28,6 +28,11 @@ script = ExtResource("2_hkw")
 keyword_type = 0
 metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
+[sub_resource type="Resource" id="Resource_hkw_fort"]
+script = ExtResource("2_hkw")
+keyword_type = 4
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
 [sub_resource type="Resource" id="Resource_t3btl"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
@@ -35,7 +40,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Paladin de l'Aube"
-description = "ÉGIDE, MOISSON, DISCIPLINE
+description = "ÉGIDE, MOISSON, DISCIPLINE, FORTIFICATION
 Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE."
 flavour_text = "Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois."
 texture = ExtResource("3_texture")
@@ -45,7 +50,7 @@ unit_style = 8
 attack = 4
 health = 5
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_8oqg8"), SubResource("Resource_y48ga")])
-human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw_disc")])
+human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw_disc"), SubResource("Resource_hkw_fort")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_t3btl")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_r72w7")])
 requires_target = true

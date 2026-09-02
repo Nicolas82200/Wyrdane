@@ -336,7 +336,7 @@ Liste complète des cartes de la race **Humain**.
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | H24 | Maréchal de Campagne | 🛡️ | 5 | 2 | 5 | COMMANDEMENT. Éveil : Tous les Humains que vous contrôlez gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour. | *Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.* |
 | H25 | Champion du Peuple | ⚔️ | 4 | 5 | 4 | Exécution : Soigne le héros allié de 2 points de vie. | *Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
-| H26 | Paladin de l'Aube | ⚔️ | 6 | 4 | 5 | ÉGIDE, MOISSON, DISCIPLINE. Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
+| H26 | Paladin de l'Aube | ⚔️ | 6 | 4 | 5 | ÉGIDE, MOISSON, DISCIPLINE, FORTIFICATION. Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
 | H27 | Brise-Mort | ⚔️ | 4 | 4 | 3 | Arrivée : Détruit un serviteur ciblé, ressuscité ou réanimé depuis le cimetière, que votre adversaire contrôle. | *"Tu es déjà mort une fois. Je vais m'assurer que tu ne l'oublies pas."* |
 | H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Exécution : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
 | H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
@@ -391,7 +391,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1 en rangée Avant. Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un Humain ciblé que vous contrôlez gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
 | H51 | Massacre Sacré | 4 | Épique | Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
-| H52 | Formation Défensive | 3 | Épique | Tous vos serviteurs en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
+| H52 | Formation Défensive | 3 | Épique | Tous les serviteurs que vous contrôlez en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
 
 ---
 
@@ -408,7 +408,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain que vous contrôlez attaque, tous vos serviteurs gagnent +1 ATK de façon permanente. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
 | H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : Annulé s'il cible un Humain que vous contrôlez. | *La magie s'arrête là où la volonté commence.* |
 | H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
-| H62 | Résistance Acharnée | 4 | Épique | 3 charges | **Deuil** : quand un Humain allié meurt, le héros allié gagne 1 HP. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu — de précieux.* |
+| H62 | Résistance Acharnée | 4 | Épique | 3 charges | Carnage : Quand un serviteur que votre adversaire contrôle meurt, votre héros récupère 2 points de vie. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu, de précieux.* |
 | H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : Détruit 2 serviteurs aléatoires non-Humains que votre adversaire contrôle. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
 | H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
 
@@ -418,7 +418,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H65 | Citadelle des Hommes | 4 | Rare | Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
+| H65 | Citadelle des Hommes | 4 | Rare | Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent +0/+1 de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
 | H66 | Lignée des Braves | 3 | Rare | Deuil : Quand un Humain allié meurt, piochez 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
 | H67 | Pacte de Résistance | 3 | Rare | Présence : Les Humains que vous contrôlez reçoivent 1 point de dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
 | H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque Humain invoqué que vous contrôlez gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
