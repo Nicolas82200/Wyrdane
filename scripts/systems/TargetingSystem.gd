@@ -261,6 +261,8 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 		return false
 	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
 		return false
+	if effect.target_max_cost >= 0 and minion.card_data.cost > effect.target_max_cost:
+		return false
 	if effect.requires_resurrected_target and not minion.was_resurrected:
 		return false
 	if effect.exclude_legendary and minion.card_data.rarity == "Legendary":

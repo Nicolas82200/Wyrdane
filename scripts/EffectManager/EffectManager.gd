@@ -202,6 +202,10 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 		result = result.filter(func(t: Minion) -> bool:
 			return t.attack <= effect.target_max_atk
 		)
+	if effect.target_max_cost >= 0:
+		result = result.filter(func(t: Minion) -> bool:
+			return t.card_data.cost <= effect.target_max_cost
+		)
 	if effect.requires_resurrected_target:
 		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
 	if effect.exclude_legendary:

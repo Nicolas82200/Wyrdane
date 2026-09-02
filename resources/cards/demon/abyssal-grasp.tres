@@ -11,24 +11,16 @@ target = "EnemyMinion"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_xgyqm"]
-script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "OwnerHero"
-value = 1
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Étreinte du Gouffre"
-description = "Gèle un serviteur ciblé que votre adversaire contrôle un tour.
-Votre héros perd 1 point de vie."
+description = "Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour."
 flavour_text = "Le froid des Abysses n'épargne personne, pas même celui qui l'invoque."
 texture = ExtResource("3_texture")
 cost = 2
 race = 5
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_k2acg"), SubResource("Resource_xgyqm")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_k2acg")])
 requires_target = true
 rarity = "Common"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

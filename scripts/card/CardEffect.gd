@@ -66,6 +66,8 @@ class_name CardEffect
 # Vérifié au ciblage (TargetingSystem) ET à la résolution (EffectManager).
 @export var target_max_hp: int = -1
 @export var target_max_atk: int = -1
+# "un serviteur ennemi ayant un coût de ressource de X ou moins" (Le Grand Pacte).
+@export var target_max_cost: int = -1
 # Ne peut cibler qu'un serviteur ramené du cimetière (Minion.was_resurrected),
 # ex. Brise-Mort.
 @export var requires_resurrected_target: bool = false
