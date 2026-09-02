@@ -97,7 +97,7 @@ Positionnement (Lane Types)
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | 12 | Pestilent | ↕️ | 2 | 1 | 2 | PESTIFÉRÉ. | Son souffle est une condamnation à retardement. |
 | 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART Blessure : Réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
-| 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : Tous vos Mort-Vivants gagnent +1/+0 jusqu'à la fin du tour. | Son cri ne terrorise plus. Il réveille. |
+| 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : Tous les serviteurs Mort-Vivants que vous contrôlez gagnent +1/+0 jusqu'à la fin du tour. | Son cri ne terrorise plus. Il réveille. |
 | 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : Peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
 | 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : Invoque un Cadavre Errant en rangée Avant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
 | 17 | Géant Boursouflé | ⚔️ | 4 | 4 | 6 | Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs que votre adversaire contrôle en rangée Avant. | Sa mort est plus dangereuse que sa vie.Rapport de bataille, campagne de la Vallée Grise |
@@ -117,7 +117,7 @@ Positionnement (Lane Types)
 | 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : Invoque un Rampant 1/1 en rangée Avant. | Il ne construit pas d'armée. Il la sécrète. |
 | 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE, REVENANT | Les lames disparaissent dans sa masse. Il continue d'avancer. |
 | 28 | Esprit Vorace | ↕️ | 4 | 4 | 4 | MOISSON. Arrivée : Vole 2 points de vie au héros ennemi. | Il ne prend pas ta vie. Il la déplacedans les mauvaises mains. |
-| 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en jeu. | Là où elle passe, rien ne guérit vraiment. |
+| 29 | Nuée d'Insectes Cadavériques | ↕️ | 3 | 1 | 2 | Arrivée : Inflige 1 point de dégât à tous les serviteurs en jeu. | Là où elle passe, rien ne guérit vraiment. |
 | 30 | Faucheur de la Plaie | ⚔️ | 6 | 5 | 5 | Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
@@ -185,7 +185,7 @@ Positionnement (Lane Types)
 | 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
 | 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : Inflige 2 points de dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
 | 60 | Arrivée de Masse | 7 | Légendaire | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
-| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos Mort-Vivants. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
+| 61 | Rituel de l'Éclipse | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos serviteurs. | Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin. |
 | 62 | Rituel de la Fosse Sans Fond | 5 | Épique | 2 charges | Sacrifice 1 : Piochez 1 carte. | Il a tout donné. Il savait exactement ce que ça valait — un peu à la fois. |
 | 63 | Épidémie | 4 | Épique | 2 charges | Présence : Tous les serviteurs non Mort-Vivants ennemis subissent -1/-1. | Elle ne tue pas. Elle prépare, jour après jour. |
 | 64 | Grand Rituel Nécrotique | 8 | Légendaire | 3 charges | Deuil : Ramène en main le Mort-Vivant allié le plus récemment mort. | "Je n'ai perdu personne. Je les rappelle, un par un, chaque fois qu'il le faut."Le Nécromant d'Ossemoor |

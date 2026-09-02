@@ -9,7 +9,6 @@
 [sub_resource type="Resource" id="Resource_ij7qk"]
 script = ExtResource("1_cardeffect")
 effect_id = "CancelSpellOnRaceTarget"
-race_filter = "Undead"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_ryzr5"]
@@ -19,7 +18,7 @@ type = "OnSpell"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de l'Éclipse"
-description = "Sortilège ennemi : Annulé s'il cible un de vos Mort-Vivants."
+description = "Sortilège ennemi : Annulé s'il cible un de vos serviteurs."
 flavour_text = "Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin."
 texture = ExtResource("3_texture")
 cost = 6
