@@ -61,7 +61,7 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
 @onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
-@onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyLabel
+@onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow/CurrencyLabel
 @onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
 
@@ -225,9 +225,9 @@ func _ready() -> void:
 	)
 	_update_steam_profile()
 	CurrencyManager.balance_changed.connect(func(new_balance: int):
-		currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
+		currency_label.text = str(new_balance)
 	)
-	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
+	currency_label.text = str(CurrencyManager.balance)
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
@@ -725,7 +725,7 @@ func _retranslate() -> void:
 	play_button.text    = SettingsManager.t("MENU_PLAY")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	packs_button.text   = SettingsManager.t("MENU_PACKS")
-	currency_label.text = SettingsManager.t("MENU_CURRENCY") % CurrencyManager.balance
+	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
 	report_button.text  = SettingsManager.t("MENU_REPORT")

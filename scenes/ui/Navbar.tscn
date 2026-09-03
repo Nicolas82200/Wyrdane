@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/Navbar.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/shop/PackShop.tscn" id="2_packshop"]
 [ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="3_font"]
+[ext_resource type="Texture2D" path="res://assets/icons/crown-coin.svg" id="4_goldicon"]
 
 [node name="Navbar" type="Control"]
 layout_mode = 3
@@ -33,6 +34,14 @@ offset_right = -16.0
 offset_bottom = 44.0
 grow_horizontal = 0
 theme_override_constants/separation = 16
+
+[node name="CurrencyIcon" type="TextureRect" parent="Bar/HBox"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_goldicon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CurrencyLabel" type="Label" parent="Bar/HBox"]
 layout_mode = 2

@@ -6,6 +6,10 @@
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
 [ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
+[ext_resource type="Texture2D" path="res://assets/icons/fleshy-mass.svg" id="8_resicon_undead"]
+[ext_resource type="Texture2D" path="res://assets/icons/wax-seal.svg" id="9_resicon_human"]
+[ext_resource type="Texture2D" path="res://assets/icons/soul.svg" id="10_resicon_demon"]
+[ext_resource type="Texture2D" path="res://assets/icons/internal-organ.svg" id="11_resicon_abomination"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
 bg_color = Color(0, 0, 0, 1)
@@ -169,6 +173,17 @@ theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleBoxFlat_s5r67")
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ResourceIcon" type="TextureRect" parent="." unique_id=707796709]
+visible = false
+layout_mode = 0
+offset_left = 197.0
+offset_top = 25.0
+offset_right = 225.0
+offset_bottom = 53.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="DescLabel" type="RichTextLabel" parent="." unique_id=1393881891]
 layout_mode = 0
