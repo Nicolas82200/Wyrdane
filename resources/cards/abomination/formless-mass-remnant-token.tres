@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Amas Informe Reformé"
-description = ""
+description = "Ne rejoint pas le cimetière à sa mort."
 flavour_text = "Il se réarrange, tout simplement."
 texture = ExtResource("1_texture")
 cost = 1
