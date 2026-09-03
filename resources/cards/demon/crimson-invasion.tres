@@ -14,19 +14,19 @@ type = "OnAwaken"
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
 pool_race_filter = "Demon"
-pool_max_cost = 4
+pool_max_cost = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 4
+value = 3
 
 [sub_resource type="Resource" id="Resource_bonus"]
 script = ExtResource("1_cardeffect")
 effect_id = "SummonRandom"
 pool_race_filter = "Demon"
-pool_max_cost = 6
+pool_max_cost = 4
 pact_bonus = true
 pact_replaces_base = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -34,8 +34,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Invasion Écarlate"
-description = "Éveil : Invoque un Démon aléatoire de coût 4 ou moins.
-Pacte 4 : Invoque à la place un Démon aléatoire de coût 6 ou moins."
+description = "Éveil : Invoque un Démon aléatoire de coût 2 ou moins.
+Pacte 3 : Invoque à la place un Démon aléatoire de coût 4 ou moins."
 flavour_text = "Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour."
 texture = ExtResource("3_texture")
 cost = 7

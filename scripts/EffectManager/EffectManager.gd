@@ -202,6 +202,10 @@ func _filter_targets(targets: Array[Minion], effect: CardEffect) -> Array[Minion
 		result = result.filter(func(t: Minion) -> bool:
 			return t.attack <= effect.target_max_atk
 		)
+	if effect.target_max_cost >= 0:
+		result = result.filter(func(t: Minion) -> bool:
+			return t.card_data.cost <= effect.target_max_cost
+		)
 	if effect.requires_resurrected_target:
 		result = result.filter(func(t: Minion) -> bool: return t.was_resurrected)
 	if effect.exclude_legendary:
@@ -410,6 +414,7 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target 
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 			var damage: int = _effective_value(effect, targets.size())
+			var source_has_terror: bool = source_minion != null and source_minion.has_demon_keyword(KeywordDemon.Type.TERREUR)
 			await _point_arrows_to(battle, targets, source_minion)
 			for target in targets:
 				var visual = battle.board_visual_system.get_visual(target)
@@ -418,6 +423,10 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target 
 					battle.animation_system.play_damage(visual, dealt)
 				if dealt > 0:
 					await notify_damaged(battle, target)
+					# TERREUR : tout dégât infligé par un serviteur porteur de ce
+					# mot-clé applique Terreur à sa cible, pas seulement au combat.
+					if source_has_terror and target.apply_terror() and visual:
+						battle.animation_system.play_terror(visual)
 
 func _heal(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	match effect.target:
@@ -1543,33 +1552,60 @@ func trigger_effects(battle, minion: Minion, trigger_name: String, selected_targ
 		else:
 			base_effects.append(effect)
 
+	var has_replacing_bonus: bool = bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
 	var pact_paid: bool = false
-	if not bonus_effects.is_empty():
-		var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-		if pact_value > 0:
-			pact_paid = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
-			# Garde-fou : resolve_trigger() attend potentiellement plusieurs
-			# secondes le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la
-			# scène de bataille a été détruite entre-temps (retour au menu,
-			# reconnexion échouée...), `battle` devient une instance libérée —
-			# sans ce garde-fou, tout le reste de cette fonction plantait dessus
-			# (même classe de bug déjà rencontrée sur Hand.gd).
-			if not is_instance_valid(battle):
-				return true
-			if pact_paid:
-				var minion_visual: Control = battle.board_visual_system.find_visual(minion)
-				var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
-				battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-				await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
 
-	var replaces_base: bool = pact_paid and bonus_effects.any(func(e: CardEffect) -> bool: return e.pact_replaces_base)
-	if not replaces_base:
-		for effect in base_effects:
-			await execute_effect(battle, minion, effect, selected_target)
-	if pact_paid:
-		for effect in bonus_effects:
-			await execute_effect(battle, minion, effect, selected_target)
+	if has_replacing_bonus:
+		# Un bonus "à la place" (ex. invoque un jeton différent) doit être
+		# tranché AVANT d'exécuter l'effet de base, sinon celui-ci aurait déjà
+		# eu lieu au moment où l'on découvre qu'il fallait le remplacer.
+		pact_paid = await _resolve_pact_payment(battle, minion)
+		if not is_instance_valid(battle):
+			return true
+		if not pact_paid:
+			for effect in base_effects:
+				await execute_effect(battle, minion, effect, selected_target)
+		else:
+			for effect in bonus_effects:
+				await execute_effect(battle, minion, effect, selected_target)
+		return true
+
+	# Cas standard (le bonus de Pacte s'ajoute à l'effet de base sans le
+	# remplacer) : l'effet de base se joue d'abord, pour que le joueur voie
+	# son résultat avant qu'on lui propose de payer le bonus en Pacte.
+	for effect in base_effects:
+		await execute_effect(battle, minion, effect, selected_target)
+	if not bonus_effects.is_empty():
+		pact_paid = await _resolve_pact_payment(battle, minion)
+		if not is_instance_valid(battle):
+			return true
+		if pact_paid:
+			for effect in bonus_effects:
+				await execute_effect(battle, minion, effect, selected_target)
 	return true
+
+# Propose au joueur de payer le coût en PV du mot-clé PACTE de `minion` (s'il
+# en a un) et applique les dégâts auto-infligés en cas de paiement accepté.
+# Retourne true si le Pacte a été payé.
+func _resolve_pact_payment(battle, minion: Minion) -> bool:
+	var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
+	if pact_value <= 0:
+		return false
+	var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
+	# Garde-fou : resolve_trigger() attend potentiellement plusieurs secondes
+	# le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la scène de
+	# bataille a été détruite entre-temps (retour au menu, reconnexion
+	# échouée...), `battle` devient une instance libérée — sans ce garde-fou,
+	# tout le reste de cette fonction plantait dessus (même classe de bug
+	# déjà rencontrée sur Hand.gd).
+	if not is_instance_valid(battle):
+		return false
+	if pact_paid:
+		var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
+		await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+	return pact_paid
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
 # contre un effet hostile (renvoi en main / déplacement).

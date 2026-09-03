@@ -10,7 +10,7 @@
 [sub_resource type="Resource" id="Resource_llaat"]
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
-target = "AllEnemies"
+target = "AllMinions"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -21,7 +21,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Nuée d'Insectes Cadavériques"
-description = "Arrivée : Inflige 1 point de dégât à tous les serviteurs ennemis en jeu."
+description = "Arrivée : Inflige 1 point de dégât à tous les serviteurs en jeu."
 flavour_text = "Là où elle passe, rien ne guérit vraiment."
 texture = ExtResource("3_texture")
 cost = 3

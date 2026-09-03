@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Premier Tressaut"
-description = "Un serviteur allié ciblé déclenche immédiatement une mutation."
+description = "Un serviteur ciblé que vous contrôlez déclenche immédiatement une mutation."
 flavour_text = "Il n'a pas eu le temps de choisir. Peu importe."
 texture = ExtResource("2_texture")
 cost = 1

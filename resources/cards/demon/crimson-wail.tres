@@ -8,11 +8,13 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
+race_filter = "Demon"
 duration = "UntilEndOfTurn"
-threshold_op = "GreaterOrEqual"
 value = 1
-threshold_count = 5
-value_if_threshold = 2
+condition_type = "AlliesOfRaceInPlay"
+condition_race = "Demon"
+condition_op = "LessOrEqual"
+condition_count = 4
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_0ntv0"]
@@ -20,19 +22,47 @@ script = ExtResource("1_cardeffect")
 effect_id = "Damage"
 target = "OwnerHero"
 value = 2
+condition_type = "AlliesOfRaceInPlay"
+condition_race = "Demon"
+condition_op = "LessOrEqual"
+condition_count = 4
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_cmst0_hi"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "AllAllies"
+race_filter = "Demon"
+duration = "UntilEndOfTurn"
+value = 1
+value_2 = 1
+condition_type = "AlliesOfRaceInPlay"
+condition_race = "Demon"
+condition_op = "GreaterOrEqual"
+condition_count = 5
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_0ntv0_hi"]
+script = ExtResource("1_cardeffect")
+effect_id = "Heal"
+target = "OwnerHero"
+value = 2
+condition_type = "AlliesOfRaceInPlay"
+condition_race = "Demon"
+condition_op = "GreaterOrEqual"
+condition_count = 5
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Hurlement Écarlate"
-description = "Vos Démons alliés gagnent +1/+0 ce tour.
-Votre héros perd 2 points de vie.
-Si 5 Démons alliés ou plus sont en jeu, +2/+0 à la place."
+description = "Vos Démons alliés gagnent +1/+0 ce tour et votre héros perd 2 points de vie.
+Si vous contrôlez 5 Démons ou plus, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place."
 flavour_text = "Plus ils sont nombreux à hurler, plus le prix grimpe, pour toi."
 texture = ExtResource("3_texture")
 cost = 3
 race = 5
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cmst0"), SubResource("Resource_0ntv0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cmst0"), SubResource("Resource_0ntv0"), SubResource("Resource_cmst0_hi"), SubResource("Resource_0ntv0_hi")])
 rarity = "Rare"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

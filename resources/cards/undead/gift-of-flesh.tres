@@ -25,7 +25,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Don de Chair"
-description = "Sacrifie votre serviteur le plus faible : Inflige 3 points de dégâts à la cible (joueur ou serviteur ennemi)."
+description = "Sacrifie votre serviteur le plus faible : Inflige 3 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle)."
 flavour_text = "Il a donné son corps. Il n'avait plus besoin de consentir."
 texture = ExtResource("3_texture")
 cost = 1

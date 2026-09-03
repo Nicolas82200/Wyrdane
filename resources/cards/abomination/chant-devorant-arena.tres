@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Chant Dévorant"
-description = "Tous vos serviteurs alliés gagnent VENIN MORTEL."
+description = "Tous les serviteurs que vous contrôlez gagnent VENIN MORTEL."
 flavour_text = "Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire."
 texture = ExtResource("2_texture")
 cost = 4

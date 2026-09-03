@@ -32,7 +32,7 @@ type = "ONPLAY"
 script = ExtResource("4_carddata")
 card_name = "Inquisiteur Suprême"
 description = "DISCIPLINE
-Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs alliés."
+Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs."
 flavour_text = "La corruption s'arrête là où il pose le regard."
 texture = ExtResource("3_texture")
 cost = 5

@@ -21,7 +21,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purification"
-description = "Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur allié ciblé."
+description = "Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur ciblé que vous contrôlez."
 flavour_text = "Le mal recule. Pas loin. Mais pour l'instant, ça suffit."
 texture = ExtResource("3_texture")
 cost = 2

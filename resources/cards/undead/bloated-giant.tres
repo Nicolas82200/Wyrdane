@@ -20,7 +20,7 @@ script = ExtResource("5_trig")
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Géant Boursouflé"
-description = "Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant."
+description = "Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs que votre adversaire contrôle en rangée Avant."
 flavour_text = "Sa mort est plus dangereuse que sa vie."
 texture = ExtResource("3_texture")
 cost = 4

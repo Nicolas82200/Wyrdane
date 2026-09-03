@@ -8,7 +8,7 @@ class_name KeywordDemon
 enum Type {
 	PACTE,            # "Pacte X" — l'effet de base de la carte est toujours gratuit ; le joueur peut en plus payer X PV, à chaque déclenchement, pour activer un effet bonus qui s'ajoute au (ou remplace le) base (CardEffect.pact_bonus/pact_replaces_base, voir PactChoiceSystem).
 	CORRUPTION,       # Les attaques infligent Corruption en plus des dégâts (-1 ATK permanent, cumulable).
-	TERREUR,          # Quand ce serviteur attaque, la cible ne peut pas attaquer au prochain tour adverse.
+	TERREUR,          # Quand ce serviteur inflige des dégâts (combat ou effet), la ou les cibles touchées ne peuvent pas attaquer lors du prochain tour de leur contrôleur.
 	RANG_INFERNAL,    # +1/+0 par tranche de 10 HP manquants sur ton héros (aura recalculée).
 	CHAIR_DE_SOUFRE,  # Immunisé à Corruption, à la peur et aux effets de contrôle mental.
 	SANG_NOIR,        # +1/+0 permanent chaque fois que ton héros perd des HP à cause de tes propres cartes.

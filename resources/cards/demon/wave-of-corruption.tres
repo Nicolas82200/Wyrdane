@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Vague de Corruption"
-description = "Inflige Corruption à tous les serviteurs ennemis en rangée Avant."
+description = "Inflige Corruption à tous les serviteurs que votre adversaire contrôle en rangée Avant."
 flavour_text = "Rien ne pourrit d'un coup. Tout pourrit, éventuellement."
 texture = ExtResource("3_texture")
 cost = 3

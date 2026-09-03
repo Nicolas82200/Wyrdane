@@ -29,7 +29,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("4_carddata")
 card_name = "Monture-et-Cavalier-Ne-Font-Qu'Un"
 description = "ASSAUT
-Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points de vie, puis mute."
+Arrivée : Attaque immédiatement le serviteur que votre adversaire contrôle le plus faible en points de vie, puis mute."
 flavour_text = "On ne sait plus lequel des deux dirige encore l'autre."
 texture = ExtResource("3_texture")
 cost = 4

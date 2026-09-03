@@ -9,7 +9,7 @@
 [sub_resource type="Resource" id="Resource_04azu"]
 script = ExtResource("4_kwd")
 keyword_type = 0
-value = 3
+value = 2
 
 [sub_resource type="Resource" id="Resource_c8m2q"]
 script = ExtResource("5_trig")
@@ -18,7 +18,7 @@ type = "ONPLAY"
 [sub_resource type="Resource" id="Resource_t4jpx"]
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
-target = "EnemyMinion"
+target = "EnemyAny"
 value = 2
 pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Croc de Braise"
-description = "Pacte 3 : Inflige 2 points de dégâts à un serviteur ennemi ciblé."
+description = "Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle)."
 flavour_text = "Chaque morsure lui coûte, à toi aussi."
 texture = ExtResource("3_texture")
 cost = 2

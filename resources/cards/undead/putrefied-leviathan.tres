@@ -26,7 +26,7 @@ type = "ONPLAY"
 script = ExtResource("4_carddata")
 card_name = "Léviathan Putréfié"
 description = "REMPART
-Arrivée : Serviteurs Mort-Vivants alliés +2/+2."
+Arrivée : Mort-Vivants que vous contrôlez +2/+2."
 flavour_text = "Les mers l'ont recraché. Elles non plus ne voulaient plus de lui."
 texture = ExtResource("3_texture")
 cost = 7

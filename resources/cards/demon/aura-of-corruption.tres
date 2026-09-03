@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Aura de Corruption"
-description = "Résonance : Ce Démon attaquant inflige Corruption supplémentaire à sa cible."
+description = "Quand un serviteur Démon que vous contrôlez attaque, il inflige Corruption supplémentaire à sa cible. (Peut se cumuler avec la Corruption déjà présente sur le Démon attaquant.)"
 flavour_text = "La corruption ne recule jamais. Elle s'accumule, discrètement."
 texture = ExtResource("3_texture")
 cost = 3
