@@ -441,3 +441,238 @@ func test_vestige_de_l_ancien_monde_grants_temporary_aegis_on_summon() -> void:
 	await trigger_system.fire("OnSummon", summoned, true, {"target": summoned})
 	assert_true(summoned.has_keyword(Keyword.Type.AEGIS))
 	trigger_system.free()
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Extension 43 → 75 cartes : RetriggerAllTriggers, DamageAllMinionsRecurring,
+# ciblage joueur généralisé sur trigger de Rituel/Enchantement (voir
+# tests/unit/test_artifact_engine.gd et tests/unit/test_trigger_system.gd
+# pour la couverture générique de ces mécanismes) — ici, vérification que
+# chaque nouvelle carte non triviale est bien câblée sur le bon mécanisme.
+# ═══════════════════════════════════════════════════════════════════════════
+
+# ─── Génération d'objet en main (Chasseur de Reliques) ──────────────────────
+
+func test_chasseur_de_reliques_deathrattle_adds_pierre_volcanique_to_hand() -> void:
+	var chasseur := _minion_from_card(_card("chasseur-de-reliques.tres"))
+	var expected_token := _card("pierre-volcanique-token.tres")
+	await effect_manager.trigger_effects(battle, chasseur, "DEATHRATTLE")
+	assert_true(expected_token in battle.hand_cards)
+
+# ─── Mimétisme avec restriction de coût (Voile de Poussière, Le Second Souffle) ──
+
+func test_voile_de_poussiere_mimics_cheap_ally() -> void:
+	var voile := _minion_from_card(_card("voile-de-poussiere.tres"))
+	var cheap_ally := _minion(3, 2, true)
+	cheap_ally.card_data.cost = 2
+	await effect_manager.trigger_effects(battle, voile, "ONPLAY", cheap_ally)
+	assert_eq(voile.card_data, cheap_ally.card_data)
+	assert_eq(voile.attack, 3)
+	assert_eq(voile.max_health, 2)
+
+func test_voile_de_poussiere_cannot_mimic_an_ally_above_cost_limit() -> void:
+	var voile := _minion_from_card(_card("voile-de-poussiere.tres"))
+	var expensive_ally := _minion(9, 9, true)
+	expensive_ally.card_data.cost = 3 # au-dessus de target_max_cost=2
+	await effect_manager.trigger_effects(battle, voile, "ONPLAY", expensive_ally)
+	assert_ne(voile.card_data, expensive_ally.card_data, "coût 3 > target_max_cost=2 : ne doit pas copier")
+
+func test_le_second_souffle_mimics_enemy_within_cost_limit() -> void:
+	var second_souffle := _minion_from_card(_card("le-second-souffle.tres"))
+	var enemy := _minion(4, 4, false)
+	enemy.card_data.cost = 6
+	await effect_manager.trigger_effects(battle, second_souffle, "ONPLAY", enemy)
+	assert_eq(second_souffle.card_data, enemy.card_data)
+	assert_true(second_souffle.owner_is_player, "le mimétisme ne change pas le camp du lanceur")
+
+func test_le_second_souffle_cannot_mimic_an_enemy_above_cost_limit() -> void:
+	var second_souffle := _minion_from_card(_card("le-second-souffle.tres"))
+	var expensive_enemy := _minion(9, 9, false)
+	expensive_enemy.card_data.cost = 7 # au-dessus de target_max_cost=6
+	await effect_manager.trigger_effects(battle, second_souffle, "ONPLAY", expensive_enemy)
+	assert_ne(second_souffle.card_data, expensive_enemy.card_data, "coût 7 > target_max_cost=6 : ne doit pas copier")
+
+# ─── Écho de trigger sur Blessure/Exécution (Le Muet Qui Regarde, Porteuse de Cendres) ──
+
+func test_le_muet_qui_regarde_echoes_ally_ondamaged() -> void:
+	_minion_from_card(_card("le-muet-qui-regarde.tres"))
+	var data := CardData.new()
+	data.card_name = "WOUND_CARD"
+	data.race = Race.Type.NONE
+	data.attack = 2
+	data.health = 10
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnDamaged"
+	data.trigger_types = [trigger]
+	var buff := CardEffect.new()
+	buff.effect_id = "Buff"
+	buff.target = "Self"
+	buff.value = 1
+	data.effects = [buff]
+	var wounded := _minion_from_card(data)
+	await effect_manager.trigger_effects(battle, wounded, "OnDamaged")
+	assert_eq(wounded.base_attack, 4, "2 déclenchements (base + 1 écho Blessure) : +2 ATK")
+
+func test_porteuse_de_cendres_echoes_ally_onexecution() -> void:
+	_minion_from_card(_card("porteuse-de-cendres.tres"))
+	var data := CardData.new()
+	data.card_name = "EXECUTIONER_CARD"
+	data.race = Race.Type.NONE
+	data.attack = 2
+	data.health = 10
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnExecution"
+	data.trigger_types = [trigger]
+	var buff := CardEffect.new()
+	buff.effect_id = "Buff"
+	buff.target = "Self"
+	buff.value = 1
+	data.effects = [buff]
+	var executioner := _minion_from_card(data)
+	await effect_manager.trigger_effects(battle, executioner, "OnExecution")
+	assert_eq(executioner.base_attack, 4, "2 déclenchements (base + 1 écho Exécution) : +2 ATK")
+
+# ─── RetriggerAllTriggers sur une vraie carte (Écho du Premier Geste) ───────
+
+func test_echo_du_premier_geste_retriggers_all_effects_of_a_cheap_ally() -> void:
+	var source := _minion(1, 1, true)
+	var target_data := CardData.new()
+	target_data.card_name = "RETRIGGER_TARGET"
+	target_data.race = Race.Type.NONE
+	target_data.attack = 2
+	target_data.health = 10
+	target_data.cost = 2
+	var t1 := TriggerTypeChoice.new()
+	t1.type = "ONPLAY"
+	var t2 := TriggerTypeChoice.new()
+	t2.type = "DEATHRATTLE"
+	target_data.trigger_types = [t1, t2]
+	var e1 := CardEffect.new()
+	e1.effect_id = "Buff"
+	e1.target = "Self"
+	e1.value = 1
+	e1.trigger = "ONPLAY"
+	var e2 := CardEffect.new()
+	e2.effect_id = "Buff"
+	e2.target = "Self"
+	e2.value = 10
+	e2.trigger = "DEATHRATTLE"
+	target_data.effects = [e1, e2]
+	var target := _minion_from_card(target_data)
+	var echo := _card("echo-du-premier-geste.tres")
+	await effect_manager.execute_effect(battle, source, echo.effects[0], target)
+	assert_eq(target.base_attack, 13, "ONPLAY (+1) et DEATHRATTLE (+10) doivent tous les deux avoir été rejoués")
+
+func test_echo_du_premier_geste_respects_target_max_cost() -> void:
+	var source := _minion(1, 1, true)
+	var expensive_data := CardData.new()
+	expensive_data.card_name = "EXPENSIVE_TARGET"
+	expensive_data.race = Race.Type.NONE
+	expensive_data.attack = 2
+	expensive_data.health = 10
+	expensive_data.cost = 7
+	var t1 := TriggerTypeChoice.new()
+	t1.type = "ONPLAY"
+	expensive_data.trigger_types = [t1]
+	var e1 := CardEffect.new()
+	e1.effect_id = "Buff"
+	e1.target = "Self"
+	e1.value = 1
+	e1.trigger = "ONPLAY"
+	expensive_data.effects = [e1]
+	var target := _minion_from_card(expensive_data)
+	var echo := _card("echo-du-premier-geste.tres")
+	await effect_manager.execute_effect(battle, source, echo.effects[0], target)
+	assert_eq(target.base_attack, 2, "coût 7 > target_max_cost=2 : ne doit pas rejouer les triggers")
+
+# ─── Dégâts de zone récurrents sur une vraie carte (Onde du Cataclysme) ─────
+
+func test_onde_du_cataclysme_deals_damage_once_when_nothing_dies() -> void:
+	var enemy1 := _minion(2, 10, false)
+	var enemy2 := _minion(2, 10, false)
+	var ally := _minion(2, 10, true)
+	var onde := _card("onde-du-cataclysme.tres")
+	await effect_manager.execute_effect(battle, null, onde.effects[0])
+	assert_eq(enemy1.health, 8, "une seule vague : personne ne meurt donc la boucle s'arrête après la première vague")
+	assert_eq(enemy2.health, 8)
+	assert_eq(ally.health, 8, "les alliés sont aussi touchés")
+
+# ─── Deux effets liés sur la même cible (Onde de Jouvence) ──────────────────
+
+func test_onde_de_jouvence_heals_and_permanently_buffs_the_same_target() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(2, 10, true)
+	target.take_damage(8) # 2/10
+	var onde := _card("onde-de-jouvence.tres")
+	for effect in onde.effects:
+		await effect_manager.execute_effect(battle, source, effect, target)
+	# health est calculé depuis damage_taken (max_health - damage_taken, voir
+	# Minion.gd) : le soin de 5 ramène d'abord à 7/10 (damage_taken=3), puis le
+	# +0/+2 permanent élève max_health à 12 sans toucher damage_taken, donc
+	# health remonte mécaniquement à 12-3=9.
+	assert_eq(target.health, 9, "2 HP restants + 5 de soin (7/10) puis +2 max HP appliqué au même damage_taken (9/12)")
+	assert_eq(target.max_health, 12, "+0/+2 permanent")
+
+# ─── Deux GrantKeyword permanents + mot-clé imprimé (Le Dernier Rempart Fossilisé) ──
+
+func test_le_dernier_rempart_fossilise_has_taunt_and_grants_taunt_and_aegis() -> void:
+	var rempart := _minion_from_card(_card("le-dernier-rempart-fossilise.tres"))
+	assert_true(rempart.has_keyword(Keyword.Type.TAUNT), "REMPART imprimé sur la carte elle-même")
+	var target := _minion(2, 4, true)
+	await effect_manager.trigger_effects(battle, rempart, "ONPLAY", target)
+	assert_true(target.has_keyword(Keyword.Type.TAUNT))
+	assert_true(target.has_keyword(Keyword.Type.AEGIS))
+	assert_eq(battle.temp_effect_system._entries.size(), 0, "duration = Permanent sur les deux effets : aucune entrée temporaire")
+
+# ─── Ciblage joueur sur trigger de Rituel/Enchantement (Sceau de la Rancœur Ancienne, Autel des Échos Muets) ──
+
+func test_sceau_de_la_rancoeur_ancienne_debuffs_a_resolved_enemy_target() -> void:
+	var trigger_system = load("res://scripts/systems/TriggersSystem.gd").new()
+	trigger_system.init(battle)
+	var sceau := _card("sceau-de-la-rancoeur-ancienne.tres")
+	trigger_system.register_enchantment(sceau, false, -1) # possédé par l'adversaire du camp qui subit le Carnage
+	var candidate := _minion(3, 4, true) # seul candidat "EnemyMinion" du point de vue du rituel adverse
+	await trigger_system.fire("OnCarnage", null, false)
+	assert_eq(candidate.attack, 2, "-1/-0 doit avoir été appliqué au candidat résolu automatiquement")
+	trigger_system.free()
+
+func test_autel_des_echos_muets_heals_a_resolved_ally_target_on_grief() -> void:
+	var trigger_system = load("res://scripts/systems/TriggersSystem.gd").new()
+	trigger_system.init(battle)
+	var autel := _card("autel-des-echos-muets.tres")
+	trigger_system.register_enchantment(autel, false, -1)
+	var dead := _minion(2, 3, false)
+	dead.health = 0
+	battle.enemy_minions.erase(dead)
+	var survivor := _minion(2, 10, false)
+	survivor.take_damage(6) # 4/10
+	await trigger_system.fire("OnGrief", dead, false)
+	assert_eq(survivor.health, 6, "le survivant vivant doit avoir été choisi et soigné, pas le mort")
+	trigger_system.free()
+
+# ─── Renfort deux mots-clés permanents (Le Cercle Qui Ne S'éteint Jamais) ───
+
+func test_le_cercle_qui_ne_s_eteint_jamais_grants_taunt_and_charge_on_summon() -> void:
+	var trigger_system = load("res://scripts/systems/TriggersSystem.gd").new()
+	trigger_system.init(battle)
+	var cercle := _card("le-cercle-qui-ne-s-eteint-jamais.tres")
+	trigger_system.register_enchantment(cercle, true, -1)
+	var summoned := _minion(2, 4, true)
+	await trigger_system.fire("OnSummon", summoned, true, {"target": summoned})
+	assert_true(summoned.has_keyword(Keyword.Type.TAUNT))
+	assert_true(summoned.has_keyword(Keyword.Type.CHARGE))
+	trigger_system.free()
+
+# ─── Présence "premier serviteur du tour" (Stèle de la Première Pierre) ─────
+
+func test_stele_de_la_premiere_pierre_buffs_the_first_summon_permanently() -> void:
+	var trigger_system = load("res://scripts/systems/TriggersSystem.gd").new()
+	trigger_system.init(battle)
+	var stele := _card("stele-de-la-premiere-pierre.tres")
+	trigger_system.register_enchantment(stele, true, -1)
+	var first := _minion(2, 4, true)
+	await trigger_system.fire("OnSummon", first, true, {"target": first})
+	assert_eq(first.max_health, 5, "+0/+1 permanent sur le premier serviteur invoqué")
+	var second := _minion(2, 4, true)
+	await trigger_system.fire("OnSummon", second, true, {"target": second})
+	assert_eq(second.max_health, 4, "trigger_once_per_turn : le deuxième serviteur du même tour n'est pas concerné")
+	trigger_system.free()

@@ -217,6 +217,27 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 		else:
 			base_effects.append(effect)
 
+	# Ciblage joueur sur un trigger de Rituel/Enchantement (Artefact, ex: Cercle
+	# de la Pierre Qui Chante) : si aucune cible contextuelle utilisable n'est
+	# fournie par l'évènement, on retombe sur le même mécanisme que le Dernier
+	# Souffle d'un serviteur (EffectManager.resolve_trigger_target) — le joueur
+	# local choisit une cible s'il en a une, sinon tirage aléatoire (IA/adversaire
+	# réseau). Générique sur n'importe quel trigger_name (Éveil, Deuil,
+	# Carnage...) ; sans danger d'appeler ça systématiquement même pour les
+	# rituels/enchantements sans effet ciblé sur ce trigger : resolve_trigger_target
+	# retourne alors simplement null, sans effet de bord.
+	# Cas particulier du Deuil (OnGrief) : DeathSystem.process_deaths fournit
+	# TOUJOURS l'allié qui vient de mourir comme source_minion (déjà retiré du
+	# plateau), pour que des effets comme ResurrectSelf (Cimetière Vivant)
+	# puissent explicitement le viser. Pour n'importe quel autre effet
+	# (Heal/Buff/Debuff...), ce mort n'est pas une cible utilisable : on le
+	# traite comme une absence de cible contextuelle, sauf si un effet du
+	# trigger a justement besoin du mort lui-même.
+	var needs_dead_source: bool = base_effects.any(func(e: CardEffect) -> bool: return e.effect_id in ["ResurrectSelf"]) \
+		or bonus_effects.any(func(e: CardEffect) -> bool: return e.effect_id in ["ResurrectSelf"])
+	if context_target == null or (context_target.is_dead() and not needs_dead_source):
+		context_target = await battle.effect_manager.resolve_trigger_target(battle, proxy, ctx.trigger_name)
+
 	var pact_paid: bool = false
 	if not bonus_effects.is_empty():
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)

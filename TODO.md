@@ -45,8 +45,14 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 ## P9 — Race Artefact : art manquant
 
-Ajout de la 5e race (Artefact, `resources/cards/artifact/`, 43 cartes dont 3 jetons, `Race.Type.NONE`).
-- **Aucun visuel** : les 43 `.tres` n'ont pas de `texture` (champ laissé vide/nul, déjà géré par `CardData`/`Card.gd`) faute d'art disponible pour cette race — à produire et assigner carte par carte quand l'art sera prêt (voir les autres races pour le pipeline `assets/card_art/<race>/`).
+Ajout de la 5e race (Artefact, `resources/cards/artifact/`, 75 cartes dont 3 jetons, `Race.Type.NONE`).
+- **Aucun visuel** : les 75 `.tres` n'ont pas de `texture` (champ laissé vide/nul, déjà géré par `CardData`/`Card.gd`) faute d'art disponible pour cette race — à produire et assigner carte par carte quand l'art sera prêt (voir les autres races pour le pipeline `assets/card_art/<race>/`).
+
+## P10 — `translations/game.csv` désynchronisé de certaines descriptions déjà en jeu
+
+**Résolu pour l'Artefact.** Les 34 cartes reformulées vers le wording standardisé (« que vous contrôlez »/« que votre adversaire contrôle ») avaient bien leur `.tres` à jour mais leur ligne `translations/game.csv` gardait l'ancien texte comme clé (donc invisible en FR — clé absente = texte FR affiché tel quel — mais cassait la traduction EN, qui retombait sur le texte FR brut). Corrigé : les 34 lignes concernées mises à jour (clé FR + traduction EN), plus 2 lignes manquantes ajoutées (Cercle des Strates Anciennes, Pierre Volcanique n'avaient jamais eu de ligne CSV du tout). Suite de tests + `--import` revérifiés après coup (771/771).
+
+**Reste ouvert, hors de portée de cette passe** : le même défaut (CSV pas régénéré après un changement de wording) peut exister sur d'autres races touchées par `0439-wording-standardization` (Mort-Vivant/Humain/Démon/Abomination) — pas audité ici, seul l'Artefact a été vérifié. À comparer systématiquement `description`/`flavour_text` de `resources/cards/` face à `translations/game.csv` dans une passe dédiée si ça n'a pas déjà été fait ailleurs.
 
 ## Non-problèmes vérifiés pendant cette revue
 

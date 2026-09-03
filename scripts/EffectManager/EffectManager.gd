@@ -30,6 +30,8 @@ func execute_effect(
 		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
 		"AddCardToHand":    _add_card_to_hand(battle, source_minion, effect)
 		"MimicMinion":      await _mimic_minion(battle, source_minion, effect, selected_target)
+		"RetriggerAllTriggers": await _retrigger_all(battle, source_minion, effect, selected_target)
+		"DamageAllMinionsRecurring": await _damage_all_minions_recurring(battle, source_minion, effect)
 		"MoveRow":          await _move_row(battle, source_minion, effect, selected_target)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
 		"SummonRandom":     await _summon_random(battle, source_minion, effect)
@@ -722,6 +724,20 @@ func _mimic_minion(battle, source_minion: Minion, effect: CardEffect, selected_t
 		# Un seul mimétisme a de sens : la première cible valable suffit.
 		break
 
+# RetriggerAllTriggers (Artefact, ex: Écho du Premier Geste) : rejoue
+# l'intégralité des triggers portés par la cible (tous, pas seulement le
+# trigger qui a amené cet effet) — chaque trigger est redéclenché via
+# trigger_effects, qui gère déjà proprement le cas où aucun effet n'est
+# associé à un trigger donné pour cette carte (no-op).
+func _retrigger_all(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	await _point_arrows_to(battle, targets, source_minion)
+	for target in targets:
+		if target.card_data == null:
+			continue
+		for trigger_name in target.card_data.get_trigger_names():
+			await battle.effect_manager.trigger_effects(battle, target, trigger_name)
+
 # L'Innommable : contrairement à StealMinion/Transform, la cible ciblée n'est
 # NI volée NI détruite — elle reste du côté adverse, inchangée. C'est
 # `source_minion` (ex: L'Innommable lui-même) qui devient une version de la
@@ -1080,6 +1096,33 @@ func _damage_all_minions(battle, source_minion: Minion, effect: CardEffect) -> v
 		var dealt: int = minion.take_damage(effect.value)
 		if dealt > 0:
 			await notify_damaged(battle, minion)
+
+# DamageAllMinionsRecurring (Artefact, ex: Onde du Cataclysme) : comme
+# DamageAllMinions, mais recommence une vague tant que la vague précédente a
+# tué au moins un serviteur du camp ADVERSE à source_minion (ou adverse au
+# joueur si source_minion == null, cas normal pour une Incantation jouée
+# depuis la main). Naturellement borné (le nombre de morts possibles décroît
+# strictement à chaque vague qui continue) ; plafond défensif en plus au cas
+# où un bug de calcul de mort passerait inaperçu.
+const DAMAGE_ALL_MINIONS_RECURRING_MAX_WAVES: int = 20
+
+func _damage_all_minions_recurring(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var waves: int = 0
+	while waves < DAMAGE_ALL_MINIONS_RECURRING_MAX_WAVES:
+		waves += 1
+		var targets: Array[Minion] = []
+		targets.append_array(battle.player_minions)
+		targets.append_array(battle.enemy_minions)
+		await _point_arrows_to(battle, targets, source_minion)
+		for minion in targets:
+			var dealt: int = minion.take_damage(effect.value)
+			if dealt > 0:
+				await notify_damaged(battle, minion)
+		var enemies_this_wave: Array[Minion] = battle.get_enemy_minions(source_minion)
+		await battle.death_system.process_deaths()
+		var enemy_died_this_wave: bool = enemies_this_wave.any(func(m: Minion) -> bool: return m.is_dead())
+		if not enemy_died_this_wave:
+			break
 
 # Ramène depuis le cimetière en main (Rituel d'Exhumation, Grand Rituel du
 # Pacte). race_filter optionnel : prend le mort le plus récent de cette race.

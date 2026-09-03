@@ -24,7 +24,8 @@ class_name CardEffect
 	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
 	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword",
 	"DrawCardPerAllyDeathThisTurn", "MoveRow", "MimicTarget", "CancelFirstEnemySpellPerTurn",
-	"AddCardToHand", "MimicMinion"
+	"AddCardToHand", "MimicMinion",
+	"RetriggerAllTriggers", "DamageAllMinionsRecurring"
 ) var effect_id: String = "Damage"
 
 @export_enum(

@@ -213,3 +213,69 @@ func test_try_cancel_spell_ignores_target_owned_by_caster() -> void:
 	var own_target := _minion(2, 5, true)
 	var cancelled: bool = await trigger_system.try_cancel_spell(true, own_target)
 	assert_false(cancelled)
+
+# ─── Ciblage joueur généralisé sur un trigger de Rituel/Enchantement ────────
+# (Artefact, ex: Cercle de la Pierre Qui Chante) : voir
+# EffectManager.resolve_trigger_target et TriggerSystem._execute_enchantment_effects_with_proxy.
+# Les rituels ici sont enregistrés côté adversaire (is_player=false) : le
+# ciblage retombe alors sur le tirage aléatoire de resolve_trigger_target
+# (comme pour l'IA/un adversaire réseau), ce qui évite de dépendre de
+# TargetingSystem.prompt_trigger_target (UI réelle, non doublée par
+# FakeTargetingSystem) tout en exerçant le même chemin de code.
+
+func test_ritual_with_no_context_target_resolves_it_via_resolve_trigger_target() -> void:
+	var card := _damage_enchantment("OnAwaken", 0, Race.Type.NONE)
+	card.effects = [_effect("Damage", "EnemyMinion", 3)]
+	trigger_system.register_enchantment(card, false, 2)
+	var candidate := _minion(2, 5, true) # seul candidat valide pour "EnemyMinion" du point de vue du rituel adverse
+	await trigger_system.fire("OnAwaken", null, false)
+	assert_eq(candidate.health, 2, "resolve_trigger_target doit avoir choisi le candidat et lui avoir appliqué l'effet")
+
+func test_ritual_with_no_valid_target_pool_does_not_crash_and_does_nothing() -> void:
+	var card := _damage_enchantment("OnAwaken", 0, Race.Type.NONE)
+	card.effects = [_effect("Damage", "EnemyMinion", 3)]
+	trigger_system.register_enchantment(card, false, 2)
+	# Aucun candidat côté joueur (l'"ennemi" du rituel adverse) : ne doit rien faire.
+	var acted: bool = await trigger_system.fire("OnAwaken", null, false)
+	assert_true(acted, "le rituel réagit bien au trigger (une charge est consommée) même si aucune cible n'est trouvée")
+
+func test_ongrief_provides_the_dead_ally_as_source_for_resurrect_self() -> void:
+	# Cas particulier documenté dans CARDS.md : DeathSystem fournit le mort
+	# lui-même comme source_minion pour OnGrief, afin qu'un effet ResurrectSelf
+	# (Cimetière Vivant) puisse explicitement le viser. Ici on vérifie que le
+	# ciblage joueur généralisé ne vient PAS écraser cette cible par une autre
+	# (sinon ResurrectSelf ferait revenir n'importe quel allié vivant au lieu
+	# du mort qui a causé le Deuil).
+	var card := CardData.new()
+	card.card_name = "RESURRECT_RITUAL"
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnGrief"
+	card.trigger_types = [trigger]
+	card.effects = [_effect("ResurrectSelf", "AllyMinion")]
+	trigger_system.register_enchantment(card, true, 1)
+	var dead := _minion(2, 3, true)
+	dead.health = 0
+	battle.player_minions.erase(dead) # DeathSystem retire déjà le mort du plateau avant de déclencher OnGrief
+	var other_alive := _minion(3, 3, true) # ne doit jamais être choisi à la place du mort
+	var before_count: int = battle.player_minions.size()
+	await trigger_system.fire("OnGrief", dead, true)
+	assert_eq(battle.player_minions.size(), before_count + 1, "ResurrectSelf doit avoir fait entrer une nouvelle copie en jeu")
+	assert_eq(battle.player_minions.back().card_data, dead.card_data, "la copie doit provenir de la carte du MORT fourni comme source, pas d'un autre allié")
+	assert_eq(battle.player_minions.back().health, 1, "un serviteur ressuscité entre en jeu avec 1 point de vie")
+	assert_eq(other_alive.health, 3, "l'allié vivant ne doit pas avoir été affecté")
+
+func test_ongrief_falls_back_to_player_choice_for_a_non_resurrect_effect() -> void:
+	# Toujours OnGrief (source = le mort, déjà hors plateau), mais cette fois
+	# avec un effet Heal (pas ResurrectSelf) : le mort n'est pas une cible
+	# utilisable, donc le ciblage doit retomber sur resolve_trigger_target et
+	# viser un allié VIVANT plutôt que le mort lui-même.
+	var card := _damage_enchantment("OnGrief", 0, Race.Type.NONE)
+	card.effects = [_effect("Heal", "AllyMinion", 5)]
+	trigger_system.register_enchantment(card, false, 1)
+	var dead := _minion(2, 3, false)
+	dead.health = 0
+	battle.enemy_minions.erase(dead)
+	var wounded_survivor := _minion(2, 10, false)
+	wounded_survivor.take_damage(6) # 4/10
+	await trigger_system.fire("OnGrief", dead, false)
+	assert_eq(wounded_survivor.health, 9, "le seul allié vivant du rituel doit avoir été choisi et soigné, pas le mort")

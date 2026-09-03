@@ -217,3 +217,102 @@ func test_echoed_trigger_carrier_does_not_double_its_own_trigger() -> void:
 	carrier.card_data.effects = [effect]
 	await effect_manager.trigger_effects(battle, carrier, "DEATHRATTLE")
 	assert_eq(carrier.base_attack, 2, "un porteur exclu de son propre décompte d'écho : un seul déclenchement (+1 ATK)")
+
+# ─── RetriggerAllTriggers ───────────────────────────────────────────────────
+
+func test_retrigger_all_triggers_replays_every_trigger_present_on_target() -> void:
+	var target := _minion(2, 10, true)
+	var t1 := TriggerTypeChoice.new()
+	t1.type = "ONPLAY"
+	var t2 := TriggerTypeChoice.new()
+	t2.type = "DEATHRATTLE"
+	target.card_data.trigger_types = [t1, t2]
+	var e1 := CardEffect.new()
+	e1.effect_id = "Buff"
+	e1.target = "Self"
+	e1.value = 1
+	e1.trigger = "ONPLAY"
+	var e2 := CardEffect.new()
+	e2.effect_id = "Buff"
+	e2.target = "Self"
+	e2.value = 10
+	e2.trigger = "DEATHRATTLE"
+	target.card_data.effects = [e1, e2]
+	var source := _minion(1, 1, true)
+	var effect := _effect("RetriggerAllTriggers", "AllyMinion")
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.base_attack, 13, "les deux triggers de la cible (ONPLAY et DEATHRATTLE) doivent tous les deux avoir été rejoués")
+
+func test_retrigger_all_triggers_is_a_no_op_when_target_has_no_triggers() -> void:
+	var target := _minion(3, 10, true)
+	var source := _minion(1, 1, true)
+	var effect := _effect("RetriggerAllTriggers", "AllyMinion")
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.base_attack, 3, "cible sans aucun trigger : rien à rejouer, aucune erreur")
+
+func test_retrigger_all_triggers_respects_target_max_cost_restriction() -> void:
+	var source := _minion(1, 1, true, "Front", 1)
+	var expensive_ally := _minion(2, 10, true, "Front", 7)
+	var t1 := TriggerTypeChoice.new()
+	t1.type = "ONPLAY"
+	expensive_ally.card_data.trigger_types = [t1]
+	var e1 := CardEffect.new()
+	e1.effect_id = "Buff"
+	e1.target = "Self"
+	e1.value = 5
+	expensive_ally.card_data.effects = [e1]
+	var effect := _effect("RetriggerAllTriggers", "AllyMinion")
+	effect.target_max_cost = 3
+	await effect_manager.execute_effect(battle, source, effect, expensive_ally)
+	assert_eq(expensive_ally.base_attack, 2, "cible de coût 7 > target_max_cost=3 : la réactivation ne doit pas s'appliquer")
+
+# ─── DamageAllMinionsRecurring ──────────────────────────────────────────────
+
+# Double de DeathSystem qui, contrairement à FakeDeathSystem (no-op), retire
+# réellement les morts des tableaux du plateau — nécessaire pour observer le
+# comportement "une vague de plus seulement si un mort est survenu à CETTE
+# vague", puisque EffectManager._damage_all_minions_recurring recalcule ses
+# cibles depuis battle.player_minions/enemy_minions à chaque itération.
+class RecurringDeathSystem extends FakeBattle.FakeDeathSystem:
+	var battle: FakeBattle
+	func _init(b: FakeBattle) -> void:
+		battle = b
+	func process_deaths(_silent: Array = []) -> void:
+		battle.player_minions = battle.player_minions.filter(func(m: Minion): return not m.is_dead())
+		battle.enemy_minions = battle.enemy_minions.filter(func(m: Minion): return not m.is_dead())
+
+func test_damage_all_minions_recurring_loops_while_an_enemy_dies_and_stops_once_none_does() -> void:
+	battle.death_system = RecurringDeathSystem.new(battle)
+	var enemy_low := _minion(1, 2, false)   # meurt vague 1 (2 dégâts)
+	var enemy_mid := _minion(1, 4, false)   # meurt vague 2
+	var enemy_tough := _minion(1, 100, false) # ne meurt jamais : stoppe la boucle à la vague 3
+	var ally := _minion(1, 100, true)
+	var effect := CardEffect.new()
+	effect.effect_id = "DamageAllMinionsRecurring"
+	effect.value = 2
+	await effect_manager.execute_effect(battle, null, effect)
+	assert_true(enemy_low.is_dead())
+	assert_true(enemy_mid.is_dead())
+	assert_eq(enemy_tough.health, 94, "3 vagues avant l'arrêt (2+2+2=6 dégâts), la 3e ne tue personne donc la boucle s'arrête")
+	assert_eq(ally.health, 94, "les alliés sont aussi touchés par chaque vague (dégâts de zone)")
+
+func test_damage_all_minions_recurring_is_bounded_even_if_deaths_are_never_cleared() -> void:
+	# Avec le FakeDeathSystem par défaut (no-op, ne retire jamais les morts du
+	# plateau), un ennemi mort resterait indéfiniment détecté comme "mort à
+	# cette vague" sans le plafond défensif : vérifie que la boucle s'arrête
+	# bien après 20 vagues plutôt que de tourner indéfiniment.
+	var counting := CountingDeathSystem.new()
+	battle.death_system = counting
+	_minion(1, 1, false) # meurt dès la vague 1, jamais retiré du plateau (no-op)
+	var effect := CardEffect.new()
+	effect.effect_id = "DamageAllMinionsRecurring"
+	effect.value = 2
+	await effect_manager.execute_effect(battle, null, effect)
+	# 20 appels venant de la boucle bornée + 1 appel final systématique fait par
+	# execute_effect() après le match sur effect_id (voir EffectManager.gd).
+	assert_eq(counting.calls, 21, "doit s'arrêter au plafond défensif de 20 vagues plutôt que boucler indéfiniment")
+
+class CountingDeathSystem extends FakeBattle.FakeDeathSystem:
+	var calls: int = 0
+	func process_deaths(_silent: Array = []) -> void:
+		calls += 1

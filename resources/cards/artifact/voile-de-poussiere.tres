@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
+
+[sub_resource type="Resource" id="Resource_trig1"]
+script = ExtResource("4_trig")
+type = "ONPLAY"
+
+[sub_resource type="Resource" id="Resource_eff2"]
+script = ExtResource("1_cardeffect")
+effect_id = "MimicMinion"
+target = "AllyMinion"
+target_max_cost = 2
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Voile de Poussière"
+description = "Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 2 ou moins."
+flavour_text = "Elle ne recouvre rien longtemps. Elle prend juste, un instant, la forme de ce qu'elle touche."
+cost = 2
+race = 0
+attack = 2
+health = 2
+trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_trig1")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff2")])
+requires_target = true
+rarity = "Common"
+board_position = "Hybrid"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

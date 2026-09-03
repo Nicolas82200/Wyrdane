@@ -995,6 +995,8 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 | AR03 | Écho de Pacotille | ↕️ | 1 | 1 | 1 | Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 1 ou moins. | *Il ne sait pas qui il est. Il ne sait qu'imiter, et encore, mal.* |
 | AR04 | Faux-Semblant | ↕️ | 1 | 2 | 1 | Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 3 ou moins. | *Il porte le visage de quelqu'un d'autre. Il porte aussi, un temps, sa force.* |
 | AR05 | Porteur de Rempart Oublié | 🛡️ | 2 | 2 | 3 | Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART jusqu'à la fin du tour. | *Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois.* |
+| AR44 | Sentinelle de Basalte | 🛡️ | 2 | 1 | 4 | REMPART. | *Elle ne bouge plus depuis des siècles. Ça ne veut pas dire qu'elle a cédé.* |
+| AR45 | Voile de Poussière | ↕️ | 2 | 2 | 2 | Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 2 ou moins. | *Elle ne recouvre rien longtemps. Elle prend juste, un instant, la forme de ce qu'elle touche.* |
 
 ### Rares
 
@@ -1005,6 +1007,9 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 | AR08 | Gardien de l'Assaut Ancien | ⚔️ | 3 | 3 | 2 | Arrivée : Le serviteur adjacent que vous contrôlez gagne ASSAUT de façon permanente. | *Il ne se souvient plus pourquoi il chargeait. Seulement qu'il fallait le faire.* |
 | AR09 | Relique de la Frénésie | ↕️ | 4 | 4 | 3 | Arrivée : Un serviteur ciblé que vous contrôlez gagne FRÉNÉSIE jusqu'à la fin du tour. | *Elle ne rend personne plus fort. Elle rend juste plus difficile de s'arrêter.* |
 | AR10 | Porte-Chance Fossilisé | ↕️ | 3 | 3 | 4 | Arrivée : Un serviteur ciblé que vous contrôlez gagne MOISSON jusqu'à la fin du tour. | *Il n'a jamais porté chance à personne. Mais on continue d'y croire.* |
+| AR46 | Porteur de Silex | ⚔️ | 3 | 3 | 2 | Arrivée : Un serviteur ciblé que vous contrôlez gagne VENIN MORTEL jusqu'à la fin du tour. | *Le silex ne coupe plus grand-chose depuis longtemps. Mais son tranchant, lui, n'a rien oublié.* |
+| AR47 | Gardien de l'Égide Ancienne | 🛡️ | 4 | 2 | 5 | Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire. | *L'égide qu'il porte n'a jamais failli. Elle a juste fini par le trouver, lui, en dernier.* |
+| AR48 | Chasseur de Reliques | ↕️ | 3 | 4 | 2 | Dernier Souffle : Ajoute une Pierre Volcanique à votre main. | *Il n'a jamais rien trouvé de vivant. Mais il sait reconnaître ce qui mérite d'être ramassé.* |
 
 ### Épiques
 
@@ -1014,6 +1019,10 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 | AR12 | Le Héraut Du Second Pas | ↕️ | 4 | 3 | 4 | Tant que ce serviteur est en jeu, l'Arrivée des serviteurs que vous contrôlez se déclenche une fois de plus. | *Chaque entrée laisse une empreinte. La sienne en laisse deux.* |
 | AR13 | Reflet Trouble | ↕️ | 3 | 5 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé, le vôtre ou celui de votre adversaire, de coût 5 ou moins. | *Le miroir ne ment pas. Il choisit juste ce qu'il te montre.* |
 | AR14 | Usurpateur | ↕️ | 3 | 6 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé que votre adversaire contrôle, quel que soit son coût. | *Il ne demande jamais la permission de devenir quelqu'un d'autre.* |
+| AR49 | Le Muet Qui Regarde | 🛡️ | 4 | 3 | 5 | Tant que ce serviteur est en jeu, la Blessure des serviteurs que vous contrôlez se déclenche une fois de plus. | *Il ne dit jamais rien quand un coup passe. Il se contente de le faire recompter.* |
+| AR50 | Porteuse de Cendres | ⚔️ | 5 | 4 | 5 | Tant que ce serviteur est en jeu, l'Exécution des serviteurs que vous contrôlez se déclenche une fois de plus. | *Chaque exécution laisse des cendres. Elle veille juste à ce qu'il y en ait deux fois plus.* |
+| AR51 | L'Éveilleur de Strates | ↕️ | 5 | 3 | 5 | Arrivée : Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, de coût 3 ou moins. | *Chaque strate qu'il touche se souvient soudain de tout ce qu'elle avait déjà fait.* |
+| AR52 | Le Second Souffle | ⚔️ | 6 | 5 | 5 | Arrivée : Devient une copie exacte d'un serviteur ciblé que votre adversaire contrôle, de coût 6 ou moins. | *Le premier souffle appartenait à quelqu'un d'autre. Celui-ci, il compte bien le garder.* |
 
 ### Légendaires
 
@@ -1021,6 +1030,7 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | AR15 | L'Écho Sans Origine | ⚔️ | 8 | 6 | 4 | Tant que ce serviteur est en jeu, tous les déclencheurs des serviteurs que vous contrôlez se déclenchent une fois de plus. | *Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement.* |
 | AR16 | Le Sans-Visage | ↕️ | 4 | 8 | 4 | Arrivée : Devient une copie exacte d'un serviteur ciblé, le vôtre ou celui de votre adversaire, quel que soit son coût, puis gagne +1/+1 de façon permanente. | *Il n'a pas de visage à lui. Il en a simplement volé un de plus.* |
+| AR53 | Le Dernier Rempart Fossilisé | 🛡️ | 7 | 5 | 8 | REMPART. Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART et ÉGIDE de façon permanente. | *Il fut le dernier à tenir la ligne. Il enseigne encore, à qui veut l'entendre, comment tenir la sienne.* |
 
 ## Incantations
 
@@ -1043,6 +1053,17 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 | AR31 | Bénédiction de Pierre | 2 | Commune | Un serviteur ciblé que vous contrôlez gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire. | *La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper.* |
 | AR32 | Rite du Venin Oublié | 3 | Rare | Un serviteur ciblé que vous contrôlez gagne VENIN MORTEL jusqu'à la fin du tour. | *Le rite est ancien. Le poison, lui, n'a pas pris une ride.* |
 | AR33 | Sceau de l'Infiltration | 2 | Rare | Un serviteur ciblé que vous contrôlez gagne INFILTRATION jusqu'à la fin du tour. | *Certains sceaux n'ouvrent pas de portes. Ils en font oublier l'existence.* |
+| AR54 | Verdict de Poussière | 4 | Rare | Détruit un serviteur ciblé que votre adversaire contrôle. | *Le verdict ne se discute pas. Il retourne simplement ce qui devait déjà l'être.* |
+| AR55 | Onde du Cataclysme | 6 | Légendaire | Inflige 2 points de dégâts à tous les serviteurs en jeu. Si un serviteur que votre adversaire contrôle meurt à cette vague, recommence. | *La première onde n'est jamais la dernière. Elle ne s'arrête que quand plus rien ne peut tomber.* |
+| AR56 | Flétrissure Ancestrale | 3 | Rare | Un serviteur ciblé que votre adversaire contrôle perd -3/-3 de façon permanente. | *Rien ne résiste à une flétrissure assez vieille pour avoir déjà tout vu se faner.* |
+| AR57 | Chape de Poussière | 3 | Rare | Tous les serviteurs que votre adversaire contrôle perdent -1/-1 jusqu'à la fin du tour. | *Une chape ancienne s'abat, et pour un instant, plus rien ne respire tout à fait comme avant.* |
+| AR58 | Suaire de Givre | 4 | Épique | Gèle tous les serviteurs que votre adversaire contrôle en rangée Avant un tour. | *Le suaire ne recouvre pas les morts. Il recouvre ceux qui allaient bouger.* |
+| AR59 | Poigne Glaciale | 2 | Commune | Gèle un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour. | *La poigne ne serre pas fort. Elle serre juste assez longtemps.* |
+| AR60 | Murmure Étouffé | 2 | Commune | Réduit au silence un serviteur ciblé que votre adversaire contrôle, jusqu'au début de votre prochain tour. | *Certains murmures ne portent pas loin. Celui-là ne porte plus du tout.* |
+| AR61 | Écho du Premier Geste | 3 | Rare | Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, de coût 2 ou moins. | *Le premier geste ne compte jamais vraiment. Celui-ci compte deux fois.* |
+| AR62 | Rappel du Grand Rite | 6 | Épique | Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, quel que soit son coût. | *Le grand rite ne se rappelle jamais à moitié. Il rejoue tout, depuis le début.* |
+| AR63 | Onde de Jouvence | 4 | Rare | Restaure 5 points de vie à un serviteur ciblé que vous contrôlez ; il gagne aussi +0/+2 de façon permanente. | *La jouvence ne rajeunit personne. Elle rend juste un peu plus difficile d'en finir.* |
+| AR64 | Sceau Muet Définitif | 5 | Épique | Réduit au silence un serviteur ciblé que votre adversaire contrôle, de façon permanente. | *Certains sceaux se dissipent avec le temps. Celui-ci n'a jamais appris à se dissiper.* |
 
 ## Rituels
 
@@ -1053,6 +1074,13 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | AR34 | Cercle des Strates Anciennes | 4 | Rare | 3 charges | Éveil : Le serviteur que vous contrôlez avec le moins de points de vie restaure 2 points de vie. | *Chaque strate garde la mémoire d'une guérison passée. Le cercle ne fait que la répéter.* |
 | AR35 | Rituel de la Chambre Scellée | 5 | Épique | 2 charges | Éveil : Ajoute une Pierre Volcanique à votre main. | *La chambre reste fermée. Ce qu'elle laisse filtrer suffit amplement.* |
 | AR36 | Cercle du Jugement Muet | 6 | Légendaire | 2 charges | Éveil : Détruit un serviteur aléatoire que votre adversaire contrôle ayant 2 points de vie ou moins. | *Il ne prononce jamais son verdict à voix haute. Il n'en a pas besoin.* |
+| AR65 | Cercle de la Pierre Qui Chante | 3 | Commune | 3 charges | Éveil : Un serviteur ciblé que vous contrôlez gagne +0/+1 de façon permanente. | *La pierre ne chante pas fort. Mais chaque note qu'elle laisse échapper laisse une trace durable.* |
+| AR66 | Cercle des Cendres Tièdes | 5 | Épique | 3 charges | Éveil : Restaure 2 points de vie à un serviteur ciblé que vous contrôlez. | *Les cendres n'ont jamais complètement refroidi. Elles gardent, tièdes, de quoi soigner encore un peu.* |
+| AR67 | Rituel du Sceau Rouillé | 4 | Rare | 2 charges | Éveil : Un serviteur ciblé que votre adversaire contrôle perd -1/-0 jusqu'à la fin du tour. | *Le sceau a rouillé, mais il referme encore, un peu, ce qu'il touche.* |
+| AR68 | Rituel de la Fracture Lente | 6 | Épique | 2 charges | Éveil : Un serviteur ciblé que votre adversaire contrôle perd -2/-2 de façon permanente. | *La fracture n'apparaît jamais d'un coup. Elle s'installe, patiente, jusqu'à tout affaiblir.* |
+| AR69 | Cercle du Jugement Sans Fin | 8 | Légendaire | 2 charges | Éveil : Détruit un serviteur ciblé que votre adversaire contrôle ayant 2 points de vie ou moins. | *Le cercle ne juge jamais qu'une fois. Il recommence, encore et encore, tant qu'il en a la force.* |
+| AR70 | Rituel du Second Geste | 4 | Rare | 3 charges | Éveil : Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, de coût 2 ou moins. | *Le premier geste s'est perdu depuis longtemps. Le rituel, lui, sait encore le refaire.* |
+| AR71 | Rituel des Strates Sans Fin | 7 | Légendaire | 2 charges | Éveil : Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, quel que soit son coût. | *Sous chaque strate, une autre. Le rituel ne s'arrête jamais d'en creuser une de plus.* |
 
 ## Enchantements
 
@@ -1062,6 +1090,10 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | AR38 | Colonne des Pactes Rompus | 3 | Rare | Renfort : Le serviteur invoqué gagne RAVAGE jusqu'à la fin du tour. | *Chaque pacte gravé dessus a été rompu. La colonne, elle, s'en souvient encore.* |
 | AR39 | Autel des Dons Perdus | 5 | Épique | Renfort (une fois par tour) : Le serviteur invoqué gagne REMPART de façon permanente. | *Il ne donne plus grand-chose. Mais ce qu'il donne encore, il le donne pour de bon.* |
 | AR40 | Vestige de l'Ancien Monde | 6 | Légendaire | Présence : Le premier serviteur invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire. | *Le monde qu'il vient de n'existe plus. Mais il protège encore, par habitude.* |
+| AR72 | Stèle de la Première Pierre | 3 | Rare | Présence : Le premier serviteur invoqué chaque tour gagne +0/+1 de façon permanente. | *La première pierre posée porte toutes les autres. Celle-ci s'en souvient à chaque fois.* |
+| AR73 | Sceau de la Rancœur Ancienne | 4 | Rare | Carnage : Un serviteur ciblé que votre adversaire contrôle perd -1/-0 jusqu'à la fin du tour. | *Chaque mort ravive une rancune que le sceau n'a jamais appris à laisser reposer.* |
+| AR74 | Autel des Échos Muets | 5 | Épique | Deuil : Un serviteur ciblé que vous contrôlez restaure 2 points de vie. | *L'autel ne parle jamais des morts. Il se contente de rendre un peu de souffle aux vivants.* |
+| AR75 | Le Cercle Qui Ne S'éteint Jamais | 7 | Légendaire | Renfort : Le serviteur invoqué gagne REMPART et ASSAUT de façon permanente. | *D'autres cercles se sont éteints avant lui. Celui-ci refuse, tout simplement, de s'arrêter.* |
 
 ## Ressource
 
@@ -1077,7 +1109,7 @@ L'Artefact **n'a pas de carte-ressource** : `Race.Type.NONE` n'a pas de pool de 
 
 ## ✅ Points d'intégration tranchés (Artefact)
 
-Le support moteur a été ajouté pour cette race (voir « Mécanique — Écho de trigger » et « Mécanique — Mimétisme complet » ci-dessus) ; les 43 ressources `.tres` (dont 3 jetons) sont créées dans `resources/cards/artifact/`.
+Le support moteur a été ajouté pour cette race (voir « Mécanique — Écho de trigger » et « Mécanique — Mimétisme complet » ci-dessus) ; les 75 ressources `.tres` (dont 3 jetons) sont créées dans `resources/cards/artifact/`.
 
 1. **Ajout de carte en main hors invocation** (`AddCardToHand`) : nouvel effet + `CardEffect.generated_card`, sur le modèle de `summon_card`/`SummonMinion` — ajoute une carte jeton (jamais une vraie carte du deck) à la main du camp propriétaire de la source (`EffectManager._add_card_to_hand`).
 2. **Écho de trigger** (`CardData.echoed_trigger`) : lu par `EffectManager.trigger_effects`, qui rejoue l'intégralité des effets de base (jamais les bonus de Pacte) une fois de plus par allié porteur en jeu (hors le déclencheur lui-même), cumulable.
@@ -1085,3 +1117,6 @@ Le support moteur a été ajouté pour cette race (voir « Mécanique — Écho 
 4. **Restriction de ciblage par coût** (`CardEffect.target_max_cost`) : même pattern que `target_max_hp`/`target_max_atk`, appliqué à la fois au ciblage (`TargetingSystem._matches_effect_conditions`) et à la résolution (`EffectManager._filter_targets`).
 5. **Ciblage héros-ou-serviteur** (`CardEffect.target = "EnemyHeroOrMinion"`) : Pierre Volcanique peut viser soit un serviteur ennemi, soit le héros ennemi directement. Câblé dans `TargetingSystem` (surbrillance des deux + clic sur `EnemyHeroPanel` accepté) et `EffectManager._damage` (branche dédiée : `selected_target == null` = héros cliqué — signal déjà produit gratuitement par `CardSystem.resolve_with_target`, qui ne transmet un `Minion` à `execute_effect` que si la cible réellement cliquée en est un). L'IA (`AISystem._pick_spell_target`) traite ce ciblage comme `EnemyMinion` : vise le serviteur le plus menaçant si possible, sinon retombe sur le héros.
 6. **Sélecteur "moins de HP"** (`CardEffect.target = "LowestHPAlly"`) : nouveau sélecteur dans `EffectManager._get_targets`, utilisé par Cercle des Strates Anciennes. Générique (pas propre à l'Abomination) — réutilisable par n'importe quelle future carte visant l'allié le plus faible en HP, toutes races confondues.
+7. **Réactivation de tous les déclencheurs** (`RetriggerAllTriggers`) : nouvel effet ciblé (Écho du Premier Geste, Rappel du Grand Rite, L'Éveilleur de Strates, Rituel du Second Geste, Rituel des Strates Sans Fin) qui rejoue, pour la cible résolue, l'intégralité de `target.card_data.get_trigger_names()` via `EffectManager.trigger_effects` — contrairement à l'Écho de trigger (mécanique passive tant qu'un porteur est en jeu), c'est une réactivation ponctuelle déclenchée par un sort/Éveil, qui couvre TOUS les triggers de la cible (pas un seul type choisi à l'avance). `EffectManager._retrigger_all` (`scripts/EffectManager/EffectManager.gd`).
+8. **Dégâts de zone récurrents** (`DamageAllMinionsRecurring`, Onde du Cataclysme) : variante en boucle de `DamageAllMinions` — après chaque vague de dégâts et `DeathSystem.process_deaths()`, continue seulement si au moins un serviteur du camp adverse à la source est mort à CETTE vague précisément (recalcul de la liste de cibles à chaque itération, puisque les morts sont retirées entre deux vagues) ; plafonné défensivement à 20 vagues. `EffectManager._damage_all_minions_recurring`.
+9. **Ciblage joueur généralisé sur un trigger de Rituel/Enchantement** : `EffectManager.resolve_trigger_target` (déjà utilisé pour le Dernier Souffle d'un serviteur, via `DeathSystem._trigger_deathrattle`) est désormais aussi appelé par `TriggerSystem._execute_enchantment_effects_with_proxy` quand un trigger de Rituel/Enchantement n'a pas de cible contextuelle utilisable — le joueur local choisit alors une cible comme pour n'importe quel Dernier Souffle ciblé, sinon tirage aléatoire (IA/adversaire réseau). Générique sur n'importe quel trigger_name (Éveil, Carnage, Deuil...), utilisé par Cercle de la Pierre Qui Chante, Cercle des Cendres Tièdes, Rituel du Sceau Rouillé, Rituel de la Fracture Lente, Cercle du Jugement Sans Fin, Rituel du Second Geste, Rituel des Strates Sans Fin, Sceau de la Rancœur Ancienne et Autel des Échos Muets. Cas particulier du Deuil (`OnGrief`) : `DeathSystem.process_deaths` fournit toujours l'allié qui vient de mourir comme source de l'évènement (déjà retiré du plateau, utile à un effet comme `ResurrectSelf`/Cimetière Vivant qui veut explicitement le viser) — pour tout autre effet (Heal/Buff/Debuff...), ce mort n'est pas une cible utilisable ; `_execute_enchantment_effects_with_proxy` traite donc aussi une cible contextuelle déjà morte comme une absence de cible (sauf si le trigger porte justement un effet `ResurrectSelf`), pour que le ciblage joueur s'applique correctement à Autel des Échos Muets.
