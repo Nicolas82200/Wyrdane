@@ -8,15 +8,15 @@
 script = ExtResource("1_cardeffect")
 effect_id = "GrantKeyword"
 target = "AllyMinion"
-duration = "UntilEndOfTurn"
-granted_keyword = "RANG_INFERNAL"
+duration = "Permanent"
+granted_keyword = "SANG_NOIR"
 granted_keyword_is_demon = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Marque du Pacte"
-description = "Un Démon ciblé que vous contrôlez gagne RANG INFERNAL jusqu'à fin de tour."
+description = "Un Démon ciblé que vous contrôlez acquiert SANG NOIR de façon permanente."
 flavour_text = "La marque ne s'efface pas. Elle attend juste son heure."
 texture = ExtResource("3_texture")
 cost = 3

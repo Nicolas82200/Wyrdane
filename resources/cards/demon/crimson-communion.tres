@@ -23,9 +23,10 @@ description = "Votre héros regagne 3 points de vie.
 Piochez une carte."
 flavour_text = "Le pacte n'est pas qu'une dette. Parfois, il rembourse."
 texture = ExtResource("3_texture")
-cost = 2
+cost = 3
 race = 5
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_um2mc"), SubResource("Resource_a51d0")])
 rarity = "Common"
+race_cost_override = 2
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

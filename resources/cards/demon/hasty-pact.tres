@@ -30,9 +30,10 @@ description = "Votre héros perd 2 points de vie.
 Piochez 2 cartes."
 flavour_text = "Signer vite coûte cher. Signer tard coûte pareil."
 texture = ExtResource("3_texture")
-cost = 1
+cost = 2
 race = 5
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_c75tc"), SubResource("Resource_yfixe")])
 rarity = "Common"
+race_cost_override = 1
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

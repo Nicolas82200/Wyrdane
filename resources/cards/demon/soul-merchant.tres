@@ -13,7 +13,7 @@ type = "OnAwaken"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 2
+value = 3
 
 [sub_resource type="Resource" id="Resource_307vr"]
 script = ExtResource("1_cardeffect")
@@ -32,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Le Marchand d'Âmes"
 description = "Éveil : Piochez une carte.
-Pacte 2 : Piochez une carte supplémentaire."
+Pacte 3 : Piochez une carte supplémentaire."
 flavour_text = "Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour."
 texture = ExtResource("3_texture")
 cost = 6
