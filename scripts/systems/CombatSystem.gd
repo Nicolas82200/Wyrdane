@@ -212,6 +212,11 @@ func perform_hero_attack(attacker: Minion) -> void:
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:
 		battle.hero_system.get_owner_hero(attacker).heal(attacker.attack)
+		# battle.hero_system.damage() ci-dessus a déjà rafraîchi l'affichage des
+		# PV avant ce soin : sans un second update_ui() ici, le label du héros
+		# soigné restait périmé jusqu'au prochain refresh fortuit (typiquement le
+		# tour suivant), donnant l'impression que MOISSON soignait en différé.
+		battle.hero_system.update_ui()
 		if visual:
 			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)

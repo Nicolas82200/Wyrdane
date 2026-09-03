@@ -97,6 +97,14 @@ var triggers_used_this_turn: Dictionary = {}
 var is_mimicking: bool = false
 var mimicked_trigger_types: Array = []
 var mimicked_effects: Array = []
+# Déguisement visuel (L'Innommable) : carte dont l'apparence (art, nom,
+# description) doit être affichée à la place de `card_data`, sans jamais
+# remplacer `card_data` lui-même (qui reste la Resource partagée servant à
+# calculer coût/race/stats de base). Nul = aucun déguisement, afficher `card_data`.
+var display_card_override: CardData = null
+
+func get_display_card() -> CardData:
+	return display_card_override if display_card_override != null else card_data
 
 # ─── Mode Arena uniquement (voir scripts/arena/) ──────────────────────────────
 # Niveau d'étoile après fusion de 3 copies identiques (ArenaMergeSystem).

@@ -664,6 +664,10 @@ func _mimic_target(battle, source_minion: Minion, effect: CardEffect, selected_t
 	source_minion.mimicked_trigger_types = src_card.trigger_types.duplicate()
 	source_minion.mimicked_effects       = src_card.effects.duplicate()
 	source_minion.is_mimicking = true
+	# Déguisement visuel : l'art/nom/description affichés deviennent ceux de la
+	# cible, SANS toucher à `source_minion.card_data` (qui reste la source de
+	# vérité pour le coût/la race/les stats de base) — voir Minion.get_display_card.
+	source_minion.display_card_override = selected_target.get_display_card()
 	battle.board_visual_system.refresh_board()
 
 # Pioche `count` carte(s) pour le camp propriétaire de `source_minion` (joueur
