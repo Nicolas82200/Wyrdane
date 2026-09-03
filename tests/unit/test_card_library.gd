@@ -73,13 +73,21 @@ func test_arena_only_cards_are_excluded_from_library_but_kept_separately() -> vo
 		assert_true(card.arena_only)
 
 func test_token_cards_have_no_chaining_effects() -> void:
+	# La règle "aucun effect" (CLAUDE.md « Jetons d'invocation ») ne concerne
+	# que les jetons de type Serviteur, invoqués via SummonMinion : un effect
+	# sur un tel jeton redéclencherait ses propres triggers/effets en boucle.
+	# Les jetons d'objet (Incantation, ex. Artefact : Pierre Volcanique...)
+	# ajoutés à la main via AddCardToHand ne sont jamais auto-déclenchés — ce
+	# sont de vraies cartes jouées normalement par le joueur, leurs effects
+	# sont donc attendus.
 	var token_paths: Array[String] = []
 	_collect_token_paths("res://resources/cards", token_paths)
 	assert_gt(token_paths.size(), 0, "aucun jeton trouvé, le scan a probablement échoué")
 	for path in token_paths:
 		var card: CardData = load(path)
 		assert_true(card.is_token, "%s devrait avoir is_token=true" % path)
-		assert_eq(card.effects.size(), 0, "%s : un jeton ne doit porter aucun effect (risque de réaction en chaîne)" % path)
+		if card.card_type == "Minion":
+			assert_eq(card.effects.size(), 0, "%s : un jeton Serviteur ne doit porter aucun effect (risque de réaction en chaîne via SummonMinion)" % path)
 
 func test_summon_minion_effects_target_a_valid_token() -> void:
 	# Règle CLAUDE.md « Jetons d'invocation » : un effet SummonMinion ne doit

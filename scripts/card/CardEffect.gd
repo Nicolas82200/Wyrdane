@@ -23,7 +23,8 @@ class_name CardEffect
 	"SacrificeDrawPerVictim", "StealMinionThenDestroy",
 	"AuraSelfDamageReduction", "GrantSpellImmunity", "GroupAttackImmediate", "DestroyEnchantment",
 	"ApplyMutation", "GrantKeywordAdjacent", "AbsorbAdjacentStats", "CopyAdjacentKeyword",
-	"DrawCardPerAllyDeathThisTurn", "MoveRow", "MimicTarget", "CancelFirstEnemySpellPerTurn"
+	"DrawCardPerAllyDeathThisTurn", "MoveRow", "MimicTarget", "CancelFirstEnemySpellPerTurn",
+	"AddCardToHand", "MimicMinion"
 ) var effect_id: String = "Damage"
 
 @export_enum(
@@ -33,7 +34,7 @@ class_name CardEffect
 	"AnyMinion", "AllEnemiesFront", "AllEnemiesBack",
 	"AllAlliesFront", "AllAlliesBack", "PerInfectedEnemy",
 	"EnemyEnchantment", "AllyEnchantment", "AnyEnchantment",
-	"TriggerSource"
+	"TriggerSource", "EnemyHeroOrMinion", "LowestHPAlly"
 ) var target: String = "Self"
 
 @export_enum("Permanent", "UntilEndOfTurn", "UntilEndOfEnemyTurn") var duration: String = "Permanent"
@@ -54,6 +55,10 @@ class_name CardEffect
 @export var count: int = 1
 @export var summon_card: CardData
 @export var transform_card: CardData
+# Carte fixe ajoutée à la main par AddCardToHand (Golem de Basalte, Urne
+# Scellée...). Même logique que summon_card : toujours un jeton (is_token),
+# jamais une vraie carte du deck.
+@export var generated_card: CardData
 @export var race_filter: String = ""
 # Inverse le sens de race_filter : ne retient que les cibles qui N'appartiennent
 # PAS à cette race (ex: Fléau Écarlate, "serviteurs non Démons ennemis").
@@ -66,7 +71,9 @@ class_name CardEffect
 # Vérifié au ciblage (TargetingSystem) ET à la résolution (EffectManager).
 @export var target_max_hp: int = -1
 @export var target_max_atk: int = -1
-# "un serviteur ennemi ayant un coût de ressource de X ou moins" (Le Grand Pacte).
+# -1 = pas de condition. Sert au ciblage de MimicMinion (Écho de Pacotille :
+# "un serviteur allié de coût 1 ou moins") et à "un serviteur ennemi ayant
+# un coût de ressource de X ou moins" (Le Grand Pacte).
 @export var target_max_cost: int = -1
 # Ne peut cibler qu'un serviteur ramené du cimetière (Minion.was_resurrected),
 # ex. Brise-Mort.

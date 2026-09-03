@@ -93,20 +93,28 @@ func _on_self_damage_dealt(is_player: bool) -> void:
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 
-# Accessibilité : au-dessous de ce ratio de HP max, un symbole "⚠" est ajouté
-# devant le nombre de HP du héros — ne pas dépendre uniquement d'une couleur
-# pour signaler un danger (voir _hp_label_text).
+# Au-dessous de ce ratio de HP max, le nombre de HP du héros s'affiche en
+# rouge (voir _apply_hp_label).
 const LOW_HP_RATIO := 0.3
+const _LOW_HP_COLOR := Color(0.92, 0.22, 0.22, 1.0)
 
 func update_ui() -> void:
-	battle.get_node("PlayerHeroPanel/HealthLabel").text = _hp_label_text(battle.player_hero)
-	battle.get_node("EnemyHeroPanel/HealthLabel").text  = _hp_label_text(battle.enemy_hero)
+	_apply_hp_label(battle.get_node("PlayerHeroPanel/HealthLabel"), battle.player_hero)
+	_apply_hp_label(battle.get_node("EnemyHeroPanel/HealthLabel"), battle.enemy_hero)
 
 func _hp_label_text(hero: Hero) -> String:
+	return str(maxi(hero.health, 0))
+
+func _is_hp_low(hero: Hero) -> bool:
 	var hp: int = maxi(hero.health, 0)
-	if hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0:
-		return "⚠ " + str(hp)
-	return str(hp)
+	return hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0
+
+func _apply_hp_label(label: Label, hero: Hero) -> void:
+	label.text = _hp_label_text(hero)
+	if _is_hp_low(hero):
+		label.add_theme_color_override("font_color", _LOW_HP_COLOR)
+	else:
+		label.remove_theme_color_override("font_color")
 
 # ─── Halo de tour ───────────────────────────────────────────────────────────
 # Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros

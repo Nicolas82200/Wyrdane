@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Le Héraut Du Second Pas"
+description = "Tant que ce serviteur est en jeu, vos Arrivées alliées se déclenchent une fois de plus."
+flavour_text = "Chaque entrée laisse une empreinte. La sienne en laisse deux."
+cost = 4
+race = 0
+attack = 3
+health = 4
+echoed_trigger = "ONPLAY"
+rarity = "Epic"
+board_position = "Hybrid"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

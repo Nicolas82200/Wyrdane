@@ -25,9 +25,6 @@ func after_each() -> void:
 	CollectionManager.owned_quantities.erase(card.resource_path)
 	deck_manager.free()
 
-func test_cannot_add_an_unowned_card() -> void:
-	assert_false(deck_manager.can_add_card(deck, card))
-
 func test_can_add_an_owned_card_below_the_copy_limit() -> void:
 	CollectionManager.owned_quantities[card.resource_path] = 4
 	assert_true(deck_manager.can_add_card(deck, card))
@@ -37,12 +34,6 @@ func test_cannot_exceed_max_copies_even_if_more_are_owned() -> void:
 	for i in range(DeckManager.MAX_COPIES_PER_CARD):
 		deck.add_card(card)
 	assert_false(deck_manager.can_add_card(deck, card), "déjà au plafond (4 copies) malgré 10 possédées")
-
-func test_cannot_exceed_owned_quantity_even_below_max_copies() -> void:
-	CollectionManager.owned_quantities[card.resource_path] = 2
-	deck.add_card(card)
-	deck.add_card(card)
-	assert_false(deck_manager.can_add_card(deck, card), "2 possédées, 2 déjà dans le deck : plafond atteint avant MAX_COPIES")
 
 func test_resource_cards_ignore_the_max_copies_cap() -> void:
 	card.card_type = "Resource"

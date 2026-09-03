@@ -43,6 +43,11 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 **Résolu.** Contrat (`docs/backend-contracts/weekly-quests-and-referral.md`), routes backend (`wyrdane-backend`, branche `0044-weekly-quests-and-referral` : `/api/quests/weekly`, `/api/packs/open-owned`, `/api/referral/*`) et squelette client (`QuestsPanel._populate_weekly`, `ReferralPanel.gd`, `CurrencyManager.free_packs`/`open_owned_pack`) tous en place. Bouton « Ouvrir un pack gratuit » câblé dans `PackShop.tscn`/`PackShop.gd` (visible seulement si `free_packs > 0`). Popup « entrer un code de parrainage » affiché une seule fois (`SettingsManager.referral_prompt_seen`) juste après la fin du tutoriel (`ReferralPanel.maybe_show_first_launch_prompt`, appelé depuis `MainMenu._launch_backend_syncs`), en plus du champ resté dans la vue Profil pour un usage tardif. Reste à mettre en prod côté backend (`0044-weekly-quests-and-referral` pas encore mergée/déployée) avant que ces écrans ne fonctionnent réellement en jeu.
 
+## P9 — Race Artefact : art manquant
+
+Ajout de la 5e race (Artefact, `resources/cards/artifact/`, 43 cartes dont 3 jetons, `Race.Type.NONE`).
+- **Aucun visuel** : les 43 `.tres` n'ont pas de `texture` (champ laissé vide/nul, déjà géré par `CardData`/`Card.gd`) faute d'art disponible pour cette race — à produire et assigner carte par carte quand l'art sera prêt (voir les autres races pour le pipeline `assets/card_art/<race>/`).
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
