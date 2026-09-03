@@ -43,6 +43,17 @@ var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
+# Suivi succès Steam (AchievementManager, voir Battle.gd) : compteurs
+# accumulés au fil du match courant.
+var player_resource_cards_played: int = 0
+var player_min_hp_this_match: int = 30
+var player_was_low_hp_this_match: bool = false
+var player_kills_this_turn: int = 0
+var player_infection_damage_dealt: int = 0
+var player_used_back_row_this_match: bool = false
+var player_commandement_triggers_this_match: int = 0
+var player_black_blood_triggers_this_match: int = 0
+var deck_has_legendary: bool = false
 var _fake_tree := FakeSceneTree.new()
 
 # ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
