@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Réveil Soudain"
-description = "Renvoie le dernier serviteur mort que vous contrôlez dans votre main depuis le cimetière."
+description = "Ressuscitez le dernier serviteur à avoir rejoint votre cimetière dans votre main."
 flavour_text = "Il n'y a pas de repos pour ceux qu'on rappelle."
 texture = ExtResource("3_texture")
 cost = 1

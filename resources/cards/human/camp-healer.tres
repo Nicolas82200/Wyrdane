@@ -21,7 +21,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Guérisseur de Camp"
-description = "Éveil : Donne +0/+1 à un Humain que vous contrôlez, au hasard."
+description = "Éveil : Donne +0/+1 à un Humain aléatoire que vous contrôlez."
 flavour_text = "Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame."
 texture = ExtResource("3_texture")
 cost = 3

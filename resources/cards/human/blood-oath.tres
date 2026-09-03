@@ -21,7 +21,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_mvynr")
 card_name = "Serment du Sang"
-description = "Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent que vous contrôlez gagne +1/+1."
+description = "Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1."
 flavour_text = "Le serment survit à celui qui l'a fait. C'est l'idée."
 texture = ExtResource("5_owcgx")
 cost = 4
