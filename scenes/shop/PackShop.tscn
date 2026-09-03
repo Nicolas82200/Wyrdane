@@ -3,6 +3,7 @@
 [ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="1_font"]
 [ext_resource type="PackedScene" uid="uid://bh2v8er86udpn" path="res://scenes/card/Card.tscn" id="2_card"]
 [ext_resource type="Script" path="res://scripts/shop/PackShop.gd" id="3_script"]
+[ext_resource type="Texture2D" path="res://assets/icons/crown-coin.svg" id="4_goldicon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bgpanel"]
 bg_color = Color(0.09, 0.075, 0.055, 0.92)
@@ -75,11 +76,20 @@ grow_horizontal = 2
 alignment = 1
 theme_override_constants/separation = 16
 
+[node name="BalanceIcon" type="TextureRect" parent="ShakeLayer/InfoRow"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_goldicon")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="BalanceLabel" type="Label" parent="ShakeLayer/InfoRow"]
 layout_mode = 2
+size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 18
-text = "Solde : 0"
+text = "0"
 
 [node name="ProgressLabel" type="Label" parent="ShakeLayer/InfoRow"]
 layout_mode = 2

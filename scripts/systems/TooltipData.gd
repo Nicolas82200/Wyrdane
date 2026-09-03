@@ -445,7 +445,34 @@ func build_status_panels_for_minion(minion: Minion, parent: Node) -> Array[Contr
 		parent.add_child(panel)
 		panels.append(panel)
 
+	if minion.mutation_stacks > 0:
+		var panel := make_tooltip_panel(
+			_tr("KW_MUTATION_NAME"), _tr("STATUS_MUTATION_DESC") % [minion.mutation_stacks, _mutation_breakdown(minion)],
+			COLOR_EFFECT)
+		panel.position = Vector2(-9999, -9999)
+		parent.add_child(panel)
+		panels.append(panel)
+
 	return panels
+
+# Décompte des mutations gagnées par type (Croissance/Renforcement/
+# Dégénérescence), pour afficher par exemple "Croissance ×2, Dégénérescence ×1"
+# plutôt qu'un simple total qui ne dirait pas quels effets sont réellement actifs.
+const _MUTATION_OUTCOME_LABELS := {
+	"Croissance":      "STATUS_MUTATION_GROWTH_LABEL",
+	"Renforcement":    "STATUS_MUTATION_REINFORCE_LABEL",
+	"Dégénérescence":  "STATUS_MUTATION_DEGENERATE_LABEL",
+}
+
+func _mutation_breakdown(minion: Minion) -> String:
+	var counts: Dictionary = {}
+	for outcome in minion.mutations:
+		counts[outcome] = counts.get(outcome, 0) + 1
+	var parts: PackedStringArray = []
+	for outcome in _MUTATION_OUTCOME_LABELS:
+		if counts.get(outcome, 0) > 0:
+			parts.append("%s ×%d" % [_tr(_MUTATION_OUTCOME_LABELS[outcome]), counts[outcome]])
+	return ", ".join(parts)
 
 # ─── Modificateurs actuellement actifs (survol en bataille, affiché à gauche) ─
 # Contrairement à un historique (chaque ligne pourrait rester affichée après

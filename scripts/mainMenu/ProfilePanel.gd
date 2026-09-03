@@ -91,6 +91,7 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 # progression vers le palier suivant, plus lisible dans un contexte dédié).
 static func apply_rank_badge(label: Label, mmr: int, with_progress: bool) -> void:
 	var tier := RankTier.from_mmr(mmr)
+	AchievementManager.check_rank_tier(tier)
 	label.add_theme_color_override("font_color", RankTier.color(tier))
 	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [RankTier.symbol(tier), SettingsManager.t(RankTier.tier_key(tier)), mmr]
 	if with_progress:

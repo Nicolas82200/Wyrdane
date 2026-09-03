@@ -757,6 +757,7 @@ func _on_save() -> void:
 	current_deck.name = DeckManager.make_unique_name(current_deck.name, current_deck)
 	deck_name_edit.text = current_deck.name
 	DeckManager.save_decks()
+	AchievementManager.on_deck_saved(current_deck)
 	_dirty = false
 	_snapshot_original_state()
 	_update_save_button()

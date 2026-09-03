@@ -13,6 +13,11 @@ var is_synced: bool = false
 
 signal collection_loaded
 
+func _ready() -> void:
+	# Succès Steam "Collectionneur" (voir AchievementManager) : vérifié à chaque
+	# sync complète ou achat individuel, les deux émettant ce signal.
+	collection_loaded.connect(AchievementManager.check_collector)
+
 # À appeler après CardLibrary.sync_backend_catalog() (le mapping id -> carte
 # doit exister pour résoudre les cardId renvoyés par l'API vers un resource_path).
 # on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
