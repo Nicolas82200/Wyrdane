@@ -598,7 +598,7 @@ func _clear_cards() -> void:
 		child.queue_free()
 
 func _update_balance_label(new_balance: int) -> void:
-	balance_label.text = SettingsManager.t("pack_shop.balance") % new_balance
+	balance_label.text = str(new_balance)
 
 ## Visible seulement si le joueur a au moins un pack gratuit à ouvrir (quêtes
 ## hebdo, parrainage) — CurrencyManager.free_packs, séparé du solde d'or.

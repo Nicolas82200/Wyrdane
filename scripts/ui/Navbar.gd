@@ -22,7 +22,7 @@ func _on_shop_pressed() -> void:
 	pack_shop.refresh()
 
 func _update_currency_label(new_balance: int) -> void:
-	currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
+	currency_label.text = str(new_balance)
 
 func _retranslate() -> void:
 	shop_button.text = SettingsManager.t("MENU_PACKS")
