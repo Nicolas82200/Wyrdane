@@ -13,7 +13,7 @@ const ROW_MAX_CRYSTALS: int = 6
 
 const COLOR_TEXT := Color("cfe6ff")
 
-# Teinte de cristal par race, réutilisée pour le swatch identifiant la rangée.
+# Teinte de cristal par race, réutilisée pour teinter le logo identifiant la rangée.
 const RACE_MANA_COLORS := {
 	Race.Type.HUMAN:      Color("e8c04a"),
 	Race.Type.ELF:        Color("4fc2b0"),
@@ -22,6 +22,17 @@ const RACE_MANA_COLORS := {
 	Race.Type.DEMON:      Color("e0574a"),
 	Race.Type.ABOMINATION: Color("7ee23a"),
 	Race.Type.NONE:       Color("c9a6ff"),
+}
+
+# Logo de la carte-ressource de chaque race, affiché à la place du rectangle
+# de couleur plat identifiant la rangée (teinté via RACE_MANA_COLORS).
+# Elfe/Nain/mana temporaire (Type.NONE) n'ont pas de carte-ressource dédiée :
+# pas d'entrée ici, fallback sur un simple carré de couleur (voir _ensure_row).
+const RACE_MANA_ICONS := {
+	Race.Type.UNDEAD:      preload("res://assets/icons/fleshy-mass.svg"),
+	Race.Type.HUMAN:       preload("res://assets/icons/wax-seal.svg"),
+	Race.Type.DEMON:       preload("res://assets/icons/soul.svg"),
+	Race.Type.ABOMINATION: preload("res://assets/icons/internal-organ.svg"),
 }
 
 const RACE_TRANSLATION_KEYS := {
@@ -85,9 +96,20 @@ func _ensure_row(race: int) -> Dictionary:
 
 	var color: Color = RACE_MANA_COLORS.get(race, Color.WHITE)
 
-	var swatch := ColorRect.new()
-	swatch.custom_minimum_size = Vector2(10, 10)
-	swatch.color = color
+	var swatch: Control
+	if RACE_MANA_ICONS.has(race):
+		var icon := TextureRect.new()
+		icon.texture = RACE_MANA_ICONS[race]
+		icon.custom_minimum_size = Vector2(14, 14)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.modulate = color
+		swatch = icon
+	else:
+		var rect := ColorRect.new()
+		rect.custom_minimum_size = Vector2(10, 10)
+		rect.color = color
+		swatch = rect
 	hbox.add_child(swatch)
 
 	var crystals: Array[Label] = []
