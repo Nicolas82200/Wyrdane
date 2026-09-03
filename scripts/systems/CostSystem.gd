@@ -138,6 +138,11 @@ func on_card_played(card_data: CardData, is_player: bool) -> void:
 		per_race[card_data.race] = int(per_race.get(card_data.race, 0)) + 1
 	else:
 		await _charge_spell_discount_self_damage(card_data, is_player)
+	# La carte jouée peut avoir consommé une réduction "premier de la race"
+	# (AuraFirstOfRaceCostReduction) : les autres cartes de la race en main
+	# ne sont plus réduites, il faut réafficher leur coût réel.
+	if is_player and battle.hand != null:
+		battle.hand.refresh_costs()
 
 # Sanctuaire Écarlate : la première fois que sa remise de coût s'applique à un
 # sort allié chaque tour, le héros propriétaire de l'enchantement perd 1 HP.
@@ -156,6 +161,8 @@ func _charge_spell_discount_self_damage(card_data: CardData, is_player: bool) ->
 # Début du tour d'un camp : ses compteurs "premier de la race" repartent à zéro.
 func on_turn_started(is_player: bool) -> void:
 	_race_played_this_turn[is_player] = {}
+	if is_player and battle.hand != null:
+		battle.hand.refresh_costs()
 
 # Fin du tour du joueur local : les remises "ce tour" expirent.
 func expire_end_of_player_turn() -> void:
