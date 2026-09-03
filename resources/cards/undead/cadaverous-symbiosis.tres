@@ -21,7 +21,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Symbiose Cadavérique"
-description = "Présence : Vos serviteurs en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant."
+description = "Présence : Les serviteurs que vous contrôlez en rangée Arrière gagnent +0/+1 par serviteur que vous contrôlez en rangée Avant."
 flavour_text = "Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste."
 texture = ExtResource("3_texture")
 cost = 5

@@ -13,7 +13,7 @@ var is_selected := false
 @onready var health_label     = $HealthLabel
 @onready var border_highlight: Panel     = $BorderHighlight
 @onready var border_color: Panel         = get_node_or_null("BorderColor")
-@onready var keyword_icons: HBoxContainer = $KeywordIcons
+@onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
 	Race.Type.UNDEAD: Color("342e1ae1"),
@@ -210,6 +210,7 @@ func _process(delta: float) -> void:
 	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
 		and is_visible_in_tree() \
 		and not _is_game_over() \
+		and not _is_ui_blocked() \
 		and get_global_rect().has_point(get_global_mouse_position())
 	if over and not _mouse_is_over:
 		_on_mouse_entered()
@@ -401,6 +402,19 @@ func _is_dragging_card() -> bool:
 func _is_game_over() -> bool:
 	return _battle != null and "game_over" in _battle and _battle.game_over
 
+## Coupe le hover du board pendant qu'une vue plein écran (cimetière/deck,
+## réglages) est ouverte par-dessus.
+func _is_ui_blocked() -> bool:
+	if _battle == null:
+		return false
+	if "graveyard_view" in _battle and is_instance_valid(_battle.graveyard_view) \
+			and _battle.graveyard_view.visible:
+		return true
+	if "settings_menu" in _battle and is_instance_valid(_battle.settings_menu) \
+			and _battle.settings_menu.visible:
+		return true
+	return false
+
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
 	if _targetable:
@@ -484,7 +498,6 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 	var my_layer := _tooltip_layer
 
 	var panels: Array[Control] = TooltipData.build_panels_for_minion(minion, my_layer)
-	panels.append_array(TooltipData.build_status_panels_for_minion(minion, my_layer))
 	await get_tree().process_frame
 
 	if not _mouse_is_over or _tooltip_layer != my_layer:
@@ -517,16 +530,31 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		base_y += panel.size.y + 6
 		_keyword_tooltips.append(panel)
 
-	# Historique des effets reçus (Minion.buffs) : affiché à GAUCHE de la carte,
-	# symétrique de l'aperçu agrandi + pile de mots-clés qui vont à droite —
-	# pas de conflit possible entre les deux piles.
-	var history_panels: Array[Control] = TooltipData.build_history_panel_for_minion(minion, my_layer)
-	if not history_panels.is_empty() and is_instance_valid(history_panels[0]):
-		var history_panel := history_panels[0]
-		var hx: float = maxf(4.0, global_position.x - history_panel.size.x - 15)
-		var hy: float = clampf(global_position.y, 4.0, maxf(4.0, vp.y - history_panel.size.y - 4.0))
-		history_panel.global_position = Vector2(hx, hy)
-		_keyword_tooltips.append(history_panel)
+	# États actifs (Infecté/Gel/Terreur/Corruption) + modificateurs de stats
+	# actuellement actifs : affichés à GAUCHE de la carte AGRANDIE (_hover_preview,
+	# pas ce petit BoardMinion) — symétrique de l'aperçu + pile mots-clés/déclencheurs
+	# qui vont à droite de ce même aperçu, jamais de conflit entre les deux piles.
+	var left_panels: Array[Control] = TooltipData.build_status_panels_for_minion(minion, my_layer)
+	left_panels.append_array(TooltipData.build_active_modifiers_panel_for_minion(minion, my_layer))
+	if not left_panels.is_empty() and is_instance_valid(_hover_preview):
+		var left_panel_width := 220.0
+		if is_instance_valid(left_panels[0]):
+			left_panel_width = left_panels[0].size.x
+		var left_x: float = maxf(4.0, _hover_preview.global_position.x - left_panel_width - 15)
+		var left_y: float = _hover_preview.global_position.y
+		var left_stack_height := 0.0
+		for panel in left_panels:
+			if is_instance_valid(panel):
+				left_stack_height += panel.size.y + 6.0
+		if left_stack_height > 0.0:
+			left_stack_height -= 6.0
+			left_y = clampf(left_y, 4.0, maxf(4.0, vp.y - left_stack_height - 4.0))
+		for panel in left_panels:
+			if not is_instance_valid(panel):
+				continue
+			panel.global_position = Vector2(left_x, left_y)
+			left_y += panel.size.y + 6
+			_keyword_tooltips.append(panel)
 
 	if TooltipData.RACE_DESCRIPTIONS.has(minion.card_data.race):
 		if _tooltip_layer != my_layer or not is_instance_valid(my_layer):
@@ -564,15 +592,17 @@ func _hide_keyword_tooltips() -> void:
 # derrière elles dès que celui-ci était clair — le badge sombre + bordure
 # colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
 # constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
-const KEYWORD_BADGE_SIZE := 26.0
-const KEYWORD_ICON_SIZE  := 16.0
+# Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
+# icône 11->13) : les icônes doivent rester lisibles alignées verticalement le
+# long du bord gauche de la carte sans que la bulle ne prenne toute la place.
+const KEYWORD_BADGE_SIZE := 15.0
+const KEYWORD_ICON_SIZE  := 13.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:
 		return
-	# Resserré (défaut 4px) pour compenser l'agrandissement du badge (22->26px) :
-	# plusieurs mots-clés sur un même serviteur restent lisibles sans trop déborder
-	# du coin de la carte.
+	# Resserré pour empiler plusieurs mots-clés le long du bord gauche de la
+	# carte sans déborder de sa hauteur.
 	keyword_icons.add_theme_constant_override("separation", 2)
 	for child in keyword_icons.get_children():
 		child.queue_free()

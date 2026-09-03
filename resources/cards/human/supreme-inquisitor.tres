@@ -18,6 +18,12 @@ effect_id = "CureInfection"
 target = "AllAllies"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_cure_corrupt"]
+script = ExtResource("1_cardeffect")
+effect_id = "CureCorruption"
+target = "AllAllies"
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [sub_resource type="Resource" id="Resource_rhcce"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
@@ -26,7 +32,7 @@ type = "ONPLAY"
 script = ExtResource("4_carddata")
 card_name = "Inquisiteur Suprême"
 description = "DISCIPLINE
-Arrivée : Annule tous les effets Infection sur vos serviteurs alliés."
+Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs."
 flavour_text = "La corruption s'arrête là où il pose le regard."
 texture = ExtResource("3_texture")
 cost = 5
@@ -36,7 +42,7 @@ attack = 3
 health = 5
 human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw1")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_rhcce")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cure")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_cure"), SubResource("Resource_cure_corrupt")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

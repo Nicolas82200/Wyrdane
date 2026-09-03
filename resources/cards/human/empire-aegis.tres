@@ -13,6 +13,15 @@ race_filter = "Human"
 row_filter = "Front"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
+[sub_resource type="Resource" id="Resource_disc"]
+script = ExtResource("1_hj10y")
+effect_id = "GrantKeyword"
+target = "AllAlliesFront"
+race_filter = "Human"
+granted_keyword = "DISCIPLINE"
+granted_keyword_is_human = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
 [sub_resource type="Resource" id="Resource_y9nik"]
 script = ExtResource("5_3a4t0")
 type = "OnAura"
@@ -20,14 +29,13 @@ type = "OnAura"
 [resource]
 script = ExtResource("3_13sdd")
 card_name = "Aegis de l'Empire"
-description = "Présence : Vos serviteurs Humains en rangée Avant sont immunisés à l'Infection.
-Les marqueurs Infection déjà présents sont retirés à la fin de chaque tour."
+description = "Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour."
 flavour_text = "L'Empire ne cède pas à la pourriture. Ce n'est pas de l'orgueil. C'est de l'obstination."
 texture = ExtResource("4_twgc8")
 cost = 5
 race = 1
 card_type = "Enchantment"
 trigger_types = Array[ExtResource("5_3a4t0")]([SubResource("Resource_y9nik")])
-effects = Array[ExtResource("1_hj10y")]([SubResource("Resource_aii")])
+effects = Array[ExtResource("1_hj10y")]([SubResource("Resource_aii"), SubResource("Resource_disc")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

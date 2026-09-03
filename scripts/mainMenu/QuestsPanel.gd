@@ -29,6 +29,13 @@ static func open(menu) -> void:
 			return
 		_populate_weekly(menu, data.get("quests", []))
 	)
+	# Section unique chargée séparément, toujours après la hebdo dans le
+	# conteneur (échec silencieux, même logique que la hebdo).
+	BackendClient.get_unique_quests(func(success: bool, data: Dictionary):
+		if menu._current_info_view != menu.InfoView.QUESTS or not success:
+			return
+		_populate_unique(menu, data.get("quests", []))
+	)
 
 static func _populate(menu, quests: Array) -> void:
 	menu.quests_status_label.visible = quests.is_empty()
@@ -51,7 +58,22 @@ static func _populate_weekly(menu, quests: Array) -> void:
 	menu.quests_list_vbox.add_child(HSeparator.new())
 	menu.quests_list_vbox.add_child(header)
 	for quest in quests:
-		_add_item(menu, quest, true)
+		_add_item(menu, quest, "weekly")
+
+# Ajoutée sous la hebdo, même logique que _populate_weekly — toujours le
+# catalogue entier (pas de rotation/reset côté backend, voir
+# uniqueQuestModel.ts), donc potentiellement une longue liste.
+static func _populate_unique(menu, quests: Array) -> void:
+	if quests.is_empty():
+		return
+	var header := Label.new()
+	header.text = SettingsManager.t("QUESTS_UNIQUE_TITLE")
+	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
+	menu.quests_list_vbox.add_child(HSeparator.new())
+	menu.quests_list_vbox.add_child(header)
+	for quest in quests:
+		_add_item(menu, quest, "unique")
 
 # Style de carte à liseré coloré (façon MTGA), même petit helper que
 # NewsPanel._make_accent_card_style (dupliqué plutôt qu'extrait dans un 3e
@@ -74,7 +96,7 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 	style.corner_radius_bottom_left = 4
 	return style
 
-static func _add_item(menu, quest: Dictionary, is_weekly: bool = false) -> void:
+static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var progress := int(quest.get("progress", 0))
 	var target := int(quest.get("target", 1))
 	var claimed := bool(quest.get("claimed", false))
@@ -109,12 +131,17 @@ static func _add_item(menu, quest: Dictionary, is_weekly: bool = false) -> void:
 	text_col.add_child(desc_label)
 
 	var progress_label := Label.new()
-	if is_weekly:
-		var reward_pack := int(quest.get("reward_pack", 0))
-		progress_label.text = SettingsManager.t("QUESTS_WEEKLY_PROGRESS") % [progress, target, reward_pack]
-	else:
-		var reward := int(quest.get("reward_currency", 0))
-		progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
+	match kind:
+		"weekly":
+			var reward_pack := int(quest.get("reward_pack", 0))
+			progress_label.text = SettingsManager.t("QUESTS_WEEKLY_PROGRESS") % [progress, target, reward_pack]
+		"unique":
+			var reward_currency := int(quest.get("reward_currency", 0))
+			var reward_pack_unique := int(quest.get("reward_pack", 0))
+			progress_label.text = SettingsManager.t("QUESTS_UNIQUE_PROGRESS") % [progress, target, reward_currency, reward_pack_unique]
+		_:
+			var reward := int(quest.get("reward_currency", 0))
+			progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
 	progress_label.add_theme_font_size_override("font_size", 14)
 	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
 	text_col.add_child(progress_label)
@@ -127,10 +154,13 @@ static func _add_item(menu, quest: Dictionary, is_weekly: bool = false) -> void:
 		action_button.disabled = true
 	elif completed:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
-		if is_weekly:
-			action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, String(quest.get("id", "")), action_button))
-		else:
-			action_button.pressed.connect(_on_claim_pressed.bind(menu, int(quest.get("id", 0)), action_button))
+		match kind:
+			"weekly":
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, String(quest.get("id", "")), action_button))
+			"unique":
+				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, int(quest.get("id", 0)), action_button))
+			_:
+				action_button.pressed.connect(_on_claim_pressed.bind(menu, int(quest.get("id", 0)), action_button))
 	else:
 		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
 		action_button.disabled = true
@@ -141,6 +171,18 @@ static func _add_item(menu, quest: Dictionary, is_weekly: bool = false) -> void:
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
 	button.disabled = true
 	BackendClient.claim_weekly_quest(quest_id, func(success: bool, data: Dictionary):
+		if not success:
+			button.disabled = false
+			return
+		AudioManager.play(AudioManager.CONFIRM)
+		CurrencyManager.sync_from_backend()
+		button.text = SettingsManager.t("QUESTS_CLAIMED")
+		menu._fetch_quests_badge()
+	)
+
+static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
+	button.disabled = true
+	BackendClient.claim_unique_quest(quest_id, func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return

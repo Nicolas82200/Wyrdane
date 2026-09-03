@@ -18,13 +18,21 @@ type = "OnDamaged"
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("6_kwd")
 keyword_type = 0
-value = 1
+value = 2
 
 [sub_resource type="Resource" id="Resource_v41k1"]
 script = ExtResource("1_cardeffect")
 effect_id = "Heal"
 target = "Self"
 value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_v41k1_bonus"]
+script = ExtResource("1_cardeffect")
+effect_id = "Buff"
+target = "Self"
+duration = "Permanent"
+value_2 = 1
 pact_bonus = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -32,7 +40,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Sentinelle du Gouffre"
 description = "REMPART
-Pacte 1 : Blessure : Ce serviteur regagne 1 point de vie."
+Blessure : Ce serviteur récupère 1 point de vie.
+Pacte 2 : Il gagne aussi +0/+1 de façon permanente."
 flavour_text = "Elle boit la douleur des autres. La tienne fera l'affaire."
 texture = ExtResource("3_texture")
 cost = 3
@@ -43,7 +52,7 @@ health = 4
 keywords = Array[ExtResource("4_kw")]([SubResource("Resource_ope86")])
 demon_keywords = Array[ExtResource("6_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_phxlk")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v41k1")])
-rarity = "Common"
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_v41k1"), SubResource("Resource_v41k1_bonus")])
+rarity = "Rare"
 board_position = "Back"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

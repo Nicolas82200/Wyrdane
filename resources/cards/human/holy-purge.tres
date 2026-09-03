@@ -8,10 +8,18 @@
 
 [sub_resource type="Resource" id="Resource_dio4z"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyLowHP"
-target = "AllEnemies"
-value = 3
-race_filter = "Undead"
+effect_id = "Destroy"
+target = "RandomEnemy"
+race_filter = "Human"
+race_filter_exclude = true
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_dio4z2"]
+script = ExtResource("1_cardeffect")
+effect_id = "Destroy"
+target = "RandomEnemy"
+race_filter = "Human"
+race_filter_exclude = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_awaken"]
@@ -21,7 +29,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purge Sainte"
-description = "Éveil : Détruit les serviteurs Mort-Vivants ennemis ayant 3 points de vie ou moins."
+description = "Éveil : Détruit 2 serviteurs aléatoires non-Humains que votre adversaire contrôle."
 flavour_text = "Ce n'est pas une prière. C'est une déclaration."
 texture = ExtResource("3_texture")
 cost = 6
@@ -29,6 +37,6 @@ race = 1
 card_type = "Ritual"
 ritual_duration = 2
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_awaken")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_dio4z")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_dio4z"), SubResource("Resource_dio4z2")])
 rarity = "Legendary"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

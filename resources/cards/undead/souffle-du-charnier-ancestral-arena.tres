@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Souffle du Charnier Ancestral"
-description = "Tous vos serviteurs alliés gagnent +1/+1 de façon permanente."
+description = "Tous les serviteurs que vous contrôlez gagnent +1/+1 de façon permanente."
 flavour_text = "Un seul souffle, et chaque carcasse debout se redresse un peu plus droite."
 texture = ExtResource("2_texture")
 cost = 3

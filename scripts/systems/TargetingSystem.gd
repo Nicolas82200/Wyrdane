@@ -105,7 +105,7 @@ func on_enemy_hero_clicked() -> void:
 	if not _active:
 		return
 	var target_str := _pending_card.effects[0].target if _pending_card and _pending_card.effects.size() > 0 else ""
-	if target_str not in ["EnemyHero", "AnyMinion"]:
+	if target_str not in ["EnemyHero", "AnyMinion", "EnemyAny"]:
 		return
 	var hero_panel: Control = battle.get_node("EnemyHeroPanel")
 	if hero_panel:
@@ -166,6 +166,9 @@ func _show_valid_targets(card_data: CardData) -> void:
 	match target_str:
 		"EnemyMinion":
 			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
+		"EnemyAny":
+			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
+			_highlight_hero(false)
 		"AllyMinion":
 			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR, card_data)
 		"AnyMinion":
@@ -229,7 +232,7 @@ func _is_valid_target_minion(minion: Minion, card_data: CardData) -> bool:
 		return false
 	var effect: CardEffect = card_data.effects[0]
 	match effect.target:
-		"EnemyMinion":
+		"EnemyMinion", "EnemyAny":
 			if minion.owner_is_player:
 				return false
 		"AllyMinion":
@@ -257,6 +260,8 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 	if effect.target_max_hp >= 0 and minion.health > effect.target_max_hp:
 		return false
 	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
+		return false
+	if effect.target_max_cost >= 0 and minion.card_data.cost > effect.target_max_cost:
 		return false
 	if effect.requires_resurrected_target and not minion.was_resurrected:
 		return false

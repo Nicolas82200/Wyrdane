@@ -20,14 +20,15 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Faucheur de la Plaie"
-description = "Arrivée : Détruit tous les serviteurs ennemis ayant 3 points de vie ou moins."
+description = "Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins."
 flavour_text = "Il ne choisit pas les plus forts. Il choisit les presque morts, pour finir le travail."
 texture = ExtResource("3_texture")
-cost = 5
+cost = 6
 unit_style = 1
 attack = 5
 health = 5
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_4ms5x")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_uoy2e")])
 rarity = "Epic"
+race_cost_override = 3
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

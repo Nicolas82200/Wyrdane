@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Ce-Qui-Se-Partage"
-description = "Dernier Souffle : Le serviteur allié adjacent gagne +1/+1 permanent."
+description = "Dernier Souffle : Le serviteur adjacent gagne +1/+1 permanent."
 flavour_text = "Il ne meurt pas vraiment. Il se répartit ailleurs."
 texture = ExtResource("2_texture")
 cost = 2

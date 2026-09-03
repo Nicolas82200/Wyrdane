@@ -123,10 +123,13 @@ texture = ExtResource("3_vx08u")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="KeywordIcons" type="HBoxContainer" parent="." unique_id=1458900762]
+[node name="KeywordIcons" type="VBoxContainer" parent="." unique_id=1458900762]
 layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_left = 2.0
+offset_top = 32.0
+offset_right = 22.0
+offset_bottom = 150.0
+alignment = 0
 
 [node name="BorderHighlight" type="Panel" parent="." unique_id=262004853]
 custom_minimum_size = Vector2(100, 150)

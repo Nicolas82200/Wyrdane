@@ -213,7 +213,7 @@ func run_mulligan() -> void:
 	battle.hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	battle.mulligan_dim_overlay.visible = true
 	battle.turn_banner.show_banner_persistent(
-		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint"),
+		SettingsManager.t("mulligan.banner"), SettingsManager.t("mulligan.hint") % battle.MULLIGAN_MAX_SWAPS,
 		TurnBanner.MULLIGAN_Y_RATIO)
 	battle._retranslate_battle()
 	battle.end_turn_button.disabled = false
@@ -245,8 +245,9 @@ func run_mulligan() -> void:
 	battle.update_end_turn_hint()
 
 func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
-	# Un slot déjà échangé reste réchangeable (le joueur peut retenter sa chance
-	# sur la même carte) : seul le total de MULLIGAN_MAX_SWAPS échanges est borné.
+	# N'importe quelle carte en main peut être rééchangée, y compris une carte
+	# déjà remplacée pendant ce mulligan (le joueur peut retenter sa chance sur
+	# la même carte) : seul le total de MULLIGAN_MAX_SWAPS échanges est borné.
 	if battle._mulligan_swap_count >= battle.MULLIGAN_MAX_SWAPS:
 		return
 	if battle.tutorial_active and not TutorialDeck.is_swappable_during_tutorial(_card_data):

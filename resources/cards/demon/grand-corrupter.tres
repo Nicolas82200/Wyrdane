@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Souffle Corrupteur"
-description = "Un serviteur ennemi ciblé perd 1 ATK de façon permanente (Corruption)."
+description = "Un serviteur ciblé que votre adversaire contrôle perd 1 ATK de façon permanente (Corruption)."
 flavour_text = "Un murmure suffit. Le reste se fait tout seul, avec le temps."
 texture = ExtResource("3_texture")
 cost = 1

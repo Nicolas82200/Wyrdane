@@ -19,11 +19,12 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cimetière Vivant"
-description = "Deuil : Ce Mort-Vivant revient en jeu à la fin du tour avec 1 point de vie. (Une seule fois par serviteur.)"
+description = "À chaque tour, le premier Mort-Vivant que vous contrôlez qui meurt revient en jeu à la fin du tour avec 1 point de vie."
 flavour_text = "Le sol ici ne garde rien. Il régurgite."
 texture = ExtResource("3_texture")
 cost = 5
 card_type = "Enchantment"
+trigger_once_per_turn = true
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_o0rnn")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_foh6w")])
 rarity = "Epic"

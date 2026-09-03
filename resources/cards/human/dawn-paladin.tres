@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="2_kw"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="2_hkw"]
 [ext_resource type="Texture2D" uid="uid://c6ohlngenwv5k" path="res://assets/card_art/human/dawn-paladin.jpg" id="3_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="4_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="5_trig"]
@@ -9,8 +10,9 @@
 
 [sub_resource type="Resource" id="Resource_r72w7"]
 script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
-summon_card = ExtResource("6_summon")
+effect_id = "GrantKeyword"
+target = "AllyMinion"
+granted_keyword = "AEGIS"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_8oqg8"]
@@ -21,6 +23,16 @@ name_fr = "Égide"
 script = ExtResource("2_kw")
 name_fr = "Moisson"
 
+[sub_resource type="Resource" id="Resource_hkw_disc"]
+script = ExtResource("2_hkw")
+keyword_type = 0
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
+[sub_resource type="Resource" id="Resource_hkw_fort"]
+script = ExtResource("2_hkw")
+keyword_type = 4
+metadata/_custom_type_script = "uid://ibfjbfqajwqd"
+
 [sub_resource type="Resource" id="Resource_t3btl"]
 script = ExtResource("5_trig")
 type = "ONPLAY"
@@ -28,17 +40,20 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Paladin de l'Aube"
-description = "ÉGIDE, MOISSON
-Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant."
+description = "ÉGIDE, MOISSON, DISCIPLINE, FORTIFICATION
+Arrivée : Un serviteur ciblé que vous contrôlez gagne ÉGIDE."
 flavour_text = "Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois."
 texture = ExtResource("3_texture")
-cost = 5
+cost = 6
 race = 1
 unit_style = 8
 attack = 4
 health = 5
 keywords = Array[ExtResource("2_kw")]([SubResource("Resource_8oqg8"), SubResource("Resource_y48ga")])
+human_keywords = Array[ExtResource("2_hkw")]([SubResource("Resource_hkw_disc"), SubResource("Resource_hkw_fort")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_t3btl")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_r72w7")])
+requires_target = true
 rarity = "Epic"
+race_cost_override = 3
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

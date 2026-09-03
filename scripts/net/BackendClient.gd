@@ -263,6 +263,29 @@ func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Quêtes uniques (one-shot, jamais reset) ────────────────────────────────
+# Implémenté côté wyrdane-backend (voir uniqueQuestModel.ts).
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, reward_pack, claimed}]}) — pas de resets_at,
+# ces quêtes ne resettent jamais.
+func get_unique_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/unique", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, free_packs, reward_currency, reward_pack}).
+func claim_unique_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/unique/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # on_data appelé avec (success, {code}). Génère le code au premier appel côté
 # serveur (idempotent ensuite) — voir contrat.
 func get_referral_code(on_data: Callable) -> void:

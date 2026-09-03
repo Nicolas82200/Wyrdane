@@ -118,11 +118,11 @@ func test_deadly_poison_kills_target_without_chair_morte() -> void:
 	await combat_system.resolve_combat(attacker, defender)
 	assert_eq(defender.health, 0, "VENIN MORTEL tue malgré les HP restants")
 
-func test_deadly_poison_has_no_kill_effect_on_chair_morte() -> void:
+func test_deadly_poison_kills_chair_morte_target() -> void:
 	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, Keyword.Type.DEADLY_POISON)
 	var defender := _minion(1, 20, false, Race.Type.UNDEAD, -1, KeywordUndead.Type.CHAIR_MORTE)
 	await combat_system.resolve_combat(attacker, defender)
-	assert_eq(defender.health, 19, "CHAIR MORTE immunise contre la mise à mort du Venin mortel")
+	assert_eq(defender.health, 0, "VENIN MORTEL n'est pas un effet néfaste racial : CHAIR MORTE ne l'immunise plus")
 
 # ─── LIFESTEAL ───────────────────────────────────────────────────────────────
 
@@ -177,6 +177,15 @@ func test_contre_attaque_deals_counter_damage_to_attacker() -> void:
 	await combat_system.resolve_combat(attacker, defender)
 	# attaquant subit 3 (combat) + 3 (riposte) = 6
 	assert_eq(attacker.health, 4)
+
+# Symétrique : un ATTAQUANT avec CONTRE-ATTAQUE qui survit aux dégâts reçus en
+# attaquant riposte aussi, pas seulement le défenseur.
+func test_contre_attaque_also_triggers_for_surviving_attacker() -> void:
+	var attacker := _minion(2, 10, true, Race.Type.HUMAN, -1, -1, -1, KeywordHuman.Type.CONTRE_ATTAQUE)
+	var defender := _minion(3, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	# défenseur subit 2 (combat) + 2 (riposte de l'attaquant) = 4
+	assert_eq(defender.health, 6)
 
 # ─── PESTIFÉRÉ ───────────────────────────────────────────────────────────────
 

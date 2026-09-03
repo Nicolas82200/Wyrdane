@@ -28,17 +28,18 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
 target = "AllAllies"
-duration = "UntilEndOfTurn"
+duration = "Permanent"
 value = 1
 value_2 = 1
 pact_bonus = true
+pact_replaces_base = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Cercle du Grand Pacte"
 description = "Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour.
-Pacte 1 : +1/+1 supplémentaire."
+Pacte 1 : Ils le gagnent de façon permanente à la place."
 flavour_text = "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande."
 texture = ExtResource("3_texture")
 cost = 6

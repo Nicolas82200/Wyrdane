@@ -21,7 +21,7 @@ type = "OnDecline"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Brouillard Pestilentiel"
-description = "Présence : À chaque début du tour adverse, les serviteurs ennemis infectés perdent 1 point de vie supplémentaire."
+description = "Présence : À chaque début du tour adverse, les serviteurs infectés que votre adversaire contrôle perdent 1 point de vie supplémentaire."
 flavour_text = "On ne le voit pas. On ne le sent même plus, après un moment."
 texture = ExtResource("3_texture")
 cost = 3

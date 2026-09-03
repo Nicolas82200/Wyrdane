@@ -19,7 +19,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "La Faucheuse"
-description = "Arrivée : Détruit un serviteur ennemi ciblé et le ressuscite sous votre contrôle sans ses effets."
+description = "Arrivée : Détruit un serviteur ciblé que votre adversaire contrôle et le ressuscite sous votre contrôle sans ses effets."
 flavour_text = "Elle ne prend pas les âmes. Elle redistribue les corps."
 texture = ExtResource("3_texture")
 cost = 7

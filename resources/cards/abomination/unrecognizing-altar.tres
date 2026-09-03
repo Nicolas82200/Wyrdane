@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Autel Qui Ne Reconnaît Rien"
-description = "Deuil : Un serviteur Abomination allié aléatoire mute."
+description = "Deuil : Une Abomination aléatoire que vous contrôlez mute."
 flavour_text = "Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois."
 texture = ExtResource("2_texture")
 cost = 3

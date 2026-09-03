@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "L'Innommable"
-description = "Arrivée : Choisissez un serviteur ennemi ciblé. L'Innommable se transforme en une copie de ses mots-clés et déclencheurs, en conservant ses propres statistiques. La cible reste inchangée du côté adverse."
+description = "Arrivée : Choisissez un serviteur ciblé que votre adversaire contrôle. L'Innommable se transforme en une copie de ses mots-clés et déclencheurs, en conservant ses propres statistiques. La cible reste inchangée du côté adverse."
 flavour_text = "Il n'a pas de visage. Il porte le tien, à présent."
 texture = ExtResource("2_texture")
 cost = 7

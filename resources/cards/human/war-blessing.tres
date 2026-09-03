@@ -29,7 +29,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bénédiction de Guerre"
-description = "Un serviteur Humain allié ciblé gagne +2/+2 et DISCIPLINE jusqu'à fin de tour."
+description = "Un Humain ciblé que vous contrôlez gagne +2/+2 et DISCIPLINE jusqu'à fin de tour."
 flavour_text = "Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains."
 texture = ExtResource("3_texture")
 cost = 2

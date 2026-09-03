@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "AuraBuffRow"
 target = "AllAlliesFront"
+race_filter = "Human"
 value_2 = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -20,7 +21,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Citadelle des Hommes"
-description = "Présence : Vos serviteurs en rangée Avant gagnent +0/+1 de façon permanente."
+description = "Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent +0/+1 de façon permanente."
 flavour_text = "Ces murs n'ont pas été construits pour durer. Ils ont duré quand même."
 texture = ExtResource("3_texture")
 cost = 4

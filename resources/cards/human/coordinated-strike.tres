@@ -17,7 +17,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Frappe Coordonnée"
-description = "Deux serviteurs Humains alliés attaquent immédiatement un serviteur ennemi ciblé."
+description = "Deux Humains que vous contrôlez attaquent immédiatement un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Deux hommes, un seul endroit. L'ennemi n'a pas le temps de choisir lequel regarder."
 texture = ExtResource("3_texture")
 cost = 2
