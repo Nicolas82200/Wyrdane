@@ -19,7 +19,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Communion avec les Morts"
-description = "Sacrifice 1 : Ramène le dernier Mort-Vivant mort depuis votre cimetière dans votre main."
+description = "Sacrifice 1 : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main."
 flavour_text = "Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter."
 texture = ExtResource("3_texture")
 cost = 4
