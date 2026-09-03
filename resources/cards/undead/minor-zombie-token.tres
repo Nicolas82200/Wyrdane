@@ -13,7 +13,8 @@ metadata/_custom_type_script = "uid://fly4qfjek3e6"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Zombie Mineur"
-description = "HORDE"
+description = "HORDE
+Ne rejoint pas le cimetière à sa mort."
 flavour_text = "Il était enfant. C'était avant."
 texture = ExtResource("2_texture")
 cost = 2

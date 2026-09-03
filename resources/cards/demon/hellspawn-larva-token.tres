@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Larve Infernale"
-description = ""
+description = "Ne rejoint pas le cimetière à sa mort."
 flavour_text = "Elle ne demande rien. Elle prend juste sa part avant même d'arriver."
 texture = ExtResource("2_texture")
 cost = 1

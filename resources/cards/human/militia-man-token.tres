@@ -6,7 +6,7 @@
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Milicien du Bourg"
-description = ""
+description = "Ne rejoint pas le cimetière à sa mort."
 flavour_text = "Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé."
 texture = ExtResource("1_texture")
 race = 1
