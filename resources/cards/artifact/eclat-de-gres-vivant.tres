@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Éclat de Grès Vivant"
-description = "Un serviteur allié ciblé gagne +1/+1 de façon permanente."
+description = "Un serviteur ciblé que vous contrôlez gagne +1/+1 de façon permanente."
 flavour_text = "La pierre vivante ne pousse pas. Elle se souvient d'avoir été plus grande."
 cost = 1
 race = 0

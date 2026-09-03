@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Souffle du Cairn"
-description = "Tous vos serviteurs alliés gagnent +1/+0 jusqu'à la fin du tour."
+description = "Tous les serviteurs que vous contrôlez gagnent +1/+0 jusqu'à la fin du tour."
 flavour_text = "Un souffle ancien traverse les pierres empilées, et pour un instant, tout se redresse."
 cost = 3
 race = 0

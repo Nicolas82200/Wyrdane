@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Marée de Poussière"
-description = "Renvoie un serviteur ennemi ciblé dans la main de son propriétaire."
+description = "Renvoie un serviteur ciblé que votre adversaire contrôle dans la main de son propriétaire."
 flavour_text = "Ce que la poussière recouvre n'est jamais vraiment parti."
 cost = 2
 race = 0

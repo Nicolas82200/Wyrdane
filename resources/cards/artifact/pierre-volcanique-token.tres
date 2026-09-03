@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Pierre Volcanique"
-description = "Inflige 2 dégâts à une cible (serviteur ennemi ou héros ennemi)."
+description = "Inflige 2 dégâts à un serviteur que votre adversaire contrôle ou à son héros."
 flavour_text = "Elle garde la chaleur d'un monde qui n'existe plus."
 cost = 1
 race = 0

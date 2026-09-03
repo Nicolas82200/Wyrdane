@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Veilleur Qui Répète"
-description = "Tant que ce serviteur est en jeu, vos Dernier Souffle alliés se déclenchent une fois de plus."
+description = "Tant que ce serviteur est en jeu, le Dernier Souffle des serviteurs que vous contrôlez se déclenche une fois de plus."
 flavour_text = "Il ne pleure pas les morts. Il les fait recommencer."
 cost = 5
 race = 0

@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Sceau du Silence Oublié"
-description = "Réduit au silence un serviteur ennemi ciblé."
+description = "Réduit au silence un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Certains sceaux ne scellent pas des portes. Ils scellent des voix."
 cost = 2
 race = 0

@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Colonne des Pactes Rompus"
-description = "Renfort : Le serviteur allié invoqué gagne RAVAGE jusqu'à la fin du tour."
+description = "Renfort : Le serviteur invoqué gagne RAVAGE jusqu'à la fin du tour."
 flavour_text = "Chaque pacte gravé dessus a été rompu. La colonne, elle, s'en souvient encore."
 cost = 3
 race = 0

@@ -12,7 +12,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Effondrement du Sanctuaire"
-description = "Détruit un serviteur ennemi ciblé."
+description = "Détruit un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Ce que le sanctuaire protégeait n'a pas survécu à sa chute."
 cost = 6
 race = 0

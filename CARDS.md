@@ -961,7 +961,7 @@ L'Artefact ne possède **aucun mot-clé exclusif**. Il utilise uniquement les mo
 
 | Mot-clé | Effet |
 |---|---|
-| `REMPART` | Doit être attaqué en priorité par les serviteurs ennemis. |
+| `REMPART` | Doit être attaqué en priorité par les serviteurs que votre adversaire contrôle. |
 | `ASSAUT` | Peut attaquer le tour de son invocation. |
 | `FRÉNÉSIE` | Peut attaquer deux fois par tour. |
 | `RAVAGE` | Les dégâts excédentaires sont infligés directement au héros adverse. |
@@ -992,57 +992,57 @@ Six serviteurs (Écho de Pacotille → Le Sans-Visage) utilisent un nouvel effet
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | AR01 | Golem de Basalte | ⚔️ | 3 | 3 | 4 | Dernier Souffle : Ajoute une Pierre Volcanique à votre main. | *Il ne meurt pas. Il se refroidit, et laisse quelque chose derrière.* |
 | AR02 | Urne Scellée | 🛡️ | 2 | 2 | 3 | Dernier Souffle : Ajoute un Éclat de Mémoire à votre main. | *Elle contenait un nom. Le nom s'est perdu. Ce qu'il en reste tient encore debout.* |
-| AR03 | Écho de Pacotille | ↕️ | 1 | 1 | 1 | Arrivée : Devient une copie exacte d'un serviteur allié ciblé de coût 1 ou moins. | *Il ne sait pas qui il est. Il ne sait qu'imiter, et encore, mal.* |
-| AR04 | Faux-Semblant | ↕️ | 1 | 2 | 1 | Arrivée : Devient une copie exacte d'un serviteur allié ciblé de coût 3 ou moins. | *Il porte le visage de quelqu'un d'autre. Il porte aussi, un temps, sa force.* |
-| AR05 | Porteur de Rempart Oublié | 🛡️ | 2 | 2 | 3 | Arrivée : Un serviteur allié ciblé gagne REMPART jusqu'à la fin du tour. | *Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois.* |
+| AR03 | Écho de Pacotille | ↕️ | 1 | 1 | 1 | Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 1 ou moins. | *Il ne sait pas qui il est. Il ne sait qu'imiter, et encore, mal.* |
+| AR04 | Faux-Semblant | ↕️ | 1 | 2 | 1 | Arrivée : Devient une copie exacte d'un serviteur ciblé que vous contrôlez, de coût 3 ou moins. | *Il porte le visage de quelqu'un d'autre. Il porte aussi, un temps, sa force.* |
+| AR05 | Porteur de Rempart Oublié | 🛡️ | 2 | 2 | 3 | Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART jusqu'à la fin du tour. | *Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois.* |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
 | AR06 | Chambre Funéraire | ⚔️ | 4 | 3 | 5 | Dernier Souffle : Ajoute un Fragment Curatif à votre main. | *Elle ne garde pas les morts. Elle garde de quoi soigner les vivants.* |
-| AR07 | Voleur de Visage | ↕️ | 2 | 3 | 2 | Arrivée : Devient une copie exacte d'un serviteur ennemi ciblé de coût 3 ou moins. | *Il ne vole pas les biens. Il vole ce qu'on est.* |
-| AR08 | Gardien de l'Assaut Ancien | ⚔️ | 3 | 3 | 2 | Arrivée : Le serviteur allié adjacent gagne ASSAUT de façon permanente. | *Il ne se souvient plus pourquoi il chargeait. Seulement qu'il fallait le faire.* |
-| AR09 | Relique de la Frénésie | ↕️ | 4 | 4 | 3 | Arrivée : Un serviteur allié ciblé gagne FRÉNÉSIE jusqu'à la fin du tour. | *Elle ne rend personne plus fort. Elle rend juste plus difficile de s'arrêter.* |
-| AR10 | Porte-Chance Fossilisé | ↕️ | 3 | 3 | 4 | Arrivée : Un serviteur allié ciblé gagne MOISSON jusqu'à la fin du tour. | *Il n'a jamais porté chance à personne. Mais on continue d'y croire.* |
+| AR07 | Voleur de Visage | ↕️ | 2 | 3 | 2 | Arrivée : Devient une copie exacte d'un serviteur ciblé que votre adversaire contrôle, de coût 3 ou moins. | *Il ne vole pas les biens. Il vole ce qu'on est.* |
+| AR08 | Gardien de l'Assaut Ancien | ⚔️ | 3 | 3 | 2 | Arrivée : Le serviteur adjacent que vous contrôlez gagne ASSAUT de façon permanente. | *Il ne se souvient plus pourquoi il chargeait. Seulement qu'il fallait le faire.* |
+| AR09 | Relique de la Frénésie | ↕️ | 4 | 4 | 3 | Arrivée : Un serviteur ciblé que vous contrôlez gagne FRÉNÉSIE jusqu'à la fin du tour. | *Elle ne rend personne plus fort. Elle rend juste plus difficile de s'arrêter.* |
+| AR10 | Porte-Chance Fossilisé | ↕️ | 3 | 3 | 4 | Arrivée : Un serviteur ciblé que vous contrôlez gagne MOISSON jusqu'à la fin du tour. | *Il n'a jamais porté chance à personne. Mais on continue d'y croire.* |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| AR11 | Le Veilleur Qui Répète | ↕️ | 5 | 3 | 5 | Tant que ce serviteur est en jeu, vos Dernier Souffle alliés se déclenchent une fois de plus. | *Il ne pleure pas les morts. Il les fait recommencer.* |
-| AR12 | Le Héraut Du Second Pas | ↕️ | 4 | 3 | 4 | Tant que ce serviteur est en jeu, vos Arrivées alliées se déclenchent une fois de plus. | *Chaque entrée laisse une empreinte. La sienne en laisse deux.* |
-| AR13 | Reflet Trouble | ↕️ | 3 | 5 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé (allié ou ennemi) de coût 5 ou moins. | *Le miroir ne ment pas. Il choisit juste ce qu'il te montre.* |
-| AR14 | Usurpateur | ↕️ | 3 | 6 | 3 | Arrivée : Devient une copie exacte d'un serviteur ennemi ciblé, quel que soit son coût. | *Il ne demande jamais la permission de devenir quelqu'un d'autre.* |
+| AR11 | Le Veilleur Qui Répète | ↕️ | 5 | 3 | 5 | Tant que ce serviteur est en jeu, le Dernier Souffle des serviteurs que vous contrôlez se déclenche une fois de plus. | *Il ne pleure pas les morts. Il les fait recommencer.* |
+| AR12 | Le Héraut Du Second Pas | ↕️ | 4 | 3 | 4 | Tant que ce serviteur est en jeu, l'Arrivée des serviteurs que vous contrôlez se déclenche une fois de plus. | *Chaque entrée laisse une empreinte. La sienne en laisse deux.* |
+| AR13 | Reflet Trouble | ↕️ | 3 | 5 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé, le vôtre ou celui de votre adversaire, de coût 5 ou moins. | *Le miroir ne ment pas. Il choisit juste ce qu'il te montre.* |
+| AR14 | Usurpateur | ↕️ | 3 | 6 | 3 | Arrivée : Devient une copie exacte d'un serviteur ciblé que votre adversaire contrôle, quel que soit son coût. | *Il ne demande jamais la permission de devenir quelqu'un d'autre.* |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| AR15 | L'Écho Sans Origine | ⚔️ | 8 | 6 | 4 | Tant que ce serviteur est en jeu, tous les triggers de vos serviteurs alliés se déclenchent une fois de plus. | *Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement.* |
-| AR16 | Le Sans-Visage | ↕️ | 4 | 8 | 4 | Arrivée : Devient une copie exacte d'un serviteur ciblé (allié ou ennemi), quel que soit son coût, puis gagne +1/+1 de façon permanente. | *Il n'a pas de visage à lui. Il en a simplement volé un de plus.* |
+| AR15 | L'Écho Sans Origine | ⚔️ | 8 | 6 | 4 | Tant que ce serviteur est en jeu, tous les déclencheurs des serviteurs que vous contrôlez se déclenchent une fois de plus. | *Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement.* |
+| AR16 | Le Sans-Visage | ↕️ | 4 | 8 | 4 | Arrivée : Devient une copie exacte d'un serviteur ciblé, le vôtre ou celui de votre adversaire, quel que soit son coût, puis gagne +1/+1 de façon permanente. | *Il n'a pas de visage à lui. Il en a simplement volé un de plus.* |
 
 ## Incantations
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|---|---|---|
-| AR17 | Éclat de Grès Vivant | 1 | Commune | Un serviteur allié ciblé gagne +1/+1 de façon permanente. | *La pierre vivante ne pousse pas. Elle se souvient d'avoir été plus grande.* |
-| AR18 | Souffle du Cairn | 3 | Rare | Tous vos serviteurs alliés gagnent +1/+0 jusqu'à la fin du tour. | *Un souffle ancien traverse les pierres empilées, et pour un instant, tout se redresse.* |
-| AR19 | Fissure Runique | 2 | Commune | Un serviteur ennemi ciblé perd -2/-0 jusqu'à la fin du tour. | *La rune se fissure, et avec elle, la force qu'elle retenait.* |
-| AR20 | Poids de la Pierre Ancienne | 3 | Rare | Un serviteur ennemi ciblé perd -1/-1 de façon permanente. | *Elle ne pèse sur personne en particulier. Elle pèse sur tout ce qu'elle touche.* |
-| AR21 | Jugement du Sceau Brisé | 4 | Rare | Détruit un serviteur ennemi ciblé ayant 3 points de vie ou moins. | *Le sceau ne juge personne. Il se contente de rappeler ce qui était déjà brisé.* |
-| AR22 | Effondrement du Sanctuaire | 6 | Épique | Détruit un serviteur ennemi ciblé. | *Ce que le sanctuaire protégeait n'a pas survécu à sa chute.* |
-| AR23 | Larme de Jade Ancienne | 2 | Commune | Restaure 3 points de vie à un serviteur allié ciblé. | *Une larme pétrifiée depuis des siècles, qui n'a rien perdu de sa douceur.* |
+| AR17 | Éclat de Grès Vivant | 1 | Commune | Un serviteur ciblé que vous contrôlez gagne +1/+1 de façon permanente. | *La pierre vivante ne pousse pas. Elle se souvient d'avoir été plus grande.* |
+| AR18 | Souffle du Cairn | 3 | Rare | Tous les serviteurs que vous contrôlez gagnent +1/+0 jusqu'à la fin du tour. | *Un souffle ancien traverse les pierres empilées, et pour un instant, tout se redresse.* |
+| AR19 | Fissure Runique | 2 | Commune | Un serviteur ciblé que votre adversaire contrôle perd -2/-0 jusqu'à la fin du tour. | *La rune se fissure, et avec elle, la force qu'elle retenait.* |
+| AR20 | Poids de la Pierre Ancienne | 3 | Rare | Un serviteur ciblé que votre adversaire contrôle perd -1/-1 de façon permanente. | *Elle ne pèse sur personne en particulier. Elle pèse sur tout ce qu'elle touche.* |
+| AR21 | Jugement du Sceau Brisé | 4 | Rare | Détruit un serviteur ciblé que votre adversaire contrôle ayant 3 points de vie ou moins. | *Le sceau ne juge personne. Il se contente de rappeler ce qui était déjà brisé.* |
+| AR22 | Effondrement du Sanctuaire | 6 | Épique | Détruit un serviteur ciblé que votre adversaire contrôle. | *Ce que le sanctuaire protégeait n'a pas survécu à sa chute.* |
+| AR23 | Larme de Jade Ancienne | 2 | Commune | Restaure 3 points de vie à un serviteur ciblé que vous contrôlez. | *Une larme pétrifiée depuis des siècles, qui n'a rien perdu de sa douceur.* |
 | AR24 | Onde de la Source Tarie | 3 | Commune | Votre héros regagne 4 points de vie. | *La source ne coule plus depuis longtemps. Elle se souvient encore de couler.* |
-| AR25 | Marée de Poussière | 2 | Rare | Renvoie un serviteur ennemi ciblé dans la main de son propriétaire. | *Ce que la poussière recouvre n'est jamais vraiment parti.* |
-| AR26 | Sceau du Silence Oublié | 2 | Rare | Réduit au silence un serviteur ennemi ciblé. | *Certains sceaux ne scellent pas des portes. Ils scellent des voix.* |
-| AR27 | Étreinte Pétrifiante | 2 | Commune | Gèle un serviteur ennemi ciblé un tour. | *L'étreinte n'a rien de tendre. Mais elle a le mérite d'être immobile.* |
-| AR28 | Siphon de Basalte | 3 | Rare | Inflige 3 dégâts à un serviteur ennemi ciblé. Votre héros regagne 3 points de vie. | *La pierre prend la force des vaincus, et la rend à qui l'a invoquée.* |
+| AR25 | Marée de Poussière | 2 | Rare | Renvoie un serviteur ciblé que votre adversaire contrôle dans la main de son propriétaire. | *Ce que la poussière recouvre n'est jamais vraiment parti.* |
+| AR26 | Sceau du Silence Oublié | 2 | Rare | Réduit au silence un serviteur ciblé que votre adversaire contrôle. | *Certains sceaux ne scellent pas des portes. Ils scellent des voix.* |
+| AR27 | Étreinte Pétrifiante | 2 | Commune | Gèle un serviteur ciblé que votre adversaire contrôle un tour. | *L'étreinte n'a rien de tendre. Mais elle a le mérite d'être immobile.* |
+| AR28 | Siphon de Basalte | 3 | Rare | Inflige 3 dégâts à un serviteur ciblé que votre adversaire contrôle. Votre héros regagne 3 points de vie. | *La pierre prend la force des vaincus, et la rend à qui l'a invoquée.* |
 | AR29 | Poussière du Temps | 2 | Commune | Piochez 2 cartes. | *Chaque grain contient un instant qui a déjà eu lieu, quelque part, avant.* |
 | AR30 | Veine de Mana Fossile | 2 | Rare | Gagnez 2 points de mana ce tour-ci (perdus au tour suivant s'ils ne sont pas dépensés). | *Une veine ancienne, tarie depuis longtemps, qui laisse encore échapper un peu de sa force.* |
-| AR31 | Bénédiction de Pierre | 2 | Commune | Un serviteur allié ciblé gagne ÉGIDE jusqu'à la fin du prochain tour ennemi. | *La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper.* |
-| AR32 | Rite du Venin Oublié | 3 | Rare | Un serviteur allié ciblé gagne VENIN MORTEL jusqu'à la fin du tour. | *Le rite est ancien. Le poison, lui, n'a pas pris une ride.* |
-| AR33 | Sceau de l'Infiltration | 2 | Rare | Un serviteur allié ciblé gagne INFILTRATION jusqu'à la fin du tour. | *Certains sceaux n'ouvrent pas de portes. Ils en font oublier l'existence.* |
+| AR31 | Bénédiction de Pierre | 2 | Commune | Un serviteur ciblé que vous contrôlez gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire. | *La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper.* |
+| AR32 | Rite du Venin Oublié | 3 | Rare | Un serviteur ciblé que vous contrôlez gagne VENIN MORTEL jusqu'à la fin du tour. | *Le rite est ancien. Le poison, lui, n'a pas pris une ride.* |
+| AR33 | Sceau de l'Infiltration | 2 | Rare | Un serviteur ciblé que vous contrôlez gagne INFILTRATION jusqu'à la fin du tour. | *Certains sceaux n'ouvrent pas de portes. Ils en font oublier l'existence.* |
 
 ## Rituels
 
@@ -1050,18 +1050,18 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| AR34 | Cercle des Strates Anciennes | 4 | Rare | 3 charges | Éveil : Le serviteur allié avec le moins de points de vie restaure 2 points de vie. | *Chaque strate garde la mémoire d'une guérison passée. Le cercle ne fait que la répéter.* |
+| AR34 | Cercle des Strates Anciennes | 4 | Rare | 3 charges | Éveil : Le serviteur que vous contrôlez avec le moins de points de vie restaure 2 points de vie. | *Chaque strate garde la mémoire d'une guérison passée. Le cercle ne fait que la répéter.* |
 | AR35 | Rituel de la Chambre Scellée | 5 | Épique | 2 charges | Éveil : Ajoute une Pierre Volcanique à votre main. | *La chambre reste fermée. Ce qu'elle laisse filtrer suffit amplement.* |
-| AR36 | Cercle du Jugement Muet | 6 | Légendaire | 2 charges | Éveil : Détruit un serviteur ennemi aléatoire ayant 2 points de vie ou moins. | *Il ne prononce jamais son verdict à voix haute. Il n'en a pas besoin.* |
+| AR36 | Cercle du Jugement Muet | 6 | Légendaire | 2 charges | Éveil : Détruit un serviteur aléatoire que votre adversaire contrôle ayant 2 points de vie ou moins. | *Il ne prononce jamais son verdict à voix haute. Il n'en a pas besoin.* |
 
 ## Enchantements
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|---|---|---|
 | AR37 | Forge Éteinte | 4 | Épique | Déclin : Ajoute une Pierre Volcanique à votre main (une fois par tour). | *Le feu s'est éteint il y a des siècles. Il tousse encore, parfois, une braise.* |
-| AR38 | Colonne des Pactes Rompus | 3 | Rare | Renfort : Le serviteur allié invoqué gagne RAVAGE jusqu'à la fin du tour. | *Chaque pacte gravé dessus a été rompu. La colonne, elle, s'en souvient encore.* |
-| AR39 | Autel des Dons Perdus | 5 | Épique | Renfort (une fois par tour) : Le serviteur allié invoqué gagne REMPART de façon permanente. | *Il ne donne plus grand-chose. Mais ce qu'il donne encore, il le donne pour de bon.* |
-| AR40 | Vestige de l'Ancien Monde | 6 | Légendaire | Présence : Le premier serviteur allié invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour ennemi. | *Le monde qu'il vient de n'existe plus. Mais il protège encore, par habitude.* |
+| AR38 | Colonne des Pactes Rompus | 3 | Rare | Renfort : Le serviteur invoqué gagne RAVAGE jusqu'à la fin du tour. | *Chaque pacte gravé dessus a été rompu. La colonne, elle, s'en souvient encore.* |
+| AR39 | Autel des Dons Perdus | 5 | Épique | Renfort (une fois par tour) : Le serviteur invoqué gagne REMPART de façon permanente. | *Il ne donne plus grand-chose. Mais ce qu'il donne encore, il le donne pour de bon.* |
+| AR40 | Vestige de l'Ancien Monde | 6 | Légendaire | Présence : Le premier serviteur invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire. | *Le monde qu'il vient de n'existe plus. Mais il protège encore, par habitude.* |
 
 ## Ressource
 
@@ -1071,9 +1071,9 @@ L'Artefact **n'a pas de carte-ressource** : `Race.Type.NONE` n'a pas de pool de 
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|---|---|---|
-| AR41 | Pierre Volcanique (jeton) | 1 | Commune | Inflige 2 dégâts à une cible (serviteur ennemi ou héros ennemi). (jeton, ajouté à la main par : Golem de Basalte, Forge Éteinte, Rituel de la Chambre Scellée). | *Elle garde la chaleur d'un monde qui n'existe plus.* |
+| AR41 | Pierre Volcanique (jeton) | 1 | Commune | Inflige 2 dégâts à un serviteur que votre adversaire contrôle ou à son héros. (jeton, ajouté à la main par : Golem de Basalte, Forge Éteinte, Rituel de la Chambre Scellée). | *Elle garde la chaleur d'un monde qui n'existe plus.* |
 | AR42 | Éclat de Mémoire (jeton) | 0 | Commune | Piochez 1 carte. (jeton, ajouté à la main par : Urne Scellée). | *Un fragment de souvenir qui n'est pas le vôtre, mais qui vous éclaire quand même.* |
-| AR43 | Fragment Curatif (jeton) | 1 | Commune | Restaure 4 points de vie à un serviteur allié ciblé. (jeton, ajouté à la main par : Chambre Funéraire). | *La pierre ne guérit pas les blessures. Elle rappelle juste au corps comment se réparer.* |
+| AR43 | Fragment Curatif (jeton) | 1 | Commune | Restaure 4 points de vie à un serviteur ciblé que vous contrôlez. (jeton, ajouté à la main par : Chambre Funéraire). | *La pierre ne guérit pas les blessures. Elle rappelle juste au corps comment se réparer.* |
 
 ## ✅ Points d'intégration tranchés (Artefact)
 

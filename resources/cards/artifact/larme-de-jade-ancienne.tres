@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Larme de Jade Ancienne"
-description = "Restaure 3 points de vie à un serviteur allié ciblé."
+description = "Restaure 3 points de vie à un serviteur ciblé que vous contrôlez."
 flavour_text = "Une larme pétrifiée depuis des siècles, qui n'a rien perdu de sa douceur."
 cost = 2
 race = 0

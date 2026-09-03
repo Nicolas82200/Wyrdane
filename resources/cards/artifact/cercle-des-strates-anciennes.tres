@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Cercle des Strates Anciennes"
-description = "Éveil : Le serviteur allié avec le moins de points de vie restaure 2 points de vie."
+description = "Éveil : Le serviteur que vous contrôlez avec le moins de points de vie restaure 2 points de vie."
 flavour_text = "Chaque strate garde la mémoire d'une guérison passée. Le cercle ne fait que la répéter."
 cost = 4
 race = 0

@@ -15,7 +15,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Fissure Runique"
-description = "Un serviteur ennemi ciblé perd -2/-0 jusqu'à la fin du tour."
+description = "Un serviteur ciblé que votre adversaire contrôle perd -2/-0 jusqu'à la fin du tour."
 flavour_text = "La rune se fissure, et avec elle, la force qu'elle retenait."
 cost = 2
 race = 0

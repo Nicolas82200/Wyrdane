@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Autel des Dons Perdus"
-description = "Renfort (une fois par tour) : Le serviteur allié invoqué gagne REMPART de façon permanente."
+description = "Renfort (une fois par tour) : Le serviteur invoqué gagne REMPART de façon permanente."
 flavour_text = "Il ne donne plus grand-chose. Mais ce qu'il donne encore, il le donne pour de bon."
 cost = 5
 race = 0

@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("3_carddata")
 card_name = "L'Écho Sans Origine"
-description = "Tant que ce serviteur est en jeu, tous les triggers de vos serviteurs alliés se déclenchent une fois de plus."
+description = "Tant que ce serviteur est en jeu, tous les déclencheurs des serviteurs que vous contrôlez se déclenchent une fois de plus."
 flavour_text = "Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement."
 cost = 8
 race = 0

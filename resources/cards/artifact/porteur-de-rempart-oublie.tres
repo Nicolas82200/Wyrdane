@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Porteur de Rempart Oublié"
-description = "Arrivée : Un serviteur allié ciblé gagne REMPART jusqu'à la fin du tour."
+description = "Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART jusqu'à la fin du tour."
 flavour_text = "Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois."
 cost = 2
 race = 0

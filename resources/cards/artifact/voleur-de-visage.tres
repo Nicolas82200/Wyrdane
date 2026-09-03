@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Voleur de Visage"
-description = "Arrivée : Devient une copie exacte d'un serviteur ennemi ciblé de coût 3 ou moins."
+description = "Arrivée : Devient une copie exacte d'un serviteur ciblé que votre adversaire contrôle, de coût 3 ou moins."
 flavour_text = "Il ne vole pas les biens. Il vole ce qu'on est."
 cost = 2
 race = 0

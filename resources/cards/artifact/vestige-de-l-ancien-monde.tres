@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Vestige de l'Ancien Monde"
-description = "Présence : Le premier serviteur allié invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour ennemi."
+description = "Présence : Le premier serviteur invoqué chaque tour gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire."
 flavour_text = "Le monde qu'il vient de n'existe plus. Mais il protège encore, par habitude."
 cost = 6
 race = 0

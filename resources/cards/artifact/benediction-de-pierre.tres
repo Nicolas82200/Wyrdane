@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Bénédiction de Pierre"
-description = "Un serviteur allié ciblé gagne ÉGIDE jusqu'à la fin du prochain tour ennemi."
+description = "Un serviteur ciblé que vous contrôlez gagne ÉGIDE jusqu'à la fin du prochain tour de votre adversaire."
 flavour_text = "La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper."
 cost = 2
 race = 0

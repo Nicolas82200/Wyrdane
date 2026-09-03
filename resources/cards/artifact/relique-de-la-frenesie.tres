@@ -19,7 +19,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Relique de la Frénésie"
-description = "Arrivée : Un serviteur allié ciblé gagne FRÉNÉSIE jusqu'à la fin du tour."
+description = "Arrivée : Un serviteur ciblé que vous contrôlez gagne FRÉNÉSIE jusqu'à la fin du tour."
 flavour_text = "Elle ne rend personne plus fort. Elle rend juste plus difficile de s'arrêter."
 cost = 4
 race = 0

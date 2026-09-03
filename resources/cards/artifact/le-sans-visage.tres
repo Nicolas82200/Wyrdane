@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Le Sans-Visage"
-description = "Arrivée : Devient une copie exacte d'un serviteur ciblé (allié ou ennemi), quel que soit son coût, puis gagne +1/+1 de façon permanente."
+description = "Arrivée : Devient une copie exacte d'un serviteur ciblé, le vôtre ou celui de votre adversaire, quel que soit son coût, puis gagne +1/+1 de façon permanente."
 flavour_text = "Il n'a pas de visage à lui. Il en a simplement volé un de plus."
 cost = 4
 race = 0
