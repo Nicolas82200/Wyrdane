@@ -449,6 +449,23 @@ func animate_enemy_card_played() -> void:
 	if is_instance_valid(ghost):
 		ghost.queue_free()
 
+# Une carte adverse revient en main (renvoi depuis le plateau ou résurrection
+# depuis le cimetière) : simple dos de carte volant de son origine (position du
+# serviteur sur le plateau, ou bouton du cimetière) jusqu'à EnemyHandDisplay.
+func animate_enemy_card_returned(origin_global_pos: Vector2) -> void:
+	if enemy_hand_display == null or not is_instance_valid(enemy_hand_display):
+		return
+	var ghost := _spawn_enemy_card_ghost(origin_global_pos)
+	var target: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
+	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
+	var tween := create_tween()
+	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration).set_delay(duration * 0.6)
+	await tween.finished
+	if is_instance_valid(ghost):
+		ghost.queue_free()
+
 func _spawn_enemy_card_ghost(at_global_pos: Vector2) -> TextureRect:
 	var ghost := TextureRect.new()
 	ghost.texture = CARD_BACK
@@ -549,8 +566,8 @@ func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index:
 	row = _normalized_row(row)
 	await card_system.handle_card_played(card_data, row, insert_index)
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
-	await board_system.summon_minion(card_data, is_player, row, insert_index, skip_onplay)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> Minion:
+	return await board_system.summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
 func _on_targeting_cancelled() -> void:
 	waiting_for_target   = false

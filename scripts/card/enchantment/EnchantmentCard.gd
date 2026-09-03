@@ -12,7 +12,7 @@ signal activate_requested(card_data: CardData, is_player: bool)
 
 const ACTIVATABLE_TINT := Color(1.25, 1.15, 0.75)
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
-const PREVIEW_SCALE := 0.9
+const PREVIEW_SCALE := Card.HOVER_ZOOM_SCALE
 
 var card_data: CardData
 var is_player: bool

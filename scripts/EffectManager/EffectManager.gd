@@ -55,6 +55,7 @@ func execute_effect(
 		"BuffIfCondition":  _buff_if_condition(battle, source_minion, effect)
 		"DamageAllMinions": await _damage_all_minions(battle, source_minion, effect)
 		"ReturnFromGrave":  _return_from_grave(battle, source_minion, effect, selected_target)
+		"ResurrectChosenFromGrave": await _resurrect_chosen_from_grave(battle, source_minion, effect)
 		"GrantKeyword":     await _grant_keyword(battle, source_minion, effect, selected_target)
 		"AttackImmediate":  await _attack_immediate(battle, source_minion, effect)
 		"GrantExtraAttack": _grant_extra_attack(battle, source_minion, effect)
@@ -422,6 +423,13 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target 
 				if visual:
 					battle.animation_system.play_damage(visual, dealt)
 				if dealt > 0:
+					if target.is_dead():
+						# Le serviteur quitte immédiatement le plateau pour le
+						# cimetière avant que l'effet ne continue sur les cibles
+						# suivantes (déclenche Dernier Souffle/Deuil/Carnage au
+						# bon moment plutôt qu'en différé après toute la boucle).
+						await battle.death_system.process_deaths()
+						continue
 					await notify_damaged(battle, target)
 					# TERREUR : tout dégât infligé par un serviteur porteur de ce
 					# mot-clé applique Terreur à sa cible, pas seulement au combat.
@@ -579,6 +587,11 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 			continue
 		if _is_front_line_protected(battle, source_minion, target):
 			continue
+		# Position du serviteur avant sa disparition du plateau : point de
+		# départ de l'animation de retour en main.
+		var visual = battle.board_visual_system.get_visual(target)
+		var origin: Vector2 = visual.global_position + visual.size * 0.5 \
+				if visual and is_instance_valid(visual) else battle.get_viewport().get_mouse_position()
 		# Retour en main = retrait du plateau SANS passer par la mort
 		# (pas de cimetière, pas de Dernier Souffle)
 		_remove_from_board(battle, target)
@@ -589,9 +602,10 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 			continue
 		if target.owner_is_player:
 			battle.hand_cards.append(target.card_data)
-			battle.hand.set_hand(battle.hand_cards)
+			await battle.hand.set_hand(battle.hand_cards, true, origin)
 		else:
 			battle.ai_system.hand.append(target.card_data)
+			await battle.animate_enemy_card_returned(origin)
 
 func _remove_from_board(battle, minion: Minion) -> void:
 	battle.player_minions.erase(minion)
@@ -786,6 +800,9 @@ func _damage_all(battle, source_minion: Minion, effect: CardEffect) -> void:
 	for target in targets:
 		var dealt: int = target.take_damage(damage)
 		if dealt > 0:
+			if target.is_dead():
+				await battle.death_system.process_deaths()
+				continue
 			await notify_damaged(battle, target)
 
 func _buff_row(battle, source_minion, effect) -> void:
@@ -871,11 +888,16 @@ func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
 		row = "Back"
 	if not battle.can_summon_to_row(is_player, row):
 		return false
-	await battle.summon_minion(card_data, is_player, row)
-	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions
-	if not minions.is_empty():
-		minions.back().health = 1
-		minions.back().was_resurrected = true
+	# Référence directe au serviteur invoqué (plutôt que le dernier élément de
+	# player_minions/enemy_minions) : un OnSummon déclenché par cette invocation
+	# (Renfort, aura...) peut lui-même invoquer un AUTRE serviteur ensuite, ce
+	# qui rendrait `.back()` incorrect (le 1 PV s'appliquerait au mauvais
+	# serviteur, laissant celui ressuscité à ses PV max).
+	var minion: Minion = await battle.summon_minion(card_data, is_player, row)
+	if minion != null and is_instance_valid(minion):
+		minion.health = 1
+		minion.was_resurrected = true
+		battle.board_visual_system.refresh_board()
 	return true
 
 func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -963,6 +985,9 @@ func _splash_damage(battle, source_minion: Minion, effect: CardEffect, selected_
 	for adjacent in adjacents:
 		var dealt: int = adjacent.take_damage(effect.value)
 		if dealt > 0:
+			if adjacent.is_dead():
+				await battle.death_system.process_deaths()
+				continue
 			await notify_damaged(battle, adjacent)
 
 # Debuff ATK temporaire (Émissaire de la Peste : -2 ATK jusqu'à fin de tour)
@@ -1004,6 +1029,9 @@ func _damage_all_minions(battle, source_minion: Minion, effect: CardEffect) -> v
 	for minion in targets:
 		var dealt: int = minion.take_damage(effect.value)
 		if dealt > 0:
+			if minion.is_dead():
+				await battle.death_system.process_deaths()
+				continue
 			await notify_damaged(battle, minion)
 
 # Ramène depuis le cimetière en main (Rituel d'Exhumation, Grand Rituel du
@@ -1023,15 +1051,46 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 			break
 	if card_data == null:
 		return
+	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
+
+# Point de départ commun des animations "carte qui revient en main depuis le
+# cimetière" : le bouton de cimetière du camp concerné.
+func _fly_from_graveyard_to_hand(battle, card_data: CardData, is_player: bool) -> void:
 	# Mode Arena (SimulatedBattle.gd) : pas de main — la carte reste au
 	# cimetière plutôt qu'un crash sur hand/hand_cards absents.
 	if battle.get("hand_cards") == null:
 		return
+	var btn = battle.player_graveyard_btn if is_player else battle.enemy_graveyard_btn
+	var origin: Vector2 = btn.global_position + btn.size * 0.5 \
+			if btn and is_instance_valid(btn) else battle.get_viewport().get_mouse_position()
 	if is_player:
 		battle.hand_cards.append(card_data)
-		battle.hand.set_hand(battle.hand_cards)
+		await battle.hand.set_hand(battle.hand_cards, true, origin)
 	else:
 		battle.ai_system.hand.append(card_data)
+		await battle.animate_enemy_card_returned(origin)
+
+# Ramène depuis le cimetière en main une carte CHOISIE par le joueur (Communion
+# avec les Morts). Contrairement à _return_from_grave (toujours "le dernier
+# mort"), le joueur local choisit via GraveyardView (prompt_graveyard_target) ;
+# l'IA/l'adversaire distant n'ont pas d'interaction possible, on retombe donc
+# sur le dernier mort correspondant, comme _return_from_grave.
+func _resurrect_chosen_from_grave(battle, source_minion: Minion, effect: CardEffect) -> void:
+	var is_player: bool = source_minion.owner_is_player if source_minion else true
+	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
+	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	var candidates: Array[CardData] = graveyard.get_minions().filter(
+		func(c: CardData) -> bool: return race == -1 or c.race == race)
+	if candidates.is_empty():
+		return
+	var card_data: CardData = null
+	if is_player and battle.network_manager == null:
+		card_data = await battle.targeting_system.prompt_graveyard_target(candidates)
+	else:
+		card_data = candidates.back()
+	if card_data == null:
+		return
+	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
 
 # Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
 # 1 HP (Cimetière Vivant : "le premier Mort-Vivant qui meurt chaque tour revient
