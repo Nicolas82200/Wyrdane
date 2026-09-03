@@ -121,7 +121,7 @@ Positionnement (Lane Types)
 | 30 | Faucheur de la Plaie | ⚔️ | 6 | 5 | 5 | Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
-| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
+| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | ASSAUT, REVENANT. Mort-rage : peut attaquer à nouveau. | La fièvre l'a tué. Ce qui reste est plus rapide. |
 | 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
 ### Légendaires
@@ -180,7 +180,7 @@ Positionnement (Lane Types)
 | 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
 | 54 | Pacte Sanglant | 3 | Épique | 3 charges | Sacrifice 1 : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
 | 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
-| 56 | Communion avec les Morts | 4 | Rare | 2 charges | Sacrifice 1 : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
+| 56 | Communion avec les Morts | 4 | Rare | 2 charges | Sacrifice 1 : Ressuscitez un serviteur Mort-Vivant ciblé depuis votre cimetière dans votre main. | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
 | 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
 | 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
 | 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : Inflige 2 points de dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
@@ -341,7 +341,7 @@ Liste complète des cartes de la race **Humain**.
 | H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Exécution : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
 | H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
 | H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL, DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
-| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
+| H31 | Porte-Étendard | 🛡️ | 4 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
 | H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE, ASSAUT Blessure : Gagne +2/+0 jusqu'à la fin du tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
 | H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs. | *La corruption s'arrête là où il pose le regard.* |
 | H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT Éveil : Invoque un Fantassin Aguerri 2/2 en rangée Avant si vous avez 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
@@ -425,7 +425,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : Chaque fois qu'un serviteur que votre adversaire contrôle meurt, les serviteurs que vous contrôlez en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | La première fois chaque tour qu'un Humain que vous contrôlez attaque, il gagne ÉGIDE. | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
-| H72 | Ordre des Anciens | 5 | Épique | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
+| H72 | Ordre des Anciens | 6 | Légendaire | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
 | H73 | Mémorial des Héros | 4 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 7 | Légendaire | Éveil : Tous les serviteurs Humains que vous contrôlez gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |

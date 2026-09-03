@@ -12,6 +12,10 @@ const DRAG_THRESHOLD      := 350.0
 const HAND_RETURN_DISTANCE := 50.0
 const BOARD_MINION_SIZE   := Vector2(100, 150)
 const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
+# Échelle de la carte agrandie affichée au survol, commune à la main (Hand)
+# et au plateau (BoardMinion, EnchantmentCard) pour une taille de zoom
+# cohérente partout.
+const HOVER_ZOOM_SCALE    := 1.2375
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
 # DeckBuilder.MAXED_TINT).
 const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
@@ -122,6 +126,15 @@ const TYPE_ICONS := {
 	"Enchantment": preload("res://assets/icons/enchantment.png"),
 }
 
+# Icône de race affichée dans le badge de coût des cartes-ressource, à la
+# place du chiffre habituel (le badge circulaire teinté par race reste identique).
+const RACE_RESOURCE_ICONS := {
+	Race.Type.UNDEAD:      preload("res://assets/icons/fleshy-mass.svg"),
+	Race.Type.HUMAN:       preload("res://assets/icons/wax-seal.svg"),
+	Race.Type.DEMON:       preload("res://assets/icons/soul.svg"),
+	Race.Type.ABOMINATION: preload("res://assets/icons/internal-organ.svg"),
+}
+
 @onready var art: TextureRect          = $Art
 @onready var name_label: Label         = $NameLabel
 @onready var cost_label: Label         = $CostLabel
@@ -132,6 +145,7 @@ const TYPE_ICONS := {
 @onready var border: TextureRect       = $BorderFrame
 @onready var type_label: Label         = $TypeLabel
 @onready var lane_icon: TextureRect    = $LaneIcon
+@onready var resource_icon: TextureRect = $ResourceIcon
 
 var data: CardData
 var drag_enabled := true
@@ -228,10 +242,13 @@ func set_display_cost(cost_split: Dictionary) -> void:
 	if data == null:
 		return
 	var is_resource := data.card_type == "Resource"
-	cost_label.visible = not is_resource
+	cost_label.visible = true
 	if is_resource:
+		cost_label.text = ""
 		generic_cost_label.visible = false
+		_apply_resource_icon()
 		return
+	resource_icon.visible = false
 	var race_cost: int = cost_split.get("race", 0)
 	var generic_cost: int = cost_split.get("generic", 0)
 	var reduced: bool = race_cost + generic_cost < data.cost
@@ -249,10 +266,14 @@ func update_display() -> void:
 	var is_resource := data.card_type == "Resource"
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
-	cost_label.visible = not is_resource
-	cost_label.text = str(base_race_cost)
+	cost_label.visible = true
+	cost_label.text = "" if is_resource else str(base_race_cost)
 	generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
 	generic_cost_label.text = str(data.cost - base_race_cost)
+	if is_resource:
+		_apply_resource_icon()
+	else:
+		resource_icon.visible = false
 	attack_label.text = str(data.attack)
 	health_label.text = str(data.health)
 
@@ -448,6 +469,13 @@ func _fit_type_label() -> void:
 	var width: float = clampf(text_width + TYPE_LABEL_PADDING, TYPE_LABEL_MIN_WIDTH, TYPE_LABEL_MAX_WIDTH)
 	type_label.offset_left  = -width / 2.0
 	type_label.offset_right = width / 2.0
+
+# Affiche le logo de race dans le badge de coût des cartes-ressource, en lieu
+# et place du chiffre (le cercle coloré par race sous-jacent reste inchangé).
+func _apply_resource_icon() -> void:
+	resource_icon.visible = RACE_RESOURCE_ICONS.has(data.race)
+	if resource_icon.visible:
+		resource_icon.texture = RACE_RESOURCE_ICONS[data.race]
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
@@ -667,6 +695,7 @@ func show_back(show_card_back: bool) -> void:
 		border.hide()
 		lane_icon.hide()
 		type_label.hide()
+		resource_icon.hide()
 	else:
 		if data:
 			update_display()
