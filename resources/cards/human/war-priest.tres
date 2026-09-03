@@ -34,7 +34,7 @@ type = "DEATHRATTLE"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Prêtre de Guerre"
-description = "Éveil : Donne +0/+2 à un Humain que vous contrôlez, au hasard.
+description = "Éveil : Donne +0/+2 à un Humain aléatoire que vous contrôlez.
 Dernier Souffle : Invoque un Éclaireur Rapide 1/1."
 flavour_text = "Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps."
 texture = ExtResource("3_texture")

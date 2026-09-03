@@ -13,7 +13,7 @@ var is_selected := false
 @onready var health_label     = $HealthLabel
 @onready var border_highlight: Panel     = $BorderHighlight
 @onready var border_color: Panel         = get_node_or_null("BorderColor")
-@onready var keyword_icons: HBoxContainer = $KeywordIcons
+@onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
 	Race.Type.UNDEAD: Color("342e1ae1"),
