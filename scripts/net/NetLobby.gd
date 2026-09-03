@@ -380,6 +380,12 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	NetContext.active = true
 	NetContext.net = _net
 	NetContext.is_host = _net.is_host
+	# Le backend ne distingue pas ranked/partie rapide (voir CLAUDE.md § Ranked) :
+	# ce flag n'existe que côté client, propagé jusqu'à Battle pour le succès
+	# Steam "Premier sang" (voir AchievementManager). _ranked_role n'est non-vide
+	# qu'après un appariement classé réussi (_on_ranked_matched), et n'est remis
+	# à "" que par _reset_ranked_ui() (annulation/timeout), jamais sur ce chemin.
+	setup["is_ranked"] = _ranked_role != ""
 	NetContext.setup = setup
 	# Sans cette étape, chaque client basculerait sur Battle.tscn dès que SON
 	# handshake local est fini, indépendamment du pair — un joueur pouvait

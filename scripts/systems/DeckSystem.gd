@@ -33,7 +33,12 @@ func load_deck() -> void:
 # cartes piochées) — voir Battle.deck_races.
 func _compute_deck_races() -> void:
 	battle.deck_races.clear()
+	# Succès Steam "Petit budget" (voir AchievementManager) : calculé ici, avant
+	# toute pioche, car battle.deck est ensuite consommé au fil de la partie.
+	battle.deck_has_legendary = false
 	for card in battle.deck:
+		if card.rarity == "Legendary":
+			battle.deck_has_legendary = true
 		if card.race == Race.Type.NONE:
 			continue
 		var race_name := Race.get_race_name(card.race)
