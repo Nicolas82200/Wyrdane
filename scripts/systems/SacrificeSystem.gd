@@ -85,6 +85,9 @@ func _execute() -> void:
 	var victim_ids: Array = []
 	for v in victims:
 		victim_ids.append(v.net_id)
+	# Succès Steam "Sacrifice" (voir AchievementManager) : cumulé sur toute la partie.
+	battle.player_sacrifices_this_match += victims.size()
+	AchievementManager.on_sacrifice(battle.player_sacrifices_this_match)
 	await battle.trigger_system.activate_sacrifice_ritual(ritual, true, victims)
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()

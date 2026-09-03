@@ -167,6 +167,7 @@ var player_infection_damage_dealt: int = 0
 var player_used_back_row_this_match: bool = false
 var player_commandement_triggers_this_match: int = 0
 var player_black_blood_triggers_this_match: int = 0
+var player_sacrifices_this_match: int = 0
 var deck_has_legendary: bool = false
 # Ce match provient-il de la file d'appariement classé (bouton "Partie
 # classée" de NetLobby) plutôt que d'une "Partie rapide" ? Le backend ne fait
