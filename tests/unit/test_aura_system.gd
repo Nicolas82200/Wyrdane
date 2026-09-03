@@ -117,6 +117,15 @@ func test_aura_buff_row_only_affects_targeted_row() -> void:
 	assert_eq(front.aura_health_bonus, 2)
 	assert_eq(back.aura_attack_bonus, 0, "l'aura ne cible que la rangée Avant")
 
+func test_aura_buff_row_respects_race_filter() -> void:
+	var human := _minion(2, 4, true, "Front", Race.Type.HUMAN)
+	var undead := _minion(2, 4, true, "Front", Race.Type.UNDEAD)
+	var enchant := _enchantment("AuraBuffRow", "AllAlliesFront", 0, 1, "Human")
+	battle.trigger_system.active_enchantments[true] = [{"card_data": enchant}]
+	aura_system.recompute_all()
+	assert_eq(human.aura_health_bonus, 1, "Citadelle des Hommes : seulement les Humains alliés en rangée Avant")
+	assert_eq(undead.aura_health_bonus, 0, "le filtre de race doit exclure les non-Humains")
+
 func test_aura_damage_reduction_respects_race_filter() -> void:
 	var undead := _minion(2, 4, true, "Front", Race.Type.UNDEAD)
 	var human := _minion(2, 4, true, "Back", Race.Type.HUMAN)

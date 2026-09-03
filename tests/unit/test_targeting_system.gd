@@ -140,6 +140,20 @@ func test_max_atk_threshold_rejects_minion_above_threshold() -> void:
 	var enemy := _minion(false, Race.Type.NONE, 5, 3)
 	assert_false(targeting_system._is_valid_target_minion(enemy, card))
 
+func test_max_cost_threshold_rejects_minion_above_threshold() -> void:
+	var card := _card_with_effect("EnemyMinion")
+	card.effects[0].target_max_cost = 2
+	var enemy := _minion(false, Race.Type.NONE, 2, 3)
+	enemy.card_data.cost = 3
+	assert_false(targeting_system._is_valid_target_minion(enemy, card))
+
+func test_max_cost_threshold_accepts_minion_at_or_below_threshold() -> void:
+	var card := _card_with_effect("EnemyMinion")
+	card.effects[0].target_max_cost = 2
+	var enemy := _minion(false, Race.Type.NONE, 2, 3)
+	enemy.card_data.cost = 2
+	assert_true(targeting_system._is_valid_target_minion(enemy, card))
+
 func test_requires_resurrected_target_rejects_non_resurrected_minion() -> void:
 	var card := _card_with_effect("EnemyMinion")
 	card.effects[0].requires_resurrected_target = true

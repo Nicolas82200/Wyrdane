@@ -53,6 +53,19 @@ func test_damage_owner_hero_uses_self_damage_pipeline() -> void:
 	await effect_manager.execute_effect(battle, source, effect)
 	assert_eq(battle.player_hero.health, 1, "self_damage ne doit jamais faire tomber le héros à 0")
 
+# ─── Damage "EnemyAny" (Souffle Nécrotique, Don de Chair) ───────────────────
+
+func test_damage_enemy_any_hits_enemy_hero_when_selected() -> void:
+	var effect := _effect("Damage", "EnemyAny", 2)
+	await effect_manager.execute_effect(battle, null, effect, battle.enemy_hero)
+	assert_eq(battle.enemy_hero.health, battle.enemy_hero.max_health - 2)
+
+func test_damage_enemy_any_hits_enemy_minion_when_selected() -> void:
+	var target := _minion(2, 5, false)
+	var effect := _effect("Damage", "EnemyAny", 2)
+	await effect_manager.execute_effect(battle, null, effect, target)
+	assert_eq(target.health, 3)
+
 func test_damage_targets_minion_and_kills_it() -> void:
 	var source := _minion(2, 5, true)
 	var target := _minion(2, 3, false)
@@ -282,13 +295,13 @@ func test_resurrect_self_revives_dead_ally_with_one_hp() -> void:
 	assert_eq(revived.health, 1)
 	assert_true(revived.was_resurrected)
 
-func test_resurrect_self_ignores_already_resurrected_target() -> void:
+func test_resurrect_self_can_revive_an_already_resurrected_target_again() -> void:
 	var dead := _minion(3, 5, true)
 	dead.health = 0
 	dead.was_resurrected = true
 	var effect := _effect("ResurrectSelf", "AllyMinion")
 	await effect_manager.execute_effect(battle, null, effect, dead)
-	assert_eq(battle.player_minions.size(), 1, "une seule fois par serviteur : pas de nouvelle invocation")
+	assert_eq(battle.player_minions.size(), 2, "aucune limite par serviteur : peut revivre plusieurs fois au fil de la partie")
 
 # ─── InfectEnemy / InfectAdjacent ───────────────────────────────────────────
 
@@ -587,6 +600,19 @@ func test_sacrifice_ally_kills_selected_target() -> void:
 	assert_true(target.sacrificed)
 	assert_true(target.is_dead())
 
+# Don de Chair passe désormais la cible ennemie de son effet Damage (EnemyAny)
+# à SacrificeAlly aussi (même selected_target pour tous les effets de la
+# carte) : un serviteur ennemi ne doit jamais être sacrifié à la place d'un allié.
+func test_sacrifice_ally_ignores_enemy_selected_target_and_picks_weakest_ally() -> void:
+	var weakest := _minion(1, 1, true)
+	_minion(5, 10, true)
+	var enemy_target := _minion(2, 5, false)
+	var effect := _effect("SacrificeAlly", "AllyMinion")
+	effect.count = 1
+	await effect_manager.execute_effect(battle, null, effect, enemy_target)
+	assert_false(enemy_target.sacrificed)
+	assert_true(weakest.sacrificed)
+
 func test_sacrifice_ally_without_target_picks_weakest_allies() -> void:
 	var source := _minion(5, 10, true)
 	var weakest := _minion(1, 1, true)
@@ -825,3 +851,126 @@ func test_copy_adjacent_keyword_copies_from_another_minion_in_play() -> void:
 	var effect := _effect("CopyAdjacentKeyword", "AllyMinion")
 	await effect_manager.execute_effect(battle, null, effect, target)
 	assert_true(target.has_keyword(Keyword.Type.TAUNT), "seul TAUNT est disponible dans le pool (unique autre serviteur)")
+
+# ─── Ordre Pacte / effet de base (trigger_effects) ──────────────────────────
+# Le paiement du Pacte doit se résoudre APRÈS l'effet de base quand le bonus
+# s'ajoute simplement (ex. Sangsue Infernale), pour que le joueur voie le
+# résultat de base avant qu'on lui propose de payer le bonus. Exception :
+# quand le bonus REMPLACE l'effet de base (pact_replaces_base), la décision
+# doit être connue avant d'exécuter quoi que ce soit (impossible de "défaire"
+# un serviteur déjà invoqué).
+
+func _pact_minion(pact_value: int, is_player: bool = true) -> Minion:
+	var data := CardData.new()
+	data.card_name = "TEST_PACT_CARD"
+	var kwd := KeywordChoiceDemon.new()
+	kwd.keyword_type = KeywordDemon.Type.PACTE
+	kwd.value = pact_value
+	data.demon_keywords = [kwd]
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "ONPLAY"
+	data.trigger_types = [trigger]
+	return Minion.new(data, is_player)
+
+func test_trigger_effects_runs_additive_base_before_resolving_pact_payment() -> void:
+	var source := _pact_minion(1)
+	var base := _effect("HealHero", "OwnerHero", 2)
+	var bonus := _effect("HealHero", "OwnerHero", 5)
+	bonus.pact_bonus = true
+	source.card_data.effects = [base, bonus]
+	# Capturé dans un Dictionary (type par référence) : une lambda GDScript
+	# capture les locales par VALEUR, muter un `Variant` local directement ne
+	# serait pas visible hors de la lambda (même piège documenté dans
+	# test_pact_choice_system.gd).
+	var captured: Dictionary = {}
+	battle.pact_choice_system.on_resolve = func() -> void:
+		captured["health_at_resolve"] = battle.player_hero.health
+	battle.pact_choice_system.next_result = true
+	var starting_health: int = battle.player_hero.health
+	await effect_manager.trigger_effects(battle, source, "ONPLAY")
+	assert_eq(battle.pact_choice_system.calls.size(), 1, "le choix de Pacte doit être proposé une seule fois")
+	assert_eq(captured.get("health_at_resolve"), starting_health + 2, "l'effet de base doit déjà être appliqué au moment où le choix de Pacte est proposé")
+	# +2 (base) -1 (coût en PV du Pacte, valeur 1) +5 (bonus payé) = +6
+	assert_eq(battle.player_hero.health, starting_health + 6, "base (+2), coût du Pacte (-1), puis bonus payé (+5)")
+
+func test_trigger_effects_skips_pact_prompt_when_no_bonus_effect() -> void:
+	var source := _pact_minion(1)
+	var base := _effect("HealHero", "OwnerHero", 2)
+	source.card_data.effects = [base]
+	var starting_health: int = battle.player_hero.health
+	await effect_manager.trigger_effects(battle, source, "ONPLAY")
+	assert_eq(battle.pact_choice_system.calls.size(), 0, "pas de bonus = pas de popup Pacte")
+	assert_eq(battle.player_hero.health, starting_health + 2)
+
+func test_trigger_effects_resolves_pact_before_base_when_bonus_replaces_it() -> void:
+	var source := _pact_minion(1)
+	var base := _effect("Buff", "Self", 1, 0)
+	var bonus := _effect("Buff", "Self", 5, 0)
+	bonus.pact_bonus = true
+	bonus.pact_replaces_base = true
+	source.card_data.effects = [base, bonus]
+	battle.pact_choice_system.next_result = true
+	await effect_manager.trigger_effects(battle, source, "ONPLAY")
+	assert_eq(source.attack, source.card_data.attack + 5, "le bonus remplace le base (+5, pas +1+5)")
+
+func test_trigger_effects_runs_base_when_pact_declined_even_with_replaces_base() -> void:
+	var source := _pact_minion(1)
+	var base := _effect("Buff", "Self", 1, 0)
+	var bonus := _effect("Buff", "Self", 5, 0)
+	bonus.pact_bonus = true
+	bonus.pact_replaces_base = true
+	source.card_data.effects = [base, bonus]
+	battle.pact_choice_system.next_result = false
+	await effect_manager.trigger_effects(battle, source, "ONPLAY")
+	assert_eq(source.attack, source.card_data.attack + 1, "Pacte refusé : l'effet de base s'applique normalement")
+
+# ─── TERREUR sur dégâts d'effet (pas seulement au combat) ──────────────────
+
+func _terror_source(is_player: bool = true) -> Minion:
+	var data := CardData.new()
+	data.card_name = "TEST_TERROR_SOURCE"
+	var kwd := KeywordChoiceDemon.new()
+	kwd.keyword_type = KeywordDemon.Type.TERREUR
+	data.demon_keywords = [kwd]
+	return Minion.new(data, is_player)
+
+func test_damage_effect_from_terror_source_applies_terror_to_single_target() -> void:
+	var source := _terror_source()
+	var target := _minion(2, 5, false)
+	var effect := _effect("Damage", "EnemyMinion", 1)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_gt(target.terror_turns, 0)
+
+func test_damage_effect_from_terror_source_applies_terror_to_all_targets() -> void:
+	var source := _terror_source()
+	var target_a := _minion(2, 5, false)
+	var target_b := _minion(2, 5, false)
+	var effect := _effect("Damage", "AllEnemies", 1)
+	await effect_manager.execute_effect(battle, source, effect)
+	assert_gt(target_a.terror_turns, 0)
+	assert_gt(target_b.terror_turns, 0)
+
+func test_damage_effect_from_terror_source_respects_fear_immunity() -> void:
+	var source := _terror_source()
+	# has_demon_keyword() lit Minion.demon_keywords, résolu depuis card_data à
+	# la CONSTRUCTION du Minion : le mot-clé doit être posé avant Minion.new(),
+	# pas ajouté après coup sur card_data (sans effet, déjà mis en cache).
+	var target_data := CardData.new()
+	target_data.card_name = "TEST_IMMUNE_TARGET"
+	target_data.attack = 2
+	target_data.health = 5
+	var kwd_immune := KeywordChoiceDemon.new()
+	kwd_immune.keyword_type = KeywordDemon.Type.CHAIR_DE_SOUFRE
+	target_data.demon_keywords = [kwd_immune]
+	var target := Minion.new(target_data, false)
+	battle.enemy_minions.append(target)
+	var effect := _effect("Damage", "EnemyMinion", 1)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.terror_turns, 0, "CHAIR DE SOUFRE immunise contre Terreur")
+
+func test_damage_effect_without_terror_keyword_does_not_apply_terror() -> void:
+	var source := _minion(2, 5, true)
+	var target := _minion(2, 5, false)
+	var effect := _effect("Damage", "EnemyMinion", 1)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.terror_turns, 0)

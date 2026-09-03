@@ -490,8 +490,6 @@ func _gui_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if mulligan_mode:
-		if mulligan_swapped:
-			return
 		if event is InputEventMouseButton \
 				and event.button_index == MOUSE_BUTTON_LEFT \
 				and event.pressed:

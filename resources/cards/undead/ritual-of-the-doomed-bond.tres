@@ -20,7 +20,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel du Lien Funeste"
-description = "Deuil : Inflige 2 dégâts au héros ennemi."
+description = "Deuil : Inflige 2 points de dégâts au héros ennemi."
 flavour_text = "Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction."
 texture = ExtResource("3_texture")
 cost = 4

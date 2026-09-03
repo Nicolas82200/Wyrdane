@@ -12,7 +12,8 @@ effect_id = "Damage"
 target = "EnemyMinion"
 value = 2
 condition_type = "TriggerSourceRace"
-condition_race = "Undead"
+condition_race = "Human"
+condition_race_exclude = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_98490"]
@@ -22,7 +23,7 @@ type = "OnAttack"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Briseur de Horde"
-description = "Attaque : Si la cible est un Mort-Vivant, inflige 2 dégâts supplémentaires."
+description = "Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires."
 flavour_text = "Il a perdu son village à la première vague. Il n'a pas perdu la rage."
 texture = ExtResource("3_texture")
 cost = 4

@@ -16,14 +16,6 @@ condition_type = "TriggerSourceLegendary"
 condition_race = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
-[sub_resource type="Resource" id="Resource_3cuvb"]
-script = ExtResource("1_cardeffect")
-effect_id = "SummonMinion"
-summon_card = ExtResource("7_militia")
-condition_type = "TriggerSourceLegendary"
-condition_race = "Human"
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
 [sub_resource type="Resource" id="Resource_jl4is"]
 script = ExtResource("5_trig")
 type = "OnGrief"
@@ -31,13 +23,13 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mémorial des Héros"
-description = "Deuil : Quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant."
+description = "Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 en rangée Avant."
 flavour_text = "On grave les noms pour ne pas oublier. On continue pour la même raison."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1
 card_type = "Enchantment"
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_jl4is")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_3cuva"), SubResource("Resource_3cuvb")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_3cuva")])
 rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

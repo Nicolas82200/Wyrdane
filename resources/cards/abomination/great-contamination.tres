@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "La Grande Contamination"
-description = "Arrivée : Détruit tous les serviteurs ennemis en jeu."
+description = "Arrivée : Détruit tous les serviteurs que votre adversaire contrôle en jeu."
 flavour_text = "Ce n'était pas une invasion. C'était une contamination."
 texture = ExtResource("2_texture")
 cost = 8

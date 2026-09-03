@@ -10,7 +10,7 @@
 [sub_resource type="Resource" id="Resource_qql98"]
 script = ExtResource("1_cardeffect")
 effect_id = "Buff"
-target = "AllAlliesBack"
+target = "AllAlliesFront"
 race_filter = "Human"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ordre d'Avancer"
-description = "Tous les serviteurs Humains alliés en rangée Arrière gagnent +1 ATK de façon permanente."
+description = "Tous les serviteurs Humains que vous contrôlez en rangée Avant gagnent +1/+0 de façon permanente."
 flavour_text = "L'ordre est arrivé. Il n'y avait pas de question à poser."
 texture = ExtResource("3_texture")
 cost = 2

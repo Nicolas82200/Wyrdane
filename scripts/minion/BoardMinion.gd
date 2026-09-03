@@ -13,7 +13,7 @@ var is_selected := false
 @onready var health_label     = $HealthLabel
 @onready var border_highlight: Panel     = $BorderHighlight
 @onready var border_color: Panel         = get_node_or_null("BorderColor")
-@onready var keyword_icons: HBoxContainer = $KeywordIcons
+@onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
 	Race.Type.UNDEAD: Color("342e1ae1"),
@@ -210,6 +210,7 @@ func _process(delta: float) -> void:
 	var over: bool = mouse_filter != Control.MOUSE_FILTER_IGNORE \
 		and is_visible_in_tree() \
 		and not _is_game_over() \
+		and not _is_ui_blocked() \
 		and get_global_rect().has_point(get_global_mouse_position())
 	if over and not _mouse_is_over:
 		_on_mouse_entered()
@@ -401,6 +402,19 @@ func _is_dragging_card() -> bool:
 func _is_game_over() -> bool:
 	return _battle != null and "game_over" in _battle and _battle.game_over
 
+## Coupe le hover du board pendant qu'une vue plein écran (cimetière/deck,
+## réglages) est ouverte par-dessus.
+func _is_ui_blocked() -> bool:
+	if _battle == null:
+		return false
+	if "graveyard_view" in _battle and is_instance_valid(_battle.graveyard_view) \
+			and _battle.graveyard_view.visible:
+		return true
+	if "settings_menu" in _battle and is_instance_valid(_battle.settings_menu) \
+			and _battle.settings_menu.visible:
+		return true
+	return false
+
 func _on_mouse_entered() -> void:
 	_mouse_is_over = true
 	if _targetable:
@@ -578,17 +592,17 @@ func _hide_keyword_tooltips() -> void:
 # derrière elles dès que celui-ci était clair — le badge sombre + bordure
 # colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
 # constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
-# Réduit sur demande explicite (était 26/16) : le cercle autour de chaque icône
-# prenait trop de place dans le coin de la carte.
-const KEYWORD_BADGE_SIZE := 18.0
-const KEYWORD_ICON_SIZE  := 11.0
+# Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
+# icône 11->13) : les icônes doivent rester lisibles alignées verticalement le
+# long du bord gauche de la carte sans que la bulle ne prenne toute la place.
+const KEYWORD_BADGE_SIZE := 15.0
+const KEYWORD_ICON_SIZE  := 13.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:
 		return
-	# Resserré (défaut 4px) pour compenser l'agrandissement du badge (22->26px) :
-	# plusieurs mots-clés sur un même serviteur restent lisibles sans trop déborder
-	# du coin de la carte.
+	# Resserré pour empiler plusieurs mots-clés le long du bord gauche de la
+	# carte sans déborder de sa hauteur.
 	keyword_icons.add_theme_constant_override("separation", 2)
 	for child in keyword_icons.get_children():
 		child.queue_free()

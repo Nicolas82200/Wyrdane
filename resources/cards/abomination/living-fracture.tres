@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("3_carddata")
 card_name = "Fracture Vivante"
 description = "Détruit un enchantement ennemi aléatoire.
-Un serviteur Abomination allié aléatoire mute immédiatement."
+Une Abomination aléatoire que vous contrôlez mute immédiatement."
 flavour_text = "La corruption ne respecte pas la magie. Elle la digère aussi."
 texture = ExtResource("2_texture")
 cost = 2

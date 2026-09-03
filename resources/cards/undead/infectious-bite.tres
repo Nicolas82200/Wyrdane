@@ -18,12 +18,13 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Morsure Infectieuse"
-description = "Transforme un serviteur ennemi non-Légendaire en Zombie 1/1 sous votre contrôle."
+description = "Transforme un serviteur non-Légendaire que votre adversaire contrôle en Zombie 1/1 sous votre contrôle."
 flavour_text = "Une seule morsure suffit. Le reste, c'est une question de temps."
 texture = ExtResource("3_texture")
-cost = 3
+cost = 4
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_4ewae")])
 requires_target = true
 rarity = "Rare"
+race_cost_override = 2
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

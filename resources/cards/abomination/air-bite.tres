@@ -22,7 +22,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Morsure de l'Air"
-description = "Inflige 2 dégâts à un serviteur ennemi ciblé.
+description = "Inflige 2 points de dégâts à un serviteur ciblé que votre adversaire contrôle.
 S'il survit, il perd 1 ATK de façon permanente."
 flavour_text = "Ce qui ne tue pas ronge quand même."
 texture = ExtResource("2_texture")

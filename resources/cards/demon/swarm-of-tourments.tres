@@ -17,7 +17,14 @@ type = "ONPLAY"
 [sub_resource type="Resource" id="Resource_597td"]
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
-target = "AllEnemies"
+target = "RandomEnemy"
+value = 1
+metadata/_custom_type_script = "uid://ddqetdlahmfmu"
+
+[sub_resource type="Resource" id="Resource_597td2"]
+script = ExtResource("1_cardeffect")
+effect_id = "Damage"
+target = "RandomEnemy"
 value = 1
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
@@ -25,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Nuée de Tourments"
 description = "TERREUR
-Arrivée : Inflige 1 dégât à tous les serviteurs ennemis en jeu."
+Arrivée : Inflige 1 point de dégât à 2 serviteurs que votre adversaire contrôle."
 flavour_text = "Elle ne mord pas fort. Elle mord partout, et longtemps."
 texture = ExtResource("3_texture")
 cost = 3
@@ -35,7 +42,7 @@ attack = 1
 health = 2
 demon_keywords = Array[ExtResource("4_kwd")]([SubResource("Resource_ya0t2")])
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_f3e4j")])
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_597td")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_597td"), SubResource("Resource_597td2")])
 rarity = "Epic"
 board_position = "Hybrid"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

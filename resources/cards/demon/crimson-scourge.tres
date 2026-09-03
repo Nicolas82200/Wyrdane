@@ -39,7 +39,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Fléau Écarlate"
-description = "Éveil : Les serviteurs ennemis non Démons subissent -1/-1.
+description = "Éveil : Les serviteurs non Démons que votre adversaire contrôle subissent -1/-1.
 Pacte 2 : -1/-1 supplémentaire."
 flavour_text = "Le fléau ne fait pas de tri. Il revient juste, patiemment."
 texture = ExtResource("3_texture")

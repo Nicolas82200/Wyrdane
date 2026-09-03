@@ -9,14 +9,14 @@
 [sub_resource type="Resource" id="Resource_3bb2x"]
 script = ExtResource("1_cardeffect")
 effect_id = "Damage"
-target = "EnemyMinion"
+target = "EnemyAny"
 value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Souffle Nécrotique"
-description = "Inflige 2 dégâts à un serviteur ennemi ciblé."
+description = "Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle)."
 flavour_text = "Ce n'est pas du vent. C'est ce qui reste quand les poumons ne servent plus à rien."
 texture = ExtResource("3_texture")
 cost = 2

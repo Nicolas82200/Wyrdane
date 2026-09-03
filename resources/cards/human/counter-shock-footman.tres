@@ -21,14 +21,14 @@ script = ExtResource("1_cardeffect")
 effect_id = "GrantKeyword"
 target = "Self"
 duration = "UntilEndOfTurn"
-granted_keyword = "TAUNT"
+granted_keyword = "AEGIS"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fantassin de Contre-Choc"
 description = "CONTRE-ATTAQUE
-Blessure : Gagne REMPART jusqu'à la fin du tour."
+Blessure : Gagne ÉGIDE jusqu'à la fin du tour."
 flavour_text = "Chaque coup reçu lui rappelle pourquoi il tient encore debout."
 texture = ExtResource("3_texture")
 cost = 4

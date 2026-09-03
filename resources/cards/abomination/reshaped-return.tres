@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Grand Retour Sous une Autre Forme"
-description = "Deuil : Ramène en main le serviteur Abomination allié le plus récemment mort."
+description = "Deuil : Ramène en main l'Abomination la plus récemment morte que vous contrôlez."
 flavour_text = "\"Je ne les rappelle pas. Je les laisse simplement finir de devenir autre chose.\""
 texture = ExtResource("2_texture")
 cost = 8

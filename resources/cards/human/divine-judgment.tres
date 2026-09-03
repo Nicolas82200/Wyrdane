@@ -10,19 +10,19 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Destroy"
 target = "EnemyMinion"
-target_max_atk = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Jugement Divin"
-description = "Détruit un serviteur ennemi ayant 2 ATK ou moins."
+description = "Détruit un serviteur ciblé que votre adversaire contrôle."
 flavour_text = "Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé."
 texture = ExtResource("3_texture")
-cost = 3
+cost = 4
 race = 1
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_y4iga")])
 requires_target = true
 rarity = "Rare"
+race_cost_override = 2
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
