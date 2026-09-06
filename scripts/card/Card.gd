@@ -12,6 +12,10 @@ const DRAG_THRESHOLD      := 350.0
 const HAND_RETURN_DISTANCE := 50.0
 const BOARD_MINION_SIZE   := Vector2(100, 150)
 const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
+# Échelle de la carte agrandie affichée au survol, commune à la main (Hand)
+# et au plateau (BoardMinion, EnchantmentCard) pour une taille de zoom
+# cohérente partout.
+const HOVER_ZOOM_SCALE    := 1.2375
 # Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
 # DeckBuilder.MAXED_TINT).
 const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)

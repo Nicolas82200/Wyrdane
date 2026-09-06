@@ -44,6 +44,15 @@ func prompt_trigger_target(card_data: CardData) -> Minion:
 	var result = await target_selected
 	return result
 
+# Ciblage à froid dans le cimetière allié (ex: Communion avec les Morts) : le
+# joueur local choisit une carte via GraveyardView en mode sélection. Comme
+# pour prompt_trigger_target, aucun ciblage à annuler (la décision de
+# sacrifice/déclenchement a déjà eu lieu).
+func prompt_graveyard_target(candidates: Array[CardData]) -> CardData:
+	battle.graveyard_view.open_for_selection(candidates)
+	var result = await battle.graveyard_view.card_picked
+	return result
+
 func begin_targeting(card_data: CardData, row: String, insert_index: int, origin: Control = null) -> void:
 	# Un attaquant/groupe d'attaquants deja selectionne accepterait un clic
 	# destine au ciblage du sort comme un ordre d'attaque (meme cible cliquee).

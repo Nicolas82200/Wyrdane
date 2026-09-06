@@ -476,7 +476,7 @@ func _on_mouse_entered() -> void:
 	if minion.display_card_override != null:
 		_hover_preview.attack_label.text = str(minion.card_data.attack)
 		_hover_preview.health_label.text = str(minion.card_data.health)
-	_hover_preview.scale = Vector2(0.9, 0.9)
+	_hover_preview.scale = Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE)
 	await get_tree().process_frame
 
 	# Évite les états invalides si la souris sort pendant l'await
@@ -486,10 +486,10 @@ func _on_mouse_entered() -> void:
 
 	_hover_preview.global_position = global_position + Vector2(
 		size.x + 15,
-		(size.y - _hover_preview.size.y * 0.9) / 2.0
+		(size.y - _hover_preview.size.y * Card.HOVER_ZOOM_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
-	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * 0.9 + 15
+	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 	var tooltip_y := _hover_preview.global_position.y
 	await _show_keyword_tooltips(tooltip_x, tooltip_y)
 
@@ -597,8 +597,8 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		await get_tree().process_frame
 		if _tooltip_layer == my_layer and _mouse_is_over \
 				and is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
-			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * 0.9
-			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * 0.9) / 2.0
+			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * Card.HOVER_ZOOM_SCALE
+			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * Card.HOVER_ZOOM_SCALE) / 2.0
 			var rx: float = clampf(
 				preview_center_x - race_panel.size.x / 2.0, 4.0, vp.x - race_panel.size.x - 4.0)
 			var ry := preview_bottom + 6
