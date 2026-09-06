@@ -100,14 +100,14 @@ func _ensure_row(race: int) -> Dictionary:
 	if RACE_MANA_ICONS.has(race):
 		var icon := TextureRect.new()
 		icon.texture = RACE_MANA_ICONS[race]
-		icon.custom_minimum_size = Vector2(14, 14)
+		icon.custom_minimum_size = Vector2(18, 18)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.modulate = color
 		swatch = icon
 	else:
 		var rect := ColorRect.new()
-		rect.custom_minimum_size = Vector2(10, 10)
+		rect.custom_minimum_size = Vector2(13, 13)
 		rect.color = color
 		swatch = rect
 	hbox.add_child(swatch)
@@ -117,7 +117,7 @@ func _ensure_row(race: int) -> Dictionary:
 		var crystal := Label.new()
 		crystal.text = "◆"
 		crystal.visible = false
-		crystal.add_theme_font_size_override("font_size", 12)
+		crystal.add_theme_font_size_override("font_size", 15)
 		crystal.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
 		crystal.add_theme_constant_override("shadow_offset_x", 1)
 		crystal.add_theme_constant_override("shadow_offset_y", 1)
@@ -126,7 +126,7 @@ func _ensure_row(race: int) -> Dictionary:
 
 	var amount_label := Label.new()
 	amount_label.add_theme_font_override("font", FONT_BOLD)
-	amount_label.add_theme_font_size_override("font_size", 14)
+	amount_label.add_theme_font_size_override("font_size", 18)
 	amount_label.add_theme_color_override("font_color", COLOR_TEXT)
 	amount_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	amount_label.add_theme_constant_override("shadow_offset_x", 1)

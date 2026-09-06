@@ -423,7 +423,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="CurrencyIcon" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow" unique_id=300000035]
-custom_minimum_size = Vector2(16, 16)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 2
 size_flags_vertical = 4
 texture = ExtResource("14_goldicon")
