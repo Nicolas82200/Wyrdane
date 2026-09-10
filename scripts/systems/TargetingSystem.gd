@@ -113,8 +113,15 @@ func on_enchantment_clicked(card_data: CardData, is_player: bool, visual: Contro
 func on_enemy_hero_clicked() -> void:
 	if not _active:
 		return
+	# "AnyMinion" désigne partout ailleurs (EffectManager._get_targets/
+	# _trigger_target_pool, _is_valid_target_minion ci-dessous) une cible
+	# EXCLUSIVEMENT serviteur, jamais un héros — _show_valid_targets ne met
+	# d'ailleurs jamais le héros en surbrillance pour ce target_str. L'accepter
+	# ici acceptait un clic sur le héros pour une carte "AnyMinion" (ex: Poigne
+	# du Cimetière, ReturnToHand) : la carte était déjà payée/défaussée avant
+	# que l'effet ne plante en recevant un Hero là où il attend un Minion.
 	var target_str := _pending_card.effects[0].target if _pending_card and _pending_card.effects.size() > 0 else ""
-	if target_str not in ["EnemyHero", "AnyMinion", "EnemyAny"]:
+	if target_str not in ["EnemyHero", "EnemyAny"]:
 		return
 	var hero_panel: Control = battle.get_node("EnemyHeroPanel")
 	if hero_panel:

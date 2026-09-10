@@ -201,7 +201,7 @@ Triggers disponibles (`TriggerType.gd`) :
 *   `ONPLAY` (Arrivée) / `DEATHRATTLE` (Dernier Souffle) / `CHARGE` (Assaut)
 *   `OnDamaged` (Blessure) / `OnAttack` (Attaque — fusionne l'ancien `OnRally`/Ralliement) / `OnExecution` (Exécution)
 *   `OnAwaken` (Éveil) / `OnDecline` (Déclin) — début / fin de tour du propriétaire (plus de `OnTurnStart`/`OnTurnEnd` symétriques, retirés)
-*   `OnGrief` + `OnMourning` (Deuil) / `OnCarnage` (Carnage)
+*   `OnGrief` (Deuil) / `OnCarnage` (Carnage)
 *   `OnSpell` (Sortilège) / `OnSacrifice` (Sacrifice) / `OnDeathRage` (Mort-rage — une fois, sous 50% HP max)
 *   `OnSummon` (Renfort) / `OnAura` (Présence) / `OnResonance` (Résonance)
 *   `OnSelfDamage` (Sacrifice du sang — le héros du camp perd des HP à cause de ses propres cartes)
@@ -836,7 +836,7 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 | Blessure (OnDamaged) | ✅ Oui |
 | Exécution (OnExecution) | ✅ Oui |
 | Attaque (OnAttack) | ✅ Oui |
-| Éveil / Déclin / Deuil / Mourning / Carnage / Sortilège / Renfort / Présence / Résonance | ✅ Oui |
+| Éveil / Déclin / Deuil / Carnage / Sortilège / Renfort / Présence / Résonance | ✅ Oui |
 
 #### Règle NÉCROPHAGE (et effets similaires)
 - Les morts sont traitées **dans l'ordre chronologique** pendant la simulation (comme `DeathSystem` actuel en batch).

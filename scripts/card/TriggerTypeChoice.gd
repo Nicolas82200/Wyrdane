@@ -6,7 +6,7 @@ class_name TriggerTypeChoice
 @export_enum(
 	"ONPLAY", "DEATHRATTLE", "CHARGE", "OnDamaged", "OnAwaken", "OnDecline",
 	"OnGrief", "OnSpell", "OnSacrifice", "OnExecution", "OnCarnage",
-	"OnAttack", "OnMourning", "OnDeathRage",
+	"OnAttack", "OnDeathRage",
 	"OnAura", "OnSummon", "OnResonance", "OnSelfDamage", "OnMutation", "OnDevoration"
 ) var type: String = "DEATHRATTLE"
 

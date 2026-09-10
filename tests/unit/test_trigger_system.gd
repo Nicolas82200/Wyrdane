@@ -66,6 +66,19 @@ func test_unregister_enchantment_removes_entry() -> void:
 	trigger_system.unregister_enchantment(card, true)
 	assert_eq(trigger_system.get_active_enchantments(true).size(), 0)
 
+# Deux exemplaires du même Rituel/Enchantement partagent la même ressource
+# CardData (jusqu'à 4 en deck) : l'expiration/destruction de l'un ne doit
+# jamais désenregistrer l'autre exemplaire encore actif (bug corrigé : un
+# filter() par égalité de card_data retirait auparavant les DEUX entrées).
+func test_unregister_enchantment_with_duplicate_card_data_removes_only_one() -> void:
+	var card := _damage_enchantment("OnSummon")
+	trigger_system.register_enchantment(card, true)
+	trigger_system.register_enchantment(card, true)
+	assert_eq(trigger_system.get_active_enchantments(true).size(), 2)
+	trigger_system.unregister_enchantment(card, true)
+	assert_eq(trigger_system.get_active_enchantments(true).size(), 1,
+		"un seul exemplaire retiré : le second doit rester enregistré et fonctionnel")
+
 func test_fire_on_summon_only_reacts_for_matching_camp() -> void:
 	var player_card := _damage_enchantment("OnSummon")
 	var enemy_card := _damage_enchantment("OnSummon")

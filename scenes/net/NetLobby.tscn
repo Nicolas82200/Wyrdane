@@ -7,6 +7,7 @@
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="5_theme"]
 [ext_resource type="PackedScene" path="res://scenes/ui/Navbar.tscn" id="6_navbar"]
 [ext_resource type="Texture2D" uid="uid://mx6ft052vmq6" path="res://assets/icons/gem.png" id="7_spinner"]
+[ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="8_bgstill"]
 
 [sub_resource type="Gradient" id="Gradient_vignette"]
 offsets = PackedFloat32Array(0, 0.45, 1)
@@ -43,6 +44,24 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 18.0
+content_margin_top = 12.0
+content_margin_right = 18.0
+content_margin_bottom = 12.0
+bg_color = Color(0.043, 0.035, 0.024, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.41, 0.08, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_normal"]
 content_margin_left = 14.0
@@ -195,7 +214,7 @@ theme_override_constants/margin_bottom = 32
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="HostButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000009]
+[node name="NormalButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000009]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
@@ -206,29 +225,24 @@ theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
-text = "Héberger (Steam)"
-
-[node name="QuickMatchButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000010]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Partie rapide (Steam)"
+text = "Normal"
 
 [node name="RankedButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000021]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-text = "Partie classée (Steam)"
+text = "Classé"
 
-[node name="CancelRankedButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000022]
+[node name="InviteButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000011]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Contre un ami"
+
+[node name="CancelSearchButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000022]
 visible = false
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
 text = "Annuler la recherche"
-
-[node name="InviteButton" type="Button" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000011]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-text = "Inviter un ami"
 
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/VBoxContainer" unique_id=2001000012]
 layout_mode = 2
@@ -320,5 +334,112 @@ text = "v0.1 — prototype"
 horizontal_alignment = 2
 vertical_alignment = 2
 
+[node name="SearchBanner" type="PanelContainer" parent="." unique_id=2001000023]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 72.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="SearchBannerMargin" type="HBoxContainer" parent="SearchBanner"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SearchBannerSpinner" type="TextureRect" parent="SearchBanner/SearchBannerMargin"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+pivot_offset = Vector2(12, 12)
+texture = ExtResource("7_spinner")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SearchBannerLabel" type="Label" parent="SearchBanner/SearchBannerMargin"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 18
+text = "Recherche d'adversaire…"
+
 [node name="Navbar" parent="." instance=ExtResource("6_navbar")]
 layout_mode = 1
+
+[node name="MatchFoundOverlay" type="Control" parent="." unique_id=2001000024]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="OverlayBackground" type="TextureRect" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_bgstill")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="OverlayDim" type="ColorRect" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="OverlayCenter" type="CenterContainer" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayVBox" type="VBoxContainer" parent="MatchFoundOverlay/OverlayCenter"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="OverlaySpinner" type="TextureRect" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+size_flags_horizontal = 4
+pivot_offset = Vector2(48, 48)
+texture = ExtResource("7_spinner")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="OverlayPhaseLabel" type="Label" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 30
+text = "Adversaire trouvé !"
+horizontal_alignment = 1
+
+[node name="OverlayTipLabel" type="Label" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("4_subtitle")
+theme_override_font_sizes/font_size = 22
+text = "Astuce : ..."
+horizontal_alignment = 1
+autowrap_mode = 3

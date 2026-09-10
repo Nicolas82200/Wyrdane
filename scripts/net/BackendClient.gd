@@ -113,7 +113,11 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 	var http := HTTPRequest.new()
 	add_child(http)
 
-	var headers := ["Content-Type: application/json"]
+	# X-Requested-With : exigé par le backend (middleware/csrf.ts) sur toute
+	# route authentifiée par cookie, pour forcer un préflight CORS qu'un
+	# formulaire/fetch externe ne peut pas satisfaire (protection CSRF, le
+	# cookie de session étant posé en SameSite=None en production).
+	var headers := ["Content-Type: application/json", "X-Requested-With: XMLHttpRequest"]
 	if _session_cookie != "":
 		headers.append("Cookie: %s" % _session_cookie)
 

@@ -172,7 +172,7 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 		if attacker.has_keyword(Keyword.Type.RAVAGE) and not defender.card_data.blocks_overkill:
 			var excess: int = a_dmg - defender_health_before
 			if excess > 0:
-				battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
+				await battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), excess)
 				var enemy_hero_panel: Control = battle.get_node("EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel")
 				battle.animation_system.play_ravage_overkill(attacker_visual, enemy_hero_panel)
 		# Contre-Offensive : un Humain qui tue rejoue immédiatement (+1 attaque, le
@@ -208,7 +208,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 	# simplement rien à faire, seuls ceux visant l'attaquant lui-même
 	# (ex: Aura de Décrépitude, via TriggerSource) s'appliquent.
 	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": null})
-	battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
+	await battle.hero_system.damage(battle.hero_system.get_enemy_hero(attacker), attacker.attack)
 	battle.combat_log.attack_hero(attacker, not attacker.owner_is_player, attacker.attack)
 	if attacker.has_keyword(Keyword.Type.LIFESTEAL) and attacker.attack > 0:
 		battle.hero_system.get_owner_hero(attacker).heal(attacker.attack)

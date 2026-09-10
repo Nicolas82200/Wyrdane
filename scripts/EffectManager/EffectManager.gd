@@ -399,7 +399,7 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target 
 	match effect.target:
 		"EnemyHero":
 			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
-			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
+			await battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
 			battle.animation_system.play_damage(hero_panel, effect.value)
 		"OwnerHero":
 			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion != null and not source_minion.owner_is_player, source_minion)
@@ -410,7 +410,7 @@ func _damage(battle, source_minion: Minion, effect: CardEffect, selected_target 
 			battle.animation_system.play_damage(hero_panel, dealt_self)
 		"EnemyAny" when selected_target is Hero:
 			var hero_panel: Control = await _point_arrow_to_hero(battle, source_minion == null or source_minion.owner_is_player, source_minion)
-			battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
+			await battle.hero_system.damage(battle.hero_system.get_enemy_hero(source_minion), effect.value)
 			battle.animation_system.play_damage(hero_panel, effect.value)
 		_:
 			var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -1359,7 +1359,7 @@ func _steal_health_from_hero(battle, source_minion: Minion, effect: CardEffect) 
 	var enemy_hero_panel: Control = await _point_arrow_to_hero(battle, is_p, source_minion)
 	var enemy_hero: Hero = battle.hero_system.get_enemy_hero(source_minion)
 	var stolen: int = mini(effect.value, maxi(enemy_hero.health, 0))
-	battle.hero_system.damage(enemy_hero, stolen)
+	await battle.hero_system.damage(enemy_hero, stolen)
 	battle.animation_system.play_damage(enemy_hero_panel, stolen)
 	var owner_hero: Hero = battle.hero_system.get_owner_hero(source_minion)
 	var could_heal: bool = owner_hero.heal_block_turns <= 0
