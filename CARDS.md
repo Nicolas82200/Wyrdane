@@ -254,7 +254,7 @@ Liste complète des cartes de la race **Humain**.
 | `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats ni au Gel. |
 | `FORMATION` | Tant qu'un serviteur que vous contrôlez est adjacent, ce serviteur gagne +1/+1. |
 | `CONTRE-ATTAQUE` | Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts. |
-| `COMMANDEMENT` | Les Humains invoqué que vous contrôlezs après lui gagnent +1/+0 de façon permanente. |
+| `COMMANDEMENT` | Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente. |
 | `FORTIFICATION` | Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis. |
 
 ---
@@ -717,7 +717,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 |---|---|
 | `MUTATION` | Ce serviteur mute (voir Table de Mutation ci-dessous) chaque fois qu'il survit à une blessure. Les effets sont permanents et cumulables. |
 | `FUSION` | Sacrifice un serviteur adjacent que vous contrôlez : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
-| `VIRULENT` | Dernier Souffle : le serviteur adjacent que vous contrôlez déclenche immédiatement une mutation. |
+| `VIRULENT` | Quand ce serviteur meurt, le serviteur adjacent que vous contrôlez déclenche immédiatement une mutation. |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi), de façon permanente. |
 | `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
