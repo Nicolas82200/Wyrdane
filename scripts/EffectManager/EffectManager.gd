@@ -914,6 +914,7 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 		var card_data: CardData = dead[dead.size() - 1 - i]
 		if not await _resurrect_card_data(battle, card_data, is_player):
 			break
+		graveyard.remove_minion(card_data)
 		await battle.get_tree().create_timer(0.15).timeout
 
 func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -1051,6 +1052,7 @@ func _return_from_grave(battle, source_minion: Minion, effect: CardEffect, selec
 			break
 	if card_data == null:
 		return
+	graveyard.remove_minion(card_data)
 	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
 
 # Point de départ commun des animations "carte qui revient en main depuis le
@@ -1090,6 +1092,7 @@ func _resurrect_chosen_from_grave(battle, source_minion: Minion, effect: CardEff
 		card_data = candidates.back()
 	if card_data == null:
 		return
+	graveyard.remove_minion(card_data)
 	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
 
 # Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
@@ -1103,7 +1106,10 @@ func _resurrect_chosen_from_grave(battle, source_minion: Minion, effect: CardEff
 func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target == null or selected_target.card_data == null:
 		return
-	await _resurrect_card_data(battle, selected_target.card_data, selected_target.owner_is_player)
+	var is_player: bool = selected_target.owner_is_player
+	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
+	if await _resurrect_card_data(battle, selected_target.card_data, is_player):
+		graveyard.remove_minion(selected_target.card_data)
 
 # Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
 func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
@@ -1121,7 +1127,8 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 			break
 	if card_data == null:
 		return
-	await _resurrect_card_data(battle, card_data, is_player)
+	if await _resurrect_card_data(battle, card_data, is_player):
+		graveyard.remove_minion(card_data)
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
 # Si le serviteur possède déjà le mot-clé, on ne l'enregistre pas en temporaire
