@@ -10,8 +10,10 @@
 ## autoloads du projet (SettingsManager, etc., requis par Card.gd) soient
 ## bien initialisés.
 ##
-## Écrit dans export/card_full_png/<race>/<slug>.png, un fichier par carte
-## trouvée sous resources/cards/. Le viewport est rendu à SCALE fois la
+## Écrit dans export/card_full_png/<lang>/<race>/<slug>.png, un fichier par
+## carte trouvée sous resources/cards/. Langue FR par défaut ; passer
+## `-- --lang=en` pour exporter en anglais (voir translations/game.csv).
+## Le viewport est rendu à SCALE fois la
 ## résolution native de la carte (voir scenes/card/Card.tscn) via
 ## SubViewport.size_2d_override plutôt qu'un scale de nœud : un Control.scale
 ## se contente d'étirer les glyphes déjà rasterisés à leur taille de police
@@ -42,13 +44,20 @@ var _card: Card
 
 
 func _ready() -> void:
+	var lang := "fr"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--lang="):
+			lang = arg.trim_prefix("--lang=")
+	SettingsManager.set_language(lang)
+	print("Langue : %s" % lang)
+
 	# Laisser le premier _ready()/update_display() de la carte se stabiliser
 	# (polices, thèmes) avant la première capture.
 	await get_tree().process_frame
 	_setup_viewport()
 	await get_tree().process_frame
 	await get_tree().process_frame
-	var count := await _export_all()
+	var count := await _export_all(lang)
 	print("\n%d carte(s) exportée(s) en PNG." % count)
 	get_tree().quit()
 
@@ -74,7 +83,7 @@ func _setup_viewport() -> void:
 	_viewport.add_child(_card)
 
 
-func _export_all() -> int:
+func _export_all(lang: String) -> int:
 	var dir := DirAccess.open(SOURCE_DIR)
 	if dir == null:
 		push_error("Dossier introuvable : %s" % SOURCE_DIR)
@@ -102,13 +111,13 @@ func _export_all() -> int:
 
 	var exported := 0
 	for race in races:
-		exported += await _export_race(race)
+		exported += await _export_race(race, lang)
 	return exported
 
 
-func _export_race(race: String) -> int:
+func _export_race(race: String, lang: String) -> int:
 	var race_dir := "%s/%s" % [SOURCE_DIR, race]
-	var out_dir := "%s/%s" % [OUTPUT_DIR, race]
+	var out_dir := "%s/%s/%s" % [OUTPUT_DIR, lang, race]
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(out_dir))
 
 	var files: Array[String] = []
