@@ -1032,7 +1032,8 @@ Blessure : Ce serviteur récupère 1 point de vie.
 Pacte 2 : Il gagne aussi +0/+1 de façon permanente.","REMPART.
 Blessure : Ce serviteur récupère 1 point de vie.
 Pacte 2 : Il gagne aussi +0/+1 de façon permanente.","TAUNT.
-Pact 1: Wounded: This minion regains 1 HP."
+Wounded: This minion regains 1 HP.
+Pact 2: It also gains +0/+1 permanently."
 "Elle boit la douleur des autres. La tienne fera l'affaire.","Elle boit la douleur des autres. La tienne fera l'affaire.","It drinks the pain of others. Yours will do just fine."
 "Invocateur Novice","Invocateur Novice","Novice Summoner"
 "Pacte 2 : Ce serviteur acquiert REMPART.","Pacte 2 : Ce serviteur acquiert REMPART.","Pact 2: This minion gains TAUNT."
@@ -1178,7 +1179,8 @@ Pact 5: They gain BLACK BLOOD."
 "Le Grand Pacte","Le Grand Pacte","The Grand Pact"
 "Renfort : Détruit un serviteur que votre adversaire contrôle ayant un coût de ressource de 2 ou moins.
 Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place.","Renfort : Détruit un serviteur que votre adversaire contrôle ayant un coût de ressource de 2 ou moins.
-Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place.","Pact 4: Destroy target enemy minion."
+Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place.","Reinforcement: Destroy an enemy minion with a resource cost of 2 or less.
+Pact 4: Destroy target enemy minion instead, with no restriction."
 "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre.","It never asks for permission. It simply notes what you are willing to lose."
 "Flamme Infernale","Flamme Infernale","Infernal Flame"
 "Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle).","Deal 2 damage to target enemy minion.
@@ -1196,7 +1198,8 @@ Draw 2 cards."
 "Rite de Sang","Rite de Sang","Blood Rite"
 "Votre héros récupère 2 points de vie.
 Sacrifice 1 : Le héros adverse subit 2 points de dégâts.","Votre héros récupère 2 points de vie.
-Sacrifice 1 : Le héros adverse subit 2 points de dégâts.","Sacrifice 1: Your hero steals 1 HP from the enemy hero."
+Sacrifice 1 : Le héros adverse subit 2 points de dégâts.","Your hero regains 2 HP.
+Sacrifice 1: The enemy hero takes 2 damage."
 "Un sang pour un autre. L'échange est rarement équitable, sauf pour toi, cette fois.","Un sang pour un autre. L'échange est rarement équitable, sauf pour toi, cette fois.","One blood for another. The exchange is rarely fair, except for you, this time."
 "Étreinte du Gouffre","Étreinte du Gouffre","Abyssal Grasp"
 "Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour.","Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour.","Freeze target enemy minion for one turn.
