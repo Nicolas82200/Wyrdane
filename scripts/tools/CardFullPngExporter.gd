@@ -11,8 +11,13 @@
 ## bien initialisés.
 ##
 ## Écrit dans export/card_full_png/<race>/<slug>.png, un fichier par carte
-## trouvée sous resources/cards/. Le rendu est fait à SCALE fois la taille
-## d'affichage de la carte (voir scenes/card/Card.tscn) pour rester net.
+## trouvée sous resources/cards/. Le viewport est rendu à SCALE fois la
+## résolution native de la carte (voir scenes/card/Card.tscn) via
+## SubViewport.size_2d_override plutôt qu'un scale de nœud : un Control.scale
+## se contente d'étirer les glyphes déjà rasterisés à leur taille de police
+## de base (texte flou/pixelisé une fois agrandi), alors que
+## size_2d_override force le TextServer à rasteriser le texte directement à
+## la résolution cible (texte net).
 extends Node
 
 const SCALE := 4.0
@@ -50,19 +55,23 @@ func _ready() -> void:
 
 func _setup_viewport() -> void:
 	_viewport = SubViewport.new()
+	# Résolution physique du rendu (ce qui finit dans le PNG).
 	_viewport.size = Vector2i(roundi(VIEWPORT_W * SCALE), roundi(VIEWPORT_H * SCALE))
+	# Résolution logique dans laquelle la carte reste positionnée/dessinée
+	# (coordonnées inchangées, voir Card.gd) : l'écart avec `size` ci-dessus
+	# fait office de facteur de sur-échantillonnage géré nativement par
+	# Godot, polices comprises (contrairement à un Control.scale).
+	_viewport.size_2d_override = Vector2i(roundi(VIEWPORT_W), roundi(VIEWPORT_H))
+	_viewport.size_2d_override_stretch = true
 	_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_viewport.transparent_bg = false
+	_viewport.msaa_2d = Viewport.MSAA_4X
 	add_child(_viewport)
-
-	var scaler := Control.new()
-	scaler.scale = Vector2(SCALE, SCALE)
-	_viewport.add_child(scaler)
 
 	_card = CARD_SCENE.instantiate()
 	_card.position = Vector2(MARGIN_L, MARGIN_T)
 	_card.set_non_interactive()
-	scaler.add_child(_card)
+	_viewport.add_child(_card)
 
 
 func _export_all() -> int:
@@ -80,6 +89,16 @@ func _export_all() -> int:
 		entry = dir.get_next()
 	dir.list_dir_end()
 	races.sort()
+
+	# Args utilisateur après " -- " (ex. `-- --race=undead`) : limite le
+	# scan à une race, pratique pour vérifier rapidement un rendu sans
+	# relancer les 332 cartes.
+	var race_filter := ""
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--race="):
+			race_filter = arg.trim_prefix("--race=")
+	if not race_filter.is_empty():
+		races = races.filter(func(r: String) -> bool: return r == race_filter)
 
 	var exported := 0
 	for race in races:
