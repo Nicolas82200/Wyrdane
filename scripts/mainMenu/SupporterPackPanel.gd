@@ -10,14 +10,14 @@ class_name SupporterPackPanel
 # volontairement PAS simulé (aucun octroi de récompense sans paiement réel).
 
 static func open(menu) -> void:
-	var existing: Node = menu.profile_view.get_node_or_null("SupporterPackSection")
+	var existing: Node = menu.profile_body.get_node_or_null("SupporterPackSection")
 	if existing:
 		existing.queue_free()
 
 	var section := VBoxContainer.new()
 	section.name = "SupporterPackSection"
 	section.add_theme_constant_override("separation", 6)
-	menu.profile_view.add_child(section)
+	menu.profile_body.add_child(section)
 
 	section.add_child(HSeparator.new())
 

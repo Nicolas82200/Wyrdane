@@ -12,14 +12,14 @@ const ACCENT_DEFEAT := Color(0.62, 0.28, 0.24, 0.85)
 static func open(menu) -> void:
 	# Reconstruite à chaque ouverture de la vue Profil, même logique que
 	# ReferralPanel.open (évite l'empilement si Profil est rouvert plusieurs fois).
-	var existing: Node = menu.profile_view.get_node_or_null("MatchHistorySection")
+	var existing: Node = menu.profile_body.get_node_or_null("MatchHistorySection")
 	if existing:
 		existing.queue_free()
 
 	var section := VBoxContainer.new()
 	section.name = "MatchHistorySection"
 	section.add_theme_constant_override("separation", 6)
-	menu.profile_view.add_child(section)
+	menu.profile_body.add_child(section)
 
 	section.add_child(HSeparator.new())
 

@@ -15,7 +15,7 @@ static func open(menu) -> void:
 	# Section reconstruite à chaque ouverture de la vue Profil — supprime
 	# l'ancienne avant d'en ajouter une nouvelle (évite l'empilement si
 	# ProfilePanel.open est rappelé plusieurs fois sans quitter la vue).
-	var existing: Node = menu.profile_view.get_node_or_null("ReferralSection")
+	var existing: Node = menu.profile_body.get_node_or_null("ReferralSection")
 	if existing:
 		existing.queue_free()
 	if not BackendClient.is_authenticated():
@@ -24,7 +24,7 @@ static func open(menu) -> void:
 	var section := VBoxContainer.new()
 	section.name = "ReferralSection"
 	section.add_theme_constant_override("separation", 6)
-	menu.profile_view.add_child(section)
+	menu.profile_body.add_child(section)
 
 	section.add_child(HSeparator.new())
 
