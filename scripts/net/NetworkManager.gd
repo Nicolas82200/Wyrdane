@@ -30,7 +30,7 @@ var is_host: bool = false
 # Raisons de coupure considérées transitoires (P2P Steam qui lâche) : on
 # tente une reconnexion avant d'abandonner. Toute autre raison (départ
 # volontaire du lobby, échec de recherche...) est traitée en direct comme
-# définitive — voir NetLobby et SteamTransport pour leur origine.
+# définitive — voir MatchmakingOverlay et SteamTransport pour leur origine.
 const RECONNECTABLE_REASONS := ["steam_p2p_failed"]
 const RECONNECT_GRACE_SECONDS := 20.0
 const RECONNECT_RETRY_INTERVAL := 2.0

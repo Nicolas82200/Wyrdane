@@ -38,7 +38,7 @@ static func from_string(s: String) -> int:
 
 # Libellé traduit des races distinctes présentes dans un deck (liste de
 # resource_path bruts — utile quand on n'a pas de DeckData complet, ex. le
-# deck adverse reçu par NetHandshake). Utilisé par l'écran VS (NetLobby) et
+# deck adverse reçu par NetHandshake). Utilisé par l'écran VS (MatchmakingOverlay) et
 # l'historique de parties (SettingsManager/MatchHistoryPanel).
 static func deck_race_label(card_paths: Array, unknown_key: String = "NET_VS_UNKNOWN_DECK") -> String:
 	var race_names: Array[String] = []

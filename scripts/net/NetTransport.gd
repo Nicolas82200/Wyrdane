@@ -16,7 +16,7 @@ signal packet_received(bytes: PackedByteArray)
 # Le pair distant est parti (déconnexion volontaire ou perte de lien).
 signal disconnected(reason: String)
 # Trace lisible des étapes d'établissement de la connexion (diagnostic affiché
-# dans le journal du lobby — voir NetLobby).
+# dans le journal du lobby — voir MatchmakingOverlay).
 signal status(message: String)
 # Une session hébergée est prête à être rejointe par un pair (ex. Steam :
 # lobby créé avec succès, session_id = lobby_id) — pas encore connecté, juste

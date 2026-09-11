@@ -262,7 +262,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Entrée en partie
 
-1.  `scenes/net/NetLobby.tscn` — « Héberger », « Partie rapide » ou « Inviter un ami » (backend Steam uniquement).
+1.  Depuis le menu principal (aucune scène séparée) : popup de choix de mode — Normal (matchmaking automatique), Classé (file d'attente backend) ou Contre un ami (backend Steam uniquement), orchestré par l'autoload `MatchmakingOverlay`.
 2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
 3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 
@@ -472,8 +472,8 @@ Couche multijoueur 1v1 (voir la section « Multijoueur 1v1 » plus haut pour l'a
 *   `NetworkManager.gd`: Connexion, sérialisation et routage des commandes de jeu.
 *   `NetCommand.gd`: Vocabulaire partagé des commandes (`PLAY_CARD`, `ATTACK`, `END_TURN`...).
 *   `NetHandshake.gd`: Échange d'ouverture (decks, graine RNG, premier joueur).
-*   `NetLobby.gd`: Écran Héberger/Rejoindre (scène `scenes/net/NetLobby.tscn`).
-*   `NetContext.gd`: Passe-plat statique entre le lobby et la scène Battle.
+*   `MatchmakingOverlay.gd`: Autoload persistant (scène `scenes/net/MatchmakingOverlay.tscn`) — popup de choix de mode, recherche/connexion, handshake ; visible par-dessus n'importe quelle scène.
+*   `NetContext.gd`: Passe-plat statique entre le matchmaking et la scène Battle.
 *   `NetEmitter.gd`: Émission des actions du joueur local en commandes réseau.
 *   `NetRegistry.gd`: Attribution de `net_id` stables aux serviteurs.
 *   `OpponentDriver.gd`: Interface commune IA / joueur distant.

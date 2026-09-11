@@ -1,48 +1,36 @@
-extends Control
+extends CanvasLayer
 
-# Point d'entrée du multijoueur, entièrement backend Steam (lobby + P2P
-# Steamworks — voir SteamTransport/SteamService). Sans l'extension GodotSteam
-# installée ou sans client Steam lancé, les boutons restent affichés mais
-# échouent proprement avec un message (voir NET_STEAM_UNAVAILABLE) plutôt que
-# de disparaître : mieux vaut un échec explicite qu'un écran vide.
+# Autoload : orchestre tout le multijoueur (choix du mode, recherche,
+# connexion, handshake) sans jamais quitter la scène courante. Remplace
+# l'ancien écran plein écran NetLobby.tscn : ce CanvasLayer vit à la racine
+# de l'arbre (comme tout autoload) et survit donc à n'importe quel
+# `change_scene_to_file` — le joueur peut ouvrir le Deck Builder, la
+# boutique, etc. pendant qu'une recherche est en cours.
 #
-# Trois modes, aucun choix héberger/rejoindre laissé au joueur :
-# « Normal » est un vrai matchmaking : cherche un lobby Steam existant et, si
-# aucun n'est trouvé, héberge automatiquement à la place (voir
-# _on_normal_pressed/_start_quick_match_host).
-# « Classé » passe par la file d'attente backend (voir section Matchmaking
-# classé plus bas) : héberge ou rejoint selon le rôle renvoyé par le serveur.
-# « Contre un ami » héberge un lobby et ouvre l'overlay Steam d'invitation dès
-# qu'il est prêt (voir _on_steam_invite_pressed). Dès l'arrivée sur cet écran,
-# on écoute aussi les demandes de rejoindre reçues via une invitation Steam
-# acceptée (overlay ami, lien « Rejoindre la partie ») : le jeu doit déjà
-# tourner et être sur cet écran — le cas « jeu pas encore lancé »
-# (+connect_lobby en ligne de commande) n'est pas géré ici.
+# Entrée : MainMenu appelle open_mode_picker() une fois le deck choisi (voir
+# MainMenu._on_launch_pressed). Le popup affiche Normal/Classé/Contre un ami ;
+# dès qu'un mode est choisi, le popup se ferme et le bandeau de recherche
+# (haut-droite, ancré à cet autoload donc visible partout) prend le relais.
+# Le bandeau sert aussi de zone de statut/erreur (voir _flash_banner) tant
+# qu'il n'y a plus de StatusPanel toujours visible comme sur l'ancien écran.
 #
-# Pendant la recherche : bandeau haut-droite (voir _show_search_banner).
-# Une fois l'adversaire trouvé : écran de chargement plein écran avec astuces
-# jusqu'à ce que la bataille démarre (voir _show_match_found_overlay).
-#
-# UI reprise du même habillage que MainMenu (fond vidéo, vignette, panneau
-# doré) : voir scenes/net/NetLobby.tscn.
+# Une fois l'adversaire trouvé : écran de chargement plein écran, puis
+# présentation face-à-face, puis bascule sur Battle.tscn — identique à
+# l'ancien NetLobby, logique inchangée.
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
-const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
-@onready var normal_button:      Button = $NavPanel/NavMargin/VBoxContainer/NormalButton
-@onready var ranked_button:      Button = $NavPanel/NavMargin/VBoxContainer/RankedButton
-@onready var invite_button:      Button = $NavPanel/NavMargin/VBoxContainer/InviteButton
-@onready var cancel_search_button: Button = $NavPanel/NavMargin/VBoxContainer/CancelSearchButton
-@onready var back_button:        Button = $NavPanel/NavMargin/VBoxContainer/BackButton
-@onready var title_label:        Label  = $TitleLabel
-@onready var subtitle_label:     Label  = $SubtitleLabel
-@onready var status_title_label: Label  = $StatusPanel/StatusMargin/StatusVBox/StatusTitleLabel
-@onready var spinner_icon:       TextureRect = $StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox/SpinnerIcon
-@onready var phase_label:        Label  = $StatusPanel/StatusMargin/StatusVBox/LoadingCenter/LoadingVBox/PhaseLabel
+@onready var mode_picker:        Control = $ModePickerLayer
+@onready var normal_button:      Button  = $ModePickerLayer/PickerCenter/PickerPanel/PickerMargin/PickerVBox/NormalButton
+@onready var ranked_button:      Button  = $ModePickerLayer/PickerCenter/PickerPanel/PickerMargin/PickerVBox/RankedButton
+@onready var invite_button:      Button  = $ModePickerLayer/PickerCenter/PickerPanel/PickerMargin/PickerVBox/InviteButton
+@onready var picker_close_button: Button = $ModePickerLayer/PickerCenter/PickerPanel/PickerMargin/PickerVBox/PickerCloseButton
+@onready var picker_title_label: Label   = $ModePickerLayer/PickerCenter/PickerPanel/PickerMargin/PickerVBox/PickerTitleLabel
 
-@onready var search_banner:        Control     = $SearchBanner
+@onready var search_banner:         Control     = $SearchBanner
 @onready var search_banner_spinner: TextureRect = $SearchBanner/SearchBannerMargin/SearchBannerSpinner
 @onready var search_banner_label:   Label       = $SearchBanner/SearchBannerMargin/SearchBannerLabel
+@onready var search_banner_cancel:  Button      = $SearchBanner/SearchBannerMargin/SearchBannerCancel
 
 @onready var match_found_overlay: Control     = $MatchFoundOverlay
 @onready var overlay_spinner:     TextureRect = $MatchFoundOverlay/OverlayCenter/OverlayVBox/OverlaySpinner
@@ -59,6 +47,9 @@ const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 const VS_SCREEN_DURATION := 2.2
 
 const SPINNER_TURNS_PER_SECOND := 0.5
+# Durée d'affichage d'un message de fin de recherche (erreur/annulation) dans
+# le bandeau avant qu'il ne se referme tout seul (voir _flash_banner).
+const BANNER_MESSAGE_DURATION := 4.0
 
 # Astuces affichées en boucle sur l'écran de chargement une fois l'adversaire
 # trouvé (voir _start_tip_cycle) — clés dans translations/game.csv.
@@ -72,11 +63,12 @@ var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
-var _status_key := "NET_LOADING_IDLE"  # clé de traduction affichée par phase_label
+var _status_key := ""  # clé de traduction affichée par le bandeau
 var _loading := false  # affiche le spinner tant qu'une connexion est en cours
 var _search_mode := ""  # "" | "normal" | "ranked" | "invite" — pilote le bouton Annuler
 var _tip_timer: Timer
 var _tip_index := 0
+var _banner_hide_timer: Timer
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
@@ -94,14 +86,14 @@ func _ready() -> void:
 	_net.peer_connected.connect(_on_peer_connected)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
 	# Détail technique (ids de lobby, codes de connexion P2P...) utile en debug
-	# mais pas au joueur : direction console uniquement, jamais l'écran (voir
-	# _set_status pour le texte réellement affiché, une phase à la fois).
-	_net.status.connect(func(text: String) -> void: print("[NetLobby] " + text))
+	# mais pas au joueur : direction console uniquement (voir _flash_banner/
+	# _set_status pour le texte réellement affiché, un message à la fois).
+	_net.status.connect(func(text: String) -> void: print("[MatchmakingOverlay] " + text))
 	normal_button.pressed.connect(_on_normal_pressed)
 	ranked_button.pressed.connect(_on_ranked_pressed)
-	cancel_search_button.pressed.connect(_on_cancel_search_pressed)
 	invite_button.pressed.connect(_on_steam_invite_pressed)
-	back_button.pressed.connect(_on_back_pressed)
+	picker_close_button.pressed.connect(_on_picker_close_pressed)
+	search_banner_cancel.pressed.connect(_on_banner_cancel_pressed)
 	_net.session_ready.connect(_on_session_ready)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
@@ -109,38 +101,66 @@ func _ready() -> void:
 		SteamService.watch_join_requests(_on_steam_join_requested)
 
 func _process(delta: float) -> void:
-	# Pompe les callbacks Steam même hors session active, pour capter une
-	# invitation reçue pendant qu'on est simplement sur cet écran (voir
-	# SteamService.watch_join_requests). Sans effet si Steam pas initialisé.
+	# Pompe les callbacks Steam en continu (même hors recherche active), pour
+	# capter une invitation reçue à tout moment (voir SteamService.
+	# watch_join_requests). Sans effet si Steam pas initialisé.
 	if SteamService.is_available():
 		SteamService.run_callbacks()
 	if _loading:
 		var spin := delta * TAU * SPINNER_TURNS_PER_SECOND
-		spinner_icon.rotation += spin
 		search_banner_spinner.rotation += spin
 		overlay_spinner.rotation += spin
 
-# Remplace le texte de statut affiché (une seule phase à la fois, jamais un
-# journal qui s'accumule — voir _net.status en debug console pour le détail).
+# ─── Panneau de choix du mode ──────────────────────────────────────────────────
+
+# Appelé par MainMenu une fois le deck choisi (voir MainMenu._on_launch_pressed).
+# Ignoré si une recherche/connexion est déjà en cours : le bandeau + son bouton
+# Annuler donnent déjà tout le contrôle nécessaire, pas besoin de rouvrir le
+# choix de mode par-dessus une recherche en cours.
+func open_mode_picker() -> void:
+	if _search_mode != "" or _loading:
+		return
+	mode_picker.visible = true
+
+func _on_picker_close_pressed() -> void:
+	mode_picker.visible = false
+
+# ─── Statut / bandeau ──────────────────────────────────────────────────────────
+
 func _set_status(key: String) -> void:
 	_status_key = key
-	phase_label.text = SettingsManager.t(key)
+	search_banner_label.text = SettingsManager.t(key)
 	if match_found_overlay.visible:
 		overlay_phase_label.text = SettingsManager.t(key)
 
 func _set_loading(active: bool) -> void:
 	_loading = active
-	spinner_icon.visible = active
+	search_banner_spinner.visible = active
 	if not active:
-		spinner_icon.rotation = 0.0
+		search_banner_spinner.rotation = 0.0
 
-# Bandeau haut-droite affiché tant qu'on cherche un adversaire (avant que le
-# pair ne soit connecté) — remplace l'ancien choix manuel héberger/rejoindre.
+# Bandeau haut-droite affiché tant qu'on cherche un adversaire.
 func _show_search_banner(active: bool) -> void:
+	if _banner_hide_timer != null:
+		_banner_hide_timer.stop()
 	search_banner.visible = active
-	cancel_search_button.visible = active
 	if active:
 		search_banner_spinner.rotation = 0.0
+
+# Affiche un message de fin de recherche (erreur, annulation, timeout...) dans
+# le bandeau puis le referme tout seul après BANNER_MESSAGE_DURATION — sans
+# StatusPanel toujours visible comme sur l'ancien écran, une erreur silencieuse
+# passerait sinon inaperçue pendant que le joueur navigue ailleurs.
+func _flash_banner(key: String) -> void:
+	_set_loading(false)
+	_set_status(key)
+	search_banner.visible = true
+	if _banner_hide_timer == null:
+		_banner_hide_timer = Timer.new()
+		_banner_hide_timer.one_shot = true
+		_banner_hide_timer.timeout.connect(func(): search_banner.visible = false)
+		add_child(_banner_hide_timer)
+	_banner_hide_timer.start(BANNER_MESSAGE_DURATION)
 
 # Écran de chargement plein écran affiché une fois l'adversaire trouvé, le
 # temps du handshake/synchronisation (voir _on_peer_connected/_on_handshake_ready).
@@ -175,16 +195,14 @@ func _apply_tip() -> void:
 	overlay_tip_label.text = SettingsManager.t(TIP_KEYS[_tip_index])
 
 func _retranslate() -> void:
-	title_label.text        = SettingsManager.t("MENU_MULTIPLAYER")
-	subtitle_label.text     = SettingsManager.t("NET_LOBBY_SUBTITLE")
-	status_title_label.text = SettingsManager.t("NET_STATUS_TITLE")
-	phase_label.text        = SettingsManager.t(_status_key)
-	normal_button.text      = SettingsManager.t("NET_MODE_NORMAL")
-	ranked_button.text      = SettingsManager.t("NET_STEAM_RANKED")
-	invite_button.text      = SettingsManager.t("NET_MODE_FRIEND")
-	cancel_search_button.text = SettingsManager.t("NET_SEARCH_CANCEL")
-	back_button.text        = SettingsManager.t("NET_BACK")
-	search_banner_label.text = SettingsManager.t("NET_SEARCH_BANNER")
+	picker_title_label.text   = SettingsManager.t("MENU_MULTIPLAYER")
+	normal_button.text        = SettingsManager.t("NET_MODE_NORMAL")
+	ranked_button.text        = SettingsManager.t("NET_STEAM_RANKED")
+	invite_button.text        = SettingsManager.t("NET_MODE_FRIEND")
+	picker_close_button.text  = SettingsManager.t("NET_BACK")
+	search_banner_cancel.tooltip_text = SettingsManager.t("NET_SEARCH_CANCEL")
+	if _status_key != "":
+		search_banner_label.text = SettingsManager.t(_status_key)
 
 # ─── Actions UI ───────────────────────────────────────────────────────────────
 
@@ -192,6 +210,7 @@ func _retranslate() -> void:
 # un lobby existant et, si aucun n'est trouvé, héberge à la place (voir
 # _on_peer_disconnected/_start_quick_match_host).
 func _on_normal_pressed() -> void:
+	mode_picker.visible = false
 	_quick_matching = true
 	_search_mode = "normal"
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM)
@@ -202,13 +221,14 @@ func _on_normal_pressed() -> void:
 	else:
 		_quick_matching = false
 		_search_mode = ""
-		_set_status("NET_STEAM_UNAVAILABLE")
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # L'overlay Steam d'invitation exige un lobby déjà créé (voir
 # SteamTransport.invite_friends) : si aucun n'est en cours, on héberge d'abord
 # et on ouvre l'overlay dès que le lobby est prêt, plutôt que de laisser le
 # joueur presser « Héberger » lui-même avant de pouvoir inviter.
 func _on_steam_invite_pressed() -> void:
+	mode_picker.visible = false
 	if _lobby_hosted:
 		_net.invite_friends()
 		return
@@ -224,7 +244,7 @@ func _on_steam_invite_pressed() -> void:
 		_search_mode = ""
 		if _net.session_ready.is_connected(_on_invite_lobby_ready):
 			_net.session_ready.disconnect(_on_invite_lobby_ready)
-		_set_status("NET_STEAM_UNAVAILABLE")
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 func _on_invite_lobby_ready(_session_id: int) -> void:
 	_net.invite_friends()
@@ -232,32 +252,20 @@ func _on_invite_lobby_ready(_session_id: int) -> void:
 func _on_session_ready(_session_id: int) -> void:
 	_lobby_hosted = _net.is_host
 
-func _on_back_pressed() -> void:
-	# Coupe une éventuelle connexion en cours avant de revenir au menu.
-	_cancel_ranked_search(false)
-	_lobby_hosted = false
-	_search_mode = ""
-	_set_loading(false)
-	_show_search_banner(false)
-	_show_match_found_overlay(false)
-	_net.close()
-	AudioManager.play(AudioManager.CLOSE_MENU)
-	SceneTransition.change_scene(MAIN_MENU_SCENE)
-
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 
 func _on_ranked_pressed() -> void:
 	if not BackendClient.is_authenticated():
-		_set_status("NET_RANKED_UNAVAILABLE")
+		_flash_banner("NET_RANKED_UNAVAILABLE")
 		return
+	mode_picker.visible = false
 	_search_mode = "ranked"
-	_set_actions_enabled(false)
 	_show_search_banner(true)
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
 	BackendClient.queue_join(func(success: bool, data: Dictionary) -> void:
 		if not success or str(data.get("ticket_id", "")) == "":
-			_set_status("NET_RANKED_UNAVAILABLE")
+			_flash_banner("NET_RANKED_UNAVAILABLE")
 			_reset_ranked_ui()
 			return
 		_ranked_ticket_id = str(data.get("ticket_id", ""))
@@ -270,8 +278,8 @@ func _on_ranked_pressed() -> void:
 	)
 
 # Annulation générique de la recherche en cours, quel que soit le mode
-# (Normal/Classé/Ami) — voir _search_mode.
-func _on_cancel_search_pressed() -> void:
+# (Normal/Classé/Ami) — bouton "✕" du bandeau (voir _search_mode).
+func _on_banner_cancel_pressed() -> void:
 	match _search_mode:
 		"ranked":
 			_cancel_ranked_search(true)
@@ -281,18 +289,22 @@ func _on_cancel_search_pressed() -> void:
 			_net.close()
 			_show_search_banner(false)
 			_set_loading(false)
-			_set_actions_enabled(true)
-			_set_status("NET_LOADING_IDLE")
+			_set_status("")
+		_:
+			# Pas de recherche active : le bandeau n'affiche qu'un message
+			# (erreur/annulation) déjà en train de s'auto-fermer — on le
+			# ferme juste immédiatement.
+			_show_search_banner(false)
 
-# manual : true si annulé par le joueur (statut dédié), false si on quitte
-# l'écran (aucun message utile, on part de toute façon).
+# manual : true si annulé par le joueur (statut dédié), false si on abandonne
+# silencieusement (ex: coupure réseau déjà annoncée par ailleurs).
 func _cancel_ranked_search(manual: bool) -> void:
 	if _ranked_ticket_id == "":
 		return
 	BackendClient.queue_cancel(_ranked_ticket_id)
-	if manual:
-		_set_status("NET_RANKED_CANCELLED")
 	_reset_ranked_ui()
+	if manual:
+		_flash_banner("NET_RANKED_CANCELLED")
 
 func _reset_ranked_ui() -> void:
 	if _ranked_poll_timer != null:
@@ -302,15 +314,13 @@ func _reset_ranked_ui() -> void:
 	_ranked_ticket_id = ""
 	_ranked_role = ""
 	_search_mode = ""
-	_show_search_banner(false)
-	_set_actions_enabled(true)
 	_set_loading(false)
 
 func _poll_ranked_queue() -> void:
 	_ranked_elapsed += RANKED_POLL_INTERVAL
 	if _ranked_elapsed >= RANKED_QUEUE_TIMEOUT:
-		_set_status("NET_RANKED_TIMEOUT")
 		_cancel_ranked_search(false)
+		_flash_banner("NET_RANKED_TIMEOUT")
 		return
 	var ticket_id := _ranked_ticket_id
 	BackendClient.queue_status(ticket_id, func(success: bool, data: Dictionary) -> void:
@@ -321,8 +331,8 @@ func _poll_ranked_queue() -> void:
 			"matched":
 				_on_ranked_matched(data)
 			"cancelled", "expired":
-				_set_status("NET_RANKED_TIMEOUT")
 				_reset_ranked_ui()
+				_flash_banner("NET_RANKED_TIMEOUT")
 			_:
 				pass  # "waiting" : rien à faire, on repollera au prochain tick
 	)
@@ -340,8 +350,8 @@ func _on_ranked_matched(data: Dictionary) -> void:
 		else:
 			if _net.session_ready.is_connected(_on_ranked_lobby_ready):
 				_net.session_ready.disconnect(_on_ranked_lobby_ready)
-			_set_status("NET_STEAM_UNAVAILABLE")
 			_cancel_ranked_search(false)
+			_flash_banner("NET_STEAM_UNAVAILABLE")
 		return
 	# Invité : le lobby n'est disponible qu'une fois l'hôte l'ayant rapporté
 	# (queue_report_lobby) — on continue de repoller jusqu'à ce qu'il apparaisse.
@@ -355,8 +365,8 @@ func _on_ranked_matched(data: Dictionary) -> void:
 	_set_status("NET_RANKED_MATCHED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err != OK:
-		_set_status("NET_STEAM_UNAVAILABLE")
 		_reset_ranked_ui()
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Hôte classé uniquement : le lobby vient d'être créé, on transmet son id au
 # backend pour que l'invité puisse le rejoindre directement (voir
@@ -370,11 +380,10 @@ func _on_ranked_lobby_ready(session_id: int) -> void:
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
 # Annule et libère tout handshake/synchronisation de bataille d'une tentative
-# de connexion précédente et abandonnée (pair déconnecté avant la fin, ou
-# retour au lobby) — sans ça, l'ancienne instance reste enfant de NetLobby,
-# toujours abonnée à _net.command_received, et peut réagir à un paquet reçu
-# lors d'une tentative suivante (double changement de scène, ou setup — seed
-# RNG, parité d'ids — périmé écrasant le bon).
+# de connexion précédente et abandonnée (pair déconnecté avant la fin) — sans
+# ça, l'ancienne instance reste abonnée à _net.command_received et peut réagir
+# à un paquet reçu lors d'une tentative suivante (setup — seed RNG, parité
+# d'ids — périmé écrasant le bon).
 func _cleanup_connection_flow() -> void:
 	if _handshake != null and is_instance_valid(_handshake):
 		_handshake.cancel()
@@ -390,24 +399,14 @@ func _on_peer_connected() -> void:
 	_search_mode = ""
 	_show_search_banner(false)
 	_show_match_found_overlay(true)
-	print("[NetLobby] _on_peer_connected  self=%s  handshake_deja_present=%s" % [self, _handshake != null])
 	_cleanup_connection_flow()
 	_set_loading(true)
 	_set_status("NET_LOADING_PREPARING")
-	_set_actions_enabled(false)
 	_handshake = NetHandshake.new(_net, _local_deck_paths(), _net.is_host)
 	add_child(_handshake)
 	_handshake.completed.connect(_on_handshake_ready)
-	_handshake.progress.connect(func(text: String) -> void: print("[NetLobby] " + text))
+	_handshake.progress.connect(func(text: String) -> void: print("[MatchmakingOverlay] " + text))
 	_handshake.start()
-
-# Boutons de lancement de partie désactivés dès qu'une connexion pair-à-pair
-# est en cours (handshake/synchronisation) : les relancer casserait l'état de
-# _net. Le bouton Retour reste actif pour permettre d'annuler.
-func _set_actions_enabled(enabled: bool) -> void:
-	normal_button.disabled = not enabled
-	ranked_button.disabled = not enabled
-	invite_button.disabled = not enabled
 
 func _on_peer_disconnected(reason: String) -> void:
 	# Coupure pendant un handshake/synchronisation en cours : évite de laisser
@@ -418,11 +417,9 @@ func _on_peer_disconnected(reason: String) -> void:
 	match reason:
 		"steam_same_account":
 			_quick_matching = false
-			_search_mode = ""
 			_reset_ranked_ui()
-			_set_loading(false)
 			_show_search_banner(false)
-			_set_status("NET_STEAM_SAME_ACCOUNT")
+			_flash_banner("NET_STEAM_SAME_ACCOUNT")
 		"steam_no_lobby_found":
 			if _quick_matching:
 				_set_status("NET_STEAM_NO_LOBBY_HOSTING")
@@ -430,17 +427,15 @@ func _on_peer_disconnected(reason: String) -> void:
 			else:
 				_search_mode = ""
 				_reset_ranked_ui()
-				_set_loading(false)
 				_show_search_banner(false)
-				_set_status("NET_STEAM_NO_LOBBY")
+				_flash_banner("NET_STEAM_NO_LOBBY")
 		_:
 			_quick_matching = false
 			_search_mode = ""
 			_reset_ranked_ui()
-			_set_loading(false)
 			_show_search_banner(false)
-			print("[NetLobby] Pair déconnecté (%s)" % [reason])
-			_set_status("NET_STEAM_DISCONNECTED")
+			print("[MatchmakingOverlay] Pair déconnecté (%s)" % [reason])
+			_flash_banner("NET_STEAM_DISCONNECTED")
 
 # Partie rapide sans adversaire trouvé : on héberge à la place plutôt que de
 # laisser le joueur relancer manuellement (voir _on_normal_pressed).
@@ -454,12 +449,12 @@ func _start_quick_match_host() -> void:
 		_set_status("NET_STEAM_HOSTING")
 	else:
 		_search_mode = ""
-		_set_loading(false)
 		_show_search_banner(false)
-		_set_status("NET_STEAM_UNAVAILABLE")
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») alors
-# que le joueur est déjà sur cet écran : on rejoint directement ce lobby.
+# qu'aucune connexion n'est en cours : on rejoint directement ce lobby, peu
+# importe l'écran sur lequel le joueur se trouve.
 func _on_steam_join_requested(lobby_id: int) -> void:
 	_quick_matching = false
 	_search_mode = "normal"
@@ -471,9 +466,8 @@ func _on_steam_join_requested(lobby_id: int) -> void:
 		_set_status("NET_STEAM_SEARCHING")
 	else:
 		_search_mode = ""
-		_set_loading(false)
 		_show_search_banner(false)
-		_set_status("NET_STEAM_UNAVAILABLE")
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Deck local mélangé, sous forme de resource_path (identifiant partagé).
 func _local_deck_paths() -> Array:
@@ -485,7 +479,6 @@ func _local_deck_paths() -> Array:
 	return paths
 
 func _on_handshake_ready(setup: Dictionary) -> void:
-	print("[NetLobby] _on_handshake_ready  self=%s  in_tree=%s" % [self, is_inside_tree()])
 	_set_status("NET_WAITING_OPPONENT")
 	NetContext.active = true
 	NetContext.net = _net
@@ -504,16 +497,14 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	_battle_sync = NetBattleSync.new(_net)
 	add_child(_battle_sync)
 	_battle_sync.completed.connect(_on_battle_sync_ready)
-	_battle_sync.progress.connect(func(text: String) -> void: print("[NetLobby] " + text))
+	_battle_sync.progress.connect(func(text: String) -> void: print("[MatchmakingOverlay] " + text))
 	_battle_sync.start()
 
 func _on_battle_sync_ready() -> void:
-	print("[NetLobby] Adversaire prêt — lancement de la bataille réseau…")
 	await _show_vs_screen()
-	# Le NetworkManager doit survivre au changement de scène : on le reparente
-	# sous la racine de l'arbre avant de charger Battle.
-	_net.get_parent().remove_child(_net)
-	get_tree().root.add_child(_net)
+	# _net vit déjà sous cet autoload (racine de l'arbre, jamais affecté par un
+	# change_scene_to_file) : pas besoin de le reparenter avant de charger
+	# Battle, contrairement à l'ancien NetLobby (Control d'une scène remplacée).
 	SceneTransition.change_scene(BATTLE_SCENE)
 
 # Présentation face-à-face brève avant la bataille (voir CLAUDE.md, doc UX

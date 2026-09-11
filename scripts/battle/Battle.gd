@@ -180,7 +180,7 @@ var deck_has_legendary: bool = false
 # et sur l'écran de fin (voir GameOverScreen.show_stats).
 var match_start_msec: int = 0
 # Ce match provient-il de la file d'appariement classé (bouton "Partie
-# classée" de NetLobby) plutôt que d'une "Partie rapide" ? Le backend ne fait
+# classée" du popup Multijoueur) plutôt que d'une "Partie rapide" ? Le backend ne fait
 # lui-même aucune distinction entre les deux (voir CLAUDE.md § Ranked) : ce
 # flag n'existe que côté client, propagé via NetContext.setup.
 var is_ranked_match: bool = false

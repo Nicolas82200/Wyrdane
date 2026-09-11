@@ -100,7 +100,7 @@ func _ensure_row(race: int) -> Dictionary:
 	if RACE_MANA_ICONS.has(race):
 		var icon := TextureRect.new()
 		icon.texture = RACE_MANA_ICONS[race]
-		icon.custom_minimum_size = Vector2(18, 18)
+		icon.custom_minimum_size = Vector2(22, 22)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.modulate = color
