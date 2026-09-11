@@ -2,8 +2,12 @@ extends GutTest
 
 # Couvre DeckManager.can_add_card (scripts/deck/DeckManager.gd) : logique de
 # légalité de deck (plafond MAX_COPIES_PER_CARD, cartes-ressource en quantité
-# illimitée, sans lien avec ce qui est possédé). can_add_card() lit
-# directement l'autoload global CollectionManager (non injectable) : on
+# illimitée). Ne dépend plus de ce qui est possédé (voir commit "feat: allow
+# building decks with unowned cards, block invalid deck selection") : un deck
+# peut être construit ou importé avant l'achat de toutes ses cartes ; c'est
+# unowned_cards_warning() qui signale ensuite qu'il n'est pas jouable en
+# l'état, pas can_add_card(). can_add_card() lit tout de même l'autoload
+# global CollectionManager (non injectable) pour les cartes-ressource : on
 # manipule donc owned_quantities sur l'instance réelle, restaurée après
 # chaque test pour ne pas polluer les autres fichiers GUT (voir CLAUDE.md sur
 # la prudence avec les autoloads dans le runner -s).
@@ -25,8 +29,8 @@ func after_each() -> void:
 	CollectionManager.owned_quantities.erase(card.resource_path)
 	deck_manager.free()
 
-func test_cannot_add_an_unowned_card() -> void:
-	assert_false(deck_manager.can_add_card(deck, card))
+func test_can_add_an_unowned_card() -> void:
+	assert_true(deck_manager.can_add_card(deck, card), "une carte non possédée peut être ajoutée (deck importable avant achat)")
 
 func test_can_add_an_owned_card_below_the_copy_limit() -> void:
 	CollectionManager.owned_quantities[card.resource_path] = 4
@@ -38,11 +42,11 @@ func test_cannot_exceed_max_copies_even_if_more_are_owned() -> void:
 		deck.add_card(card)
 	assert_false(deck_manager.can_add_card(deck, card), "déjà au plafond (4 copies) malgré 10 possédées")
 
-func test_cannot_exceed_owned_quantity_even_below_max_copies() -> void:
+func test_can_exceed_owned_quantity_below_max_copies() -> void:
 	CollectionManager.owned_quantities[card.resource_path] = 2
 	deck.add_card(card)
 	deck.add_card(card)
-	assert_false(deck_manager.can_add_card(deck, card), "2 possédées, 2 déjà dans le deck : plafond atteint avant MAX_COPIES")
+	assert_true(deck_manager.can_add_card(deck, card), "2 possédées, 2 déjà dans le deck : autorisé tant que MAX_COPIES n'est pas atteint")
 
 func test_resource_cards_ignore_the_max_copies_cap() -> void:
 	card.card_type = "Resource"

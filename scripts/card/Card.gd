@@ -108,8 +108,8 @@ const TYPE_LABELS := {
 # a ce point d'ancrage (0 = centre), pas a une largeur de carte supposee fixe
 # (la carte est etiree a des largeurs differentes selon le contexte : main,
 # grille du deck builder, apercu au survol).
-const TYPE_LABEL_MIN_WIDTH := 160.0
-const TYPE_LABEL_MAX_WIDTH := 175.0
+const TYPE_LABEL_MIN_WIDTH := 70.0
+const TYPE_LABEL_MAX_WIDTH := 130.0
 const TYPE_LABEL_PADDING   := 16.0
 
 # Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
