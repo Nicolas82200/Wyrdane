@@ -118,12 +118,6 @@ func _update_pile_ui(button: Button, label: Label, count: int) -> void:
 	for i in range(visible_count, 0, -1):
 		var card_back := TextureRect.new()
 		card_back.texture = battle.CARD_BACK
-		# Le cosmétique de dos de carte n'est appliqué qu'à la pioche du joueur
-		# local (button == battle.deck_button) : celle de l'adversaire n'a pas
-		# de raison de refléter NOTRE choix (voir _update_pile_ui, partagé avec
-		# update_enemy_deck_ui).
-		if button == battle.deck_button:
-			card_back.modulate = CosmeticsManager.card_back_tint()
 		card_back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		card_back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_back.anchors_preset = 15
