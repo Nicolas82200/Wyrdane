@@ -36,7 +36,7 @@ grow_horizontal = 0
 theme_override_constants/separation = 16
 
 [node name="CurrencyIcon" type="TextureRect" parent="Bar/HBox"]
-custom_minimum_size = Vector2(25, 25)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 size_flags_vertical = 4
 texture = ExtResource("4_goldicon")

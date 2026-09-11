@@ -626,11 +626,12 @@ func _hide_keyword_tooltips() -> void:
 # constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
 # Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
 # icône 11->13), puis agrandies de 25% (badge 15->19, icône 13->16) sur
-# nouvelle demande de lisibilité : les icônes doivent rester lisibles alignées
-# verticalement le long du bord gauche de la carte sans que la bulle ne prenne
-# toute la place.
-const KEYWORD_BADGE_SIZE := 19.0
-const KEYWORD_ICON_SIZE  := 16.0
+# nouvelle demande de lisibilité, puis à nouveau agrandies (badge 19->22,
+# icône 16->19) sur nouvelle demande : les icônes doivent rester lisibles
+# alignées verticalement le long du bord gauche de la carte sans que la bulle
+# ne prenne toute la place.
+const KEYWORD_BADGE_SIZE := 22.0
+const KEYWORD_ICON_SIZE  := 19.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:

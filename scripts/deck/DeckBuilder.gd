@@ -298,7 +298,7 @@ func _update_stock_label(card_data: CardData, label: Label) -> void:
 	var addable: int = maxi(mini(owned, DeckManager.MAX_COPIES_PER_CARD) - _count_in_deck(card_data.resource_path), 0)
 	label.text = SettingsManager.t("deck.stock_format") % [addable, owned]
 
-## Ajoute un bouton "Acheter (prix)" en bas de la vignette pour toute carte non
+## Ajoute un bouton affichant le prix en bas de la vignette pour toute carte non
 ## encore possédée à DeckManager.MAX_COPIES_PER_CARD (qu'elle soit à 0 ou partiellement possédée :
 ## on peut toujours compléter jusqu'au plafond utilisable en deck) — les
 ## cartes-ressource ne sont pas vendables à l'unité (voir
