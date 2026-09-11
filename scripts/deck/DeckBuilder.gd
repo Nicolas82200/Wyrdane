@@ -23,6 +23,7 @@ const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 @onready var card_count_label: Label         = %CardCountLabel
 @onready var warning_label:    Label         = %WarningLabel
 @onready var save_button:      Button        = %SaveButton
+@onready var test_deck_button: Button        = %TestDeckButton
 @onready var buy_missing_button: Button      = %BuyMissingButton
 @onready var back_button:      Button        = %BackButton
 @onready var search_edit:      LineEdit      = %SearchEdit
@@ -99,6 +100,7 @@ func _ready() -> void:
 	card_preview.z_index = 100
 	card_preview.hide()
 	save_button.pressed.connect(_on_save)
+	test_deck_button.pressed.connect(_on_test_deck)
 	buy_missing_button.pressed.connect(_on_buy_missing_pressed)
 	back_button.pressed.connect(_on_back)
 	deck_name_edit.text_changed.connect(_on_name_changed)
@@ -115,6 +117,7 @@ func _retranslate() -> void:
 	header_label.text            = SettingsManager.t("deck.title")
 	back_button.text             = SettingsManager.t("ui.back")
 	save_button.text             = SettingsManager.t("deck.save")
+	test_deck_button.text        = SettingsManager.t("deck.test")
 	search_edit.placeholder_text = SettingsManager.t("deck.search")
 	deck_name_edit.placeholder_text = SettingsManager.t("deck.name_placeholder")
 	export_button.text = SettingsManager.t("deck.export")
@@ -647,6 +650,7 @@ func _update_count_label() -> void:
 	_update_warnings()
 	_update_save_button()
 	_update_buy_missing_button()
+	_update_test_deck_button()
 
 ## Bouton "Acheter les cartes manquantes" : visible seulement s'il manque au
 ## moins une copie possédée d'une carte du deck, affiche le coût total des
@@ -675,6 +679,16 @@ func _can_save() -> bool:
 
 func _update_save_button() -> void:
 	save_button.disabled = not _can_save()
+
+# Contrairement à _can_save(), ignore _dirty : un deck en cours d'édition non
+# sauvegardé reste testable (current_deck est déjà la même instance vivante
+# que celle de DeckManager.decks, voir commentaire sur _original_name plus
+# haut) — seule sa légalité (min de cartes, avertissements de race) compte.
+func _can_test() -> bool:
+	return current_deck != null and DeckManager.validation_warnings(current_deck).is_empty()
+
+func _update_test_deck_button() -> void:
+	test_deck_button.disabled = not _can_test()
 
 ## Toute modification du deck en cours (ajout/retrait de carte, renommage,
 ## import) passe par ici pour réactiver le bouton Sauvegarder.
@@ -763,6 +777,20 @@ func _on_save() -> void:
 	_update_save_button()
 	if DeckManager.unowned_cards_warning(current_deck) != "":
 		_show_saved_but_unplayable_popup()
+
+# Lance directement une partie d'entraînement solo contre l'IA avec le deck en
+# cours d'édition (voir _can_test) — pas besoin de l'avoir sauvegardé au
+# préalable. SceneTransition.change_scene libère toute la scène courante
+# (MainMenu, dont ce DeckBuilder est un enfant), inutile de queue_free() ici.
+func _on_test_deck() -> void:
+	if not _can_test():
+		return
+	var index := DeckManager.decks.find(current_deck)
+	if index < 0:
+		return
+	DeckManager.set_active_deck(index)
+	TutorialContext.active = false
+	SceneTransition.change_scene("res://scenes/battle/Battle.tscn")
 
 func _on_back() -> void:
 	if _dirty:

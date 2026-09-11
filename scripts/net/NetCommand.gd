@@ -26,6 +26,7 @@ const MULLIGAN_DONE := "MULLIGAN_DONE"  # le joueur local a validé son mulligan
 const DISCARD := "DISCARD"  # défausse de fin de tour (limite 10 cartes) — nombre seulement, contenu privé
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
+const EMOTE := "EMOTE"  # emote cosmétique (voir EmoteWheel) — aucun impact sur l'état de partie
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -135,6 +136,12 @@ static func leave_match() -> Dictionary:
 # n'attend plus que le pair pour entrer dans Battle.tscn (voir NetBattleSync).
 static func battle_ready() -> Dictionary:
 	return {"type": BATTLE_READY}
+
+# Emote cosmétique (voir EmoteWheel.EMOTES) : purement décoratif, aucune
+# incidence sur l'état de partie/déterminisme — id = index dans EMOTES, jamais
+# de texte libre (pas de chat, pour éviter tout abus).
+static func emote(emote_id: int) -> Dictionary:
+	return {"type": EMOTE, "id": emote_id}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

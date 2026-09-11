@@ -446,6 +446,21 @@ theme_override_font_sizes/font_size = 13
 text = "—"
 autowrap_mode = 3
 
+[node name="AccountLevelLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=900000001]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 13
+text = "Niveau 1"
+
+[node name="AccountLevelBar" type="ProgressBar" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=900000002]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+show_percentage = false
+value = 0.0
+
 [node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
 layout_mode = 2
 focus_mode = 0
@@ -692,20 +707,36 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="ProfileAvatar" type="TextureRect" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=998498056]
+[node name="ProfileAvatarFrame" type="PanelContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=900000020]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ProfileAvatar" type="TextureRect" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileAvatarFrame" unique_id=998498056]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ProfileNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=800367535]
+[node name="ProfileNameCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=900000021]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ProfileNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileNameCol" unique_id=800367535]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 22
 text = "Pseudo Steam"
 vertical_alignment = 1
+
+[node name="ProfileTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileNameCol" unique_id=900000022]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.7, 0.6, 0.9)
+theme_override_font_sizes/font_size = 14
+text = ""
 
 [node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=731961068]
 layout_mode = 2
@@ -1088,6 +1119,20 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="CustomDifficultyRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=900000010]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CustomDifficultyLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow" unique_id=900000011]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+text = "Difficulté de l'IA"
+
+[node name="CustomDifficultyOption" type="OptionButton" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow" unique_id=900000012]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="LaunchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=641662269]
 custom_minimum_size = Vector2(0, 56)

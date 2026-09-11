@@ -686,6 +686,7 @@ func set_non_interactive() -> void:
 func show_back(show_card_back: bool) -> void:
 	if show_card_back:
 		art.texture = CARD_BACK_TEX
+		art.modulate = CosmeticsManager.card_back_tint()
 		name_label.hide()
 		cost_label.hide()
 		generic_cost_label.hide()
@@ -697,6 +698,7 @@ func show_back(show_card_back: bool) -> void:
 		type_label.hide()
 		resource_icon.hide()
 	else:
+		art.modulate = Color.WHITE
 		if data:
 			update_display()
 		name_label.show()

@@ -23,9 +23,11 @@ signal report_requested
 @onready var audio_menu             = %AudioSettingsMenu
 @onready var graphism_menu          = %GraphismSettingsMenu
 @onready var control_menu           = %ControlSettingsMenu
+@onready var gameplay_menu          = %GameplaySettingsMenu
 @onready var audio_tab_button       = %AudioTabButton
 @onready var graphism_tab_button    = %GraphismTabButton
 @onready var control_tab_button     = %ControlTabButton
+@onready var gameplay_tab_button    = %GameplayTabButton
 @onready var report_button          = %ReportButton
 @onready var apply_button           = %ApplyButton
 @onready var report_panel: VBoxContainer          = %ReportPanel
@@ -60,6 +62,7 @@ func _ready() -> void:
 		audio_tab_button:    audio_menu,
 		graphism_tab_button: graphism_menu,
 		control_tab_button:  control_menu,
+		gameplay_tab_button: gameplay_menu,
 	}
 
 	_style_all_buttons()
@@ -200,6 +203,7 @@ func _retranslate() -> void:
 	audio_tab_button.text      = SettingsManager.t("settings.audio")
 	graphism_tab_button.text   = SettingsManager.t("settings.graphics")
 	control_tab_button.text    = SettingsManager.t("settings.controls")
+	gameplay_tab_button.text   = SettingsManager.t("settings.gameplay")
 	close_button.text          = SettingsManager.t("settings.close")
 	concede_button.text        = SettingsManager.t("settings.concede")
 	confirm_message.text       = SettingsManager.t("settings.concede_confirm_message")
@@ -214,7 +218,7 @@ func _retranslate() -> void:
 	report_submit_button.text  = SettingsManager.t("REPORT_SUBMIT")
 
 func _style_all_buttons() -> void:
-	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, close_button, confirm_cancel_button]:
+	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, gameplay_tab_button, report_button, close_button, confirm_cancel_button]:
 		_style_button(btn)
 
 # Boutons dangereux (Concéder, confirmation) : même forme que les autres mais habillage rouge sang.

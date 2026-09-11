@@ -35,7 +35,8 @@ var difficulty: String = "normal"
 # race_mana / race_max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
-	difficulty = SettingsManager.ai_difficulty
+	difficulty = CustomMatchContext.ai_difficulty_override if CustomMatchContext.ai_difficulty_override != "" else SettingsManager.ai_difficulty
+	CustomMatchContext.clear()
 	_build_deck()
 	deck.shuffle()
 	for i in range(STARTING_HAND):

@@ -167,6 +167,21 @@ func _animate_width(target_width: float) -> void:
 		_tween.tween_callback(_scroll_to_bottom)
 
 func _on_entry_added(entry: Dictionary) -> void:
+	_list.add_child(make_entry_row(entry))
+	while _list.get_child_count() > CombatLogSystem.MAX_ENTRIES:
+		_list.get_child(0).queue_free()
+
+	if _is_open:
+		await get_tree().process_frame
+		_scroll_to_bottom()
+	else:
+		_badge.visible = true
+
+# Construit une ligne du journal de combat à partir d'une entrée
+# (icône + segments, voir CombatLogSystem._add) — statique et réutilisable en
+# dehors de ce panneau (voir MatchReplayView, écran "Voir le replay" affiché
+# juste après une partie).
+static func make_entry_row(entry: Dictionary) -> Control:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 5)
 
@@ -186,21 +201,13 @@ func _on_entry_added(entry: Dictionary) -> void:
 			seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
 			row.add_child(seg_label)
 
-	_list.add_child(row)
-	while _list.get_child_count() > CombatLogSystem.MAX_ENTRIES:
-		_list.get_child(0).queue_free()
-
-	if _is_open:
-		await get_tree().process_frame
-		_scroll_to_bottom()
-	else:
-		_badge.visible = true
+	return row
 
 # Miniature de l'illustration de la carte, encadrée d'une bordure colorée par
 # camp (verte = vous, rouge = adversaire) — le nom reste accessible en tooltip.
 # content_margin = border_width : sans cette marge, l'image (enfant du
 # PanelContainer) recouvre entièrement la bordure et la rend invisible.
-func _make_card_thumb(segment: Dictionary) -> Control:
+static func _make_card_thumb(segment: Dictionary) -> Control:
 	var frame := PanelContainer.new()
 	frame.tooltip_text = segment.get("name", "")
 	var color := _segment_color(segment.get("is_player"))
@@ -246,7 +253,7 @@ func _make_card_thumb(segment: Dictionary) -> Control:
 	frame.add_child(stack)
 	return frame
 
-func _segment_color(is_player) -> Color:
+static func _segment_color(is_player) -> Color:
 	if is_player == true:
 		return COLOR_PLAYER
 	if is_player == false:

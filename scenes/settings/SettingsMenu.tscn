@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="2_audio"]
 [ext_resource type="PackedScene" uid="uid://b5qjptm65gu8e" path="res://scenes/settings/GraphismSettingsMenu.tscn" id="3_graph"]
 [ext_resource type="PackedScene" uid="uid://bt0vohrgfxbke" path="res://scenes/settings/ControlSettingsMenu.tscn" id="4_ctrl"]
+[ext_resource type="PackedScene" path="res://scenes/settings/GameplaySettingsMenu.tscn" id="5_gameplay"]
 [ext_resource type="Script" uid="uid://c4blxcxvigghk" path="res://scripts/settings/SettingsMenu.gd" id="5_script"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="6_theme"]
 
@@ -143,6 +144,13 @@ layout_mode = 2
 toggle_mode = true
 text = "Contrôles"
 
+[node name="GameplayTabButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/NavBar" unique_id=800000001]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+toggle_mode = true
+text = "Gameplay"
+
 [node name="NavSep" type="VSeparator" parent="Panel/VBox/BodyMargin/BodyRow" unique_id=100000032]
 layout_mode = 2
 
@@ -177,6 +185,16 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="ControlSettingsMenu" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=100000017 instance=ExtResource("4_ctrl")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GameplaySettingsMenu" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=800000002 instance=ExtResource("5_gameplay")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1

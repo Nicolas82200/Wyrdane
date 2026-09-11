@@ -70,6 +70,9 @@ static func _populate_news(menu) -> void:
 # seuls appelants, pas de raison de fusionner davantage).
 const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
 const ACCENT_ARCANE := Color(0.47, 0.56, 0.84, 0.85)
+# "kind":"event" (voir generate-feed.mjs côté site) : événement en cours/à venir
+# (bonus temporaire, tournoi communautaire...) — liseré distinct, badge dédié.
+const ACCENT_EVENT := Color(0.82, 0.22, 0.22, 0.9)
 
 static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
@@ -91,8 +94,10 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 # `is_featured` marque la toute première entrée (la plus récente) d'un liseré
 # arcane distinct, pour qu'elle ressorte visuellement du reste de la liste.
 static func _add_news_item(menu, date: String, title: String, body: String, kind: String, is_featured: bool = false) -> void:
+	var is_event: bool = kind == "event"
+	var accent: Color = ACCENT_EVENT if is_event else (ACCENT_ARCANE if is_featured else ACCENT_EMBER)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", _make_accent_card_style(ACCENT_ARCANE if is_featured else ACCENT_EMBER))
+	card.add_theme_stylebox_override("panel", _make_accent_card_style(accent))
 	var card_margin := MarginContainer.new()
 	card_margin.add_theme_constant_override("margin_left", 14)
 	card_margin.add_theme_constant_override("margin_top", 10)
@@ -104,10 +109,17 @@ static func _add_news_item(menu, date: String, title: String, body: String, kind
 	item.add_theme_constant_override("separation", 4)
 	card_margin.add_child(item)
 
+	if is_event:
+		var badge := Label.new()
+		badge.text = SettingsManager.t("MENU_NEWS_EVENT_BADGE")
+		badge.add_theme_font_size_override("font_size", 12)
+		badge.add_theme_color_override("font_color", ACCENT_EVENT)
+		item.add_child(badge)
+
 	var date_label := Label.new()
 	date_label.text = date
 	date_label.add_theme_font_size_override("font_size", 13)
-	date_label.add_theme_color_override("font_color", ACCENT_ARCANE if is_featured else Color(0.91, 0.835, 0.639, 0.55))
+	date_label.add_theme_color_override("font_color", accent if (is_featured or is_event) else Color(0.91, 0.835, 0.639, 0.55))
 	item.add_child(date_label)
 
 	var title_label := Label.new()

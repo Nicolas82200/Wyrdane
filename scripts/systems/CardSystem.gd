@@ -22,6 +22,7 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 			battle.net_emitter.play_card(card_data, "Resource", -1)
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_card_played(card_data)
+		await battle.check_auto_pass_turn()
 		return
 	if card_data.card_type == "Minion" and not battle.can_play_card_on_row(card_data, row):
 		return
@@ -92,6 +93,7 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await _resolve(card_data, row, insert_index)
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
+	await battle.check_auto_pass_turn()
 
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
@@ -201,6 +203,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	battle.reset_targeting_state()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
+	await battle.check_auto_pass_turn()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 	if battle.net_emitter != null:

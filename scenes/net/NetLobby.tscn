@@ -443,3 +443,115 @@ theme_override_font_sizes/font_size = 22
 text = "Astuce : ..."
 horizontal_alignment = 1
 autowrap_mode = 3
+
+[node name="VsOverlay" type="Control" parent="." unique_id=2001000030]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="VsBackground" type="TextureRect" parent="VsOverlay" unique_id=2001000031]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_bgstill")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VsDim" type="ColorRect" parent="VsOverlay" unique_id=2001000032]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="VsCenter" type="CenterContainer" parent="VsOverlay" unique_id=2001000033]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VsHBox" type="HBoxContainer" parent="VsOverlay/VsCenter" unique_id=2001000034]
+layout_mode = 2
+theme_override_constants/separation = 56
+alignment = 1
+
+[node name="LocalSide" type="VBoxContainer" parent="VsOverlay/VsCenter/VsHBox" unique_id=2001000035]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LocalNameLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/LocalSide" unique_id=2001000036]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 32
+text = "Vous"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="LocalRaceLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/LocalSide" unique_id=2001000037]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("4_subtitle")
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="VsLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox" unique_id=2001000038]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.75, 0.15, 0.15, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 48
+text = "VS"
+
+[node name="RemoteSide" type="VBoxContainer" parent="VsOverlay/VsCenter/VsHBox" unique_id=2001000039]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RemoteNameLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/RemoteSide" unique_id=2001000040]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_title")
+theme_override_font_sizes/font_size = 32
+text = "Adversaire"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="RemoteRaceLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/RemoteSide" unique_id=2001000041]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("4_subtitle")
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2

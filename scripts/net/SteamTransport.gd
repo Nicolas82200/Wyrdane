@@ -119,6 +119,20 @@ func invite_friends() -> void:
 		return
 	_steam.activateGameOverlayInviteDialog(_lobby_id)
 
+func open_add_friend_overlay() -> void:
+	if _steam == null or _remote_id == 0:
+		return
+	_steam.activateGameOverlayToUser("steamid_friend_add", _remote_id)
+
+func remote_display_name() -> String:
+	if _steam == null or _remote_id == 0:
+		return ""
+	# Contrairement à _persona() (diagnostic uniquement) : pas de repli sur le
+	# SteamID64 brut ici, ce serait affiché tel quel à l'écran (voir écran VS,
+	# NetLobby._show_vs_screen) — laisser l'appelant retomber sur un libellé
+	# générique ("Adversaire") est préférable à un numéro illisible.
+	return _steam.getFriendPersonaName(_remote_id)
+
 func close() -> void:
 	if _steam == null:
 		return

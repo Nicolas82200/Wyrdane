@@ -35,3 +35,22 @@ static func from_string(s: String) -> int:
 		"Demon":       return Type.DEMON
 		"Abomination": return Type.ABOMINATION
 		_:             return Type.NONE
+
+# Libellé traduit des races distinctes présentes dans un deck (liste de
+# resource_path bruts — utile quand on n'a pas de DeckData complet, ex. le
+# deck adverse reçu par NetHandshake). Utilisé par l'écran VS (NetLobby) et
+# l'historique de parties (SettingsManager/MatchHistoryPanel).
+static func deck_race_label(card_paths: Array, unknown_key: String = "NET_VS_UNKNOWN_DECK") -> String:
+	var race_names: Array[String] = []
+	for path in card_paths:
+		if not (path is String):
+			continue
+		var card := load(path) as CardData
+		if card == null or card.race == Type.NONE:
+			continue
+		var race_name := SettingsManager.t("RACE_" + get_race_name(card.race).to_upper())
+		if race_name not in race_names:
+			race_names.append(race_name)
+	if race_names.is_empty():
+		return SettingsManager.t(unknown_key)
+	return " / ".join(race_names)
