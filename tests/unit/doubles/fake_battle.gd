@@ -43,8 +43,6 @@ var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
-var player_kills_this_turn: int = 0
-var player_infection_damage_dealt: int = 0
 var _fake_tree := FakeSceneTree.new()
 
 # ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
@@ -58,7 +56,6 @@ const CARD_BACK = preload("res://assets/card_back/card-back.png")
 
 # ─── Suivi des quêtes de race (voir Battle.gd) ─────────────────────────────────
 var deck_races: Array[String] = []
-var deck_has_legendary: bool = false
 var cards_played_by_race: Dictionary = {}
 
 # ─── Compteurs de succès Steam (voir AchievementManager/Battle.gd) ────────────
