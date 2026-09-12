@@ -34,6 +34,10 @@ var _ready_glow: Panel = null
 var _ready_style: StyleBoxFlat = null
 var _ready_pulse: float = 0.0
 var _fusion_button: Button = null
+var _fusion_button_style: StyleBoxFlat = null
+var _fusion_pulse: float = 0.0
+
+const FUSION_BUTTON_COLOR := Color(0.65, 0.3, 0.85)
 
 # Halo pulsant affiché pendant que la popup d'effet de CE serviteur est jouée
 # (CardPopupSystem.show_card_popup) — identifie visuellement quelle carte du
@@ -191,12 +195,27 @@ func _ready() -> void:
 	_fusion_button = Button.new()
 	_fusion_button.name = "FusionButton"
 	_fusion_button.text = "F"
-	_fusion_button.custom_minimum_size = Vector2(26, 26)
-	_fusion_button.position = Vector2(70, 2)
+	_fusion_button.custom_minimum_size = Vector2(32, 32)
+	_fusion_button.position = Vector2(66, -2)
 	_fusion_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_fusion_button.visible = false
-	_fusion_button.add_theme_font_size_override("font_size", 14)
+	_fusion_button.add_theme_font_size_override("font_size", 18)
 	_fusion_button.tooltip_text = TranslationServer.translate("KW_FUSION_NAME")
+	# Fond violet plein + bordure pulsante (voir _process) : le bouton "F"
+	# passait inaperçu en style par défaut Godot, discret dans le coin de la
+	# carte — les joueurs ne le trouvaient jamais pour activer FUSION.
+	_fusion_button_style = StyleBoxFlat.new()
+	_fusion_button_style.bg_color = FUSION_BUTTON_COLOR
+	_fusion_button_style.set_corner_radius_all(16)
+	_fusion_button_style.border_width_left   = 2
+	_fusion_button_style.border_width_right  = 2
+	_fusion_button_style.border_width_top    = 2
+	_fusion_button_style.border_width_bottom = 2
+	_fusion_button_style.border_color = Color(1.0, 0.85, 0.2)
+	_fusion_button.add_theme_stylebox_override("normal", _fusion_button_style)
+	_fusion_button.add_theme_stylebox_override("hover", _fusion_button_style)
+	_fusion_button.add_theme_stylebox_override("pressed", _fusion_button_style)
+	_fusion_button.add_theme_color_override("font_color", Color.WHITE)
 	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
 	add_child(_fusion_button)
 
@@ -232,6 +251,9 @@ func _process(delta: float) -> void:
 		_effect_preview_glow.queue_redraw()
 	BoardMinionStatusVFX.update_pulse(self, delta)
 	_update_fusion_button()
+	if _fusion_button != null and _fusion_button.visible and _fusion_button_style != null:
+		_fusion_pulse += delta * 3.0
+		_fusion_button_style.border_color.a = 0.6 + sin(_fusion_pulse) * 0.4
 	if not _targetable or _targetable_style == null:
 		return
 	_pulse_time += delta * 3.0
@@ -255,9 +277,13 @@ func update_display() -> void:
 	modulate.g = c.g
 	modulate.b = c.b
 	_update_ready_glow()
-	if minion.card_data.texture:
-		art.texture = minion.card_data.texture
-	_race_style.border_color = BORDER_RACE_COLORS.get(minion.card_data.race, Color.WHITE)
+	# Déguisement visuel (L'Innommable/MimicTarget) : l'art et la couleur de
+	# bordure de race suivent la carte affichée (display_card_override), jamais
+	# `card_data` lui-même — les stats ci-dessus restent celles du vrai serviteur.
+	var display_card: CardData = minion.get_display_card()
+	if display_card.texture:
+		art.texture = display_card.texture
+	_race_style.border_color = BORDER_RACE_COLORS.get(display_card.race, Color.WHITE)
 	if border_color:
 		border_color.queue_redraw()
 	_refresh_keyword_icons()
@@ -443,8 +469,14 @@ func _on_mouse_entered() -> void:
 	_hover_preview.z_index = 1000
 	_hover_preview.visible = false
 	_battle.add_child(_hover_preview)
-	_hover_preview.set_data(minion.card_data)
-	_hover_preview.scale = Vector2(0.9, 0.9)
+	# Déguisement visuel (L'Innommable/MimicTarget) : l'aperçu agrandi affiche
+	# l'art/nom/description de la carte copiée, mais toujours les VRAIES stats
+	# du serviteur (jamais celles, potentiellement différentes, de la copie).
+	_hover_preview.set_data(minion.get_display_card())
+	if minion.display_card_override != null:
+		_hover_preview.attack_label.text = str(minion.card_data.attack)
+		_hover_preview.health_label.text = str(minion.card_data.health)
+	_hover_preview.scale = Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE)
 	await get_tree().process_frame
 
 	# Évite les états invalides si la souris sort pendant l'await
@@ -454,10 +486,10 @@ func _on_mouse_entered() -> void:
 
 	_hover_preview.global_position = global_position + Vector2(
 		size.x + 15,
-		(size.y - _hover_preview.size.y * 0.9) / 2.0
+		(size.y - _hover_preview.size.y * Card.HOVER_ZOOM_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
-	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * 0.9 + 15
+	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 	var tooltip_y := _hover_preview.global_position.y
 	await _show_keyword_tooltips(tooltip_x, tooltip_y)
 
@@ -565,8 +597,8 @@ func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> voi
 		await get_tree().process_frame
 		if _tooltip_layer == my_layer and _mouse_is_over \
 				and is_instance_valid(race_panel) and is_instance_valid(_hover_preview):
-			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * 0.9
-			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * 0.9) / 2.0
+			var preview_bottom  := _hover_preview.global_position.y + _hover_preview.size.y * Card.HOVER_ZOOM_SCALE
+			var preview_center_x := _hover_preview.global_position.x + (_hover_preview.size.x * Card.HOVER_ZOOM_SCALE) / 2.0
 			var rx: float = clampf(
 				preview_center_x - race_panel.size.x / 2.0, 4.0, vp.x - race_panel.size.x - 4.0)
 			var ry := preview_bottom + 6
@@ -593,10 +625,13 @@ func _hide_keyword_tooltips() -> void:
 # colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
 # constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
 # Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
-# icône 11->13) : les icônes doivent rester lisibles alignées verticalement le
-# long du bord gauche de la carte sans que la bulle ne prenne toute la place.
-const KEYWORD_BADGE_SIZE := 15.0
-const KEYWORD_ICON_SIZE  := 13.0
+# icône 11->13), puis agrandies de 25% (badge 15->19, icône 13->16) sur
+# nouvelle demande de lisibilité, puis à nouveau agrandies (badge 19->22,
+# icône 16->19) sur nouvelle demande : les icônes doivent rester lisibles
+# alignées verticalement le long du bord gauche de la carte sans que la bulle
+# ne prenne toute la place.
+const KEYWORD_BADGE_SIZE := 22.0
+const KEYWORD_ICON_SIZE  := 19.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:

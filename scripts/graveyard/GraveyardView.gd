@@ -3,6 +3,11 @@ class_name GraveyardView
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
+# Émis quand la vue est ouverte en mode sélection (voir open_for_selection) et
+# que le joueur a choisi une carte, ou null si la fenêtre a été fermée sans
+# choisir (clic sur le fond / bouton Fermer).
+signal card_picked(card_data: CardData)
+
 const GRID_CARD_SCALE       := 0.85
 const GRID_CARD_HOVER_SCALE := 0.95
 const GRID_WRAPPER_SIZE     := Vector2(215, 320)
@@ -18,6 +23,7 @@ var _keyword_tooltips: Array[Control] = []
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
+var _selection_mode:   bool           = false
 
 func _ready() -> void:
 	# Le son de fermeture est joué dans close(), pas le clic générique
@@ -36,6 +42,9 @@ func close() -> void:
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
 	hide()
+	if _selection_mode:
+		_selection_mode = false
+		card_picked.emit(null)
 
 func open(graveyard: Graveyard) -> void:
 	count_label.text = SettingsManager.t("graveyard.count_format") % graveyard.size()
@@ -45,6 +54,29 @@ func open(graveyard: Graveyard) -> void:
 		var entry = graveyard.entries[i]
 		entries.append({"card_data": entry["card_data"], "face_down": graveyard.is_face_down(entry)})
 	_open_entries(entries)
+
+# Mode sélection : le joueur doit choisir une carte parmi `candidates` (déjà
+# filtrées par l'appelant — ex: Mort-Vivants du cimetière allié). Le signal
+# card_picked émet la carte choisie, ou null si la fenêtre est fermée sans
+# choix. Les cartes ne faisant pas partie de `candidates` ne sont pas
+# affichées : contrairement à `open()`, cette vue ne montre que les cibles
+# valides pour éviter de laisser cliquer sur une carte non éligible.
+func open_for_selection(candidates: Array[CardData]) -> void:
+	_selection_mode = true
+	count_label.text = SettingsManager.t("graveyard.choose_target_format") % candidates.size()
+	var entries: Array = []
+	for card_data in candidates:
+		entries.append({"card_data": card_data, "face_down": false})
+	_open_entries(entries)
+
+func _pick(card_data: CardData) -> void:
+	if not _selection_mode:
+		return
+	_selection_mode = false
+	AudioManager.play(AudioManager.CLOSE_MENU)
+	_hide_keyword_tooltips()
+	hide()
+	card_picked.emit(card_data)
 
 # Cartes restantes dans la pioche du joueur, triées par coût de mana (pas
 # l'ordre du deck, qui est mélangé et sans intérêt pour le joueur ici).
@@ -108,6 +140,14 @@ func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 		_add_count_badge(wrapper, count)
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual, wrapper))
+	if _selection_mode:
+		wrapper.gui_input.connect(_on_card_wrapper_clicked.bind(card_data))
+
+func _on_card_wrapper_clicked(event: InputEvent, card_data: CardData) -> void:
+	if event is InputEventMouseButton \
+	and event.button_index == MOUSE_BUTTON_LEFT \
+	and event.pressed:
+		_pick(card_data)
 
 ## Badge "xN" en haut à gauche de la vignette, même gabarit visuel que le badge
 ## de stock du deck builder (voir DeckBuilder._add_stock_badge).

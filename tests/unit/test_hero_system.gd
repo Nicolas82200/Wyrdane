@@ -125,11 +125,11 @@ func test_self_damage_does_not_fire_on_self_damage_trigger_when_zero_dealt() -> 
 # ─── update_ui() ────────────────────────────────────────────────────────────
 
 func test_update_ui_reflects_current_health() -> void:
-	battle.player_hero.health = 12
-	battle.enemy_hero.health = 8
+	battle.player_hero.health = 20
+	battle.enemy_hero.health = 15
 	hero_system.update_ui()
-	assert_eq(battle._player_health_label.text, "12")
-	assert_eq(battle._enemy_health_label.text, "8")
+	assert_eq(battle._player_health_label.text, "20")
+	assert_eq(battle._enemy_health_label.text, "15")
 
 func test_update_ui_clamps_negative_health_to_zero() -> void:
 	battle.player_hero.health = -5

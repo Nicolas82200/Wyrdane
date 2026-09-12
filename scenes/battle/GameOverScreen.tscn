@@ -43,9 +43,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -260.0
-offset_top = -180.0
+offset_top = -250.0
 offset_right = 260.0
-offset_bottom = 180.0
+offset_bottom = 250.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -90,6 +90,61 @@ theme_override_font_sizes/font_size = 18
 text = ""
 horizontal_alignment = 1
 
+[node name="StatsMargin" type="MarginContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 8
+
+[node name="StatsGrid" type="GridContainer" parent="Panel/VBox/StatsMargin"]
+layout_mode = 2
+theme_override_constants/h_separation = 24
+theme_override_constants/v_separation = 5
+columns = 2
+
+[node name="DurationKey" type="Label" parent="Panel/VBox/StatsMargin/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.78, 0.72, 0.6, 1)
+theme_override_font_sizes/font_size = 15
+text = "Durée de la partie"
+
+[node name="DurationValue" type="Label" parent="Panel/VBox/StatsMargin/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.87, 0.78, 1)
+theme_override_font_sizes/font_size = 15
+text = "0"
+horizontal_alignment = 2
+
+[node name="QuestsMargin" type="MarginContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 8
+
+[node name="QuestsBox" type="VBoxContainer" parent="Panel/VBox/QuestsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="QuestsHeader" type="Label" parent="Panel/VBox/QuestsMargin/QuestsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.72, 0.5, 0.9)
+theme_override_font_sizes/font_size = 15
+text = "Quêtes du jour"
+
+[node name="QuestsStatus" type="Label" parent="Panel/VBox/QuestsMargin/QuestsBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.65, 0.58, 0.85)
+theme_override_font_sizes/font_size = 13
+text = ""
+autowrap_mode = 2
+
+[node name="QuestsList" type="VBoxContainer" parent="Panel/VBox/QuestsMargin/QuestsBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
 [node name="Sep" type="HSeparator" parent="Panel/VBox"]
 layout_mode = 2
 
@@ -108,6 +163,18 @@ theme_override_constants/separation = 10
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 text = "Rejouer"
+
+[node name="AddFriendButton" type="Button" parent="Panel/VBox/ButtonsMargin/ButtonsVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Ajouter comme ami"
+
+[node name="ViewReplayButton" type="Button" parent="Panel/VBox/ButtonsMargin/ButtonsVBox"]
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "Voir le replay"
 
 [node name="MenuButton" type="Button" parent="Panel/VBox/ButtonsMargin/ButtonsVBox"]
 custom_minimum_size = Vector2(0, 52)

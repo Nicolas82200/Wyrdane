@@ -119,6 +119,20 @@ func invite_friends() -> void:
 		return
 	_steam.activateGameOverlayInviteDialog(_lobby_id)
 
+func open_add_friend_overlay() -> void:
+	if _steam == null or _remote_id == 0:
+		return
+	_steam.activateGameOverlayToUser("steamid_friend_add", _remote_id)
+
+func remote_display_name() -> String:
+	if _steam == null or _remote_id == 0:
+		return ""
+	# Contrairement à _persona() (diagnostic uniquement) : pas de repli sur le
+	# SteamID64 brut ici, ce serait affiché tel quel à l'écran (voir écran VS,
+	# MatchmakingOverlay._show_vs_screen) — laisser l'appelant retomber sur un libellé
+	# générique ("Adversaire") est préférable à un numéro illisible.
+	return _steam.getFriendPersonaName(_remote_id)
+
 func close() -> void:
 	if _steam == null:
 		return
@@ -250,10 +264,24 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 			# (1v1 : premier arrivé = notre pair).
 			if not _is_host or connection.get("listen_socket", 0) != _listen_socket:
 				return
-			if _remote_id != 0 and remote_id != 0 and remote_id != _remote_id:
+			# Le lobby est PUBLIC et son LOBBY_OWNER_KEY lisible par quiconque liste
+			# les lobbies "wyrdane" sans jamais le rejoindre : un tiers non invité
+			# peut appeler connectP2P directement contre notre SteamID. Ne JAMAIS se
+			# fier uniquement à `_remote_id` : il n'est peuplé que par
+			# _on_lobby_chat_update (flux Steam indépendant, sans garantie d'ordre
+			# avec cet évènement P2P) — tant qu'il vaut encore 0, l'ancienne garde
+			# laissait passer n'importe quelle connexion entrante. On vérifie ici
+			# l'appartenance RÉELLE au lobby au moment de la connexion, indépendamment
+			# de l'état (peut-être en retard) de `_remote_id`.
+			if remote_id == 0 or not _is_lobby_member(remote_id):
+				status.emit("Steam : connexion P2P refusée (pair non membre du lobby)")
+				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
+				return
+			if _remote_id != 0 and remote_id != _remote_id:
 				status.emit("Steam : connexion P2P refusée (pair inattendu)")
 				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
 				return
+			_remote_id = remote_id
 			_steam.acceptConnection(connect_handle)
 			status.emit("Steam : connexion P2P entrante acceptée, en attente de confirmation…")
 		CONN_STATE_CONNECTED:
@@ -270,6 +298,18 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 			status.emit("Steam : connexion P2P perdue (code %d — %s)" % [end_reason, end_debug])
 			_connection_handle = 0
 			disconnected.emit("steam_p2p_failed")
+
+# Vérifie l'appartenance actuelle au lobby via l'API Steam (source de vérité
+# indépendante de `_remote_id`, qui n'est mis à jour que par l'évènement de
+# lobby asynchrone _on_lobby_chat_update — voir _on_network_connection_status_changed).
+func _is_lobby_member(steam_id: int) -> bool:
+	if _lobby_id == 0:
+		return false
+	var count: int = _steam.getNumLobbyMembers(_lobby_id)
+	for i in count:
+		if _steam.getLobbyMemberByIndex(_lobby_id, i) == steam_id:
+			return true
+	return false
 
 # L'identité dans le dictionnaire "connection" peut être un SteamID64 brut ou
 # un dictionnaire selon la version de GodotSteam — on gère les deux formes.

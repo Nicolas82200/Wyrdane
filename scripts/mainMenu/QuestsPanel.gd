@@ -96,9 +96,21 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 	style.corner_radius_bottom_left = 4
 	return style
 
+# Le backend peut renvoyer une clé présente avec une valeur JSON `null`
+# explicite (ex. champ optionnel non renseigné) plutôt que d'omettre la clé :
+# Dictionary.get() ne retombe alors PAS sur son défaut, et int(null)/String(null)
+# plante ("Invalid call. Nonexistent 'int'/'String' constructor.").
+static func _get_int(quest: Dictionary, key: String, default: int) -> int:
+	var value = quest.get(key, default)
+	return default if value == null else int(value)
+
+static func _get_str(quest: Dictionary, key: String, default: String) -> String:
+	var value = quest.get(key, default)
+	return default if value == null else String(value)
+
 static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
-	var progress := int(quest.get("progress", 0))
-	var target := int(quest.get("target", 1))
+	var progress := _get_int(quest, "progress", 0)
+	var target := _get_int(quest, "target", 1)
 	var claimed := bool(quest.get("claimed", false))
 	var completed := progress >= target
 
@@ -124,7 +136,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	hbox.add_child(text_col)
 
 	var desc_label := Label.new()
-	desc_label.text = SettingsManager.t(String(quest.get("description_key", "")))
+	desc_label.text = SettingsManager.t(_get_str(quest, "description_key", ""))
 	desc_label.add_theme_font_size_override("font_size", 17)
 	desc_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -133,14 +145,14 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var progress_label := Label.new()
 	match kind:
 		"weekly":
-			var reward_pack := int(quest.get("reward_pack", 0))
+			var reward_pack := _get_int(quest, "reward_pack", 0)
 			progress_label.text = SettingsManager.t("QUESTS_WEEKLY_PROGRESS") % [progress, target, reward_pack]
 		"unique":
-			var reward_currency := int(quest.get("reward_currency", 0))
-			var reward_pack_unique := int(quest.get("reward_pack", 0))
+			var reward_currency := _get_int(quest, "reward_currency", 0)
+			var reward_pack_unique := _get_int(quest, "reward_pack", 0)
 			progress_label.text = SettingsManager.t("QUESTS_UNIQUE_PROGRESS") % [progress, target, reward_currency, reward_pack_unique]
 		_:
-			var reward := int(quest.get("reward_currency", 0))
+			var reward := _get_int(quest, "reward_currency", 0)
 			progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
 	progress_label.add_theme_font_size_override("font_size", 14)
 	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
@@ -156,11 +168,11 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
 		match kind:
 			"weekly":
-				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, String(quest.get("id", "")), action_button))
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, _get_str(quest, "id", ""), action_button))
 			"unique":
-				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, int(quest.get("id", 0)), action_button))
+				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
 			_:
-				action_button.pressed.connect(_on_claim_pressed.bind(menu, int(quest.get("id", 0)), action_button))
+				action_button.pressed.connect(_on_claim_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
 	else:
 		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
 		action_button.disabled = true

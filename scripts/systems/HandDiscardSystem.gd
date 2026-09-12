@@ -50,9 +50,19 @@ func run_if_needed() -> void:
 	_timer.timeout.connect(_on_timeout)
 	_timer.start(DISCARD_TIMER_DURATION)
 
-	while not _resolved:
+	# Garde-fou : si la partie se termine pendant l'attente (déconnexion du pair,
+	# voir NetSessionSystem._on_peer_disconnected, qui pose game_over sans jamais
+	# toucher hand_discard_system) ou si la scène de bataille est détruite
+	# entre-temps, `battle` peut devenir une instance libérée — sans ce
+	# garde-fou, `battle.get_tree()` plantait (même correctif déjà appliqué à
+	# PactChoiceSystem.ask()/Hand._fly_ghost_card) et, pire, le timer de
+	# défausse pouvait encore expirer après coup et muter hand_cards/graveyard
+	# sur un match déjà déclaré terminé.
+	while not _resolved and is_instance_valid(battle) and not battle.game_over:
 		await battle.get_tree().process_frame
 
+	if not is_instance_valid(battle):
+		return
 	if battle.hand.discard_card_clicked.is_connected(_on_card_clicked):
 		battle.hand.discard_card_clicked.disconnect(_on_card_clicked)
 	battle.hand.set_discard_mode(false)

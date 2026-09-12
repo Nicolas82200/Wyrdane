@@ -75,6 +75,13 @@ func test_process_deaths_respects_exile_on_death() -> void:
 	await death_system.process_deaths()
 	assert_eq(battle.player_graveyard.get_minions().size(), 0, "un serviteur exile_on_death ne doit pas rejoindre le cimetière")
 
+func test_process_deaths_respects_is_token() -> void:
+	var dying := _minion()
+	dying.card_data.is_token = true
+	dying.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_graveyard.get_minions().size(), 0, "un serviteur jeton ne doit pas rejoindre le cimetière")
+
 func test_dead_minion_removed_from_battle_lists() -> void:
 	var dying := _minion()
 	dying.health = 0

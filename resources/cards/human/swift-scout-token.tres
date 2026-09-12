@@ -11,7 +11,8 @@ name_fr = "Assaut"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Éclaireur Rapide"
-description = "ASSAUT"
+description = "ASSAUT
+Ne rejoint pas le cimetière à sa mort."
 flavour_text = "Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte."
 texture = ExtResource("2_texture")
 race = 1

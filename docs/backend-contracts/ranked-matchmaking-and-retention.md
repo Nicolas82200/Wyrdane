@@ -61,13 +61,13 @@ Comportement serveur attendu :
   duquel on apparie sans plus attendre.
 - Un ticket sans appariement après un délai serveur (ex. 5 min) passe en
   `expired` : le client abandonne de son côté après 3 min (`RANKED_QUEUE_TIMEOUT`
-  dans `NetLobby.gd`), donc la valeur exacte côté serveur importe peu tant
+  dans `MatchmakingOverlay.gd`), donc la valeur exacte côté serveur importe peu tant
   qu'elle n'est pas plus courte que ça.
 
 ### `GET /api/matchmaking/queue/:ticket_id`
 
 Interroge l'état d'un ticket (poll côté client, toutes les 2s — voir
-`NetLobby._poll_ranked_queue`).
+`MatchmakingOverlay._poll_ranked_queue`).
 
 Réponse `200`, avant appariement :
 ```json

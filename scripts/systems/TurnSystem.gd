@@ -58,7 +58,17 @@ func run_turn_end_triggers(is_local_turn: bool = true) -> void:
 	var turn_hero: Hero = battle.player_hero if is_local_turn else battle.enemy_hero
 	turn_hero.heal_block_turns = max(turn_hero.heal_block_turns - 1, 0)
 
-	await _apply_infection_damage()
+	# Un seul tick d'Infection par round : cette fonction est appelée DEUX fois
+	# par round complet (fin du tour local ici, puis fin du tour adverse via
+	# AISystem.take_turn()/NetworkOpponent.take_turn() avec is_local_turn=false),
+	# mais _apply_infection_damage() n'est pas filtrée par camp — elle inflige
+	# les dégâts à TOUS les serviteurs infectés des deux camps. L'appeler aux
+	# deux occasions doublait donc les dégâts d'Infection par round (5 marques
+	# = 10 HP/tour au lieu de 5). Ne la déclencher qu'à la fin du tour local,
+	# seule occurrence déjà existante en tutoriel (TutorialOpponent ne rappelle
+	# jamais cette fonction), pour un tick unique et cohérent dans tous les modes.
+	if is_local_turn:
+		await _apply_infection_damage()
 
 func _begin_player_turn() -> void:
 	# Capture les ids des serviteurs créés par les déclencheurs de début de tour.

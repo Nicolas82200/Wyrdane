@@ -19,10 +19,12 @@ var _by_id: Dictionary = {}  # int -> Minion
 # lieu de générer, pour que les serviteurs miroirs (carte + jetons d'effet)
 # portent EXACTEMENT les mêmes ids que chez l'émetteur.
 var _imposed: Array[int] = []
-# Capture (côté émetteur) : liste ordonnée des ids créés par l'action en cours,
-# transmise ensuite au pair pour le rejeu.
-var _capturing: bool = false
-var _captured: Array[int] = []
+# Capture (côté émetteur) : pile de niveaux de capture. Une capture peut être
+# imbriquée (ex. un effet ONPLAY qui déclenche lui-même un combat capturé) :
+# chaque id enregistré est ajouté à TOUS les niveaux actifs, pour qu'une
+# capture englobante récupère aussi les ids créés pendant une capture imbriquée
+# au lieu de les perdre quand celle-ci se termine en premier.
+var _capture_stack: Array = []  # Array[Array[int]]
 
 # À appeler en début de partie réseau pour fixer la parité locale.
 func configure(start_id: int, stride: int) -> void:
@@ -40,19 +42,20 @@ func register(minion: Minion) -> int:
 		_next_id += _stride
 	minion.net_id = id
 	_by_id[id] = minion
-	if _capturing:
-		_captured.append(id)
+	for level in _capture_stack:
+		level.append(id)
 	return id
 
 # ─── Capture (émetteur) ───────────────────────────────────────────────────────
 
 func begin_capture() -> void:
-	_capturing = true
-	_captured = []
+	var level: Array[int] = []
+	_capture_stack.append(level)
 
 func end_capture() -> Array[int]:
-	_capturing = false
-	return _captured
+	if _capture_stack.is_empty():
+		return []
+	return _capture_stack.pop_back()
 
 # ─── Ids imposés (rejeu distant) ──────────────────────────────────────────────
 

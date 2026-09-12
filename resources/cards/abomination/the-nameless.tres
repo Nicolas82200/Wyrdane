@@ -12,13 +12,13 @@ type = "ONPLAY"
 [sub_resource type="Resource" id="Resource_a080"]
 script = ExtResource("1_cardeffect")
 effect_id = "MimicTarget"
-target = "EnemyMinion"
+target = "AnyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "L'Innommable"
-description = "Arrivée : Choisissez un serviteur ciblé que votre adversaire contrôle. L'Innommable se transforme en une copie de ses mots-clés et déclencheurs, en conservant ses propres statistiques. La cible reste inchangée du côté adverse."
+description = "Arrivée : Choisissez un serviteur. L'Innommable devient une copie de ce serviteur avec ses mots-clés et déclencheurs, mais garde les statistiques de L'Innommable."
 flavour_text = "Il n'a pas de visage. Il porte le tien, à présent."
 texture = ExtResource("2_texture")
 cost = 7

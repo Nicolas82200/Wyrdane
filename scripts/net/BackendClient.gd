@@ -113,7 +113,11 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 	var http := HTTPRequest.new()
 	add_child(http)
 
-	var headers := ["Content-Type: application/json"]
+	# X-Requested-With : exigé par le backend (middleware/csrf.ts) sur toute
+	# route authentifiée par cookie, pour forcer un préflight CORS qu'un
+	# formulaire/fetch externe ne peut pas satisfaire (protection CSRF, le
+	# cookie de session étant posé en SameSite=None en production).
+	var headers := ["Content-Type: application/json", "X-Requested-With: XMLHttpRequest"]
 	if _session_cookie != "":
 		headers.append("Cookie: %s" % _session_cookie)
 
@@ -164,7 +168,7 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 # docs/backend-contracts/ranked-matchmaking-and-retention.md
 # Appariement par MMR, fenêtre élargie progressivement. Une fois deux tickets
 # appariés, le backend désigne un hôte (déterministe, ex. plus petit user id)
-# ; l'hôte crée un lobby Steam (voir NetLobby._on_ranked_matched) et rapporte
+# ; l'hôte crée un lobby Steam (voir MatchmakingOverlay._on_ranked_matched) et rapporte
 # son lobby_id via queue_report_lobby — le camp invité le récupère au prochain
 # poll de queue_status et le rejoint directement (NetTransport.join avec
 # {"lobby_id": ...}), sans passer par la recherche de lobby publique.

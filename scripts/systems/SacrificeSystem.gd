@@ -68,6 +68,10 @@ func on_ally_minion_clicked(minion: Minion, visual: BoardMinion) -> void:
 	_selected.append(minion)
 	visual.set_targetable(true, HIGHLIGHT_COLOR.lightened(0.3))
 	if _selected.size() >= _pending_ritual.sacrifice_count:
+		if SettingsManager.confirm_before_sacrifice \
+				and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.sacrifice")):
+			cancel()
+			return
 		await _execute()
 
 func _execute() -> void:

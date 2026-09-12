@@ -121,7 +121,7 @@ Positionnement (Lane Types)
 | 30 | Faucheur de la Plaie | ⚔️ | 6 | 5 | 5 | Arrivée : Détruit tous les serviteurs que votre adversaire contrôle ayant 3 points de vie ou moins. | Il ne choisit pas les plus forts. Il choisit les presque mortspour finir le travail. |
 | 31 | Nécromancien Putride | 🛡️ | 4 | 2 | 4 | Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | "Je ne ressuscite personne. Je refuse simplement qu'ils s'arrêtent." |
 | 32 | Assassin Décharné | ⚔️ | 3 | 4 | 2 | INFILTRATION. Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque. | On ne le voit pas venir. On ne le voit que partir. |
-| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | FRÉNÉSIE, REVENANT. Mort-rage : +3/+0. | La fièvre l'a tué. Ce qui reste est plus rapide. |
+| 33 | Berserker Infecté | ⚔️ | 4 | 5 | 4 | ASSAUT, REVENANT. Mort-rage : peut attaquer à nouveau. | La fièvre l'a tué. Ce qui reste est plus rapide. |
 | 34 | Tombeau Ambulant | ⚔️ | 5 | 3 | 8 | REMPART Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant. | Il n'était pas un monstre. Il était une fosse commune. |
 
 ### Légendaires
@@ -180,7 +180,7 @@ Positionnement (Lane Types)
 | 53 | Rituel de Résurrection | 5 | Épique | 2 charges | Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant. | Le cercle ne ferme jamais complètement. C'est voulu. |
 | 54 | Pacte Sanglant | 3 | Épique | 3 charges | Sacrifice 1 : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
 | 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
-| 56 | Communion avec les Morts | 4 | Rare | 2 charges | Sacrifice 1 : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
+| 56 | Communion avec les Morts | 4 | Rare | 2 charges | Sacrifice 1 : Ressuscitez un serviteur Mort-Vivant ciblé depuis votre cimetière dans votre main. | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
 | 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
 | 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
 | 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : Inflige 2 points de dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
@@ -254,7 +254,7 @@ Liste complète des cartes de la race **Humain**.
 | `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats ni au Gel. |
 | `FORMATION` | Tant qu'un serviteur que vous contrôlez est adjacent, ce serviteur gagne +1/+1. |
 | `CONTRE-ATTAQUE` | Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts. |
-| `COMMANDEMENT` | Les Humains invoqué que vous contrôlezs après lui gagnent +1/+0 de façon permanente. |
+| `COMMANDEMENT` | Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente. |
 | `FORTIFICATION` | Ne peut pas être déplacé, renvoyé en main ou transformé par des effets ennemis. |
 
 ---
@@ -341,7 +341,7 @@ Liste complète des cartes de la race **Humain**.
 | H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Exécution : Inflige 1 point de dégât à tous les serviteurs que votre adversaire contrôle en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
 | H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : Un allié invoqué dans une rangée pleine est placé dans l'autre rangée au lieu d'échouer. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
 | H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL, DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
-| H31 | Porte-Étendard | 🛡️ | 3 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
+| H31 | Porte-Étendard | 🛡️ | 4 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
 | H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE, ASSAUT Blessure : Gagne +2/+0 jusqu'à la fin du tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
 | H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs. | *La corruption s'arrête là où il pose le regard.* |
 | H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT Éveil : Invoque un Fantassin Aguerri 2/2 en rangée Avant si vous avez 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
@@ -425,7 +425,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : Chaque fois qu'un serviteur que votre adversaire contrôle meurt, les serviteurs que vous contrôlez en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | La première fois chaque tour qu'un Humain que vous contrôlez attaque, il gagne ÉGIDE. | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
-| H72 | Ordre des Anciens | 5 | Épique | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
+| H72 | Ordre des Anciens | 6 | Légendaire | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
 | H73 | Mémorial des Héros | 4 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 en rangée Avant. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 7 | Légendaire | Éveil : Tous les serviteurs Humains que vous contrôlez gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
@@ -717,7 +717,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 |---|---|
 | `MUTATION` | Ce serviteur mute (voir Table de Mutation ci-dessous) chaque fois qu'il survit à une blessure. Les effets sont permanents et cumulables. |
 | `FUSION` | Sacrifice un serviteur adjacent que vous contrôlez : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
-| `VIRULENT` | Dernier Souffle : le serviteur adjacent que vous contrôlez déclenche immédiatement une mutation. |
+| `VIRULENT` | Quand ce serviteur meurt, le serviteur adjacent que vous contrôlez déclenche immédiatement une mutation. |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi), de façon permanente. |
 | `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
@@ -792,7 +792,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : Déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
 | A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
 | A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART, MUTATION | *On l'a vu changer trois fois dans la même bataille.* |
-| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : Le serviteur adjacent gagne CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
+| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
 | A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION, INSTABLE | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
 | A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : Réduit l'ATK d'un serviteur ciblé que votre adversaire contrôle de 1 jusqu'à la fin du prochain tour de votre adversaire. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
 | A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Se reforme en Amas Informe 2/2 sous votre contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
@@ -823,7 +823,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : fusionne avec les 2 derniers serviteurs morts que vous contrôlez ce match — absorbe leurs stats restantes cumulées et un mot-clé de chacun. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
 | A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
-| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur ciblé que votre adversaire contrôle. L'Innommable se transforme en une copie de ses mots-clés et déclencheurs, en conservant ses propres statistiques. La cible reste inchangée du côté adverse. | *Il n'a pas de visage. Il porte le tien, à présent.* |
+| A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur. L'Innommable devient une copie de ce serviteur avec ses mots-clés et déclencheurs, mais garde les statistiques de L'Innommable. | *Il n'a pas de visage. Il porte le tien, à présent.* |
 
 ---
 

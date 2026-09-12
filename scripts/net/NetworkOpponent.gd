@@ -110,6 +110,10 @@ func _on_command_received(command: Dictionary) -> void:
 		NetCommand.MULLIGAN_DONE:
 			# Ne pas mettre en file : ce n'est pas une action de tour à rejouer.
 			_remote_mulligan_done = true
+		NetCommand.EMOTE:
+			# Purement cosmétique : affiché immédiatement, quel que soit le tour
+			# en cours (pas une action de jeu à rejouer dans l'ordre).
+			battle.show_enemy_emote(int(command.get("id", -1)))
 		_:
 			_queue.append(command)
 

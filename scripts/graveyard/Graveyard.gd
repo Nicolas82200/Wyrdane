@@ -40,3 +40,16 @@ func get_minions() -> Array[CardData]:
 		if entry["origin"] == Origin.MINION_DEATH:
 			result.append(entry["card_data"])
 	return result
+
+# Retire du cimetière la carte ramenée en jeu/en main par un effet de résurrection
+# (_resurrect, _resurrect_last, _resurrect_self, _return_from_grave,
+# _resurrect_chosen_from_grave) : une carte ramenée ne doit plus pouvoir être
+# ramenée une seconde fois ni rester listée comme morte. Retire l'entrée
+# MINION_DEATH la plus récente correspondant à ce card_data (cohérent avec la
+# sélection "dernier mort" faite par les appelants).
+func remove_minion(card_data: CardData) -> void:
+	for i in range(entries.size() - 1, -1, -1):
+		if entries[i]["origin"] == Origin.MINION_DEATH and entries[i]["card_data"] == card_data:
+			entries.remove_at(i)
+			graveyard_changed.emit()
+			return

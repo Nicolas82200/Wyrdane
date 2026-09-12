@@ -237,6 +237,13 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 17
 text = "Sauvegarder le deck"
 
+[node name="TestDeckButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000043]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Tester le deck"
+
 [node name="CardPreview" parent="." unique_id=100000040 instance=ExtResource("4_card")]
 layout_mode = 0
 offset_right = 250.0

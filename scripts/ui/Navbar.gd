@@ -3,7 +3,7 @@ class_name Navbar
 
 # Barre persistante réutilisable (solde + accès boutique de packs), destinée
 # aux scènes atteintes par change_scene_to_file qui n'ont donc pas accès à la
-# barre déjà présente sur MainMenu.tscn (DeckBuilder, NetLobby) — voir
+# barre déjà présente sur MainMenu.tscn (DeckBuilder — MatchmakingOverlay est un autoload et n'en a pas besoin) — voir
 # MainMenu._on_packs_button_pressed pour le pendant historique de ce pattern.
 
 @onready var currency_label: Label = $Bar/HBox/CurrencyLabel
@@ -22,7 +22,7 @@ func _on_shop_pressed() -> void:
 	pack_shop.refresh()
 
 func _update_currency_label(new_balance: int) -> void:
-	currency_label.text = SettingsManager.t("MENU_CURRENCY") % new_balance
+	currency_label.text = str(new_balance)
 
 func _retranslate() -> void:
 	shop_button.text = SettingsManager.t("MENU_PACKS")
