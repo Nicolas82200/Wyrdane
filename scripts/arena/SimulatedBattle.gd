@@ -43,6 +43,15 @@ var counter_offensive: Dictionary = {true: false, false: false}
 # qu'un Dernier Souffle pose REMPART_TEMPORAIRE, même en combat simulé Arena.
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
+# Ajouté côté 1v1 pour ACH_EXECUTIONER (voir CLAUDE.md « Succès Steam ») :
+# DeathSystem.process_deaths y accède inconditionnellement à chaque mort
+# ennemie hors tour adverse, y compris en combat simulé Arena — sans stub ici
+# le combat plantait dès le premier serviteur tué (accès invalide sur ce
+# RefCounted), laissant l'état du combat (player_minions/enemy_minions
+# jamais filtrés des morts, cimetière/Dernier Souffle jamais déclenchés)
+# corrompu pour le reste du match. Jamais lu côté Arena (pas de succès
+# équivalent ici), seulement écrit par DeathSystem — stub sans autre usage.
+var player_kills_this_turn: int = 0
 var game_rng := RandomNumberGenerator.new()
 
 # Non utilisés en Arena v1 (pas de pioche/deck/enchantements pendant le combat
