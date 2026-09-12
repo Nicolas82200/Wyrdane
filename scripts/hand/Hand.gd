@@ -32,9 +32,6 @@ const MULLIGAN_CENTER_Y_RATIO   := 0.52
 # Durée totale de l'animation de pioche de la main de départ (une carte après
 # l'autre depuis le deck) avant que le mulligan ne devienne interactif.
 const OPENING_DRAW_DURATION       := 3.0
-# Durée totale de la transition d'entrée en mulligan (chaque carte anime vers
-# sa position centrée/agrandie, l'une après l'autre plutôt que toutes en même temps).
-const MULLIGAN_TRANSITION_DURATION := 3.0
 # Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
 # main est repliée — le reste dépasse sous le bas de l'écran
 const COLLAPSED_PEEK_RATIO := 0.22
@@ -191,8 +188,9 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 
 # Anime la pioche de la main de départ, une carte après l'autre depuis le
 # deck (même effet visuel qu'une pioche normale, voir _set_hand_animated),
-# étalée sur total_duration au total. À appeler avant le mulligan, dont
-# l'entrée est elle-même animée séparément (voir set_mulligan_mode).
+# étalée sur total_duration au total. Appelé avec le mode mulligan déjà actif
+# (voir TurnSystem.start_match) : chaque carte vole donc directement vers sa
+# position centrée/agrandie de mulligan.
 func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_duration: float = OPENING_DRAW_DURATION) -> void:
 	for c in container.get_children():
 		c.queue_free()
@@ -321,10 +319,11 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 	card_played.emit(card_data, row, insert_index)
 
 
-# transition_duration > 0 : à l'entrée en mulligan, étale l'animation des
-# cartes vers leur position centrée sur cette durée totale (une carte après
-# l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
-func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
+# Le mode mulligan est activé AVANT play_opening_draw (voir TurnSystem.start_match) :
+# les cartes piochées volent alors directement depuis le deck vers leur
+# position centrée/agrandie de mulligan, sans passer d'abord par la main
+# repliée en bas de l'écran.
+func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
 	# Doit rester au-dessus du MulliganDimOverlay (z_index 90 dans Battle.tscn) :
 	# la main est l'élément d'interaction du mulligan, elle ne doit pas être
@@ -332,48 +331,14 @@ func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	z_index = 91 if active else 0
 	if active and not _hand_expanded:
 		_hand_expanded = true
-		if transition_duration > 0.0:
-			_update_hand_layout_staggered(transition_duration)
-		else:
-			_update_hand_layout(true)
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
-			if not active:
-				card.set_mulligan_swapped(false)
-
-# Variante de _update_hand_layout qui étale le déplacement/agrandissement de
-# chaque carte sur total_duration au total (delay croissant par carte) au
-# lieu de toutes les animer en parallèle sur LAYOUT_TWEEN_DURATION.
-func _update_hand_layout_staggered(total_duration: float) -> void:
-	_prune_hand_order()
-	var cards := _layout_cards()
-	if cards.is_empty():
-		return
-	var layout := _compute_layout(cards)
-	var hovered_index := cards.find(_hovered_card)
-	var count := cards.size()
-	var gap: float = total_duration / float(count)
-	var leg_duration: float = minf(gap * 1.3, 0.6)
-	for i in range(count):
-		var card = cards[i]
-		var norm := _card_norm(i, count)
-		var pos  := _card_position(i, layout, card, norm, hovered_index)
-		_base_positions[card] = pos
-		card.z_index = CARD_Z_BASE + i
-		var delay: float = i * gap
-		var tween := create_tween()
-		tween.set_parallel(true)
-		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_sync_tree_order(hovered_index)
-
-func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
-	if index < 0 or index >= _hand_order.size():
-		return
-	var card: Card = _hand_order[index]
-	if card is Card:
-		card.set_mulligan_swapped(swapped)
+			# Sans ce recalcul explicite, le halo vert "jouable" évalué avant
+			# l'entrée en mulligan reste affiché tel quel (update_playable_highlight
+			# ne se relance pas tout seul quand mulligan_mode change).
+			card.update_playable_highlight()
 
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
