@@ -465,6 +465,13 @@ func _on_mouse_entered() -> void:
 	if _hover_preview == null:
 		push_error("BoardMinion: instantiate() returned null")
 		return
+	if not is_instance_valid(_battle):
+		# La scène capturée à _ready() a déjà été libérée (changement de
+		# scène, fin de partie Arena) : ce nœud n'a pas encore reçu son
+		# _exit_tree() mais _battle n'est plus un parent valide pour add_child.
+		_hover_preview.free()
+		_hover_preview = null
+		return
 	_hover_preview.drag_enabled = false
 	_hover_preview.z_index = 1000
 	_hover_preview.visible = false
@@ -519,6 +526,8 @@ func _cleanup_hover() -> void:
 func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> void:
 	_hide_keyword_tooltips()
 	if minion == null:
+		return
+	if not is_instance_valid(_battle):
 		return
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
