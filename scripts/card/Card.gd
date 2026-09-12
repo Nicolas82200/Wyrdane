@@ -686,7 +686,7 @@ func set_non_interactive() -> void:
 func show_back(show_card_back: bool) -> void:
 	if show_card_back:
 		art.texture = CARD_BACK_TEX
-		art.modulate = Color.WHITE
+		art.modulate = CardBackShop.card_back_tint()
 		name_label.hide()
 		cost_label.hide()
 		generic_cost_label.hide()

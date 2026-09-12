@@ -12,6 +12,7 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
+enum ShopTab { PACKS, CARD_BACKS }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, PACK_SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -56,6 +57,11 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var deck_select_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
 @onready var play_decks_container: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll/PlayDecksContainer
 @onready var launch_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/LaunchButton
+@onready var match_type_row: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow
+@onready var match_type_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeLabel
+@onready var normal_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/NormalMatchButton
+@onready var ranked_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/RankedMatchButton
+@onready var invite_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/InviteMatchButton
 @onready var custom_difficulty_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow
 @onready var custom_difficulty_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow/CustomDifficultyLabel
 @onready var custom_difficulty_option: OptionButton = %CustomDifficultyOption
@@ -93,10 +99,12 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var shop_view:            VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
 @onready var open_pack_shop_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/PacksSection/OpenPackShopButton
-@onready var shop_cosmetics_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CosmeticsSection/CosmeticsSectionTitle
-@onready var shop_cosmetics_placeholder_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CosmeticsSection/CosmeticsPlaceholderLabel
-@onready var shop_packs_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/PacksSection/PacksSectionTitle
 @onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
+@onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
+@onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
+@onready var shop_packs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/PacksSection
+@onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CardBacksSection
+@onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CardBacksSection/CardBacksHintLabel
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -176,6 +184,9 @@ func _ready() -> void:
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
 	open_pack_shop_button.pressed.connect(func(): _show_info_view(InfoView.PACK_SHOP))
+	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
+	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
+	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	discord_button.pressed.connect(_on_discord_pressed)
@@ -211,6 +222,9 @@ func _ready() -> void:
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
+	normal_match_button.pressed.connect(_on_match_normal_pressed)
+	ranked_match_button.pressed.connect(_on_match_ranked_pressed)
+	invite_match_button.pressed.connect(_on_match_invite_pressed)
 	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 	_populate_custom_difficulty_option()
 
@@ -359,6 +373,24 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 	var active_btn: BaseButton = _nav_active_buttons.get(view)
 	if active_btn:
 		active_btn.self_modulate = NAV_ACTIVE_TINT
+
+# --- Boutique : mini-navbar Packs / Dos de cartes -------------------------
+# Deux onglets à l'intérieur de la même vue (InfoView.SHOP), plutôt que deux
+# InfoView séparées : contrairement à Packs (InfoView.PACK_SHOP, un écran
+# plein cadre à part entière avec sa propre animation d'ouverture de pack),
+# les dos de carte n'ont besoin que d'une simple grille — pas assez de
+# contenu pour justifier sa propre entrée de navigation.
+var _shop_tab: ShopTab = ShopTab.PACKS
+
+func _select_shop_tab(tab: ShopTab) -> void:
+	_shop_tab = tab
+	shop_packs_section.visible = tab == ShopTab.PACKS
+	shop_card_backs_section.visible = tab == ShopTab.CARD_BACKS
+	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
+	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
+	if tab == ShopTab.CARD_BACKS:
+		# Reconstruit à chaque affichage pour refléter la sélection courante.
+		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
 
 # Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
 # menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
@@ -511,6 +543,8 @@ func _show_info_view(view: InfoView) -> void:
 		_open_report_view()
 	elif view == InfoView.QUESTS:
 		QuestsPanel.open(self)
+	elif view == InfoView.SHOP:
+		_select_shop_tab(_shop_tab)
 	elif view == InfoView.PACK_SHOP:
 		if pack_shop.has_method("refresh"):
 			pack_shop.refresh()
@@ -607,10 +641,20 @@ func _on_arena_mode_selected() -> void:
 func _show_deck_select() -> void:
 	_play_selected_deck_index = -1
 	launch_button.disabled = true
+	normal_match_button.disabled = true
+	ranked_match_button.disabled = true
+	invite_match_button.disabled = true
 	_refresh_play_deck_list()
 	# "Partie personnalisée" (choix ponctuel de la difficulté IA) n'a de sens
 	# qu'en solo — en multi l'adversaire est un vrai joueur (voir CustomMatchContext).
-	custom_difficulty_row.visible = _play_mode == PlayMode.SOLO
+	# Le multi, lui, remplace le bouton générique "Lancer" par les cartes de
+	# type de partie (Normal/Classé/Ami, voir _on_match_*_pressed) : chacune
+	# lance directement la recherche avec le deck sélectionné ci-dessous, sans
+	# écran/popup intermédiaire à choisir plus tard.
+	var is_solo := _play_mode == PlayMode.SOLO
+	custom_difficulty_row.visible = is_solo
+	launch_button.visible = is_solo
+	match_type_row.visible = not is_solo
 	_show_info_view(InfoView.DECK_SELECT)
 
 func _populate_custom_difficulty_option() -> void:
@@ -743,28 +787,47 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
+	normal_match_button.disabled = false
+	ranked_match_button.disabled = false
+	invite_match_button.disabled = false
 	_refresh_play_deck_list()
 
+# Solo uniquement : le multi lance directement depuis les cartes de type de
+# partie (voir _on_match_*_pressed), pas de bouton générique "Lancer".
 func _on_launch_pressed() -> void:
+	if _play_mode != PlayMode.SOLO or _play_selected_deck_index < 0:
+		return
+	DeckManager.set_active_deck(_play_selected_deck_index)
+	TutorialContext.active = false
+	# "Partie personnalisée" : surcharge ponctuelle de la difficulté IA
+	# (voir CustomMatchContext), sans toucher au réglage global persistant.
+	var chosen_index: int = custom_difficulty_option.selected
+	if chosen_index >= 0 and chosen_index < SettingsManager.AI_DIFFICULTIES.size():
+		CustomMatchContext.ai_difficulty_override = SettingsManager.AI_DIFFICULTIES[chosen_index]
+	SceneTransition.change_scene(BATTLE_SCENE)
+
+# Multi uniquement : chaque carte de type de partie lance directement la
+# recherche avec le deck sélectionné au-dessus — pas de popup intermédiaire
+# (voir MatchmakingOverlay.start_normal/start_ranked/start_invite). Contrairement
+# au solo, ne quitte pas MainMenu : le bandeau de recherche (autoload
+# persistant) prend le relais pendant que le joueur continue de naviguer où il
+# veut (deck builder, boutique...) jusqu'à ce qu'un adversaire soit trouvé.
+func _start_multiplayer_search(start: Callable) -> void:
 	if _play_selected_deck_index < 0:
 		return
 	DeckManager.set_active_deck(_play_selected_deck_index)
-	if _play_mode == PlayMode.SOLO:
-		TutorialContext.active = false
-		# "Partie personnalisée" : surcharge ponctuelle de la difficulté IA
-		# (voir CustomMatchContext), sans toucher au réglage global persistant.
-		var chosen_index: int = custom_difficulty_option.selected
-		if chosen_index >= 0 and chosen_index < SettingsManager.AI_DIFFICULTIES.size():
-			CustomMatchContext.ai_difficulty_override = SettingsManager.AI_DIFFICULTIES[chosen_index]
-		SceneTransition.change_scene(BATTLE_SCENE)
-	else:
-		# Contrairement au solo, ne quitte pas MainMenu : le choix du mode
-		# (Normal/Classé/Ami) s'affiche en popup par-dessus, puis le bandeau de
-		# recherche (MatchmakingOverlay, autoload persistant) prend le relais
-		# pendant que le joueur continue de naviguer où il veut (deck builder,
-		# boutique...) jusqu'à ce qu'un adversaire soit trouvé.
-		AudioManager.play(AudioManager.OPEN_MENU)
-		MatchmakingOverlay.open_mode_picker()
+	AudioManager.play(AudioManager.OPEN_MENU)
+	start.call()
+	_show_info_view(InfoView.NEWS)
+
+func _on_match_normal_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_normal)
+
+func _on_match_ranked_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_ranked)
+
+func _on_match_invite_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_invite)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -789,10 +852,10 @@ func _retranslate() -> void:
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	shop_button.text   = SettingsManager.t("MENU_SHOP_TITLE")
 	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
-	shop_packs_title_label.text = SettingsManager.t("pack_shop.title")
+	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
+	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
 	open_pack_shop_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
-	shop_cosmetics_title_label.text = SettingsManager.t("COSMETICS_TITLE")
-	shop_cosmetics_placeholder_label.text = SettingsManager.t("MENU_SHOP_PLACEHOLDER")
+	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
@@ -822,6 +885,10 @@ func _retranslate() -> void:
 	play_back_button.text = SettingsManager.t("ui.back")
 	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")
 	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
+	match_type_label.text = SettingsManager.t("MENU_MATCH_TYPE_LABEL")
+	normal_match_button.text = SettingsManager.t("NET_MODE_NORMAL")
+	ranked_match_button.text = SettingsManager.t("NET_STEAM_RANKED")
+	invite_match_button.text = SettingsManager.t("NET_MODE_FRIEND")
 	custom_difficulty_label.text = SettingsManager.t("MENU_CUSTOM_DIFFICULTY")
 	_populate_custom_difficulty_option()
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")

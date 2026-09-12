@@ -114,6 +114,10 @@ const ACCOUNT_XP_LOSS := 50
 # jamais depuis cette liste rétrospective.
 var recent_opponents: Array[String] = []
 const RECENT_OPPONENTS_MAX := 10
+# Index du dos de carte cosmétique choisi (voir CardBackShop.CARD_BACKS,
+# vendu en argent réel — aucun rapport avec l'ancien système par niveau de
+# compte, retiré du jeu).
+var selected_card_back: int = 0
 
 var resolution: Vector2i = DEFAULT_RESOLUTION
 var fullscreen: bool = false
@@ -224,6 +228,12 @@ func record_recent_opponent(opponent_name: String) -> void:
 	recent_opponents.push_front(opponent_name)
 	if recent_opponents.size() > RECENT_OPPONENTS_MAX:
 		recent_opponents.resize(RECENT_OPPONENTS_MAX)
+	_save()
+
+func set_selected_card_back(index: int) -> void:
+	if selected_card_back == index:
+		return
+	selected_card_back = index
 	_save()
 
 # Met à jour la série "sans passer sous 20 PV" (qualifies = ce match la
@@ -478,6 +488,7 @@ func _save() -> void:
 	cfg.set_value("stats", "match_history", match_history)
 	cfg.set_value("stats", "account_xp", account_xp)
 	cfg.set_value("stats", "recent_opponents", recent_opponents)
+	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
@@ -522,6 +533,7 @@ func _load() -> void:
 		for name in saved_recent:
 			if name is String:
 				recent_opponents.append(name)
+	selected_card_back = cfg.get_value("stats", "selected_card_back", 0) as int
 	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
