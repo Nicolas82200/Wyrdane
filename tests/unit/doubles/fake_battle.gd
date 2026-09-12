@@ -58,6 +58,19 @@ const CARD_BACK = preload("res://assets/card_back/card-back.png")
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
 
+# ─── Compteurs de succès Steam (voir AchievementManager/Battle.gd) ────────────
+var player_resource_cards_played: int = 0
+var player_min_hp_this_match: int = 30
+var player_was_low_hp_this_match: bool = false
+var player_kills_this_turn: int = 0
+var player_infection_damage_dealt: int = 0
+var player_used_back_row_this_match: bool = false
+var player_commandement_triggers_this_match: int = 0
+var player_black_blood_triggers_this_match: int = 0
+var player_sacrifices_this_match: int = 0
+var deck_has_legendary: bool = false
+var is_ranked_match: bool = false
+
 func track_card_played_for_quests(card_data: CardData) -> void:
 	if card_data.race == Race.Type.NONE:
 		return

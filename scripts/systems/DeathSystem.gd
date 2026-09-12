@@ -31,8 +31,11 @@ func process_deaths(silent: Array = []) -> void:
 	dead_all.append_array(dead_player)
 	dead_all.append_array(dead_enemy)
 	# Succès Steam "Exécuteur" (voir AchievementManager) : ne compte que les
-	# morts ennemies survenant pendant le tour du joueur local.
-	if not dead_enemy.is_empty() and not battle.enemy_turn_active:
+	# morts ennemies survenant pendant le tour du joueur local. DeathSystem est
+	# aussi réutilisé tel quel par le mode Arena (SimulatedBattle, voir son
+	# en-tête), qui n'a pas cette notion de tour/compteur — "in" écarte ce cas
+	# sans y introduire de suivi de succès (hors scope, mode encore en prototype).
+	if "player_kills_this_turn" in battle and not dead_enemy.is_empty() and not battle.enemy_turn_active:
 		battle.player_kills_this_turn += dead_enemy.size()
 		AchievementManager.on_enemy_kills_this_turn(battle.player_kills_this_turn)
 	if dead_all.is_empty():
