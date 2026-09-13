@@ -641,9 +641,13 @@ func _resource_count() -> int:
 func _update_count_label() -> void:
 	var playable := _playable_count()
 	var resources := _resource_count()
+	var suggested := DeckManager.suggested_resource_count(current_deck)
+	var resource_line := SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS]
+	if resources < suggested:
+		resource_line += " " + SettingsManager.t("deck.resource_suggestion_format") % suggested
 	card_count_label.text = "%s\n%s" % [
 		SettingsManager.t("deck.count_format") % [playable, DeckManager.MIN_PLAYABLE_CARDS],
-		SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS],
+		resource_line,
 	]
 	var ok: bool = playable >= DeckManager.MIN_PLAYABLE_CARDS and resources >= DeckManager.MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)

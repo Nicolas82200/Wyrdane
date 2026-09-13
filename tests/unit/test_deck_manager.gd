@@ -66,3 +66,47 @@ func test_resource_cards_ignore_zero_owned_quantity() -> void:
 	card.card_type = "Resource"
 	CollectionManager.owned_quantities[card.resource_path] = 0
 	assert_true(deck_manager.can_add_card(deck, card), "les cartes-ressource sont jouables même sans en posséder aucune")
+
+# ─── suggested_resource_ratio / suggested_resource_count ───────────────────
+# Formule README « Système de Ressources par Race » :
+#   ratio = clamp(15% + (coût_moyen - 1) × 6%, min 15%, max 45%)
+#   suggestion = round(taille_deck × ratio), jamais sous MIN_RESOURCE_CARDS
+#
+# get_cards() recharge chaque carte depuis son resource_path (voir DeckData.gd)
+# : il faut donc de vraies ressources .tres existantes, pas des CardData
+# construits à la volée avec un chemin fictif (elles seraient filtrées, load()
+# renvoyant null).
+
+const COST_4_CARD := "res://resources/cards/undead/bloated-giant.tres"  # cost 4
+const COST_8_CARD := "res://resources/cards/undead/grand-necrotic-ritual.tres"  # cost 8
+const COST_5_CARD := "res://resources/cards/undead/cadaverous-symbiosis.tres"  # cost 5, vérifié ci-dessous
+
+func test_empty_deck_uses_floor_ratio() -> void:
+	assert_almost_eq(deck_manager.suggested_resource_ratio(deck), 0.15, 0.001, "sans carte jouable, coût moyen par défaut = 1 → ratio plancher 15%")
+
+func test_ratio_increases_with_average_cost() -> void:
+	var c := load(COST_4_CARD) as CardData
+	assert_eq(c.cost, 4, "carte de fixture attendue à coût 4")
+	deck.add_card(c)
+	deck.add_card(c)
+	# coût moyen 4 → 15% + (4-1)*6% = 33%
+	assert_almost_eq(deck_manager.suggested_resource_ratio(deck), 0.33, 0.001)
+
+func test_ratio_is_clamped_to_45_percent() -> void:
+	var c := load(COST_8_CARD) as CardData
+	assert_eq(c.cost, 8, "carte de fixture attendue à coût 8")
+	deck.add_card(c)
+	# coût moyen 8 → 15% + 7*6% = 57%, clampé à 45%
+	assert_almost_eq(deck_manager.suggested_resource_ratio(deck), 0.45, 0.001)
+
+func test_suggested_count_never_below_minimum() -> void:
+	assert_eq(deck_manager.suggested_resource_count(deck), DeckManager.MIN_RESOURCE_CARDS, "deck vide : suggestion plancher = MIN_RESOURCE_CARDS")
+
+func test_suggested_count_scales_with_deck_size_and_cost() -> void:
+	var c := load(COST_5_CARD) as CardData
+	assert_eq(c.cost, 5, "carte de fixture attendue à coût 5")
+	for i in range(40):
+		deck.add_card(c)
+	# taille prise en compte = max(taille réelle, MIN_TOTAL_CARDS=50) = 50
+	# coût moyen 5 → ratio = 15% + 4*6% = 39% → round(50*0.39) = 19.5 -> 20 (round-half-away-from-zero)
+	assert_eq(deck_manager.suggested_resource_count(deck), 20)

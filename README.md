@@ -922,14 +922,14 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
-- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+- Le deckbuilder suggère un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
 ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
+Implémenté dans `DeckManager.suggested_resource_ratio`/`suggested_resource_count` (coût moyen calculé sur les cartes jouables du deck, taille de deck prise en compte = `max(taille réelle, MIN_TOTAL_CARDS)` pour rester pertinent avant que le deck n'atteigne 50 cartes) ; affiché dans `DeckBuilder._update_count_label` sous forme d'indication `(suggestion : N selon le coût moyen du deck)` tant que le nombre de ressources actuel est sous la suggestion — n'apparaît plus une fois la suggestion atteinte ou dépassée, et ne bloque jamais la sauvegarde (c'est une indication, pas un avertissement comme `race_warnings`).
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -961,7 +961,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 
 ### 📋 Points encore ouverts
 
-1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
+1. **Résolu.** Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus, branchée à l'UI — voir détail plus haut).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
 4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.
