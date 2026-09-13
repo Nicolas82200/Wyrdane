@@ -31,6 +31,8 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Race.gd`). Aucun fichier `KeywordElf.gd`/`KeywordDwarf.gd`, aucun dossier `resources/cards/elf|dwarf/`, aucune entrée dans `CARDS.md`. Chantier de design complet à faire avant tout code (mots-clés propres à définir dans `README.md` d'abord, comme convenu pour toute nouvelle race/mot-clé).
 
+**Premier jet posé.** Un brouillon de mots-clés/thème (« 🧝 Elfe & 🪓 Nain — proposition de design », dans `README.md`, juste après la section Abomination) propose une identité mécanique pour chaque race (Elfe : embuscade/ruse/repositionnement ; Nain : fortification/forge/réduction de dégâts cumulable), explicitement marqué non validé — aucun code, aucun `Keyword*.gd`, aucune carte tant que la proposition n'est pas retenue/ajustée par une décision produit.
+
 ## P6 — Ordre de Tenir (Humain, H53) : effet non implémenté
 
 **Résolu.** Corrigé dans le commit `8e75cc8` (« fix: make non-functional cards work ») avec Fortification (déplacement/transformation), l'appariement de trigger de War Priest et l'`effect_id` de dégâts explicite. Le rituel applique désormais bien la protection contre le renvoi en main / déplacement par effet ennemi pour les serviteurs alliés en rangée Avant.
