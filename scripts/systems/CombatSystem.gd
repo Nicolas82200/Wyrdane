@@ -27,13 +27,9 @@ func _combo_speed_scale() -> float:
 func init(_battle) -> void:
 	battle = _battle
 
-# `"play_sfx" in battle` : duck-typing, seul `SimulatedBattle` (combat Arena)
-# porte cette propriété — absente sur le vrai `Battle` (1v1), qui joue donc
-# toujours son son. `SimulatedBattle.play_sfx` reste faux par défaut (combat
-# bot-contre-bot headless, jamais montré) et n'est mis à true que pour le
-# combat réellement affiché au joueur (voir SimulatedBattle.enable_live_visuals)
-# — sans ce garde-fou, chaque combat simulé en parallèle (jusqu'à 3-4 à
-# 8 joueurs) ferait sonner ses propres coups en plus de celui qu'on regarde.
+# Duck-typing sur `play_sfx` : seul SimulatedBattle (combat Arena, souvent
+# simulé en parallèle pour plusieurs bots) porte cette propriété, à false
+# par défaut pour rester muet sauf combat réellement affiché au joueur.
 func _play_hit_sound() -> void:
 	if not ("play_sfx" in battle) or battle.play_sfx:
 		AudioManager.play(AudioManager.HIT)

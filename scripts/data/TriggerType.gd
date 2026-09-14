@@ -1,5 +1,8 @@
 extends RefCounted
 class_name TriggerType
+# Trous volontaires dans la numérotation (6, 13-15) : valeurs d'anciens
+# triggers retirés, jamais réutilisées pour ne rien désynchroniser côté
+# réseau/sauvegardes existantes qui pourraient encore y faire référence.
 enum Type {
 	ONPLAY        = 0,
 	DEATHRATTLE   = 1,

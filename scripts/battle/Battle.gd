@@ -600,6 +600,11 @@ func _on_targeting_cancelled() -> void:
 	pending_insert_index = -1
 	hand.set_hand(hand_cards)
 
+# Comme _on_targeting_cancelled, sans le refresh de main : utilisée par
+# CardSystem une fois la carte déjà consommée (jouée ou annulée par un
+# contre-sort, retirée en cimetière) — la main n'a alors pas besoin d'être
+# réaffichée avec la carte dedans, contrairement à une annulation par le
+# joueur où le pending_card doit visuellement redevenir jouable.
 func reset_targeting_state() -> void:
 	waiting_for_target   = false
 	pending_card         = null

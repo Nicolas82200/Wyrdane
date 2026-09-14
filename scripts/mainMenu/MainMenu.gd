@@ -229,6 +229,7 @@ func _ready() -> void:
 	invite_match_button.pressed.connect(_on_match_invite_pressed)
 	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 	_populate_custom_difficulty_option()
+	DeckManager.sync_from_backend()
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -667,9 +668,6 @@ func _populate_custom_difficulty_option() -> void:
 			custom_difficulty_option.selected = i
 	if custom_difficulty_option.selected < 0:
 		custom_difficulty_option.selected = 0
-	# Même besoin qu'en DECKS_MANAGE (voir _show_info_view) : re-sync à chaque
-	# ouverture de l'écran de choix du deck pour lancer une partie.
-	DeckManager.sync_from_backend()
 
 func _on_play_back_pressed() -> void:
 	_show_info_view(InfoView.MODE_SELECT)
