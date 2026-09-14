@@ -125,6 +125,7 @@ horizontal_scroll_mode = 0
 
 [node name="GridMargin" type="MarginContainer" parent="MainVBox/HBox/LeftPanel/LeftVBox/ScrollCards" unique_id=100000032]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 6
