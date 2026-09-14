@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
 [ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
+[ext_resource type="FontFile" uid="uid://blcle0h87knxw" path="res://assets/fonts/CrimsonText-SemiBoldItalic.ttf" id="12_italicfont"]
 [ext_resource type="Texture2D" path="res://assets/icons/fleshy-mass.svg" id="8_resicon_undead"]
 [ext_resource type="Texture2D" path="res://assets/icons/wax-seal.svg" id="9_resicon_human"]
 [ext_resource type="Texture2D" path="res://assets/icons/soul.svg" id="10_resicon_demon"]
@@ -194,8 +195,10 @@ offset_bottom = 328.5
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_fonts/normal_font = ExtResource("4_wcykg")
 theme_override_fonts/bold_font = ExtResource("7_boldfont")
+theme_override_fonts/italics_font = ExtResource("12_italicfont")
 theme_override_font_sizes/normal_font_size = 13
 theme_override_font_sizes/bold_font_size = 13
+theme_override_font_sizes/italics_font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
 bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
