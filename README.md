@@ -127,6 +127,45 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
+### 🧝 Elfe & 🪓 Nain — proposition de design (brouillon, NON validé)
+
+**⚠️ Ceci est un premier jet à discuter, pas une spec figée.** Contrairement aux quatre races ci-dessus (dont les mots-clés sont validés et implémentés), rien ici n'est codé et rien ne doit être codé avant validation explicite — conformément à la règle du projet (« Notes pour les agents » dans `CLAUDE.md`) qui interdit d'inventer un mot-clé sans qu'il soit d'abord acté dans ce document. Objectif de ce brouillon : donner à chaque race une identité mécanique nette, distincte des quatre races existantes (Mort-Vivant = attrition/poison, Humain = tempo/leadership, Démon = risque/paiement en PV, Abomination = croissance aléatoire/absorption), en cohérence avec le ton dark fantasy du jeu (pas de fantasy lumineuse classique).
+
+#### 🧝 Elfe — thème : ruse, embuscade, magie de dérobade (« le bois qui ne pardonne pas »)
+
+Des elfes crépusculaires retranchés dans une forêt qui se meurt, hostiles à quiconque n'est pas des leurs — pas des archers nobles et lumineux, mais des chasseurs qui frappent et disparaissent avant la riposte.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `EMBUSCADE` | Ne peut pas être ciblé par un effet ou attaqué au tour où il est posé (immunité d'un tour), perd cette protection dès qu'il attaque ou déclenche un effet. | Défense temporaire passive et auto-supprimée par l'action — différent de REMPART (protège les autres) ou de CHAIR DE SOUFRE (immunité permanente) |
+| `VOLÉE` | Inflige ses dégâts d'attaque à une cible secondaire choisie au hasard dans la même rangée adverse, à valeur réduite (ex: 50 %). | Créneau dégâts-de-zone passif à l'attaque, distinct de CORRUPTION (dégâts + marqueur) ou VENIN MORTEL (dégâts + mort) |
+| `RETRAIT` | Après avoir attaqué, peut se replacer immédiatement de la rangée Avant vers l'Arrière (une fois par tour). | Mécanique de positionnement dynamique — aucune race existante ne manipule sa propre ligne en cours de tour |
+| `PACTE SYLVESTRE X` | Nécessite X serviteurs Elfes alliés en jeu pour s'activer (effet bonus conditionnel au nombre d'alliés de race, pas à un coût en PV comme PACTE Démon). | Synergie de horde mono-race sans copier PACTE (coût HP) ni HORDE (générique, non racial) |
+| `GRÂCE` | Immunisé aux effets qui le renvoient en main, le déplacent contre son gré, ou le ciblent depuis la rangée Arrière adverse tant que sa propre rangée Avant est occupée. | Complète VOLÉE/RETRAIT par une résilience passive plutôt qu'un buff de stats |
+
+Ressource-race proposée : **Murmure** (carte-ressource « Murmure de la Canopée »), thème sylvestre cohérent avec Chair/Sceau/Âme/Anomalie.
+
+#### 🪓 Nain — thème : fortification, forge, endurance cumulative (« ce qui est forgé ne rouille pas »)
+
+Un peuple retranché sous la montagne, dont la survie dépend de l'armement et de la solidité de ses lignes plutôt que du nombre.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `FORGE X` | Arrivée : confère un bonus permanent de +X/+X à un allié adjacent au lieu de soi-même (le Nain forgeron « équipe » son voisin). | Distinct de GrantKeywordAdjacent (Abomination, transfert de mot-clé) — ici un transfert de stats sans sacrifice de la source |
+| `RUNE` | Cumulable ; chaque marqueur RUNE ajoute +1 à la Réduction de dégâts inhérente (`CardData.damage_reduction`) du serviteur, au lieu d'un bonus d'ATK. | Aucune race n'a encore de mécanique de cumul dédiée à la réduction de dégâts (seul un effet ponctuel `AuraDamageReduction` existe côté Humain, non cumulable par marqueurs) |
+| `DERNIER REMPART` | Tant qu'il est seul (aucun autre allié) sur sa rangée, gagne +2/+2. | Anti-swarm delibéré, contraste avec Abomination (croissance par accumulation de copies/mutations) |
+| `FORGE ANCESTRALE` (enchantement propre à la race) | Chaque Nain allié posé gagne une charge de RUNE automatiquement. | Moteur de mise à l'échelle passive équivalent conceptuel à Sanctuaire Nécrotique (Mort-Vivant) mais appliqué à RUNE plutôt qu'au coût |
+| `INÉBRANLABLE` | Ne peut pas être déplacé de rangée par un effet ennemi (mais peut l'être par un effet allié). | Complète GRÂCE (Elfe, plus large — cible/déplacement) par une protection plus étroite et thématiquement défensive |
+
+Ressource-race proposée : **Minerai** (carte-ressource « Minerai des Forges Profondes »).
+
+#### Points ouverts avant tout code
+
+1. Choix final des mots-clés (garder/retirer/renommer chacun) — décision produit.
+2. Rareté du bonus PACTE SYLVESTRE (seuil de X alliés) et calibrage RUNE/FORGE X — passage playtest nécessaire une fois un premier lot de cartes écrit.
+3. `EffectManager`/`KeywordElf.gd`/`KeywordDwarf.gd` : aucun de ces mots-clés n'a d'implémentation, ce tableau ne sert qu'à cadrer la conception de cartes.
+4. Comme pour Abomination, prévoir dès le départ les jetons/tokens (`is_token`) et une carte-ressource par race avant d'écrire la première carte jouable.
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -885,7 +924,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`)
+*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`) — les invitations d'amis (overlay Steam) sont déjà implémentées, voir « Multijoueur 1v1 »
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Animations shaders
@@ -922,14 +961,14 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
-- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+- Le deckbuilder suggère un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
 ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
+Implémenté dans `DeckManager.suggested_resource_ratio`/`suggested_resource_count` (coût moyen calculé sur les cartes jouables du deck, taille de deck prise en compte = `max(taille réelle, MIN_TOTAL_CARDS)` pour rester pertinent avant que le deck n'atteigne 50 cartes) ; affiché dans `DeckBuilder._update_count_label` sous forme d'indication `(suggestion : N selon le coût moyen du deck)` tant que le nombre de ressources actuel est sous la suggestion — n'apparaît plus une fois la suggestion atteinte ou dépassée, et ne bloque jamais la sauvegarde (c'est une indication, pas un avertissement comme `race_warnings`).
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -961,7 +1000,7 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 
 ### 📋 Points encore ouverts
 
-1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
+1. **Résolu.** Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus, branchée à l'UI — voir détail plus haut).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
 4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

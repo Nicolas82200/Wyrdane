@@ -153,15 +153,23 @@ func get_profile(on_profile: Callable) -> void:
 # voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
+# match_session_token : preuve d'appariement classé émise par le backend au
+# matchmaking (voir MatchmakingOverlay._on_ranked_matched, TODO.md P9) — vide
+# pour une Partie rapide/Contre un ami, dans quel cas le champ est simplement
+# omis du payload plutôt qu'envoyé vide.
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
-		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable()) -> void:
-	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
+		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
+		match_session_token: String = "") -> void:
+	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
-	}, on_complete)
+	}
+	if match_session_token != "":
+		payload["matchSessionToken"] = match_session_token
+	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
