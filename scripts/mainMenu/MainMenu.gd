@@ -13,7 +13,7 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum ShopTab { PACKS, CARD_BACKS }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, PACK_SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -95,16 +95,14 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
-@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/PackShop
-
 @onready var shop_view:            VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
-@onready var open_pack_shop_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/PacksSection/OpenPackShopButton
 @onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
 @onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
 @onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
-@onready var shop_packs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/PacksSection
-@onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CardBacksSection
-@onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopScroll/ShopBody/CardBacksSection/CardBacksHintLabel
+@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/PackShop
+@onready var shop_card_backs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll
+@onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
+@onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -183,7 +181,10 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
-	open_pack_shop_button.pressed.connect(func(): _show_info_view(InfoView.PACK_SHOP))
+	# Pas d'écran séparé pour les packs : l'onglet "Packs" affiche directement
+	# PackShop (déjà conçu pour être embarqué comme simple vue, voir son
+	# commentaire d'en-tête) plutôt que de mener à un panneau à part.
+	pack_shop.close_x_button.hide()
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
 	_select_shop_tab(ShopTab.PACKS)
@@ -194,8 +195,6 @@ func _ready() -> void:
 	profile_button.set_meta("no_click_sound", true)
 	profile_button.pressed.connect(_on_profile_button_pressed)
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
-	if pack_shop.has_signal("closed"):
-		pack_shop.closed.connect(func(): _show_info_view(InfoView.SHOP))
 
 	deck_comp_preview_card.set_non_interactive()
 	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
@@ -359,36 +358,30 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.REPORT: report_button,
 		InfoView.CREDITS: credits_button,
 		InfoView.SHOP: shop_button,
-		InfoView.PACK_SHOP: shop_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
-	# Deux entrées (SHOP/PACK_SHOP) peuvent pointer vers le même bouton
-	# (shop_button) : ne pas teinter/déteindre dans la boucle au fil de
-	# l'itération (l'ordre du dictionnaire écraserait la teinte selon la clé
-	# rencontrée en dernier) — tout repasser en blanc d'abord, puis teinter
-	# uniquement le bouton de la vue active.
-	for btn: BaseButton in _nav_active_buttons.values():
-		btn.self_modulate = Color.WHITE
-	var active_btn: BaseButton = _nav_active_buttons.get(view)
-	if active_btn:
-		active_btn.self_modulate = NAV_ACTIVE_TINT
+	for v in _nav_active_buttons:
+		var btn: BaseButton = _nav_active_buttons[v]
+		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
 
 # --- Boutique : mini-navbar Packs / Dos de cartes -------------------------
-# Deux onglets à l'intérieur de la même vue (InfoView.SHOP), plutôt que deux
-# InfoView séparées : contrairement à Packs (InfoView.PACK_SHOP, un écran
-# plein cadre à part entière avec sa propre animation d'ouverture de pack),
-# les dos de carte n'ont besoin que d'une simple grille — pas assez de
-# contenu pour justifier sa propre entrée de navigation.
+# Deux onglets à l'intérieur de la même vue (InfoView.SHOP) : Packs affiche
+# directement PackShop (déjà conçu pour être embarqué comme simple vue plutôt
+# que comme overlay plein écran, voir son commentaire d'en-tête) et Dos de
+# cartes une simple grille — aucun des deux n'a besoin de sa propre InfoView.
 var _shop_tab: ShopTab = ShopTab.PACKS
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
-	shop_packs_section.visible = tab == ShopTab.PACKS
-	shop_card_backs_section.visible = tab == ShopTab.CARD_BACKS
+	pack_shop.visible = tab == ShopTab.PACKS
+	shop_card_backs_scroll.visible = tab == ShopTab.CARD_BACKS
 	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
 	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
-	if tab == ShopTab.CARD_BACKS:
+	if tab == ShopTab.PACKS:
+		if pack_shop.has_method("refresh"):
+			pack_shop.refresh()
+	elif tab == ShopTab.CARD_BACKS:
 		# Reconstruit à chaque affichage pour refléter la sélection courante.
 		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
 
@@ -507,7 +500,7 @@ func _launch_backend_syncs() -> void:
 
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
-	var views: Array = [news_view, deck_composition_view, credits_view, shop_view, pack_shop,
+	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
 		mode_select_view, deck_select_view]
 	var active: Control = {
@@ -515,7 +508,6 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.DECK_COMPOSITION: deck_composition_view,
 		InfoView.CREDITS: credits_view,
 		InfoView.SHOP: shop_view,
-		InfoView.PACK_SHOP: pack_shop,
 		InfoView.PROFILE: profile_view,
 		InfoView.SETTINGS: settings_menu,
 		InfoView.DECKS_MANAGE: deck_list,
@@ -545,9 +537,6 @@ func _show_info_view(view: InfoView) -> void:
 		QuestsPanel.open(self)
 	elif view == InfoView.SHOP:
 		_select_shop_tab(_shop_tab)
-	elif view == InfoView.PACK_SHOP:
-		if pack_shop.has_method("refresh"):
-			pack_shop.refresh()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -854,7 +843,6 @@ func _retranslate() -> void:
 	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
 	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
 	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
-	open_pack_shop_button.text = SettingsManager.t("MENU_SHOP_OPEN_BUTTON")
 	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
