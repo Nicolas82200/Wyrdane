@@ -570,27 +570,12 @@ func _open_report_view() -> void:
 func _populate_report_categories() -> void:
 	var previous := report_category_select.selected
 	report_category_select.clear()
-	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
-	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
+	ReportDialog.populate_categories(report_category_select)
 	if previous >= 0 and previous < report_category_select.item_count:
 		report_category_select.selected = previous
 
 func _on_report_submit_pressed() -> void:
-	var description := report_text_edit.text.strip_edges()
-	if description.is_empty():
-		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
-		return
-	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
-	report_status_label.text = ""
-	report_submit_button.disabled = true
-	BackendClient.report_issue(type_id, description, 0, "", func(code: int, _parsed):
-		report_submit_button.disabled = false
-		if code == 200:
-			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
-			report_text_edit.text = ""
-		else:
-			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
-	)
+	ReportDialog.submit_inline(report_category_select, report_text_edit, report_status_label, report_submit_button)
 
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
