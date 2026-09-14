@@ -299,8 +299,9 @@ theme_override_constants/margin_bottom = 20
 
 [node name="ApplyButton" type="Button" parent="Panel/VBox/ApplyMargin" unique_id=300000075]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(200, 34)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 15
 text = "Appliquer"
 
