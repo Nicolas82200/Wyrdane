@@ -40,4 +40,4 @@ static func from_name(keyword_name: String) -> int:
 		"CONTRE_ATTAQUE": return Type.CONTRE_ATTAQUE
 		"COMMANDEMENT":   return Type.COMMANDEMENT
 		"FORTIFICATION":  return Type.FORTIFICATION
-		_:                return Type.DISCIPLINE
+		_:                return -1

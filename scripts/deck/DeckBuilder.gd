@@ -480,15 +480,22 @@ func _refresh_deck_list() -> void:
 	for path in current_deck.card_paths:
 		if path not in seen:
 			seen.append(path)
+	# Chaque carte chargée une seule fois (load() met déjà en cache la
+	# ressource, mais le comparateur d'un sort_custom est appelé O(n log n)
+	# fois) plutôt que dans le comparateur lui-même, rappelé pour chaque
+	# comparaison de la boucle de tri.
+	var loaded: Dictionary = {}
+	for path in seen:
+		loaded[path] = load(path) as CardData
 	seen.sort_custom(func(a: String, b: String) -> bool:
-		var ca := load(a) as CardData
-		var cb := load(b) as CardData
+		var ca: CardData = loaded[a]
+		var cb: CardData = loaded[b]
 		if ca.cost != cb.cost:
 			return ca.cost < cb.cost
 		return ca.display_name() < cb.display_name())
 
 	for path in seen:
-		var card := load(path) as CardData
+		var card: CardData = loaded[path]
 		if card == null:
 			continue
 		var total: int = counts[path]

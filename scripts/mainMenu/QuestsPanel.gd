@@ -184,9 +184,12 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 
 	menu.quests_list_vbox.add_child(row)
 
-static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+# Les trois types de quête (quotidienne/hebdo/unique) partagent la même
+# réaction de réclamation, seul l'appel réseau diffère (claim_call, déjà lié
+# à son quest_id par l'appelant) — voir _on_claim_weekly/unique/_pressed.
+static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) -> void:
 	button.disabled = true
-	BackendClient.claim_weekly_quest(quest_id, func(success: bool, data: Dictionary):
+	claim_call.call(func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -195,27 +198,12 @@ static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> 
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
 		menu._fetch_quests_badge()
 	)
+
+static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest.bind(quest_id))
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_unique_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, BackendClient.claim_unique_quest.bind(quest_id))
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, BackendClient.claim_quest.bind(quest_id))

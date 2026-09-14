@@ -229,6 +229,7 @@ func _ready() -> void:
 	invite_match_button.pressed.connect(_on_match_invite_pressed)
 	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
 	_populate_custom_difficulty_option()
+	DeckManager.sync_from_backend()
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
@@ -569,27 +570,12 @@ func _open_report_view() -> void:
 func _populate_report_categories() -> void:
 	var previous := report_category_select.selected
 	report_category_select.clear()
-	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
-	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
+	ReportDialog.populate_categories(report_category_select)
 	if previous >= 0 and previous < report_category_select.item_count:
 		report_category_select.selected = previous
 
 func _on_report_submit_pressed() -> void:
-	var description := report_text_edit.text.strip_edges()
-	if description.is_empty():
-		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
-		return
-	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
-	report_status_label.text = ""
-	report_submit_button.disabled = true
-	BackendClient.report_issue(type_id, description, 0, "", func(code: int, _parsed):
-		report_submit_button.disabled = false
-		if code == 200:
-			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
-			report_text_edit.text = ""
-		else:
-			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
-	)
+	ReportDialog.submit_inline(report_category_select, report_text_edit, report_status_label, report_submit_button)
 
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
@@ -667,9 +653,6 @@ func _populate_custom_difficulty_option() -> void:
 			custom_difficulty_option.selected = i
 	if custom_difficulty_option.selected < 0:
 		custom_difficulty_option.selected = 0
-	# Même besoin qu'en DECKS_MANAGE (voir _show_info_view) : re-sync à chaque
-	# ouverture de l'écran de choix du deck pour lancer une partie.
-	DeckManager.sync_from_backend()
 
 func _on_play_back_pressed() -> void:
 	_show_info_view(InfoView.MODE_SELECT)

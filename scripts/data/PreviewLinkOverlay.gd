@@ -46,7 +46,7 @@ func _draw() -> void:
 	# avec le style des flèches de ciblage.
 	var cp1 := from_pos + Vector2(0, delta.y * 0.3)
 	var cp2 := to_pos   - Vector2(0, delta.y * 0.3)
-	var points := _bezier_points(from_pos, cp1, cp2, to_pos, SEGMENTS)
+	var points := BezierCurve.cubic_points(from_pos, cp1, cp2, to_pos, SEGMENTS)
 
 	for blur_pass in BLUR_PASSES:
 		var color := Color(LINK_COLOR.r, LINK_COLOR.g, LINK_COLOR.b, blur_pass.y)
@@ -57,14 +57,3 @@ func _draw() -> void:
 	for i in range(points.size() - 1):
 		draw_line(points[i], points[i + 1], core_color, CORE_WIDTH, true)
 
-func _bezier_points(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, steps: int) -> Array[Vector2]:
-	var pts: Array[Vector2] = []
-	for i in range(steps + 1):
-		var t := float(i) / float(steps)
-		var u := 1.0 - t
-		var pt := u*u*u * p0 \
-				+ 3.0*u*u*t * p1 \
-				+ 3.0*u*t*t * p2 \
-				+ t*t*t     * p3
-		pts.append(pt)
-	return pts

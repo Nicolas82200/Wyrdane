@@ -8,6 +8,10 @@ extends Node
 # nous-mêmes en header Cookie sur chaque appel.
 #
 const API_URL = "https://api.wyrdane.com"
+# Sans timeout, un backend qui ne répond jamais laisse request_completed ne
+# jamais se déclencher : l'appelant (ex. QuestsPanel, GameOverScreen) reste
+# bloqué indéfiniment et le HTTPRequest orphelin n'est jamais libéré.
+const REQUEST_TIMEOUT_SECONDS := 15.0
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en
@@ -77,6 +81,7 @@ func _send_ticket_to_backend(ticket_hex: String) -> void:
 	var body := JSON.stringify({"ticket": ticket_hex})
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 	http.request_completed.connect(_on_login_response.bind(http))
 	var err := http.request(
 		API_URL + "/api/auth/steam",
@@ -112,6 +117,7 @@ func _extract_cookie(headers: PackedStringArray) -> String:
 func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_complete: Callable = Callable()) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 
 	# X-Requested-With : exigé par le backend (middleware/csrf.ts) sur toute
 	# route authentifiée par cookie, pour forcer un préflight CORS qu'un
