@@ -326,7 +326,12 @@ func redeem_referral_code(code: String, on_data: Callable) -> void:
 		if response_code == 200:
 			on_data.call(true, "")
 		else:
-			var error_code := String(parsed.get("error", "")) if parsed is Dictionary else ""
+			# str() plutôt que String() : le constructeur String() plante sur un
+			# type non-String (ex. un nombre JSON, toujours désérialisé en float
+			# par JSON.parse_string) — voir QuestsPanel._get_str pour le même
+			# correctif appliqué au même risque côté quêtes.
+			var raw_error = parsed.get("error", "") if parsed is Dictionary else ""
+			var error_code := "" if raw_error == null else str(raw_error)
 			on_data.call(false, error_code)
 	)
 

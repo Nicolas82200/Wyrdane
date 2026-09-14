@@ -98,15 +98,19 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 
 # Le backend peut renvoyer une clé présente avec une valeur JSON `null`
 # explicite (ex. champ optionnel non renseigné) plutôt que d'omettre la clé :
-# Dictionary.get() ne retombe alors PAS sur son défaut, et int(null)/String(null)
-# plante ("Invalid call. Nonexistent 'int'/'String' constructor.").
+# Dictionary.get() ne retombe alors PAS sur son défaut dans ce cas, et
+# int(null) plante ("Invalid call. Nonexistent 'int' constructor.").
 static func _get_int(quest: Dictionary, key: String, default: int) -> int:
 	var value = quest.get(key, default)
 	return default if value == null else int(value)
 
+# JSON.parse_string() désérialise TOUS les nombres JSON en float (jamais en
+# int) : le constructeur String(float) n'existe pas en GDScript et plante
+# ("Invalid call. Nonexistent 'String' constructor.") — contrairement à
+# str(), qui accepte n'importe quel type. Utiliser str() ici, jamais String().
 static func _get_str(quest: Dictionary, key: String, default: String) -> String:
 	var value = quest.get(key, default)
-	return default if value == null else String(value)
+	return default if value == null else str(value)
 
 static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var progress := _get_int(quest, "progress", 0)
@@ -168,7 +172,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
 		match kind:
 			"weekly":
-				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, _get_str(quest, "id", ""), action_button))
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, str(_get_int(quest, "id", 0)), action_button))
 			"unique":
 				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
 			_:
