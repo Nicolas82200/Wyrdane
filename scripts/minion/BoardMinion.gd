@@ -16,11 +16,12 @@ var is_selected := false
 @onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
-	Race.Type.UNDEAD: Color("342e1ae1"),
-	Race.Type.HUMAN:  Color("5a4a35e1"),
-	Race.Type.ELF:    Color("2f5d50e1"),
-	Race.Type.DWARF:  Color("5a3a22e1"),
-	Race.Type.DEMON:  Color("5a1f1fe1"),
+	Race.Type.UNDEAD:      Color("342e1ae1"),
+	Race.Type.HUMAN:       Color("5a4a35e1"),
+	Race.Type.ELF:         Color("2f5d50e1"),
+	Race.Type.DWARF:       Color("5a3a22e1"),
+	Race.Type.DEMON:       Color("5a1f1fe1"),
+	Race.Type.ABOMINATION: Color("1e3a12e1"),
 }
 
 var _keyword_tooltips: Array[Control] = []
