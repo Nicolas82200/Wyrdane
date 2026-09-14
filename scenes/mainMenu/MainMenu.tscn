@@ -803,7 +803,6 @@ theme_override_font_sizes/font_size = 26
 text = "Crédits"
 
 [node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow" unique_id=1141914078]
-visible = false
 custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 size_flags_vertical = 4
@@ -894,13 +893,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="ReportTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000075]
+[node name="ReportHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000200]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReportTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow" unique_id=300000075]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 26
 text = "Signalement"
+
+[node name="ReportBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow" unique_id=300000201]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="ReportSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000076]
 layout_mode = 2

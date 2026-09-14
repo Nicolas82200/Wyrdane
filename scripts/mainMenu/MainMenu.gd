@@ -138,7 +138,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var legal_label:     Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/LegalScroll/LegalLabel
 
 @onready var report_view:     VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ReportView
-@onready var report_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportTitleLabel
+@onready var report_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow/ReportTitleLabel
+@onready var report_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow/ReportBackButton
 @onready var report_category_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategoryLabel
 @onready var report_category_select: OptionButton = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategorySelect
 @onready var report_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportDescLabel
@@ -178,6 +179,7 @@ func _ready() -> void:
 	play_button.pressed.connect(_on_play)
 	credits_button.pressed.connect(_on_credits)
 	report_button.pressed.connect(_on_report_pressed)
+	report_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
@@ -230,16 +232,21 @@ func _ready() -> void:
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
+	# Bouton "Retour" unique dans l'en-tête de Crédits : revient à la vue
+	# principale des crédits si on est dans les mentions légales, sinon
+	# ramène directement sur les actualités (même logique que le Retour de
+	# SettingsMenu, voir plus bas).
 	close_legal.pressed.connect(func():
 		AudioManager.play(AudioManager.CLOSE_MENU)
-		credits_legal_sub.hide()
-		credits_main_sub.show()
-		credits_title_label.text = SettingsManager.t("MENU_CREDITS")
-		close_legal.hide()
+		if credits_legal_sub.visible:
+			credits_legal_sub.hide()
+			credits_main_sub.show()
+			credits_title_label.text = SettingsManager.t("MENU_CREDITS")
+		else:
+			_show_info_view(InfoView.NEWS)
 	)
 	credits_legal_sub.hide()
 	credits_main_sub.show()
-	close_legal.hide()
 	# Le bouton "Retour" interne à DeckList (voir DeckList._on_back) ne fait
 	# que se cacher lui-même : on ramène en plus la fenêtre actualités sur
 	# les actus, pour ne pas la laisser vide.
@@ -550,7 +557,6 @@ func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
 	credits_title_label.text = SettingsManager.t("MENU_CREDITS")
-	close_legal.hide()
 	_show_info_view(InfoView.CREDITS)
 
 func _on_report_pressed() -> void:
@@ -589,7 +595,6 @@ func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
 	credits_title_label.text = SettingsManager.t("MENU_LEGAL")
-	close_legal.show()
 	AudioManager.play(AudioManager.OPEN_MENU)
 
 func _on_decks_button_pressed() -> void:
@@ -863,6 +868,7 @@ func _retranslate() -> void:
 	credits_title_label.text = SettingsManager.t("MENU_LEGAL") if credits_legal_sub.visible else SettingsManager.t("MENU_CREDITS")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	report_title_label.text = SettingsManager.t("REPORT_TITLE")
+	report_back_button.text = SettingsManager.t("ui.back")
 	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")
 	_populate_report_categories()
 	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
