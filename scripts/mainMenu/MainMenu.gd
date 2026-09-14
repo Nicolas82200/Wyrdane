@@ -129,11 +129,12 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeLabel
 
 @onready var credits_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView
+@onready var credits_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow/CreditsTitleLabel
 @onready var credits_main_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub
 @onready var credits_label:   Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub/CreditsLabel
 @onready var legal_button:    Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub/LegalButton
 @onready var credits_legal_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub
-@onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/CloseLegalButton
+@onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow/CloseLegalButton
 @onready var legal_label:     Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/LegalScroll/LegalLabel
 
 @onready var report_view:     VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ReportView
@@ -233,9 +234,12 @@ func _ready() -> void:
 		AudioManager.play(AudioManager.CLOSE_MENU)
 		credits_legal_sub.hide()
 		credits_main_sub.show()
+		credits_title_label.text = SettingsManager.t("MENU_CREDITS")
+		close_legal.hide()
 	)
 	credits_legal_sub.hide()
 	credits_main_sub.show()
+	close_legal.hide()
 	# Le bouton "Retour" interne à DeckList (voir DeckList._on_back) ne fait
 	# que se cacher lui-même : on ramène en plus la fenêtre actualités sur
 	# les actus, pour ne pas la laisser vide.
@@ -244,9 +248,8 @@ func _ready() -> void:
 	if not settings_menu:
 		push_error("SettingsMenu introuvable !")
 	else:
-		# Même logique : les boutons Fermer/croix de SettingsMenu (voir
-		# SettingsMenu.close) ne font que se cacher eux-mêmes.
-		settings_menu.close_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+		# Même logique : le bouton Retour de SettingsMenu (voir
+		# SettingsMenu.close) ne fait que se cacher lui-même.
 		settings_menu.close_x_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
@@ -546,6 +549,8 @@ func _on_profile_button_pressed() -> void:
 func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
+	credits_title_label.text = SettingsManager.t("MENU_CREDITS")
+	close_legal.hide()
 	_show_info_view(InfoView.CREDITS)
 
 func _on_report_pressed() -> void:
@@ -583,6 +588,8 @@ func _on_report_submit_pressed() -> void:
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
+	credits_title_label.text = SettingsManager.t("MENU_LEGAL")
+	close_legal.show()
 	AudioManager.play(AudioManager.OPEN_MENU)
 
 func _on_decks_button_pressed() -> void:
@@ -853,6 +860,7 @@ func _retranslate() -> void:
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
 	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
 	close_legal.text    = SettingsManager.t("ui.back")
+	credits_title_label.text = SettingsManager.t("MENU_LEGAL") if credits_legal_sub.visible else SettingsManager.t("MENU_CREDITS")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	report_title_label.text = SettingsManager.t("REPORT_TITLE")
 	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")

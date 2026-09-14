@@ -93,14 +93,13 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 32
 text = "Paramètres"
-horizontal_alignment = 1
 
 [node name="CloseXButton" type="Button" parent="Panel/VBox/TitleMargin/TitleRow" unique_id=100000021]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 size_flags_vertical = 4
-text = "✕"
+text = "← Retour"
 
 [node name="Sep1" type="HSeparator" parent="Panel/VBox" unique_id=100000006]
 layout_mode = 2
@@ -224,8 +223,9 @@ text = "Catégorie :"
 
 [node name="ReportCategorySelect" type="OptionButton" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000092]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(240, 36)
 layout_mode = 2
+size_flags_horizontal = 0
 
 [node name="ReportDescLabel" type="Label" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000093]
 unique_name_in_owner = true
@@ -260,9 +260,8 @@ text = "← Retour"
 
 [node name="ReportSubmitButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel/ReportButtonsRow" unique_id=300000098]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Envoyer"
 
 [node name="ReportButton" type="Button" parent="Panel/VBox" unique_id=300000073]
@@ -285,12 +284,6 @@ theme_override_constants/margin_bottom = 24
 [node name="CloseVBox" type="VBoxContainer" parent="Panel/VBox/CloseMargin" unique_id=100000018]
 layout_mode = 2
 theme_override_constants/separation = 10
-
-[node name="CloseButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000014]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-text = "Fermer"
 
 [node name="ConcedeButton" type="Button" parent="Panel/VBox/CloseMargin/CloseVBox" unique_id=100000019]
 unique_name_in_owner = true

@@ -178,6 +178,7 @@ Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck bui
 - Toujours privilégier la lisibilité des informations importantes.
 - Lorsqu'une décision est demandée au joueur, celui-ci doit conserver l'accès aux informations nécessaires pour prendre cette décision.
 - Éviter les fenêtres qui masquent complètement le plateau ou la main lorsque ces éléments sont utiles à la décision.
+- **Structure d'en-tête d'un panneau/popup** : titre du menu/de la vue actuellement sélectionné en haut à gauche, bouton "Retour" (texte, jamais une simple croix "✕") en haut à droite quand le panneau a besoin d'un moyen de se fermer/revenir en arrière. Pas de bouton "Fermer" dupliqué en bas — le Retour en haut à droite suffit (voir `SettingsMenu.tscn`/`SettingsMenu.gd`, `MainMenu.tscn` en-tête Crédits/Mentions légales). Ne pas faire déborder un bouton ou un champ à choix multiple (OptionButton, dropdown) sur toute la largeur de sa ligne par réflexe (`size_flags_horizontal`) : lui donner une largeur fixe raisonnable (`custom_minimum_size`) sauf si l'étirement sert réellement la lisibilité.
 
 ### Zone de ressource (désactivée)
 
