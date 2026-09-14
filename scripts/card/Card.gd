@@ -648,8 +648,6 @@ func _restore_in_hand() -> void:
 	if hand_ref and hand_ref.has_method("_update_hand_layout"):
 		hand_ref._update_hand_layout()
 
-# Les deux faisaient la même chose avec une navigation fragile — supprimés
-
 # ─── Utilitaires ──────────────────────────────────────────────────────────────
 
 # Décalage de l'ombre portée sous une carte/aperçu en cours de glisser-déposer

@@ -83,7 +83,6 @@ func remote_display_name() -> String:
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
 func _setup_transport(backend: TransportFactory.Backend) -> void:
-	print("[NetworkManager] _setup_transport  ancien_transport=%s" % [transport])
 	if transport != null:
 		transport.close()
 		transport.queue_free()
@@ -91,7 +90,6 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 	add_child(transport)
 	_reconnecting = false
 	transport.connected.connect(func() -> void:
-		print("[NetworkManager] transport.connected reçu")
 		if _reconnecting:
 			_reconnecting = false
 			connection_restored.emit()
