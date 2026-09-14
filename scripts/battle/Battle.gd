@@ -95,6 +95,11 @@ var net_local_first: bool = true
 # si l'un des deux camps n'était pas authentifié au moment du handshake.
 var net_opponent_backend_id: int = 0
 var net_client_match_id: String = ""
+# Preuve d'appariement classé émise par le backend au matchmaking (voir
+# MatchmakingOverlay._on_ranked_matched, TODO.md P9 côté wyrdane-backend) —
+# vide pour une Partie rapide/Contre un ami (pas d'appariement backend, donc
+# pas de jeton à fournir). Transmis tel quel au rapport de fin de match.
+var net_match_session_token: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -823,7 +828,7 @@ func _show_game_over(result: String) -> void:
 		})
 		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races)
+			cards_played_by_race, deck_races, net_match_session_token)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:

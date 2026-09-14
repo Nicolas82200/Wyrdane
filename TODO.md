@@ -20,7 +20,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 **Page Steamworks validée par Valve.** `SteamService.APP_ID` pointe sur le vrai AppID Wyrdane (5052390), accessible à tout compte Steam sans ajout manuel comme testeur. Reste :
 - Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
 - Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
-- Invitations d'amis
+- ~~Invitations d'amis~~ **Déjà implémenté** — vérifié dans le code : `SteamTransport.invite_friends()` (overlay `activateGameOverlayInviteDialog`) câblé bout en bout via `MatchmakingOverlay.start_invite()` (héberge un lobby si besoin, puis ouvre l'overlay dès qu'il est prêt). Cette liste et la roadmap listaient ce point par erreur comme restant à faire.
 - Effort : moyen mais surtout administratif (hors code).
 
 ## P4 — Incohérence mineure de comptage de cartes
@@ -30,6 +30,8 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 ## P5 — Elfe / Nain : scaffolding minimal
 
 Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Race.gd`). Aucun fichier `KeywordElf.gd`/`KeywordDwarf.gd`, aucun dossier `resources/cards/elf|dwarf/`, aucune entrée dans `CARDS.md`. Chantier de design complet à faire avant tout code (mots-clés propres à définir dans `README.md` d'abord, comme convenu pour toute nouvelle race/mot-clé).
+
+**Premier jet posé.** Un brouillon de mots-clés/thème (« 🧝 Elfe & 🪓 Nain — proposition de design », dans `README.md`, juste après la section Abomination) propose une identité mécanique pour chaque race (Elfe : embuscade/ruse/repositionnement ; Nain : fortification/forge/réduction de dégâts cumulable), explicitement marqué non validé — aucun code, aucun `Keyword*.gd`, aucune carte tant que la proposition n'est pas retenue/ajustée par une décision produit.
 
 ## P6 — Ordre de Tenir (Humain, H53) : effet non implémenté
 
@@ -45,7 +47,11 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 ## P9 — Backend : aucune preuve serveur qu'un match a réellement eu lieu
 
-Audit de sécurité (2026-09-06) : `POST /api/rewards/solo-match` et `POST /api/ranked/matches/report` (`wyrdane-backend`) acceptent un résultat de match auto-déclaré par le client (`result`, `cardsPlayedByRace`, `deckRaces`) sans aucun lien vérifiable à une vraie session Steam P2P. Un script (ou deux comptes colludés côté ranked, via un double-report concordant) peut fabriquer des rapports fictifs pour farmer quêtes/MMR/or. Mitigation déjà en place (branche `0051-security-hardening` du backend) : rate-limiting par utilisateur sur ces deux routes + bornage des valeurs déclarées (races inconnues et compteurs absurdes rejetés) — réduit l'ampleur d'un abus mais ne le rend pas impossible. Fix complet nécessiterait de lier `clientMatchId` à un jeton de session signé, émis côté serveur au moment du matchmaking/handshake (voir `docs/backend-contracts/ranked-matchmaking-and-retention.md`), à durée de vie courte et à usage unique par paire de joueurs.
+Audit de sécurité (2026-09-06) : `POST /api/rewards/solo-match` et `POST /api/ranked/matches/report` (`wyrdane-backend`) acceptent un résultat de match auto-déclaré par le client (`result`, `cardsPlayedByRace`, `deckRaces`) sans aucun lien vérifiable à une vraie session Steam P2P. Un script (ou deux comptes colludés côté ranked, via un double-report concordant) peut fabriquer des rapports fictifs pour farmer quêtes/MMR/or. Mitigation déjà en place (branche `0051-security-hardening` du backend) : rate-limiting par utilisateur sur ces deux routes + bornage des valeurs déclarées (races inconnues et compteurs absurdes rejetés) — réduit l'ampleur d'un abus mais ne le rend pas impossible.
+
+**Volet classé résolu côté code, pas encore actif en prod.** Branche `0055-signed-match-session-token` (`wyrdane-backend`) : `matchmakingModel.pairTickets` émet désormais un jeton signé (`matchId` serveur + les deux `user_id`, TTL 30 min, `helper/matchSessionToken.ts`) au moment même de l'appariement classé, renvoyé aux deux clients via le poll de file existant. Côté `card-game` : `MatchmakingOverlay` récupère ce `match_id`/`match_session_token`, l'utilise comme `client_match_id` faisant foi (au lieu de celui dérivé localement par `NetHandshake`) et le fait transiter jusqu'à `BackendClient.report_ranked_match`. `rankedController.reportMatch` vérifie le jeton quand il est présent, mais **ne rejette pas encore** un rapport qui en est dépourvu (`ENFORCE_MATCH_SESSION_TOKEN=false` par défaut, soft mode — seulement journalisé) : la version actuellement déployée en prod n'envoie pas encore ce jeton, un rejet immédiat casserait le classé en production. À faire pour activer réellement la protection : déployer les deux branches (backend + ce commit client), confirmer que les rapports en prod portent bien le jeton, puis ne passer `ENFORCE_MATCH_SESSION_TOKEN=true` qu'à ce moment-là.
+
+Volet solo (`POST /api/rewards/solo-match`) non couvert par ce mécanisme et volontairement laissé de côté : pas d'appariement backend à faire foi contre l'IA (pas d'adversaire réseau), seul le bornage des valeurs déclarées s'applique.
 
 ## Non-problèmes vérifiés pendant cette revue
 
