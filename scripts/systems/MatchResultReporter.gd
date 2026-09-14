@@ -41,19 +41,19 @@ static func report(result: String, network_manager: NetworkManager, net_client_m
 static func _report_ranked(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary, deck_races: Array, game_over_screen: GameOverScreen,
 		retries_left: int, match_session_token: String = "") -> void:
+	var on_complete := func(code: int, parsed):
+		if code == 200 and parsed is Dictionary:
+			if parsed.has("balance"):
+				CurrencyManager.apply_balance_update(int(parsed["balance"]))
+			var reward := int(parsed.get("reward", 0))
+			if reward > 0:
+				game_over_screen.show_reward(reward)
+		elif code == 202 and retries_left > 0 and is_instance_valid(game_over_screen):
+			# "pending" : le pair n'a pas encore rapporté son propre
+			# résultat pour ce match, on réessaie un peu plus tard.
+			await game_over_screen.get_tree().create_timer(RANKED_REPORT_RETRY_DELAY).timeout
+			if is_instance_valid(game_over_screen):
+				_report_ranked(client_match_id, opponent_id, winner_id, cards_played_by_race,
+						deck_races, game_over_screen, retries_left - 1, match_session_token)
 	BackendClient.report_ranked_match(client_match_id, opponent_id, winner_id, cards_played_by_race, deck_races,
-		func(code: int, parsed):
-			if code == 200 and parsed is Dictionary:
-				if parsed.has("balance"):
-					CurrencyManager.apply_balance_update(int(parsed["balance"]))
-				var reward := int(parsed.get("reward", 0))
-				if reward > 0:
-					game_over_screen.show_reward(reward)
-			elif code == 202 and retries_left > 0 and is_instance_valid(game_over_screen):
-				# "pending" : le pair n'a pas encore rapporté son propre
-				# résultat pour ce match, on réessaie un peu plus tard.
-				await game_over_screen.get_tree().create_timer(RANKED_REPORT_RETRY_DELAY).timeout
-				if is_instance_valid(game_over_screen):
-					_report_ranked(client_match_id, opponent_id, winner_id, cards_played_by_race,
-							deck_races, game_over_screen, retries_left - 1, match_session_token)
-		, match_session_token)
+			on_complete, match_session_token)
