@@ -189,7 +189,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 # à son quest_id par l'appelant) — voir _on_claim_weekly/unique/_pressed.
 static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) -> void:
 	button.disabled = true
-	claim_call.call(func(success: bool, data: Dictionary):
+	claim_call.bind(func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -197,7 +197,7 @@ static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) ->
 		CurrencyManager.sync_from_backend()
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
 		menu._fetch_quests_badge()
-	)
+	).call()
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
 	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest.bind(quest_id))
