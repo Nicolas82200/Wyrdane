@@ -339,7 +339,7 @@ Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.
 
 **Multiplicateur de série de victoires** : l'XP de victoire (pas celle de défaite) est multipliée selon `ranked_stats.win_streak` (série déjà incrémentée par ce match) : série ≥7 → ×1,75, ≥5 → ×1,5, ≥3 → ×1,25, sinon ×1 (arrondi au plus proche). Une défaite remet la série à 0, donc le multiplicateur retombe à ×1 dès le match suivant.
 
-XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 10×n` (110 XP au niveau 1, 120 au niveau 2, 130 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
+XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 5×n` (105 XP au niveau 1, 110 au niveau 2, 115 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
 | Niveau | Récompense |
 |---|---|
 | Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit + 200 or |
