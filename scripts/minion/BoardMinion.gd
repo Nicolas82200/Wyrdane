@@ -96,6 +96,11 @@ const STAT_COLOR_DEBUFF_TEMPORARY  := Color(1.0, 0.6, 0.15)
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
 var _last_card_scene_error_msec: int = -999999
+# Aperçus des jetons invoqués par ce serviteur (voir
+# CardData.get_summon_preview_cards), affichés à côté de _hover_preview.
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.7
 var _tooltip_layer: CanvasLayer = null
 
 # Référence Battle mise en cache
@@ -497,9 +502,64 @@ func _on_mouse_entered() -> void:
 		(size.y - _hover_preview.size.y * Card.HOVER_ZOOM_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
+	_show_summon_previews(minion.get_display_card())
 	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 	var tooltip_y := _hover_preview.global_position.y
 	await _show_keyword_tooltips(tooltip_x, tooltip_y)
+
+## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
+## par jeton fixe invoqué par ce serviteur, empilé sous _hover_preview (déjà à
+## droite du serviteur), relié par un PreviewLinkOverlay dédié.
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null or not is_instance_valid(_hover_preview):
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	var base_x: float = _hover_preview.global_position.x
+	var base_y: float = _hover_preview.global_position.y \
+		+ _hover_preview.size.y * Card.HOVER_ZOOM_SCALE + 20.0
+	var link_from: Vector2 = _hover_preview.global_position + Vector2(
+		_hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5,
+		_hover_preview.size.y * Card.HOVER_ZOOM_SCALE
+	)
+	for i in range(tokens.size()):
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null or not is_instance_valid(_battle):
+			continue
+		_battle.add_child(token_card)
+		token_card.set_non_interactive()
+		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		token_card.z_index = 1000
+		token_card.set_data(tokens[i])
+		token_card.scale = token_scale
+		var token_x: float = base_x + float(i) * (token_card.size.x * token_scale.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y)
+		token_card.visible = true
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 999
+		_battle.add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(
+			token_card.size.x * token_scale.x * 0.5, 0
+		)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.visible = false
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 func _on_mouse_exited() -> void:
 	_mouse_is_over = false
@@ -510,6 +570,7 @@ func _on_mouse_exited() -> void:
 
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	if _hover_preview:
 		# `visible = false` synchrone AVANT queue_free() : la destruction
 		# réelle du nœud est différée à la fin de la frame (voir SceneTree),

@@ -14,6 +14,15 @@ signal discard_card_clicked(index: int, card_data: CardData)
 # _on_card_hover) — au-dessus des cartes, en dessous de la preview elle-même.
 var _preview_link: PreviewLinkOverlay = null
 
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards), instanciés à la volée à côté de la
+# preview agrandie, chacun relié par son propre PreviewLinkOverlay.
+var _token_previews:      Array[Card]               = []
+var _token_preview_links: Array[PreviewLinkOverlay]  = []
+# Échelle des aperçus de jetons relative à celle de la preview principale
+# (plus petits : information secondaire, pas la carte qu'on s'apprête à jouer).
+const TOKEN_PREVIEW_SCALE_RATIO := 0.7
+
 # Doit rester au-dessus des boutons du plateau (cimetière, deck — z_index 0
 # par défaut) pour que la main ne soit jamais recouverte par eux.
 const CARD_Z_BASE := 20
@@ -472,6 +481,7 @@ func _on_card_hover(card: Card) -> void:
 		preview.size.y * preview.scale.y
 	)
 	_preview_link.show_link(link_from, link_to)
+	_show_summon_previews(card.data)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
@@ -486,6 +496,58 @@ func _on_card_hover(card: Card) -> void:
 func _hide_preview() -> void:
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
+
+## Instancie, à côté de la preview agrandie déjà positionnée, un aperçu
+## supplémentaire par jeton fixe invoqué par la carte survolée (une carte
+## comme Architecte du Pacte peut en avoir deux : effet de base + bonus de
+## Pacte). Repose sur le CardEffect.summon_card de chaque effet SummonMinion,
+## donc n'affiche rien pour SummonRandom (cible non fixe, pas de jeton précis
+## à montrer).
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null:
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	var base_x: float = preview.global_position.x + preview.size.x * preview.scale.x + 40.0
+	var base_y: float = preview.global_position.y + preview.size.y * preview.scale.y * 0.5
+	var link_from: Vector2 = preview.global_position + Vector2(
+		preview.size.x * preview.scale.x,
+		preview.size.y * preview.scale.y * 0.5
+	)
+	for i in range(tokens.size()):
+		var token_card: Card = CARD_SCENE.instantiate()
+		add_child(token_card)
+		token_card.set_non_interactive()
+		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		token_card.z_index = 150
+		token_card.set_data(tokens[i])
+		token_card.scale = token_scale
+		var token_x: float = base_x + float(i) * (token_card.size.x * token_scale.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y - token_card.size.y * token_scale.y * 0.5)
+		token_card.show()
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 99
+		add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(0, token_card.size.y * token_scale.y * 0.5)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 ## `card` : mouse_entered/mouse_exited entre deux cartes de la main adjacentes
 ## n'arrivent pas toujours dans un ordre garanti par Godot — un exited périmé
@@ -497,6 +559,7 @@ func _on_card_unhover(card: Card) -> void:
 	_hovering = false
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
 	_hide_keyword_tooltips()
 	_hovered_card = null
 	_update_hand_layout(true)

@@ -24,7 +24,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Bouclier de la Foi"
-description = "La première fois chaque tour qu'un Humain que vous contrôlez attaque, il gagne ÉGIDE."
+description = "La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE."
 flavour_text = "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner."
 texture = ExtResource("5_x4yxw")
 cost = 4

@@ -32,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Grand Rituel du Pacte"
-description = "Deuil : Ramène en main le dernier Démon que vous contrôlez mort depuis le cimetière.
+description = "Deuil : Ramène en main le dernier Démon allié mort depuis le cimetière.
 Pacte 3 : Le renvoie directement en jeu à la place."
 flavour_text = "Je ne les ai pas ressuscités. Je les rappelle, un par un, à chaque fois qu'il le faut."
 texture = ExtResource("3_texture")
