@@ -120,7 +120,7 @@ func spawn_for_spell(battle, card_data: CardData, caster_is_player: bool, target
 
 func _targets_enemy(card_data: CardData) -> bool:
 	for effect in card_data.effects:
-		if effect.target in ["EnemyHero", "EnemyMinion", "AllEnemies", "RandomEnemy"]:
+		if effect.target in ["EnemyHero", "EnemyMinion", "AllEnemies", "RandomEnemy", "EnemyHeroOrMinion"]:
 			return true
 	return false
 

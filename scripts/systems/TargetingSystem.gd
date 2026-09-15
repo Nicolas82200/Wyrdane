@@ -121,7 +121,7 @@ func on_enemy_hero_clicked() -> void:
 	# du Cimetière, ReturnToHand) : la carte était déjà payée/défaussée avant
 	# que l'effet ne plante en recevant un Hero là où il attend un Minion.
 	var target_str := _pending_card.effects[0].target if _pending_card and _pending_card.effects.size() > 0 else ""
-	if target_str not in ["EnemyHero", "EnemyAny"]:
+	if target_str not in ["EnemyHero", "EnemyHeroOrMinion", "EnemyAny"]:
 		return
 	var hero_panel: Control = battle.get_node("EnemyHeroPanel")
 	if hero_panel:
@@ -190,6 +190,9 @@ func _show_valid_targets(card_data: CardData) -> void:
 		"AnyMinion":
 			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
 			_highlight_side(battle.player_minions, HIGHLIGHT_ALLY_COLOR, card_data)
+		"EnemyHeroOrMinion":
+			_highlight_side(battle.enemy_minions, HIGHLIGHT_ENEMY_COLOR, card_data)
+			_highlight_hero(false)
 		"EnemyHero":
 			_highlight_hero(false)
 		"OwnerHero":
@@ -248,7 +251,7 @@ func _is_valid_target_minion(minion: Minion, card_data: CardData) -> bool:
 		return false
 	var effect: CardEffect = card_data.effects[0]
 	match effect.target:
-		"EnemyMinion", "EnemyAny":
+		"EnemyMinion", "EnemyHeroOrMinion", "EnemyAny":
 			if minion.owner_is_player:
 				return false
 		"AllyMinion":
@@ -277,7 +280,7 @@ func _matches_effect_conditions(minion: Minion, effect: CardEffect) -> bool:
 		return false
 	if effect.target_max_atk >= 0 and minion.attack > effect.target_max_atk:
 		return false
-	if effect.target_max_cost >= 0 and minion.card_data.cost > effect.target_max_cost:
+	if effect.target_max_cost >= 0 and (minion.card_data == null or minion.card_data.cost > effect.target_max_cost):
 		return false
 	if effect.requires_resurrected_target and not minion.was_resurrected:
 		return false

@@ -46,7 +46,18 @@ Seuls les enums `Race.Type.ELF` et `Race.Type.DWARF` existent (`scripts/data/Rac
 
 **Résolu.** Contrat (`docs/backend-contracts/weekly-quests-and-referral.md`), routes backend (`wyrdane-backend`, branche `0044-weekly-quests-and-referral` : `/api/quests/weekly`, `/api/packs/open-owned`, `/api/referral/*`) et squelette client (`QuestsPanel._populate_weekly`, `ReferralPanel.gd`, `CurrencyManager.free_packs`/`open_owned_pack`) tous en place. Bouton « Ouvrir un pack gratuit » câblé dans `PackShop.tscn`/`PackShop.gd` (visible seulement si `free_packs > 0`). Popup « entrer un code de parrainage » affiché une seule fois (`SettingsManager.referral_prompt_seen`) juste après la fin du tutoriel (`ReferralPanel.maybe_show_first_launch_prompt`, appelé depuis `MainMenu._launch_backend_syncs`), en plus du champ resté dans la vue Profil pour un usage tardif. Déployé en prod le 2026-09-12 (table de schéma synchronisée sur le VPS) — ces écrans fonctionnent désormais réellement en jeu.
 
-## P9 — Backend : aucune preuve serveur qu'un match a réellement eu lieu
+## P9 — Race Artefact : art manquant
+
+Ajout de la 5e race (Artefact, `resources/cards/artifact/`, 75 cartes dont 3 jetons, `Race.Type.NONE`).
+- **Aucun visuel** : les 75 `.tres` n'ont pas de `texture` (champ laissé vide/nul, déjà géré par `CardData`/`Card.gd`) faute d'art disponible pour cette race — à produire et assigner carte par carte quand l'art sera prêt (voir les autres races pour le pipeline `assets/card_art/<race>/`).
+
+## P10 — `translations/game.csv` désynchronisé de certaines descriptions déjà en jeu
+
+**Résolu pour l'Artefact.** Les 34 cartes reformulées vers le wording standardisé (« que vous contrôlez »/« que votre adversaire contrôle ») avaient bien leur `.tres` à jour mais leur ligne `translations/game.csv` gardait l'ancien texte comme clé (donc invisible en FR — clé absente = texte FR affiché tel quel — mais cassait la traduction EN, qui retombait sur le texte FR brut). Corrigé : les 34 lignes concernées mises à jour (clé FR + traduction EN), plus 2 lignes manquantes ajoutées (Cercle des Strates Anciennes, Pierre Volcanique n'avaient jamais eu de ligne CSV du tout). Suite de tests + `--import` revérifiés après coup (771/771).
+
+**Reste ouvert, hors de portée de cette passe** : le même défaut (CSV pas régénéré après un changement de wording) peut exister sur d'autres races touchées par `0439-wording-standardization` (Mort-Vivant/Humain/Démon/Abomination) — pas audité ici, seul l'Artefact a été vérifié. À comparer systématiquement `description`/`flavour_text` de `resources/cards/` face à `translations/game.csv` dans une passe dédiée si ça n'a pas déjà été fait ailleurs.
+
+## P11 — Backend : aucune preuve serveur qu'un match a réellement eu lieu
 
 Audit de sécurité (2026-09-06) : `POST /api/rewards/solo-match` et `POST /api/ranked/matches/report` (`wyrdane-backend`) acceptent un résultat de match auto-déclaré par le client (`result`, `cardsPlayedByRace`, `deckRaces`) sans aucun lien vérifiable à une vraie session Steam P2P. Un script (ou deux comptes colludés côté ranked, via un double-report concordant) peut fabriquer des rapports fictifs pour farmer quêtes/MMR/or. Mitigation déjà en place (branche `0051-security-hardening` du backend) : rate-limiting par utilisateur sur ces deux routes + bornage des valeurs déclarées (races inconnues et compteurs absurdes rejetés) — réduit l'ampleur d'un abus mais ne le rend pas impossible.
 

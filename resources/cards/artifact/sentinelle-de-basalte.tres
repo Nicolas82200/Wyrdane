@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="1_kw"]
+[ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+
+[sub_resource type="Resource" id="Resource_kw1"]
+script = ExtResource("1_kw")
+name_fr = "Rempart"
+
+[resource]
+script = ExtResource("3_carddata")
+card_name = "Sentinelle de Basalte"
+description = "REMPART"
+flavour_text = "Elle ne bouge plus depuis des siècles. Ça ne veut pas dire qu'elle a cédé."
+cost = 2
+race = 0
+attack = 1
+health = 4
+keywords = Array[ExtResource("1_kw")]([SubResource("Resource_kw1")])
+rarity = "Common"
+board_position = "Back"
+metadata/_custom_type_script = "uid://bru7ohxxvloht"

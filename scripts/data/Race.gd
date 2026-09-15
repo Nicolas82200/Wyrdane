@@ -24,7 +24,7 @@ static func get_race_name(race: int) -> String:
 ## Races dotées d'au moins une carte (utilisé pour ne proposer, dans l'UI,
 ## que des races effectivement jouables — Elfe/Nain n'ont encore aucune carte).
 static func get_implemented_races() -> Array[int]:
-	return [Type.HUMAN, Type.UNDEAD, Type.DEMON, Type.ABOMINATION]
+	return [Type.HUMAN, Type.UNDEAD, Type.DEMON, Type.ABOMINATION, Type.NONE]
 
 static func from_string(s: String) -> int:
 	match s:

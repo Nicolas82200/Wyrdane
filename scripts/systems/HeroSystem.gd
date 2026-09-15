@@ -108,6 +108,11 @@ func _track_player_hp_for_achievements(hero: Hero) -> void:
 	if hero.health > 0 and hero.health <= AchievementManager.COMEBACK_HP_THRESHOLD:
 		battle.player_was_low_hp_this_match = true
 
+# Au-dessous de ce ratio de HP max, le nombre de HP du héros s'affiche en
+# rouge (voir _apply_hp_label).
+const LOW_HP_RATIO := 0.3
+const _LOW_HP_COLOR := Color(0.92, 0.22, 0.22, 1.0)
+
 # Sous ce seuil de PV absolus, le texte du label passe en rouge (seul
 # indicateur de danger — pas d'icône, préférence visuelle explicite).
 const CRITICAL_HP_THRESHOLD := 10
@@ -117,16 +122,22 @@ func update_ui() -> void:
 	_apply_hp_label(battle.get_node("PlayerHeroPanel/HealthLabel"), battle.player_hero)
 	_apply_hp_label(battle.get_node("EnemyHeroPanel/HealthLabel"), battle.enemy_hero)
 
+func _hp_label_text(hero: Hero) -> String:
+	return str(maxi(hero.health, 0))
+
+func _is_hp_low(hero: Hero) -> bool:
+	var hp: int = maxi(hero.health, 0)
+	return hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0
+
 func _apply_hp_label(label: Label, hero: Hero) -> void:
 	label.text = _hp_label_text(hero)
 	var hp: int = maxi(hero.health, 0)
 	if hp > 0 and hp <= CRITICAL_HP_THRESHOLD:
 		label.add_theme_color_override("font_color", _CRITICAL_HP_COLOR)
+	elif _is_hp_low(hero):
+		label.add_theme_color_override("font_color", _LOW_HP_COLOR)
 	else:
 		label.remove_theme_color_override("font_color")
-
-func _hp_label_text(hero: Hero) -> String:
-	return str(maxi(hero.health, 0))
 
 # ─── Halo de tour ───────────────────────────────────────────────────────────
 # Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros
