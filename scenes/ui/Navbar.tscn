@@ -35,14 +35,6 @@ offset_bottom = 44.0
 grow_horizontal = 0
 theme_override_constants/separation = 16
 
-[node name="CurrencyIcon" type="TextureRect" parent="Bar/HBox"]
-custom_minimum_size = Vector2(30, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("4_goldicon")
-expand_mode = 1
-stretch_mode = 5
-
 [node name="CurrencyLabel" type="Label" parent="Bar/HBox"]
 layout_mode = 2
 size_flags_vertical = 4
@@ -52,6 +44,14 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 20
 text = "0"
 vertical_alignment = 1
+
+[node name="CurrencyIcon" type="TextureRect" parent="Bar/HBox"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_goldicon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ShopButton" type="Button" parent="Bar/HBox"]
 custom_minimum_size = Vector2(120, 32)

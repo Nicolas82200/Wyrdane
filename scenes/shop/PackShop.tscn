@@ -76,6 +76,13 @@ grow_horizontal = 2
 alignment = 1
 theme_override_constants/separation = 16
 
+[node name="BalanceLabel" type="Label" parent="ShakeLayer/InfoRow"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 18
+text = "0"
+
 [node name="BalanceIcon" type="TextureRect" parent="ShakeLayer/InfoRow"]
 custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
@@ -83,13 +90,6 @@ size_flags_vertical = 4
 texture = ExtResource("4_goldicon")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="BalanceLabel" type="Label" parent="ShakeLayer/InfoRow"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
-text = "0"
 
 [node name="ProgressLabel" type="Label" parent="ShakeLayer/InfoRow"]
 layout_mode = 2

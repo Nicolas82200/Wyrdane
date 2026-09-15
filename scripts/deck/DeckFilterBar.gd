@@ -1,6 +1,12 @@
 extends RefCounted
 class_name DeckFilterBar
 
+# Police sans-serif dédiée à cette barre (voir DeckBuilder.UI_FONT) : le thème
+# global (Cinzel-Bold, décoratif tout capitales) devient illisible à ces
+# petites tailles de filtre.
+const UI_FONT: Font = preload("res://assets/fonts/PTSans-Regular.ttf")
+const UI_FONT_BOLD: Font = preload("res://assets/fonts/PTSans-Bold.ttf")
+
 # Construction des barres de filtres/tri du deck builder (radios race/type/
 # rareté/coût, bouton bascule "cacher les cartes non débloquées", dropdown
 # mot-clé, tri) — extrait de DeckBuilder.gd. Les callables passées à
@@ -66,7 +72,8 @@ static func build_filter_bar(builder) -> void:
 	lock_btn.toggle_mode     = true
 	lock_btn.button_pressed  = builder._filter_hide_locked
 	lock_btn.custom_minimum_size = Vector2(0, 26)
-	lock_btn.add_theme_font_size_override("font_size", 12)
+	lock_btn.add_theme_font_override("font", UI_FONT)
+	lock_btn.add_theme_font_size_override("font_size", 13)
 	_style_filter_button(lock_btn, builder._filter_hide_locked)
 	lock_btn.toggled.connect(func(pressed: bool) -> void:
 		builder._filter_hide_locked = pressed
@@ -131,7 +138,8 @@ static func _all_keyword_entries() -> Array[Dictionary]:
 static func _make_keyword_dropdown(builder, values: Array[String], labels: Array[String]) -> OptionButton:
 	var opt := OptionButton.new()
 	opt.custom_minimum_size = Vector2(170, 26)
-	opt.add_theme_font_size_override("font_size", 12)
+	opt.add_theme_font_override("font", UI_FONT)
+	opt.add_theme_font_size_override("font_size", 13)
 	for i in range(labels.size()):
 		opt.add_item(labels[i])
 	var current_idx := values.find(builder._filter_keyword)
@@ -145,7 +153,8 @@ static func _make_filter_label(text: String) -> Label:
 	var lbl := Label.new()
 	lbl.text = text
 	lbl.add_theme_color_override("font_color", Color(0.7, 0.6, 0.4, 1))
-	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_font_override("font", UI_FONT_BOLD)
+	lbl.add_theme_font_size_override("font_size", 13)
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	return lbl
 
@@ -181,7 +190,8 @@ static func _add_filter_group(parent: Control, values: Array, on_select: Callabl
 		btn.toggle_mode        = true
 		btn.button_pressed     = (val == get_current.call())
 		btn.custom_minimum_size = Vector2(0, 26)
-		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_font_override("font", UI_FONT)
+		btn.add_theme_font_size_override("font_size", 13)
 		_style_filter_button(btn, btn.button_pressed)
 		buttons.append(btn)
 		group_box.add_child(btn)

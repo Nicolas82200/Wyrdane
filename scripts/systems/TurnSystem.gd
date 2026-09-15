@@ -44,6 +44,7 @@ func end_turn() -> void:
 		_ending_turn = false
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()

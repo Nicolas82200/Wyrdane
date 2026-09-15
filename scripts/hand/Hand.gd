@@ -335,10 +335,37 @@ func set_mulligan_mode(active: bool) -> void:
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
-			# Sans ce recalcul explicite, le halo vert "jouable" évalué avant
-			# l'entrée en mulligan reste affiché tel quel (update_playable_highlight
-			# ne se relance pas tout seul quand mulligan_mode change).
+			# Recalcule immédiatement le halo "jouable" : sans ça, une carte déjà
+			# jouable au moment où le mulligan démarre (ex. carte-ressource, coût
+			# 0) garde son halo vert affiché en boucle même une fois mulligan_mode
+			# passé à true, puisque ce n'est qu'une simple assignation de champ.
 			card.update_playable_highlight()
+
+# Variante de _update_hand_layout qui étale le déplacement/agrandissement de
+# chaque carte sur total_duration au total (delay croissant par carte) au
+# lieu de toutes les animer en parallèle sur LAYOUT_TWEEN_DURATION.
+func _update_hand_layout_staggered(total_duration: float) -> void:
+	_prune_hand_order()
+	var cards := _layout_cards()
+	if cards.is_empty():
+		return
+	var layout := _compute_layout(cards)
+	var hovered_index := cards.find(_hovered_card)
+	var count := cards.size()
+	var gap: float = total_duration / float(count)
+	var leg_duration: float = minf(gap * 1.3, 0.6)
+	for i in range(count):
+		var card = cards[i]
+		var norm := _card_norm(i, count)
+		var pos  := _card_position(i, layout, card, norm, hovered_index)
+		_base_positions[card] = pos
+		card.z_index = CARD_Z_BASE + i
+		var delay: float = i * gap
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_sync_tree_order(hovered_index)
 
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
@@ -632,14 +659,10 @@ func _prune_hand_order() -> void:
 	if _hovered_card != null and not is_instance_valid(_hovered_card):
 		_hovered_card = null
 
-# Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
-# main, puis place la carte survolée en dernier (donc au-dessus de toutes les
-# autres). L'ordre des enfants pilote aussi bien le rendu que la détection de
-# la souris sur les zones qui se chevauchent (contrairement au z_index seul,
-# qui ne suffit pas à garantir la priorité de survol) : sans ce passage, une
-# carte voisine non survolée peut rester "au-dessus" pour la souris malgré le
-# z_index, et capter le survol dans la zone de chevauchement, créant une
-# oscillation entre les deux cartes.
+# Réordonne les enfants du conteneur selon l'ordre logique de la main, carte
+# survolée en dernier (dessus). Pilote aussi bien le rendu que la détection
+# souris sur les zones qui se chevauchent : le z_index seul ne suffit pas,
+# sans ce passage le survol oscille entre cartes voisines.
 func _sync_tree_order(hovered_index: int) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]

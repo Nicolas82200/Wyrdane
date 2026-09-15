@@ -410,7 +410,7 @@ class FakeCostSystem:
 		pass
 	func expire_end_of_player_turn() -> void:
 		pass
-	func add_temp_discount(card_data: CardData, amount: int) -> void:
+	func add_temp_discount(card_data: CardData, amount: int, _is_player: bool = true) -> void:
 		if card_data == null or amount <= 0:
 			return
 		temp_discounts[card_data] = int(temp_discounts.get(card_data, 0)) + amount

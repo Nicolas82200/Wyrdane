@@ -173,6 +173,8 @@ func _apply(cmd: Dictionary) -> void:
 				battle.net_registry.set_imposed_ids([])
 			elif attacker != null:
 				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
+			else:
+				push_warning("NetworkOpponent : ATTACK_HERO avec un attacker introuvable")
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		NetCommand.ACTIVATE_FUSION:
