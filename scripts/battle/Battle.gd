@@ -565,11 +565,11 @@ func _normalized_row(row: String) -> String:
 
 # La logique d'insertion vit désormais dans BoardSystem._insert()
 
-func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
-	return board_system.get_allowed_rows_for_card(card_data)
+func get_allowed_rows_for_card(card_data: CardData, is_player: bool = true) -> Array[String]:
+	return board_system.get_allowed_rows_for_card(card_data, is_player)
 
-func can_play_card_on_row(card_data: CardData, row: String) -> bool:
-	return board_system.can_play_card_on_row(card_data, row)
+func can_play_card_on_row(card_data: CardData, row: String, is_player: bool = true) -> bool:
+	return board_system.can_play_card_on_row(card_data, row, is_player)
 
 func has_enemy_taunt(attacker: Minion) -> bool:
 	return board_system.has_enemy_taunt(attacker)

@@ -12,18 +12,10 @@ func init(_battle) -> void:
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
 	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
-func _has_row_overflow_ally(is_player: bool) -> bool:
-	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
-	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_row_overflow)
-
 func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target: Minion = null) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
-		var alt_row: String = "Back" if row == "Front" else "Front"
-		if _has_row_overflow_ally(is_player) and battle.can_summon_to_row(is_player, alt_row):
-			row = alt_row
-		else:
-			push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
-			return null
+		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
+		return null
 	var minion := Minion.new(card_data, is_player, row)
 	battle.net_registry.register(minion)
 	battle.combat_log.card_played(card_data, is_player)
@@ -171,16 +163,22 @@ func can_summon_to_row(is_player: bool, row: String) -> bool:
 	).size()
 	return occupied < battle.MAX_MINIONS_PER_ROW
 
-func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
+func _has_free_row_placement_ally(is_player: bool) -> bool:
+	var camp: Array = battle.player_minions if is_player else battle.enemy_minions
+	return camp.any(func(m: Minion): return m.card_data != null and m.card_data.allows_free_row_placement)
+
+func get_allowed_rows_for_card(card_data: CardData, is_player: bool = true) -> Array[String]:
 	if card_data == null or card_data.card_type != "Minion":
+		return [battle.ROW_FRONT, battle.ROW_BACK]
+	if _has_free_row_placement_ally(is_player):
 		return [battle.ROW_FRONT, battle.ROW_BACK]
 	match card_data.board_position:
 		battle.ROW_FRONT: return [battle.ROW_FRONT]
 		battle.ROW_BACK:  return [battle.ROW_BACK]
 		_:                return [battle.ROW_FRONT, battle.ROW_BACK]
 
-func can_play_card_on_row(card_data: CardData, row: String) -> bool:
-	return row in get_allowed_rows_for_card(card_data)
+func can_play_card_on_row(card_data: CardData, row: String, is_player: bool = true) -> bool:
+	return row in get_allowed_rows_for_card(card_data, is_player)
 
 func has_enemy_taunt(attacker: Minion) -> bool:
 	var attackable: Array[Minion] = get_attackable_enemy_minions(attacker)

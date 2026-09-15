@@ -325,7 +325,7 @@ func _find_priority_removal(cards: Array[CardData]) -> CardData:
 
 # Rangée autorisée avec de la place ; les hybrides fragiles vont derrière
 func _pick_row_for(card: CardData) -> String:
-	var rows: Array[String] = battle.get_allowed_rows_for_card(card)
+	var rows: Array[String] = battle.get_allowed_rows_for_card(card, false)
 	var order: Array[String] = rows.duplicate()
 	if rows.size() > 1 and card.attack > card.health:
 		order = [battle.ROW_BACK, battle.ROW_FRONT]
