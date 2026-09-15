@@ -181,7 +181,7 @@ Positionnement (Lane Types)
 | 54 | Pacte Sanglant | 3 | Épique | 3 charges | Sacrifice 1 : Invoque un Mort-Vivant 2/2. | Chaque tour, le cercle redemande son dû — et chaque fois, il redonne quelque chose en retour. |
 | 55 | Cercle de Convocation | 5 | Épique | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2. | Le cercle appelle. Les morts n'ont pas appris à décliner. |
 | 56 | Communion avec les Morts | 4 | Rare | 2 charges | Sacrifice 1 : Ressuscitez un serviteur Mort-Vivant ciblé depuis votre cimetière dans votre main. | Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter. |
-| 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Ressuscitez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
+| 57 | Rituel d'Exhumation | 4 | Rare | 3 charges | Éveil : Renvoyez le dernier serviteur Mort-Vivant à avoir rejoint votre cimetière dans votre main. | On ne l'enterre pas. On l'entrepose, tour après tour. |
 | 58 | Cercle de Sacrifice | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente. | Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande. |
 | 59 | Rituel du Lien Funeste | 4 | Épique | 3 charges | Deuil : Inflige 2 points de dégâts au héros ennemi. | Chaque allié qui tombe tire un fil. L'ennemi finit par sentir la traction. |
 | 60 | Arrivée de Masse | 7 | Légendaire | 3 charges | Éveil : Invoque un Mort-Vivant aléatoire de coût ≤4. | Il n'a pas ouvert une porte. Il l'a laissée entrouverte, encore et encore. |
