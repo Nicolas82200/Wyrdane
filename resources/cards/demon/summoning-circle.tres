@@ -36,8 +36,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rituel du Pacte Éternel"
-description = "Éveil : Invoque un Suppôt des Abysses 1/2 en rangée Avant.
-Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) en Avant à la place."
+description = "Éveil : Invoque un Suppôt des Abysses 1/2.
+Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) à la place."
 flavour_text = "Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites."
 texture = ExtResource("3_texture")
 cost = 5

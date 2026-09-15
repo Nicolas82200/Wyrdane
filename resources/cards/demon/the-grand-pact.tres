@@ -33,8 +33,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Grand Pacte"
-description = "Renfort : Détruit un serviteur que votre adversaire contrôle ayant un coût de ressource de 2 ou moins.
-Pacte 4 : Détruit un serviteur que votre adversaire contrôle, sans restriction, à la place."
+description = "Renfort : Détruit un serviteur ennemi ayant un coût de ressource de 2 ou moins.
+Pacte 4 : Détruit un serviteur ennemi, sans restriction, à la place."
 flavour_text = "Il ne demande jamais la permission. Il constate simplement ce que tu es prêt à perdre."
 texture = ExtResource("3_texture")
 cost = 8

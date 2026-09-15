@@ -21,7 +21,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Citadelle des Hommes"
-description = "Présence : Les serviteurs Humains que vous contrôlez en rangée Avant gagnent +0/+1 de façon permanente."
+description = "Présence : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 de façon permanente."
 flavour_text = "Ces murs n'ont pas été construits pour durer. Ils ont duré quand même."
 texture = ExtResource("3_texture")
 cost = 4
