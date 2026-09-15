@@ -1,6 +1,6 @@
 # Wyrdane CARDS.md
 
-Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
+Liste complète des cartes des races **Mort-Vivant**, **Humain**, **Démon** et **Abomination**.
 
 > **Notes de révision (à répercuter dans `CLAUDE.md` et `README.md`, et côté code si adopté) :**
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.

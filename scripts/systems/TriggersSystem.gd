@@ -203,8 +203,6 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 				return enchantment_owner_is_player == ctx.is_player_event
 			"OnSpell":
 				return enchantment_owner_is_player != ctx.is_player_event
-			"OnAura":
-				return true
 			"OnSummon":
 				return enchantment_owner_is_player == ctx.is_player_event
 			_:

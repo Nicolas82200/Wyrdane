@@ -1150,6 +1150,9 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
 		elif effect.granted_keyword_is_human:
 			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
+			if kw == -1:
+				push_warning("GrantKeyword : mot-clé Humain inconnu '%s'" % effect.granted_keyword)
+				continue
 			if target.has_human_keyword(kw):
 				continue
 			target.add_human_keyword(kw)
@@ -1345,7 +1348,7 @@ func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> v
 			battle.opponent.draw_card()
 		if drawn != null and (effect.race_filter.is_empty() \
 				or drawn.race == Race.from_string(effect.race_filter)):
-			battle.cost_system.add_temp_discount(drawn, discount)
+			battle.cost_system.add_temp_discount(drawn, discount, is_player)
 
 # ─── Effets Démon ─────────────────────────────────────────────────────────────
 

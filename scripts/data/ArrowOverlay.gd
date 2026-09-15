@@ -50,7 +50,7 @@ func _draw_curve(start: Vector2, target: Vector2) -> void:
 	var cp1 := start  + Vector2(delta.x * 0.6, 0)
 	var cp2 := target - Vector2(0, delta.y * 0.3)
 
-	var points := _bezier_points(start, cp1, cp2, target, SEGMENTS)
+	var points := BezierCurve.cubic_points(start, cp1, cp2, target, SEGMENTS)
 
 	# Direction finale pour la tête
 	var dir := (points[points.size() - 1] - points[points.size() - 2]).normalized()
@@ -67,14 +67,3 @@ func _draw_curve(start: Vector2, target: Vector2) -> void:
 		draw_line(points[i], points[i + 1], ARROW_COLOR, ARROW_WIDTH, true)
 
 
-func _bezier_points(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, steps: int) -> Array[Vector2]:
-	var pts: Array[Vector2] = []
-	for i in range(steps + 1):
-		var t := float(i) / float(steps)
-		var u := 1.0 - t
-		var pt := u*u*u * p0 \
-				+ 3.0*u*u*t * p1 \
-				+ 3.0*u*t*t * p2 \
-				+ t*t*t     * p3
-		pts.append(pt)
-	return pts

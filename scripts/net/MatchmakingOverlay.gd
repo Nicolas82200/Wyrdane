@@ -423,6 +423,8 @@ func _on_ranked_matched(data: Dictionary) -> void:
 	if _ranked_role == "host":
 		if _ranked_poll_timer != null:
 			_ranked_poll_timer.stop()
+			_ranked_poll_timer.queue_free()
+			_ranked_poll_timer = null
 		_quick_matching = false
 		_net.session_ready.connect(_on_ranked_lobby_ready, CONNECT_ONE_SHOT)
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
@@ -441,6 +443,8 @@ func _on_ranked_matched(data: Dictionary) -> void:
 		return
 	if _ranked_poll_timer != null:
 		_ranked_poll_timer.stop()
+		_ranked_poll_timer.queue_free()
+		_ranked_poll_timer = null
 	_quick_matching = false
 	_ranked_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")

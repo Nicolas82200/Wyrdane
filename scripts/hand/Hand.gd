@@ -667,14 +667,10 @@ func _prune_hand_order() -> void:
 	if _hovered_card != null and not is_instance_valid(_hovered_card):
 		_hovered_card = null
 
-# Réordonne les enfants du conteneur pour qu'ils suivent l'ordre logique de la
-# main, puis place la carte survolée en dernier (donc au-dessus de toutes les
-# autres). L'ordre des enfants pilote aussi bien le rendu que la détection de
-# la souris sur les zones qui se chevauchent (contrairement au z_index seul,
-# qui ne suffit pas à garantir la priorité de survol) : sans ce passage, une
-# carte voisine non survolée peut rester "au-dessus" pour la souris malgré le
-# z_index, et capter le survol dans la zone de chevauchement, créant une
-# oscillation entre les deux cartes.
+# Réordonne les enfants du conteneur selon l'ordre logique de la main, carte
+# survolée en dernier (dessus). Pilote aussi bien le rendu que la détection
+# souris sur les zones qui se chevauchent : le z_index seul ne suffit pas,
+# sans ce passage le survol oscille entre cartes voisines.
 func _sync_tree_order(hovered_index: int) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]
