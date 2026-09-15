@@ -79,6 +79,10 @@ var revenant_triggered: bool = false    # REVENANT : une seule fois par pose (no
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false
+# FUSION (Abomination) : une seule activation par pose (nouvelle instance
+# Minion à chaque redéploiement, donc réinitialisé de fait comme REVENANT
+# ci-dessus). Empêche d'enchaîner plusieurs fusions avec le même serviteur.
+var fusion_used: bool = false
 # Voisins capturés juste avant le retrait du plateau (DeathSystem), pour que
 # les rituels/enchantements à Deuil (Serment du Sang) puissent buffer "le
 # serviteur adjacent" du mort alors que celui-ci n'est déjà plus dans

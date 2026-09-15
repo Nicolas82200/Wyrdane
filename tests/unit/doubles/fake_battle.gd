@@ -19,6 +19,7 @@ var death_system: FakeDeathSystem = FakeDeathSystem.new()
 var aura_system: FakeAuraSystem = FakeAuraSystem.new()
 var trigger_system: FakeTriggerSystem = FakeTriggerSystem.new()
 var fusion_system: FakeFusionSystem = FakeFusionSystem.new()
+var sacrifice_system: FakeSacrificeSystem = FakeSacrificeSystem.new()
 var network_manager = null
 var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
@@ -548,6 +549,12 @@ class FakeTargetingSystem:
 		return targeting
 	func has_any_valid_target(_card_data: CardData) -> bool:
 		return has_valid_target
+
+
+class FakeSacrificeSystem:
+	var active: bool = false
+	func is_active() -> bool:
+		return active
 
 
 class FakeTimer:
