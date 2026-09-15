@@ -9,7 +9,7 @@ extends Node
 # MatchResultReporter._report_ranked).
 
 # Valeur de départ affichée avant la première sync (barre de progression) ;
-# la courbe réelle (+20 %/niveau sur le seuil arrondi du niveau précédent) est
+# la courbe réelle (+5 %/niveau sur le seuil arrondi du niveau précédent) est
 # appliquée et vérifiée côté serveur (voir xpToReachNextLevel dans
 # wyrdane-backend/backend/src/model/levelModel.ts).
 const XP_CURVE_BASE := 100
