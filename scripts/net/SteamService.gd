@@ -126,3 +126,13 @@ static func watch_join_requests(on_join_requested: Callable) -> bool:
 static func _on_join_requested(lobby_id: int, _friend_id: int = 0) -> void:
 	if _join_requested_callback.is_valid():
 		_join_requested_callback.call(lobby_id)
+
+# Ouvre l'onglet Amis de l'overlay Steam (liste d'amis, demandes, blocage —
+# tout géré nativement par Steam, aucun système d'amis dédié côté jeu). No-op
+# si Steam est indisponible.
+static func open_friends_overlay() -> void:
+	if not ensure_init():
+		return
+	var s := steam()
+	if s.has_method("activateGameOverlay"):
+		s.activateGameOverlay("friends")

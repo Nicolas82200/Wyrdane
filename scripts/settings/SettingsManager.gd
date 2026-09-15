@@ -80,12 +80,36 @@ var referral_prompt_seen: bool = false
 # pas de synchronisation backend, contrairement à la collection/monnaie
 # (voir CollectionManager/CurrencyManager). Compte les matchs solo comme
 # réseau, tutoriel exclu (voir Battle._show_game_over).
+# Journal de combat (voir CombatLogSystem.entries) de la toute dernière
+# partie jouée — mémoire uniquement, jamais persisté sur disque (référence
+# des Texture2D des cartes, contrairement à match_history ci-dessous).
+# Alimente le bouton "Voir le replay" de GameOverScreen ; vide dès le
+# lancement d'une nouvelle partie ou la fermeture du jeu.
+var last_match_log: Array = []
 var match_wins: int = 0
 var match_losses: int = 0
+# Détail des dernières parties (voir record_match_history_entry, appelé par
+# Battle._show_game_over), le plus récent en tête. Purement local comme
+# match_wins/match_losses ci-dessus — aucune notion d'historique côté
+# backend. Chaque entrée : {result, opponent_name, opponent_race,
+# duration_sec, timestamp}.
+var match_history: Array = []
+const MATCH_HISTORY_MAX_ENTRIES := 20
 # Série de victoires consécutives sans jamais passer sous 20 PV de héros
 # (succès Steam "Gardien", voir AchievementManager.ACH_GUARDIAN_STREAK) —
 # cassée par toute défaite ou toute victoire où le PV plancher est franchi.
 var high_hp_win_streak: int = 0
+# Pseudos des derniers adversaires réseau affrontés (le plus récent en tête),
+# purement local — jamais leur SteamID64 (voir NetTransport.remote_display_name/
+# règle "aucun identifiant Steam ne fuit hors de SteamTransport"). "Ajouter en
+# ami" n'est donc proposé que juste après la partie (voir GameOverScreen),
+# jamais depuis cette liste rétrospective.
+var recent_opponents: Array[String] = []
+const RECENT_OPPONENTS_MAX := 10
+# Index du dos de carte cosmétique choisi (voir CardBackShop.CARD_BACKS,
+# vendu en argent réel — aucun rapport avec l'ancien système par niveau de
+# compte, retiré du jeu).
+var selected_card_back: int = 0
 
 var resolution: Vector2i = DEFAULT_RESOLUTION
 var fullscreen: bool = false
@@ -95,6 +119,16 @@ var text_scale: float = DEFAULT_TEXT_SCALE
 var colorblind_mode: String = DEFAULT_COLORBLIND_MODE
 var high_contrast: bool = DEFAULT_HIGH_CONTRAST
 var reduced_motion: bool = DEFAULT_REDUCED_MOTION
+# Réglages Gameplay (voir GameplaySettingsMenu) : demandent une confirmation
+# avant d'exécuter une attaque/un sacrifice (single-attaquant uniquement, voir
+# SelectionSystem/SacrificeSystem — la multi-attaque via Ctrl+clic reste sans
+# confirmation, déjà un choix groupé délibéré du joueur).
+var confirm_before_attack: bool = false
+var confirm_before_sacrifice: bool = false
+# Fin de tour automatique dès que la main est vide et qu'aucun serviteur ne
+# peut plus attaquer (voir Battle.check_auto_pass_turn — cas volontairement
+# conservateur, ne couvre pas un Rituel de Sacrifice encore activable).
+var auto_pass_turn: bool = false
 var _colorblind_overlay: ColorRect
 var _high_contrast_overlay: ColorRect
 
@@ -161,6 +195,25 @@ func record_match_result(won: bool) -> void:
 		match_losses += 1
 	_save()
 	match_stats_changed.emit(match_wins, match_losses)
+
+func record_match_history_entry(entry: Dictionary) -> void:
+	match_history.push_front(entry)
+	if match_history.size() > MATCH_HISTORY_MAX_ENTRIES:
+		match_history.resize(MATCH_HISTORY_MAX_ENTRIES)
+	_save()
+
+func record_recent_opponent(opponent_name: String) -> void:
+	recent_opponents.erase(opponent_name)
+	recent_opponents.push_front(opponent_name)
+	if recent_opponents.size() > RECENT_OPPONENTS_MAX:
+		recent_opponents.resize(RECENT_OPPONENTS_MAX)
+	_save()
+
+func set_selected_card_back(index: int) -> void:
+	if selected_card_back == index:
+		return
+	selected_card_back = index
+	_save()
 
 # Met à jour la série "sans passer sous 20 PV" (qualifies = ce match la
 # prolonge) et retourne la nouvelle valeur du compteur.
@@ -305,6 +358,24 @@ func set_reduced_motion(enabled: bool) -> void:
 	reduced_motion_changed.emit(enabled)
 	display_settings_changed.emit()
 
+func set_confirm_before_attack(enabled: bool) -> void:
+	if confirm_before_attack == enabled:
+		return
+	confirm_before_attack = enabled
+	_save()
+
+func set_confirm_before_sacrifice(enabled: bool) -> void:
+	if confirm_before_sacrifice == enabled:
+		return
+	confirm_before_sacrifice = enabled
+	_save()
+
+func set_auto_pass_turn(enabled: bool) -> void:
+	if auto_pass_turn == enabled:
+		return
+	auto_pass_turn = enabled
+	_save()
+
 # Facteur multiplicatif à appliquer à la durée des tweens de déplacement
 # (voir AnimationSystem._t, Hand.gd, CardPopupSystem.gd).
 func motion_scale() -> float:
@@ -393,11 +464,17 @@ func _save() -> void:
 	cfg.set_value("display", "quality", quality)
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
+	cfg.set_value("stats", "match_history", match_history)
+	cfg.set_value("stats", "recent_opponents", recent_opponents)
+	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
 	cfg.set_value("display", "reduced_motion", reduced_motion)
+	cfg.set_value("gameplay", "confirm_before_attack", confirm_before_attack)
+	cfg.set_value("gameplay", "confirm_before_sacrifice", confirm_before_sacrifice)
+	cfg.set_value("gameplay", "auto_pass_turn", auto_pass_turn)
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -425,6 +502,15 @@ func _load() -> void:
 		quality = DEFAULT_QUALITY
 	match_wins = cfg.get_value("stats", "match_wins", 0) as int
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
+	var saved_history = cfg.get_value("stats", "match_history", [])
+	match_history = saved_history if saved_history is Array else []
+	var saved_recent = cfg.get_value("stats", "recent_opponents", [])
+	recent_opponents.clear()
+	if saved_recent is Array:
+		for name in saved_recent:
+			if name is String:
+				recent_opponents.append(name)
+	selected_card_back = cfg.get_value("stats", "selected_card_back", 0) as int
 	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
@@ -433,6 +519,9 @@ func _load() -> void:
 		colorblind_mode = DEFAULT_COLORBLIND_MODE
 	high_contrast = cfg.get_value("display", "high_contrast", DEFAULT_HIGH_CONTRAST) as bool
 	reduced_motion = cfg.get_value("display", "reduced_motion", DEFAULT_REDUCED_MOTION) as bool
+	confirm_before_attack = cfg.get_value("gameplay", "confirm_before_attack", false) as bool
+	confirm_before_sacrifice = cfg.get_value("gameplay", "confirm_before_sacrifice", false) as bool
+	auto_pass_turn = cfg.get_value("gameplay", "auto_pass_turn", false) as bool
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
 		for action in saved_keybinds:

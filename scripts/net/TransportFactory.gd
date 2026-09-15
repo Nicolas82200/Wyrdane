@@ -5,7 +5,7 @@ class_name TransportFactory
 # (lobby + P2P Steamworks via GodotSteam — voir SteamService pour la
 # détection de l'extension et les instructions d'installation) est disponible ;
 # l'énum reste en place pour permettre l'ajout d'un futur backend sans
-# changer la signature des appelants (NetworkManager, NetLobby).
+# changer la signature des appelants (NetworkManager, MatchmakingOverlay).
 
 enum Backend { STEAM }
 

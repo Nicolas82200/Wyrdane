@@ -29,8 +29,14 @@ CardLibrary="*uid://d3txnel4suoji"
 SettingsManager="*res://scripts/settings/SettingsManager.gd"
 CollectionManager="*res://scripts/collection/CollectionManager.gd"
 CurrencyManager="*res://scripts/collection/CurrencyManager.gd"
+LevelManager="*res://scripts/collection/LevelManager.gd"
 BackendClient="*res://scripts/net/BackendClient.gd"
 SceneTransition="*res://scripts/systems/SceneTransition.gd"
+MatchmakingOverlay="*res://scenes/net/MatchmakingOverlay.tscn"
+
+[debug]
+
+file_logging/enable_file_logging=true
 
 [display]
 

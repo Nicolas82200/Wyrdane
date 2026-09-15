@@ -411,7 +411,7 @@ clip_text = true
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 19
 text = "Pseudo Steam"
 vertical_alignment = 1
 
@@ -422,29 +422,45 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 4
 
+[node name="CurrencyLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow" unique_id=300000032]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 18
+text = "0"
+
 [node name="CurrencyIcon" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow" unique_id=300000035]
-custom_minimum_size = Vector2(20, 20)
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
 size_flags_vertical = 4
 texture = ExtResource("14_goldicon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CurrencyLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow" unique_id=300000032]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 15
-text = "0"
-
 [node name="RankBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=300000034]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_font_sizes/font_size = 13
-text = "—"
+text = ""
 autowrap_mode = 3
+
+[node name="AccountLevelLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=900000001]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 16
+text = "Niveau 1"
+
+[node name="AccountLevelBar" type="ProgressBar" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox" unique_id=900000002]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+show_percentage = false
+value = 0.0
 
 [node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
 layout_mode = 2
@@ -500,7 +516,7 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 14
-text = "v0.1 — prototype"
+text = "v0.1 - prototype"
 vertical_alignment = 1
 
 [node name="DiscordButton" type="TextureButton" parent="FooterPanel/FooterMargin/FooterRow" unique_id=300000051]
@@ -688,18 +704,36 @@ text = "Profil"
 [node name="ProfileSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1426168721]
 layout_mode = 2
 
-[node name="ProfileHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1805356584]
+[node name="ProfileScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=900000023]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ProfileBodyVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll" unique_id=900000024]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="ProfileHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1805356584]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="ProfileAvatar" type="TextureRect" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=998498056]
+[node name="ProfileAvatarFrame" type="PanelContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow" unique_id=900000020]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ProfileAvatar" type="TextureRect" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileAvatarFrame" unique_id=998498056]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ProfileNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow" unique_id=800367535]
+[node name="ProfileNameCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow" unique_id=900000021]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ProfileNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol" unique_id=800367535]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
@@ -707,44 +741,44 @@ theme_override_font_sizes/font_size = 22
 text = "Pseudo Steam"
 vertical_alignment = 1
 
-[node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=731961068]
+[node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=731961068]
 layout_mode = 2
 
-[node name="ProfileMatchStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1526835562]
+[node name="ProfileMatchStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1526835562]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 16
 text = "0V - 0D"
 
-[node name="ProfileMemberSinceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1306289257]
+[node name="ProfileMemberSinceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1306289257]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_font_sizes/font_size = 16
-text = "—"
+text = "-"
 
-[node name="ProfileCollectionLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=992127025]
+[node name="ProfileCollectionLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=992127025]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_font_sizes/font_size = 16
-text = "—"
+text = "-"
 
-[node name="ProfileSoloStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=194106145]
+[node name="ProfileSoloStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=194106145]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_font_sizes/font_size = 16
-text = "—"
+text = "-"
 
-[node name="ProfileRankedStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1136697271]
+[node name="ProfileRankedStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1136697271]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 16
-text = "—"
+text = "-"
 
-[node name="ProfileRankBadgeLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1136697272]
+[node name="ProfileRankBadgeLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1136697272]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_font_sizes/font_size = 16
-text = "—"
+text = "-"
 
 [node name="CreditsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1875120101]
 visible = false
@@ -756,13 +790,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="CreditsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView" unique_id=1610296128]
+[node name="CreditsHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView" unique_id=1610296200]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CreditsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow" unique_id=1610296128]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 26
 text = "Crédits"
+
+[node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow" unique_id=1141914078]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="CreditsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView" unique_id=1312292884]
 layout_mode = 2
@@ -784,6 +834,7 @@ theme_override_constants/separation = 14
 [node name="CreditsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1897122271]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 22
@@ -794,11 +845,13 @@ Musique : The Tavern at Oakhaven
 
 Merci d'avoir joue !"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 3
 
 [node name="LegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub" unique_id=1141914077]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(220, 40)
 layout_mode = 2
+size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
@@ -815,16 +868,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
-
-[node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1141914078]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
-text = "← Retour"
 
 [node name="LegalScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub" unique_id=1897122273]
 layout_mode = 2
@@ -851,13 +894,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="ReportTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000075]
+[node name="ReportHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000200]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReportTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow" unique_id=300000075]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 26
 text = "Signalement"
+
+[node name="ReportBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow" unique_id=300000201]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="ReportSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000076]
 layout_mode = 2
@@ -870,8 +929,9 @@ theme_override_font_sizes/font_size = 16
 text = "Catégorie :"
 
 [node name="ReportCategorySelect" type="OptionButton" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000078]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(260, 40)
 layout_mode = 2
+size_flags_horizontal = 0
 
 [node name="ReportDescLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000079]
 layout_mode = 2
@@ -894,8 +954,9 @@ text = ""
 autowrap_mode = 3
 
 [node name="ReportSubmitButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000082]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
+size_flags_horizontal = 0
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
@@ -914,15 +975,78 @@ embedded_in_panel = true
 visible = false
 layout_mode = 1
 
-[node name="PackShop" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=300000033 instance=ExtResource("7_packshop")]
+[node name="ShopView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=300000090]
 visible = false
-z_index = 0
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="ShopTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000091]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Boutique"
+
+[node name="ShopTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000102]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ShopPacksTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow" unique_id=300000103]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 15
+text = "Packs"
+
+[node name="ShopCardBacksTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow" unique_id=300000104]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 15
+text = "Dos de cartes"
+
+[node name="ShopSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000092]
+layout_mode = 2
+
+[node name="ShopContentRoot" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000105]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PackShop" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000033 instance=ExtResource("7_packshop")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ShopCardBacksScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000093]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardBacksSection" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll" unique_id=300000099]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CardBacksHintLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection" unique_id=300000100]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
+autowrap_mode = 3
+text = "Débloqués gratuitement en progressant (niveau de compte)."
 
 [node name="QuestsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=400000002]
 visible = false
@@ -1079,6 +1203,63 @@ autowrap_mode = 3
 [node name="DeckSelectSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=1472541]
 layout_mode = 2
 
+[node name="MatchTypeRow" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=900000120]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MatchTypeLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow" unique_id=900000121]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.75)
+theme_override_font_sizes/font_size = 14
+text = "Type de partie"
+
+[node name="MatchTypeButtonsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow" unique_id=900000122]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="NormalMatchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow" unique_id=900000123]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Normal"
+
+[node name="RankedMatchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow" unique_id=900000124]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Classé"
+
+[node name="InviteMatchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow" unique_id=900000125]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+disabled = true
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+text = "Contre un ami"
+
 [node name="PlayDeckScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=1223869849]
 layout_mode = 2
 size_flags_vertical = 3
@@ -1088,6 +1269,20 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="CustomDifficultyRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=900000010]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CustomDifficultyLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow" unique_id=900000011]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+text = "Difficulté de l'IA"
+
+[node name="CustomDifficultyOption" type="OptionButton" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow" unique_id=900000012]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="LaunchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView" unique_id=641662269]
 custom_minimum_size = Vector2(0, 56)

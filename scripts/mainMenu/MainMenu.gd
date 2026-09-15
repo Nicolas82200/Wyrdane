@@ -2,7 +2,6 @@
 extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
-const NET_LOBBY_SCENE := "res://scenes/net/NetLobby.tscn"
 const ARENA_SCENE := "res://scenes/arena/ArenaBattle.tscn"
 const NEWS_DIR := "res://resources/news/"
 const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
@@ -13,6 +12,7 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
+enum ShopTab { PACKS, CARD_BACKS }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -57,12 +57,31 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var deck_select_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/DeckSelectHeader/DeckSelectTitleLabel
 @onready var play_decks_container: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/PlayDeckScroll/PlayDecksContainer
 @onready var launch_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/LaunchButton
+@onready var match_type_row: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow
+@onready var match_type_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeLabel
+@onready var normal_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/NormalMatchButton
+@onready var ranked_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/RankedMatchButton
+@onready var invite_match_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow/MatchTypeButtonsRow/InviteMatchButton
+@onready var custom_difficulty_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow
+@onready var custom_difficulty_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/CustomDifficultyRow/CustomDifficultyLabel
+@onready var custom_difficulty_option: OptionButton = %CustomDifficultyOption
+
+# Réutilise les mêmes clés de traduction que GraphismSettingsMenu.DIFFICULTY_LABEL_KEYS
+# (réglage global) — ici pour une surcharge ponctuelle "Partie personnalisée",
+# voir CustomMatchContext.
+const CUSTOM_DIFFICULTY_LABEL_KEYS := {
+	"easy":   "difficulty.easy",
+	"normal": "difficulty.normal",
+	"hard":   "difficulty.hard",
+}
 
 @onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
 @onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow/CurrencyLabel
 @onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeLabel
+@onready var account_level_label: Label = %AccountLevelLabel
+@onready var account_level_bar: ProgressBar = %AccountLevelBar
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
@@ -72,11 +91,18 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
-@onready var packs_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
+@onready var shop_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
-@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/PackShop
+@onready var shop_view:            VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
+@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
+@onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
+@onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
+@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/PackShop
+@onready var shop_card_backs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll
+@onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
+@onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -91,26 +117,29 @@ const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 @onready var edit_deck_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/EditDeckButton
 
 @onready var profile_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView
+@onready var profile_body:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox
 @onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
-@onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileAvatar
-@onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileHeaderRow/ProfileNameLabel
-@onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMatchStatsLabel
-@onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileMemberSinceLabel
-@onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileCollectionLabel
-@onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileSoloStatsLabel
-@onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankedStatsLabel
-@onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileRankBadgeLabel
+@onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileAvatarFrame/ProfileAvatar
+@onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfileNameLabel
+@onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMatchStatsLabel
+@onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMemberSinceLabel
+@onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileCollectionLabel
+@onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileSoloStatsLabel
+@onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankedStatsLabel
+@onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeLabel
 
 @onready var credits_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView
+@onready var credits_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow/CreditsTitleLabel
 @onready var credits_main_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub
 @onready var credits_label:   Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub/CreditsLabel
 @onready var legal_button:    Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsMainSub/LegalButton
 @onready var credits_legal_sub: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub
-@onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/CloseLegalButton
+@onready var close_legal:     Button = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow/CloseLegalButton
 @onready var legal_label:     Label  = $InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsStack/CreditsLegalSub/LegalScroll/LegalLabel
 
 @onready var report_view:     VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ReportView
-@onready var report_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportTitleLabel
+@onready var report_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow/ReportTitleLabel
+@onready var report_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow/ReportBackButton
 @onready var report_category_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategoryLabel
 @onready var report_category_select: OptionButton = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportCategorySelect
 @onready var report_desc_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportDescLabel
@@ -150,10 +179,18 @@ func _ready() -> void:
 	play_button.pressed.connect(_on_play)
 	credits_button.pressed.connect(_on_credits)
 	report_button.pressed.connect(_on_report_pressed)
+	report_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
-	packs_button.pressed.connect(_on_packs_button_pressed)
+	shop_button.pressed.connect(_on_shop_button_pressed)
+	# Pas d'écran séparé pour les packs : l'onglet "Packs" affiche directement
+	# PackShop (déjà conçu pour être embarqué comme simple vue, voir son
+	# commentaire d'en-tête) plutôt que de mener à un panneau à part.
+	pack_shop.close_x_button.hide()
+	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
+	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
+	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	discord_button.pressed.connect(_on_discord_pressed)
@@ -161,8 +198,6 @@ func _ready() -> void:
 	profile_button.set_meta("no_click_sound", true)
 	profile_button.pressed.connect(_on_profile_button_pressed)
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
-	if pack_shop.has_signal("closed"):
-		pack_shop.closed.connect(func(): _show_info_view(InfoView.NEWS))
 
 	deck_comp_preview_card.set_non_interactive()
 	# La carte reste à sa taille NATIVE (des enfants comme les labels sont
@@ -189,14 +224,27 @@ func _ready() -> void:
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
+	normal_match_button.pressed.connect(_on_match_normal_pressed)
+	ranked_match_button.pressed.connect(_on_match_ranked_pressed)
+	invite_match_button.pressed.connect(_on_match_invite_pressed)
 	edit_deck_button.pressed.connect(DeckCompositionPanel.edit_deck.bind(self))
+	_populate_custom_difficulty_option()
+	DeckManager.sync_from_backend()
 
 	legal_button.pressed.connect(_on_legal_pressed)
 	close_legal.set_meta("no_click_sound", true)
+	# Bouton "Retour" unique dans l'en-tête de Crédits : revient à la vue
+	# principale des crédits si on est dans les mentions légales, sinon
+	# ramène directement sur les actualités (même logique que le Retour de
+	# SettingsMenu, voir plus bas).
 	close_legal.pressed.connect(func():
 		AudioManager.play(AudioManager.CLOSE_MENU)
-		credits_legal_sub.hide()
-		credits_main_sub.show()
+		if credits_legal_sub.visible:
+			credits_legal_sub.hide()
+			credits_main_sub.show()
+			credits_title_label.text = SettingsManager.t("MENU_CREDITS")
+		else:
+			_show_info_view(InfoView.NEWS)
 	)
 	credits_legal_sub.hide()
 	credits_main_sub.show()
@@ -208,9 +256,8 @@ func _ready() -> void:
 	if not settings_menu:
 		push_error("SettingsMenu introuvable !")
 	else:
-		# Même logique : les boutons Fermer/croix de SettingsMenu (voir
-		# SettingsMenu.close) ne font que se cacher eux-mêmes.
-		settings_menu.close_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+		# Même logique : le bouton Retour de SettingsMenu (voir
+		# SettingsMenu.close) ne fait que se cacher lui-même.
 		settings_menu.close_x_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
@@ -231,6 +278,8 @@ func _ready() -> void:
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
+	LevelManager.level_changed.connect(func(_level: int, _xp: int, _xp_to_next: int): _update_account_level_display())
+	_update_account_level_display()
 	NewsPanel.load_news(self)
 	_start_backend_sync()
 	_wire_nav_active_indicators()
@@ -319,6 +368,7 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.SETTINGS: settings_button,
 		InfoView.REPORT: report_button,
 		InfoView.CREDITS: credits_button,
+		InfoView.SHOP: shop_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
@@ -326,12 +376,40 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 		var btn: BaseButton = _nav_active_buttons[v]
 		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
 
+# --- Boutique : mini-navbar Packs / Dos de cartes -------------------------
+# Deux onglets à l'intérieur de la même vue (InfoView.SHOP) : Packs affiche
+# directement PackShop (déjà conçu pour être embarqué comme simple vue plutôt
+# que comme overlay plein écran, voir son commentaire d'en-tête) et Dos de
+# cartes une simple grille — aucun des deux n'a besoin de sa propre InfoView.
+var _shop_tab: ShopTab = ShopTab.PACKS
+
+func _select_shop_tab(tab: ShopTab) -> void:
+	_shop_tab = tab
+	pack_shop.visible = tab == ShopTab.PACKS
+	shop_card_backs_scroll.visible = tab == ShopTab.CARD_BACKS
+	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
+	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
+	if tab == ShopTab.PACKS:
+		if pack_shop.has_method("refresh"):
+			pack_shop.refresh()
+	elif tab == ShopTab.CARD_BACKS:
+		# Reconstruit à chaque affichage pour refléter la sélection courante.
+		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
+
 # Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
 # menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
 # quêtes sont réclamables tout de suite. Récupérée une première fois au
 # lancement (retentée après la fin du login Steam si besoin), puis rafraîchie
 # à chaque ouverture du panneau Quêtes (voir QuestsPanel) et après chaque
 # réclamation.
+# Niveau de compte — autoritaire côté wyrdane-backend (voir LevelManager,
+# levelModel.ts). Crédité par match réseau uniquement (classé/partie rapide) ;
+# récompense (carte/pack/or) à chaque niveau franchi, affichée sur l'écran de
+# fin de partie (voir GameOverScreen.show_xp_reward).
+func _update_account_level_display() -> void:
+	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	account_level_bar.value = float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
+
 func _update_quests_badge(quests: Array) -> void:
 	var claimable := 0
 	for quest in quests:
@@ -391,10 +469,10 @@ func _apply_tutorial_lock() -> void:
 	var locked: bool = not SettingsManager.tutorial_completed
 	multi_mode_button.disabled = locked
 	decks_button.disabled = locked
-	packs_button.disabled = locked
+	shop_button.disabled = locked
 	multi_mode_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
-	packs_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	shop_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 # Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
 # en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
@@ -423,6 +501,7 @@ func _launch_backend_syncs() -> void:
 			DeckManager.sync_from_backend()
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
+			LevelManager.sync_from_backend()
 	)
 	ProfilePanel.fetch_rank_badge(self)
 	ProfilePanel.fetch_login_reward_status(self)
@@ -436,14 +515,14 @@ func _launch_backend_syncs() -> void:
 
 func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
-	var views: Array = [news_view, deck_composition_view, credits_view, pack_shop,
+	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
 		mode_select_view, deck_select_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
 		InfoView.CREDITS: credits_view,
-		InfoView.SHOP: pack_shop,
+		InfoView.SHOP: shop_view,
 		InfoView.PROFILE: profile_view,
 		InfoView.SETTINGS: settings_menu,
 		InfoView.DECKS_MANAGE: deck_list,
@@ -472,8 +551,7 @@ func _show_info_view(view: InfoView) -> void:
 	elif view == InfoView.QUESTS:
 		QuestsPanel.open(self)
 	elif view == InfoView.SHOP:
-		if pack_shop.has_method("refresh"):
-			pack_shop.refresh()
+		_select_shop_tab(_shop_tab)
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -483,6 +561,7 @@ func _on_profile_button_pressed() -> void:
 func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
+	credits_title_label.text = SettingsManager.t("MENU_CREDITS")
 	_show_info_view(InfoView.CREDITS)
 
 func _on_report_pressed() -> void:
@@ -495,31 +574,17 @@ func _open_report_view() -> void:
 func _populate_report_categories() -> void:
 	var previous := report_category_select.selected
 	report_category_select.clear()
-	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
-	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
+	ReportDialog.populate_categories(report_category_select)
 	if previous >= 0 and previous < report_category_select.item_count:
 		report_category_select.selected = previous
 
 func _on_report_submit_pressed() -> void:
-	var description := report_text_edit.text.strip_edges()
-	if description.is_empty():
-		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
-		return
-	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
-	report_status_label.text = ""
-	report_submit_button.disabled = true
-	BackendClient.report_issue(type_id, description, 0, "", func(code: int, _parsed):
-		report_submit_button.disabled = false
-		if code == 200:
-			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
-			report_text_edit.text = ""
-		else:
-			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
-	)
+	ReportDialog.submit_inline(report_category_select, report_text_edit, report_status_label, report_submit_button)
 
 func _on_legal_pressed() -> void:
 	credits_main_sub.hide()
 	credits_legal_sub.show()
+	credits_title_label.text = SettingsManager.t("MENU_LEGAL")
 	AudioManager.play(AudioManager.OPEN_MENU)
 
 func _on_decks_button_pressed() -> void:
@@ -529,7 +594,7 @@ func _on_decks_button_pressed() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_info_view(InfoView.DECKS_MANAGE)
 
-func _on_packs_button_pressed() -> void:
+func _on_shop_button_pressed() -> void:
 	_show_info_view(InfoView.SHOP)
 
 # --- Flux "Jouer" : mode puis deck, directement dans le panneau d'infos ----
@@ -567,11 +632,31 @@ func _on_arena_mode_selected() -> void:
 func _show_deck_select() -> void:
 	_play_selected_deck_index = -1
 	launch_button.disabled = true
+	normal_match_button.disabled = true
+	ranked_match_button.disabled = true
+	invite_match_button.disabled = true
 	_refresh_play_deck_list()
+	# "Partie personnalisée" (choix ponctuel de la difficulté IA) n'a de sens
+	# qu'en solo — en multi l'adversaire est un vrai joueur (voir CustomMatchContext).
+	# Le multi, lui, remplace le bouton générique "Lancer" par les cartes de
+	# type de partie (Normal/Classé/Ami, voir _on_match_*_pressed) : chacune
+	# lance directement la recherche avec le deck sélectionné ci-dessous, sans
+	# écran/popup intermédiaire à choisir plus tard.
+	var is_solo := _play_mode == PlayMode.SOLO
+	custom_difficulty_row.visible = is_solo
+	launch_button.visible = is_solo
+	match_type_row.visible = not is_solo
 	_show_info_view(InfoView.DECK_SELECT)
-	# Même besoin qu'en DECKS_MANAGE (voir _show_info_view) : re-sync à chaque
-	# ouverture de l'écran de choix du deck pour lancer une partie.
-	DeckManager.sync_from_backend()
+
+func _populate_custom_difficulty_option() -> void:
+	custom_difficulty_option.clear()
+	for i in SettingsManager.AI_DIFFICULTIES.size():
+		var level: String = SettingsManager.AI_DIFFICULTIES[i]
+		custom_difficulty_option.add_item(SettingsManager.t(CUSTOM_DIFFICULTY_LABEL_KEYS.get(level, level)))
+		if level == SettingsManager.ai_difficulty:
+			custom_difficulty_option.selected = i
+	if custom_difficulty_option.selected < 0:
+		custom_difficulty_option.selected = 0
 
 func _on_play_back_pressed() -> void:
 	_show_info_view(InfoView.MODE_SELECT)
@@ -690,18 +775,47 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 func _on_play_deck_selected(index: int) -> void:
 	_play_selected_deck_index = index
 	launch_button.disabled = false
+	normal_match_button.disabled = false
+	ranked_match_button.disabled = false
+	invite_match_button.disabled = false
 	_refresh_play_deck_list()
 
+# Solo uniquement : le multi lance directement depuis les cartes de type de
+# partie (voir _on_match_*_pressed), pas de bouton générique "Lancer".
 func _on_launch_pressed() -> void:
+	if _play_mode != PlayMode.SOLO or _play_selected_deck_index < 0:
+		return
+	DeckManager.set_active_deck(_play_selected_deck_index)
+	TutorialContext.active = false
+	# "Partie personnalisée" : surcharge ponctuelle de la difficulté IA
+	# (voir CustomMatchContext), sans toucher au réglage global persistant.
+	var chosen_index: int = custom_difficulty_option.selected
+	if chosen_index >= 0 and chosen_index < SettingsManager.AI_DIFFICULTIES.size():
+		CustomMatchContext.ai_difficulty_override = SettingsManager.AI_DIFFICULTIES[chosen_index]
+	SceneTransition.change_scene(BATTLE_SCENE)
+
+# Multi uniquement : chaque carte de type de partie lance directement la
+# recherche avec le deck sélectionné au-dessus — pas de popup intermédiaire
+# (voir MatchmakingOverlay.start_normal/start_ranked/start_invite). Contrairement
+# au solo, ne quitte pas MainMenu : le bandeau de recherche (autoload
+# persistant) prend le relais pendant que le joueur continue de naviguer où il
+# veut (deck builder, boutique...) jusqu'à ce qu'un adversaire soit trouvé.
+func _start_multiplayer_search(start: Callable) -> void:
 	if _play_selected_deck_index < 0:
 		return
 	DeckManager.set_active_deck(_play_selected_deck_index)
-	if _play_mode == PlayMode.SOLO:
-		TutorialContext.active = false
-		SceneTransition.change_scene(BATTLE_SCENE)
-	else:
-		AudioManager.play(AudioManager.OPEN_MENU)
-		SceneTransition.change_scene(NET_LOBBY_SCENE)
+	AudioManager.play(AudioManager.OPEN_MENU)
+	start.call()
+	_show_info_view(InfoView.NEWS)
+
+func _on_match_normal_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_normal)
+
+func _on_match_ranked_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_ranked)
+
+func _on_match_invite_pressed() -> void:
+	_start_multiplayer_search(MatchmakingOverlay.start_invite)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -724,7 +838,11 @@ func _retranslate() -> void:
 	subtitle_label.text = SettingsManager.t("MENU_SUBTITLE")
 	play_button.text    = SettingsManager.t("MENU_PLAY")
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
-	packs_button.text   = SettingsManager.t("MENU_PACKS")
+	shop_button.text   = SettingsManager.t("MENU_SHOP_TITLE")
+	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
+	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
+	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
+	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
@@ -734,8 +852,10 @@ func _retranslate() -> void:
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
 	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
 	close_legal.text    = SettingsManager.t("ui.back")
+	credits_title_label.text = SettingsManager.t("MENU_LEGAL") if credits_legal_sub.visible else SettingsManager.t("MENU_CREDITS")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
 	report_title_label.text = SettingsManager.t("REPORT_TITLE")
+	report_back_button.text = SettingsManager.t("ui.back")
 	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")
 	_populate_report_categories()
 	report_desc_label.text = SettingsManager.t("REPORT_DESCRIPTION_LABEL")
@@ -754,6 +874,12 @@ func _retranslate() -> void:
 	play_back_button.text = SettingsManager.t("ui.back")
 	deck_select_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_DECK")
 	launch_button.text = SettingsManager.t("MENU_PLAY_LAUNCH")
+	match_type_label.text = SettingsManager.t("MENU_MATCH_TYPE_LABEL")
+	normal_match_button.text = SettingsManager.t("NET_MODE_NORMAL")
+	ranked_match_button.text = SettingsManager.t("NET_STEAM_RANKED")
+	invite_match_button.text = SettingsManager.t("NET_MODE_FRIEND")
+	custom_difficulty_label.text = SettingsManager.t("MENU_CUSTOM_DIFFICULTY")
+	_populate_custom_difficulty_option()
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")

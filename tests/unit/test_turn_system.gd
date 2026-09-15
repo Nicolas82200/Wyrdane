@@ -69,6 +69,22 @@ func test_run_turn_end_triggers_no_crash_without_infected_minions() -> void:
 	assert_eq(battle.player_minions.size(), 1)
 	assert_eq(battle.enemy_minions.size(), 1)
 
+# Un round complet appelle run_turn_end_triggers DEUX fois (fin du tour local,
+# is_local_turn=true, puis fin du tour adverse via AISystem/NetworkOpponent,
+# is_local_turn=false) : l'Infection ne doit se déclencher qu'une seule fois
+# par round (bug corrigé : les deux appels l'appliquaient tous les deux, sans
+# filtre de camp, doublant les dégâts).
+func test_run_turn_end_triggers_does_not_apply_infection_on_enemy_turn_end() -> void:
+	var infected_minion := _minion(true, true)
+	await turn_system.run_turn_end_triggers(false)
+	assert_eq(infected_minion.health, 4, "pas de tick d'Infection à la fin du tour adverse")
+
+func test_run_turn_end_triggers_applies_infection_exactly_once_per_round() -> void:
+	var infected_minion := _minion(true, true)
+	await turn_system.run_turn_end_triggers(true)
+	await turn_system.run_turn_end_triggers(false)
+	assert_eq(infected_minion.health, 3, "1 seul dégât d'Infection sur le round complet, pas 2")
+
 # Serviteur portant `trigger_name` + Buff(Self, +1/+0), pour vérifier
 # concrètement qu'Éveil/Déclin se sont déclenchés sur le bon camp.
 func _minion_with_trigger(trigger_name: String, is_player: bool = true) -> Minion:

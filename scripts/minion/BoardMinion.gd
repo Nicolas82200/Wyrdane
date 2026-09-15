@@ -16,11 +16,12 @@ var is_selected := false
 @onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
-	Race.Type.UNDEAD: Color("342e1ae1"),
-	Race.Type.HUMAN:  Color("5a4a35e1"),
-	Race.Type.ELF:    Color("2f5d50e1"),
-	Race.Type.DWARF:  Color("5a3a22e1"),
-	Race.Type.DEMON:  Color("5a1f1fe1"),
+	Race.Type.UNDEAD:      Color("342e1ae1"),
+	Race.Type.HUMAN:       Color("5a4a35e1"),
+	Race.Type.ELF:         Color("2f5d50e1"),
+	Race.Type.DWARF:       Color("5a3a22e1"),
+	Race.Type.DEMON:       Color("5a1f1fe1"),
+	Race.Type.ABOMINATION: Color("1e3a12e1"),
 }
 
 var _keyword_tooltips: Array[Control] = []
@@ -465,6 +466,13 @@ func _on_mouse_entered() -> void:
 	if _hover_preview == null:
 		push_error("BoardMinion: instantiate() returned null")
 		return
+	if not is_instance_valid(_battle):
+		# La scène capturée à _ready() a déjà été libérée (changement de
+		# scène, fin de partie Arena) : ce nœud n'a pas encore reçu son
+		# _exit_tree() mais _battle n'est plus un parent valide pour add_child.
+		_hover_preview.free()
+		_hover_preview = null
+		return
 	_hover_preview.drag_enabled = false
 	_hover_preview.z_index = 1000
 	_hover_preview.visible = false
@@ -519,6 +527,8 @@ func _cleanup_hover() -> void:
 func _show_keyword_tooltips(base_x: float, base_y_override: float = -1.0) -> void:
 	_hide_keyword_tooltips()
 	if minion == null:
+		return
+	if not is_instance_valid(_battle):
 		return
 	_tooltip_layer = CanvasLayer.new()
 	_tooltip_layer.layer = 20
@@ -619,18 +629,12 @@ func _hide_keyword_tooltips() -> void:
 # ─── Icônes de keywords ───────────────────────────────────────────────────────
 
 # Diamètre du badge rond posé derrière chaque icône de mot-clé. Les icônes
-# elles-mêmes sont des silhouettes blanches sans fond (voir assets/icons/keyword) :
-# sur un board minion à 22px nu, elles se fondaient dans l'artwork de la carte
-# derrière elles dès que celui-ci était clair — le badge sombre + bordure
-# colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
-# constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
-# Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
-# icône 11->13), puis agrandies de 25% (badge 15->19, icône 13->16) sur
-# nouvelle demande de lisibilité : les icônes doivent rester lisibles alignées
-# verticalement le long du bord gauche de la carte sans que la bulle ne prenne
-# toute la place.
-const KEYWORD_BADGE_SIZE := 19.0
-const KEYWORD_ICON_SIZE  := 16.0
+# elles-mêmes sont des silhouettes blanches sans fond (assets/icons/keyword) :
+# nues sur l'artwork de la carte, elles s'y fondaient dès qu'il était clair —
+# le badge sombre + bordure colorée par catégorie (teintes de TooltipData)
+# garantit un contraste constant et sert de repère visuel de catégorie.
+const KEYWORD_BADGE_SIZE := 22.0
+const KEYWORD_ICON_SIZE  := 19.0
 
 func _refresh_keyword_icons() -> void:
 	if not is_node_ready() or keyword_icons == null:

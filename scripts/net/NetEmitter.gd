@@ -43,6 +43,12 @@ func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) ->
 func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> void:
 	_net.send_command(NetCommand.activate_fusion(source_id, victim_id, keyword_pool, keyword_name, ids))
 
+# Emote cosmétique (voir EmoteWheel) — purement décoratif, aucun état à
+# resynchroniser si le paquet se perdait (improbable, le transport est fiable
+# par défaut).
+func emote(emote_id: int) -> void:
+	_net.send_command(NetCommand.emote(emote_id))
+
 # Le joueur local a validé son mulligan (contenu privé, seule la fin est notifiée).
 func mulligan_done() -> void:
 	_net.send_command(NetCommand.mulligan_done())

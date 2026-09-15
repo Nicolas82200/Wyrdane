@@ -8,8 +8,10 @@ signal concede_requested
 signal report_requested
 
 # Affiche le bouton Concéder rouge. Activé depuis la bataille pour permettre de
-# concéder la partie ; laissé à false dans le menu principal. Le bouton Fermer,
-# lui, est masqué en partie : on ferme le menu via la croix en haut à droite.
+# concéder la partie ; laissé à false dans le menu principal. Dans les deux cas,
+# le menu se ferme via le bouton "Retour" en haut à droite (CloseXButton) —
+# pas de bouton "Fermer" en bas, pour rester cohérent avec la structure
+# titre à gauche / retour à droite des autres panneaux.
 @export var show_quit: bool = false
 
 # Activé quand ce menu est intégré dans le panneau Actualités du menu principal
@@ -23,9 +25,11 @@ signal report_requested
 @onready var audio_menu             = %AudioSettingsMenu
 @onready var graphism_menu          = %GraphismSettingsMenu
 @onready var control_menu           = %ControlSettingsMenu
+@onready var gameplay_menu          = %GameplaySettingsMenu
 @onready var audio_tab_button       = %AudioTabButton
 @onready var graphism_tab_button    = %GraphismTabButton
 @onready var control_tab_button     = %ControlTabButton
+@onready var gameplay_tab_button    = %GameplayTabButton
 @onready var report_button          = %ReportButton
 @onready var apply_button           = %ApplyButton
 @onready var report_panel: VBoxContainer          = %ReportPanel
@@ -36,7 +40,6 @@ signal report_requested
 @onready var report_status_label: Label           = %ReportStatusLabel
 @onready var report_back_button: Button           = %ReportBackButton
 @onready var report_submit_button: Button         = %ReportSubmitButton
-@onready var close_button          = $Panel/VBox/CloseMargin/CloseVBox/CloseButton
 @onready var concede_button        = $Panel/VBox/CloseMargin/CloseVBox/ConcedeButton
 @onready var close_x_button        = $Panel/VBox/TitleMargin/TitleRow/CloseXButton
 @onready var title_label           = $Panel/VBox/TitleMargin/TitleRow/Title
@@ -60,12 +63,14 @@ func _ready() -> void:
 		audio_tab_button:    audio_menu,
 		graphism_tab_button: graphism_menu,
 		control_tab_button:  control_menu,
+		gameplay_tab_button: gameplay_menu,
 	}
 
 	_style_all_buttons()
 	_style_danger_button(concede_button)
 	_style_danger_button(confirm_yes_button)
-	_style_close_x_button()
+	_style_button(close_x_button)
+	close_x_button.add_theme_font_size_override("font_size", 16)
 	# Concéder/Signaler/Appliquer : boutons secondaires, taille réduite par
 	# rapport aux onglets de la navbar (voir custom_minimum_size dans la scène).
 	concede_button.add_theme_font_size_override("font_size", 15)
@@ -97,13 +102,10 @@ func _ready() -> void:
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	# Le son de fermeture est joué dans close(), pas le clic générique
-	close_button.set_meta("no_click_sound", true)
-	close_button.pressed.connect(close)
 	close_x_button.set_meta("no_click_sound", true)
 	close_x_button.pressed.connect(close)
 
-	# En partie : pas de bouton Fermer (la croix suffit), et Concéder remplace Quitter.
-	close_button.visible = not show_quit
+	# En partie : Concéder remplace Quitter, la fermeture reste le bouton Retour.
 	concede_button.visible = show_quit
 	# Dans le menu principal, le signalement passe par un bouton dédié à côté
 	# du profil (voir MainMenu.tscn) — inutile de le dupliquer ici.
@@ -171,28 +173,11 @@ func show_report_view(allow_cheating: bool, reported_user_id: int, match_id: Str
 
 func _populate_report_categories(allow_cheating: bool) -> void:
 	report_category_select.clear()
-	report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
-	report_category_select.set_item_metadata(0, ReportDialog.TYPE_BUG)
-	if allow_cheating:
-		report_category_select.add_item(SettingsManager.t("REPORT_CATEGORY_CHEATING"))
-		report_category_select.set_item_metadata(1, ReportDialog.TYPE_CHEATING)
+	ReportDialog.populate_categories(report_category_select, allow_cheating)
 
 func _on_report_submit_pressed() -> void:
-	var description := report_text_edit.text.strip_edges()
-	if description.is_empty():
-		report_status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
-		return
-	var type_id: String = report_category_select.get_item_metadata(report_category_select.selected)
-	report_status_label.text = ""
-	report_submit_button.disabled = true
-	BackendClient.report_issue(type_id, description, _report_reported_user_id, _report_match_id, func(code: int, _parsed):
-		report_submit_button.disabled = false
-		if code == 200:
-			report_status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
-			report_text_edit.text = ""
-		else:
-			report_status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
-	)
+	ReportDialog.submit_inline(report_category_select, report_text_edit, report_status_label, report_submit_button,
+			_report_reported_user_id, _report_match_id)
 
 # Met à jour les libellés du menu racine dans la langue courante.
 func _retranslate() -> void:
@@ -200,7 +185,8 @@ func _retranslate() -> void:
 	audio_tab_button.text      = SettingsManager.t("settings.audio")
 	graphism_tab_button.text   = SettingsManager.t("settings.graphics")
 	control_tab_button.text    = SettingsManager.t("settings.controls")
-	close_button.text          = SettingsManager.t("settings.close")
+	gameplay_tab_button.text   = SettingsManager.t("settings.gameplay")
+	close_x_button.text        = SettingsManager.t("ui.back")
 	concede_button.text        = SettingsManager.t("settings.concede")
 	confirm_message.text       = SettingsManager.t("settings.concede_confirm_message")
 	confirm_cancel_button.text = SettingsManager.t("settings.concede_confirm_cancel")
@@ -214,7 +200,7 @@ func _retranslate() -> void:
 	report_submit_button.text  = SettingsManager.t("REPORT_SUBMIT")
 
 func _style_all_buttons() -> void:
-	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, close_button, confirm_cancel_button]:
+	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, gameplay_tab_button, report_button, confirm_cancel_button]:
 		_style_button(btn)
 
 # Boutons dangereux (Concéder, confirmation) : même forme que les autres mais habillage rouge sang.
@@ -280,25 +266,6 @@ func _style_apply_button(active: bool) -> void:
 	apply_button.add_theme_color_override("font_hover_color", font_color)
 	apply_button.add_theme_color_override("font_disabled_color", font_color)
 	apply_button.disabled = not active
-
-# Petite croix discrète en haut à droite de la popup.
-func _style_close_x_button() -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color                   = Color(0, 0, 0, 0)
-	normal.corner_radius_top_left     = 6
-	normal.corner_radius_top_right    = 6
-	normal.corner_radius_bottom_left  = 6
-	normal.corner_radius_bottom_right = 6
-	close_x_button.add_theme_stylebox_override("normal", normal)
-	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color = Color("8b1a1a55")
-	close_x_button.add_theme_stylebox_override("hover", hover)
-	var pressed_style := normal.duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color("8b1a1a88")
-	close_x_button.add_theme_stylebox_override("pressed", pressed_style)
-	close_x_button.add_theme_color_override("font_color",       Color("e8d5a3"))
-	close_x_button.add_theme_color_override("font_hover_color", Color("fff0f0"))
-	close_x_button.add_theme_font_size_override("font_size", 18)
 
 # Style navbar/action commun. Les onglets utilisent toggle_mode : le style
 # "pressed" reste donc affiché en continu tant que l'onglet est actif, ce qui

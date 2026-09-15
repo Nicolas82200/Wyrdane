@@ -95,6 +95,11 @@ var net_local_first: bool = true
 # si l'un des deux camps n'était pas authentifié au moment du handshake.
 var net_opponent_backend_id: int = 0
 var net_client_match_id: String = ""
+# Preuve d'appariement classé émise par le backend au matchmaking (voir
+# MatchmakingOverlay._on_ranked_matched, TODO.md P9 côté wyrdane-backend) —
+# vide pour une Partie rapide/Contre un ami (pas d'appariement backend, donc
+# pas de jeton à fournir). Transmis tel quel au rapport de fin de match.
+var net_match_session_token: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -120,11 +125,18 @@ var combat_log_panel: CombatLogPanel
 # Glossaire des mots-clés/déclencheurs consultable via le bouton "?", créé en
 # code pour ne pas toucher Battle.tscn (voir KeywordGlossaryPanel).
 var glossary_panel: KeywordGlossaryPanel
+# Menu d'emotes cosmétiques (voir EmoteWheel), créé en code — pas de nœud
+# dans Battle.tscn, même convention que glossary_panel ci-dessus.
+var emote_wheel: EmoteWheel
 # Décompte du temps de tour du joueur local, créé en code (voir TurnTimer).
 var turn_timer: TurnTimer
 # Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
 # (voir ReconnectOverlay). Reste inutilisé/masqué en solo.
 var reconnect_overlay: ReconnectOverlay
+# Popup Oui/Non générique (voir ConfirmActionPopup), utilisée par SelectionSystem/
+# SacrificeSystem quand SettingsManager.confirm_before_attack/confirm_before_sacrifice
+# est actif. Créée en code (voir _init_systems), jamais nulle une fois la partie lancée.
+var confirm_popup: ConfirmActionPopup
 
 var effect_manager := EffectManager.new()
 # Tutoriel obligatoire du nouveau joueur (voir TutorialContext/TutorialManager) :
@@ -168,8 +180,12 @@ var player_used_back_row_this_match: bool = false
 var player_commandement_triggers_this_match: int = 0
 var player_black_blood_triggers_this_match: int = 0
 var deck_has_legendary: bool = false
+# Horodatage de début de match, pour la durée affichée dans l'historique local
+# de parties (voir SettingsManager.record_match_history_entry/_record_match_history)
+# et sur l'écran de fin (voir GameOverScreen.show_stats).
+var match_start_msec: int = 0
 # Ce match provient-il de la file d'appariement classé (bouton "Partie
-# classée" de NetLobby) plutôt que d'une "Partie rapide" ? Le backend ne fait
+# classée" du popup Multijoueur) plutôt que d'une "Partie rapide" ? Le backend ne fait
 # lui-même aucune distinction entre les deux (voir CLAUDE.md § Ranked) : ce
 # flag n'existe que côté client, propagé via NetContext.setup.
 var is_ranked_match: bool = false
@@ -224,6 +240,7 @@ func _ready() -> void:
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
+	match_start_msec = Time.get_ticks_msec()
 	player_hero = Hero.new(30)
 	player_min_hp_this_match = player_hero.health
 	# HP réduits en tutoriel : l'adversaire scripté ne joue que 2 serviteurs et
@@ -301,8 +318,14 @@ func _init_systems() -> void:
 	glossary_panel = KeywordGlossaryPanel.new()
 	add_child(glossary_panel)
 	help_button.pressed.connect(glossary_panel.toggle)
+	emote_wheel = EmoteWheel.new()
+	emote_wheel.position = Vector2(16, 70)
+	emote_wheel.emote_picked.connect(_on_emote_picked)
+	add_child(emote_wheel)
 	reconnect_overlay = ReconnectOverlay.new()
 	add_child(reconnect_overlay)
+	confirm_popup = ConfirmActionPopup.new()
+	add_child(confirm_popup)
 	turn_timer = TurnTimer.new()
 	turn_timer.timeout.connect(_on_turn_timer_timeout)
 	# Enfant du bouton lui-même (comme le halo "ready hint" de EndTurnButton) :
@@ -331,6 +354,7 @@ func _connect_signals() -> void:
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
+	game_over_screen.add_friend_requested.connect(_on_add_friend_pressed)
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
@@ -576,6 +600,11 @@ func _on_targeting_cancelled() -> void:
 	pending_insert_index = -1
 	hand.set_hand(hand_cards)
 
+# Comme _on_targeting_cancelled, sans le refresh de main : utilisée par
+# CardSystem une fois la carte déjà consommée (jouée ou annulée par un
+# contre-sort, retirée en cimetière) — la main n'a alors pas besoin d'être
+# réaffichée avec la carte dedans, contrairement à une annulation par le
+# joueur où le pending_card doit visuellement redevenir jouable.
 func reset_targeting_state() -> void:
 	waiting_for_target   = false
 	pending_card         = null
@@ -672,6 +701,35 @@ func _can_attack_hero(attacker: Minion) -> bool:
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
 
+# Réglage "Auto-passe du tour" (voir SettingsManager.auto_pass_turn) : ne
+# déclenche la fin de tour automatique QUE dans le cas sans ambiguïté où main
+# vide + aucun serviteur ne peut plus attaquer — jamais sur une simple estimation
+# d'affordabilité, pour ne jamais couper un tour où une action resterait
+# possible. Ne couvre donc pas le cas rare (mais inoffensif) d'un Rituel de
+# Sacrifice encore activable avec la main vide et plus aucune attaque.
+# Appelé après chaque carte jouée par CardSystem/Battle.play_resource_card et
+# après chaque résolution d'attaque par SelectionSystem.
+func check_auto_pass_turn() -> void:
+	if not SettingsManager.auto_pass_turn:
+		return
+	if not _can_auto_pass_now():
+		return
+	await get_tree().create_timer(0.6).timeout
+	# Re-vérifie après le délai : l'état a pu changer entre-temps (Dernier
+	# Souffle qui repioche une carte, mort différée, etc.).
+	if _can_auto_pass_now():
+		turn_system.end_turn()
+
+func _can_auto_pass_now() -> bool:
+	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active:
+		return false
+	if not hand_cards.is_empty():
+		return false
+	for m in player_minions:
+		if not m.is_dead() and m.can_attack():
+			return false
+	return true
+
 func check_game_end() -> void:
 	if game_over:
 		return
@@ -680,8 +738,75 @@ func check_game_end() -> void:
 		turn_timer.stop()
 		_show_game_over("defeat" if player_hero.is_dead() else "victory")
 
+# Enregistre cette partie dans l'historique local (voir SettingsManager.
+# match_history) — nom/race de l'adversaire réel en réseau, "IA" en solo
+# (AISystem n'expose pas de "nom" à proprement parler).
+func _record_match_history(result: String) -> void:
+	var opponent_name: String
+	var opponent_race: String
+	if network_manager != null:
+		var remote_name := network_manager.remote_display_name()
+		opponent_name = remote_name if remote_name != "" else SettingsManager.t("NET_VS_OPPONENT")
+		opponent_race = Race.deck_race_label(NetContext.setup.get("opponent_deck", []))
+	else:
+		opponent_name = SettingsManager.t("MATCH_HISTORY_AI_OPPONENT")
+		opponent_race = ""
+	SettingsManager.record_match_history_entry({
+		"result": result,
+		"opponent_name": opponent_name,
+		"opponent_race": opponent_race,
+		"duration_sec": (Time.get_ticks_msec() - match_start_msec) / 1000,
+		"timestamp": Time.get_unix_time_from_system(),
+	})
+
 # Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
 # l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
+# ─── Emotes ───────────────────────────────────────────────────────────────────
+# Purement cosmétique (voir EmoteWheel/NetCommand.EMOTE) : jamais de texte
+# libre, jamais d'impact sur l'état de partie.
+
+func _on_emote_picked(emote_id: int) -> void:
+	_show_emote_bubble(EmoteWheel.text_for(emote_id), true)
+	if net_emitter != null:
+		net_emitter.emote(emote_id)
+
+# Appelé par NetworkOpponent à la réception d'un NetCommand.EMOTE du pair.
+func show_enemy_emote(emote_id: int) -> void:
+	_show_emote_bubble(EmoteWheel.text_for(emote_id), false)
+
+const EMOTE_BUBBLE_HOLD_TIME := 2.0
+const EMOTE_BUBBLE_FADE_TIME := 0.3
+
+func _show_emote_bubble(text: String, is_player: bool) -> void:
+	if text == "":
+		return
+	var panel_name := "PlayerHeroPanel" if is_player else "EnemyHeroPanel"
+	var hero_panel: Control = get_node_or_null(panel_name)
+	if hero_panel == null:
+		return
+	var bubble := Label.new()
+	bubble.text = text
+	bubble.add_theme_font_size_override("font_size", 22)
+	bubble.add_theme_color_override("font_color", Color("e8d5a3"))
+	bubble.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	bubble.add_theme_constant_override("shadow_offset_x", 2)
+	bubble.add_theme_constant_override("shadow_offset_y", 2)
+	bubble.z_index = 120
+	bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bubble)
+	await get_tree().process_frame
+	var hero_rect: Rect2 = hero_panel.get_global_rect()
+	bubble.global_position = Vector2(
+		hero_rect.position.x + hero_rect.size.x / 2.0 - bubble.size.x / 2.0,
+		hero_rect.position.y - bubble.size.y - 12.0,
+	)
+	bubble.modulate.a = 0.0
+	var tween: Tween = create_tween()
+	tween.tween_property(bubble, "modulate:a", 1.0, EMOTE_BUBBLE_FADE_TIME)
+	tween.tween_interval(EMOTE_BUBBLE_HOLD_TIME)
+	tween.tween_property(bubble, "modulate:a", 0.0, EMOTE_BUBBLE_FADE_TIME)
+	tween.tween_callback(bubble.queue_free)
+
 func _show_game_over(result: String) -> void:
 	await get_tree().create_timer(1.0).timeout
 	if tutorial_active and result == "victory":
@@ -689,13 +814,29 @@ func _show_game_over(result: String) -> void:
 		return
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
+		_record_match_history(result)
+		if network_manager != null:
+			var opponent_name := network_manager.remote_display_name()
+			if opponent_name != "":
+				SettingsManager.record_recent_opponent(opponent_name)
+	SettingsManager.last_match_log = combat_log.entries.duplicate()
 	if result == "victory":
 		AchievementManager.on_victory(self)
 	elif result == "defeat":
 		AchievementManager.on_defeat()
-	game_over_screen.show_result(result, network_manager == null)
+	game_over_screen.show_result(result, network_manager == null, network_manager != null)
+	game_over_screen.set_replay_available(not SettingsManager.last_match_log.is_empty())
+	if result == "victory" or result == "defeat":
+		game_over_screen.show_stats({
+			"duration_sec": (Time.get_ticks_msec() - match_start_msec) / 1000,
+		})
+		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races)
+			cards_played_by_race, deck_races, net_match_session_token)
+
+func _on_add_friend_pressed() -> void:
+	if network_manager != null:
+		network_manager.open_add_friend_overlay()
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 

@@ -1,0 +1,275 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/net/MatchmakingOverlay.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://cpfn47clxbg2q" path="res://assets/fonts/MedievalSharp-Bold.ttf" id="2_title"]
+[ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="5_bgstill"]
+[ext_resource type="FontFile" uid="uid://bgjwv87aaofb7" path="res://assets/fonts/CrimsonText-Italic.ttf" id="6_subtitle"]
+[ext_resource type="Script" path="res://scripts/ui/RingSpinner.gd" id="7_ring"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.043, 0.035, 0.024, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.41, 0.08, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 10
+
+[node name="MatchmakingOverlay" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1")
+
+[node name="SearchBanner" type="PanelContainer" parent="."]
+visible = false
+theme = ExtResource("3_theme")
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -380.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = 122.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="SearchBannerMargin" type="HBoxContainer" parent="SearchBanner"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SearchBannerSpinner" type="Control" parent="SearchBanner/SearchBannerMargin"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+size_flags_vertical = 4
+script = ExtResource("7_ring")
+
+[node name="SearchBannerTextBox" type="VBoxContainer" parent="SearchBanner/SearchBannerMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="SearchBannerModeLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_font_sizes/font_size = 13
+text = "Classé"
+clip_text = true
+
+[node name="SearchBannerLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "Recherche d'adversaire…"
+clip_text = true
+autowrap_mode = 2
+
+[node name="SearchBannerAvgLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.65)
+theme_override_font_sizes/font_size = 12
+text = "Temps d'attente moyen : ~1:00"
+clip_text = true
+
+[node name="SearchBannerCancel" type="Button" parent="SearchBanner/SearchBannerMargin"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 16
+text = "✕"
+
+[node name="MatchFoundOverlay" type="Control" parent="."]
+visible = false
+theme = ExtResource("3_theme")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="OverlayBackground" type="TextureRect" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_bgstill")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="OverlayDim" type="ColorRect" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="OverlayCenter" type="CenterContainer" parent="MatchFoundOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayVBox" type="VBoxContainer" parent="MatchFoundOverlay/OverlayCenter"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="OverlaySpinner" type="Control" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("7_ring")
+line_width = 5.0
+
+[node name="OverlayPhaseLabel" type="Label" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 30
+text = "Adversaire trouvé !"
+horizontal_alignment = 1
+
+[node name="OverlayTipLabel" type="Label" parent="MatchFoundOverlay/OverlayCenter/OverlayVBox"]
+custom_minimum_size = Vector2(560, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 22
+text = "Astuce : ..."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="VsOverlay" type="Control" parent="."]
+visible = false
+theme = ExtResource("3_theme")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="VsBackground" type="TextureRect" parent="VsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_bgstill")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="VsDim" type="ColorRect" parent="VsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="VsCenter" type="CenterContainer" parent="VsOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VsHBox" type="HBoxContainer" parent="VsOverlay/VsCenter"]
+layout_mode = 2
+theme_override_constants/separation = 56
+alignment = 1
+
+[node name="LocalSide" type="VBoxContainer" parent="VsOverlay/VsCenter/VsHBox"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LocalNameLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/LocalSide"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 32
+text = "Vous"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="LocalRaceLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/LocalSide"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="VsLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.75, 0.15, 0.15, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 48
+text = "VS"
+
+[node name="RemoteSide" type="VBoxContainer" parent="VsOverlay/VsCenter/VsHBox"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RemoteNameLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/RemoteSide"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_title")
+theme_override_font_sizes/font_size = 32
+text = "Adversaire"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="RemoteRaceLabel" type="Label" parent="VsOverlay/VsCenter/VsHBox/RemoteSide"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2

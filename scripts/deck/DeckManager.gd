@@ -171,6 +171,39 @@ func race_warnings(deck: DeckData) -> Array[String]:
 func _race_label(race: int) -> String:
 	return SettingsManager.t("RACE_" + Race.Type.keys()[race])
 
+## Ratio de cartes-ressource suggéré selon le coût moyen des cartes jouables
+## du deck (formule README « Système de Ressources par Race » : plus le deck
+## est cher en moyenne, plus il a besoin de ressources pour suivre) :
+##   ratio = clamp(15% + (coût_moyen - 1) × 6%, min 15%, max 45%)
+## Un deck sans carte jouable (coût moyen indéfini) retombe sur le ratio
+## plancher de 15%.
+func suggested_resource_ratio(deck: DeckData) -> float:
+	var avg_cost := _average_playable_cost(deck)
+	if avg_cost <= 0.0:
+		avg_cost = 1.0
+	return clampf(0.15 + (avg_cost - 1.0) * 0.06, 0.15, 0.45)
+
+func _average_playable_cost(deck: DeckData) -> float:
+	if deck == null:
+		return 0.0
+	var total_cost := 0
+	var count := 0
+	for card in deck.get_cards():
+		if card.card_type != "Resource":
+			total_cost += card.cost
+			count += 1
+	return 0.0 if count == 0 else float(total_cost) / count
+
+## Nombre de cartes-ressource suggéré = taille du deck (au moins le minimum
+## légal, pour rester pertinent tant que le deck n'atteint pas 50 cartes)
+## multipliée par suggested_resource_ratio, jamais sous MIN_RESOURCE_CARDS.
+func suggested_resource_count(deck: DeckData) -> int:
+	if deck == null:
+		return MIN_RESOURCE_CARDS
+	var total_size: int = max(deck.get_cards().size(), MIN_TOTAL_CARDS)
+	var suggested := int(round(total_size * suggested_resource_ratio(deck)))
+	return max(MIN_RESOURCE_CARDS, suggested)
+
 ## Toutes les raisons pour lesquelles ce deck ne respecte pas les règles
 ## minimales (nombre de cartes + race_warnings ci-dessus), textes déjà
 ## traduits, vide si le deck est valide. Centralisé ici pour être réutilisable

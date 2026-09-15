@@ -30,7 +30,7 @@ var is_host: bool = false
 # Raisons de coupure considérées transitoires (P2P Steam qui lâche) : on
 # tente une reconnexion avant d'abandonner. Toute autre raison (départ
 # volontaire du lobby, échec de recherche...) est traitée en direct comme
-# définitive — voir NetLobby et SteamTransport pour leur origine.
+# définitive — voir MatchmakingOverlay et SteamTransport pour leur origine.
 const RECONNECTABLE_REASONS := ["steam_p2p_failed"]
 const RECONNECT_GRACE_SECONDS := 20.0
 const RECONNECT_RETRY_INTERVAL := 2.0
@@ -70,10 +70,19 @@ func invite_friends() -> void:
 	if transport != null:
 		transport.invite_friends()
 
+# Voir NetTransport.open_add_friend_overlay.
+func open_add_friend_overlay() -> void:
+	if transport != null:
+		transport.open_add_friend_overlay()
+
+# Nom d'affichage du pair distant (voir NetTransport.remote_display_name).
+# Chaîne vide si transport absent ou backend incapable de le fournir.
+func remote_display_name() -> String:
+	return transport.remote_display_name() if transport != null else ""
+
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
 func _setup_transport(backend: TransportFactory.Backend) -> void:
-	print("[NetworkManager] _setup_transport  ancien_transport=%s" % [transport])
 	if transport != null:
 		transport.close()
 		transport.queue_free()
@@ -81,7 +90,6 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 	add_child(transport)
 	_reconnecting = false
 	transport.connected.connect(func() -> void:
-		print("[NetworkManager] transport.connected reçu")
 		if _reconnecting:
 			_reconnecting = false
 			connection_restored.emit()
