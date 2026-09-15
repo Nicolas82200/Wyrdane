@@ -16,9 +16,6 @@ const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # et au plateau (BoardMinion, EnchantmentCard) pour une taille de zoom
 # cohérente partout.
 const HOVER_ZOOM_SCALE    := 1.2375
-# Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
-# DeckBuilder.MAXED_TINT).
-const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Teinte d'une carte sélectionnée pour la défausse de fin de tour (limite 10
 # cartes en main, voir Hand.set_discard_mode) — rougeâtre pour se distinguer
 # du grisé neutre du mulligan.
@@ -73,9 +70,10 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#1e0308d6"),
 }
 
-# Fond de DescLabel : fraction de l'opacité de RACE_COLORS appliquée (plus
-# transparent que le fond de NameLabel, qui garde l'opacité pleine de RACE_COLORS).
-const DESC_BG_ALPHA_FACTOR := 0.45
+# Fond de NameLabel/DescLabel : fraction de l'opacité de RACE_COLORS appliquée
+# aux deux (laisse un peu plus transparaître l'illustration derrière le texte
+# sans le rendre illisible).
+const LABEL_BG_ALPHA_FACTOR := 0.7
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
@@ -151,9 +149,6 @@ var data: CardData
 var drag_enabled := true
 # En phase de mulligan : un simple clic remplace la carte, aucun drag possible.
 var mulligan_mode := false
-# Cette carte a déjà été échangée pendant le mulligan en cours : grisée, plus
-# cliquable tant que la phase de mulligan n'est pas terminée.
-var mulligan_swapped := false
 # En phase de défausse de fin de tour (limite 10 cartes) : un simple clic
 # sélectionne/désélectionne la carte pour la défausse, aucun drag possible —
 # même patron que mulligan_mode.
@@ -470,24 +465,16 @@ func _apply_resource_icon() -> void:
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
-	_name_bg_style.bg_color = race_color
-	# Fond de la description plus transparent que celui du nom : laisse
-	# davantage transparaître l'illustration derrière le texte d'effet.
-	var desc_color := race_color
-	desc_color.a *= DESC_BG_ALPHA_FACTOR
-	_desc_bg_style.bg_color = desc_color
+	var label_color := race_color
+	label_color.a *= LABEL_BG_ALPHA_FACTOR
+	_name_bg_style.bg_color = label_color
+	_desc_bg_style.bg_color = label_color
 	# Badge de coût "race" teinté par la race de la carte : distingue au premier
 	# coup d'œil le mana verrouillé (icône/couleur) du mana générique à côté.
 	var cost_color := race_color
 	cost_color.a = 0.9
 	_cost_bg_style.bg_color = cost_color
 	_cost_bg_style.border_color = cost_color
-
-# ─── Mulligan ─────────────────────────────────────────────────────────────────
-
-func set_mulligan_swapped(swapped: bool) -> void:
-	mulligan_swapped = swapped
-	modulate = MULLIGAN_SWAPPED_TINT if swapped else Color.WHITE
 
 func set_discard_selected(selected: bool) -> void:
 	discard_selected = selected
