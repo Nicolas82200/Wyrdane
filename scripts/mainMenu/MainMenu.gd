@@ -12,7 +12,7 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
-enum ShopTab { PACKS, CARD_BACKS }
+enum ShopTab { PACKS, CARD_BACKS, COLLECTION }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -103,6 +103,9 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_card_backs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll
 @onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
 @onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
+@onready var shop_collection_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCollectionTabButton
+@onready var shop_collection_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll
+@onready var shop_collection_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll/CollectionSection
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -190,6 +193,7 @@ func _ready() -> void:
 	pack_shop.close_x_button.hide()
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
+	shop_collection_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.COLLECTION))
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
@@ -387,14 +391,20 @@ func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
 	pack_shop.visible = tab == ShopTab.PACKS
 	shop_card_backs_scroll.visible = tab == ShopTab.CARD_BACKS
+	shop_collection_scroll.visible = tab == ShopTab.COLLECTION
 	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
 	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
+	shop_collection_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.COLLECTION else Color.WHITE
 	if tab == ShopTab.PACKS:
 		if pack_shop.has_method("refresh"):
 			pack_shop.refresh()
 	elif tab == ShopTab.CARD_BACKS:
 		# Reconstruit à chaque affichage pour refléter la sélection courante.
 		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
+	elif tab == ShopTab.COLLECTION:
+		# Reconstruit à chaque affichage pour refléter la collection à jour
+		# (achat de carte, ouverture de pack depuis le dernier passage).
+		ShopCollectionPanel.build_into(shop_collection_section)
 
 # Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
 # menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
@@ -843,6 +853,7 @@ func _retranslate() -> void:
 	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
 	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
 	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
+	shop_collection_tab_button.text = SettingsManager.t("SHOP_TAB_COLLECTION")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
