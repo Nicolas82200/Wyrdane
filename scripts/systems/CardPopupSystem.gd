@@ -5,7 +5,9 @@ const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 # Temps de lecture, popup en place, AVANT que l'effet ne se joue
 const READ_HOLD = 0.4
 # Temps où la popup reste affichée pendant/après la résolution de l'effet
-const DISPLAY_DURATION = 0.6
+# (0.6 -> 0.9, +50% : le temps de lecture précédent laissait trop peu de
+# temps pour lire la description avant que la popup ne s'efface)
+const DISPLAY_DURATION = 0.9
 # Temps où la popup d'une carte-ressource reste affichée avant de se désintégrer
 # vers le pool de mana (voir show_resource_popup / _absorb_resource_popup)
 const RESOURCE_HOLD = 0.5
@@ -92,7 +94,10 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		card.position.x = -card.size.x
 		card.scale = Vector2(STACK_SCALE, STACK_SCALE)
 
-	var entry := {"card": card, "shown": false, "source_minion": source_minion}
+	var entry := {
+		"card": card, "shown": false, "source_minion": source_minion,
+		"origin": origin, "has_origin": has_origin,
+	}
 	# Un nouvel effet déclenché passe DEVANT la file : il se jouera en premier
 	_pending.push_front(entry)
 	_reflow_pending()
@@ -197,6 +202,20 @@ func _play_popup(entry: Dictionary) -> void:
 	# qui n'ont pas de serviteur source.
 	_set_source_highlight(entry, true)
 
+	# Trait reliant la carte/serviteur source à cette popup (voir
+	# PreviewLinkOverlay), pour que le joueur identifie qui a déclenché
+	# l'effet prévisualisé — absent pour les cartes-ressource (pas de source
+	# à relier) ou si la source a quitté le plateau (voir show_card_popup).
+	# Instance locale à cet appel : deux popups jouées en léger recouvrement
+	# (fondu de sortie de l'une pendant l'entrée de la suivante, voir plus
+	# bas) ont donc chacune leur propre trait, jamais partagé ni réutilisé.
+	var link: PreviewLinkOverlay = null
+	if not is_resource and entry.get("has_origin", false):
+		link = PreviewLinkOverlay.new()
+		_popup_layer.add_child(link)
+		var link_to: Vector2 = card.get_screen_position() + Vector2(0.0, card.size.y * 0.5)
+		link.show_link(entry["origin"], link_to)
+
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
 	await battle.get_tree().create_timer(READ_HOLD).timeout
@@ -217,7 +236,7 @@ func _play_popup(entry: Dictionary) -> void:
 	_active_card = null
 	_set_source_highlight(entry, false)
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
-	_fade_out_popup(card)
+	_fade_out_popup(card, link)
 
 # Active/désactive le halo de preview sur le serviteur source de cette popup
 # (absent pour les cartes-ressource, ou si le serviteur a quitté le plateau
@@ -245,14 +264,20 @@ func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
 	else:
 		card.queue_free()
 
-func _fade_out_popup(card: Card) -> void:
+func _fade_out_popup(card: Card, link: PreviewLinkOverlay = null) -> void:
 	_kill_popup_tween(card)
 	var t_out = card.create_tween().set_parallel(true)
 	t_out.tween_property(card, "scale", card.scale * 0.8, 0.15)\
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	t_out.tween_property(card, "modulate:a", 0.0, 0.15)
+	# Le trait vers la source (s'il y en a un) s'efface en même temps que la
+	# popup, pour ne jamais laisser un trait affiché sans popup à son bout.
+	if link != null and is_instance_valid(link):
+		t_out.tween_property(link, "modulate:a", 0.0, 0.15)
 	await t_out.finished
 	card.queue_free()
+	if link != null and is_instance_valid(link):
+		link.queue_free()
 
 # ── Courbe d'effet : de la popup vers les cibles ──────────────────────────────
 
