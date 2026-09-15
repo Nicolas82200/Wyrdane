@@ -123,14 +123,13 @@ anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
 
-[node name="LaneIcon" type="TextureRect" parent="." unique_id=1153858896]
-modulate = Color(1, 1, 1, 0.42)
-custom_minimum_size = Vector2(140, 140)
+[node name="CardTypeIcon" type="TextureRect" parent="." unique_id=1153858896]
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 0
-offset_left = 55.0
-offset_top = 187.5
-offset_right = 195.0
-offset_bottom = 327.5
+offset_left = 22.0
+offset_top = 22.0
+offset_right = 56.0
+offset_bottom = 56.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
