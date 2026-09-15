@@ -143,6 +143,7 @@ const RACE_RESOURCE_ICONS := {
 @onready var border: TextureRect       = $BorderFrame
 @onready var type_label: Label         = $TypeLabel
 @onready var card_type_icon: TextureRect = $CardTypeIcon
+@onready var card_type_icon_bg: Panel   = $CardTypeIconBg
 @onready var resource_icon: TextureRect = $ResourceIcon
 
 var data: CardData
@@ -290,6 +291,7 @@ func update_display() -> void:
 			card_type_icon.texture = TYPE_ICONS[data.card_type]
 	if card_type_icon.visible:
 		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
+	card_type_icon_bg.visible = card_type_icon.visible
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][i]" + data.display_flavour() + "[/i][/center]"
@@ -675,6 +677,7 @@ func show_back(show_card_back: bool) -> void:
 		desc_label.hide()
 		border.hide()
 		card_type_icon.hide()
+		card_type_icon_bg.hide()
 		type_label.hide()
 		resource_icon.hide()
 	else:

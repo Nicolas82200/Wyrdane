@@ -11,6 +11,14 @@ class_name ArenaPlayerState
 var display_name: String
 var is_bot: bool = false
 var is_eliminated: bool = false
+# Identifiant de siège stable, assigné par ArenaMatch._init (index dans le
+# tableau `players` à la construction, sauf si déjà assigné avant). Contrairement
+# à get_instance_id() (interne à Godot, jamais partageable entre clients),
+# ArenaPairing s'appuie sur cet identifiant dès qu'il est assigné (>= 0) pour
+# ses clés d'appariement — base nécessaire pour un futur appariement
+# synchronisé en réseau, où chaque client doit calculer la même clé pour le
+# même siège logique.
+var seat_id: int = -1
 
 var hero_hp: int = ArenaConstants.STARTING_HERO_HP
 var gold: int = ArenaConstants.STARTING_GOLD
