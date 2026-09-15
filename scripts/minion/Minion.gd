@@ -75,7 +75,7 @@ var infected: bool:
 		else:
 			infection_stacks = 0
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
-var revenant_triggered: bool = false    # REVENANT : une seule fois par partie
+var revenant_triggered: bool = false    # REVENANT : une seule fois par pose (nouvelle instance Minion à chaque redéploiement, donc réinitialisé de fait)
 var awakened: bool = false
 var declined: bool = false
 var sacrificed: bool = false

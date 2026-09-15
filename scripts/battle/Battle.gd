@@ -95,6 +95,11 @@ var net_local_first: bool = true
 # si l'un des deux camps n'était pas authentifié au moment du handshake.
 var net_opponent_backend_id: int = 0
 var net_client_match_id: String = ""
+# Preuve d'appariement classé émise par le backend au matchmaking (voir
+# MatchmakingOverlay._on_ranked_matched, TODO.md P9 côté wyrdane-backend) —
+# vide pour une Partie rapide/Contre un ami (pas d'appariement backend, donc
+# pas de jeton à fournir). Transmis tel quel au rapport de fin de match.
+var net_match_session_token: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -596,6 +601,11 @@ func _on_targeting_cancelled() -> void:
 	pending_insert_index = -1
 	hand.set_hand(hand_cards)
 
+# Comme _on_targeting_cancelled, sans le refresh de main : utilisée par
+# CardSystem une fois la carte déjà consommée (jouée ou annulée par un
+# contre-sort, retirée en cimetière) — la main n'a alors pas besoin d'être
+# réaffichée avec la carte dedans, contrairement à une annulation par le
+# joueur où le pending_card doit visuellement redevenir jouable.
 func reset_targeting_state() -> void:
 	waiting_for_target   = false
 	pending_card         = null
@@ -806,7 +816,6 @@ func _show_game_over(result: String) -> void:
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
 		_record_match_history(result)
-		SettingsManager.award_account_xp(SettingsManager.ACCOUNT_XP_WIN if result == "victory" else SettingsManager.ACCOUNT_XP_LOSS)
 		if network_manager != null:
 			var opponent_name := network_manager.remote_display_name()
 			if opponent_name != "":
@@ -824,7 +833,7 @@ func _show_game_over(result: String) -> void:
 		})
 		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races)
+			cards_played_by_race, deck_races, net_match_session_token)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:

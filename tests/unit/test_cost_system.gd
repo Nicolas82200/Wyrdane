@@ -62,6 +62,23 @@ func test_expire_end_of_player_turn_clears_all_discounts() -> void:
 	cost_system.expire_end_of_player_turn()
 	assert_eq(cost_system.get_cost(card, true), 3)
 
+func test_temp_discount_is_scoped_per_camp() -> void:
+	# Même instance CardData partagée entre les deux camps (cas réel : deck
+	# joueur et deck IA piochant la même carte .tres) : une remise gagnée par
+	# un camp ne doit pas s'appliquer à l'autre.
+	var card := _card(3)
+	cost_system.add_temp_discount(card, 2, false)
+	assert_eq(cost_system.get_cost(card, true), 3, "la remise adverse ne doit pas fuiter vers le joueur")
+	assert_eq(cost_system.get_cost(card, false), 1)
+
+func test_expire_end_of_enemy_turn_clears_only_enemy_discounts() -> void:
+	var card := _card(3)
+	cost_system.add_temp_discount(card, 2, true)
+	cost_system.add_temp_discount(card, 1, false)
+	cost_system.expire_end_of_enemy_turn()
+	assert_eq(cost_system.get_cost(card, true), 1, "la remise joueur ne doit pas expirer à la fin du tour adverse")
+	assert_eq(cost_system.get_cost(card, false), 3, "la remise adverse doit expirer à la fin du tour adverse")
+
 func test_aura_spell_cost_reduction_applies_to_spells_only() -> void:
 	var enchant := _enchantment("AuraSpellCostReduction", 1)
 	battle.trigger_system.active_enchantments[true] = [{"card_data": enchant}]

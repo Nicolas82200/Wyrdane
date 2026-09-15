@@ -74,7 +74,7 @@ func process_deaths(silent: Array = []) -> void:
 	battle.board_visual_system.refresh_board()
 	await process_deaths()
 
-# REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par partie.
+# REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par pose.
 # Un Sacrifice volontaire consomme le serviteur normalement (pas de relève).
 # Retourne true si au moins un serviteur a été relevé.
 func _apply_revenant(minions: Array[Minion]) -> bool:

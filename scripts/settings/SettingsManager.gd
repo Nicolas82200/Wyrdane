@@ -14,7 +14,6 @@ signal ai_difficulty_changed(level: String)
 signal display_settings_changed
 signal keybind_changed(action: String, keycode: int)
 signal match_stats_changed(wins: int, losses: int)
-signal account_xp_changed(total_xp: int)
 signal reduced_motion_changed(enabled: bool)
 signal high_contrast_changed(enabled: bool)
 
@@ -83,9 +82,9 @@ var referral_prompt_seen: bool = false
 # réseau, tutoriel exclu (voir Battle._show_game_over).
 # Journal de combat (voir CombatLogSystem.entries) de la toute dernière
 # partie jouée — mémoire uniquement, jamais persisté sur disque (référence
-# des Texture2D des cartes, contrairement à match_history/account_xp ci-
-# dessous). Alimente le bouton "Voir le replay" de GameOverScreen ; vide dès
-# le lancement d'une nouvelle partie ou la fermeture du jeu.
+# des Texture2D des cartes, contrairement à match_history ci-dessous).
+# Alimente le bouton "Voir le replay" de GameOverScreen ; vide dès le
+# lancement d'une nouvelle partie ou la fermeture du jeu.
 var last_match_log: Array = []
 var match_wins: int = 0
 var match_losses: int = 0
@@ -104,13 +103,6 @@ var high_hp_win_streak: int = 0
 # moins une victoire — succès Steam "Panoplie complète", voir
 # AchievementManager.ACH_FULL_ROSTER.
 var races_won_with: Array = []
-# Niveau de compte — progression purement locale (même statut que match_wins
-# ci-dessus, aucune notion de niveau côté backend : monnaie/cartes
-# restent entièrement autoritaires côté serveur).
-var account_xp: int = 0
-const ACCOUNT_XP_PER_LEVEL := 1000
-const ACCOUNT_XP_WIN := 150
-const ACCOUNT_XP_LOSS := 50
 # Pseudos des derniers adversaires réseau affrontés (le plus récent en tête),
 # purement local — jamais leur SteamID64 (voir NetTransport.remote_display_name/
 # règle "aucun identifiant Steam ne fuit hors de SteamTransport"). "Ajouter en
@@ -213,19 +205,6 @@ func record_match_history_entry(entry: Dictionary) -> void:
 	if match_history.size() > MATCH_HISTORY_MAX_ENTRIES:
 		match_history.resize(MATCH_HISTORY_MAX_ENTRIES)
 	_save()
-
-func account_level() -> int:
-	return (account_xp / ACCOUNT_XP_PER_LEVEL) + 1
-
-func account_xp_into_level() -> int:
-	return account_xp % ACCOUNT_XP_PER_LEVEL
-
-func award_account_xp(amount: int) -> void:
-	if amount <= 0:
-		return
-	account_xp += amount
-	_save()
-	account_xp_changed.emit(account_xp)
 
 func record_recent_opponent(opponent_name: String) -> void:
 	recent_opponents.erase(opponent_name)
@@ -498,7 +477,6 @@ func _save() -> void:
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
 	cfg.set_value("stats", "match_history", match_history)
-	cfg.set_value("stats", "account_xp", account_xp)
 	cfg.set_value("stats", "recent_opponents", recent_opponents)
 	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
@@ -539,7 +517,6 @@ func _load() -> void:
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
 	var saved_history = cfg.get_value("stats", "match_history", [])
 	match_history = saved_history if saved_history is Array else []
-	account_xp = cfg.get_value("stats", "account_xp", 0) as int
 	var saved_recent = cfg.get_value("stats", "recent_opponents", [])
 	recent_opponents.clear()
 	if saved_recent is Array:

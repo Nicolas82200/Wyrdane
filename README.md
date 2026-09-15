@@ -127,6 +127,45 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
+### 🧝 Elfe & 🪓 Nain — proposition de design (brouillon, NON validé)
+
+**⚠️ Ceci est un premier jet à discuter, pas une spec figée.** Contrairement aux quatre races ci-dessus (dont les mots-clés sont validés et implémentés), rien ici n'est codé et rien ne doit être codé avant validation explicite — conformément à la règle du projet (« Notes pour les agents » dans `CLAUDE.md`) qui interdit d'inventer un mot-clé sans qu'il soit d'abord acté dans ce document. Objectif de ce brouillon : donner à chaque race une identité mécanique nette, distincte des quatre races existantes (Mort-Vivant = attrition/poison, Humain = tempo/leadership, Démon = risque/paiement en PV, Abomination = croissance aléatoire/absorption), en cohérence avec le ton dark fantasy du jeu (pas de fantasy lumineuse classique).
+
+#### 🧝 Elfe — thème : ruse, embuscade, magie de dérobade (« le bois qui ne pardonne pas »)
+
+Des elfes crépusculaires retranchés dans une forêt qui se meurt, hostiles à quiconque n'est pas des leurs — pas des archers nobles et lumineux, mais des chasseurs qui frappent et disparaissent avant la riposte.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `EMBUSCADE` | Ne peut pas être ciblé par un effet ou attaqué au tour où il est posé (immunité d'un tour), perd cette protection dès qu'il attaque ou déclenche un effet. | Défense temporaire passive et auto-supprimée par l'action — différent de REMPART (protège les autres) ou de CHAIR DE SOUFRE (immunité permanente) |
+| `VOLÉE` | Inflige ses dégâts d'attaque à une cible secondaire choisie au hasard dans la même rangée adverse, à valeur réduite (ex: 50 %). | Créneau dégâts-de-zone passif à l'attaque, distinct de CORRUPTION (dégâts + marqueur) ou VENIN MORTEL (dégâts + mort) |
+| `RETRAIT` | Après avoir attaqué, peut se replacer immédiatement de la rangée Avant vers l'Arrière (une fois par tour). | Mécanique de positionnement dynamique — aucune race existante ne manipule sa propre ligne en cours de tour |
+| `PACTE SYLVESTRE X` | Nécessite X serviteurs Elfes alliés en jeu pour s'activer (effet bonus conditionnel au nombre d'alliés de race, pas à un coût en PV comme PACTE Démon). | Synergie de horde mono-race sans copier PACTE (coût HP) ni HORDE (générique, non racial) |
+| `GRÂCE` | Immunisé aux effets qui le renvoient en main, le déplacent contre son gré, ou le ciblent depuis la rangée Arrière adverse tant que sa propre rangée Avant est occupée. | Complète VOLÉE/RETRAIT par une résilience passive plutôt qu'un buff de stats |
+
+Ressource-race proposée : **Murmure** (carte-ressource « Murmure de la Canopée »), thème sylvestre cohérent avec Chair/Sceau/Âme/Anomalie.
+
+#### 🪓 Nain — thème : fortification, forge, endurance cumulative (« ce qui est forgé ne rouille pas »)
+
+Un peuple retranché sous la montagne, dont la survie dépend de l'armement et de la solidité de ses lignes plutôt que du nombre.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `FORGE X` | Arrivée : confère un bonus permanent de +X/+X à un allié adjacent au lieu de soi-même (le Nain forgeron « équipe » son voisin). | Distinct de GrantKeywordAdjacent (Abomination, transfert de mot-clé) — ici un transfert de stats sans sacrifice de la source |
+| `RUNE` | Cumulable ; chaque marqueur RUNE ajoute +1 à la Réduction de dégâts inhérente (`CardData.damage_reduction`) du serviteur, au lieu d'un bonus d'ATK. | Aucune race n'a encore de mécanique de cumul dédiée à la réduction de dégâts (seul un effet ponctuel `AuraDamageReduction` existe côté Humain, non cumulable par marqueurs) |
+| `DERNIER REMPART` | Tant qu'il est seul (aucun autre allié) sur sa rangée, gagne +2/+2. | Anti-swarm delibéré, contraste avec Abomination (croissance par accumulation de copies/mutations) |
+| `FORGE ANCESTRALE` (enchantement propre à la race) | Chaque Nain allié posé gagne une charge de RUNE automatiquement. | Moteur de mise à l'échelle passive équivalent conceptuel à Sanctuaire Nécrotique (Mort-Vivant) mais appliqué à RUNE plutôt qu'au coût |
+| `INÉBRANLABLE` | Ne peut pas être déplacé de rangée par un effet ennemi (mais peut l'être par un effet allié). | Complète GRÂCE (Elfe, plus large — cible/déplacement) par une protection plus étroite et thématiquement défensive |
+
+Ressource-race proposée : **Minerai** (carte-ressource « Minerai des Forges Profondes »).
+
+#### Points ouverts avant tout code
+
+1. Choix final des mots-clés (garder/retirer/renommer chacun) — décision produit.
+2. Rareté du bonus PACTE SYLVESTRE (seuil de X alliés) et calibrage RUNE/FORGE X — passage playtest nécessaire une fois un premier lot de cartes écrit.
+3. `EffectManager`/`KeywordElf.gd`/`KeywordDwarf.gd` : aucun de ces mots-clés n'a d'implémentation, ce tableau ne sert qu'à cadrer la conception de cartes.
+4. Comme pour Abomination, prévoir dès le départ les jetons/tokens (`is_token`) et une carte-ressource par race avant d'écrire la première carte jouable.
+
 ### ☠️ Système de mort
 
 Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem`) :
@@ -235,7 +274,7 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
+L'IA (`scripts/systems/AISystem.gd`) tire au hasard une race mono-deck à chaque partie parmi les 4 implémentées (Mort-Vivant, Humain, Démon, Abomination — `AISystem.AI_RACES`), puis construit son propre deck (40 serviteurs aléatoires de cette race via `CardLibrary` + 12 exemplaires de sa carte-ressource, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
@@ -288,20 +327,26 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
 
-**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie depuis 2026-08-26 (seuls les stats `solo_stats` et la progression des quêtes continuent) : jouer/gagner en solo ne rapporte plus d'or, pour ne pas concurrencer le classé.
+**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie ni en XP de compte : jouer/gagner en solo ne rapporte ni or (depuis 2026-08-26) ni progression de niveau, pour ne pas concurrencer le classé.
 
-**Victoires/défaites en 1v1 classé (réseau)** — pas de plafond quotidien, même barème que l'ancienne récompense solo, désormais crédité aux **deux** joueurs selon leur propre résultat :
-| Résultat | Montant |
+**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) et pèse de nouveau sur une récompense — un multiplicateur d'XP de victoire cette fois, pas de l'or directement (voir « 📈 Niveau de compte » ci-dessous) — remise à 0 par une défaite comme avant.
+
+Le gain d'XP (et les récompenses de niveau éventuellement débloquées) n'est confirmé (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'XP est de toute façon déjà créditée en base dès la confirmation, que la popup ait pu s'afficher ou non.
+
+### 📈 Niveau de compte
+
+Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP de base pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
+
+**Multiplicateur de série de victoires** : l'XP de victoire (pas celle de défaite) est multipliée selon `ranked_stats.win_streak` (série déjà incrémentée par ce match) : série ≥7 → ×1,75, ≥5 → ×1,5, ≥3 → ×1,25, sinon ×1 (arrondi au plus proche). Une défaite remet la série à 0, donc le multiplicateur retombe à ×1 dès le match suivant.
+
+XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 5×n` (105 XP au niveau 1, 110 au niveau 2, 115 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
+| Niveau | Récompense |
 |---|---|
-| Défaite | 5 or (fixe) |
-| Victoire, série de 1-2 | 10 or |
-| Victoire, série de 3-4 | 15 or |
-| Victoire, série de 5-6 | 20 or |
-| Victoire, série de 7 ou plus | 25 or |
+| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit + 200 or |
+| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux (5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire) + 100 or |
+| Tout autre niveau | Or croissant sur la série de 4 niveaux entre deux paliers carte/pack : 25, puis 50, 75, 100 — retombe à 25 dès le niveau suivant une carte/un pack |
 
-La série de victoires (win streak) ne compte que les victoires classées consécutives *de ce joueur* (suivie par joueur dans `ranked_stats.win_streak`, distinct côté serveur de `wins`/`losses` qui ne font qu'accumuler) ; une défaite la ramène immédiatement à 0.
-
-Le montant n'est crédité (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'or est de toute façon déjà crédité en base dès la confirmation, que la popup ait pu s'afficher ou non.
+Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
 
 **Autres gains**
 | Source | Montant | Limite |
@@ -885,7 +930,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`)
+*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`) — les invitations d'amis (overlay Steam) sont déjà implémentées, voir « Multijoueur 1v1 »
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Animations shaders
@@ -922,14 +967,14 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
-- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+- Le deckbuilder suggère un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
 ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
+Implémenté dans `DeckManager.suggested_resource_ratio`/`suggested_resource_count` (coût moyen calculé sur les cartes jouables du deck, taille de deck prise en compte = `max(taille réelle, MIN_TOTAL_CARDS)` pour rester pertinent avant que le deck n'atteigne 50 cartes) ; affiché dans `DeckBuilder._update_count_label` sous forme d'indication `(suggestion : N selon le coût moyen du deck)` tant que le nombre de ressources actuel est sous la suggestion — n'apparaît plus une fois la suggestion atteinte ou dépassée, et ne bloque jamais la sauvegarde (c'est une indication, pas un avertissement comme `race_warnings`).
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -956,12 +1001,12 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
 - `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée), avertissements bloquant la sauvegarde en cas d'incohérence race/ressource, dédoublonnage automatique des noms de deck (`DeckManager.make_unique_name`), bouton Sauvegarder désactivé tant que rien n'a changé, confirmation avant de quitter avec des modifications non sauvegardées.
-- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
+- `AISystem` : race tirée au hasard à chaque partie parmi les 4 implémentées, deck de cette race avec ses cartes-ressource mélangées (40 serviteurs + 12 ressources), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
 ### 📋 Points encore ouverts
 
-1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
+1. **Résolu.** Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus, branchée à l'UI — voir détail plus haut).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
 4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

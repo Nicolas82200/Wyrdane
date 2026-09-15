@@ -39,7 +39,6 @@ var _popup_panel: PanelContainer
 var _popup_label: Label
 var _hint_label: Label
 var _popup_visible: bool = false
-var _script_done: bool = false
 # true tant que la popup courante bloque tout (lecture + clic) ; false pour
 # les popups d'action (pose cette carte / termine ton tour / attaque...) qui
 # laissent le jeu actif sous la surbrillance.
@@ -686,4 +685,3 @@ func run() -> void:
 	await _wait_card(TutorialDeck.gaunt_servant_card())
 
 	await _popup("tutorial.finish_intro", [enemy_hero_panel])
-	_script_done = true

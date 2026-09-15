@@ -44,6 +44,7 @@ func end_turn() -> void:
 		_ending_turn = false
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
@@ -270,7 +271,6 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
 	battle.hand.flip_replace_at(index, new_data)
-	battle.hand.set_card_mulligan_swapped(index, true)
 	if battle.tutorial_active:
 		battle.tutorial_manager.notify_mulligan_swap(_card_data)
 
