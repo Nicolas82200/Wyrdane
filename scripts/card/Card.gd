@@ -75,7 +75,9 @@ const RACE_COLORS := {
 # sans le rendre illisible).
 const LABEL_BG_ALPHA_FACTOR := 0.7
 
-# Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
+# Teinte de repère par race (utilisée par DeckBuilder pour le badge de coût
+# des cartes en grille) ; le logo de type/rangée sur la carte elle-même est
+# désormais blanc (voir update_display), pas teinté par cette table.
 const RACE_ICON_COLORS := {
 	Race.Type.UNDEAD: Color("#e2e2e2"),
 	Race.Type.ABOMINATION: Color("#bdeb9c"),
@@ -289,8 +291,9 @@ func update_display() -> void:
 		card_type_icon.visible = TYPE_ICONS.has(data.card_type)
 		if card_type_icon.visible:
 			card_type_icon.texture = TYPE_ICONS[data.card_type]
-	if card_type_icon.visible:
-		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
+	# Blanc plutôt que teinté par race : ressort mieux sur le fond sombre du
+	# médaillon (voir CardTypeIconBg) que les teintes pastel de RACE_ICON_COLORS.
+	card_type_icon.modulate = Color.WHITE
 	card_type_icon_bg.visible = card_type_icon.visible
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
