@@ -125,12 +125,12 @@ expand_mode = 1
 
 [node name="CardTypeIcon" type="TextureRect" parent="." unique_id=1153858896]
 texture_filter = 4
-custom_minimum_size = Vector2(34, 34)
+custom_minimum_size = Vector2(51, 51)
 layout_mode = 0
-offset_left = 22.0
-offset_top = 22.0
-offset_right = 56.0
-offset_bottom = 56.0
+offset_left = 13.5
+offset_top = 13.5
+offset_right = 64.5
+offset_bottom = 64.5
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
