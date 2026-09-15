@@ -127,6 +127,25 @@ func get_demon_keyword_value(type: int) -> int:
 			return kw.value
 	return 0
 
+# Cartes-jetons fixes invoquées par cette carte (SummonMinion à cible fixe,
+# voir CardEffect.summon_card) — sert à afficher un aperçu du jeton au survol
+# de la carte (voir Hand._on_card_hover et consorts). Dédupliqué par
+# card_name (une carte comme Architecte du Pacte a un effet de base et un
+# effet de bonus de Pacte ciblant deux jetons différents).
+func get_summon_preview_cards() -> Array[CardData]:
+	var previews: Array[CardData] = []
+	var seen_names: Array[String] = []
+	for effect in effects:
+		if effect.effect_id != "SummonMinion":
+			continue
+		if effect.summon_card == null:
+			continue
+		if effect.summon_card.card_name in seen_names:
+			continue
+		seen_names.append(effect.summon_card.card_name)
+		previews.append(effect.summon_card)
+	return previews
+
 func get_abomination_keyword_values() -> Array[int]:
 	var values: Array[int] = []
 	for kw in abomination_keywords:
