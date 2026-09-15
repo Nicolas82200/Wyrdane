@@ -17,6 +17,12 @@ const PREVIEW_SCALE := Vector2(1.15, 1.15)
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 
+# Police sans-serif dédiée aux textes d'info denses (badges, liste du deck...) :
+# le thème global (Crimson Text/Cinzel, décoratifs) devient illisible en dessous
+# de ~15px, remplacée ici plutôt que dans ui_theme.tres pour ne pas changer
+# l'habillage du reste du jeu.
+const UI_FONT: Font = preload("res://assets/fonts/PTSans-Regular.ttf")
+
 @onready var card_grid:        HFlowContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
@@ -275,7 +281,8 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var badge_label := Label.new()
-	badge_label.add_theme_font_size_override("font_size", 12)
+	badge_label.add_theme_font_override("font", UI_FONT)
+	badge_label.add_theme_font_size_override("font_size", 13)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_panel.add_child(badge_label)
 	wrapper.add_child(badge_panel)
@@ -315,7 +322,8 @@ func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
 	var buy_button := Button.new()
 	buy_button.text = SettingsManager.t("deck.buy_button") % price
 	buy_button.custom_minimum_size = Vector2(0, 26)
-	buy_button.add_theme_font_size_override("font_size", 12)
+	buy_button.add_theme_font_override("font", UI_FONT)
+	buy_button.add_theme_font_size_override("font_size", 13)
 	buy_button.anchor_left   = 0.0
 	buy_button.anchor_right  = 1.0
 	buy_button.anchor_top    = 1.0
@@ -568,7 +576,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_color_override("font_color", Color(0.05, 0.04, 0.02, 1))
-	cost_lbl.add_theme_font_size_override("font_size", 13)
+	cost_lbl.add_theme_font_override("font", UI_FONT)
+	cost_lbl.add_theme_font_size_override("font_size", 14)
 	cost_panel.add_child(cost_lbl)
 	row.add_child(cost_panel)
 
@@ -578,7 +587,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	# Même couleur possédée/manquante (voir _make_deck_row) : seul le bandeau
 	# de la ligne distingue les deux, pas le nom.
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	name_lbl.add_theme_font_size_override("font_size", 14)
+	name_lbl.add_theme_font_override("font", UI_FONT)
+	name_lbl.add_theme_font_size_override("font_size", 15)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -592,7 +602,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qty_lbl.add_theme_color_override("font_color",
 		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
-	qty_lbl.add_theme_font_size_override("font_size", 13)
+	qty_lbl.add_theme_font_override("font", UI_FONT)
+	qty_lbl.add_theme_font_size_override("font_size", 14)
 	row.add_child(qty_lbl)
 
 	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
@@ -604,7 +615,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 		var buy_btn := Button.new()
 		buy_btn.text = SettingsManager.t("deck.buy_button") % price
 		buy_btn.custom_minimum_size = Vector2(0, 26)
-		buy_btn.add_theme_font_size_override("font_size", 11)
+		buy_btn.add_theme_font_override("font", UI_FONT)
+		buy_btn.add_theme_font_size_override("font_size", 13)
 		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
 		row.add_child(buy_btn)
