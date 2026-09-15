@@ -108,13 +108,8 @@ func _track_player_hp_for_achievements(hero: Hero) -> void:
 	if hero.health > 0 and hero.health <= AchievementManager.COMEBACK_HP_THRESHOLD:
 		battle.player_was_low_hp_this_match = true
 
-# Accessibilité : au-dessous de ce ratio de HP max, un symbole "⚠" est ajouté
-# devant le nombre de HP du héros — ne pas dépendre uniquement d'une couleur
-# pour signaler un danger (voir _hp_label_text).
-const LOW_HP_RATIO := 0.3
-
-# Sous ce seuil de PV absolus, le texte du label passe en rouge (en plus du
-# symbole ⚠ au-dessous de LOW_HP_RATIO, qui reste le repère non colorimétrique).
+# Sous ce seuil de PV absolus, le texte du label passe en rouge (seul
+# indicateur de danger — pas d'icône, préférence visuelle explicite).
 const CRITICAL_HP_THRESHOLD := 10
 const _CRITICAL_HP_COLOR := Color(0.9, 0.2, 0.2, 1.0)
 
@@ -131,10 +126,7 @@ func _apply_hp_label(label: Label, hero: Hero) -> void:
 		label.remove_theme_color_override("font_color")
 
 func _hp_label_text(hero: Hero) -> String:
-	var hp: int = maxi(hero.health, 0)
-	if hero.max_health > 0 and float(hp) / float(hero.max_health) <= LOW_HP_RATIO and hp > 0:
-		return "⚠ " + str(hp)
-	return str(hp)
+	return str(maxi(hero.health, 0))
 
 # ─── Halo de tour ───────────────────────────────────────────────────────────
 # Couleur/largeur de bordure du halo doré par défaut sur les panneaux héros

@@ -152,6 +152,13 @@ func refresh_board() -> void:
 
 
 	battle.update_end_turn_hint()
+	# Le halo "jouable" d'une carte en main (ex: un sort qui gèle un serviteur
+	# ennemi) dépend de l'existence d'une cible valide sur le plateau : sans ce
+	# recalcul ici, il restait allumé après la mort de toutes les cibles
+	# possibles tant qu'aucun autre évènement (mana, changement de tour) ne le
+	# redéclenchait par ailleurs.
+	if battle.hand != null:
+		battle.hand.refresh_playable_highlights()
 
 	_refreshing = false
 

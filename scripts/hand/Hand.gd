@@ -339,8 +339,11 @@ func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
-			if not active:
-				card.set_mulligan_swapped(false)
+			# Recalcule immédiatement le halo "jouable" : sans ça, une carte déjà
+			# jouable au moment où le mulligan démarre (ex. carte-ressource, coût
+			# 0) garde son halo vert affiché en boucle même une fois mulligan_mode
+			# passé à true, puisque ce n'est qu'une simple assignation de champ.
+			card.update_playable_highlight()
 
 # Variante de _update_hand_layout qui étale le déplacement/agrandissement de
 # chaque carte sur total_duration au total (delay croissant par carte) au
@@ -367,13 +370,6 @@ func _update_hand_layout_staggered(total_duration: float) -> void:
 		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_sync_tree_order(hovered_index)
-
-func set_card_mulligan_swapped(index: int, swapped: bool) -> void:
-	if index < 0 or index >= _hand_order.size():
-		return
-	var card: Card = _hand_order[index]
-	if card is Card:
-		card.set_mulligan_swapped(swapped)
 
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
