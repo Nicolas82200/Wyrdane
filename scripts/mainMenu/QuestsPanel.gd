@@ -98,15 +98,19 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 
 # Le backend peut renvoyer une clé présente avec une valeur JSON `null`
 # explicite (ex. champ optionnel non renseigné) plutôt que d'omettre la clé :
-# Dictionary.get() ne retombe alors PAS sur son défaut, et int(null)/String(null)
-# plante ("Invalid call. Nonexistent 'int'/'String' constructor.").
+# Dictionary.get() ne retombe alors PAS sur son défaut dans ce cas, et
+# int(null) plante ("Invalid call. Nonexistent 'int' constructor.").
 static func _get_int(quest: Dictionary, key: String, default: int) -> int:
 	var value = quest.get(key, default)
 	return default if value == null else int(value)
 
+# JSON.parse_string() désérialise TOUS les nombres JSON en float (jamais en
+# int) : le constructeur String(float) n'existe pas en GDScript et plante
+# ("Invalid call. Nonexistent 'String' constructor.") — contrairement à
+# str(), qui accepte n'importe quel type. Utiliser str() ici, jamais String().
 static func _get_str(quest: Dictionary, key: String, default: String) -> String:
 	var value = quest.get(key, default)
-	return default if value == null else String(value)
+	return default if value == null else str(value)
 
 static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var progress := _get_int(quest, "progress", 0)
@@ -168,7 +172,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
 		match kind:
 			"weekly":
-				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, _get_str(quest, "id", ""), action_button))
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, str(_get_int(quest, "id", 0)), action_button))
 			"unique":
 				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
 			_:
@@ -180,9 +184,12 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 
 	menu.quests_list_vbox.add_child(row)
 
-static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+# Les trois types de quête (quotidienne/hebdo/unique) partagent la même
+# réaction de réclamation, seul l'appel réseau diffère (claim_call, déjà lié
+# à son quest_id par l'appelant) — voir _on_claim_weekly/unique/_pressed.
+static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) -> void:
 	button.disabled = true
-	BackendClient.claim_weekly_quest(quest_id, func(success: bool, data: Dictionary):
+	claim_call.call(func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -191,27 +198,12 @@ static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> 
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
 		menu._fetch_quests_badge()
 	)
+
+static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest.bind(quest_id))
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_unique_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, BackendClient.claim_unique_quest.bind(quest_id))
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, BackendClient.claim_quest.bind(quest_id))

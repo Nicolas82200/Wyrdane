@@ -139,13 +139,13 @@ theme_override_constants/margin_bottom = 4
 [node name="BtnsRow" type="HBoxContainer" parent="VBox/BtnsMargin" unique_id=700000022]
 layout_mode = 2
 size_flags_vertical = 8
+alignment = 1
 theme_override_constants/separation = 12
 
 [node name="ResetButton" type="Button" parent="VBox/BtnsMargin/BtnsRow" unique_id=700000023]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 17
 text = "Réinitialiser"

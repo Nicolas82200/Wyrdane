@@ -83,3 +83,37 @@ static func _show_message(parent: Node, text: String) -> void:
 	msg.popup_centered()
 	msg.confirmed.connect(msg.queue_free)
 	msg.canceled.connect(msg.queue_free)
+
+static func populate_categories(select: OptionButton, allow_cheating: bool = false) -> void:
+	select.add_item(SettingsManager.t("REPORT_CATEGORY_BUG"))
+	select.set_item_metadata(0, TYPE_BUG)
+	if allow_cheating:
+		select.add_item(SettingsManager.t("REPORT_CATEGORY_CHEATING"))
+		select.set_item_metadata(1, TYPE_CHEATING)
+
+# Logique de soumission partagée par les vues inline de signalement (menu
+# principal et onglet Réglages, contrairement à open_on() ci-dessus qui est
+# une popup autonome) : mêmes noeuds (OptionButton/TextEdit/Label/Button),
+# seuls reported_user_id/match_id diffèrent (0/"" hors partie réseau).
+static func submit_inline(
+		category_select: OptionButton,
+		text_edit: TextEdit,
+		status_label: Label,
+		submit_button: Button,
+		reported_user_id: int = 0,
+		match_id: String = "") -> void:
+	var description := text_edit.text.strip_edges()
+	if description.is_empty():
+		status_label.text = SettingsManager.t("REPORT_EMPTY_ERROR")
+		return
+	var type_id: String = category_select.get_item_metadata(category_select.selected)
+	status_label.text = ""
+	submit_button.disabled = true
+	BackendClient.report_issue(type_id, description, reported_user_id, match_id, func(code: int, _parsed):
+		submit_button.disabled = false
+		if code == 200:
+			status_label.text = SettingsManager.t("REPORT_SUCCESS_TEXT")
+			text_edit.text = ""
+		else:
+			status_label.text = SettingsManager.t("REPORT_ERROR_TEXT")
+	)
