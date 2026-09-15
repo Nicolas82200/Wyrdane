@@ -23,6 +23,14 @@ const CARD_SIZE := Vector2(250, 375)
 # révélation contient plusieurs cartes (voir _compute_grid_slots).
 const HOVER_SCALE := 1.1
 const GRID_MIN_SCALE := 0.55
+# Plafond d'échelle utilisé à la place de HOVER_SCALE quand un seul pack est
+# ouvert (peu de cartes à révéler, donc la place ne manque pas) : les cartes
+# reçues sont alors affichées nettement plus grandes que le cas x3/x5.
+const SINGLE_PACK_MAX_SCALE := 1.55
+# Décalage vertical additionnel de la grille de révélation en mode pack unique
+# : les cartes étant plus grandes, les centrer un peu plus bas évite qu'elles
+# ne remontent visuellement sous le titre/la barre d'infos.
+const SINGLE_PACK_TOP_OFFSET := 90.0
 # Réduit (était 1.3) : la colonne du paquet est plus étroite (voir
 # GRID_AREA_LEFT_RATIO) pour laisser plus de place à la grille de révélation —
 # le paquet doit rester lisible sans déborder de sa colonne.
@@ -223,7 +231,7 @@ func _open_pack(free: bool, quantity: int) -> void:
 			break
 		all_cards.append_array(cards)
 
-	_on_packs_opened(last_code, all_cards)
+	_on_packs_opened(last_code, all_cards, quantity == 1)
 
 func _request_single_pack(free: bool) -> Dictionary:
 	CurrencyManager.open_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards), free)
@@ -252,14 +260,14 @@ func _open_owned_packs() -> void:
 			break
 		all_cards.append_array(cards)
 
-	_on_packs_opened(last_code, all_cards)
+	_on_packs_opened(last_code, all_cards, quantity == 1)
 
 func _request_single_owned_pack() -> Dictionary:
 	CurrencyManager.open_owned_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
 	var result: Array = await _pack_request_completed
 	return {"code": result[0], "cards": result[1]}
 
-func _on_packs_opened(code: int, cards: Array) -> void:
+func _on_packs_opened(code: int, cards: Array, single_pack: bool = false) -> void:
 	_clear_cards()
 
 	if cards.is_empty():
@@ -290,16 +298,17 @@ func _on_packs_opened(code: int, cards: Array) -> void:
 		status_label.text = SettingsManager.t("pack_shop.error")
 		status_label.show()
 
-	_reveal_sequence(entries)
+	_reveal_sequence(entries, single_pack)
 
 ## Calcule une grille de positions (côté droit de l'écran, à droite du
 ## paquet) pour `count` cartes, ainsi que l'échelle de repos à leur appliquer
 ## pour qu'elles restent toutes visibles sans déborder du cadre.
-func _compute_grid_slots(count: int) -> Dictionary:
+func _compute_grid_slots(count: int, single_pack: bool = false) -> Dictionary:
+	var max_scale: float = SINGLE_PACK_MAX_SCALE if single_pack else HOVER_SCALE
 	var viewport_size: Vector2 = size
 	var area_left: float = viewport_size.x * GRID_AREA_LEFT_RATIO + GRID_AREA_SIDE_MARGIN
 	var area_right: float = viewport_size.x - GRID_AREA_SIDE_MARGIN
-	var area_top: float = GRID_AREA_TOP
+	var area_top: float = GRID_AREA_TOP + (SINGLE_PACK_TOP_OFFSET if single_pack else 0.0)
 	var area_bottom: float = viewport_size.y - GRID_AREA_BOTTOM
 	var area_size := Vector2(max(area_right - area_left, 1.0), max(area_bottom - area_top, 1.0))
 
@@ -309,7 +318,7 @@ func _compute_grid_slots(count: int) -> Dictionary:
 
 	var scale_x: float = cell_size.x * GRID_CELL_PADDING / CARD_SIZE.x
 	var scale_y: float = cell_size.y * GRID_CELL_PADDING / CARD_SIZE.y
-	var reveal_scale: float = clamp(min(scale_x, scale_y, HOVER_SCALE), GRID_MIN_SCALE, HOVER_SCALE)
+	var reveal_scale: float = clamp(min(scale_x, scale_y, max_scale), GRID_MIN_SCALE, max_scale)
 
 	var cols_in_last_row: int = count - (rows - 1) * columns
 	var slots: Array = []
@@ -336,13 +345,13 @@ func _compute_grid_slots(count: int) -> Dictionary:
 ## en jaillit et vole vers sa place en grille à droite en se retournant.
 ## Cliquer sur l'indice "passer" affiché pendant la séquence saute directement
 ## le reste des cartes sans animation.
-func _reveal_sequence(entries: Array) -> void:
+func _reveal_sequence(entries: Array, single_pack: bool = false) -> void:
 	_revealing = true
 	_skip_requested = false
 	skip_hint_label.show()
 	_stop_spin()
 
-	var grid: Dictionary = _compute_grid_slots(entries.size())
+	var grid: Dictionary = _compute_grid_slots(entries.size(), single_pack)
 	var slots: Array = grid["slots"]
 	_reveal_scale = grid["scale"]
 
