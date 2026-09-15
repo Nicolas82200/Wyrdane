@@ -48,7 +48,28 @@ var match_: ArenaMatch
 var human: ArenaPlayerState
 var bots: Array[ArenaPlayerState] = []
 var bot_driver := ArenaBotDriver.new()
+# Un ArenaBotSeatController par bot (voir ArenaSeatController) : même IA
+# (bot_driver, partagé et sans état propre) mais exposée derrière l'interface
+# de siège générique, prête à cohabiter avec un futur ArenaNetworkSeatController
+# quand certains de ces 7 sièges seront pilotés par de vrais joueurs distants.
+var bot_seats: Array[ArenaSeatController] = []
 var game_over: bool = false
+
+# ─── Mode réseau (voir ArenaNetContext/ArenaNetLobby) ─────────────────────────
+# `_is_network` à false (solo local, comportement INCHANGÉ par rapport à avant
+# ce chantier) tant qu'on n'est jamais passé par le lobby réseau — toute la
+# logique réseau ci-dessous est entièrement contournée dans ce cas. Limitation
+# connue (portée volontairement réduite) : si l'hôte lui-même est éliminé
+# avant la fin globale de la partie, sa propre scène s'arrête comme en solo
+# (_show_game_over) sans continuer à faire progresser les manches pour les
+# autres vrais joueurs encore en jeu — à traiter dans une phase ultérieure.
+var _is_network: bool = false
+var _is_network_host: bool = false
+# Hôte réseau uniquement : relaie les REQUEST_* des clients vers ArenaHostAuthority.
+var _net_router: ArenaHostGameRouter = null
+# Client réseau uniquement : envoie nos propres requêtes, applique les BOARD_SYNC/
+# PRIVATE_STATE_SYNC/ROUND_ADVANCED/GAME_OVER reçus.
+var _net_link: ArenaClientGameLink = null
 # Interrogé en duck-typing par BoardMinion.gd (._is_dragging_card(), voir
 # BoardMinion.gd) pour couper sa création de tooltip de survol pendant
 # n'importe quel glisser de carte de la main — sans ce contrat identique à
@@ -154,7 +175,10 @@ const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
 func _ready() -> void:
 	ArenaUIBuilder.build(self)
-	_start_match()
+	if ArenaNetContext.active:
+		_start_network_match()
+	else:
+		_start_match()
 
 func _start_match() -> void:
 	if not CardLibrary.is_loaded:
@@ -165,14 +189,85 @@ func _start_match() -> void:
 	var pool := ArenaCardPool.new(pool_cards)
 	human = ArenaPlayerState.new("Joueur", false)
 	bots = []
+	bot_seats = []
 	for i in ArenaConstants.PARTICIPANT_COUNT - 1:
-		bots.append(ArenaPlayerState.new("Bot %d" % (i + 1), true))
+		var bot := ArenaPlayerState.new("Bot %d" % (i + 1), true)
+		bots.append(bot)
+		bot_seats.append(ArenaBotSeatController.new(bot, bot_driver))
 	var players: Array[ArenaPlayerState] = [human]
 	players.append_array(bots)
 	match_ = ArenaMatch.new(players, pool)
 	viewed_target = human
 	match_.start_shop_phase()
 	_start_shop_phase_timer()
+
+# ─── Démarrage en mode réseau (voir ArenaNetContext, rempli par ArenaNetLobby) ─
+# Construit les sièges depuis le roster du handshake (ArenaNetContext.setup),
+# jamais depuis ArenaConstants.PARTICIPANT_COUNT - 1 bots locaux comme _start_match() :
+# le roster reflète déjà la composition réelle décidée au lobby (vrais joueurs
+# + bots de complément, voir ArenaNetHandshake.force_start_with_bots).
+func _start_network_match() -> void:
+	if not CardLibrary.is_loaded:
+		CardLibrary.load_all_cards()
+	_is_network = true
+	_is_network_host = ArenaNetContext.is_host
+	# Reparente ArenaNetContext.net dans CETTE scène : ArenaNetLobby l'en a
+	# volontairement détaché juste avant le changement de scène (voir
+	# ArenaNetLobby._on_handshake_completed — contrairement au 1v1, parenté
+	# sous l'autoload MatchmakingOverlay qui ne disparaît jamais). Sans ce
+	# rattachement, _process()/transport.poll() resteraient à l'arrêt (un nœud
+	# hors de l'arbre de scène ne reçoit plus aucun callback de frame).
+	add_child(ArenaNetContext.net)
+	var roster: Array = ArenaNetContext.setup.get("roster", [])
+	var own_seat_id: int = int(ArenaNetContext.setup.get("seat_id", 0))
+
+	var players: Array[ArenaPlayerState] = []
+	bots = []
+	bot_seats = []
+	for entry in roster:
+		var is_bot: bool = bool(entry.get("is_bot", false))
+		var player := ArenaPlayerState.new(str(entry.get("display_name", "Joueur")), is_bot)
+		player.seat_id = int(entry.get("seat_id", 0))
+		players.append(player)
+		if is_bot:
+			bots.append(player)
+			bot_seats.append(ArenaBotSeatController.new(player, bot_driver))
+
+	human = players[own_seat_id]
+	viewed_target = human
+
+	if _is_network_host:
+		# Seul l'hôte exécute réellement ArenaMatch (pool/RNG autoritaires) —
+		# voir README « Réseau & Visibilité ». Les vrais clients distants
+		# n'ont ici aucun contrôleur de siège dédié (contrairement aux bots) :
+		# leurs actions arrivent de façon événementielle via _net_router,
+		# jamais par un appel type take_shop_turn().
+		var pool_cards: Array[CardData] = CardLibrary.all_cards + CardLibrary.arena_only_cards
+		match_ = ArenaMatch.new(players, ArenaCardPool.new(pool_cards))
+		match_.rng.seed = int(ArenaNetContext.setup.get("seed", 0))
+		_net_router = ArenaHostGameRouter.new(match_, ArenaNetContext.net, ArenaNetContext.handshake.seat_for_peer)
+		match_.start_shop_phase()
+		ArenaHostRoundSync.broadcast_new_round(match_, ArenaNetContext.net, ArenaNetContext.handshake.peer_for_seat, [])
+		_start_shop_phase_timer()
+	else:
+		# Simple miroir : aucun pool réel (jamais de tirage local, la boutique
+		# de chacun reste privée — voir README), le plateau/la main/l'or de
+		# chaque siège n'existent ici que pour être reflétés par les mirrors
+		# (ArenaRemoteBoardMirror/ArenaPrivateStateMirror) au fil des messages
+		# reçus de l'hôte.
+		match_ = ArenaMatch.new(players, ArenaCardPool.new([]))
+		match_.rng.seed = int(ArenaNetContext.setup.get("seed", 0))
+		_net_link = ArenaClientGameLink.new(match_, ArenaNetContext.net, own_seat_id, 0)
+		_net_link.state_changed.connect(_on_network_state_changed)
+		_net_link.round_advanced.connect(_on_network_round_advanced)
+		_net_link.game_over.connect(_on_network_game_over)
+		# Pas de minuteur de phase local : l'hôte est seul maître du rythme
+		# (voir _resolve_combat_phase_network_host) — current_phase reste SHOP
+		# en permanence, de sorte que _is_shop_interaction_allowed() laisse
+		# toujours passer les actions (REQUEST_* envoyées à tout moment, sans
+		# quorum de prêt côté client pour cette étape — portée réduite assumée,
+		# voir ArenaGameCommand).
+		_refresh_ui()
 
 # ─── API attendue par Card.gd/DropSystem.gd (voir Battle.gd, mêmes signatures) ─
 # Ces méthodes/propriétés (ROW_FRONT/ROW_BACK, player_front_container/
@@ -238,10 +333,19 @@ func _on_hand_card_played(card_data: CardData, row: String, insert_index: int) -
 	if row == ArenaDropSystem.ROW_SHOP:
 		for minion in human.hand:
 			if minion.card_data == card_data:
+				if _is_network and not _is_network_host:
+					_net_link.send_request(ArenaGameCommand.request_sell_from_hand(human.hand.find(minion)))
+					return
 				match_.sell_card(human, minion, false)
 				_refresh_ui()
 				return
 		if human.spell_hand.has(card_data):
+			# Vendre une Incantation achetée n'est pas encore couvert par le
+			# protocole réseau (voir ArenaGameCommand, portée réduite) : ignoré
+			# côté client plutôt que de muter un ArenaMatch miroir qui n'a pas
+			# de pool réel vers lequel relâcher la carte.
+			if _is_network and not _is_network_host:
+				return
 			match_.sell_spell(human, card_data)
 			_refresh_ui()
 		return
@@ -250,6 +354,10 @@ func _on_hand_card_played(card_data: CardData, row: String, insert_index: int) -
 			_on_place_pressed(minion, row == ROW_FRONT, insert_index)
 			return
 	if human.spell_hand.has(card_data):
+		# Lancer une Incantation achetée : même limitation que la vente
+		# ci-dessus, pas encore couverte côté réseau.
+		if _is_network and not _is_network_host:
+			return
 		await match_.cast_spell(human, card_data)
 		_refresh_ui()
 
@@ -425,8 +533,25 @@ func _refresh_shop(in_shop_phase: bool = true) -> void:
 	if not arrivals.is_empty():
 		_animate_slide_in({-1.0: arrivals}, ENTRY_SLIDE_DURATION)
 
+# Diffuse l'état public de l'hôte (son propre plateau/PV, voir
+# ArenaBoardSnapshot) après une action LOCALE de l'hôte — jamais appelée pour
+# une action d'un client distant (déjà couverte par _net_router) ni en solo
+# (_is_network=false, no-op immédiat). Indispensable : sans ça, les vrais
+# clients regardant le plateau de l'hôte (public, voir README « Réseau &
+# Visibilité ») ne le verraient jamais changer quand l'hôte joue son propre tour.
+func _broadcast_own_public_state_if_networked() -> void:
+	if not _is_network:
+		return
+	ArenaNetContext.net.broadcast_command(ArenaGameCommand.board_sync(
+		human.seat_id, human.hero_hp,
+		ArenaBoardSnapshot.serialize_row(human.board_front),
+		ArenaBoardSnapshot.serialize_row(human.board_back)))
+
 func _on_shop_card_dropped(shop_index: int, _is_front: bool) -> void:
 	if not _is_shop_interaction_allowed():
+		return
+	if _is_network and not _is_network_host:
+		_net_link.send_request(ArenaGameCommand.request_buy(shop_index))
 		return
 	# L'achat par glisser-déposer rejoint la main (comme un achat au clic) ;
 	# la pose sur le plateau reste une action séparée et volontaire du joueur
@@ -603,11 +728,17 @@ func _is_shop_interaction_allowed() -> bool:
 func _on_reroll_pressed() -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		_net_link.send_request(ArenaGameCommand.request_reroll())
+		return
 	match_.reroll(human)
 	_refresh_ui()
 
 func _on_freeze_pressed() -> void:
 	if not _is_shop_interaction_allowed():
+		return
+	if _is_network and not _is_network_host:
+		_net_link.send_request(ArenaGameCommand.request_toggle_freeze())
 		return
 	human.toggle_shop_freeze()
 	_refresh_ui()
@@ -615,37 +746,72 @@ func _on_freeze_pressed() -> void:
 func _on_buy_xp_pressed() -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		_net_link.send_request(ArenaGameCommand.request_buy_xp())
+		return
 	match_.buy_xp(human)
 	_refresh_ui()
 
 # Prêt : termine la phase Boutique tout de suite, sans attendre l'expiration
 # du minuteur — voir le commentaire sur `ready_button` dans ArenaUIBuilder.build().
+# Côté client réseau, aucun minuteur local à arrêter (l'hôte seul rythme la
+# partie, voir _start_network_match) : ce bouton n'a donc d'effet qu'en solo
+# ou côté hôte — portée réduite assumée (pas de quorum "tout prêt" réseau
+# pour l'instant, voir ArenaGameCommand).
 func _on_ready_pressed() -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		return
 	phase_timer.stop()
-	await _resolve_combat_phase()
+	if _is_network_host:
+		await _resolve_combat_phase_network_host()
+	else:
+		await _resolve_combat_phase()
 
 func _on_place_pressed(minion: Minion, is_front: bool, index: int = -1) -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		var hand_index: int = human.hand.find(minion)
+		if hand_index < 0:
+			return
+		_net_link.send_request(ArenaGameCommand.request_place(hand_index, is_front, index))
+		return
 	human.place_on_board(minion, is_front, index)
 	_refresh_ui()
+	_broadcast_own_public_state_if_networked()
 
 # Repositionnement (même ligne ou changement de ligne) d'un serviteur déjà
 # posé — voir ArenaBoardMinionSlot/ArenaBoardRow.on_reposition.
 func _on_board_minion_dropped(minion: Minion, is_front: bool, index: int) -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		var is_front_from: bool = human.board_front.has(minion)
+		var index_from: int = (human.board_front if is_front_from else human.board_back).find(minion)
+		if index_from < 0:
+			return
+		_net_link.send_request(ArenaGameCommand.request_move(is_front_from, index_from, is_front, index))
+		return
 	human.move_on_board(minion, is_front, index)
 	_refresh_ui()
+	_broadcast_own_public_state_if_networked()
 
 # Vente en glissant un serviteur du plateau sur la boutique — voir ArenaSellZone.
 func _on_board_minion_sold(minion: Minion) -> void:
 	if not _is_shop_interaction_allowed():
 		return
+	if _is_network and not _is_network_host:
+		var is_front: bool = human.board_front.has(minion)
+		var board_index: int = (human.board_front if is_front else human.board_back).find(minion)
+		if board_index < 0:
+			return
+		_net_link.send_request(ArenaGameCommand.request_sell_from_board(is_front, board_index))
+		return
 	match_.sell_card(human, minion, true)
 	_refresh_ui()
+	_broadcast_own_public_state_if_networked()
 
 func _on_view_board_pressed(target) -> void:
 	viewed_target = target
@@ -673,7 +839,10 @@ func _on_phase_timer_timeout() -> void:
 	if game_over:
 		return
 	if current_phase == Phase.SHOP:
-		await _resolve_combat_phase()
+		if _is_network_host:
+			await _resolve_combat_phase_network_host()
+		else:
+			await _resolve_combat_phase()
 	# Rien à faire pour Phase.COMBAT : depuis le correctif ci-dessous, le
 	# minuteur y est purement cosmétique (juste l'affichage du temps restant
 	# pendant que le combat se déroule) — l'enchaînement vers la manche
@@ -694,14 +863,10 @@ func _resolve_combat_phase() -> void:
 	# restait fenêtre où reroll/achat/pose humains passaient encore alors que
 	# la manche est déjà close côté moteur.
 	_start_combat_phase_timer()
-	for bot in bots:
-		if not bot.is_alive():
+	for seat in bot_seats:
+		if not seat.player.is_alive():
 			continue
-		bot_driver.play_shop_phase(bot, match_)
-		bot_driver.play_positioning_phase(bot)
-		# Après la pose, pas avant : les Incantations "tout le plateau" doivent
-		# viser la composition finale du bot, pas un plateau encore incomplet.
-		await bot_driver.cast_spells_phase(bot, match_)
+		await seat.take_shop_turn(match_)
 	match_.end_shop_phase()
 
 	# Seul l'appariement du joueur humain (jamais les combats bots-contre-bots,
@@ -780,12 +945,87 @@ func _advance_round() -> void:
 	match_.start_shop_phase()
 	_start_shop_phase_timer()
 
+# ─── Combat côté hôte réseau ──────────────────────────────────────────────────
+# Même déroulé que _resolve_combat_phase() (bots + fin de boutique + combat)
+# mais SANS jamais passer de live_setup à start_combat_phase() — décision
+# actée (voir ArenaGameCommand) : le combat entre vrais joueurs se résout
+# HEADLESS pour tout le monde, y compris l'appariement de l'hôte lui-même
+# (pas de traitement de faveur), jamais rejoué en animation. Diffuse ensuite
+# le résultat à tous (ArenaHostRoundSync) au lieu du _refresh_ui() purement
+# local de la version solo.
+func _resolve_combat_phase_network_host() -> void:
+	_start_combat_phase_timer()
+	for seat in bot_seats:
+		if not seat.player.is_alive():
+			continue
+		await seat.take_shop_turn(match_)
+	match_.end_shop_phase()
+	await match_.start_combat_phase()
+	phase_timer.stop()
+
+	var combat_log: Array = match_.last_combat_summaries.duplicate()
+	ArenaHostRoundSync.broadcast_combat_result(match_, ArenaNetContext.net)
+
+	if match_.is_match_over() or human.is_eliminated:
+		_show_game_over()
+		return
+	_advance_round()
+	ArenaHostRoundSync.broadcast_new_round(match_, ArenaNetContext.net, ArenaNetContext.handshake.peer_for_seat, combat_log)
+
+# ─── Réception réseau côté client ────────────────────────────────────────────
+
+func _on_network_state_changed() -> void:
+	_refresh_ui()
+
+# Émis dès qu'une manche se termine (voir ArenaHostRoundSync.broadcast_new_round) :
+# round_number déjà appliqué à match_ par ArenaClientGameLink au moment du
+# signal. combat_log conservé pour cohérence avec match_.last_combat_summaries
+# (solo) mais non affiché — aucune UI ne le fait non plus en solo aujourd'hui.
+func _on_network_round_advanced(_round_number: int, combat_log: Array) -> void:
+	var typed_log: Array[String] = []
+	for line in combat_log:
+		typed_log.append(str(line))
+	match_.last_combat_summaries = typed_log
+	viewed_target = human
+	_refresh_ui()
+
+# Émis quand l'hôte diffuse GAME_OVER (un seul survivant, voir
+# ArenaHostRoundSync.broadcast_combat_result) — `ranking` fait autorité
+# (jamais recalculé localement, contrairement à _show_game_over : ce miroir
+# client n'a pas simulé les combats, il ne peut pas reconstituer un
+# classement fiable par lui-même).
+func _on_network_game_over(ranking: Array) -> void:
+	game_over = true
+	if phase_timer != null:
+		phase_timer.stop()
+	end_game_overlay.visible = true
+	end_game_screen_panel.visible = true
+	var i_won: bool = not ranking.is_empty() and int(ranking[0].get("seat_id", -1)) == human.seat_id
+	end_game_title_label.text = SettingsManager.t("ARENA_VICTORY_TITLE") if i_won else SettingsManager.t("ARENA_DEFEAT_TITLE")
+	var lines: Array[String] = [SettingsManager.t("ARENA_RANKING_TITLE") + " :"]
+	for i in ranking.size():
+		lines.append("  %d. %s" % [i + 1, str(ranking[i].get("display_name", "?"))])
+	end_game_label.text = "\n".join(lines)
+	_refresh_ui()
+
 func _on_back_to_menu_pressed() -> void:
+	_close_network_session_if_any()
 	SceneTransition.change_scene(MAIN_MENU_SCENE)
 
 # Concéder depuis le menu Paramètres (voir settings_menu.concede_requested) :
-# pas de réseau à fermer côté Arena (solo local), contrairement à
-# Battle._on_quit_match — juste retourner au menu, la partie en cours est perdue.
+# en solo, pas de réseau à fermer — juste retourner au menu, la partie en
+# cours est perdue. En réseau, ferme aussi proprement la connexion (voir
+# _close_network_session_if_any), contrairement à Battle._on_quit_match (1v1)
+# qui prévient l'adversaire : aucun message de départ volontaire n'existe
+# encore côté protocole Arena (portée réduite assumée), l'hôte/les autres
+# clients constateront juste la déconnexion.
 func _on_settings_quit() -> void:
 	settings_menu.close()
+	_close_network_session_if_any()
 	SceneTransition.change_scene(MAIN_MENU_SCENE)
+
+func _close_network_session_if_any() -> void:
+	if not _is_network:
+		return
+	ArenaNetContext.net.close()
+	ArenaNetContext.reset()

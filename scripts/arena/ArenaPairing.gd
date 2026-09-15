@@ -61,4 +61,10 @@ static func _pair_key(a, b) -> String:
 static func _participant_key(p) -> String:
 	if p is GhostBoard:
 		return "GHOST"
+	# seat_id (assigné par ArenaMatch._init, voir ArenaPlayerState) est stable
+	# et partageable entre clients — préféré dès qu'il est assigné. Un
+	# ArenaPlayerState construit hors d'un ArenaMatch (ex. tests directs
+	# d'ArenaPairing) garde seat_id = -1, d'où le repli sur get_instance_id().
+	if p.seat_id >= 0:
+		return "S%d" % p.seat_id
 	return "P%d" % p.get_instance_id()

@@ -256,7 +256,7 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 
 func _on_network_connection_status_changed(connect_handle: int, connection: Dictionary, _old_state: int) -> void:
 	var state: int = connection.get("connection_state", 0)
-	var remote_id := _extract_remote_id(connection)
+	var remote_id := SteamP2PGuard.extract_remote_id(connection)
 	match state:
 		CONN_STATE_CONNECTING:
 			# Connexion entrante sur notre socket d'écoute : uniquement pertinent
@@ -273,7 +273,7 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 			# laissait passer n'importe quelle connexion entrante. On vérifie ici
 			# l'appartenance RÉELLE au lobby au moment de la connexion, indépendamment
 			# de l'état (peut-être en retard) de `_remote_id`.
-			if remote_id == 0 or not _is_lobby_member(remote_id):
+			if remote_id == 0 or not SteamP2PGuard.is_lobby_member(_steam, _lobby_id, remote_id):
 				status.emit("Steam : connexion P2P refusée (pair non membre du lobby)")
 				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
 				return
@@ -299,25 +299,8 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 			_connection_handle = 0
 			disconnected.emit("steam_p2p_failed")
 
-# Vérifie l'appartenance actuelle au lobby via l'API Steam (source de vérité
-# indépendante de `_remote_id`, qui n'est mis à jour que par l'évènement de
-# lobby asynchrone _on_lobby_chat_update — voir _on_network_connection_status_changed).
-func _is_lobby_member(steam_id: int) -> bool:
-	if _lobby_id == 0:
-		return false
-	var count: int = _steam.getNumLobbyMembers(_lobby_id)
-	for i in count:
-		if _steam.getLobbyMemberByIndex(_lobby_id, i) == steam_id:
-			return true
-	return false
-
-# L'identité dans le dictionnaire "connection" peut être un SteamID64 brut ou
-# un dictionnaire selon la version de GodotSteam — on gère les deux formes.
-func _extract_remote_id(connection: Dictionary) -> int:
-	var identity: Variant = connection.get("identity", 0)
-	if identity is Dictionary:
-		return int(identity.get("steam_id", identity.get("steamid", 0)))
-	return int(identity)
+# (Vérification d'appartenance au lobby et extraction d'identité : voir
+# SteamP2PGuard, partagé avec ArenaSteamTransport.)
 
 # Pseudo Steam d'un joueur (pour le journal de diagnostic).
 func _persona(steam_id: int) -> String:

@@ -28,9 +28,26 @@ var elimination_order: Array[ArenaPlayerState] = []
 func _init(_players: Array[ArenaPlayerState], _pool: ArenaCardPool) -> void:
 	players = _players
 	pool = _pool
+	# Assigne un seat_id stable par index si aucun n'a été fourni à l'avance
+	# (voir ArenaPlayerState.seat_id) — c'est cette valeur qu'ArenaPairing
+	# utilise pour ses clés d'appariement plutôt que get_instance_id().
+	for i in players.size():
+		if players[i].seat_id < 0:
+			players[i].seat_id = i
 
 func alive_players() -> Array[ArenaPlayerState]:
 	return players.filter(func(p: ArenaPlayerState): return p.is_alive())
+
+# Retrouve le participant portant ce seat_id (voir ArenaPlayerState.seat_id),
+# ou null. Consommé par la couche réseau (ArenaHostAuthority/
+# ArenaRemoteBoardMirror) pour retrouver le bon ArenaPlayerState à partir d'un
+# identifiant de siège reçu du réseau — jamais par get_instance_id(), qui
+# n'a de sens que localement.
+func find_by_seat(seat_id: int) -> ArenaPlayerState:
+	for player in players:
+		if player.seat_id == seat_id:
+			return player
+	return null
 
 func is_match_over() -> bool:
 	return alive_players().size() <= 1

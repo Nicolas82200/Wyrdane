@@ -2,7 +2,7 @@
 extends Control
 
 const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
-const ARENA_SCENE := "res://scenes/arena/ArenaBattle.tscn"
+const ARENA_SCENE := "res://scenes/arena/ArenaNetLobby.tscn"
 const NEWS_DIR := "res://resources/news/"
 const NEWS_FEED_URL := "https://wyrdane.com/feed.json"
 const DISCORD_URL := "https://discord.gg/qdBEjrsdEw"
