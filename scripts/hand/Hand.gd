@@ -32,9 +32,6 @@ const MULLIGAN_CENTER_Y_RATIO   := 0.52
 # Durée totale de l'animation de pioche de la main de départ (une carte après
 # l'autre depuis le deck) avant que le mulligan ne devienne interactif.
 const OPENING_DRAW_DURATION       := 3.0
-# Durée totale de la transition d'entrée en mulligan (chaque carte anime vers
-# sa position centrée/agrandie, l'une après l'autre plutôt que toutes en même temps).
-const MULLIGAN_TRANSITION_DURATION := 3.0
 # Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
 # main est repliée — le reste dépasse sous le bas de l'écran
 const COLLAPSED_PEEK_RATIO := 0.22
@@ -191,8 +188,9 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 
 # Anime la pioche de la main de départ, une carte après l'autre depuis le
 # deck (même effet visuel qu'une pioche normale, voir _set_hand_animated),
-# étalée sur total_duration au total. À appeler avant le mulligan, dont
-# l'entrée est elle-même animée séparément (voir set_mulligan_mode).
+# étalée sur total_duration au total. Appelé avec le mode mulligan déjà actif
+# (voir TurnSystem.start_match) : chaque carte vole donc directement vers sa
+# position centrée/agrandie de mulligan.
 func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_duration: float = OPENING_DRAW_DURATION) -> void:
 	for c in container.get_children():
 		c.queue_free()
@@ -321,10 +319,11 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 	card_played.emit(card_data, row, insert_index)
 
 
-# transition_duration > 0 : à l'entrée en mulligan, étale l'animation des
-# cartes vers leur position centrée sur cette durée totale (une carte après
-# l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
-func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
+# Le mode mulligan est activé AVANT play_opening_draw (voir TurnSystem.start_match) :
+# les cartes piochées volent alors directement depuis le deck vers leur
+# position centrée/agrandie de mulligan, sans passer d'abord par la main
+# repliée en bas de l'écran.
+func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
 	# Doit rester au-dessus du MulliganDimOverlay (z_index 90 dans Battle.tscn) :
 	# la main est l'élément d'interaction du mulligan, elle ne doit pas être
@@ -332,10 +331,7 @@ func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	z_index = 91 if active else 0
 	if active and not _hand_expanded:
 		_hand_expanded = true
-		if transition_duration > 0.0:
-			_update_hand_layout_staggered(transition_duration)
-		else:
-			_update_hand_layout(true)
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
