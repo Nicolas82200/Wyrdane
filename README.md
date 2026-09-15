@@ -342,11 +342,11 @@ Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.
 XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 10×n` (110 XP au niveau 1, 120 au niveau 2, 130 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
 | Niveau | Récompense |
 |---|---|
-| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit |
-| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux : 5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire |
-| Tout autre niveau | 20 or |
+| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit + 200 or |
+| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux (5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire) + 100 or |
+| Tout autre niveau | 50 or |
 
-Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté) plutôt que perdue. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
+Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
 
 **Autres gains**
 | Source | Montant | Limite |
