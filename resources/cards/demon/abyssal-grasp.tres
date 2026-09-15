@@ -14,7 +14,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Étreinte du Gouffre"
-description = "Inflige Gel à un serviteur ciblé que votre adversaire contrôle jusqu'au début de votre prochain tour."
+description = "Inflige Gel à un serviteur ciblé ennemi jusqu'au début de votre prochain tour."
 flavour_text = "Le froid des Abysses n'épargne personne, pas même celui qui l'invoque."
 texture = ExtResource("3_texture")
 cost = 2

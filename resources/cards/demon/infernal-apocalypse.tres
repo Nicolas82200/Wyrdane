@@ -48,7 +48,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Apocalypse Infernale"
 description = "SANG NOIR, RANG INFERNAL
-Arrivée : Tous les serviteurs Démons que vous contrôlez gagnent +2/+2 de façon permanente.
+Arrivée : Tous les serviteurs Démons alliés gagnent +2/+2 de façon permanente.
 Pacte 5 : Ils acquièrent SANG NOIR."
 flavour_text = "Ce n'était pas une invasion. C'était le prix qu'il fallait payer."
 texture = ExtResource("3_texture")
