@@ -329,22 +329,24 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 **Victoires/défaites vs IA (solo)** — aucune récompense en monnaie ni en XP de compte : jouer/gagner en solo ne rapporte ni or (depuis 2026-08-26) ni progression de niveau, pour ne pas concurrencer le classé.
 
-**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) mais ne pèse plus sur aucune récompense — remise à 0 par une défaite comme avant.
+**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) et pèse de nouveau sur une récompense — un multiplicateur d'XP de victoire cette fois, pas de l'or directement (voir « 📈 Niveau de compte » ci-dessous) — remise à 0 par une défaite comme avant.
 
 Le gain d'XP (et les récompenses de niveau éventuellement débloquées) n'est confirmé (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'XP est de toute façon déjà créditée en base dès la confirmation, que la popup ait pu s'afficher ou non.
 
 ### 📈 Niveau de compte
 
-Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
+Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP de base pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
 
-XP requise pour passer du niveau `n` à `n+1` : +20 % par niveau sur le seuil arrondi du niveau précédent (100 XP au niveau 1, 120 au niveau 2, 144 au niveau 3, 432 au niveau 9...). Une récompense est accordée à **chaque** niveau franchi :
+**Multiplicateur de série de victoires** : l'XP de victoire (pas celle de défaite) est multipliée selon `ranked_stats.win_streak` (série déjà incrémentée par ce match) : série ≥7 → ×1,75, ≥5 → ×1,5, ≥3 → ×1,25, sinon ×1 (arrondi au plus proche). Une défaite remet la série à 0, donc le multiplicateur retombe à ×1 dès le match suivant.
+
+XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 5×n` (105 XP au niveau 1, 110 au niveau 2, 115 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
 | Niveau | Récompense |
 |---|---|
-| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit |
-| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux : 5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire |
-| Tout autre niveau | 20 or |
+| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit + 200 or |
+| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux (5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire) + 100 or |
+| Tout autre niveau | Or croissant sur la série de 4 niveaux entre deux paliers carte/pack : 25, puis 50, 75, 100 — retombe à 25 dès le niveau suivant une carte/un pack |
 
-Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté) plutôt que perdue. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
+Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
 
 **Autres gains**
 | Source | Montant | Limite |
