@@ -31,9 +31,9 @@ static func report(result: String, network_manager: NetworkManager, net_client_m
 		_report_ranked(net_client_match_id, net_opponent_backend_id, winner_id,
 				cards_played_by_race, deck_races, game_over_screen, RANKED_REPORT_RETRIES, match_session_token)
 
-# Seul le vainqueur est crédité côté backend (pas de récompense de défaite en
-# classé, contrairement au solo) : reward vaut 0 pour le perdant, et
-# game_over_screen.show_reward() n'est alors jamais appelé.
+# Vainqueur ET perdant gagnent de l'XP de compte (voir levelModel.ts côté
+# wyrdane-backend, XP_WIN_NETWORK/XP_LOSS_NETWORK) — plus de récompense d'or
+# directe par match classé, remplacée par le système de niveau (LevelManager).
 # match_session_token : preuve d'appariement backend (voir TODO.md P9), vide
 # pour une Partie rapide/Contre un ami — le backend n'exige pas encore ce
 # jeton (ENFORCE_MATCH_SESSION_TOKEN=false côté wyrdane-backend tant que ce
@@ -43,11 +43,18 @@ static func _report_ranked(client_match_id: String, opponent_id: int, winner_id:
 		retries_left: int, match_session_token: String = "") -> void:
 	var on_complete := func(code: int, parsed):
 		if code == 200 and parsed is Dictionary:
-			if parsed.has("balance"):
-				CurrencyManager.apply_balance_update(int(parsed["balance"]))
-			var reward := int(parsed.get("reward", 0))
-			if reward > 0:
-				game_over_screen.show_reward(reward)
+			LevelManager.apply_match_result(parsed)
+			var xp_gained := int(parsed.get("xpGained", 0))
+			if xp_gained > 0:
+				game_over_screen.show_xp_reward(xp_gained, parsed.get("rewards", []))
+			var rewards: Array = parsed.get("rewards", [])
+			if not rewards.is_empty():
+				# Une récompense de niveau (carte/pack/or) vient de modifier la
+				# collection/monnaie côté serveur : resynchroniser pour que le
+				# menu principal reflète l'état à jour sans attendre le prochain
+				# lancement (voir CurrencyManager/CollectionManager.sync_from_backend).
+				CurrencyManager.sync_from_backend()
+				CollectionManager.sync_from_backend()
 		elif code == 202 and retries_left > 0 and is_instance_valid(game_over_screen):
 			# "pending" : le pair n'a pas encore rapporté son propre
 			# résultat pour ce match, on réessaie un peu plus tard.
