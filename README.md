@@ -329,15 +329,17 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 **Victoires/défaites vs IA (solo)** — aucune récompense en monnaie ni en XP de compte : jouer/gagner en solo ne rapporte ni or (depuis 2026-08-26) ni progression de niveau, pour ne pas concurrencer le classé.
 
-**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) mais ne pèse plus sur aucune récompense — remise à 0 par une défaite comme avant.
+**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) et pèse de nouveau sur une récompense — un multiplicateur d'XP de victoire cette fois, pas de l'or directement (voir « 📈 Niveau de compte » ci-dessous) — remise à 0 par une défaite comme avant.
 
 Le gain d'XP (et les récompenses de niveau éventuellement débloquées) n'est confirmé (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'XP est de toute façon déjà créditée en base dès la confirmation, que la popup ait pu s'afficher ou non.
 
 ### 📈 Niveau de compte
 
-Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
+Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP de base pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
 
-XP requise pour passer du niveau `n` à `n+1` : +5 % par niveau sur le seuil arrondi du niveau précédent (100 XP au niveau 1, 105 au niveau 2, 110 au niveau 3, 148 au niveau 9...). Une récompense est accordée à **chaque** niveau franchi :
+**Multiplicateur de série de victoires** : l'XP de victoire (pas celle de défaite) est multipliée selon `ranked_stats.win_streak` (série déjà incrémentée par ce match) : série ≥7 → ×1,75, ≥5 → ×1,5, ≥3 → ×1,25, sinon ×1 (arrondi au plus proche). Une défaite remet la série à 0, donc le multiplicateur retombe à ×1 dès le match suivant.
+
+XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 10×n` (110 XP au niveau 1, 120 au niveau 2, 130 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
 | Niveau | Récompense |
 |---|---|
 | Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit |
