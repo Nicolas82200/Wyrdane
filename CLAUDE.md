@@ -122,7 +122,7 @@ Races implémentées dans `CARDS.md` et `resources/cards/` : **Mort-Vivant** (`u
 
 ### Adversaire : IA ou joueur distant (`OpponentDriver`)
 Le camp adverse est piloté via l'abstraction `scripts/net/OpponentDriver.gd` : `Battle` et `TurnSystem.end_turn()` appellent `battle.opponent.take_turn()` sans savoir qui est en face. Deux implémentations :
-- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — deck propre (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`), main et pools de mana par race. Tour automatique en 3 phases : début de tour (recharge des pools + pioche automatique), pose de cartes (une ressource par tour puis serviteurs/sorts/rituels/enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
+- **`AISystem`** (`scripts/systems/AISystem.gd`, mode solo) — race mono-deck tirée au hasard à chaque partie parmi les 4 implémentées (`AISystem.AI_RACES`), deck propre de cette race (40 serviteurs aléatoires via `CardLibrary` + 12 exemplaires de sa carte-ressource), main et pools de mana par race. Tour automatique en 3 phases : début de tour (recharge des pools + pioche automatique), pose de cartes (une ressource par tour puis serviteurs/sorts/rituels/enchantements), attaques (provocation > létal héros > trade favorable). Trois niveaux de difficulté via `SettingsManager.ai_difficulty` (`easy`/`normal`/`hard`).
 - **`NetworkOpponent`** (`scripts/net/NetworkOpponent.gd`, mode réseau) — ne décide rien : rejoue localement, dans l'ordre, les commandes reçues du joueur distant jusqu'à `END_TURN`.
 
 Dans les deux cas, `battle.enemy_turn_active` bloque les inputs du joueur pendant le tour adverse.
