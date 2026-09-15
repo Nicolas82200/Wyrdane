@@ -16,6 +16,16 @@ const TITLE_DISCONNECT_COLOR := Color(0.75, 0.72, 0.65)
 const OVERLAY_FADE_TIME := 0.35
 const PANEL_ZOOM_TIME   := 0.35
 
+# Rareté renvoyée par le backend (levelModel.ts, français — voir cards.rarity
+# côté wyrdane-backend) vers la clé de traduction déjà utilisée par la
+# boutique de packs (voir PackShop.gd, rarity.common/rare/epic/legendary).
+const LEVEL_REWARD_RARITY_KEY := {
+	"Commune": "rarity.common",
+	"Rare": "rarity.rare",
+	"Épique": "rarity.epic",
+	"Légendaire": "rarity.legendary",
+}
+
 @onready var overlay: ColorRect       = $Overlay
 @onready var panel: PanelContainer    = $Panel
 @onready var title_label: Label      = $Panel/VBox/TitleMargin/Title
@@ -36,6 +46,10 @@ const PANEL_ZOOM_TIME   := 0.35
 # "victory" | "defeat" | "disconnect" — mémorisé pour retraduire à la volée.
 var _result: String = "victory"
 var _reward_amount: int = 0
+# Match réseau (classé/partie rapide) uniquement — voir show_xp_reward. Un
+# match solo utilise _reward_amount (or) à la place, jamais les deux.
+var _xp_gained: int = 0
+var _level_rewards: Array = []
 var _replay_view: MatchReplayView
 # Statistiques de la partie qui vient de se terminer (voir show_stats), affichées
 # sous la récompense — vide (grille masquée) tant que show_stats n'a pas été
@@ -77,6 +91,8 @@ func _on_view_replay_pressed() -> void:
 func show_result(result: String, allow_replay: bool = true, show_add_friend: bool = false) -> void:
 	_result = result
 	_reward_amount = 0
+	_xp_gained = 0
+	_level_rewards = []
 	_stats = {}
 	reward_label.hide()
 	stats_grid.hide()
@@ -111,10 +127,46 @@ func _animate_show() -> void:
 
 # Appelé après confirmation serveur du crédit de monnaie (voir
 # Battle._show_game_over) : peut arriver après que l'écran soit déjà affiché.
+# Match solo/vs IA uniquement (voir show_xp_reward pour le réseau).
 func show_reward(amount: int) -> void:
 	_reward_amount = amount
 	reward_label.text = SettingsManager.t("battle.gameover.reward") % amount
 	reward_label.show()
+
+# Appelé par MatchResultReporter._report_ranked une fois le match confirmé
+# côté serveur (match réseau, classé/partie rapide) : xp_gained est l'XP de
+# compte gagnée à CE match, rewards le tableau brut des récompenses de niveau
+# débloquées (voir levelModel.ts côté wyrdane-backend) — vide la plupart du
+# temps (un seul match ne franchit un niveau qu'à partir du niveau ~2-3).
+func show_xp_reward(xp_gained: int, rewards: Array) -> void:
+	_xp_gained = xp_gained
+	_level_rewards = rewards
+	_update_xp_reward_label()
+	reward_label.show()
+
+func _update_xp_reward_label() -> void:
+	if _xp_gained <= 0 and _level_rewards.is_empty():
+		return
+	var lines: Array[String] = []
+	if _xp_gained > 0:
+		lines.append(SettingsManager.t("battle.gameover.xp_reward") % _xp_gained)
+	for reward in _level_rewards:
+		if not (reward is Dictionary):
+			continue
+		var level := int(reward.get("level", 0))
+		var line := SettingsManager.t("battle.gameover.level_up") % level
+		match String(reward.get("type", "")):
+			"card":
+				var card: Dictionary = reward.get("card", {})
+				var rarity_key: String = LEVEL_REWARD_RARITY_KEY.get(String(card.get("rarity", "")), "")
+				var rarity_text := SettingsManager.t(rarity_key) if rarity_key != "" else ""
+				line += " " + (SettingsManager.t("battle.gameover.reward_card") % rarity_text)
+			"pack":
+				line += " " + SettingsManager.t("battle.gameover.reward_pack")
+			"gold":
+				line += " " + (SettingsManager.t("battle.gameover.reward_gold") % int(reward.get("gold", 0)))
+		lines.append(line)
+	reward_label.text = "\n".join(lines)
 
 # Appelé par Battle._show_game_over juste après show_result, avec la durée du
 # match ("duration_sec", formatée en MM:SS).
@@ -200,6 +252,8 @@ func _retranslate() -> void:
 	view_replay_button.text = SettingsManager.t("battle.gameover.view_replay")
 	if _reward_amount > 0:
 		reward_label.text = SettingsManager.t("battle.gameover.reward") % _reward_amount
+	elif _xp_gained > 0 or not _level_rewards.is_empty():
+		_update_xp_reward_label()
 	duration_key.text    = SettingsManager.t("battle.gameover.stats.duration")
 	_update_stats_labels()
 	quests_header.text   = SettingsManager.t("battle.gameover.quests_title")

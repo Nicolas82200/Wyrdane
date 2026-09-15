@@ -278,7 +278,7 @@ func _ready() -> void:
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
-	SettingsManager.account_xp_changed.connect(func(_xp: int): _update_account_level_display())
+	LevelManager.level_changed.connect(func(_level: int, _xp: int, _xp_to_next: int): _update_account_level_display())
 	_update_account_level_display()
 	NewsPanel.load_news(self)
 	_start_backend_sync()
@@ -402,10 +402,13 @@ func _select_shop_tab(tab: ShopTab) -> void:
 # lancement (retentée après la fin du login Steam si besoin), puis rafraîchie
 # à chaque ouverture du panneau Quêtes (voir QuestsPanel) et après chaque
 # réclamation.
-# Niveau de compte (progression purement locale, voir SettingsManager.account_xp).
+# Niveau de compte — autoritaire côté wyrdane-backend (voir LevelManager,
+# levelModel.ts). Crédité par match réseau uniquement (classé/partie rapide) ;
+# récompense (carte/pack/or) à chaque niveau franchi, affichée sur l'écran de
+# fin de partie (voir GameOverScreen.show_xp_reward).
 func _update_account_level_display() -> void:
-	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % SettingsManager.account_level()
-	account_level_bar.value = float(SettingsManager.account_xp_into_level()) / float(SettingsManager.ACCOUNT_XP_PER_LEVEL) * 100.0
+	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	account_level_bar.value = float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
 
 func _update_quests_badge(quests: Array) -> void:
 	var claimable := 0
@@ -498,6 +501,7 @@ func _launch_backend_syncs() -> void:
 			DeckManager.sync_from_backend()
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
+			LevelManager.sync_from_backend()
 	)
 	ProfilePanel.fetch_rank_badge(self)
 	ProfilePanel.fetch_login_reward_status(self)

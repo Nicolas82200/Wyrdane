@@ -815,7 +815,6 @@ func _show_game_over(result: String) -> void:
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
 		_record_match_history(result)
-		SettingsManager.award_account_xp(SettingsManager.ACCOUNT_XP_WIN if result == "victory" else SettingsManager.ACCOUNT_XP_LOSS)
 		if network_manager != null:
 			var opponent_name := network_manager.remote_display_name()
 			if opponent_name != "":
