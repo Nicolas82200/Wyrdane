@@ -73,9 +73,10 @@ const RACE_COLORS := {
 	Race.Type.DEMON:  Color("#1e0308d6"),
 }
 
-# Fond de DescLabel : fraction de l'opacité de RACE_COLORS appliquée (plus
-# transparent que le fond de NameLabel, qui garde l'opacité pleine de RACE_COLORS).
-const DESC_BG_ALPHA_FACTOR := 0.45
+# Fond de NameLabel/DescLabel : fraction de l'opacité de RACE_COLORS appliquée
+# aux deux (laisse un peu plus transparaître l'illustration derrière le texte
+# sans le rendre illisible).
+const LABEL_BG_ALPHA_FACTOR := 0.7
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
@@ -470,12 +471,10 @@ func _apply_resource_icon() -> void:
 
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
-	_name_bg_style.bg_color = race_color
-	# Fond de la description plus transparent que celui du nom : laisse
-	# davantage transparaître l'illustration derrière le texte d'effet.
-	var desc_color := race_color
-	desc_color.a *= DESC_BG_ALPHA_FACTOR
-	_desc_bg_style.bg_color = desc_color
+	var label_color := race_color
+	label_color.a *= LABEL_BG_ALPHA_FACTOR
+	_name_bg_style.bg_color = label_color
+	_desc_bg_style.bg_color = label_color
 	# Badge de coût "race" teinté par la race de la carte : distingue au premier
 	# coup d'œil le mana verrouillé (icône/couleur) du mana générique à côté.
 	var cost_color := race_color
