@@ -154,7 +154,7 @@ func on_card_played(card_data: CardData, is_player: bool) -> void:
 # sort allié chaque tour, le héros propriétaire de l'enchantement perd 1 HP.
 # `triggered_this_turn` (partagé avec TriggerSystem, remis à zéro à chaque
 # début de tour) sert de témoin "déjà chargé" pour cette instance.
-func _charge_spell_discount_self_damage(card_data: CardData, is_player: bool) -> void:
+func _charge_spell_discount_self_damage(_card_data: CardData, is_player: bool) -> void:
 	for entry in battle.trigger_system.get_active_enchantments(is_player):
 		var enchant: CardData = entry["card_data"]
 		if not enchant.trigger_types.any(func(t): return t.type == "OnAura"):
