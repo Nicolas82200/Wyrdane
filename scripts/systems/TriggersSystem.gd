@@ -93,10 +93,12 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			# consommeraient une charge sur chaque sort, ciblé ou non).
 			if ctx.trigger_name == "OnSpell" and _is_spell_cancel_card(card_data):
 				continue
-			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort) :
+			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort)
+			# ou aucune cible valide pour l'effet (ex: aucun serviteur ennemi en jeu) :
 			# le rituel ne réagit pas et ne consomme donc pas de charge.
 			var proxy := _make_proxy(card_data, is_player)
-			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, ctx.source_minion):
+			var context_target: Minion = ctx.extra.get("target", ctx.source_minion)
+			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, context_target):
 				continue
 			if paced and acted:
 				await battle.pace_actions()
