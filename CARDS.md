@@ -327,7 +327,7 @@ Liste complète des cartes de la race **Humain**.
 | H19 | Lame-Jurée | ⚔️ | 3 | 3 | 4 | DISCIPLINE. Exécution : Gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
 | H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : Les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
 | H21 | Éclaireur Infiltré | ⚔️ | 4 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant.* |
-| H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : Gagne ÉGIDE jusqu'à la fin du tour. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
+| H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : Gagne ÉGIDE. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
 | H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : Invoque un Milicien du Bourg 2/1. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
 
 ### Épiques
