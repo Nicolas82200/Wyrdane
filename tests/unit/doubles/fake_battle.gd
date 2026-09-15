@@ -43,17 +43,6 @@ var net_emitter = null
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
-# Suivi succès Steam (AchievementManager, voir Battle.gd) : compteurs
-# accumulés au fil du match courant.
-var player_resource_cards_played: int = 0
-var player_min_hp_this_match: int = 30
-var player_was_low_hp_this_match: bool = false
-var player_kills_this_turn: int = 0
-var player_infection_damage_dealt: int = 0
-var player_used_back_row_this_match: bool = false
-var player_commandement_triggers_this_match: int = 0
-var player_black_blood_triggers_this_match: int = 0
-var deck_has_legendary: bool = false
 var _fake_tree := FakeSceneTree.new()
 
 # ─── Ajouts pour tester DeckSystem ─────────────────────────────────────────────
@@ -67,8 +56,20 @@ const CARD_BACK = preload("res://assets/card_back/card-back.png")
 
 # ─── Suivi des quêtes de race (voir Battle.gd) ─────────────────────────────────
 var deck_races: Array[String] = []
-var deck_has_legendary: bool = false
 var cards_played_by_race: Dictionary = {}
+
+# ─── Compteurs de succès Steam (voir AchievementManager/Battle.gd) ────────────
+var player_resource_cards_played: int = 0
+var player_min_hp_this_match: int = 30
+var player_was_low_hp_this_match: bool = false
+var player_kills_this_turn: int = 0
+var player_infection_damage_dealt: int = 0
+var player_used_back_row_this_match: bool = false
+var player_commandement_triggers_this_match: int = 0
+var player_black_blood_triggers_this_match: int = 0
+var player_sacrifices_this_match: int = 0
+var deck_has_legendary: bool = false
+var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
 	if card_data.race == Race.Type.NONE:

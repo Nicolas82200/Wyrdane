@@ -269,6 +269,7 @@ func _on_packs_opened(code: int, cards: Array) -> void:
 		_start_idle_spin()
 		return
 
+	AchievementManager.on_pack_opened()
 	# Les cartes tirées viennent d'être octroyées côté serveur (grantCard) :
 	# resynchronise la collection pour qu'elles soient utilisables tout de
 	# suite dans le deckbuilder sans attendre le prochain redémarrage.
