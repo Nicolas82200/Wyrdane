@@ -342,13 +342,49 @@ func _condition_met(battle, source_minion: Minion, effect: CardEffect, selected_
 			return (selected_target.card_data.race == race) != effect.condition_race_exclude
 	return true
 
-# True si au moins un effet de la carte peut s'appliquer (condition remplie).
-# Sert aux enchantements/rituels pour ne pas consommer de charge à vide.
+# True si au moins un effet de la carte peut s'appliquer (condition remplie
+# ET au moins une cible valide pour son ciblage). Sert aux enchantements/
+# rituels pour ne pas consommer de charge à vide (ex: "Brûle un serviteur
+# ennemi" alors qu'aucun serviteur ennemi n'est en jeu).
 func any_condition_met(battle, source_minion: Minion, card_data: CardData, selected_target: Minion = null) -> bool:
 	for effect in card_data.effects:
-		if _condition_met(battle, source_minion, effect, selected_target):
+		if _condition_met(battle, source_minion, effect, selected_target) \
+				and _effect_can_apply(battle, source_minion, effect, selected_target):
 			return true
 	return false
+
+# Un effet ciblant des serviteurs (directement ou via un pool automatique) ne
+# "peut s'appliquer" que s'il existe au moins une cible valide. Les autres
+# ciblages (héros, soi-même, pioche, cimetière...) restent toujours valides —
+# même logique par défaut que TargetingSystem.has_any_valid_target.
+func _effect_can_apply(battle, source_minion: Minion, effect: CardEffect, selected_target = null) -> bool:
+	match effect.target:
+		"EnemyMinion", "AllyMinion", "AnyMinion", "TriggerSource":
+			return selected_target != null
+		"AllEnemies":
+			return not battle.get_enemy_minions(source_minion).is_empty()
+		"AllAllies":
+			return not battle.get_owner_minions(source_minion).is_empty()
+		"AllMinions":
+			return not (battle.player_minions + battle.enemy_minions).is_empty()
+		"AllEnemiesFront":
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
+			return not battle.get_front_minions(not is_p).is_empty()
+		"AllEnemiesBack":
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
+			return not battle.get_back_minions(not is_p).is_empty()
+		"AllAlliesFront":
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
+			return not battle.get_front_minions(is_p).is_empty()
+		"AllAlliesBack":
+			var is_p: bool = source_minion == null or source_minion.owner_is_player
+			return not battle.get_back_minions(is_p).is_empty()
+		"RandomEnemy":
+			return not _filter_targets(battle.get_enemy_minions(source_minion), effect).is_empty()
+		"RandomAlly":
+			return not _filter_targets(battle.get_owner_minions(source_minion), effect).is_empty()
+		_:
+			return true
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1272,6 +1308,9 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
 		elif effect.granted_keyword_is_human:
 			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
+			if kw == -1:
+				push_warning("GrantKeyword : mot-clé Humain inconnu '%s'" % effect.granted_keyword)
+				continue
 			if target.has_human_keyword(kw):
 				continue
 			target.add_human_keyword(kw)
@@ -1318,7 +1357,17 @@ func _attack_immediate(battle, source_minion: Minion, _effect: CardEffect) -> vo
 	for e in enemies:
 		if e.health < target.health:
 			target = e
+	# resolve_combat consomme toujours une attaque (Minion.consume_attack) : cette
+	# attaque d'Arrivée est un effet, pas l'attaque normale du joueur, elle ne doit
+	# donc pas la lui retirer (Cavalier Zombie doit rester attaquable ce tour).
+	var attacks_before: int = source_minion.attacks_remaining
 	await battle.combat_system.resolve_combat(source_minion, target)
+	source_minion.attacks_remaining = attacks_before
+	# resolve_combat vient de rafraîchir l'affichage juste après avoir consommé
+	# l'attaque (donc avec attacks_remaining encore à 0) : sans ce second refresh,
+	# le serviteur restait affiché "épuisé" à tort malgré l'attaque restituée.
+	if not source_minion.is_dead():
+		battle.board_visual_system.refresh_board()
 
 # Frappe Coordonnée : `effect.count` alliés (filtrés par race_filter, ex. Humain)
 # attaquent immédiatement la cible ennemie choisie par le joueur (selected_target).
@@ -1335,7 +1384,11 @@ func _group_attack_immediate(battle, source_minion: Minion, effect: CardEffect, 
 	for attacker in allies.slice(0, effect.count):
 		if selected_target.is_dead():
 			break
+		var attacks_before: int = attacker.attacks_remaining
 		await battle.combat_system.resolve_combat(attacker, selected_target)
+		attacker.attacks_remaining = attacks_before
+		if not attacker.is_dead():
+			battle.board_visual_system.refresh_board()
 
 # Retire l'Infection des cibles (Inquisiteur Suprême : tous les alliés).
 func _cure_infection(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
@@ -1467,7 +1520,7 @@ func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> v
 			battle.opponent.draw_card()
 		if drawn != null and (effect.race_filter.is_empty() \
 				or drawn.race == Race.from_string(effect.race_filter)):
-			battle.cost_system.add_temp_discount(drawn, discount)
+			battle.cost_system.add_temp_discount(drawn, discount, is_player)
 
 # ─── Effets Démon ─────────────────────────────────────────────────────────────
 
@@ -1583,7 +1636,7 @@ func notify_damaged(battle, minion: Minion) -> void:
 		await roll_mutation(battle, minion)
 	if minion.death_rage_triggered:
 		return
-	if minion.health * 2 < minion.max_health:
+	if minion.health * 2 < minion.max_health and has_trigger(minion, "OnDeathRage"):
 		minion.death_rage_triggered = true
 		var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 		if visual:

@@ -8,6 +8,10 @@ extends Node
 # nous-mêmes en header Cookie sur chaque appel.
 #
 const API_URL = "https://api.wyrdane.com"
+# Sans timeout, un backend qui ne répond jamais laisse request_completed ne
+# jamais se déclencher : l'appelant (ex. QuestsPanel, GameOverScreen) reste
+# bloqué indéfiniment et le HTTPRequest orphelin n'est jamais libéré.
+const REQUEST_TIMEOUT_SECONDS := 15.0
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en
@@ -77,6 +81,7 @@ func _send_ticket_to_backend(ticket_hex: String) -> void:
 	var body := JSON.stringify({"ticket": ticket_hex})
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 	http.request_completed.connect(_on_login_response.bind(http))
 	var err := http.request(
 		API_URL + "/api/auth/steam",
@@ -112,6 +117,7 @@ func _extract_cookie(headers: PackedStringArray) -> String:
 func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_complete: Callable = Callable()) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 
 	# X-Requested-With : exigé par le backend (middleware/csrf.ts) sur toute
 	# route authentifiée par cookie, pour forcer un préflight CORS qu'un
@@ -153,22 +159,30 @@ func get_profile(on_profile: Callable) -> void:
 # voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
+# match_session_token : preuve d'appariement classé émise par le backend au
+# matchmaking (voir MatchmakingOverlay._on_ranked_matched, TODO.md P9) — vide
+# pour une Partie rapide/Contre un ami, dans quel cas le champ est simplement
+# omis du payload plutôt qu'envoyé vide.
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
-		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable()) -> void:
-	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
+		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
+		match_session_token: String = "") -> void:
+	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
-	}, on_complete)
+	}
+	if match_session_token != "":
+		payload["matchSessionToken"] = match_session_token
+	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
 # docs/backend-contracts/ranked-matchmaking-and-retention.md
 # Appariement par MMR, fenêtre élargie progressivement. Une fois deux tickets
 # appariés, le backend désigne un hôte (déterministe, ex. plus petit user id)
-# ; l'hôte crée un lobby Steam (voir NetLobby._on_ranked_matched) et rapporte
+# ; l'hôte crée un lobby Steam (voir MatchmakingOverlay._on_ranked_matched) et rapporte
 # son lobby_id via queue_report_lobby — le camp invité le récupère au prochain
 # poll de queue_status et le rejoint directement (NetTransport.join avec
 # {"lobby_id": ...}), sans passer par la recherche de lobby publique.
@@ -318,7 +332,12 @@ func redeem_referral_code(code: String, on_data: Callable) -> void:
 		if response_code == 200:
 			on_data.call(true, "")
 		else:
-			var error_code := String(parsed.get("error", "")) if parsed is Dictionary else ""
+			# str() plutôt que String() : le constructeur String() plante sur un
+			# type non-String (ex. un nombre JSON, toujours désérialisé en float
+			# par JSON.parse_string) — voir QuestsPanel._get_str pour le même
+			# correctif appliqué au même risque côté quêtes.
+			var raw_error = parsed.get("error", "") if parsed is Dictionary else ""
+			var error_code := "" if raw_error == null else str(raw_error)
 			on_data.call(false, error_code)
 	)
 

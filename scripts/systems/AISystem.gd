@@ -4,13 +4,34 @@ class_name AISystem
 # IA adverse : gère son propre deck, sa main et son mana,
 # puis joue son tour en 3 phases (ressource, pose, attaque).
 # Joue tous les types de cartes (Serviteur, Éphémère, Rituel, Enchantement).
-# La qualité de ses décisions dépend du réglage SettingsManager.ai_difficulty
-# ("easy", "normal", "hard").
+# Deck mono-race tiré au hasard à chaque partie parmi les races implémentées
+# (voir AI_RACES/setup()), constitué aléatoirement dans le pool jouable de
+# cette race. La qualité de ses décisions dépend du réglage
+# SettingsManager.ai_difficulty ("easy", "normal", "hard").
 
 const DECK_SIZE       := 40  # cartes jouables (hors ressources), minimum imposé aux joueurs
 const RESOURCE_COUNT  := 12  # cartes-ressource mélangées au deck (minimum 10, voir README)
 const MAX_COPIES      := 2
 const STARTING_HAND := 4
+
+# Une race est tirée au hasard à chaque partie (voir setup()) : l'IA n'est
+# plus toujours Mort-Vivant. Carte-ressource et carte de repli associées à
+# chaque race jouable (Elfe/Nain pas encore implémentées, voir CLAUDE.md).
+const AI_RACES: Array[Race.Type] = [
+	Race.Type.UNDEAD, Race.Type.HUMAN, Race.Type.DEMON, Race.Type.ABOMINATION,
+]
+const RACE_RESOURCE_CARDS := {
+	Race.Type.UNDEAD: "res://resources/cards/undead/soul-shard.tres",
+	Race.Type.HUMAN: "res://resources/cards/human/royal-seal.tres",
+	Race.Type.DEMON: "res://resources/cards/demon/pact-fragment.tres",
+	Race.Type.ABOMINATION: "res://resources/cards/abomination/anomaly-shard.tres",
+}
+const RACE_FALLBACK_CARDS := {
+	Race.Type.UNDEAD: "res://resources/cards/undead/gaunt-servant.tres",
+	Race.Type.HUMAN: "res://resources/cards/human/brother-in-arms.tres",
+	Race.Type.DEMON: "res://resources/cards/demon/abyssal-thrall.tres",
+	Race.Type.ABOMINATION: "res://resources/cards/abomination/bitter-seed.tres",
+}
 
 # Facile : chance de gaspiller son tour (carte au hasard plutôt que le meilleur
 # choix, cible d'attaque au hasard plutôt que le meilleur trade).
@@ -32,11 +53,13 @@ const AUTO_TARGET_EFFECTS := ["SacrificeAlly", "SacrificeDrawPerVictim"]
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
 var difficulty: String = "normal"
+var ai_race: Race.Type = Race.Type.UNDEAD
 # race_mana / race_max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
 	difficulty = CustomMatchContext.ai_difficulty_override if CustomMatchContext.ai_difficulty_override != "" else SettingsManager.ai_difficulty
 	CustomMatchContext.clear()
+	ai_race = AI_RACES.pick_random()
 	_build_deck()
 	deck.shuffle()
 	for i in range(STARTING_HAND):
@@ -169,10 +192,10 @@ func _build_deck() -> void:
 	CardLibrary.load_all_cards()
 	var pool: Array[CardData] = []
 	for card in CardLibrary.all_cards:
-		if card.race == Race.Type.UNDEAD and card.card_type != "Resource":
+		if card.race == ai_race and card.card_type != "Resource":
 			pool.append(card)
 	if pool.is_empty():
-		var fallback := load("res://resources/cards/undead/gaunt-servant.tres") as CardData
+		var fallback := load(RACE_FALLBACK_CARDS[ai_race]) as CardData
 		for i in range(DECK_SIZE):
 			deck.append(fallback)
 	else:
@@ -186,8 +209,8 @@ func _build_deck() -> void:
 				continue
 			copies[card] = count + 1
 			deck.append(card)
-	# Cartes-ressource (Âme) mélangées au deck, comme l'impose le deckbuilder joueur.
-	var resource_card := load("res://resources/cards/undead/soul-shard.tres") as CardData
+	# Carte-ressource de la race tirée, mélangée au deck, comme l'impose le deckbuilder joueur.
+	var resource_card := load(RACE_RESOURCE_CARDS[ai_race]) as CardData
 	if resource_card != null:
 		for i in range(RESOURCE_COUNT):
 			deck.append(resource_card)

@@ -123,7 +123,7 @@ func _update_pile_ui(button: Button, label: Label, count: int) -> void:
 		# de raison de refléter NOTRE choix (voir _update_pile_ui, partagé avec
 		# update_enemy_deck_ui).
 		if button == battle.deck_button:
-			card_back.modulate = CosmeticsManager.card_back_tint()
+			card_back.modulate = CardBackShop.card_back_tint()
 		card_back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		card_back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		card_back.anchors_preset = 15

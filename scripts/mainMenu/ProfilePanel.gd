@@ -16,31 +16,12 @@ static func open(menu) -> void:
 		if tex:
 			menu.profile_avatar.texture = tex
 	menu.profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
-	_apply_profile_cosmetics(menu)
 	_show_placeholders(menu)
 	_fetch(menu)
 	ReferralPanel.open(menu)
-	ProfileCosmeticsPanel.open(menu)
-	CosmeticsPanel.open(menu)
+	RecentOpponentsPanel.open(menu)
+	MatchHistoryPanel.open(menu)
 	SupporterPackPanel.open(menu)
-
-# Titre + cadre de profil (voir ProfileCosmetics) — purement locaux, appliqués
-# indépendamment de toute réponse backend.
-static func _apply_profile_cosmetics(menu) -> void:
-	menu.profile_player_title_label.text = ProfileCosmetics.current_title_text()
-	var frame_color: Color = ProfileCosmetics.current_frame_color()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_width_left = 3
-	style.border_width_right = 3
-	style.border_width_top = 3
-	style.border_width_bottom = 3
-	style.border_color = frame_color
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	menu.profile_avatar_frame.add_theme_stylebox_override("panel", style)
 
 # BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
 # du menu (voir MainMenu._start_backend_sync) : si le joueur ouvre cette vue
@@ -131,6 +112,10 @@ static func fetch_rank_badge(menu) -> void:
 	BackendClient.get_profile(func(success: bool, data: Dictionary):
 		if success:
 			apply_rank_badge(menu.rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
+			# Masqué par défaut (voir MainMenu.tscn) : un "-" de remplissage restait
+			# affiché en permanence entre l'or et le niveau tant que la synchronisation
+			# backend n'avait pas encore résolu (ou échouait) le palier réel.
+			menu.rank_badge_label.visible = true
 	)
 
 # --- Récompense de connexion quotidienne ---------------------------------

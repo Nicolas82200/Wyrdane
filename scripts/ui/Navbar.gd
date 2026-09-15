@@ -3,7 +3,7 @@ class_name Navbar
 
 # Barre persistante réutilisable (solde + accès boutique de packs), destinée
 # aux scènes atteintes par change_scene_to_file qui n'ont donc pas accès à la
-# barre déjà présente sur MainMenu.tscn (DeckBuilder, NetLobby) — voir
+# barre déjà présente sur MainMenu.tscn (DeckBuilder — MatchmakingOverlay est un autoload et n'en a pas besoin) — voir
 # MainMenu._on_packs_button_pressed pour le pendant historique de ce pattern.
 
 @onready var currency_label: Label = $Bar/HBox/CurrencyLabel

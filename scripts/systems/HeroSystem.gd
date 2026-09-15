@@ -113,8 +113,8 @@ func _track_player_hp_for_achievements(hero: Hero) -> void:
 const LOW_HP_RATIO := 0.3
 const _LOW_HP_COLOR := Color(0.92, 0.22, 0.22, 1.0)
 
-# Sous ce seuil de PV absolus, le texte du label passe en rouge (en plus du
-# symbole ⚠ au-dessous de LOW_HP_RATIO, qui reste le repère non colorimétrique).
+# Sous ce seuil de PV absolus, le texte du label passe en rouge (seul
+# indicateur de danger — pas d'icône, préférence visuelle explicite).
 const CRITICAL_HP_THRESHOLD := 10
 const _CRITICAL_HP_COLOR := Color(0.9, 0.2, 0.2, 1.0)
 

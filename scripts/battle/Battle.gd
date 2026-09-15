@@ -95,6 +95,11 @@ var net_local_first: bool = true
 # si l'un des deux camps n'était pas authentifié au moment du handshake.
 var net_opponent_backend_id: int = 0
 var net_client_match_id: String = ""
+# Preuve d'appariement classé émise par le backend au matchmaking (voir
+# MatchmakingOverlay._on_ranked_matched, TODO.md P9 côté wyrdane-backend) —
+# vide pour une Partie rapide/Contre un ami (pas d'appariement backend, donc
+# pas de jeton à fournir). Transmis tel quel au rapport de fin de match.
+var net_match_session_token: String = ""
 # Référence au transport réseau, pour le fermer proprement en quittant le match.
 var network_manager: NetworkManager = null
 var enchantment_system  = load("res://scripts/systems/EnchantmentSystem.gd").new()
@@ -175,11 +180,12 @@ var player_used_back_row_this_match: bool = false
 var player_commandement_triggers_this_match: int = 0
 var player_black_blood_triggers_this_match: int = 0
 var deck_has_legendary: bool = false
-# Horodatage de début de match (voir GameOverScreen.show_stats), pour afficher
-# la durée de la partie sur l'écran de fin.
+# Horodatage de début de match, pour la durée affichée dans l'historique local
+# de parties (voir SettingsManager.record_match_history_entry/_record_match_history)
+# et sur l'écran de fin (voir GameOverScreen.show_stats).
 var match_start_msec: int = 0
 # Ce match provient-il de la file d'appariement classé (bouton "Partie
-# classée" de NetLobby) plutôt que d'une "Partie rapide" ? Le backend ne fait
+# classée" du popup Multijoueur) plutôt que d'une "Partie rapide" ? Le backend ne fait
 # lui-même aucune distinction entre les deux (voir CLAUDE.md § Ranked) : ce
 # flag n'existe que côté client, propagé via NetContext.setup.
 var is_ranked_match: bool = false
@@ -348,6 +354,7 @@ func _connect_signals() -> void:
 	settings_menu.concede_requested.connect(_on_quit_match)
 	game_over_screen.menu_requested.connect(_on_quit_match)
 	game_over_screen.replay_requested.connect(_on_replay_match)
+	game_over_screen.add_friend_requested.connect(_on_add_friend_pressed)
 	# Cliquer sur un deck n'a pas d'action : pas de son de clic
 	deck_button.set_meta("no_click_sound", true)
 	enemy_deck_button.set_meta("no_click_sound", true)
@@ -593,6 +600,11 @@ func _on_targeting_cancelled() -> void:
 	pending_insert_index = -1
 	hand.set_hand(hand_cards)
 
+# Comme _on_targeting_cancelled, sans le refresh de main : utilisée par
+# CardSystem une fois la carte déjà consommée (jouée ou annulée par un
+# contre-sort, retirée en cimetière) — la main n'a alors pas besoin d'être
+# réaffichée avec la carte dedans, contrairement à une annulation par le
+# joueur où le pending_card doit visuellement redevenir jouable.
 func reset_targeting_state() -> void:
 	waiting_for_target   = false
 	pending_card         = null
@@ -726,6 +738,27 @@ func check_game_end() -> void:
 		turn_timer.stop()
 		_show_game_over("defeat" if player_hero.is_dead() else "victory")
 
+# Enregistre cette partie dans l'historique local (voir SettingsManager.
+# match_history) — nom/race de l'adversaire réel en réseau, "IA" en solo
+# (AISystem n'expose pas de "nom" à proprement parler).
+func _record_match_history(result: String) -> void:
+	var opponent_name: String
+	var opponent_race: String
+	if network_manager != null:
+		var remote_name := network_manager.remote_display_name()
+		opponent_name = remote_name if remote_name != "" else SettingsManager.t("NET_VS_OPPONENT")
+		opponent_race = Race.deck_race_label(NetContext.setup.get("opponent_deck", []))
+	else:
+		opponent_name = SettingsManager.t("MATCH_HISTORY_AI_OPPONENT")
+		opponent_race = ""
+	SettingsManager.record_match_history_entry({
+		"result": result,
+		"opponent_name": opponent_name,
+		"opponent_race": opponent_race,
+		"duration_sec": (Time.get_ticks_msec() - match_start_msec) / 1000,
+		"timestamp": Time.get_unix_time_from_system(),
+	})
+
 # Laisse les dernières animations (mort, dégâts) se terminer avant d'afficher
 # l'écran de fin par-dessus le plateau. Rejouer n'est proposé qu'en solo.
 # ─── Emotes ───────────────────────────────────────────────────────────────────
@@ -781,13 +814,17 @@ func _show_game_over(result: String) -> void:
 		return
 	if result == "victory" or result == "defeat":
 		SettingsManager.record_match_result(result == "victory")
-		SettingsManager.award_account_xp(SettingsManager.ACCOUNT_XP_WIN if result == "victory" else SettingsManager.ACCOUNT_XP_LOSS)
+		_record_match_history(result)
+		if network_manager != null:
+			var opponent_name := network_manager.remote_display_name()
+			if opponent_name != "":
+				SettingsManager.record_recent_opponent(opponent_name)
 	SettingsManager.last_match_log = combat_log.entries.duplicate()
 	if result == "victory":
 		AchievementManager.on_victory(self)
 	elif result == "defeat":
 		AchievementManager.on_defeat()
-	game_over_screen.show_result(result, network_manager == null)
+	game_over_screen.show_result(result, network_manager == null, network_manager != null)
 	game_over_screen.set_replay_available(not SettingsManager.last_match_log.is_empty())
 	if result == "victory" or result == "defeat":
 		game_over_screen.show_stats({
@@ -795,7 +832,11 @@ func _show_game_over(result: String) -> void:
 		})
 		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races)
+			cards_played_by_race, deck_races, net_match_session_token)
+
+func _on_add_friend_pressed() -> void:
+	if network_manager != null:
+		network_manager.open_add_friend_overlay()
 
 # ─── Drag ─────────────────────────────────────────────────────────────────────
 

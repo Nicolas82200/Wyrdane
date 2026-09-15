@@ -16,7 +16,7 @@ signal packet_received(bytes: PackedByteArray)
 # Le pair distant est parti (déconnexion volontaire ou perte de lien).
 signal disconnected(reason: String)
 # Trace lisible des étapes d'établissement de la connexion (diagnostic affiché
-# dans le journal du lobby — voir NetLobby).
+# dans le journal du lobby — voir MatchmakingOverlay).
 signal status(message: String)
 # Une session hébergée est prête à être rejointe par un pair (ex. Steam :
 # lobby créé avec succès, session_id = lobby_id) — pas encore connecté, juste
@@ -61,3 +61,15 @@ func close() -> void:
 # seul SteamTransport l'implémente, via l'overlay Steam).
 func invite_friends() -> void:
 	pass
+
+# Ouvre l'UI "ajouter en ami" du backend ciblant le pair distant actuellement
+# connecté, si applicable (no-op sinon — seul SteamTransport l'implémente).
+# Voir GameOverScreen (bouton "Ajouter comme ami" après une partie réseau).
+func open_add_friend_overlay() -> void:
+	pass
+
+# Nom d'affichage du pair distant (ex. pseudo Steam), si le backend peut le
+# fournir. Chaîne vide si non applicable ou pas encore connu (voir écran de
+# présentation VS/historique de parties/liste "joueurs récents").
+func remote_display_name() -> String:
+	return ""

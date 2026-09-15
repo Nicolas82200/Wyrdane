@@ -50,8 +50,8 @@ text = "Résolution"
 
 [node name="ResolutionOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow" unique_id=600000011]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
 [node name="FullscreenRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000012]
@@ -97,8 +97,8 @@ text = "Qualité effets"
 
 [node name="QualityOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow" unique_id=600000020]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
 [node name="HighlightRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000026]
@@ -129,8 +129,8 @@ text = "Langue"
 
 [node name="LanguageOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow" unique_id=600000031]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
 [node name="DifficultyRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000032]
@@ -146,8 +146,8 @@ text = "Difficulté IA"
 
 [node name="DifficultyOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow" unique_id=600000034]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
 [node name="TextScaleRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000035]
@@ -192,8 +192,8 @@ text = "Assistance daltonisme"
 
 [node name="ColorblindOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow" unique_id=600000041]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 16
 
 [node name="HighContrastRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000043]
