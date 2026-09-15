@@ -110,7 +110,10 @@ func _aura_reduction(card_data: CardData, is_player: bool) -> int:
 		for effect in enchant.effects:
 			match effect.effect_id:
 				"AuraSpellCostReduction":
-					if card_data.card_type != "Minion":
+					# "Incantation" = Éphémère uniquement : les Rituels/Enchantements
+					# ne sont pas des sorts au sens de cette réduction (comportement
+					# corrigé — auparavant "!= Minion" les incluait à tort).
+					if card_data.card_type == "Instant":
 						reduction += effect.value
 				"AuraFirstOfRaceCostReduction":
 					if card_data.card_type == "Minion" \
@@ -142,7 +145,7 @@ func on_card_played(card_data: CardData, is_player: bool) -> void:
 	if card_data.card_type == "Minion":
 		var per_race: Dictionary = _race_played_this_turn[is_player]
 		per_race[card_data.race] = int(per_race.get(card_data.race, 0)) + 1
-	else:
+	elif card_data.card_type == "Instant":
 		await _charge_spell_discount_self_damage(card_data, is_player)
 	# La carte jouée peut avoir consommé une réduction "premier de la race"
 	# (AuraFirstOfRaceCostReduction) : les autres cartes de la race en main
