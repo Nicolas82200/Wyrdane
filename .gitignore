@@ -22,3 +22,7 @@ translations/*.translation
 # Brouillons/archives de devlog hebdomadaire : notes de session brutes,
 # usage interne uniquement — ne doit pas apparaître sur GitHub.
 /devlogs/
+
+# Sortie locale du script tools/export_card_art_png.py (PNG haute qualité,
+# régénérable à la demande) — ne doit pas être versionnée.
+/export/

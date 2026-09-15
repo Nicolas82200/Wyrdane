@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Sursaut Final"
-description = "Ramène immédiatement en jeu la dernière Abomination morte que vous contrôlez."
+description = "Ramène immédiatement en jeu la dernière Abomination morte alliée."
 flavour_text = "Une dernière contraction. Ça suffit parfois à repartir."
 texture = ExtResource("2_texture")
 cost = 3

@@ -185,6 +185,10 @@ func start_match() -> void:
 	else:
 		battle.deck_system.deal_opening_hand()
 	var deck_origin: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
+	# Mode mulligan activé avant la pioche de la main de départ : les cartes
+	# volent directement du deck vers leur position centrée/agrandie de
+	# mulligan, sans passer d'abord par la main repliée en bas de l'écran.
+	battle.hand.set_mulligan_mode(true)
 	await battle.hand.play_opening_draw(battle.hand_cards, deck_origin)
 	if battle.tutorial_active:
 		await battle.tutorial_manager.intro_mulligan()
@@ -217,10 +221,8 @@ func run_mulligan() -> void:
 	battle._mulligan_active = true
 	battle._mulligan_swap_count = 0
 	battle._mulligan_swapped_indices.clear()
-	# Transition étalée réservée à la partie normale : le tutoriel guidé mesure
-	# la position des cartes très tôt (voir TutorialManager.guided_mulligan) et
-	# a besoin qu'elles soient déjà stables à cet instant.
-	battle.hand.set_mulligan_mode(true, -1.0 if battle.tutorial_active else Hand.MULLIGAN_TRANSITION_DURATION)
+	# Mode mulligan déjà activé avant la pioche de la main de départ (voir
+	# start_match) : les cartes sont déjà centrées/agrandies à cet instant.
 	battle.hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	battle.mulligan_dim_overlay.visible = true
 	battle.turn_banner.show_banner_persistent(

@@ -26,7 +26,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Croc de Braise"
-description = "Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur que votre adversaire contrôle)."
+description = "Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur ennemi)."
 flavour_text = "Chaque morsure lui coûte, à toi aussi."
 texture = ExtResource("3_texture")
 cost = 2

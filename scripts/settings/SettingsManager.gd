@@ -99,6 +99,10 @@ const MATCH_HISTORY_MAX_ENTRIES := 20
 # (succès Steam "Gardien", voir AchievementManager.ACH_GUARDIAN_STREAK) —
 # cassée par toute défaite ou toute victoire où le PV plancher est franchi.
 var high_hp_win_streak: int = 0
+# Races (noms Race.get_race_name) avec lesquelles le joueur a déjà remporté au
+# moins une victoire — succès Steam "Panoplie complète", voir
+# AchievementManager.ACH_FULL_ROSTER.
+var races_won_with: Array = []
 # Pseudos des derniers adversaires réseau affrontés (le plus récent en tête),
 # purement local — jamais leur SteamID64 (voir NetTransport.remote_display_name/
 # règle "aucun identifiant Steam ne fuit hors de SteamTransport"). "Ajouter en
@@ -221,6 +225,14 @@ func record_high_hp_win_streak(qualifies: bool) -> int:
 	high_hp_win_streak = high_hp_win_streak + 1 if qualifies else 0
 	_save()
 	return high_hp_win_streak
+
+# Marque race_name comme "gagnée avec" et retourne true si les 4 races
+# implémentées (voir Race.get_implemented_races) sont désormais toutes couvertes.
+func record_race_win(race_name: String) -> bool:
+	if race_name != "" and race_name not in races_won_with:
+		races_won_with.append(race_name)
+		_save()
+	return races_won_with.size() >= Race.get_implemented_races().size()
 
 # --- Affichage (résolution / plein écran / vsync / qualité) ---------------
 
@@ -468,6 +480,7 @@ func _save() -> void:
 	cfg.set_value("stats", "recent_opponents", recent_opponents)
 	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
+	cfg.set_value("stats", "races_won_with", races_won_with)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
@@ -512,6 +525,7 @@ func _load() -> void:
 				recent_opponents.append(name)
 	selected_card_back = cfg.get_value("stats", "selected_card_back", 0) as int
 	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
+	races_won_with = cfg.get_value("stats", "races_won_with", []) as Array
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String

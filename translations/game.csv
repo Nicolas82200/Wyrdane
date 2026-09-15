@@ -508,9 +508,9 @@ enchant.charges_many,"%d charges","%d charges"
 "Arrivée : Transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous votre contrôle.","Arrivée : Transforme tous les serviteurs adverses en jeu en Zombies 1/1 sous votre contrôle.","Arrival: Transform all enemy minions in play into 1/1 Zombies under your control."
 "Ce n'était pas une invasion. C'était une conversion.","Ce n'était pas une invasion. C'était une conversion.","It was not an invasion. It was a conversion."
 "Appel aux Armes","Appel aux Armes","Call to Arms"
-"Invoque 2 Miliciens du Bourg 2/1 en rangée Avant.
-Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place.","Invoque 2 Miliciens du Bourg 2/1 en rangée Avant.
-Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place.","Summon 2 Town Militia 2/1 in the Front row.
+"Invoque 2 Miliciens du Bourg 2/1.
+Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place.","Invoque 2 Miliciens du Bourg 2/1.
+Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place.","Summon 2 Town Militia 2/1.
 If your Front row is empty: Summon 3 Town Militia instead."
 "Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.","Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.","When the line is empty, those who remain no longer have to think. They advance."
 "Archer d'Élite","Archer d'Élite","Elite Archer"
@@ -537,7 +537,7 @@ Cannot be targeted by enemy spells until its first attack."
 "Deuil : Piochez 1 carte. (Une seule fois par tour.)","Deuil : Piochez 1 carte. (Une seule fois par tour.)","Mourning: Draw 1 card. (Once per turn.)"
 "Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom.","Chaque mort nourrit l'autel. L'autel, lui, ne se souvient d'aucun nom.","Each death feeds the altar. The altar remembers no names."
 "Bannière du Roi","Bannière du Roi","King's Banner"
-"Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant.","Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2 en rangée Avant.","Awakening: If you have a Legendary Human in play, summon a Seasoned Footman 2/2 in the Front row."
+"Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2.","Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2.","Awakening: If you have a Legendary Human in play, summon a Seasoned Footman 2/2."
 "Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.","Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.","Under this banner, we no longer count the dead. We count those still standing."
 "Banshee Zombie","Banshee Zombie","Zombie Banshee"
 "Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire.","Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire.","Arrival: Silence target enemy minion until the end of the next enemy turn."
@@ -570,9 +570,9 @@ Death Rage: +3/+0."
 "Personne ne se souvient de son nom. Lui non plus.","Personne ne se souvient de son nom. Lui non plus.","No one remembers his name. Neither does he."
 "Capitaine de Milice","Capitaine de Milice","Militia Captain"
 "COMMANDEMENT
-Arrivée : Invoque un Milicien du Bourg 2/1 en rangée Avant.","COMMANDEMENT
-Arrivée : Invoque un Milicien du Bourg 2/1 en rangée Avant.","COMMAND
-Arrival: Summon a Town Militia 2/1 in the Front row."
+Arrivée : Invoque un Milicien du Bourg 2/1.","COMMANDEMENT
+Arrivée : Invoque un Milicien du Bourg 2/1.","COMMAND
+Arrival: Summon a Town Militia 2/1."
 "Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.","Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.","He never planned to lead. But someone had to."
 "Cavalier Zombie","Cavalier Zombie","Zombie Rider"
 "ASSAUT
@@ -640,7 +640,7 @@ Si 5 ou plus en jeu : +2/+0 à la place.","Allied Undead +1/+0 this turn.
 If 5 or more in play: +2/+0 instead."
 "Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain.","Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain.","The more of them that scream, the less the cry sounds like anything human."
 "Cultiste Zombifié","Cultiste Zombifié","Zombified Cultist"
-"Dernier Souffle : Invoque un Cadavre Errant en rangée Avant.","Dernier Souffle : Invoque un Cadavre Errant en rangée Avant.","Deathrattle: Summon a Wandering Corpse in the Front row."
+"Dernier Souffle : Invoque un Cadavre Errant.","Dernier Souffle : Invoque un Cadavre Errant.","Deathrattle: Summon a Wandering Corpse."
 "Dernier Souffle : Invoque un Zombie 1/1 sous votre contrôle.","Dernier Souffle : Invoque un Zombie 1/1 sous votre contrôle.","Deathrattle: Summon a 1/1 Zombie under your control."
 "Il a prié pour la mort éternelle. Il a été exaucé, à moitié.","Il a prié pour la mort éternelle. Il a été exaucé, à moitié.","He prayed for eternal death. His prayer was answered, halfway."
 "Dernier Soupir","Dernier Soupir","Last Gasp"
@@ -714,7 +714,7 @@ Deathrattle: Draw 1 card."
 "Grand Rituel Nécrotique","Grand Rituel Nécrotique","Grand Necrotic Ritual"
 "Deuil : Ramène en main le Mort-Vivant allié le plus récemment mort.","Deuil : Ramène en main le Mort-Vivant allié le plus récemment mort.","Mourning: Return the most recently died allied Undead to your hand."
 "Grande Mobilisation","Grande Mobilisation","Great Mobilization"
-"Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant.","Éveil : Invoque un Humain aléatoire de coût ≤4 en rangée Avant.","Awakening: Summon a random Human of cost ≤4 in the Front row."
+"Éveil : Invoque un Humain aléatoire de coût ≤4.","Éveil : Invoque un Humain aléatoire de coût ≤4.","Awakening: Summon a random Human of cost ≤4."
 "Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois.","Quand tout le reste a échoué, il reste les hommes. Il y en a toujours assez pour une dernière fois.","When all else has failed, the men remain. There are always enough for one last time."
 "Guérisseur de Camp","Guérisseur de Camp","Camp Healer"
 "Éveil : Donne +0/+1 à un Humain aléatoire allié.","Éveil : Donne +0/+1 à un Humain aléatoire allié.","Awakening: Give +0/+1 to a random allied Human."
@@ -723,14 +723,14 @@ Deathrattle: Draw 1 card."
 "Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant.","Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant.","Deathrattle: Deal 2 damage to all enemy minions in the Front row."
 "Sa mort est plus dangereuse que sa vie.","Sa mort est plus dangereuse que sa vie.","His death is more dangerous than his life."
 "Général de Brigade","Général de Brigade","Brigade General"
-"COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu.","COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 en rangée Avant si tu as 4 Humains ou plus en jeu.","COMMAND. Awakening: summon a Wall Knight 2/5 in the Front row if you have 4 or more Humans in play."
+"COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 si tu as 4 Humains ou plus en jeu.","COMMANDEMENT. Éveil : invoque un Chevalier du Mur 2/5 si tu as 4 Humains ou plus en jeu.","COMMAND. Awakening: summon a Wall Knight 2/5 if you have 4 or more Humans in play."
 "COMMANDEMENT
-Éveil : Invoque un Fantassin Aguerri 2/2 en rangée Avant si vous avez 4 Humains ou plus en jeu.","COMMANDEMENT
-Éveil : Invoque un Fantassin Aguerri 2/2 en rangée Avant si vous avez 4 Humains ou plus en jeu.","COMMAND
-Awakening: Summon a Seasoned Footman 2/2 in the Front row if you have 4 or more Humans in play."
+Éveil : Invoque un Fantassin Aguerri 2/2 si vous avez 4 Humains ou plus en jeu.","COMMANDEMENT
+Éveil : Invoque un Fantassin Aguerri 2/2 si vous avez 4 Humains ou plus en jeu.","COMMAND
+Awakening: Summon a Seasoned Footman 2/2 if you have 4 or more Humans in play."
 "Une armée n'est pas un nombre. C'est une volonté. La sienne.","Une armée n'est pas un nombre. C'est une volonté. La sienne.","An army is not a number. It is a will. His."
 "Horde Mineure","Horde Mineure","Minor Horde"
-"Arrivée : Invoque 2 Rampants 1/1 en rangée Avant.","Arrivée : Invoque 2 Rampants 1/1 en rangée Avant.","Arrival: Summon 2 Crawlers 1/1 in the Front row."
+"Arrivée : Invoque 2 Rampants 1/1.","Arrivée : Invoque 2 Rampants 1/1.","Arrival: Summon 2 Crawlers 1/1."
 "Un seul ne fait pas peur. Mais il n'est jamais seul.","Un seul ne fait pas peur. Mais il n'est jamais seul.","One alone is not frightening. But it is never alone."
 "Hurleur Nécrotique","Hurleur Nécrotique","Necrotic Howler"
 "Arrivée : Tous les serviteurs Mort-Vivants alliés gagnent +1/+0 jusqu'à la fin du tour.","Arrivée : Tous les serviteurs Mort-Vivants alliés gagnent +1/+0 jusqu'à la fin du tour.","Arrival: All allied Undead minions gain +1/+0 until end of turn."
@@ -778,7 +778,7 @@ Execution: Permanently gains +1/+1."
 "Larve Cadavérique","Larve Cadavérique","Cadaverous Larva"
 "Elle n'est pas née de la vie. Elle est née de ce qui reste.","Elle n'est pas née de la vie. Elle est née de ce qui reste.","It was not born of life. It was born of what remains."
 "Le Médecin de la Peste","Le Médecin de la Peste","The Plague Doctor"
-"Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant.","Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3 en rangée Avant.","Awakening: Summon a random Undead of cost ≤3 in the Front row."
+"Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3.","Éveil : Invoque un Mort-Vivant aléatoire de coût ≤3.","Awakening: Summon a random Undead of cost ≤3."
 "Il soignait les vivants autrefois. Il a simplement changé de patientèle.","Il soignait les vivants autrefois. Il a simplement changé de patientèle.","He once healed the living. He simply changed his clientele."
 "Le Patient Zéro","Le Patient Zéro","Patient Zero"
 "Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu.","Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu.","Arrival: Inflict Infection on all enemy minions in play."
@@ -805,7 +805,7 @@ Arrivée : Mort-Vivants alliés +2/+2.","TAUNT
 Arrival: Allied Undead minions +2/+2."
 "Les mers l'ont recraché. Elles non plus ne voulaient plus de lui.","Les mers l'ont recraché. Elles non plus ne voulaient plus de lui.","The seas spat him back out. They too no longer wanted him."
 "Marche Forcée","Marche Forcée","Forced March"
-"Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant.","Éveil : Invoque un Éclaireur Rapide 1/1 en rangée Avant.","Awakening: Summon a Swift Scout 1/1 in the Front row."
+"Éveil : Invoque un Éclaireur Rapide 1/1.","Éveil : Invoque un Éclaireur Rapide 1/1.","Awakening: Summon a Swift Scout 1/1."
 "Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.","Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.","No rest. No stopping. The line advances because to stop is to die."
 "Maréchal de Campagne","Maréchal de Campagne","Campaign Marshal"
 "COMMANDEMENT
@@ -847,8 +847,8 @@ Attaque : Inflige 1 point de dégât aux serviteurs adjacents à la cible.","CHA
 Attack: Deal 1 splash damage to the minions adjacent to the target."
 "Le craquement des os est le seul son qu'il comprend encore.","Le craquement des os est le seul son qu'il comprend encore.","The crunch of bone is the only sound he still understands."
 "Mémorial des Héros","Mémorial des Héros","Heroes' Memorial"
-"Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1 en rangée Avant.","Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1 en rangée Avant.","Deathrattle: when an allied Legendary Human dies, immediately summon a Wall Knight 2/5 and a Town Militia 2/1 in the Front row."
-"Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1 en rangée Avant.","Deathrattle: when an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2 and a Town Militia 2/1 in the Front row."
+"Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1.","Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Chevalier du Mur 2/5 et un Milicien du Bourg 2/1.","Deathrattle: when an allied Legendary Human dies, immediately summon a Wall Knight 2/5 and a Town Militia 2/1."
+"Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1.","Dernier Souffle : quand un Humain Légendaire allié meurt, invoque immédiatement un Fantassin Aguerri 2/2 et un Milicien du Bourg 2/1.","Deathrattle: when an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2 and a Town Militia 2/1."
 "On grave les noms pour ne pas oublier. On continue pour la même raison.","On grave les noms pour ne pas oublier. On continue pour la même raison.","We engrave the names so as not to forget. We carry on for the same reason."
 "Nuée d'Insectes Cadavériques","Nuée d'Insectes Cadavériques","Cadaverous Insect Swarm"
 "Arrivée : Inflige 1 point de dégât à tous les serviteurs en jeu.","Arrivée : Inflige 1 point de dégât à tous les serviteurs en jeu.","Arrival: Deal 1 damage to all minions in play."
@@ -862,7 +862,7 @@ Attack: Deal 1 splash damage to the minions adjacent to the target."
 "Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis.","Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis.","Awakening: Until the start of your next turn, your Front row minions cannot be returned to hand or moved by enemy effects."
 "L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.","L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.","The order is simple. The men are not. But they obey."
 "Ordre des Anciens","Ordre des Anciens","Ancient Order"
-"Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant.","Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3 en rangée Avant.","Awakening: If you have 5 or more Humans in play, summon a Militia Captain 3/3 in the Front row."
+"Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3.","Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3.","Awakening: If you have 5 or more Humans in play, summon a Militia Captain 3/3."
 "Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.","Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.","The ancients do not return by magic. They return because they are still needed."
 "Pacte Sanglant","Pacte Sanglant","Blood Pact"
 "Sacrifice 1 : Invoque un Mort-Vivant 2/2.","Sacrifice 1 : Invoque un Mort-Vivant 2/2.","Sacrifice 1: Summon a 2/2 Undead."
@@ -883,7 +883,7 @@ Arrival: Target allied minion gains AEGIS."
 "Renvoie un serviteur (allié ou ennemi) dans la main de son propriétaire.","Renvoie un serviteur (allié ou ennemi) dans la main de son propriétaire.","Return a minion (ally or enemy) to its owner's hand."
 "Les morts n'oublient pas ceux qui les ont enterrés.","Les morts n'oublient pas ceux qui les ont enterrés.","The dead do not forget those who buried them."
 "Porte-Étendard","Porte-Étendard","Standard Bearer"
-"Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3).","Arrivée : Invoque un Éclaireur Rapide 1/1 en rangée Avant pour chaque Humain déjà en jeu (max 3).","Arrival: Summon a Swift Scout 1/1 in the Front row for each Human already in play (max 3)."
+"Arrivée : Invoque un Éclaireur Rapide 1/1 pour chaque Humain déjà en jeu (max 3).","Arrivée : Invoque un Éclaireur Rapide 1/1 pour chaque Humain déjà en jeu (max 3).","Arrival: Summon a Swift Scout 1/1 for each Human already in play (max 3)."
 "L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.","L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.","The standard does not surrender. As long as it stands, so do the others."
 "Porteur de Bouclier","Porteur de Bouclier","Shield Bearer"
 "REMPART","REMPART","TAUNT"
@@ -965,9 +965,9 @@ It keeps its effects."
 "La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience.","La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience.","Death taught him what war never did: patience."
 "Soldat de la Foi","Soldat de la Foi","Soldier of Faith"
 "ÉGIDE
-Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant.","ÉGIDE
-Dernier Souffle : Invoque un Milicien du Bourg 2/1 en rangée Avant.","AEGIS
-Deathrattle: Summon a Town Militia 2/1 in the Front row."
+Dernier Souffle : Invoque un Milicien du Bourg 2/1.","ÉGIDE
+Dernier Souffle : Invoque un Milicien du Bourg 2/1.","AEGIS
+Deathrattle: Summon a Town Militia 2/1."
 "Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","Il croyait en quelque chose. Ce quelque chose l'a protégé, une fois.","He believed in something. That something protected him, once."
 "Souffle Nécrotique","Souffle Nécrotique","Necrotic Breath"
 "Inflige 2 points de dégâts à la cible (joueur ou serviteur ennemi).","Inflige 2 points de dégâts à la cible (joueur ou serviteur ennemi).","Deal 2 damage to the target (enemy hero or minion)."
@@ -985,9 +985,9 @@ Deathrattle: Summon a Town Militia 2/1 in the Front row."
 "On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.","On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.","You do not come here to pray. You come to learn to hold your place in the line."
 "Tombeau Ambulant","Tombeau Ambulant","Walking Tomb"
 "REMPART
-Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant.","REMPART
-Dernier Souffle : Invoque 3 Rampants 1/1 en rangée Avant.","TAUNT
-Deathrattle: Summon 3 Crawlers 1/1 in the Front row."
+Dernier Souffle : Invoque 3 Rampants 1/1.","REMPART
+Dernier Souffle : Invoque 3 Rampants 1/1.","TAUNT
+Deathrattle: Summon 3 Crawlers 1/1."
 "Il n'était pas un monstre. Il était une fosse commune.","Il n'était pas un monstre. Il était une fosse commune.","He was not a monster. He was a mass grave."
 "Vague de Putréfaction","Vague de Putréfaction","Wave of Putrefaction"
 "Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant.","Deal 1 damage to all enemy minions in the Front row."
@@ -1134,11 +1134,11 @@ Pact 2: This minion gains an additional +2/+0."
 "Garde Infernal","Garde Infernal","Infernal Warden"
 "REMPART
 Dernier Souffle : Invoque une Larve Infernale 2/1.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","REMPART
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","REMPART
 Dernier Souffle : Invoque une Larve Infernale 2/1.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","TAUNT
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","TAUNT
 Deathrattle: Summon a 2/1 Hellspawn Larva.
-Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instead."
+Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) instead."
 "Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.","Il ne meurt jamais vraiment seul. Quelque chose se lève toujours après lui.","It never truly dies alone. Something always rises after it."
 "Le Corrupteur","Le Corrupteur","The Corrupter"
 "Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu.","Arrivée : Inflige Corruption à tous les serviteurs ennemis en jeu.","Arrival: Inflict Corruption on all enemy minions in play."
@@ -1147,10 +1147,10 @@ Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instea
 "RAVAGE, RANG INFERNAL","RAVAGE, RANG INFERNAL","RAVAGE, INFERNAL RANK"
 "Plus ton héros saigne, plus il brûle fort.","Plus ton héros saigne, plus il brûle fort.","The more your hero bleeds, the fiercer it burns."
 "Architecte du Pacte","Architecte du Pacte","Pact Architect"
-"Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Arrivée : Invoque une Larve Infernale 2/1 en rangée Avant.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Arrival: Summon a 2/1 Hellspawn Larva to the Front row.
-Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instead."
+"Arrivée : Invoque une Larve Infernale 2/1.
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","Arrivée : Invoque une Larve Infernale 2/1.
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","Arrival: Summon a 2/1 Hellspawn Larva.
+Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) instead."
 "Chaque contrat qu'il signe en engendre un autre, sans fin.","Chaque contrat qu'il signe en engendre un autre, sans fin.","Every contract it signs spawns another, endlessly."
 "Grand Inquisiteur du Sang","Grand Inquisiteur du Sang","Grand Blood Inquisitor"
 "SANG NOIR, RANG INFERNAL","SANG NOIR, RANG INFERNAL","BLACK BLOOD, INFERNAL RANK"
@@ -1291,16 +1291,16 @@ Your hero loses 1 HP.
 If it is a Demon, it costs 1 less this turn."
 "Il désigne. Ce qu'il montre a toujours un prix, y compris pour toi.","Il désigne. Ce qu'il montre a toujours un prix, y compris pour toi.","It points. Whatever it singles out always carries a price, even for you."
 "Rituel du Pacte Éternel","Rituel du Pacte Éternel","Eternal Pact Ritual"
-"Éveil : Invoque un Suppôt des Abysses 1/2 en rangée Avant.
-Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) en Avant à la place.","Éveil : Invoque un Suppôt des Abysses 1/2 en rangée Avant.
-Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) en Avant à la place.","Awaken: Summon a 1/2 Abyssal Thrall to the Front row.
-Pact 2: Summon a 3/2 Abyssal Stalker (CORRUPTION) to the Front row instead."
+"Éveil : Invoque un Suppôt des Abysses 1/2.
+Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) à la place.","Éveil : Invoque un Suppôt des Abysses 1/2.
+Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) à la place.","Awaken: Summon a 1/2 Abyssal Thrall.
+Pact 2: Summon a 3/2 Abyssal Stalker (CORRUPTION) instead."
 "Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.","Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.","The pact never truly closes. It is written into the smallest print."
 "Marché de Sang","Marché de Sang","Blood Market"
 "Deuil : Invoque une Larve Infernale 2/1.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Deuil : Invoque une Larve Infernale 2/1.
-Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL en Avant à la place.","Mourning: Summon a 2/1 Hellspawn Larva.
-Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) to the Front row instead."
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","Deuil : Invoque une Larve Infernale 2/1.
+Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place.","Mourning: Summon a 2/1 Hellspawn Larva.
+Pact 2: Summon a 1/2 Ascending Hellspawn (INFERNAL RANK) instead."
 "Chaque offrande en appelle une autre, encore, et encore.","Chaque offrande en appelle une autre, encore, et encore.","Every offering calls for another, again and again."
 "Cercle de Corruption","Cercle de Corruption","Circle of Corruption"
 "Éveil : inflige Corruption à un serviteur aléatoire ennemi.","Éveil : inflige Corruption à un serviteur aléatoire ennemi.","Awaken: inflict Corruption on a random enemy minion."
@@ -1369,7 +1369,7 @@ Pacte 2 : +1/+0 supplémentaire.","Awaken: All your Demon minions gain +1/+0 unt
 Pact 2: An additional +1/+0."
 "Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.","Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.","It beats to the rhythm of what you are willing to sacrifice each morning."
 "Sceau du Répit","Sceau du Répit","Seal of Respite"
-"Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon que vous contrôliez.","Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon que vous contrôliez.","Mourning: Your hero regains 1 HP if the dead minion was an allied Demon."
+"Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon allié.","Deuil : Votre héros récupère 1 point de vie si le serviteur mort était un Démon allié.","Mourning: Your hero regains 1 HP if the dead minion was an allied Demon."
 "Chaque perte laisse une trace. Celle-ci, au moins, te profite.","Chaque perte laisse une trace. Celle-ci, au moins, te profite.","Every loss leaves a mark. This one, at least, works in your favor."
 "Symbiose Infernale","Symbiose Infernale","Infernal Symbiosis"
 "Présence : Les serviteurs alliés en rangée Arrière gagnent +0/+1 par Démon allié en rangée Avant.","Présence : Les serviteurs alliés en rangée Arrière gagnent +0/+1 par Démon allié en rangée Avant.","Presence: Your Back row minions gain +0/+1 per allied Demon minion in the Front row."
@@ -1557,9 +1557,9 @@ It mutates twice."
 "Il n'a rien inventé. Il a juste regardé, et pris.","Il n'a rien inventé. Il a juste regardé, et pris.","It invented nothing. It just watched, and took."
 "Semeur de Nœuds","Semeur de Nœuds","Knot Sower"
 "FUSION
-Attaque : Invoque un Amas Informe 1/2 en rangée Avant.","FUSION
-Attaque : Invoque un Amas Informe 1/2 en rangée Avant.","FUSION
-Attack: Summon a Formless Mass 1/2 in the Front row."
+Attaque : Invoque un Amas Informe 1/2.","FUSION
+Attaque : Invoque un Amas Informe 1/2.","FUSION
+Attack: Summon a Formless Mass 1/2."
 "Il ne construit rien. Il fait pousser.","Il ne construit rien. Il fait pousser.","It builds nothing. It grows things."
 "Fracture Vivante","Fracture Vivante","Living Fracture"
 "Détruit un enchantement ennemi aléatoire.
@@ -1594,7 +1594,7 @@ Survivors have -1 ATK until end of turn."
 "Arrivée : Réduit l'ATK d'un serviteur ciblé ennemi de 1 jusqu'à la fin du prochain tour de votre adversaire.","Arrivée : Réduit l'ATK d'un serviteur ciblé ennemi de 1 jusqu'à la fin du prochain tour de votre adversaire.","Arrival: Reduces target enemy minion's ATK by 1 until the end of its next turn."
 "Un seul contact suffit à dérégler ce qui reste de coordination.","Un seul contact suffit à dérégler ce qui reste de coordination.","A single touch is enough to unravel what coordination remains."
 "Un-Devenu-Plusieurs","Un-Devenu-Plusieurs","One-Become-Many"
-"Arrivée : Invoque 2 Amas Informes 1/2 en rangée Avant.","Arrivée : Invoque 2 Amas Informes 1/2 en rangée Avant.","Arrival: Summon 2 Formless Masses 1/2 in the Front row."
+"Arrivée : Invoque 2 Amas Informes 1/2.","Arrivée : Invoque 2 Amas Informes 1/2.","Arrival: Summon 2 Formless Masses 1/2."
 "Il n'a jamais compris qu'il était censé rester seul.","Il n'a jamais compris qu'il était censé rester seul.","It never understood it was supposed to stay alone."
 "Nid Débordant","Nid Débordant","Overflowing Nest"
 "Renfort : Si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour).","Renfort : Si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour).","Reinforcement: If 3 or more allied Abominations are in play, summon a Formless Mass 1/2 (once per turn)."
@@ -1665,9 +1665,9 @@ Une Abomination aléatoire alliée gagne +1/+1 permanent.","Destroy an enemy min
 A random allied Abomination minion permanently gains +1/+1."
 "Rien ne se jette. Tout se digère.","Rien ne se jette. Tout se digère.","Nothing is discarded. Everything is digested."
 "L'Éternel Recommencement","L'Éternel Recommencement","The Eternal Beginning"
-"Éveil : Invoque une Abomination aléatoire de coût ≤3 en rangée Avant.
-Elle mute immédiatement.","Éveil : Invoque une Abomination aléatoire de coût ≤3 en rangée Avant.
-Elle mute immédiatement.","Awakening: Summon a random Abomination of cost ≤3 in the Front row.
+"Éveil : Invoque une Abomination aléatoire de coût ≤3.
+Elle mute immédiatement.","Éveil : Invoque une Abomination aléatoire de coût ≤3.
+Elle mute immédiatement.","Awakening: Summon a random Abomination of cost ≤3.
 It immediately mutates."
 "Il ne se soigne plus. Il se réinvente, sans fin.","Il ne se soigne plus. Il se réinvente, sans fin.","It no longer heals. It reinvents itself, endlessly."
 "L'Innommable","L'Innommable","The Nameless"
@@ -1686,9 +1686,9 @@ It immediately mutates."
 "Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois.","Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois.","Every death feeds the altar. The altar, though, never gives back the same shape twice."
 "Ce-Qui-A-Cessé-de-S'arrêter","Ce-Qui-A-Cessé-de-S'arrêter","That-Which-Has-Stopped-Stopping"
 "REMPART, ASSIMILATION
-Dernier Souffle : Invoque 3 Amas Informes 1/2 en rangée Avant.","REMPART, ASSIMILATION
-Dernier Souffle : Invoque 3 Amas Informes 1/2 en rangée Avant.","TAUNT, ASSIMILATION
-Deathrattle: Summon 3 Formless Masses 1/2 in the Front row."
+Dernier Souffle : Invoque 3 Amas Informes 1/2.","REMPART, ASSIMILATION
+Dernier Souffle : Invoque 3 Amas Informes 1/2.","TAUNT, ASSIMILATION
+Deathrattle: Summon 3 Formless Masses 1/2."
 "Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.","Elle n'était pas un monstre. Elle était une croissance qu'on a laissée trop longtemps.","It was not a monster. It was a growth left unchecked for far too long."
 "Voix-Sous-la-Peau","Voix-Sous-la-Peau","Voice Beneath the Skin"
 "Arrivée : Le serviteur adjacent gagne CHAIR ADAPTATIVE de façon permanente.","Arrivée : Le serviteur adjacent gagne CHAIR ADAPTATIVE de façon permanente.","Arrival: The adjacent allied minion permanently gains ADAPTIVE FLESH."
@@ -1740,7 +1740,7 @@ Pact 2: Destroy all enemy minions with 5 HP or less instead."
 "Attaque : Les serviteurs adjacents gagnent +0/+1.","Attaque : Les serviteurs adjacents gagnent +0/+1.","Attack: Adjacent allied minions gain +0/+1."
 "Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Two allied Human minions immediately attack a target enemy minion."
 "Carnage : Quand un serviteur ennemi meurt, votre héros récupère 2 points de vie.","Carnage : Quand un serviteur ennemi meurt, votre héros récupère 2 points de vie.","Carnage: When an enemy minion dies, your hero recovers 2 HP."
-"Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 en rangée Avant.","Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 en rangée Avant.","When an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2 in the Front row."
+"Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2.","Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2.","When an allied Legendary Human dies, immediately summon a Seasoned Footman 2/2."
 "Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrival: all enemy minions in the Back row cannot be targeted by enemy spells this turn."
 "Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Whenever an allied Human attacks, all your allied minions permanently gain +1 ATK."
 "COMMANDEMENT
@@ -1757,11 +1757,11 @@ Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur 
 Arrival: Remove all racial harmful effects (Infection, Corruption) from your allied minions."
 "ASSAUT","ASSAUT","CHARGE"
 "REMPART, CHAIR MORTE, REVENANT","REMPART, CHAIR MORTE, REVENANT","TAUNT, DEAD FLESH, REVENANT"
-"Renfort : Invoque un Rampant 1/1 en rangée Avant.","Renfort : Invoque un Rampant 1/1 en rangée Avant.","Reinforcement: Summon a 1/1 Crawler in the Front row."
+"Renfort : Invoque un Rampant 1/1.","Renfort : Invoque un Rampant 1/1.","Reinforcement: Summon a 1/1 Crawler."
 "Rampant","Rampant","Crawler"
 "Encore un, sans nom cette fois.","Encore un, sans nom cette fois.","Another one, nameless this time."
 "Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant.","Éveil : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant.","Awakening: Resurrect the last allied Undead that died with 1 HP in the Front row."
-"Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1 en rangée Avant.","Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1 en rangée Avant.","Destroy a random enemy enchantment or ritual, then summon a 1/1 Crawler in the Front row."
+"Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1.","Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1.","Destroy a random enemy enchantment or ritual, then summon a 1/1 Crawler."
 "Deck de départ : Mort-Vivant","Deck de départ : Mort-Vivant","Undead Starter Deck"
 "Deck de départ : Humain","Deck de départ : Humain","Human Starter Deck"
 "Deck de départ : Démon","Deck de départ : Démon","Demon Starter Deck"
@@ -1802,6 +1802,16 @@ ARENA_PARTICIPANTS_TITLE,"Participants","Participants"
 ARENA_VICTORY_TITLE,"Victoire !","Victory!"
 ARENA_DEFEAT_TITLE,"Éliminé","Eliminated"
 ARENA_ELIMINATED_STATUS,"Éliminé","Eliminated"
+ARENA_LOBBY_TITLE,"Arène","Arena"
+ARENA_LOBBY_SOLO,"Solo","Solo"
+ARENA_LOBBY_HOST,"Héberger une table","Host a table"
+ARENA_LOBBY_JOIN,"Rejoindre une table","Join a table"
+ARENA_LOBBY_CANCEL,"Annuler","Cancel"
+ARENA_LOBBY_HOSTING,"Table hébergée — en attente de joueurs…","Table hosted — waiting for players…"
+ARENA_LOBBY_JOINING,"Recherche d'une table…","Searching for a table…"
+ARENA_LOBBY_FORCE_START,"Lancer maintenant (combler le reste avec des bots)","Start now (fill the rest with bots)"
+ARENA_LOBBY_DEFAULT_NAME,"Joueur","Player"
+ARENA_LOBBY_STEAM_UNAVAILABLE,"Steam indisponible (extension absente ou client Steam fermé)","Steam unavailable (extension missing or Steam client not running)"
 PACT_CONFIRM_TEXT,"Payer %d points de vie pour améliorer l'effet ?","Pay %d HP to improve the effect?"
 PACT_CONFIRM_YES,"Payer","Pay"
 PACT_CONFIRM_NO,"Refuser","Decline"

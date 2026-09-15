@@ -179,6 +179,7 @@ var player_infection_damage_dealt: int = 0
 var player_used_back_row_this_match: bool = false
 var player_commandement_triggers_this_match: int = 0
 var player_black_blood_triggers_this_match: int = 0
+var player_sacrifices_this_match: int = 0
 var deck_has_legendary: bool = false
 # Horodatage de début de match, pour la durée affichée dans l'historique local
 # de parties (voir SettingsManager.record_match_history_entry/_record_match_history)

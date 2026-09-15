@@ -22,7 +22,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_u3dlu")
 card_name = "Éclat de Putréfaction"
-description = "Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1 en rangée Avant."
+description = "Détruit un enchantement ou rituel ennemi aléatoire, puis invoque un Rampant 1/1."
 flavour_text = "La corruption ne respecte pas la magie. Elle la digère."
 texture = ExtResource("5_rbust")
 cost = 2

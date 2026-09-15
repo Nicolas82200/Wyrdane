@@ -14,6 +14,15 @@ signal discard_card_clicked(index: int, card_data: CardData)
 # _on_card_hover) — au-dessus des cartes, en dessous de la preview elle-même.
 var _preview_link: PreviewLinkOverlay = null
 
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards), instanciés à la volée à côté de la
+# preview agrandie, chacun relié par son propre PreviewLinkOverlay.
+var _token_previews:      Array[Card]               = []
+var _token_preview_links: Array[PreviewLinkOverlay]  = []
+# Échelle des aperçus de jetons relative à celle de la preview principale
+# (plus petits : information secondaire, pas la carte qu'on s'apprête à jouer).
+const TOKEN_PREVIEW_SCALE_RATIO := 0.7
+
 # Doit rester au-dessus des boutons du plateau (cimetière, deck — z_index 0
 # par défaut) pour que la main ne soit jamais recouverte par eux.
 const CARD_Z_BASE := 20
@@ -32,9 +41,6 @@ const MULLIGAN_CENTER_Y_RATIO   := 0.52
 # Durée totale de l'animation de pioche de la main de départ (une carte après
 # l'autre depuis le deck) avant que le mulligan ne devienne interactif.
 const OPENING_DRAW_DURATION       := 3.0
-# Durée totale de la transition d'entrée en mulligan (chaque carte anime vers
-# sa position centrée/agrandie, l'une après l'autre plutôt que toutes en même temps).
-const MULLIGAN_TRANSITION_DURATION := 3.0
 # Fraction de la hauteur (mise à l'échelle) d'une carte encore visible quand la
 # main est repliée — le reste dépasse sous le bas de l'écran
 const COLLAPSED_PEEK_RATIO := 0.22
@@ -191,8 +197,9 @@ func _set_hand_instant(cards: Array[CardData]) -> void:
 
 # Anime la pioche de la main de départ, une carte après l'autre depuis le
 # deck (même effet visuel qu'une pioche normale, voir _set_hand_animated),
-# étalée sur total_duration au total. À appeler avant le mulligan, dont
-# l'entrée est elle-même animée séparément (voir set_mulligan_mode).
+# étalée sur total_duration au total. Appelé avec le mode mulligan déjà actif
+# (voir TurnSystem.start_match) : chaque carte vole donc directement vers sa
+# position centrée/agrandie de mulligan.
 func play_opening_draw(cards: Array[CardData], deck_origin: Vector2, total_duration: float = OPENING_DRAW_DURATION) -> void:
 	for c in container.get_children():
 		c.queue_free()
@@ -321,10 +328,11 @@ func _on_card_clicked(card_data: CardData, row: String = "Front", insert_index: 
 	card_played.emit(card_data, row, insert_index)
 
 
-# transition_duration > 0 : à l'entrée en mulligan, étale l'animation des
-# cartes vers leur position centrée sur cette durée totale (une carte après
-# l'autre) plutôt que toutes en même temps (voir _update_hand_layout_staggered).
-func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
+# Le mode mulligan est activé AVANT play_opening_draw (voir TurnSystem.start_match) :
+# les cartes piochées volent alors directement depuis le deck vers leur
+# position centrée/agrandie de mulligan, sans passer d'abord par la main
+# repliée en bas de l'écran.
+func set_mulligan_mode(active: bool) -> void:
 	_mulligan_mode = active
 	# Doit rester au-dessus du MulliganDimOverlay (z_index 90 dans Battle.tscn) :
 	# la main est l'élément d'interaction du mulligan, elle ne doit pas être
@@ -332,10 +340,7 @@ func set_mulligan_mode(active: bool, transition_duration: float = -1.0) -> void:
 	z_index = 91 if active else 0
 	if active and not _hand_expanded:
 		_hand_expanded = true
-		if transition_duration > 0.0:
-			_update_hand_layout_staggered(transition_duration)
-		else:
-			_update_hand_layout(true)
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
@@ -476,6 +481,7 @@ func _on_card_hover(card: Card) -> void:
 		preview.size.y * preview.scale.y
 	)
 	_preview_link.show_link(link_from, link_to)
+	_show_summon_previews(card.data)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
@@ -490,6 +496,58 @@ func _on_card_hover(card: Card) -> void:
 func _hide_preview() -> void:
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
+
+## Instancie, à côté de la preview agrandie déjà positionnée, un aperçu
+## supplémentaire par jeton fixe invoqué par la carte survolée (une carte
+## comme Architecte du Pacte peut en avoir deux : effet de base + bonus de
+## Pacte). Repose sur le CardEffect.summon_card de chaque effet SummonMinion,
+## donc n'affiche rien pour SummonRandom (cible non fixe, pas de jeton précis
+## à montrer).
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null:
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	var base_x: float = preview.global_position.x + preview.size.x * preview.scale.x + 40.0
+	var base_y: float = preview.global_position.y + preview.size.y * preview.scale.y * 0.5
+	var link_from: Vector2 = preview.global_position + Vector2(
+		preview.size.x * preview.scale.x,
+		preview.size.y * preview.scale.y * 0.5
+	)
+	for i in range(tokens.size()):
+		var token_card: Card = CARD_SCENE.instantiate()
+		add_child(token_card)
+		token_card.set_non_interactive()
+		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		token_card.z_index = 150
+		token_card.set_data(tokens[i])
+		token_card.scale = token_scale
+		var token_x: float = base_x + float(i) * (token_card.size.x * token_scale.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y - token_card.size.y * token_scale.y * 0.5)
+		token_card.show()
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 99
+		add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(0, token_card.size.y * token_scale.y * 0.5)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 ## `card` : mouse_entered/mouse_exited entre deux cartes de la main adjacentes
 ## n'arrivent pas toujours dans un ordre garanti par Godot — un exited périmé
@@ -501,6 +559,7 @@ func _on_card_unhover(card: Card) -> void:
 	_hovering = false
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
 	_hide_keyword_tooltips()
 	_hovered_card = null
 	_update_hand_layout(true)
