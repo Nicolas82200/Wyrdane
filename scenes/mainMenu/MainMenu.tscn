@@ -1013,6 +1013,14 @@ theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 15
 text = "Dos de cartes"
 
+[node name="ShopCollectionTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow" unique_id=300000106]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 15
+text = "Collection"
+
 [node name="ShopSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000092]
 layout_mode = 2
 
@@ -1047,6 +1055,20 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
 autowrap_mode = 3
 text = "Débloqués gratuitement en progressant (niveau de compte)."
+
+[node name="ShopCollectionScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000107]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CollectionSection" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll" unique_id=300000108]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="QuestsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=400000002]
 visible = false
