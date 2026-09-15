@@ -23,6 +23,13 @@ var _keyword_tooltips: Array[Control] = []
 var _mouse_is_over: bool = false
 var _battle: Node = null
 
+# Aperçus des jetons invoqués par ce Rituel/Enchantement (ex: Cercle
+# d'Invocation), voir CardData.get_summon_preview_cards et
+# Hand._show_summon_previews (même principe).
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.7
+
 func _ready() -> void:
 	_battle = get_tree().current_scene
 	mouse_entered.connect(_on_mouse_entered)
@@ -98,6 +105,7 @@ func _on_mouse_entered() -> void:
 		global_position.y + (size.y - _hover_preview.size.y * PREVIEW_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
+	_show_summon_previews(card_data)
 
 	# Tooltips du côté opposé à l'aperçu par rapport à la carte survolée
 	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
@@ -111,9 +119,64 @@ func _on_mouse_exited() -> void:
 
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	if _hover_preview and is_instance_valid(_hover_preview):
 		_hover_preview.queue_free()
 	_hover_preview = null
+
+## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
+## par jeton fixe invoqué par ce Rituel/Enchantement, empilé sous
+## _hover_preview (quel que soit son côté), relié par un PreviewLinkOverlay dédié.
+func _show_summon_previews(data: CardData) -> void:
+	_clear_summon_previews()
+	if data == null or not is_instance_valid(_hover_preview):
+		return
+	var tokens := data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(PREVIEW_SCALE, PREVIEW_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	var base_x: float = _hover_preview.global_position.x
+	var base_y: float = _hover_preview.global_position.y \
+		+ _hover_preview.size.y * PREVIEW_SCALE + 20.0
+	var link_from: Vector2 = _hover_preview.global_position + Vector2(
+		_hover_preview.size.x * PREVIEW_SCALE * 0.5,
+		_hover_preview.size.y * PREVIEW_SCALE
+	)
+	for i in range(tokens.size()):
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null or not is_instance_valid(_battle):
+			continue
+		_battle.add_child(token_card)
+		token_card.set_non_interactive()
+		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		token_card.z_index = 1000
+		token_card.set_data(tokens[i])
+		token_card.scale = token_scale
+		var token_x: float = base_x + float(i) * (token_card.size.x * token_scale.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y)
+		token_card.visible = true
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 999
+		_battle.add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(
+			token_card.size.x * token_scale.x * 0.5, 0
+		)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.visible = false
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 # anchor_x est le bord DROIT des panneaux (align_right = true, ils s'empilent
