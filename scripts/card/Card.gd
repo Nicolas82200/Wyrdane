@@ -45,12 +45,6 @@ const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 328.5
 const DESC_LABEL_MAX_GROWTH     := 3.0
 
-# LaneIcon (filigrane central) : hauteur fixe (voir Card.tscn), recentree
-# verticalement sur le centre reel de DescLabel par _center_lane_icon (celui-ci
-# se decale selon la croissance de NameLabel/DescLabel, voir _fit_desc_label).
-const LANE_ICON_DEFAULT_TOP    := 176.0
-const LANE_ICON_DEFAULT_BOTTOM := 316.0
-
 # AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
 # _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
 const STATS_LABEL_DEFAULT_TOP    := 330.0
@@ -78,6 +72,10 @@ const RACE_COLORS := {
 	Race.Type.DWARF:  Color("#3f280fb0"),
 	Race.Type.DEMON:  Color("#1e0308d6"),
 }
+
+# Fond de DescLabel : fraction de l'opacité de RACE_COLORS appliquée (plus
+# transparent que le fond de NameLabel, qui garde l'opacité pleine de RACE_COLORS).
+const DESC_BG_ALPHA_FACTOR := 0.45
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
@@ -112,14 +110,16 @@ const TYPE_LABEL_MIN_WIDTH := 70.0
 const TYPE_LABEL_MAX_WIDTH := 130.0
 const TYPE_LABEL_PADDING   := 16.0
 
-# Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement)
+# Icône indiquant la rangée où le serviteur se pose (serviteurs uniquement,
+# petit logo en haut à gauche de la carte, voir CardTypeIcon)
 const LANE_ICONS := {
 	"Front":  preload("res://assets/icons/front_lane.png"),
 	"Back":   preload("res://assets/icons/back_lane.png"),
 	"Hybrid": preload("res://assets/icons/hibrid_lane.png"),
 }
 
-# Icône filigrane indiquant le type des cartes non-serviteur
+# Icône indiquant le type des cartes non-serviteur (petit logo en haut à
+# gauche de la carte, voir CardTypeIcon)
 const TYPE_ICONS := {
 	"Instant":     preload("res://assets/icons/instant.png"),
 	"Ritual":      preload("res://assets/icons/ritual.png"),
@@ -144,7 +144,7 @@ const RACE_RESOURCE_ICONS := {
 @onready var desc_label: RichTextLabel = $DescLabel
 @onready var border: TextureRect       = $BorderFrame
 @onready var type_label: Label         = $TypeLabel
-@onready var lane_icon: TextureRect    = $LaneIcon
+@onready var card_type_icon: TextureRect = $CardTypeIcon
 @onready var resource_icon: TextureRect = $ResourceIcon
 
 var data: CardData
@@ -281,18 +281,20 @@ func update_display() -> void:
 	attack_label.visible = is_minion
 	health_label.visible = is_minion
 
-	# Filigrane central : icône de rangée (serviteurs) ou de type (cartes non-serviteur),
-	# teintée par race (plus de badge circulaire en fond)
+	# Petit logo en haut à gauche (symétrique au coût) : icône de rangée
+	# (serviteurs) ou de type (cartes non-serviteur), teintée par race.
+	# Les cartes-ressource affichent déjà leur icône de race à la place du
+	# coût (voir _apply_resource_icon) : pas de logo de type redondant ici.
 	if is_minion:
-		lane_icon.visible = LANE_ICONS.has(data.board_position)
-		if lane_icon.visible:
-			lane_icon.texture = LANE_ICONS[data.board_position]
+		card_type_icon.visible = LANE_ICONS.has(data.board_position)
+		if card_type_icon.visible:
+			card_type_icon.texture = LANE_ICONS[data.board_position]
 	else:
-		lane_icon.visible = TYPE_ICONS.has(data.card_type)
-		if lane_icon.visible:
-			lane_icon.texture = TYPE_ICONS[data.card_type]
-	if lane_icon.visible:
-		lane_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
+		card_type_icon.visible = TYPE_ICONS.has(data.card_type)
+		if card_type_icon.visible:
+			card_type_icon.texture = TYPE_ICONS[data.card_type]
+	if card_type_icon.visible:
+		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
 		desc_label.text = "[center][i]" + data.display_flavour() + "[/i][/center]"
@@ -312,7 +314,6 @@ func update_display() -> void:
 
 	var name_growth := _fit_name_label()
 	_fit_desc_label(name_growth)
-	_center_lane_icon()
 
 	_apply_race_style()
 	_apply_type_style()
@@ -369,16 +370,6 @@ func _fit_desc_label(name_growth: float) -> void:
 	if health_label:
 		health_label.offset_top += growth
 		health_label.offset_bottom += growth
-
-# Recentre verticalement le filigrane (LaneIcon) sur le centre reel de
-# DescLabel : celui-ci se decale (croissance de NameLabel) et peut grandir
-# (croissance de DescLabel), voir _fit_desc_label — appele juste apres pour
-# que le filigrane suive. Hauteur d'icone fixe, seul le centre bouge.
-func _center_lane_icon() -> void:
-	var icon_height: float = LANE_ICON_DEFAULT_BOTTOM - LANE_ICON_DEFAULT_TOP
-	var desc_center_y: float = (desc_label.offset_top + desc_label.offset_bottom) / 2.0
-	lane_icon.offset_top = desc_center_y - icon_height / 2.0
-	lane_icon.offset_bottom = desc_center_y + icon_height / 2.0
 
 # Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
 # ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
@@ -480,7 +471,11 @@ func _apply_resource_icon() -> void:
 func _apply_race_style() -> void:
 	var race_color: Color = RACE_COLORS.get(data.race, Color.WHITE)
 	_name_bg_style.bg_color = race_color
-	_desc_bg_style.bg_color = race_color
+	# Fond de la description plus transparent que celui du nom : laisse
+	# davantage transparaître l'illustration derrière le texte d'effet.
+	var desc_color := race_color
+	desc_color.a *= DESC_BG_ALPHA_FACTOR
+	_desc_bg_style.bg_color = desc_color
 	# Badge de coût "race" teinté par la race de la carte : distingue au premier
 	# coup d'œil le mana verrouillé (icône/couleur) du mana générique à côté.
 	var cost_color := race_color
@@ -692,7 +687,7 @@ func show_back(show_card_back: bool) -> void:
 		health_label.hide()
 		desc_label.hide()
 		border.hide()
-		lane_icon.hide()
+		card_type_icon.hide()
 		type_label.hide()
 		resource_icon.hide()
 	else:
