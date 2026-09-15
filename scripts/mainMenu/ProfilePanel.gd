@@ -112,6 +112,10 @@ static func fetch_rank_badge(menu) -> void:
 	BackendClient.get_profile(func(success: bool, data: Dictionary):
 		if success:
 			apply_rank_badge(menu.rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
+			# Masqué par défaut (voir MainMenu.tscn) : un "-" de remplissage restait
+			# affiché en permanence entre l'or et le niveau tant que la synchronisation
+			# backend n'avait pas encore résolu (ou échouait) le palier réel.
+			menu.rank_badge_label.visible = true
 	)
 
 # --- Récompense de connexion quotidienne ---------------------------------

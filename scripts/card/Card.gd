@@ -16,9 +16,6 @@ const CARD_BACK_TEX       = preload("res://assets/card_back/card-back.png")
 # et au plateau (BoardMinion, EnchantmentCard) pour une taille de zoom
 # cohérente partout.
 const HOVER_ZOOM_SCALE    := 1.2375
-# Teinte grisée d'une carte déjà échangée pendant le mulligan (cohérent avec
-# DeckBuilder.MAXED_TINT).
-const MULLIGAN_SWAPPED_TINT := Color(0.38, 0.38, 0.38, 1)
 # Teinte d'une carte sélectionnée pour la défausse de fin de tour (limite 10
 # cartes en main, voir Hand.set_discard_mode) — rougeâtre pour se distinguer
 # du grisé neutre du mulligan.
@@ -151,9 +148,6 @@ var data: CardData
 var drag_enabled := true
 # En phase de mulligan : un simple clic remplace la carte, aucun drag possible.
 var mulligan_mode := false
-# Cette carte a déjà été échangée pendant le mulligan en cours : grisée, plus
-# cliquable tant que la phase de mulligan n'est pas terminée.
-var mulligan_swapped := false
 # En phase de défausse de fin de tour (limite 10 cartes) : un simple clic
 # sélectionne/désélectionne la carte pour la défausse, aucun drag possible —
 # même patron que mulligan_mode.
@@ -482,12 +476,6 @@ func _apply_race_style() -> void:
 	cost_color.a = 0.9
 	_cost_bg_style.bg_color = cost_color
 	_cost_bg_style.border_color = cost_color
-
-# ─── Mulligan ─────────────────────────────────────────────────────────────────
-
-func set_mulligan_swapped(swapped: bool) -> void:
-	mulligan_swapped = swapped
-	modulate = MULLIGAN_SWAPPED_TINT if swapped else Color.WHITE
 
 func set_discard_selected(selected: bool) -> void:
 	discard_selected = selected
