@@ -28,7 +28,7 @@ var _battle: Node = null
 # Hand._show_summon_previews (même principe).
 var _token_previews:      Array[Card]              = []
 var _token_preview_links: Array[PreviewLinkOverlay] = []
-const TOKEN_PREVIEW_SCALE_RATIO := 0.7
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
 
 func _ready() -> void:
 	_battle = get_tree().current_scene
@@ -125,36 +125,56 @@ func _cleanup_hover() -> void:
 	_hover_preview = null
 
 ## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
-## par jeton fixe invoqué par ce Rituel/Enchantement, empilé sous
-## _hover_preview (quel que soit son côté), relié par un PreviewLinkOverlay dédié.
+## par jeton fixe invoqué par ce Rituel/Enchantement, à côté de
+## _hover_preview, relié par un PreviewLinkOverlay dédié. Placés à GAUCHE de
+## _hover_preview s'il y a la place, sinon à DROITE.
 func _show_summon_previews(data: CardData) -> void:
 	_clear_summon_previews()
-	if data == null or not is_instance_valid(_hover_preview):
+	if data == null or not is_instance_valid(_hover_preview) or not is_instance_valid(_battle):
 		return
 	var tokens := data.get_summon_preview_cards()
 	if tokens.is_empty():
 		return
 	var token_scale := Vector2(PREVIEW_SCALE, PREVIEW_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
 	const TOKEN_SPACING := 18.0
-	var base_x: float = _hover_preview.global_position.x
-	var base_y: float = _hover_preview.global_position.y \
-		+ _hover_preview.size.y * PREVIEW_SCALE + 20.0
-	var link_from: Vector2 = _hover_preview.global_position + Vector2(
-		_hover_preview.size.x * PREVIEW_SCALE * 0.5,
-		_hover_preview.size.y * PREVIEW_SCALE
-	)
-	for i in range(tokens.size()):
+	const SIDE_MARGIN := 20.0
+
+	var new_tokens: Array[Card] = []
+	for token_data in tokens:
 		var token_card: Card = CARD_SCENE.instantiate()
-		if token_card == null or not is_instance_valid(_battle):
+		if token_card == null:
 			continue
 		_battle.add_child(token_card)
 		token_card.set_non_interactive()
 		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		token_card.z_index = 1000
-		token_card.set_data(tokens[i])
+		token_card.set_data(token_data)
 		token_card.scale = token_scale
-		var token_x: float = base_x + float(i) * (token_card.size.x * token_scale.x + TOKEN_SPACING)
-		token_card.global_position = Vector2(token_x, base_y)
+		new_tokens.append(token_card)
+	if new_tokens.is_empty():
+		return
+
+	var token_width: float = new_tokens[0].size.x * token_scale.x
+	var strip_width: float = float(new_tokens.size()) * token_width \
+		+ float(new_tokens.size() - 1) * TOKEN_SPACING
+	var preview_left: float = _hover_preview.global_position.x
+	var preview_right: float = preview_left + _hover_preview.size.x * PREVIEW_SCALE
+	var space_left: float = preview_left - SIDE_MARGIN
+	var place_left: bool = space_left >= strip_width
+
+	var base_y: float = _hover_preview.global_position.y \
+		+ _hover_preview.size.y * PREVIEW_SCALE * 0.5
+	var start_x: float = preview_left - SIDE_MARGIN - strip_width if place_left \
+		else preview_right + SIDE_MARGIN
+	var link_from: Vector2 = _hover_preview.global_position + Vector2(
+		0.0 if place_left else _hover_preview.size.x * PREVIEW_SCALE,
+		_hover_preview.size.y * PREVIEW_SCALE * 0.5
+	)
+
+	for i in range(new_tokens.size()):
+		var token_card: Card = new_tokens[i]
+		var token_x: float = start_x + float(i) * (token_width + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y - token_card.size.y * token_scale.y * 0.5)
 		token_card.visible = true
 		_token_previews.append(token_card)
 
@@ -162,7 +182,8 @@ func _show_summon_previews(data: CardData) -> void:
 		link.z_index = 999
 		_battle.add_child(link)
 		var link_to: Vector2 = token_card.global_position + Vector2(
-			token_card.size.x * token_scale.x * 0.5, 0
+			token_width if place_left else 0.0,
+			token_card.size.y * token_scale.y * 0.5
 		)
 		link.show_link(link_from, link_to)
 		_token_preview_links.append(link)
