@@ -182,24 +182,10 @@ func _apply(cmd: Dictionary) -> void:
 		_:
 			push_warning("NetworkOpponent : commande non gérée '%s'" % NetCommand.type_of(cmd))
 
-# Charge une carte désignée par son resource_path reçu du réseau. Restreint au
-# dossier des ressources de carte et exclut les jetons d'invocation (jamais
-# censés être joués depuis une main) pour empêcher un pair de faire charger un
-# chemin arbitraire du projet.
-const CARDS_RESOURCE_PREFIX := "res://resources/cards/"
-
+# Charge une carte désignée par son resource_path reçu du réseau (voir
+# NetCardResolver, partagé avec ArenaBoardSnapshot).
 func _load_remote_card(path: String) -> CardData:
-	if not path.begins_with(CARDS_RESOURCE_PREFIX) or not path.ends_with(".tres"):
-		push_warning("NetworkOpponent : chemin de carte refusé '%s'" % path)
-		return null
-	var card: CardData = load(path) as CardData
-	if card == null:
-		push_warning("NetworkOpponent : carte introuvable '%s'" % path)
-		return null
-	if card.is_token:
-		push_warning("NetworkOpponent : jeton refusé '%s'" % path)
-		return null
-	return card
+	return NetCardResolver.resolve(path)
 
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
