@@ -271,7 +271,6 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
 	battle.hand.flip_replace_at(index, new_data)
-	battle.hand.set_card_mulligan_swapped(index, true)
 	if battle.tutorial_active:
 		battle.tutorial_manager.notify_mulligan_swap(_card_data)
 
