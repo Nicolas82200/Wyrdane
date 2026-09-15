@@ -185,12 +185,13 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	menu.quests_list_vbox.add_child(row)
 
 # Les trois types de quête (quotidienne/hebdo/unique) partagent la même
-# réaction de réclamation, seul l'appel réseau diffère (claim_method, appelé
-# explicitement avec quest_id puis le callback pour ne pas dépendre de
-# l'ordre d'empilement de Callable.bind()) — voir _on_claim_weekly/unique/_pressed.
-static func _handle_claim_pressed(menu, button: Button, claim_method: Callable, quest_id) -> void:
+# réaction de réclamation, seul l'appel réseau diffère (requester, un lambda
+# qui appelle explicitement la bonne fonction BackendClient — on évite de
+# faire transiter une référence de méthode nue en paramètre, peu fiable ici)
+# — voir _on_claim_weekly/unique/_pressed.
+static func _handle_claim_pressed(menu, button: Button, requester: Callable) -> void:
 	button.disabled = true
-	claim_method.call(quest_id, func(success: bool, data: Dictionary):
+	requester.call(func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -201,10 +202,10 @@ static func _handle_claim_pressed(menu, button: Button, claim_method: Callable, 
 	)
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest, quest_id)
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_unique_quest, quest_id)
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_unique_quest(quest_id, on_data))
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_quest, quest_id)
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_quest(quest_id, on_data))
