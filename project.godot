@@ -33,6 +33,10 @@ BackendClient="*res://scripts/net/BackendClient.gd"
 SceneTransition="*res://scripts/systems/SceneTransition.gd"
 MatchmakingOverlay="*res://scenes/net/MatchmakingOverlay.tscn"
 
+[debug]
+
+file_logging/enable_file_logging=true
+
 [display]
 
 window/size/viewport_width=1920
