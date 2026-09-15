@@ -182,25 +182,32 @@ Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem
 
 👉 Important : **les morts sont groupées pour éviter les bugs de cascade**.
 
-### 🎯 Système de sélection
+### 🎯 Déclaration puis verrouillage des attaques (façon MTG Arena)
 
-Deux modes de sélection (gérés par `SelectionSystem`) :
+`SelectionSystem` ne résout plus aucune attaque au clic : le joueur déclare des
+paires (attaquant, cible) une à une, sans qu'aucune ne se résolve
+immédiatement — poser des cartes reste possible pendant ce temps. Un clic sur
+le bouton « Verrouiller » (`LockAttacksButton`, `SelectionSystem.lock_attacks()`)
+résout alors toutes les paires déclarées EN SÉQUENCE, dans l'ordre de
+déclaration, via `CombatSystem.resolve_combat`/`perform_hero_attack`.
 
-#### 1. Sélection simple
-
-*   1 attaquant
-*   Clic → attaque directe
-
-#### 2. Multi-sélection (CTRL)
-
-```gdscript
-selected_attackers[]
-selected_board_minions[]
-```
-
-*   Attaques en chaîne
-*   Résolution gauche → droite
-*   `_resolve_multi_attack()` (dans `CombatSystem`)
+*   Clic sur un serviteur allié pouvant encore attaquer → le désigne comme
+    attaquant « en attente » (surbrillance orange) pour la prochaine paire.
+*   Clic sur une cible ennemie (serviteur ou héros) → déclare la paire
+    (attaquant, cible) (surbrillance dorée = paire déclarée).
+*   Un serviteur FRÉNÉSIE (2 attaques) peut être déclaré dans 2 paires
+    distinctes (`_declared_count_for` plafonne à `attacks_remaining`).
+*   Re-cliquer sur un attaquant ayant déjà déclaré toutes ses charges retire
+    sa dernière paire déclarée (annulation avant verrouillage).
+*   `lock_attacks()` revalide CHAQUE paire juste avant résolution (attaquant
+    vivant/capable d'attaquer, cible vivante, règle REMPART toujours
+    respectée) — une mort survenue plus tôt dans le même verrouillage
+    (REMPART tué, FRÉNÉSIE dont la 1ère attaque est fatale...) fait sauter
+    silencieusement la paire suivante sans planter.
+*   Émission réseau (`NetEmitter.attack`/`attack_hero`) inchangée : toujours
+    une commande par attaque, désormais émise au moment de la RÉSOLUTION
+    (clic sur Verrouiller) et non de la déclaration — le pair rejoue toujours
+    les commandes une par une, dans l'ordre reçu.
 
 ### 🖱️ Drag & Drop (main → board)
 
