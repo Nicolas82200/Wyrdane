@@ -285,10 +285,22 @@ func test_return_to_hand_moves_ally_minion_to_player_hand_cards() -> void:
 
 # ─── ResurrectSelf ──────────────────────────────────────────────────────────
 
-func test_resurrect_self_revives_dead_ally_with_one_hp() -> void:
+func test_resurrect_self_revives_dead_ally_at_max_health_by_default() -> void:
 	var dead := _minion(3, 5, true)
 	dead.health = 0
 	var effect := _effect("ResurrectSelf", "AllyMinion")
+	await effect_manager.execute_effect(battle, null, effect, dead)
+	var revived: Minion = battle.player_minions.back()
+	assert_eq(revived.card_data, dead.card_data)
+	assert_eq(revived.health, revived.max_health, "pas de 1 PV forcé quand la carte ne le précise pas")
+	assert_eq(revived.health, 5)
+	assert_true(revived.was_resurrected)
+
+func test_resurrect_self_revives_dead_ally_with_one_hp_when_flagged() -> void:
+	var dead := _minion(3, 5, true)
+	dead.health = 0
+	var effect := _effect("ResurrectSelf", "AllyMinion")
+	effect.revive_with_one_hp = true
 	await effect_manager.execute_effect(battle, null, effect, dead)
 	var revived: Minion = battle.player_minions.back()
 	assert_eq(revived.card_data, dead.card_data)
@@ -348,9 +360,9 @@ func test_freeze_sets_frozen_turns() -> void:
 
 # ─── Resurrect / ResurrectLast / ReturnFromGrave ────────────────────────────
 
-func test_resurrect_brings_back_dead_minions_from_graveyard_with_one_hp() -> void:
-	var g1 := _card("Mort 1")
-	var g2 := _card("Mort 2")
+func test_resurrect_brings_back_dead_minions_from_graveyard_at_max_health_by_default() -> void:
+	var g1 := _card("Mort 1", 1, 4)
+	var g2 := _card("Mort 2", 1, 6)
 	battle.player_graveyard.add_minion(g1)
 	battle.player_graveyard.add_minion(g2)
 	var source := _minion()
@@ -360,17 +372,36 @@ func test_resurrect_brings_back_dead_minions_from_graveyard_with_one_hp() -> voi
 	# source + 2 ressuscités
 	assert_eq(battle.player_minions.size(), 3)
 	assert_true(battle.player_minions[1].was_resurrected)
-	assert_eq(battle.player_minions[1].health, 1)
-	assert_eq(battle.player_minions[2].health, 1)
+	assert_eq(battle.player_minions[1].health, battle.player_minions[1].max_health, "pas de 1 PV forcé quand la carte ne le précise pas")
+	assert_eq(battle.player_minions[2].health, battle.player_minions[2].max_health)
 
-func test_resurrect_last_revives_most_recent_grave_entry() -> void:
-	battle.player_graveyard.add_minion(_card("Ancien"))
-	battle.player_graveyard.add_minion(_card("Récent"))
+func test_resurrect_brings_back_dead_minions_with_one_hp_when_flagged() -> void:
+	var g1 := _card("Mort 1", 1, 4)
+	battle.player_graveyard.add_minion(g1)
+	var source := _minion()
+	var effect := _effect("Resurrect", "Self")
+	effect.count = 1
+	effect.revive_with_one_hp = true
+	await effect_manager.execute_effect(battle, source, effect)
+	assert_eq(battle.player_minions[1].health, 1)
+
+func test_resurrect_last_revives_most_recent_grave_entry_at_max_health_by_default() -> void:
+	battle.player_graveyard.add_minion(_card("Ancien", 1, 3))
+	battle.player_graveyard.add_minion(_card("Récent", 1, 7))
 	var source := _minion()
 	var effect := _effect("ResurrectLast", "Self")
 	await effect_manager.execute_effect(battle, source, effect)
 	var revived: Minion = battle.player_minions.back()
 	assert_eq(revived.card_data.card_name, "Récent")
+	assert_eq(revived.health, 7, "pas de 1 PV forcé quand la carte ne le précise pas")
+
+func test_resurrect_last_revives_with_one_hp_when_flagged() -> void:
+	battle.player_graveyard.add_minion(_card("Récent", 1, 7))
+	var source := _minion()
+	var effect := _effect("ResurrectLast", "Self")
+	effect.revive_with_one_hp = true
+	await effect_manager.execute_effect(battle, source, effect)
+	var revived: Minion = battle.player_minions.back()
 	assert_eq(revived.health, 1)
 
 func test_return_from_grave_puts_last_matching_card_in_hand() -> void:

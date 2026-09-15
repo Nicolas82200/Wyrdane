@@ -915,10 +915,12 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 			await roll_mutation(battle, summoned)
 		await battle.get_tree().create_timer(0.15).timeout
 
-# Fait entrer en jeu card_data avec 1 HP et was_resurrected=true, en rangée
-# Avant si possible sinon Arrière. Retourne false si aucune rangée disponible
+# Fait entrer en jeu card_data et was_resurrected=true, en rangée Avant si
+# possible sinon Arrière. Revient à ses PV MAX par défaut (buffs/stats actuels
+# compris) ; à 1 PV uniquement si revive_with_one_hp est vrai (le texte de la
+# carte le précise explicitement). Retourne false si aucune rangée disponible
 # (partagé par _resurrect/_resurrect_last/_resurrect_self).
-func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
+func _resurrect_card_data(battle, card_data: CardData, is_player: bool, revive_with_one_hp: bool = false) -> bool:
 	var row: String = "Front"
 	if not battle.can_summon_to_row(is_player, row):
 		row = "Back"
@@ -931,7 +933,10 @@ func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
 	# serviteur, laissant celui ressuscité à ses PV max).
 	var minion: Minion = await battle.summon_minion(card_data, is_player, row)
 	if minion != null and is_instance_valid(minion):
-		minion.health = 1
+		if revive_with_one_hp:
+			minion.health = 1
+		else:
+			minion.health = minion.max_health
 		minion.was_resurrected = true
 		battle.board_visual_system.refresh_board()
 	return true
@@ -948,7 +953,7 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var count: int = mini(effect.count, dead.size())
 	for i in range(count):
 		var card_data: CardData = dead[dead.size() - 1 - i]
-		if not await _resurrect_card_data(battle, card_data, is_player):
+		if not await _resurrect_card_data(battle, card_data, is_player, effect.revive_with_one_hp):
 			break
 		graveyard.remove_minion(card_data)
 		await battle.get_tree().create_timer(0.15).timeout
@@ -1131,9 +1136,10 @@ func _resurrect_chosen_from_grave(battle, source_minion: Minion, effect: CardEff
 	graveyard.remove_minion(card_data)
 	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
 
-# Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
-# 1 HP (Cimetière Vivant : "le premier Mort-Vivant qui meurt chaque tour revient
-# en jeu à la fin du tour"). Contrairement à _resurrect_last (qui pioche le
+# Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, à ses PV
+# max par défaut (à 1 PV si effect.revive_with_one_hp — Cimetière Vivant : "le
+# premier Mort-Vivant qui meurt chaque tour revient en jeu à la fin du tour
+# avec 1 point de vie"). Contrairement à _resurrect_last (qui pioche le
 # dernier mort du cimetière), vise précisément selected_target = le serviteur
 # mort ayant déclenché OnGrief. Aucune limite par serviteur : un même serviteur
 # peut revivre plusieurs fois au fil de la partie s'il meurt à nouveau lors
@@ -1144,10 +1150,11 @@ func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected
 		return
 	var is_player: bool = selected_target.owner_is_player
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
-	if await _resurrect_card_data(battle, selected_target.card_data, is_player):
+	if await _resurrect_card_data(battle, selected_target.card_data, is_player, effect.revive_with_one_hp):
 		graveyard.remove_minion(selected_target.card_data)
 
-# Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
+# Ressuscite le dernier mort, à ses PV max par défaut (à 1 PV si
+# effect.revive_with_one_hp — Nécromancien Putride, Rituel de Résurrection...).
 func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
@@ -1163,7 +1170,7 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 			break
 	if card_data == null:
 		return
-	if await _resurrect_card_data(battle, card_data, is_player):
+	if await _resurrect_card_data(battle, card_data, is_player, effect.revive_with_one_hp):
 		graveyard.remove_minion(card_data)
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
