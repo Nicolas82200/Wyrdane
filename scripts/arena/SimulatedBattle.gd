@@ -582,7 +582,7 @@ class SimAiSystemStub:
 
 
 class SimCostSystemStub:
-	func add_temp_discount(_card_data: CardData, _amount: int) -> void:
+	func add_temp_discount(_card_data: CardData, _amount: int, _is_player: bool = true) -> void:
 		pass
 
 

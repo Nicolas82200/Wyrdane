@@ -16,11 +16,12 @@ var is_selected := false
 @onready var keyword_icons: VBoxContainer = $KeywordIcons
 
 const BORDER_RACE_COLORS := {
-	Race.Type.UNDEAD: Color("342e1ae1"),
-	Race.Type.HUMAN:  Color("5a4a35e1"),
-	Race.Type.ELF:    Color("2f5d50e1"),
-	Race.Type.DWARF:  Color("5a3a22e1"),
-	Race.Type.DEMON:  Color("5a1f1fe1"),
+	Race.Type.UNDEAD:      Color("342e1ae1"),
+	Race.Type.HUMAN:       Color("5a4a35e1"),
+	Race.Type.ELF:         Color("2f5d50e1"),
+	Race.Type.DWARF:       Color("5a3a22e1"),
+	Race.Type.DEMON:       Color("5a1f1fe1"),
+	Race.Type.ABOMINATION: Color("1e3a12e1"),
 }
 
 var _keyword_tooltips: Array[Control] = []
@@ -628,17 +629,10 @@ func _hide_keyword_tooltips() -> void:
 # ─── Icônes de keywords ───────────────────────────────────────────────────────
 
 # Diamètre du badge rond posé derrière chaque icône de mot-clé. Les icônes
-# elles-mêmes sont des silhouettes blanches sans fond (voir assets/icons/keyword) :
-# sur un board minion à 22px nu, elles se fondaient dans l'artwork de la carte
-# derrière elles dès que celui-ci était clair — le badge sombre + bordure
-# colorée par catégorie (mêmes teintes que TooltipData) garantit un contraste
-# constant quel que soit l'artwork, et sert aussi de repère visuel de catégorie.
-# Icônes agrandies et bulle resserrée sur demande explicite (badge 18->15,
-# icône 11->13), puis agrandies de 25% (badge 15->19, icône 13->16) sur
-# nouvelle demande de lisibilité, puis à nouveau agrandies (badge 19->22,
-# icône 16->19) sur nouvelle demande : les icônes doivent rester lisibles
-# alignées verticalement le long du bord gauche de la carte sans que la bulle
-# ne prenne toute la place.
+# elles-mêmes sont des silhouettes blanches sans fond (assets/icons/keyword) :
+# nues sur l'artwork de la carte, elles s'y fondaient dès qu'il était clair —
+# le badge sombre + bordure colorée par catégorie (teintes de TooltipData)
+# garantit un contraste constant et sert de repère visuel de catégorie.
 const KEYWORD_BADGE_SIZE := 22.0
 const KEYWORD_ICON_SIZE  := 19.0
 

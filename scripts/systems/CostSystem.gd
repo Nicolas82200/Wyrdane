@@ -13,8 +13,12 @@ class_name CostSystem
 
 var battle
 
-# Remises temporaires : CardData (instance en main) -> réduction cumulée.
-var _temp_discounts: Dictionary = {}
+# Remises temporaires, par camp puis par CardData (instance en main) -> réduction
+# cumulée. Scopées par camp car une CardData chargée depuis un .tres est partagée
+# (même instance Resource) entre le deck joueur et le deck IA/adverse quand les
+# deux piochent la même carte : sans ce scope, une remise obtenue par un camp
+# s'appliquerait aussi à la copie en main de l'autre camp.
+var _temp_discounts: Dictionary = {true: {}, false: {}}
 # Nombre de serviteurs joués ce tour, par camp puis par race (clé = Race.Type).
 var _race_played_this_turn: Dictionary = {true: {}, false: {}}
 
@@ -92,8 +96,9 @@ func get_cost(card_data: CardData, is_player: bool) -> int:
 	if aura_reduction > 0:
 		cost = max(1, cost - aura_reduction)
 	# Remises temporaires par carte (peuvent descendre à 0)
-	if _temp_discounts.has(card_data):
-		cost = max(0, cost - int(_temp_discounts[card_data]))
+	var discounts: Dictionary = _temp_discounts[is_player]
+	if discounts.has(card_data):
+		cost = max(0, cost - int(discounts[card_data]))
 	return cost
 
 func _aura_reduction(card_data: CardData, is_player: bool) -> int:
@@ -105,7 +110,10 @@ func _aura_reduction(card_data: CardData, is_player: bool) -> int:
 		for effect in enchant.effects:
 			match effect.effect_id:
 				"AuraSpellCostReduction":
-					if card_data.card_type != "Minion":
+					# "Incantation" = Éphémère uniquement : les Rituels/Enchantements
+					# ne sont pas des sorts au sens de cette réduction (comportement
+					# corrigé — auparavant "!= Minion" les incluait à tort).
+					if card_data.card_type == "Instant":
 						reduction += effect.value
 				"AuraFirstOfRaceCostReduction":
 					if card_data.card_type == "Minion" \
@@ -119,11 +127,12 @@ func _race_played_count(is_player: bool, race: int) -> int:
 
 # ─── Remises temporaires ──────────────────────────────────────────────────────
 
-func add_temp_discount(card_data: CardData, amount: int) -> void:
+func add_temp_discount(card_data: CardData, amount: int, is_player: bool = true) -> void:
 	if card_data == null or amount <= 0:
 		return
-	_temp_discounts[card_data] = int(_temp_discounts.get(card_data, 0)) + amount
-	if battle.hand != null:
+	var discounts: Dictionary = _temp_discounts[is_player]
+	discounts[card_data] = int(discounts.get(card_data, 0)) + amount
+	if is_player and battle.hand != null:
 		battle.hand.refresh_costs()
 
 # ─── Suivi de tour ────────────────────────────────────────────────────────────
@@ -132,11 +141,11 @@ func add_temp_discount(card_data: CardData, amount: int) -> void:
 func on_card_played(card_data: CardData, is_player: bool) -> void:
 	if card_data == null:
 		return
-	_temp_discounts.erase(card_data)
+	_temp_discounts[is_player].erase(card_data)
 	if card_data.card_type == "Minion":
 		var per_race: Dictionary = _race_played_this_turn[is_player]
 		per_race[card_data.race] = int(per_race.get(card_data.race, 0)) + 1
-	else:
+	elif card_data.card_type == "Instant":
 		await _charge_spell_discount_self_damage(card_data, is_player)
 	# La carte jouée peut avoir consommé une réduction "premier de la race"
 	# (AuraFirstOfRaceCostReduction) : les autres cartes de la race en main
@@ -148,7 +157,7 @@ func on_card_played(card_data: CardData, is_player: bool) -> void:
 # sort allié chaque tour, le héros propriétaire de l'enchantement perd 1 HP.
 # `triggered_this_turn` (partagé avec TriggerSystem, remis à zéro à chaque
 # début de tour) sert de témoin "déjà chargé" pour cette instance.
-func _charge_spell_discount_self_damage(card_data: CardData, is_player: bool) -> void:
+func _charge_spell_discount_self_damage(_card_data: CardData, is_player: bool) -> void:
 	for entry in battle.trigger_system.get_active_enchantments(is_player):
 		var enchant: CardData = entry["card_data"]
 		if not enchant.trigger_types.any(func(t): return t.type == "OnAura"):
@@ -164,11 +173,18 @@ func on_turn_started(is_player: bool) -> void:
 	if is_player and battle.hand != null:
 		battle.hand.refresh_costs()
 
-# Fin du tour du joueur local : les remises "ce tour" expirent.
+# Fin du tour du joueur local : ses remises "ce tour" expirent.
 func expire_end_of_player_turn() -> void:
-	_temp_discounts.clear()
+	_temp_discounts[true].clear()
 	if battle.hand != null:
 		battle.hand.refresh_costs()
+
+# Fin du tour adverse : ses remises "ce tour" expirent (symétrique à
+# expire_end_of_player_turn, sans quoi une remise gagnée pendant le tour
+# adverse survivrait un tour de trop côté joueur puisque les deux camps
+# partagent le même dictionnaire par instance de CardData).
+func expire_end_of_enemy_turn() -> void:
+	_temp_discounts[false].clear()
 
 # ─── Pools de mana par race ────────────────────────────────────────────────
 # Un pool par race (voir README « Système de Ressources par Race ») : plus de

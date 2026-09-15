@@ -1,6 +1,6 @@
 # Wyrdane CARDS.md
 
-Liste complète des cartes des races **Mort-Vivant**, **Humain** et **Démon**.
+Liste complète des cartes des races **Mort-Vivant**, **Humain**, **Démon** et **Abomination**.
 
 > **Notes de révision (à répercuter dans `CLAUDE.md` et `README.md`, et côté code si adopté) :**
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
@@ -31,7 +31,7 @@ Positionnement (Lane Types)
 | `PESTIFÉRÉ` | Les attaques de ce serviteur infligent **Infection** en plus des dégâts. |
 | `NÉCROPHAGE` | Quand un serviteur que vous contrôlez meurt, ce serviteur gagne +1/+1 de façon permanente. |
 | `HORDE` | Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0. |
-| `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par partie). Ne se déclenche pas en cas de Sacrifice. |
+| `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par pose sur le plateau — s'il repasse par la main ou est renvoyé en jeu, le mot-clé refonctionne). Ne se déclenche pas en cas de Sacrifice. |
 | `CHAIR MORTE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur). Pas immunisé aux débuffs de stats ni au Gel. |
 
 ---
@@ -887,7 +887,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 |:---:|---|:---:|:---:|---|---|
 | A65 | Autel Qui Ne Reconnaît Rien | 3 | Rare | Deuil : Une Abomination aléatoire que vous contrôlez mute. | *Chaque mort nourrit l'autel. L'autel, lui, ne rend jamais la même forme deux fois.* |
 | A66 | Nid Débordant | 4 | Rare | Renfort : Si 3 Abominations alliées ou plus sont en jeu, invoque un Amas Informe 1/2 (une seule fois par tour). | *Plus il se remplit, plus il en sort.* |
-| A67 | Halo Qui Encourage le Changement | 3 | Rare | Mutation : Le serviteur qui vient de muter gagne +1/+0 supplémentaire de façon permanente. | *Chaque changement en appelle un autre, plus franc.* |
+| A67 | Halo Qui Encourage le Changement | 3 | Rare | Présence : Quand un serviteur que vous contrôlez mute il gagne +1/+0 de façon permanente. | *Chaque changement en appelle un autre, plus franc.* |
 | A68 | La Terre Qui Refuse de Garder | 5 | Épique | Deuil : le serviteur mort que vous contrôlez revient en jeu à la fin du tour avec 1 HP, transformé en Abomination (perd sa race d'origine, gagne MUTATION). Une seule fois par serviteur. | *Le sol ici ne garde rien. Il rend, mais jamais tel quel.* |
 | A69 | Vapeur Qui S'Accroche | 3 | Rare | Présence : à chaque début du tour adverse, les serviteurs affaiblis (débuff actif) que votre adversaire contrôle perdent 1 HP supplémentaire. | *On ne la voit pas. On sent juste que quelque chose continue de ronger.* |
 | A70 | Lien Sans Membrane | 5 | Épique | Présence : Les serviteurs que vous contrôlez en rangée Arrière gagnent +0/+1 par Abomination que vous contrôlez en rangée Avant. | *Ceux de devant absorbent. Ceux de derrière en profitent.* |

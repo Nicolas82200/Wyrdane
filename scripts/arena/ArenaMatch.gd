@@ -114,9 +114,21 @@ func cast_spell(player: ArenaPlayerState, card_data: CardData) -> bool:
 	sim.player_minions = (player.board_front + player.board_back).duplicate()
 	for m in sim.player_minions:
 		m.owner_is_player = true
+	var board_before: Array[Minion] = sim.player_minions.duplicate()
 	for effect in card_data.effects:
 		await sim.effect_manager.execute_effect(sim, null, effect, null)
+	# Une Incantation auto-ciblée (ex. dégâts au lanceur) peut tuer un allié
+	# via une aura/réaction : sans ce passage, ce mort resterait présent sur
+	# player_minions au moment de la resynchronisation (même problème et même
+	# solution que _summon_minion_return, voir SimulatedBattle.gd). DeathSystem
+	# réassigne sim.player_minions vers un nouveau tableau filtré (ne mute pas
+	# player.board_front/board_back par effet de bord) : on répercute donc les
+	# morts manuellement ci-dessous.
+	await sim.death_system.process_deaths()
 	sim.aura_system.recompute_all()
+	for minion in board_before:
+		if minion.is_dead():
+			player.remove_from_board(minion)
 	player.hero_hp = sim.player_hero.health
 	player.spell_hand.erase(card_data)
 	return true

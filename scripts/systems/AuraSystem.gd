@@ -50,6 +50,7 @@ func _apply_infernal_rank() -> void:
 			continue
 		var hero: Hero = battle.player_hero if minion.owner_is_player else battle.enemy_hero
 		var missing: int = max(0, hero.max_health - hero.health)
+		@warning_ignore("integer_division")
 		minion.aura_attack_bonus += missing / 10
 
 func _apply_enchantment_auras() -> void:

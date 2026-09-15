@@ -112,33 +112,33 @@ static func _add_news_item(menu, date: String, title: String, body: String, kind
 	if is_event:
 		var badge := Label.new()
 		badge.text = SettingsManager.t("MENU_NEWS_EVENT_BADGE")
-		badge.add_theme_font_size_override("font_size", 12)
+		badge.add_theme_font_size_override("font_size", 13)
 		badge.add_theme_color_override("font_color", ACCENT_EVENT)
 		item.add_child(badge)
 
 	var date_label := Label.new()
 	date_label.text = date
-	date_label.add_theme_font_size_override("font_size", 13)
+	date_label.add_theme_font_size_override("font_size", 14)
 	date_label.add_theme_color_override("font_color", accent if (is_featured or is_event) else Color(0.91, 0.835, 0.639, 0.55))
 	item.add_child(date_label)
 
 	var title_label := Label.new()
 	title_label.text = title
-	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_font_size_override("font_size", 20)
 	title_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	title_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	item.add_child(title_label)
 
 	var body_label := Label.new()
 	body_label.text = body
-	body_label.add_theme_font_size_override("font_size", 15)
+	body_label.add_theme_font_size_override("font_size", 17)
 	body_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.9))
 	body_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	item.add_child(body_label)
 
 	var read_more := LinkButton.new()
 	read_more.text = SettingsManager.t("MENU_NEWS_READ_MORE")
-	read_more.add_theme_font_size_override("font_size", 13)
+	read_more.add_theme_font_size_override("font_size", 14)
 	read_more.add_theme_color_override("font_color", Color(0.85, 0.65, 0.25, 1))
 	var path: String = menu.WEBSITE_DEVLOG_PATH if kind == "devlog" else menu.WEBSITE_NEWS_PATH
 	read_more.pressed.connect(func(): OS.shell_open(menu.WEBSITE_URL + path))
