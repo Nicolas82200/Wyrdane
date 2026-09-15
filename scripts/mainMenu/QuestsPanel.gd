@@ -185,11 +185,12 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	menu.quests_list_vbox.add_child(row)
 
 # Les trois types de quête (quotidienne/hebdo/unique) partagent la même
-# réaction de réclamation, seul l'appel réseau diffère (claim_call, déjà lié
-# à son quest_id par l'appelant) — voir _on_claim_weekly/unique/_pressed.
-static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) -> void:
+# réaction de réclamation, seul l'appel réseau diffère (claim_method, appelé
+# explicitement avec quest_id puis le callback pour ne pas dépendre de
+# l'ordre d'empilement de Callable.bind()) — voir _on_claim_weekly/unique/_pressed.
+static func _handle_claim_pressed(menu, button: Button, claim_method: Callable, quest_id) -> void:
 	button.disabled = true
-	claim_call.call(func(success: bool, data: Dictionary):
+	claim_method.call(quest_id, func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -200,10 +201,10 @@ static func _handle_claim_pressed(menu, button: Button, claim_call: Callable) ->
 	)
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest.bind(quest_id))
+	_handle_claim_pressed(menu, button, BackendClient.claim_weekly_quest, quest_id)
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_unique_quest.bind(quest_id))
+	_handle_claim_pressed(menu, button, BackendClient.claim_unique_quest, quest_id)
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, BackendClient.claim_quest.bind(quest_id))
+	_handle_claim_pressed(menu, button, BackendClient.claim_quest, quest_id)
