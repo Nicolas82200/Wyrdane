@@ -8,11 +8,11 @@ extends Node
 # désormais de l'XP de compte, pas d'or directement (voir
 # MatchResultReporter._report_ranked).
 
-# Affiché à titre indicatif (barre de progression) ; la courbe réelle est
+# Valeur de départ affichée avant la première sync (barre de progression) ;
+# la courbe réelle (+20 %/niveau sur le seuil arrondi du niveau précédent) est
 # appliquée et vérifiée côté serveur (voir xpToReachNextLevel dans
 # wyrdane-backend/backend/src/model/levelModel.ts).
 const XP_CURVE_BASE := 100
-const XP_CURVE_STEP := 10
 
 var level: int = 1
 var xp: int = 0

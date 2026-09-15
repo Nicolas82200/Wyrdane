@@ -337,7 +337,7 @@ Le gain d'XP (et les récompenses de niveau éventuellement débloquées) n'est 
 
 Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
 
-XP requise pour passer du niveau `n` à `n+1` : `100 + 10×(n-1)` (courbe légèrement croissante). Une récompense est accordée à **chaque** niveau franchi :
+XP requise pour passer du niveau `n` à `n+1` : +20 % par niveau sur le seuil arrondi du niveau précédent (100 XP au niveau 1, 120 au niveau 2, 144 au niveau 3, 432 au niveau 9...). Une récompense est accordée à **chaque** niveau franchi :
 | Niveau | Récompense |
 |---|---|
 | Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit |
