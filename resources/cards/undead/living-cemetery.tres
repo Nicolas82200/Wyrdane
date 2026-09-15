@@ -19,7 +19,7 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cimetière Vivant"
-description = "À chaque tour, le premier Mort-Vivant que vous contrôlez qui meurt revient en jeu à la fin du tour avec 1 point de vie."
+description = "À chaque tour, le premier Mort-Vivant allié qui meurt revient en jeu à la fin du tour avec 1 point de vie."
 flavour_text = "Le sol ici ne garde rien. Il régurgite."
 texture = ExtResource("3_texture")
 cost = 5
