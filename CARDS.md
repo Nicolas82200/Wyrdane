@@ -401,7 +401,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 |:---:|---|:---:|:---:|:---:|---|---|
 | H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
 | H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
-| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
+| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
 | H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Rapide 1/1. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Chaque coup reçu est une réponse en attente.* |

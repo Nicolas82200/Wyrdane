@@ -10,7 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "GrantKeyword"
 target = "AllAlliesFront"
-duration = "UntilEndOfTurn"
+duration = "UntilEndOfEnemyTurn"
 condition_type = "AlliesInRowInPlay"
 condition_op = "GreaterOrEqual"
 condition_count = 5
@@ -25,7 +25,7 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Fortification des Lignes"
-description = "Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du tour."
+description = "Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse."
 flavour_text = "Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas."
 texture = ExtResource("3_texture")
 cost = 5
