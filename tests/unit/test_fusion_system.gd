@@ -112,6 +112,38 @@ func test_apply_fusion_noop_if_victim_already_dead() -> void:
 	assert_eq(source.base_attack, 2, "aucun effet si la victime est déjà morte")
 	assert_eq(source.base_max_health, 3, "aucun effet si la victime est déjà morte")
 
+func test_apply_fusion_marks_source_as_fusion_used() -> void:
+	var source := _minion(2, 3)
+	var victim := _minion(4, 5)
+	assert_false(source.fusion_used, "un serviteur fraîchement posé n'a pas encore fusionné")
+	await fusion_system.apply_fusion(source, victim, "", -1)
+	assert_true(source.fusion_used, "le serviteur doit être marqué comme ayant déjà fusionné")
+
+func test_apply_fusion_only_triggers_once_for_a_single_source() -> void:
+	# Bug corrigé : FUSION pouvait s'enchaîner plusieurs fois pour le même
+	# serviteur posé (aucune limite n'existait). Un deuxième appel avec une
+	# nouvelle victime ne doit plus rien absorber.
+	var source := _minion(2, 3)
+	var victim_1 := _minion(4, 5)
+	var victim_2 := _minion(10, 10)
+	await fusion_system.apply_fusion(source, victim_1, "", -1)
+	assert_eq(source.base_attack, 6, "première fusion : absorbe bien la première victime")
+	assert_eq(source.base_max_health, 8, "première fusion : absorbe bien la première victime")
+
+	await fusion_system.apply_fusion(source, victim_2, "", -1)
+	assert_eq(source.base_attack, 6, "deuxième fusion refusée : pas d'absorption supplémentaire")
+	assert_eq(source.base_max_health, 8, "deuxième fusion refusée : pas d'absorption supplémentaire")
+	assert_false(victim_2.is_dead(), "la deuxième victime n'est jamais sacrifiée")
+
+func test_can_activate_returns_false_once_fusion_already_used() -> void:
+	var source := _minion(2, 3, true)
+	source.add_abomination_keyword(KeywordAbomination.Type.FUSION)
+	var victim := _minion(4, 5, true)
+	assert_true(fusion_system.can_activate(source), "activable avant toute fusion")
+	await fusion_system.apply_fusion(source, victim, "", -1)
+	_minion(1, 1, true)  # un autre allié adjacent sacrifiable reste disponible
+	assert_false(fusion_system.can_activate(source), "plus activable après une fusion déjà réalisée")
+
 # ─── Encodage réseau du mot-clé absorbé ────────────────────────────────────────
 
 func test_keyword_name_round_trip_for_every_pool() -> void:

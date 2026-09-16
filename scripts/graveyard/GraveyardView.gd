@@ -14,7 +14,7 @@ const GRID_WRAPPER_SIZE     := Vector2(215, 320)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 const TOOLTIP_WIDTH         := 220.0
 
-@onready var container   = $PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/GridContainer
+@onready var container   = $PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/GridMargin/GridContainer
 @onready var count_label = $PanelContainer/MarginContainer/VBoxContainer/Header/CountLabel
 @onready var close_btn   = $PanelContainer/MarginContainer/VBoxContainer/Header/CloseButton
 @onready var color_rect  = $ColorRect

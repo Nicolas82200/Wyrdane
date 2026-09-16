@@ -123,7 +123,7 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 - **Trigger `OnMutation`** (« Mutation » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
 - **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
 - **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
-- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
+- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ET que ce serviteur n'a pas déjà fusionné (`Minion.fusion_used`, une seule activation par pose — nouvelle instance `Minion` à chaque redéploiement donc réinitialisé de fait, même mécanique que `revenant_triggered`) ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
 
@@ -182,25 +182,32 @@ Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem
 
 👉 Important : **les morts sont groupées pour éviter les bugs de cascade**.
 
-### 🎯 Système de sélection
+### 🎯 Déclaration puis verrouillage des attaques (façon MTG Arena)
 
-Deux modes de sélection (gérés par `SelectionSystem`) :
+`SelectionSystem` ne résout plus aucune attaque au clic : le joueur déclare des
+paires (attaquant, cible) une à une, sans qu'aucune ne se résolve
+immédiatement — poser des cartes reste possible pendant ce temps. Un clic sur
+le bouton « Verrouiller » (`LockAttacksButton`, `SelectionSystem.lock_attacks()`)
+résout alors toutes les paires déclarées EN SÉQUENCE, dans l'ordre de
+déclaration, via `CombatSystem.resolve_combat`/`perform_hero_attack`.
 
-#### 1. Sélection simple
-
-*   1 attaquant
-*   Clic → attaque directe
-
-#### 2. Multi-sélection (CTRL)
-
-```gdscript
-selected_attackers[]
-selected_board_minions[]
-```
-
-*   Attaques en chaîne
-*   Résolution gauche → droite
-*   `_resolve_multi_attack()` (dans `CombatSystem`)
+*   Clic sur un serviteur allié pouvant encore attaquer → le désigne comme
+    attaquant « en attente » (surbrillance orange) pour la prochaine paire.
+*   Clic sur une cible ennemie (serviteur ou héros) → déclare la paire
+    (attaquant, cible) (surbrillance dorée = paire déclarée).
+*   Un serviteur FRÉNÉSIE (2 attaques) peut être déclaré dans 2 paires
+    distinctes (`_declared_count_for` plafonne à `attacks_remaining`).
+*   Re-cliquer sur un attaquant ayant déjà déclaré toutes ses charges retire
+    sa dernière paire déclarée (annulation avant verrouillage).
+*   `lock_attacks()` revalide CHAQUE paire juste avant résolution (attaquant
+    vivant/capable d'attaquer, cible vivante, règle REMPART toujours
+    respectée) — une mort survenue plus tôt dans le même verrouillage
+    (REMPART tué, FRÉNÉSIE dont la 1ère attaque est fatale...) fait sauter
+    silencieusement la paire suivante sans planter.
+*   Émission réseau (`NetEmitter.attack`/`attack_hero`) inchangée : toujours
+    une commande par attaque, désormais émise au moment de la RÉSOLUTION
+    (clic sur Verrouiller) et non de la déclaration — le pair rejoue toujours
+    les commandes une par une, dans l'ordre reçu.
 
 ### 🖱️ Drag & Drop (main → board)
 

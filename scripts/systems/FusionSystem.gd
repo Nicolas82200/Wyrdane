@@ -34,6 +34,8 @@ func can_activate(minion: Minion) -> bool:
 		return false
 	if not minion.has_abomination_keyword(KeywordAbomination.Type.FUSION):
 		return false
+	if minion.fusion_used:
+		return false
 	return not _valid_victims(minion).is_empty()
 
 func try_begin(minion: Minion) -> void:
@@ -109,6 +111,12 @@ func _execute(source: Minion, victim: Minion) -> void:
 func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:
 	if source == null or victim == null or source.is_dead() or victim.is_dead():
 		return
+	# Une seule fusion par serviteur posé : marqué avant même le traitement des
+	# morts (process_deaths peut invoquer un serviteur via Dernier Souffle, et
+	# ce nouveau serviteur ne doit jamais hériter d'un état "déjà fusionné").
+	if source.fusion_used:
+		return
+	source.fusion_used = true
 	var remaining_attack: int = victim.attack
 	var remaining_health: int = victim.health
 	victim.sacrificed = true
