@@ -344,6 +344,8 @@ func _is_player_turn() -> bool:
 		return false
 	if "game_over" in _battle and _battle.game_over:
 		return false
+	if "effects_resolving" in _battle and _battle.effects_resolving > 0:
+		return false
 	return not _battle.enemy_turn_active
 
 func _update_ready_glow() -> void:

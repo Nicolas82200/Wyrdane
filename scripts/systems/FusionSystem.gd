@@ -28,7 +28,7 @@ func is_active() -> bool:
 func can_activate(minion: Minion) -> bool:
 	if minion == null or not minion.owner_is_player or minion.is_dead():
 		return false
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target or battle.is_resolving_effects():
 		return false
 	if _active or battle.targeting_system.is_targeting() or battle.sacrifice_system.is_active():
 		return false
