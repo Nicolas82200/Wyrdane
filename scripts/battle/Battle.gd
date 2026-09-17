@@ -452,6 +452,7 @@ func animate_enemy_draw() -> void:
 	if enemy_deck_button == null or enemy_hand_display == null \
 			or not is_instance_valid(enemy_deck_button) or not is_instance_valid(enemy_hand_display):
 		return
+	AudioManager.play(AudioManager.DRAW)
 	var ghost := _spawn_enemy_card_ghost(enemy_deck_button.global_position + enemy_deck_button.size * 0.5)
 	var target: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
 	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
