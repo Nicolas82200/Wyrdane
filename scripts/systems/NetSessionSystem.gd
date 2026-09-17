@@ -25,7 +25,7 @@ func setup() -> void:
 	battle.net_opponent_backend_id = setup.get("opponent_backend_id", 0)
 	battle.net_client_match_id = setup.get("client_match_id", "")
 	battle.net_match_session_token = setup.get("match_session_token", "")
-	battle.net_emitter = NetEmitter.new(net)
+	battle.net_emitter = NetEmitter.new(net, battle)
 	net.connection_lost.connect(_on_connection_lost)
 	net.connection_restored.connect(_on_connection_restored)
 	net.peer_disconnected.connect(_on_peer_disconnected)
@@ -52,7 +52,7 @@ func _on_connection_restored() -> void:
 	battle.reconnecting = false
 	battle.reconnect_overlay.hide_overlay()
 	if not battle.enemy_turn_active and not battle._mulligan_active:
-		battle.turn_timer.start()
+		battle.afk_guard.resume_turn_timer()
 
 # Pair définitivement perdu (délai de grâce de reconnexion expiré, ou coupure
 # non transitoire) : on stoppe le match et on affiche l'écran de fin en mode

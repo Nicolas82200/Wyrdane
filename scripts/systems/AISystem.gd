@@ -104,10 +104,30 @@ func get_hand_count() -> int:
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
+# Filet de sécurité, même principe que TutorialOpponent.MAX_TURN_SAFETY : si un
+# bug fait boucler indéfiniment une des phases (ex: _play_cards_phase/_attack_phase
+# qui ne consomment jamais leur condition de sortie), le tour adverse ne doit
+# JAMAIS bloquer la partie pour toujours — take_turn() ne s'exécute donc pas
+# directement mais est sondée, avec une limite haute au-delà de laquelle la main
+# est rendue de force. Bien plus généreuse qu'en tutoriel (30s) : un vrai tour
+# d'IA (beaucoup de cartes/attaques à jouer) peut légitimement prendre du temps.
+const MAX_TURN_SAFETY_SECONDS := 30.0
+
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
+	var finished := false
+	_run_turn_actions(func(): finished = true)
+	var elapsed := 0.0
+	while not finished and elapsed < MAX_TURN_SAFETY_SECONDS:
+		await battle.get_tree().process_frame
+		elapsed += battle.get_process_delta_time()
+	if not finished:
+		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu, on rend quand même la main pour ne jamais bloquer la partie.")
+	battle.set_enemy_turn(false)
+
+func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
@@ -121,7 +141,7 @@ func take_turn() -> void:
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
 	await battle.turn_system.run_turn_end_triggers(false)
 	_discard_excess_hand()
-	battle.set_enemy_turn(false)
+	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
 # côté joueur avec UI/timer) : l'IA n'a pas d'interface pour choisir, donc
