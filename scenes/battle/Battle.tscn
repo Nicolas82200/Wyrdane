@@ -10,7 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="10_q5nyf"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
-[ext_resource type="Script" path="res://scripts/battle/LockAttacksButton.gd" id="22_lockatk"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 [ext_resource type="Script" uid="uid://c6bscpyi2ynfo" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
 [ext_resource type="Script" uid="uid://cu30hpbeakc8s" path="res://scripts/hand/EnemyHandDisplay.gd" id="16_enhand"]
@@ -685,26 +684,6 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.6)
 z_index = 90
-
-[node name="LockAttacksButton" type="Button" parent="." unique_id=900000006]
-custom_minimum_size = Vector2(170, 48)
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -230.0
-offset_top = -160.0
-offset_right = -60.0
-offset_bottom = -112.0
-grow_horizontal = 0
-grow_vertical = 0
-z_index = 91
-action_mode = 0
-disabled = true
-text = "Verrouiller"
-script = ExtResource("22_lockatk")
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
 custom_minimum_size = Vector2(170, 48)

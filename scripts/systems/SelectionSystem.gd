@@ -1,38 +1,18 @@
 extends Node
 class_name SelectionSystem
 
-# ─── Déclaration puis verrouillage des attaques (façon MTG Arena) ──────────────
-#
-# Le joueur déclare une à une des paires (attaquant, cible) SANS qu'aucune ne
-# se résolve immédiatement — la carte peut continuer d'être jouée normalement
-# pendant ce temps (voir `lock_attacks`, seul point qui déclenche vraiment les
-# dégâts). Chaque paire est { attacker: Minion, attacker_board, target: Minion
-# ou null, target_is_hero: bool }. Un même attaquant peut apparaître dans
-# plusieurs paires tant qu'il lui reste des charges d'attaque déclarables
-# (FRÉNÉSIE : 2 attaques), voir `_declared_count_for`.
-#
-# Revalidation : `lock_attacks` réévalue CHAQUE paire juste avant de la
-# résoudre (attaquant toujours vivant/capable d'attaquer, cible toujours
-# vivante, règle REMPART toujours respectée) — une mort survenue plus tôt dans
-# la même séquence de verrouillage (ex: le REMPART ciblé par une paire meurt
-# lors d'une paire précédente) fait sauter silencieusement la paire suivante
-# sans jamais planter.
-
 var battle
 
-var declared_pairs: Array[Dictionary] = []
-var pending_attacker: Minion = null
-var pending_attacker_board: BoardMinion = null
-var is_locking: bool = false
-
-# Boards dont la surbrillance a été activée par ce système, pour pouvoir
-# l'éteindre proprement dès qu'ils ne sont plus pending ni déclarés.
-var _highlighted_boards: Array = []
+var selected_attacker: Minion          = null
+var selected_board_minion: BoardMinion = null
+var selected_attackers: Array[Minion]  = []
+var selected_board_minions: Array[BoardMinion] = []
+var is_multi_selecting: bool           = false
 
 func init(_battle) -> void:
 	battle = _battle
 
-# ─── Sélection joueur (déclaration d'une paire) ────────────────────────────────
+# ─── Sélection joueur ─────────────────────────────────────────────────────────
 
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or not minion.can_attack():
@@ -43,160 +23,135 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 			or battle.fusion_system.is_active():
 		return
 
-	if minion == pending_attacker:
-		# Re-clic sur l'attaquant en attente d'une cible : annule cette sélection.
-		clear_pending()
-		return
+	var ctrl_held := Input.is_key_pressed(KEY_CTRL)
 
-	var declared_count := _declared_count_for(minion)
-	if declared_count > 0 and declared_count >= minion.attacks_remaining:
-		# Toutes les charges d'attaque de ce serviteur sont déjà déclarées :
-		# re-cliquer dessus retire la dernière paire déclarée le concernant
-		# (façon d'annuler une déclaration avant verrouillage).
-		_remove_last_pair_for(minion)
-		return
+	if ctrl_held or is_multi_selecting:
+		if not is_multi_selecting and selected_attacker != null and selected_board_minion != null:
+			selected_attackers.append(selected_attacker)
+			selected_board_minions.append(selected_board_minion)
+			selected_attacker     = null
+			selected_board_minion = null
 
-	pending_attacker       = minion
-	pending_attacker_board = board_minion
-	_refresh_highlights()
+		is_multi_selecting = true
+		if minion in selected_attackers:
+			var idx := selected_attackers.find(minion)
+			selected_attackers.remove_at(idx)
+			selected_board_minions.remove_at(idx)
+			board_minion.set_selected(false)
+		else:
+			selected_attackers.append(minion)
+			selected_board_minions.append(board_minion)
+			board_minion.set_selected(true)
 
-# ─── Attaque ennemie (cible de la paire en cours de déclaration) ───────────────
+		if selected_attackers.is_empty():
+			is_multi_selecting = false
+	else:
+		clear_multi_selection()
+		is_multi_selecting = false
+		if selected_board_minion:
+			selected_board_minion.set_selected(false)
+		selected_attacker     = minion
+		selected_board_minion = board_minion
+		board_minion.set_selected(true, true)
+
+# ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
 func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
 		return
-	if pending_attacker == null:
+
+	if is_multi_selecting and not selected_attackers.is_empty():
+		if not battle._can_attack_minion_target(selected_attackers[0], target):
+			return
+		await _resolve_multi_attack(target)
 		return
-	if not battle._can_attack_minion_target(pending_attacker, target):
+
+	if selected_attacker == null or not battle._can_attack_minion_target(selected_attacker, target):
 		return
-	declared_pairs.append({
-		"attacker": pending_attacker,
-		"attacker_board": pending_attacker_board,
-		"target": target,
-		"target_is_hero": false,
-	})
-	clear_pending()
+	if SettingsManager.confirm_before_attack \
+			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
+		return
+	await battle.combat_system.resolve_combat(selected_attacker, target)
+	clear_selection()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
+	await battle.check_auto_pass_turn()
 
 func on_enemy_hero_clicked() -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
 		return
-	if pending_attacker == null:
-		return
-	if not battle._can_attack_hero(pending_attacker):
-		return
-	declared_pairs.append({
-		"attacker": pending_attacker,
-		"attacker_board": pending_attacker_board,
-		"target": null,
-		"target_is_hero": true,
-	})
-	clear_pending()
 
-# ─── Verrouillage (résolution séquentielle des paires déclarées) ──────────────
-
-func has_declared_attacks() -> bool:
-	return not declared_pairs.is_empty()
-
-func lock_attacks() -> void:
-	if is_locking or declared_pairs.is_empty():
-		return
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
+	if is_multi_selecting and not selected_attackers.is_empty():
+		await _resolve_multi_attack_hero()
 		return
 
-	is_locking = true
-	var pairs := declared_pairs.duplicate()
-	declared_pairs.clear()
-	pending_attacker       = null
-	pending_attacker_board = null
-	_refresh_highlights()
-
-	for pair in pairs:
-		var attacker: Minion = pair.get("attacker")
-		# Revalidation de l'attaquant : peut être mort ou avoir épuisé ses
-		# charges d'attaque à cause d'une paire précédente de ce même batch
-		# (ex: FRÉNÉSIE dont la 1ère attaque a été fatale à l'attaquant).
-		if attacker == null or attacker.is_dead() or not attacker.can_attack():
-			continue
-		if pair.get("target_is_hero", false):
-			if not battle._can_attack_hero(attacker):
-				continue
-			await battle.combat_system.perform_hero_attack(attacker)
-			battle.check_game_end()
-			battle.board_visual_system.refresh_board()
-		else:
-			var target: Minion = pair.get("target")
-			# Revalidation de la cible : peut être morte entre-temps (une
-			# paire précédente l'a tuée) ou ne plus être une cible légale
-			# (ex: un REMPART est apparu/mort, changeant la priorité de rangée).
-			if target == null or target.is_dead():
-				continue
-			if not battle._can_attack_minion_target(attacker, target):
-				continue
-			await battle.combat_system.resolve_combat(attacker, target)
-		if battle.tutorial_manager:
-			await battle.tutorial_manager.notify_combat()
-		await battle.get_tree().create_timer(0.3).timeout
-
-	is_locking = false
+	if selected_attacker == null or not battle._can_attack_hero(selected_attacker):
+		return
+	if SettingsManager.confirm_before_attack \
+			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
+		return
+	await battle.combat_system.perform_hero_attack(selected_attacker)
+	clear_selection()
+	battle.check_game_end()
+	battle.board_visual_system.refresh_board()
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_combat()
 	await battle.check_auto_pass_turn()
 
-# ─── Déclaration : requêtes internes ───────────────────────────────────────────
+# ─── Multi-attaque ────────────────────────────────────────────────────────────
 
-func _declared_count_for(attacker: Minion) -> int:
-	var count := 0
-	for pair in declared_pairs:
-		if pair.get("attacker") == attacker:
-			count += 1
-	return count
-
-func _remove_last_pair_for(attacker: Minion) -> void:
-	for i in range(declared_pairs.size() - 1, -1, -1):
-		if declared_pairs[i].get("attacker") == attacker:
-			declared_pairs.remove_at(i)
+func _resolve_multi_attack(target: Minion) -> void:
+	var attackers := _sort_attackers_left_to_right(selected_attackers)
+	clear_multi_selection()
+	for attacker in attackers:
+		if target.is_dead():
 			break
-	_refresh_highlights()
+		if attacker == null or attacker.is_dead() or not attacker.can_attack():
+			continue
+		if not battle._can_attack_minion_target(attacker, target):
+			continue
+		await battle.combat_system.resolve_combat(attacker, target)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
+		await battle.get_tree().create_timer(0.4).timeout
+	await battle.check_auto_pass_turn()
 
-# ─── Surbrillance ───────────────────────────────────────────────────────────────
-# Orange (multi=true) : attaquant en attente d'une cible pour sa paire en cours.
-# Doré (multi=false)  : attaquant déjà affecté à au moins une paire déclarée.
-
-func _refresh_highlights() -> void:
-	var boards_needed: Dictionary = {}
-	for pair in declared_pairs:
-		var b = pair.get("attacker_board")
-		if b != null and is_instance_valid(b):
-			if not boards_needed.has(b):
-				boards_needed[b] = false
-	if pending_attacker_board != null and is_instance_valid(pending_attacker_board):
-		boards_needed[pending_attacker_board] = true
-
-	for b in _highlighted_boards:
-		if is_instance_valid(b) and not boards_needed.has(b):
-			b.set_selected(false)
-	for b in boards_needed.keys():
-		b.set_selected(true, boards_needed[b])
-	_highlighted_boards = boards_needed.keys()
-
-	if battle.has_method("_refresh_lock_attacks_button"):
-		battle._refresh_lock_attacks_button()
-
-# ─── Clear ────────────────────────────────────────────────────────────────────
-
-func clear_pending() -> void:
-	pending_attacker       = null
-	pending_attacker_board = null
-	_refresh_highlights()
-
-# Annule toute déclaration en cours (pending + paires non verrouillées), ex:
-# à la fin du tour ou quand un autre contexte de clic prend la main (ciblage,
-# sacrifice...). Ne touche pas à une résolution déjà en cours (`is_locking`).
-func clear_selection() -> void:
-	declared_pairs.clear()
-	pending_attacker       = null
-	pending_attacker_board = null
-	_refresh_highlights()
+func _resolve_multi_attack_hero() -> void:
+	var attackers := _sort_attackers_left_to_right(selected_attackers)
+	clear_multi_selection()
+	for attacker in attackers:
+		if battle.game_over:
+			break
+		if attacker == null or attacker.is_dead() or not attacker.can_attack():
+			continue
+		if not battle._can_attack_hero(attacker):
+			continue
+		await battle.combat_system.perform_hero_attack(attacker)
+		if battle.tutorial_manager:
+			await battle.tutorial_manager.notify_combat()
+		await battle.get_tree().create_timer(0.2).timeout
+	battle.check_game_end()
+	battle.board_visual_system.refresh_board()
+	await battle.check_auto_pass_turn()
 
 func _sort_attackers_left_to_right(attackers: Array[Minion]) -> Array[Minion]:
 	var sorted: Array[Minion] = attackers.duplicate()
 	sorted.sort_custom(func(a, b): return battle.player_minions.find(a) < battle.player_minions.find(b))
 	return sorted
+
+# ─── Clear ────────────────────────────────────────────────────────────────────
+
+func clear_selection() -> void:
+	if selected_board_minion:
+		selected_board_minion.set_selected(false)
+	selected_board_minion = null
+	selected_attacker     = null
+	clear_multi_selection()
+
+func clear_multi_selection() -> void:
+	for bm in selected_board_minions:
+		if is_instance_valid(bm):
+			bm.set_selected(false)
+	selected_attackers.clear()
+	selected_board_minions.clear()
+	is_multi_selecting = false
