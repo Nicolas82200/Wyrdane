@@ -383,7 +383,7 @@ func _update_hand_layout_staggered(total_duration: float) -> void:
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
@@ -486,7 +486,7 @@ func _on_card_hover(card: Card) -> void:
 	var pos := card.global_position
 	preview.global_position = Vector2(
 		card_center_x - preview.size.x * preview.scale.x * 0.5,
-		pos.y - preview.size.y * 1.0
+		pos.y - preview.size.y * preview.scale.y
 	)
 	preview.show()
 	# Trait reliant la carte à la preview : part de la carte, se connecte par
@@ -723,7 +723,7 @@ func set_compact(compact: bool) -> void:
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 func _update_hand_layout(animated: bool = false) -> void:
 	_prune_hand_order()
@@ -737,10 +737,15 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		# Plus de passage au premier plan pour la carte survolée (voir _hand_order
-		# et _sync_tree_order) : garde l'ordre z naturel de l'éventail, le
-		# soulèvement (HOVER_LIFT) et la preview agrandie suffisent à la démarquer.
+		# Plus de passage au premier plan pour la carte survolée en main normale
+		# (voir _hand_order et _sync_tree_order) : garde l'ordre z naturel de
+		# l'éventail, le soulèvement (HOVER_LIFT) et la preview agrandie
+		# suffisent à la démarquer. Pendant le mulligan en revanche (pas de
+		# preview de zoom, voir _on_card_hover), la carte survolée passe
+		# au-dessus de ses voisines pour que son texte reste lisible.
 		card.z_index = CARD_Z_BASE + i
+		if _mulligan_mode and i == hovered_index:
+			card.z_index = CARD_Z_BASE + cards.size()
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
@@ -749,7 +754,7 @@ func _update_hand_layout(animated: bool = false) -> void:
 			tween.tween_property(card, "scale",    layout["scale"], LAYOUT_TWEEN_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 # Une carte peut quitter la main en dehors d'un rebuild complet (ex. Card.gd
 # s'auto-détruit via queue_free() une fois glissée en jeu). Sans ce
@@ -766,13 +771,23 @@ func _prune_hand_order() -> void:
 		_hovered_card = null
 
 # Réaligne les enfants du conteneur sur l'ordre logique de la main. La carte
-# survolée ne passe plus en dernier (dessus) : voir _hand_order pour pourquoi
-# ce comportement a été retiré.
-func _sync_tree_order(_hovered_index: int = -1) -> void:
+# survolée ne passe plus en dernier (dessus) en main normale : voir
+# _hand_order pour pourquoi ce comportement a été retiré (éventail serré, ça
+# gênait le survol séquentiel). Pendant le mulligan en revanche, les cartes
+# sont peu nombreuses et très espacées (voir _mulligan_card_position) : la
+# carte survolée passe au premier plan pour que son texte ne soit jamais
+# recouvert par une voisine qui empiète dessus (pas de popup de zoom dédiée
+# pendant cette phase, voir _on_card_hover). Reçoit la carte elle-même (et non
+# un index dans `cards`, potentiellement filtré/décalé par rapport à
+# _hand_order, voir _layout_cards) pour toujours cibler la bonne carte.
+func _sync_tree_order(hovered_card: Card = null) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]
 		if is_instance_valid(card) and card.get_parent() == container:
 			container.move_child(card, i)
+	if _mulligan_mode and hovered_card != null and is_instance_valid(hovered_card) \
+			and hovered_card.get_parent() == container:
+		container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
