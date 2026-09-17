@@ -165,6 +165,15 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
 @onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
 
+@onready var crash_report_popup: Control = $CrashReportPopup
+@onready var crash_report_title_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTitleLabel
+@onready var crash_report_desc_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportDescLabel
+@onready var crash_report_crash_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTypeRow/CrashReportCrashButton
+@onready var crash_report_freeze_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTypeRow/CrashReportFreezeButton
+@onready var crash_report_status_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportStatusLabel
+@onready var crash_report_dismiss_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportButtonsRow/CrashReportDismissButton
+@onready var crash_report_send_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportButtonsRow/CrashReportSendButton
+
 var _local_news_entries: Array[NewsEntry] = []
 var _remote_news_entries: Array = []
 var _use_remote_news := false
@@ -197,6 +206,9 @@ func _ready() -> void:
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
+	crash_report_dismiss_button.pressed.connect(_on_crash_report_dismiss_pressed)
+	crash_report_send_button.pressed.connect(_on_crash_report_send_pressed)
+	_maybe_show_crash_report_popup()
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
@@ -834,7 +846,48 @@ func _on_website_pressed() -> void:
 	OS.shell_open(WEBSITE_URL)
 
 func _on_quit() -> void:
-	get_tree().quit()
+	CrashReporter.mark_clean_exit_and_quit()
+
+# --- Rapport de plantage/gel (voir CrashReporter) --------------------------
+
+func _maybe_show_crash_report_popup() -> void:
+	if not CrashReporter.has_pending_report():
+		return
+	crash_report_title_label.text = SettingsManager.t("CRASH_REPORT_TITLE")
+	crash_report_desc_label.text = SettingsManager.t("CRASH_REPORT_DESCRIPTION")
+	crash_report_crash_button.text = SettingsManager.t("CRASH_REPORT_TYPE_CRASH")
+	crash_report_freeze_button.text = SettingsManager.t("CRASH_REPORT_TYPE_FREEZE")
+	crash_report_dismiss_button.text = SettingsManager.t("CRASH_REPORT_DISMISS")
+	crash_report_send_button.text = SettingsManager.t("CRASH_REPORT_SEND")
+	crash_report_status_label.hide()
+	crash_report_status_label.text = ""
+	crash_report_send_button.disabled = false
+	crash_report_dismiss_button.disabled = false
+	crash_report_popup.show()
+
+func _on_crash_report_dismiss_pressed() -> void:
+	CrashReporter.dismiss_pending_report()
+	crash_report_popup.hide()
+
+func _on_crash_report_send_pressed() -> void:
+	crash_report_send_button.disabled = true
+	crash_report_dismiss_button.disabled = true
+	crash_report_status_label.text = SettingsManager.t("CRASH_REPORT_SENDING")
+	crash_report_status_label.show()
+	var crash_type := "freeze" if crash_report_freeze_button.button_pressed else "crash"
+	CrashReporter.send_report(crash_type, func(success: bool):
+		if not is_instance_valid(self):
+			return
+		CrashReporter.dismiss_pending_report()
+		if success:
+			crash_report_status_label.text = SettingsManager.t("CRASH_REPORT_SENT")
+			await get_tree().create_timer(1.2).timeout
+			if is_instance_valid(self):
+				crash_report_popup.hide()
+		else:
+			crash_report_status_label.text = SettingsManager.t("CRASH_REPORT_FAILED")
+			crash_report_dismiss_button.disabled = false
+	)
 
 # Rend visible la bannière "mode hors ligne" (backend/Steam injoignable) :
 # non bloquante, dismissible, tant que la connexion n'a pas été rétablie
