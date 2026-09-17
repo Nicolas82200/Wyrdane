@@ -157,9 +157,9 @@ theme_override_constants/margin_bottom = 14
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HeaderRow" type="HBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000008]
+[node name="HeaderRow" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000008]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="DeckNameEdit" type="LineEdit" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/HeaderRow" unique_id=100000009]
 unique_name_in_owner = true
@@ -170,12 +170,11 @@ placeholder_text = "Nom du deck..."
 
 [node name="CardCountLabel" type="Label" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/HeaderRow" unique_id=100000010]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_uifont")
 theme_override_font_sizes/font_size = 14
 text = "0 / 60  (min 40)"
-horizontal_alignment = 1
+horizontal_alignment = 0
 autowrap_mode = 3
 
 [node name="HSep" type="HSeparator" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000028]
