@@ -1764,10 +1764,16 @@ func _resolve_pact_payment(battle, minion: Minion) -> bool:
 	if not is_instance_valid(battle):
 		return false
 	if pact_paid:
-		var minion_visual: Control = battle.board_visual_system.find_visual(minion)
-		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
-		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-		await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+		# L'animation de drain ne se joue que si le héros perd réellement des PV :
+		# Le Gardien du Pacte Brisé (blocks_self_damage) ou Absolution Écarlate
+		# peuvent annuler entièrement self_damage() malgré un Pacte "payé" — sans
+		# cette vérification après coup, l'animation laissait croire à un coût
+		# réel alors qu'aucun PV n'avait été perdu (bonus obtenu gratuitement).
+		var dealt: int = await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+		if dealt > 0:
+			var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+			var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+			battle.animation_system.play_pact_drain(hero_panel, minion_visual)
 	return pact_paid
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir
