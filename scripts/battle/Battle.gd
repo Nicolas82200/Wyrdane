@@ -81,6 +81,8 @@ var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
 var net_session_system  := NetSessionSystem.new()
 var input_system        := InputSystem.new()
+# Anti-AFK réseau (voir AfkGuard) : no-op tant que net_emitter est null (solo).
+var afk_guard           := AfkGuard.new()
 # Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
 # ai_system par défaut ; sera réassigné en mode multijoueur.
 var opponent: OpponentDriver
@@ -281,6 +283,7 @@ func _init_systems() -> void:
 	ai_system.init(self)
 	input_system.init(self)
 	net_session_system.init(self)
+	afk_guard.init(self)
 	opponent = ai_system
 	if tutorial_active:
 		var tut_opponent := TutorialOpponent.new()
@@ -621,6 +624,7 @@ func _on_end_turn_pressed() -> void:
 		return
 	if tutorial_manager:
 		await tutorial_manager.notify_end_turn_pressed()
+	afk_guard.notify_manual_end_turn()
 	turn_system.end_turn()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
@@ -633,6 +637,8 @@ func _on_turn_timer_timeout() -> void:
 		mulligan_confirmed.emit()
 		return
 	if enemy_turn_active:
+		return
+	if not await afk_guard.handle_timeout():
 		return
 	turn_system.end_turn()
 
@@ -664,7 +670,9 @@ func set_enemy_turn(active: bool) -> void:
 
 # Halo sur « Fin du tour » quand il ne reste plus aucune action possible.
 func update_end_turn_hint() -> void:
-	end_turn_button.set_ready_hint(_player_has_no_actions())
+	var no_actions := _player_has_no_actions()
+	end_turn_button.set_ready_hint(no_actions)
+	afk_guard.set_no_action_state(no_actions)
 
 func _player_has_no_actions() -> bool:
 	if game_over or reconnecting or enemy_turn_active:

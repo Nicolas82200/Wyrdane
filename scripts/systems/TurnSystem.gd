@@ -86,7 +86,7 @@ func _begin_player_turn() -> void:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_player_turn_began()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnAwaken vise le camp dont c'est le tour, OnDecline le camp adverse (dont le
@@ -210,7 +210,7 @@ func start_match() -> void:
 		TutorialContext.clear()
 		battle.tutorial_manager.start()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
 # normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
