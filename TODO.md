@@ -60,6 +60,8 @@ Signalé par l'utilisateur (2026-09-17) : après un certain temps de jeu contre 
 
 **Mitigé, pas résolu.** `AISystem.take_turn()` a désormais le même filet de sécurité que `TutorialOpponent.MAX_TURN_SAFETY` (déjà en place là-bas, jamais répliqué côté IA normale) : le tour est sondé avec une limite de 30s, au-delà de laquelle la main est rendue de force (`push_warning` loggé) au lieu de bloquer la partie indéfiniment. N'élimine pas la cause racine si elle existe ailleurs qu'une boucle qui cède la main à chaque itération (un vrai verrou synchrone sans `await` ne serait pas intercepté par ce filet). À surveiller : si le warning `AISystem: le tour adverse n'a pas terminé dans le délai prévu` apparaît en jeu, il pointera vers la phase exacte en cause pour une investigation ciblée.
 
+**Télémétrie ajoutée.** `CrashReporter` (voir « Rapport de plantage/gel » dans `CLAUDE.md`) détecte désormais toute session qui ne s'est pas terminée proprement (plantage réel ou gel tué via le gestionnaire des tâches) et propose au joueur d'envoyer le dernier log, transmis sur le salon Discord de développement via `wyrdane-backend` (`POST /api/crash-report`). Ça ne corrige rien par soi-même, mais donne enfin une source de logs réels de joueurs pour identifier la cause exacte d'un futur gel — condition nécessaire avant de pouvoir vraiment fermer ce point.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
