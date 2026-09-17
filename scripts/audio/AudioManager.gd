@@ -34,11 +34,9 @@ const SHUFFLE := "shuffle"
 # Musique
 const MENU_MUSIC := [
 	preload("res://assets/audio/music/tavern-at-oakhaven-01.mp3"),
-	preload("res://assets/audio/music/tavern-at-oakhaven-02.mp3"),
 ]
 const BATTLE_MUSIC := [
-	preload("res://assets/audio/music/The Veil of Forgotten Kings.mp3"),
-	preload("res://assets/audio/music/The Veil of Forgotten Kings_1.mp3"),
+	preload("res://assets/audio/music/tavern-at-oakhaven-02.mp3"),
 ]
 
 
