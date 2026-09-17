@@ -213,7 +213,7 @@ func _play_popup(entry: Dictionary) -> void:
 	if not is_resource and entry.get("has_origin", false):
 		link = PreviewLinkOverlay.new()
 		_popup_layer.add_child(link)
-		var link_to: Vector2 = card.get_screen_position() + Vector2(0.0, card.size.y * 0.5)
+		var link_to: Vector2 = card.get_screen_position() + Vector2(card.size.x * 0.5, card.size.y)
 		link.show_link(entry["origin"], link_to)
 
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
