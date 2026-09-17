@@ -54,6 +54,12 @@ Audit de sécurité (2026-09-06) : `POST /api/rewards/solo-match` et `POST /api/
 
 Volet solo (`POST /api/rewards/solo-match`) non couvert par ce mécanisme et volontairement laissé de côté : pas d'appariement backend à faire foi contre l'IA (pas d'adversaire réseau), seul le bornage des valeurs déclarées s'applique.
 
+## P10 — Gel de partie possible en cours de tour IA (cause racine non identifiée)
+
+Signalé par l'utilisateur (2026-09-17) : après un certain temps de jeu contre l'IA, la partie se fige entièrement (fenêtre "ne répond plus" sous Windows). Le log Godot de la session concernée (`godot2026-09-16T13.54.30.log`) s'arrête net sans aucune erreur ni stack trace — cohérent avec une boucle qui ne se termine jamais plutôt qu'un vrai crash (ce genre de blocage n'écrit rien dans les logs). `AISystem.take_turn()` enchaîne plusieurs phases avec des `while` dont la sortie dépend d'une condition (`_play_cards_phase`, `_attack_phase`) : un candidat plausible non confirmé est la mécanique Humain Contre-Offensive (`CombatSystem._execute_damage`, `attacker.attacks_remaining += 1` à chaque kill, net nul une fois `consume_attack()` appliqué) qui pourrait, dans un enchaînement de kills ininterrompu, ne jamais laisser `attacks_remaining` retomber à 0.
+
+**Mitigé, pas résolu.** `AISystem.take_turn()` a désormais le même filet de sécurité que `TutorialOpponent.MAX_TURN_SAFETY` (déjà en place là-bas, jamais répliqué côté IA normale) : le tour est sondé avec une limite de 30s, au-delà de laquelle la main est rendue de force (`push_warning` loggé) au lieu de bloquer la partie indéfiniment. N'élimine pas la cause racine si elle existe ailleurs qu'une boucle qui cède la main à chaque itération (un vrai verrou synchrone sans `await` ne serait pas intercepté par ce filet). À surveiller : si le warning `AISystem: le tour adverse n'a pas terminé dans le délai prévu` apparaît en jeu, il pointera vers la phase exacte en cause pour une investigation ciblée.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
