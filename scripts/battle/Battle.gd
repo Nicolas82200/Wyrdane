@@ -447,18 +447,37 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 # sans le retournement recto/verso de Hand._fly_ghost_card (réservé à la vraie
 # main du joueur local).
 const ENEMY_CARD_FLIGHT_DURATION := 0.35
+# Plus lente et plus ample que le simple envol de pose (voir
+# animate_enemy_card_played) : reprend le style de la pioche du joueur local
+# (Hand._fly_ghost_card) — un arc plutôt qu'une ligne droite, avec la carte qui
+# se redresse en vol depuis l'orientation du deck (EnemyDeckButton.rotation,
+# tourné à 90° comme DeckButton côté joueur).
+const ENEMY_DRAW_FLIGHT_DURATION := 0.7
+const ENEMY_DRAW_ARC_HEIGHT := 100.0
 
 func animate_enemy_draw() -> void:
 	if enemy_deck_button == null or enemy_hand_display == null \
 			or not is_instance_valid(enemy_deck_button) or not is_instance_valid(enemy_hand_display):
 		return
-	var ghost := _spawn_enemy_card_ghost(enemy_deck_button.global_position + enemy_deck_button.size * 0.5)
+	AudioManager.play(AudioManager.DRAW)
+	var origin: Vector2 = enemy_deck_button.global_position + enemy_deck_button.size * 0.5
 	var target: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
-	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
+	var ghost := _spawn_enemy_card_ghost(origin)
+	ghost.rotation = PI / 2.0
+	var mid_pos := Vector2(
+		(origin.x + target.x) / 2.0,
+		(origin.y + target.y) / 2.0 - ENEMY_DRAW_ARC_HEIGHT
+	)
+	var duration: float = ENEMY_DRAW_FLIGHT_DURATION * SettingsManager.motion_scale()
 	var tween := create_tween()
-	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration)\
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos - ghost.size * 0.5, duration * 0.55)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration).set_delay(duration * 0.6)
+	tween.parallel().tween_property(ghost, "rotation", 0.0, duration * 0.55)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration * 0.45)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.45 * 0.6)
 	await tween.finished
 	if is_instance_valid(ghost):
 		ghost.queue_free()
