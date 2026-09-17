@@ -39,7 +39,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
 @onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
 @onready var end_turn_button: EndTurnButton            = $EndTurnButton
-@onready var lock_attacks_button: LockAttacksButton     = $LockAttacksButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
 @onready var enemy_front_container: Control            = $Board/EnemyFrontLine
@@ -82,6 +81,8 @@ var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
 var net_session_system  := NetSessionSystem.new()
 var input_system        := InputSystem.new()
+# Anti-AFK réseau (voir AfkGuard) : no-op tant que net_emitter est null (solo).
+var afk_guard           := AfkGuard.new()
 # Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
 # ai_system par défaut ; sera réassigné en mode multijoueur.
 var opponent: OpponentDriver
@@ -212,6 +213,11 @@ var enemy_turn_active: bool      = false
 # le match est mis en pause, les inputs sont bloqués, en attendant une
 # reconnexion ou l'expiration du délai de grâce.
 var reconnecting: bool           = false
+# Compteur (pas un bool) : incrémenté/décrémenté par EffectManager.execute_effect
+# et TriggerSystem.fire, qui peuvent s'imbriquer (un trigger en déclenche un
+# autre). Tant qu'il est > 0, un ou plusieurs effets sont encore en file
+# d'attente ou en cours de résolution — voir is_resolving_effects().
+var effects_resolving: int       = 0
 var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
@@ -282,6 +288,7 @@ func _init_systems() -> void:
 	ai_system.init(self)
 	input_system.init(self)
 	net_session_system.init(self)
+	afk_guard.init(self)
 	opponent = ai_system
 	if tutorial_active:
 		var tut_opponent := TutorialOpponent.new()
@@ -345,7 +352,6 @@ func _connect_signals() -> void:
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
-	lock_attacks_button.pressed.connect(_on_lock_attacks_pressed)
 	SettingsManager.language_changed.connect(func(_l): _retranslate_battle())
 	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
@@ -582,10 +588,16 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
 
+# Vrai tant qu'un ou plusieurs effets (chaîne de triggers, popups, animations)
+# sont encore en file d'attente ou en cours de résolution — voir
+# `effects_resolving` ci-dessus. Bloque toute action joueur pendant ce temps.
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
+
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects() or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice/FUSION
 	if sacrifice_system.is_active() or fusion_system.is_active():
@@ -616,32 +628,15 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
 	if tutorial_manager:
 		await tutorial_manager.notify_end_turn_pressed()
+	afk_guard.notify_manual_end_turn()
 	turn_system.end_turn()
-
-# Verrouille les attaques déclarées par SelectionSystem (façon MTG Arena) :
-# résout séquentiellement chaque paire (attaquant, cible) déclarée depuis le
-# dernier verrouillage, dans l'ordre où elles ont été déclarées. Poser des
-# cartes reste possible tant que ce bouton n'a pas été cliqué — seule la
-# résolution des dégâts est différée, pas la déclaration.
-func _on_lock_attacks_pressed() -> void:
-	if game_over or reconnecting or enemy_turn_active:
-		return
-	await selection_system.lock_attacks()
-
-# Active/désactive le bouton "Verrouiller les attaques" selon qu'au moins une
-# paire est actuellement déclarée. Appelé par SelectionSystem à chaque
-# changement d'état de déclaration.
-func _refresh_lock_attacks_button() -> void:
-	if lock_attacks_button == null:
-		return
-	lock_attacks_button.disabled = enemy_turn_active or not selection_system.has_declared_attacks()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
 # quelle (comme un clic sur "Commencer"). En tour normal, termine le tour
@@ -652,7 +647,9 @@ func _on_turn_timer_timeout() -> void:
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
-	if enemy_turn_active:
+	if enemy_turn_active or is_resolving_effects():
+		return
+	if not await afk_guard.handle_timeout():
 		return
 	turn_system.end_turn()
 
@@ -661,7 +658,6 @@ func _on_turn_timer_timeout() -> void:
 func set_enemy_turn(active: bool) -> void:
 	enemy_turn_active = active
 	end_turn_button.disabled = active
-	_refresh_lock_attacks_button()
 	_retranslate_battle()
 	hero_system.update_turn_halo()
 	if hand != null:
@@ -685,12 +681,12 @@ func set_enemy_turn(active: bool) -> void:
 
 # Halo sur « Fin du tour » quand il ne reste plus aucune action possible.
 func update_end_turn_hint() -> void:
-	end_turn_button.set_ready_hint(_player_has_no_actions())
+	var no_actions := _player_has_no_actions()
+	end_turn_button.set_ready_hint(no_actions)
+	afk_guard.set_no_action_state(no_actions)
 
 func _player_has_no_actions() -> bool:
-	if selection_system.has_declared_attacks():
-		return false
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -745,7 +741,7 @@ func check_auto_pass_turn() -> void:
 		turn_system.end_turn()
 
 func _can_auto_pass_now() -> bool:
-	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active:
+	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active or is_resolving_effects():
 		return false
 	if not hand_cards.is_empty():
 		return false

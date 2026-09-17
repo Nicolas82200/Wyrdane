@@ -182,32 +182,25 @@ Les morts sont traitées en batch (`_processing_deaths = true` dans `DeathSystem
 
 👉 Important : **les morts sont groupées pour éviter les bugs de cascade**.
 
-### 🎯 Déclaration puis verrouillage des attaques (façon MTG Arena)
+### 🎯 Système de sélection
 
-`SelectionSystem` ne résout plus aucune attaque au clic : le joueur déclare des
-paires (attaquant, cible) une à une, sans qu'aucune ne se résolve
-immédiatement — poser des cartes reste possible pendant ce temps. Un clic sur
-le bouton « Verrouiller » (`LockAttacksButton`, `SelectionSystem.lock_attacks()`)
-résout alors toutes les paires déclarées EN SÉQUENCE, dans l'ordre de
-déclaration, via `CombatSystem.resolve_combat`/`perform_hero_attack`.
+Deux modes de sélection (gérés par `SelectionSystem`) :
 
-*   Clic sur un serviteur allié pouvant encore attaquer → le désigne comme
-    attaquant « en attente » (surbrillance orange) pour la prochaine paire.
-*   Clic sur une cible ennemie (serviteur ou héros) → déclare la paire
-    (attaquant, cible) (surbrillance dorée = paire déclarée).
-*   Un serviteur FRÉNÉSIE (2 attaques) peut être déclaré dans 2 paires
-    distinctes (`_declared_count_for` plafonne à `attacks_remaining`).
-*   Re-cliquer sur un attaquant ayant déjà déclaré toutes ses charges retire
-    sa dernière paire déclarée (annulation avant verrouillage).
-*   `lock_attacks()` revalide CHAQUE paire juste avant résolution (attaquant
-    vivant/capable d'attaquer, cible vivante, règle REMPART toujours
-    respectée) — une mort survenue plus tôt dans le même verrouillage
-    (REMPART tué, FRÉNÉSIE dont la 1ère attaque est fatale...) fait sauter
-    silencieusement la paire suivante sans planter.
-*   Émission réseau (`NetEmitter.attack`/`attack_hero`) inchangée : toujours
-    une commande par attaque, désormais émise au moment de la RÉSOLUTION
-    (clic sur Verrouiller) et non de la déclaration — le pair rejoue toujours
-    les commandes une par une, dans l'ordre reçu.
+#### 1. Sélection simple
+
+*   1 attaquant
+*   Clic → attaque directe
+
+#### 2. Multi-sélection (CTRL)
+
+```gdscript
+selected_attackers[]
+selected_board_minions[]
+```
+
+*   Attaques en chaîne
+*   Résolution gauche → droite
+*   `_resolve_multi_attack()` (dans `CombatSystem`)
 
 ### 🖱️ Drag & Drop (main → board)
 
@@ -325,6 +318,10 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Triggers de début/fin de tour (Éveil/Déclin) et infection synchronisés entre clients ; les effets d'invocation ciblés sont rejoués côté distant.
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
+
+#### Anti-AFK (forfait par inactivité)
+
+`AfkGuard` (`scripts/net/AfkGuard.gd`, réseau uniquement — jamais en solo/tutoriel, l'IA ne traîne jamais) remplace, pour le camp réseau, le délai fixe de tour par un **décompte d'inactivité de 30s** remis à zéro par toute action de jeu locale (carte jouée, attaque, Rituel/Fusion activé — voir `NetEmitter`) : sans action avant expiration, le tour se termine tout seul. Après **3 tours d'affilée** terminés sans la moindre action, le joueur local est déclaré perdant (`LEAVE_MATCH` envoyé immédiatement, sans attendre le délai de grâce de reconnexion, puis écran de défaite normal — même report ranked/succès qu'une vraie défaite). Un clic explicite sur Fin du tour casse la série même sans action de jeu (le joueur a simplement choisi de passer). Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré existant du bouton Fin du tour, `Battle._player_has_no_actions`) ne compte jamais comme un tour AFK : le décompte y est seulement resserré à 10s, pour empêcher un joueur à court de coups de faire volontairement traîner la partie en pariant sur la lassitude de l'adversaire.
 
 ### 🗄️ Backend & progression persistante
 
@@ -936,7 +933,7 @@ Encore à faire : lancer une Incantation achetée en réseau (bloqué côté cli
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire, anti-AFK avec forfait après 3 tours d'inactivité d'affilée (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte

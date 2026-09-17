@@ -33,6 +33,7 @@ LevelManager="*res://scripts/collection/LevelManager.gd"
 BackendClient="*res://scripts/net/BackendClient.gd"
 SceneTransition="*res://scripts/systems/SceneTransition.gd"
 MatchmakingOverlay="*res://scenes/net/MatchmakingOverlay.tscn"
+CrashReporter="*res://scripts/systems/CrashReporter.gd"
 
 [debug]
 

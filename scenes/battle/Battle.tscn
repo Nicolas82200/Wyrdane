@@ -686,26 +686,6 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.6)
 
-[node name="LockAttacksButton" type="Button" parent="." unique_id=900000006]
-z_index = 91
-custom_minimum_size = Vector2(170, 48)
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -229.0
-offset_top = -53.0
-offset_right = -59.0
-offset_bottom = -5.0
-grow_horizontal = 0
-grow_vertical = 0
-disabled = true
-action_mode = 0
-text = "Verrouiller"
-script = ExtResource("22_lockatk")
-
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
 z_index = 91
 custom_minimum_size = Vector2(170, 48)

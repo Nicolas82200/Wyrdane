@@ -19,12 +19,15 @@ var death_system: FakeDeathSystem = FakeDeathSystem.new()
 var aura_system: FakeAuraSystem = FakeAuraSystem.new()
 var trigger_system: FakeTriggerSystem = FakeTriggerSystem.new()
 var fusion_system: FakeFusionSystem = FakeFusionSystem.new()
-var sacrifice_system: FakeSacrificeSystem = FakeSacrificeSystem.new()
 var network_manager = null
 var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : incrémenté/décrémenté par le vrai EffectManager/
+# TriggerSystem (utilisés tels quels par ce double, voir plus bas), donc
+# nécessaire ici pour ne pas planter sur `battle.effects_resolving += 1`.
+var effects_resolving: int = 0
 var game_rng := RandomNumberGenerator.new()
 
 # ─── Ajouts pour tester DeathSystem / TriggersSystem / SacrificeSystem ────────
@@ -40,8 +43,13 @@ var combat_log: FakeCombatLog = FakeCombatLog.new()
 var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
-var tutorial_manager = null
 var net_emitter = null
+var _mulligan_active: bool = false
+var turn_timer: FakeTurnTimer = FakeTurnTimer.new()
+var net_session_system: FakeNetSessionSystem = FakeNetSessionSystem.new()
+var show_game_over_calls: Array[String] = []
+func _show_game_over(result: String) -> void:
+	show_game_over_calls.append(result)
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
@@ -216,22 +224,14 @@ func _can_attack_hero(attacker: Minion) -> bool:
 	var defending_is_player: bool = not attacker.owner_is_player
 	return attacker.has_keyword(Keyword.Type.BLACK_WINGS) or get_front_minions(defending_is_player).is_empty()
 
-func _can_attack_minion_target(attacker: Minion, target: Minion) -> bool:
-	if target not in get_attackable_enemy_minions(attacker):
-		return false
-	for minion in get_attackable_enemy_minions(attacker):
-		if minion.has_keyword(Keyword.Type.TAUNT) and not target.has_keyword(Keyword.Type.TAUNT):
-			return false
-	return true
-
 func get_node_or_null(_path):
 	return null
 
 func check_game_end() -> void:
 	pass
 
-func check_auto_pass_turn() -> void:
-	pass
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
 
 
 class FakeHeroSystem:
@@ -329,17 +329,8 @@ class FakeTriggerSystem:
 		pass
 
 
-class FakeSacrificeSystem:
-	var active: bool = false
-	func is_active() -> bool:
-		return active
-
-
 class FakeFusionSystem:
 	var applied_fusions: Array = []
-	var active: bool = false
-	func is_active() -> bool:
-		return active
 	func _collect_keyword_choices(victim: Minion) -> Array:
 		var out: Array = []
 		for kw in victim.keywords:
@@ -520,13 +511,10 @@ class FakeBoardSystem:
 # / GroupAttackImmediate ciblent et déclenchent bien un combat.
 class FakeCombatSystem:
 	var resolved: Array = []
-	var hero_attacks: Array = []
 	func resolve_combat(attacker: Minion, defender: Minion) -> void:
 		resolved.append({"attacker": attacker, "defender": defender})
 		defender.take_damage(attacker.attack)
 		attacker.take_damage(defender.attack)
-	func perform_hero_attack(attacker: Minion) -> void:
-		hero_attacks.append(attacker)
 
 
 class FakeOpponent:
@@ -579,6 +567,28 @@ class FakeSacrificeSystem:
 	var active: bool = false
 	func is_active() -> bool:
 		return active
+
+
+# Double minimal de TurnTimer (scripts/battle/TurnTimer.gd) pour tester AfkGuard
+# sans dépendance de scène : ne reproduit que start/stop/running/time_left.
+class FakeTurnTimer:
+	var running: bool = false
+	var duration: float = 0.0
+	var time_left: float = 0.0
+	var start_calls: Array[float] = []
+	func start(new_duration: float = -1.0) -> void:
+		start_calls.append(new_duration)
+		duration = new_duration
+		time_left = new_duration
+		running = true
+	func stop() -> void:
+		running = false
+
+
+class FakeNetSessionSystem:
+	var close_calls: int = 0
+	func close() -> void:
+		close_calls += 1
 
 
 class FakeTimer:
