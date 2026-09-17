@@ -403,8 +403,12 @@ func _cast_spell(card: CardData) -> void:
 		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
+		# skip_source_popup : la popup de cette carte a déjà été affichée
+		# ci-dessus (show_card_popup) avant le son du sort — sans ce flag, ce
+		# même proxy (nécessaire pour que la résolution de cible connaisse son
+		# camp) la referait réapparaître ici, sans le son cette fois.
 		for effect in card.effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target, true)
 	battle.board_visual_system.refresh_board()
 
 # ─── Rituels de Sacrifice ──────────────────────────────────────────────────────

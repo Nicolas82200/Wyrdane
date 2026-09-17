@@ -312,6 +312,10 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		for ally in battle.enemy_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		var proxy := Minion.new(card, false, "")
+		# skip_source_popup : la popup de cette carte a déjà été affichée plus
+		# haut (show_card_popup) avant le son du sort — sans ce flag, ce même
+		# proxy (nécessaire pour que la résolution de cible connaisse son
+		# camp) la referait réapparaître ici, sans le son.
 		for effect in card.effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target, true)
 	battle.board_visual_system.refresh_board()
