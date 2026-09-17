@@ -32,20 +32,28 @@ func test_card_played_appends_one_entry() -> void:
 	combat_log.card_played(_spell(), true)
 	assert_eq(combat_log.entries.size(), 1)
 
-func test_card_played_uses_plus_icon_for_minion_and_sparkle_for_others() -> void:
+func test_card_played_uses_play_minion_icon_for_minion_and_play_spell_for_others() -> void:
 	var minion_data := CardData.new()
 	minion_data.card_type = "Minion"
 	combat_log.card_played(minion_data, true)
 	combat_log.card_played(_spell(), true)
-	assert_eq(combat_log.entries[0]["icon"], "+")
-	assert_eq(combat_log.entries[1]["icon"], "*")
+	assert_eq(combat_log.entries[0]["icon"], "play_minion")
+	assert_eq(combat_log.entries[1]["icon"], "play_spell")
+
+func test_card_played_stamps_actor_camp() -> void:
+	combat_log.card_played(_spell(), false)
+	assert_eq(combat_log.entries[0]["actor_is_player"], false)
 
 func test_attack_appends_entry_with_damage_segment() -> void:
 	var attacker := _minion(true)
 	var defender := _minion(false)
 	combat_log.attack(attacker, defender, 3)
 	assert_eq(combat_log.entries.size(), 1)
-	var segments: Array = combat_log.entries[0]["segments"]
+	var entry: Dictionary = combat_log.entries[0]
+	assert_eq(entry["icon"], "attack")
+	assert_eq(entry["actor_is_player"], true)
+	var segments: Array = entry["segments"]
+	assert_eq(segments[3]["type"], "dmg")
 	assert_eq(segments[3]["text"], "-3")
 
 func test_attack_with_zero_damage_and_no_deaths_is_skipped() -> void:
@@ -65,28 +73,31 @@ func test_attack_hero_skips_when_no_damage() -> void:
 	combat_log.attack_hero(attacker, false, 0)
 	assert_eq(combat_log.entries.size(), 0)
 
-func test_attack_hero_logs_target_camp() -> void:
+func test_attack_hero_logs_target_camp_via_hero_segment() -> void:
 	var attacker := _minion(true)
 	combat_log.attack_hero(attacker, false, 5)
 	var segments: Array = combat_log.entries[0]["segments"]
+	assert_eq(segments[2]["type"], "hero")
 	assert_eq(segments[2]["is_player"], false)
 	assert_eq(segments[3]["text"], "-5")
 
-func test_minion_died_appends_skull_icon() -> void:
+func test_minion_died_appends_death_icon() -> void:
 	combat_log.minion_died(_minion(true))
-	assert_eq(combat_log.entries[0]["icon"], "X")
+	assert_eq(combat_log.entries[0]["icon"], "death")
+	assert_eq(combat_log.entries[0]["actor_is_player"], true)
 
 func test_infection_tick_appends_entry() -> void:
 	combat_log.infection_tick(_minion(true))
-	assert_eq(combat_log.entries[0]["icon"], "Inf.")
+	assert_eq(combat_log.entries[0]["icon"], "infection")
 
 func test_self_damage_skips_when_zero() -> void:
 	combat_log.self_damage(true, 0)
 	assert_eq(combat_log.entries.size(), 0)
 
-func test_self_damage_logs_amount() -> void:
+func test_self_damage_logs_amount_via_hero_and_dmg_segments() -> void:
 	combat_log.self_damage(true, 2)
 	var segments: Array = combat_log.entries[0]["segments"]
+	assert_eq(segments[0]["type"], "hero")
 	assert_eq(segments[1]["text"], "-2")
 
 func test_entry_added_signal_emits_with_new_entry() -> void:
@@ -94,7 +105,7 @@ func test_entry_added_signal_emits_with_new_entry() -> void:
 	combat_log.entry_added.connect(func(entry: Dictionary): received.append(entry))
 	combat_log.minion_died(_minion(true))
 	assert_eq(received.size(), 1)
-	assert_eq(received[0]["icon"], "X")
+	assert_eq(received[0]["icon"], "death")
 
 func test_max_entries_evicts_oldest_entry() -> void:
 	for i in CombatLogSystem.MAX_ENTRIES:
@@ -114,3 +125,16 @@ func test_seg_card_with_null_card_data_falls_back_to_text_segment() -> void:
 	var seg: Dictionary = combat_log.entries[0]["segments"][0]
 	assert_eq(seg["type"], "text")
 	assert_eq(seg["text"], "?")
+
+func test_turn_started_appends_turn_entry_with_incrementing_number() -> void:
+	combat_log.turn_started(true)
+	combat_log.turn_started(false)
+	assert_eq(combat_log.entries[0], {"kind": "turn", "turn_number": 1, "is_player": true})
+	assert_eq(combat_log.entries[1], {"kind": "turn", "turn_number": 2, "is_player": false})
+
+func test_turn_started_emits_signal() -> void:
+	var received: Array = []
+	combat_log.entry_added.connect(func(entry: Dictionary): received.append(entry))
+	combat_log.turn_started(true)
+	assert_eq(received.size(), 1)
+	assert_eq(received[0]["kind"], "turn")

@@ -452,6 +452,8 @@ class FakeCombatLog:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
 		pass
+	func turn_started(_is_player: bool) -> void:
+		pass
 
 
 class FakeEnchantmentSystem:

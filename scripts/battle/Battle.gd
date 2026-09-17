@@ -691,9 +691,11 @@ func set_enemy_turn(active: bool) -> void:
 	# tour : la bannière ferait doublon et se superposerait à la popup.
 	if active:
 		end_turn_button.set_ready_hint(false)
+		combat_log.turn_started(false)
 		if not tutorial_active:
 			turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
 	else:
+		combat_log.turn_started(true)
 		if not tutorial_active:
 			turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 		update_end_turn_hint()

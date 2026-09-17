@@ -505,6 +505,7 @@ SUPPORTER_PACK_DESC,"Soutenez le développement de Wyrdane. Inclus : Card Back e
 SUPPORTER_PACK_BUTTON,"Rejoindre (bientôt disponible)","Join (coming soon)"
 SUPPORTER_PACK_TOOLTIP,"Nécessite l'intégration des paiements Steam, pas encore disponible.","Requires Steam payment integration, not available yet."
 battle.log.title,"Journal de combat","Combat log"
+battle.log.turn_marker,"Tour %d","Turn %d"
 battle.confirm.attack,"Confirmer l'attaque ?","Confirm attack?"
 battle.confirm.sacrifice,"Confirmer le sacrifice ?","Confirm sacrifice?"
 battle.confirm.yes,"Oui","Yes"
