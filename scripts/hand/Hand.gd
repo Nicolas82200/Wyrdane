@@ -51,10 +51,15 @@ const COLLAPSE_ZONE_HEIGHT := 340.0
 # Décalage vertical de la carte survolée (se soulève pour se démarquer)
 const HOVER_LIFT       := 40.0
 # Décalage horizontal maximal appliqué aux cartes voisines pour dégager la carte survolée
-const HOVER_PUSH_MAX   := 28.0
+# (valeur relevée pour laisser assez d'espace même sur un éventail serré, ex. 10 cartes en main)
+const HOVER_PUSH_MAX   := 48.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
-const HOVER_PUSH_DECAY := 0.55
+const HOVER_PUSH_DECAY := 0.5
 const HAND_START_X     := 80.0
+# Délai avant qu'un survol ne soit réellement pris en compte (voir _on_card_hover) :
+# évite qu'un passage rapide de la souris entre deux cartes très rapprochées
+# (éventail serré) ne déclenche brièvement deux previews qui se chevauchent.
+const HOVER_DEBOUNCE_DELAY := 0.09
 # Délai avant repliement une fois la souris sortie de la zone de main (évite un
 # repli trop nerveux) — ignoré quand une carte vient d'être jouée (repli immédiat)
 const COLLAPSE_DELAY   := 1.0
@@ -63,11 +68,15 @@ const LAYOUT_TWEEN_DURATION := 0.28
 
 var _base_positions:    Dictionary     = {}
 # Ordre logique fixe des cartes en main (position/index), indépendant de
-# l'ordre des enfants du conteneur — celui-ci est réarrangé au survol (voir
-# _sync_tree_order) pour que la carte survolée passe réellement au-dessus des
-# autres, y compris pour la détection de la souris, sans décaler leur position.
+# l'ordre des enfants du conteneur — celui-ci est réaligné sur cet ordre à
+# chaque layout (voir _sync_tree_order), la carte survolée ne passant plus au
+# premier plan (retiré : sur un éventail serré, ça recouvrait la carte
+# suivante et gênait le survol séquentiel).
 var _hand_order:        Array          = []
 var _hovered_card:      Card           = null
+# Carte en attente de confirmation de survol (voir HOVER_DEBOUNCE_DELAY) :
+# distincte de _hovered_card tant que le délai n'est pas écoulé.
+var _pending_hover_card: Card          = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
@@ -423,7 +432,6 @@ func flip_replace_at(index: int, new_data: CardData) -> void:
 
 
 func _on_card_hover(card: Card) -> void:
-	_hovering = true
 	if is_instance_valid(_battle) and "game_over" in _battle and _battle.game_over:
 		return
 	if is_instance_valid(_battle) and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
@@ -433,6 +441,15 @@ func _on_card_hover(card: Card) -> void:
 			return
 	if card.dragging:
 		return
+	# Attend HOVER_DEBOUNCE_DELAY avant de traiter le survol pour de bon : si la
+	# souris quitte la carte (ou en survole une autre) avant l'échéance,
+	# _on_card_unhover efface _pending_hover_card et ce survol est abandonné.
+	_pending_hover_card = card
+	await get_tree().create_timer(HOVER_DEBOUNCE_DELAY).timeout
+	if not is_instance_valid(self) or not is_instance_valid(card) \
+			or _pending_hover_card != card or card.dragging:
+		return
+	_hovering = true
 	if _hovered_card != card:
 		_hovered_card = card
 		_update_hand_layout(true)
@@ -457,8 +474,8 @@ func _on_card_hover(card: Card) -> void:
 	if display_cost.is_valid():
 		preview.set_display_cost(display_cost.call(card.data))
 	preview.scale   = Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE)
-	# Strictement au-dessus de la carte survolée (z_index 100, voir
-	# _update_hand_layout) pour ne jamais passer dessous.
+	# Strictement au-dessus de toutes les cartes de la main (z_index max
+	# CARD_Z_BASE + count, voir _update_hand_layout) pour ne jamais passer dessous.
 	preview.z_index = 150
 	# Centré horizontalement par rapport à la carte survolée : card.pivot_offset
 	# est calé sur son centre horizontal (voir _set_hand_instant), donc son point
@@ -575,6 +592,8 @@ func _clear_summon_previews() -> void:
 ## (celui de l'ancienne carte survolée, arrivant après l'entered de la
 ## nouvelle) doit être ignoré plutôt que d'effacer à tort le survol actif.
 func _on_card_unhover(card: Card) -> void:
+	if _pending_hover_card == card:
+		_pending_hover_card = null
 	if card != _hovered_card:
 		return
 	_hovering = false
@@ -718,7 +737,10 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = 100 if i == hovered_index else CARD_Z_BASE + i
+		# Plus de passage au premier plan pour la carte survolée (voir _hand_order
+		# et _sync_tree_order) : garde l'ordre z naturel de l'éventail, le
+		# soulèvement (HOVER_LIFT) et la preview agrandie suffisent à la démarquer.
+		card.z_index = CARD_Z_BASE + i
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
@@ -743,19 +765,14 @@ func _prune_hand_order() -> void:
 	if _hovered_card != null and not is_instance_valid(_hovered_card):
 		_hovered_card = null
 
-# Réordonne les enfants du conteneur selon l'ordre logique de la main, carte
-# survolée en dernier (dessus). Pilote aussi bien le rendu que la détection
-# souris sur les zones qui se chevauchent : le z_index seul ne suffit pas,
-# sans ce passage le survol oscille entre cartes voisines.
-func _sync_tree_order(hovered_index: int) -> void:
+# Réaligne les enfants du conteneur sur l'ordre logique de la main. La carte
+# survolée ne passe plus en dernier (dessus) : voir _hand_order pour pourquoi
+# ce comportement a été retiré.
+func _sync_tree_order(_hovered_index: int = -1) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]
 		if is_instance_valid(card) and card.get_parent() == container:
 			container.move_child(card, i)
-	if hovered_index != -1 and hovered_index < _hand_order.size():
-		var hovered_card = _hand_order[hovered_index]
-		if is_instance_valid(hovered_card) and hovered_card.get_parent() == container:
-			container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
