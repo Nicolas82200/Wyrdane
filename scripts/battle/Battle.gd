@@ -39,7 +39,6 @@ const MULLIGAN_DURATION           := 30.0
 @onready var mana_display: ManaDisplay                 = $ManaDisplay
 @onready var enemy_mana_display: ManaDisplay           = $EnemyManaDisplay
 @onready var end_turn_button: EndTurnButton            = $EndTurnButton
-@onready var lock_attacks_button: LockAttacksButton     = $LockAttacksButton
 @onready var player_front_container: Control           = $Board/PlayerFrontLine
 @onready var player_back_container: Control            = $Board/PlayerBackLine
 @onready var enemy_front_container: Control            = $Board/EnemyFrontLine
@@ -345,7 +344,6 @@ func _connect_signals() -> void:
 	hand.drag_started.connect(_on_hand_drag_started)
 	hand.drag_ended.connect(_on_hand_drag_ended)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
-	lock_attacks_button.pressed.connect(_on_lock_attacks_pressed)
 	SettingsManager.language_changed.connect(func(_l): _retranslate_battle())
 	_retranslate_battle()
 	$EnemyHeroPanel.hero_clicked.connect(selection_system.on_enemy_hero_clicked)
@@ -625,24 +623,6 @@ func _on_end_turn_pressed() -> void:
 		await tutorial_manager.notify_end_turn_pressed()
 	turn_system.end_turn()
 
-# Verrouille les attaques déclarées par SelectionSystem (façon MTG Arena) :
-# résout séquentiellement chaque paire (attaquant, cible) déclarée depuis le
-# dernier verrouillage, dans l'ordre où elles ont été déclarées. Poser des
-# cartes reste possible tant que ce bouton n'a pas été cliqué — seule la
-# résolution des dégâts est différée, pas la déclaration.
-func _on_lock_attacks_pressed() -> void:
-	if game_over or reconnecting or enemy_turn_active:
-		return
-	await selection_system.lock_attacks()
-
-# Active/désactive le bouton "Verrouiller les attaques" selon qu'au moins une
-# paire est actuellement déclarée. Appelé par SelectionSystem à chaque
-# changement d'état de déclaration.
-func _refresh_lock_attacks_button() -> void:
-	if lock_attacks_button == null:
-		return
-	lock_attacks_button.disabled = enemy_turn_active or not selection_system.has_declared_attacks()
-
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
 # quelle (comme un clic sur "Commencer"). En tour normal, termine le tour
 # comme un clic normal sur Fin du tour.
@@ -661,7 +641,6 @@ func _on_turn_timer_timeout() -> void:
 func set_enemy_turn(active: bool) -> void:
 	enemy_turn_active = active
 	end_turn_button.disabled = active
-	_refresh_lock_attacks_button()
 	_retranslate_battle()
 	hero_system.update_turn_halo()
 	if hand != null:
@@ -688,8 +667,6 @@ func update_end_turn_hint() -> void:
 	end_turn_button.set_ready_hint(_player_has_no_actions())
 
 func _player_has_no_actions() -> bool:
-	if selection_system.has_declared_attacks():
-		return false
 	if game_over or reconnecting or enemy_turn_active:
 		return false
 	for card in hand_cards:

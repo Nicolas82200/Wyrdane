@@ -143,9 +143,9 @@ func refresh_board() -> void:
 		if visual and is_instance_valid(visual):
 			visual.update_display()
 
-	if battle.selection_system.pending_attacker \
-	and battle.selection_system.pending_attacker not in battle.player_minions:
-		battle.selection_system.clear_pending()
+	if battle.selection_system.selected_attacker \
+	and battle.selection_system.selected_attacker not in battle.player_minions:
+		battle.selection_system.clear_selection()
 
 
 	battle.enchantment_system.refresh_activatable()

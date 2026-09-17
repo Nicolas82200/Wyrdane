@@ -54,9 +54,10 @@ func handle_unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		if battle.selection_system.pending_attacker != null:
-			battle.selection_system.clear_pending()
+			and event.pressed \
+			and not Input.is_key_pressed(KEY_CTRL):
+		if battle.selection_system.is_multi_selecting:
+			battle.selection_system.clear_multi_selection()
 
 # Traite un raccourci clavier. Retourne true si l'événement a été consommé.
 func _handle_shortcut(event: InputEvent) -> bool:
