@@ -36,6 +36,9 @@ var game_over: bool = false
 var reconnecting: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : EffectManager.execute_effect/TriggerSystem.fire
+# l'incrémentent/décrémentent tels quels (réutilisés sans modification ici).
+var effects_resolving: int = 0
 var counter_offensive: Dictionary = {true: false, false: false}
 # Ajoutés côté 1v1 après la divergence de cette branche (Ordre de Tenir /
 # Dernier Soupir, voir FakeBattle et Battle.gd) : DeathSystem/EffectManager

@@ -213,6 +213,11 @@ var enemy_turn_active: bool      = false
 # le match est mis en pause, les inputs sont bloqués, en attendant une
 # reconnexion ou l'expiration du délai de grâce.
 var reconnecting: bool           = false
+# Compteur (pas un bool) : incrémenté/décrémenté par EffectManager.execute_effect
+# et TriggerSystem.fire, qui peuvent s'imbriquer (un trigger en déclenche un
+# autre). Tant qu'il est > 0, un ou plusieurs effets sont encore en file
+# d'attente ou en cours de résolution — voir is_resolving_effects().
+var effects_resolving: int       = 0
 var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
@@ -583,10 +588,16 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
 
+# Vrai tant qu'un ou plusieurs effets (chaîne de triggers, popups, animations)
+# sont encore en file d'attente ou en cours de résolution — voir
+# `effects_resolving` ci-dessus. Bloque toute action joueur pendant ce temps.
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
+
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects() or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice/FUSION
 	if sacrifice_system.is_active() or fusion_system.is_active():
@@ -617,7 +628,7 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
@@ -636,7 +647,7 @@ func _on_turn_timer_timeout() -> void:
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
-	if enemy_turn_active:
+	if enemy_turn_active or is_resolving_effects():
 		return
 	if not await afk_guard.handle_timeout():
 		return
@@ -675,7 +686,7 @@ func update_end_turn_hint() -> void:
 	afk_guard.set_no_action_state(no_actions)
 
 func _player_has_no_actions() -> bool:
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -730,7 +741,7 @@ func check_auto_pass_turn() -> void:
 		turn_system.end_turn()
 
 func _can_auto_pass_now() -> bool:
-	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active:
+	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active or is_resolving_effects():
 		return false
 	if not hand_cards.is_empty():
 		return false

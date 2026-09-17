@@ -24,6 +24,10 @@ var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : incrémenté/décrémenté par le vrai EffectManager/
+# TriggerSystem (utilisés tels quels par ce double, voir plus bas), donc
+# nécessaire ici pour ne pas planter sur `battle.effects_resolving += 1`.
+var effects_resolving: int = 0
 var game_rng := RandomNumberGenerator.new()
 
 # ─── Ajouts pour tester DeathSystem / TriggersSystem / SacrificeSystem ────────
@@ -225,6 +229,9 @@ func get_node_or_null(_path):
 
 func check_game_end() -> void:
 	pass
+
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
 
 
 class FakeHeroSystem:

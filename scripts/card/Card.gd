@@ -426,6 +426,8 @@ func _is_players_turn() -> bool:
 		return true
 	if "game_over" in _battle and _battle.game_over:
 		return false
+	if "effects_resolving" in _battle and _battle.effects_resolving > 0:
+		return false
 	return not _battle.enemy_turn_active
 
 # Le bandeau de type affiche le type (FR) ; sa couleur reflète la rareté
@@ -517,7 +519,8 @@ func _gui_input(event: InputEvent) -> void:
 	if battle and "enemy_turn_active" in battle \
 			and (battle.enemy_turn_active \
 				or ("game_over" in battle and battle.game_over) \
-				or ("reconnecting" in battle and battle.reconnecting)):
+				or ("reconnecting" in battle and battle.reconnecting) \
+				or ("effects_resolving" in battle and battle.effects_resolving > 0)):
 		get_viewport().set_input_as_handled()
 		return
 

@@ -1,7 +1,27 @@
 extends RefCounted
 class_name EffectManager
 
+# Enveloppe fine autour de _execute_effect_impl : incrémente/décrémente
+# battle.effects_resolving pour bloquer toute action joueur tant qu'un effet
+# est en cours (voir Battle.is_resolving_effects). Le compteur est géré ici
+# plutôt que dans _execute_effect_impl car cette dernière a plusieurs sorties
+# anticipées (condition non remplie, cible invalide...) qui auraient chacune
+# dû décrémenter — en le faisant dans ce wrapper sans branche, c'est garanti
+# quel que soit le chemin emprunté à l'intérieur.
 func execute_effect(
+	battle,
+	source_minion: Minion,
+	effect: CardEffect,
+	selected_target = null
+) -> void:
+	if not is_instance_valid(battle):
+		return
+	battle.effects_resolving += 1
+	await _execute_effect_impl(battle, source_minion, effect, selected_target)
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
+
+func _execute_effect_impl(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
@@ -102,12 +122,17 @@ func execute_enchantment_targeted_effect(
 	effect: CardEffect,
 	target_enchantment: CardData
 ) -> void:
+	if not is_instance_valid(battle):
+		return
+	battle.effects_resolving += 1
 	if source_minion != null and source_minion.card_data != null:
 		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
 	match effect.effect_id:
 		"DestroyEnchantment": _destroy_target_enchantment(battle, target_enchantment)
 		_: push_warning("Effet non implémenté pour cible enchantement : %s" % effect.effect_id)
 	battle.board_visual_system.refresh_board()
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
 
 func _destroy_target_enchantment(battle, card_data: CardData) -> void:
 	for is_player in [true, false]:
