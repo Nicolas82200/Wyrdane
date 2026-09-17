@@ -12,12 +12,13 @@ func execute_effect(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target = null
+	selected_target = null,
+	skip_source_popup: bool = false
 ) -> void:
 	if not is_instance_valid(battle):
 		return
 	battle.effects_resolving += 1
-	await _execute_effect_impl(battle, source_minion, effect, selected_target)
+	await _execute_effect_impl(battle, source_minion, effect, selected_target, skip_source_popup)
 	if is_instance_valid(battle):
 		battle.effects_resolving -= 1
 
@@ -25,7 +26,8 @@ func _execute_effect_impl(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target = null
+	selected_target = null,
+	skip_source_popup: bool = false
 ) -> void:
 	# Garde-fou : execute_effect peut être appelé après un await potentiellement
 	# long (ex. PactChoiceSystem.ask attendant le clic Oui/Non du joueur) — si la
@@ -37,7 +39,12 @@ func _execute_effect_impl(
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
 		return
-	if source_minion != null and source_minion.card_data != null:
+	# skip_source_popup : l'appelant (ex. AISystem/NetworkOpponent pour un sort
+	# ciblé) a déjà affiché la popup de cette carte AVANT de jouer le son du
+	# sort — sans ce flag, ce même proxy (source_minion non nul, nécessaire pour
+	# que la résolution de cible connaisse son camp) ferait réapparaître la
+	# popup une seconde fois ici, cette fois sans le son (déjà joué avant).
+	if not skip_source_popup and source_minion != null and source_minion.card_data != null:
 		# Attend que la popup soit affichée pour que l'effet se produise en même temps
 		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
 	match effect.effect_id:
