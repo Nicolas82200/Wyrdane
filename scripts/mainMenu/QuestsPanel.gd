@@ -199,7 +199,7 @@ static func _handle_claim_pressed(menu, button: Button, requester: Callable) -> 
 		CurrencyManager.sync_from_backend()
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
 		menu._fetch_quests_badge()
-	).call()
+	)
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
 	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))

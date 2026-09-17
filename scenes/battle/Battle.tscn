@@ -10,7 +10,6 @@
 [ext_resource type="Texture2D" uid="uid://dleh56wl8qrar" path="res://assets/card_back/card-back.png" id="9_2ckr4"]
 [ext_resource type="PackedScene" uid="uid://6hekjgkiih3v" path="res://scenes/settings/SettingsMenu.tscn" id="10_q5nyf"]
 [ext_resource type="Script" uid="uid://bw6yqe4nchr2d" path="res://scripts/battle/EndTurnButton.gd" id="13_etbtn"]
-[ext_resource type="Script" path="res://scripts/battle/LockAttacksButton.gd" id="22_lockatk"]
 [ext_resource type="Script" uid="uid://cmk3vt8p1qxol" path="res://scripts/battle/ManaDisplay.gd" id="14_manad"]
 [ext_resource type="Script" uid="uid://c6bscpyi2ynfo" path="res://scripts/battle/LaneIndicator.gd" id="15_lanein"]
 [ext_resource type="Script" uid="uid://cu30hpbeakc8s" path="res://scripts/hand/EnemyHandDisplay.gd" id="16_enhand"]
@@ -19,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
 [ext_resource type="Texture2D" uid="uid://bs3l57fgcqb6k" path="res://assets/heros_art/king-aldric-dawnbearer.jpg" id="20_pheroart"]
 [ext_resource type="Texture2D" uid="uid://dypdopuwgal1s" path="res://assets/heros_art/azhar-the-fallen.jpg" id="21_eheroart"]
+[ext_resource type="Script" uid="uid://bbnx2073bncdp" path="res://scripts/battle/LockAttacksButton.gd" id="22_lockatk"]
 [ext_resource type="Shader" uid="uid://cj050hs40vohd" path="res://resources/shaders/rounded_corners.gdshader" id="22_roundshader"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laneback"]
@@ -676,6 +676,7 @@ grow_vertical = 2
 
 [node name="MulliganDimOverlay" type="ColorRect" parent="." unique_id=900000005]
 visible = false
+z_index = 90
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -684,9 +685,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.6)
-z_index = 90
 
 [node name="LockAttacksButton" type="Button" parent="." unique_id=900000006]
+z_index = 91
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 1
 anchors_preset = 3
@@ -694,19 +695,19 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -230.0
-offset_top = -160.0
-offset_right = -60.0
-offset_bottom = -112.0
+offset_left = -229.0
+offset_top = -53.0
+offset_right = -59.0
+offset_bottom = -5.0
 grow_horizontal = 0
 grow_vertical = 0
-z_index = 91
-action_mode = 0
 disabled = true
+action_mode = 0
 text = "Verrouiller"
 script = ExtResource("22_lockatk")
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
+z_index = 91
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 1
 anchors_preset = 3
@@ -720,7 +721,6 @@ offset_right = -60.0
 offset_bottom = -56.0
 grow_horizontal = 0
 grow_vertical = 0
-z_index = 91
 action_mode = 0
 text = "Fin du tour"
 script = ExtResource("13_etbtn")
@@ -1008,18 +1008,18 @@ mouse_filter = 2
 script = ExtResource("16_enhand")
 
 [node name="SettingsButton" type="Button" parent="." unique_id=1329099647]
+z_index = 91
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
-z_index = 91
 text = "S"
 
 [node name="HelpButton" type="Button" parent="." unique_id=1329099648]
+z_index = 91
 layout_mode = 0
 offset_left = 46.0
 offset_right = 54.0
 offset_bottom = 8.0
-z_index = 91
 text = "?"
 
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]
