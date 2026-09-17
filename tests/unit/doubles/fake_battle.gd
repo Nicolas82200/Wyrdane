@@ -40,6 +40,12 @@ var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
+var _mulligan_active: bool = false
+var turn_timer: FakeTurnTimer = FakeTurnTimer.new()
+var net_session_system: FakeNetSessionSystem = FakeNetSessionSystem.new()
+var show_game_over_calls: Array[String] = []
+func _show_game_over(result: String) -> void:
+	show_game_over_calls.append(result)
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
@@ -554,6 +560,28 @@ class FakeSacrificeSystem:
 	var active: bool = false
 	func is_active() -> bool:
 		return active
+
+
+# Double minimal de TurnTimer (scripts/battle/TurnTimer.gd) pour tester AfkGuard
+# sans dépendance de scène : ne reproduit que start/stop/running/time_left.
+class FakeTurnTimer:
+	var running: bool = false
+	var duration: float = 0.0
+	var time_left: float = 0.0
+	var start_calls: Array[float] = []
+	func start(new_duration: float = -1.0) -> void:
+		start_calls.append(new_duration)
+		duration = new_duration
+		time_left = new_duration
+		running = true
+	func stop() -> void:
+		running = false
+
+
+class FakeNetSessionSystem:
+	var close_calls: int = 0
+	func close() -> void:
+		close_calls += 1
 
 
 class FakeTimer:

@@ -11,22 +11,32 @@ class_name NetEmitter
 # par des méthodes plus bas niveau qui n'émettent pas, donc aucune boucle.
 
 var _net: NetworkManager
+# Référence à Battle : uniquement pour notifier AfkGuard (preuve de présence)
+# à chaque action de jeu réelle — voir AfkGuard.notify_local_action.
+var _battle
 
-func _init(net: NetworkManager) -> void:
+func _init(net: NetworkManager, battle = null) -> void:
 	_net = net
+	_battle = battle
 
 # ids : net_id de tous les serviteurs créés par l'action (capturés via NetRegistry).
 # target : cible choisie de l'effet, null si aucune.
 func play_card(card_data: CardData, row: String, insert_index: int,
 		ids: Array = [], target: Minion = null) -> void:
+	if _battle != null:
+		_battle.afk_guard.notify_local_action()
 	var target_id: int = target.net_id if target != null else NetCommand.TARGET_NONE
 	_net.send_command(NetCommand.play_card(
 		card_data.resource_path, row, insert_index, ids, target_id))
 
 func attack(attacker: Minion, defender: Minion, ids: Array = []) -> void:
+	if _battle != null:
+		_battle.afk_guard.notify_local_action()
 	_net.send_command(NetCommand.attack(attacker.net_id, defender.net_id, ids))
 
 func attack_hero(attacker: Minion, ids: Array = []) -> void:
+	if _battle != null:
+		_battle.afk_guard.notify_local_action()
 	_net.send_command(NetCommand.attack_hero(attacker.net_id, ids))
 
 func end_turn(ids: Array = []) -> void:
@@ -37,10 +47,14 @@ func turn_start(ids: Array = []) -> void:
 
 # Activation locale d'un Rituel de Sacrifice (victimes déjà choisies).
 func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) -> void:
+	if _battle != null:
+		_battle.afk_guard.notify_local_action()
 	_net.send_command(NetCommand.activate_ritual(card_data.resource_path, victim_ids, ids))
 
 # Activation locale du mot-clé FUSION (victime et mot-clé déjà choisis).
 func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> void:
+	if _battle != null:
+		_battle.afk_guard.notify_local_action()
 	_net.send_command(NetCommand.activate_fusion(source_id, victim_id, keyword_pool, keyword_name, ids))
 
 # Emote cosmétique (voir EmoteWheel) — purement décoratif, aucun état à
