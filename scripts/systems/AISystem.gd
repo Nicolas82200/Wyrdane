@@ -113,10 +113,19 @@ func get_hand_count() -> int:
 # d'IA (beaucoup de cartes/attaques à jouer) peut légitimement prendre du temps.
 const MAX_TURN_SAFETY_SECONDS := 30.0
 
+# Dernière étape connue du tour en cours (mis à jour au fil de
+# _run_turn_actions/_play_cards_phase/_attack_phase) : sans repère, le
+# push_warning ci-dessous ne dit jamais QUELLE phase/carte/attaquant a bloqué
+# le tour, ce qui rend le bug (voir TODO.md « P10 ») impossible à localiser
+# depuis un rapport joueur. Volontairement une simple String de diagnostic,
+# jamais lue par la logique de jeu.
+var _current_phase: String = ""
+
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
+	_current_phase = "start"
 	var finished := false
 	_run_turn_actions(func(): finished = true)
 	var elapsed := 0.0
@@ -124,23 +133,32 @@ func take_turn() -> void:
 		await battle.get_tree().process_frame
 		elapsed += battle.get_process_delta_time()
 	if not finished:
-		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu, on rend quand même la main pour ne jamais bloquer la partie.")
+		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu (bloqué sur '%s'), on rend quand même la main pour ne jamais bloquer la partie." % _current_phase)
 	battle.set_enemy_turn(false)
 
 func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
+	_current_phase = "turn_start_triggers"
 	await battle.turn_system.run_turn_start_triggers(false)
+	_current_phase = "start_of_turn_phase"
 	await _start_of_turn_phase()
+	_current_phase = "play_cards_phase"
 	var played_cards := await _play_cards_phase()
+	_current_phase = "sacrifice_rituals"
 	await _maybe_activate_sacrifice_rituals()
+	_current_phase = "fusion"
 	await _maybe_activate_fusion()
+	_current_phase = "attack_phase"
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
+	_current_phase = "turn_end_triggers"
 	await battle.turn_system.run_turn_end_triggers(false)
+	_current_phase = "discard_excess_hand"
 	_discard_excess_hand()
+	_current_phase = "done"
 	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
@@ -175,6 +193,7 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
+		_current_phase = "play_cards_phase: %s" % card.card_name
 		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
@@ -193,6 +212,7 @@ func _attack_phase(already_acted: bool) -> void:
 	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
+			_current_phase = "attack_phase: %s" % attacker.card_data.card_name
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not battle._can_attack_hero(attacker):
 				break
