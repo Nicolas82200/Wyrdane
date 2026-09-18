@@ -44,6 +44,7 @@ var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
+var afk_guard: FakeAfkGuard = FakeAfkGuard.new()
 var _mulligan_active: bool = false
 var turn_timer: FakeTurnTimer = FakeTurnTimer.new()
 var net_session_system: FakeNetSessionSystem = FakeNetSessionSystem.new()
@@ -585,6 +586,12 @@ class FakeTurnTimer:
 		running = true
 	func stop() -> void:
 		running = false
+
+
+class FakeAfkGuard:
+	var notify_calls: int = 0
+	func notify_local_action() -> void:
+		notify_calls += 1
 
 
 class FakeNetSessionSystem:

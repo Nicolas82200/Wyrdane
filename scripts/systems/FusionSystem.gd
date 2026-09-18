@@ -78,6 +78,7 @@ func _is_valid_victim(source: Minion, victim: Minion) -> bool:
 # ─── Exécution ────────────────────────────────────────────────────────────────
 
 func _execute(source: Minion, victim: Minion) -> void:
+	battle.afk_guard.notify_local_action()
 	var options: Array = _collect_keyword_choices(victim)
 	var chosen: Dictionary = {}
 	if options.size() == 1:

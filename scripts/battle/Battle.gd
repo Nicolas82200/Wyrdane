@@ -81,7 +81,8 @@ var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
 var net_session_system  := NetSessionSystem.new()
 var input_system        := InputSystem.new()
-# Anti-AFK réseau (voir AfkGuard) : no-op tant que net_emitter est null (solo).
+# Garde d'inactivité de tour, solo ET réseau (voir AfkGuard) : le forfait
+# après plusieurs tours AFK d'affilée, lui, reste réseau uniquement.
 var afk_guard           := AfkGuard.new()
 # Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
 # ai_system par défaut ; sera réassigné en mode multijoueur.
@@ -392,6 +393,7 @@ func _style_settings_button() -> void:
 func _process(_delta: float) -> void:
 	if targeting_system.is_targeting():
 		targeting_system.update_arrow()
+	afk_guard.update(_delta)
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 
