@@ -120,39 +120,34 @@ const MAX_TURN_SAFETY_SECONDS := 30.0
 # depuis un rapport joueur. Volontairement une simple String de diagnostic,
 # jamais lue par la logique de jeu.
 var _current_phase: String = ""
-var _phase_start_msec: int = 0
-
-# Télémétrie temporaire (voir TODO.md « P10 ») : un joueur a signalé une
-# attente d'~20s SANS AUCUNE animation/popup visible juste avant la fin du
-# tour IA — donc a priori pas dans une des étapes déjà couvertes par le
-# push_warning de sécurité (qui, lui, ne s'affiche qu'au-delà de 30s). Log
-# systématiquement (pas seulement au timeout) la durée de chaque étape dès
-# qu'elle dépasse PHASE_LOG_THRESHOLD_MSEC, pour localiser la vraie étape en
-# cause au prochain rapport de log, sans avoir à deviner. À retirer une fois
-# la cause confirmée et corrigée.
-const PHASE_LOG_THRESHOLD_MSEC := 300
 
 func _mark_phase(name: String) -> void:
-	var now := Time.get_ticks_msec()
-	if _current_phase != "" and _phase_start_msec > 0:
-		var elapsed: int = now - _phase_start_msec
-		if elapsed >= PHASE_LOG_THRESHOLD_MSEC:
-			print("[AISystem] '%s' a pris %dms" % [_current_phase, elapsed])
 	_current_phase = name
-	_phase_start_msec = now
 
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
 	_mark_phase("start")
-	var finished := false
-	_run_turn_actions(func(): finished = true)
+	# ATTENTION : un Dictionary, PAS un bool local. Une lambda GDScript capture
+	# les variables locales PAR VALEUR (une copie), pas par référence —
+	# `finished = true` dans le callback ci-dessous ne mutait donc RIEN dans la
+	# portée de cette fonction : la boucle d'attente plus bas ne voyait jamais
+	# `finished` passer à `true`, quelle que soit la rapidité réelle du tour.
+	# C'était LA cause du tour IA qui « attendait sans rien » ~30s à chaque fois
+	# (voir TODO.md « P10 ») : _run_turn_actions finissait en réalité en 1-2s,
+	# mais take_turn() patientait quand même jusqu'au plafond de sécurité avant
+	# de rendre la main — même classe de bug déjà rencontrée et corrigée sur
+	# PactChoiceSystem.ask (state["done"], même patron). Un Dictionary est un
+	# type par référence en GDScript, donc `state["finished"] = true` mute bien
+	# l'objet partagé.
+	var state := {"finished": false}
+	_run_turn_actions(func(): state["finished"] = true)
 	var elapsed := 0.0
-	while not finished and elapsed < MAX_TURN_SAFETY_SECONDS:
+	while not state["finished"] and elapsed < MAX_TURN_SAFETY_SECONDS:
 		await battle.get_tree().process_frame
 		elapsed += battle.get_process_delta_time()
-	if not finished:
+	if not state["finished"]:
 		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu (bloqué sur '%s'), on rend quand même la main pour ne jamais bloquer la partie." % _current_phase)
 	battle.set_enemy_turn(false)
 
