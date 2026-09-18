@@ -25,7 +25,7 @@ func setup() -> void:
 	battle.net_opponent_backend_id = setup.get("opponent_backend_id", 0)
 	battle.net_client_match_id = setup.get("client_match_id", "")
 	battle.net_match_session_token = setup.get("match_session_token", "")
-	battle.net_emitter = NetEmitter.new(net, battle)
+	battle.net_emitter = NetEmitter.new(net)
 	net.connection_lost.connect(_on_connection_lost)
 	net.connection_restored.connect(_on_connection_restored)
 	net.peer_disconnected.connect(_on_peer_disconnected)

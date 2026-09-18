@@ -137,6 +137,51 @@ const RACE_DESCRIPTIONS := {
 func _tr(key: String) -> String:
 	return TranslationServer.translate(key)
 
+# ─── Bascule "plus d'informations" (clic droit) ────────────────────────────────
+# Par défaut, survoler une carte n'affiche que son aperçu agrandi (et les
+# aperçus de jetons éventuels) : les panels de mots-clés/déclencheurs/effets/
+# état runtime restent cachés (surcharge d'info jugée trop dense par défaut).
+# Un clic droit sur une carte survolée les révèle pour TOUS les survols
+# suivants (bascule globale valable pour la session, pas persistée sur disque)
+# jusqu'à un nouveau clic droit qui les recache — voir Hand/BoardMinion/
+# EnchantmentCard/GraveyardView/DeckBuilder._on_card_right_click.
+var tooltips_expanded := false
+
+func toggle_tooltips_expanded() -> void:
+	tooltips_expanded = not tooltips_expanded
+
+## Petite bulle d'indication affichée au-dessus de l'aperçu agrandi d'une
+## carte survolée ("Clic droit pour afficher/cacher les informations").
+func make_hint_panel() -> PanelContainer:
+	var bg := StyleBoxFlat.new()
+	bg.bg_color                   = Color(0.10, 0.08, 0.05, 0.92)
+	bg.border_width_left          = 1
+	bg.border_width_right         = 1
+	bg.border_width_top           = 1
+	bg.border_width_bottom        = 1
+	bg.border_color               = Color(0.55, 0.38, 0.10, 0.9)
+	bg.corner_radius_top_left     = 4
+	bg.corner_radius_top_right    = 4
+	bg.corner_radius_bottom_left  = 4
+	bg.corner_radius_bottom_right = 4
+	bg.content_margin_left   = 8
+	bg.content_margin_right  = 8
+	bg.content_margin_top    = 3
+	bg.content_margin_bottom = 3
+
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", bg)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var label := Label.new()
+	label.text = _tr("TOOLTIP_HINT_HIDE" if tooltips_expanded else "TOOLTIP_HINT_SHOW")
+	label.add_theme_color_override("font_color", Color(0.85, 0.80, 0.65, 1.0))
+	label.add_theme_font_size_override("font_size", 12)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(label)
+
+	return panel
+
 const COLOR_KEYWORD        := Color(0.15, 0.28, 0.48, 1.0)  # Mots-clés partagés
 const COLOR_KEYWORD_HUMAN  := Color(0.55, 0.42, 0.10, 1.0)  # Humain
 const COLOR_KEYWORD_UNDEAD := Color(0.25, 0.36, 0.16, 1.0)  # Mort-Vivant (vert putride)

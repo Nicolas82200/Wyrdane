@@ -319,9 +319,15 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
-#### Anti-AFK (forfait par inactivité)
+#### Décompte de tour (`AfkGuard`, solo ET réseau)
 
-`AfkGuard` (`scripts/net/AfkGuard.gd`, réseau uniquement — jamais en solo/tutoriel, l'IA ne traîne jamais) remplace, pour le camp réseau, le délai fixe de tour par un **décompte d'inactivité de 30s** remis à zéro par toute action de jeu locale (carte jouée, attaque, Rituel/Fusion activé — voir `NetEmitter`) : sans action avant expiration, le tour se termine tout seul. Après **3 tours d'affilée** terminés sans la moindre action, le joueur local est déclaré perdant (`LEAVE_MATCH` envoyé immédiatement, sans attendre le délai de grâce de reconnexion, puis écran de défaite normal — même report ranked/succès qu'une vraie défaite). Un clic explicite sur Fin du tour casse la série même sans action de jeu (le joueur a simplement choisi de passer). Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré existant du bouton Fin du tour, `Battle._player_has_no_actions`) ne compte jamais comme un tour AFK : le décompte y est seulement resserré à 10s, pour empêcher un joueur à court de coups de faire volontairement traîner la partie en pariant sur la lassitude de l'adversaire.
+`AfkGuard` (`scripts/net/AfkGuard.gd`) pilote le décompte visuel de tour (`TurnTimer`, la bordure du bouton Fin du tour) dans les deux modes : **invisible par défaut**, il ne s'affiche (30s, puis fin de tour forcée à 0) que dans deux cas :
+- **Inactivité** : 30s sans la moindre action de jeu locale (carte jouée, attaque, Rituel de Sacrifice/FUSION activés). Toute action ultérieure referme immédiatement le timer et remet ce décompte à zéro.
+- **Tour trop long** : 60s écoulées depuis le début du tour, **même si le joueur reste actif** entre-temps — plafond absolu, jamais réinitialisé par une action, pour éviter les tours interminables.
+
+Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré existant du bouton Fin du tour, `Battle._player_has_no_actions`) affiche/resserre immédiatement ce timer à 10s, pour nudger vers la fin de tour sans attendre le seuil d'inactivité normal.
+
+**Réseau uniquement** : après **3 tours d'affilée** terminés sans la moindre action, le joueur local est déclaré perdant (`LEAVE_MATCH` envoyé immédiatement, sans attendre le délai de grâce de reconnexion, puis écran de défaite normal — même report ranked/succès qu'une vraie défaite). Un clic explicite sur Fin du tour casse cette série même sans action de jeu (le joueur a simplement choisi de passer). En solo, l'expiration du timer se contente de terminer le tour (perdre contre une IA qui ne partira jamais n'aurait aucun sens) — jamais pendant le tutoriel, où le mulligan/le tour ne sont jamais sous pression de temps.
 
 ### 🗄️ Backend & progression persistante
 
@@ -511,7 +517,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
 *   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
 *   `CostSystem.gd`: Coût effectif d'une carte (remises) et paiement race verrouillée/générique des pools de ressource (voir « Système de Ressources par Race »).
-*   `TooltipData.gd`: Tooltips des mots-clés (autoload).
+*   `TooltipData.gd`: Tooltips des mots-clés (autoload). Survoler une carte (main, plateau, cimetière, deck builder) n'affiche que son aperçu agrandi ; les panneaux détaillés (mots-clés/déclencheurs/effets/état runtime) restent cachés par défaut derrière une bulle « Clic droit pour afficher les informations » au-dessus de l'aperçu, et un clic droit sur la carte survolée les révèle pour tous les survols suivants (bascule globale `TooltipData.tooltips_expanded`, valable pour la session) jusqu'à un nouveau clic droit qui les recache.
 
 ### Scripts Réseau (`scripts/net/`)
 

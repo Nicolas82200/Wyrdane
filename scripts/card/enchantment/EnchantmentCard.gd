@@ -22,6 +22,9 @@ var _tooltip_layer: CanvasLayer = null
 var _keyword_tooltips: Array[Control] = []
 var _mouse_is_over: bool = false
 var _battle: Node = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de
+# l'aperçu agrandi — voir TooltipData.tooltips_expanded.
+var _hint_panel: PanelContainer = null
 
 # Aperçus des jetons invoqués par ce Rituel/Enchantement (ex: Cercle
 # d'Invocation), voir CardData.get_summon_preview_cards et
@@ -56,11 +59,12 @@ func set_activatable(on: bool) -> void:
 	modulate = ACTIVATABLE_TINT if on else Color.WHITE
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		activate_requested.emit(card_data, is_player)
-		accept_event()
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			activate_requested.emit(card_data, is_player)
+			accept_event()
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_right_click()
 
 # ─── Hover & Preview ──────────────────────────────────────────────────────────
 # Même aperçu que BoardMinion. Les zones enchantements/rituels/ressources ne
@@ -107,11 +111,15 @@ func _on_mouse_entered() -> void:
 	_hover_preview.visible = true
 	_show_summon_previews(card_data)
 
+	var hint_center_x := _hover_preview.global_position.x + preview_width * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+
 	# Tooltips du côté opposé à l'aperçu par rapport à la carte survolée
 	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
 		else _hover_preview.global_position.x + preview_width + 15
 	var tooltip_y := _hover_preview.global_position.y
-	await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
 
 func _on_mouse_exited() -> void:
 	_mouse_is_over = false
@@ -119,10 +127,29 @@ func _on_mouse_exited() -> void:
 
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 	_clear_summon_previews()
 	if _hover_preview and is_instance_valid(_hover_preview):
 		_hover_preview.queue_free()
 	_hover_preview = null
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si cette carte est actuellement survolée.
+func _on_right_click() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	if not _mouse_is_over or not is_instance_valid(_hover_preview) or not _hover_preview.visible:
+		return
+	var preview_width := _hover_preview.size.x * PREVIEW_SCALE
+	var show_left := global_position.x - preview_width - 15 >= 0.0
+	var hint_center_x := _hover_preview.global_position.x + preview_width * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
+		else _hover_preview.global_position.x + preview_width + 15
+	var tooltip_y := _hover_preview.global_position.y
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
+	else:
+		_hide_keyword_tooltips()
 
 ## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
 ## par jeton fixe invoqué par ce Rituel/Enchantement, à côté de
@@ -272,3 +299,22 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## `center_x`/`above_y` : voir Hand._show_hint_panel (même principe).
+func _show_hint_panel(center_x: float, above_y: float) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(_battle):
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 1000
+	_battle.add_child(_hint_panel)
+	await get_tree().process_frame
+	if not _mouse_is_over or not is_instance_valid(_hint_panel):
+		return
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, above_y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
