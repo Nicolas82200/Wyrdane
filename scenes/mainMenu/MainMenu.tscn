@@ -1109,6 +1109,45 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 14
 
+[node name="StatsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="StatsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Statistiques"
+
+[node name="StatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+
+[node name="StatsStatusLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Chargement..."
+autowrap_mode = 3
+
+[node name="StatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="StatsListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
 [node name="ModeSelectView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1309648493]
 visible = false
 layout_mode = 1
@@ -1439,6 +1478,15 @@ theme_override_font_sizes/font_size = 13
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="StatsButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow"]
+custom_minimum_size = Vector2(170, 56)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "Statistiques"
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
 visible = false

@@ -13,7 +13,7 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum ShopTab { PACKS, CARD_BACKS, COLLECTION }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -159,6 +159,12 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
 @onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
 
+@onready var stats_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/StatsButton
+@onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
+@onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
+@onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
+@onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
+
 @onready var login_reward_popup: Control = $LoginRewardPopup
 @onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
 @onready var login_reward_streak_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStreakLabel
@@ -205,6 +211,7 @@ func _ready() -> void:
 	shop_collection_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.COLLECTION))
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
+	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	crash_report_dismiss_button.pressed.connect(_on_crash_report_dismiss_pressed)
 	crash_report_send_button.pressed.connect(_on_crash_report_send_pressed)
@@ -385,6 +392,7 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.REPORT: report_button,
 		InfoView.CREDITS: credits_button,
 		InfoView.SHOP: shop_button,
+		InfoView.STATS: stats_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
@@ -539,7 +547,7 @@ func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
-		mode_select_view, deck_select_view]
+		mode_select_view, deck_select_view, stats_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
@@ -552,6 +560,7 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.QUESTS: quests_view,
 		InfoView.MODE_SELECT: mode_select_view,
 		InfoView.DECK_SELECT: deck_select_view,
+		InfoView.STATS: stats_view,
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
@@ -574,6 +583,8 @@ func _show_info_view(view: InfoView) -> void:
 		QuestsPanel.open(self)
 	elif view == InfoView.SHOP:
 		_select_shop_tab(_shop_tab)
+	elif view == InfoView.STATS:
+		StatsPanel.open(self)
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -949,8 +960,12 @@ func _retranslate() -> void:
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	stats_button.text = SettingsManager.t("MENU_STATS")
+	stats_title_label.text = SettingsManager.t("STATS_TITLE")
 	if quests_view.visible:
 		QuestsPanel.open(self)
+	if stats_view.visible:
+		StatsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:
