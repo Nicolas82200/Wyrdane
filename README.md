@@ -511,7 +511,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
 *   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
 *   `CostSystem.gd`: Coût effectif d'une carte (remises) et paiement race verrouillée/générique des pools de ressource (voir « Système de Ressources par Race »).
-*   `TooltipData.gd`: Tooltips des mots-clés (autoload).
+*   `TooltipData.gd`: Tooltips des mots-clés (autoload). Survoler une carte (main, plateau, cimetière, deck builder) n'affiche que son aperçu agrandi ; les panneaux détaillés (mots-clés/déclencheurs/effets/état runtime) restent cachés par défaut derrière une bulle « Clic droit pour afficher les informations » au-dessus de l'aperçu, et un clic droit sur la carte survolée les révèle pour tous les survols suivants (bascule globale `TooltipData.tooltips_expanded`, valable pour la session) jusqu'à un nouveau clic droit qui les recache.
 
 ### Scripts Réseau (`scripts/net/`)
 

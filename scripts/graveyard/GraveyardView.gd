@@ -24,6 +24,9 @@ var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
 var _selection_mode:   bool           = false
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# carte survolée — voir TooltipData.tooltips_expanded.
+var _hint_panel:       PanelContainer = null
 
 func _ready() -> void:
 	# Le son de fermeture est joué dans close(), pas le clic générique
@@ -41,6 +44,7 @@ func _on_background_clicked(event: InputEvent) -> void:
 func close() -> void:
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 	hide()
 	if _selection_mode:
 		_selection_mode = false
@@ -140,6 +144,7 @@ func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 		_add_count_badge(wrapper, count)
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual, wrapper))
+	wrapper.gui_input.connect(_on_card_wrapper_right_click.bind(card_data, wrapper))
 	if _selection_mode:
 		wrapper.gui_input.connect(_on_card_wrapper_clicked.bind(card_data))
 
@@ -190,7 +195,29 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	await get_tree().process_frame
 	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
 		return
-	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+	_show_hint_panel(wrapper)
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si cette carte est actuellement survolée.
+func _on_card_wrapper_right_click(event: InputEvent, card_data: CardData, wrapper: Control) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if wrapper != _hovered_wrapper or not _hovering:
+		return
+	var tooltip_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE + 12
+	if tooltip_x + TOOLTIP_WIDTH > get_viewport_rect().size.x:
+		tooltip_x = wrapper.global_position.x - TOOLTIP_WIDTH - 12
+	var tooltip_y: float = wrapper.global_position.y
+	_show_hint_panel(wrapper)
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+	else:
+		_hide_keyword_tooltips()
 
 ## `wrapper` : mouse_entered/mouse_exited entre deux cartes adjacentes n'arrivent
 ## pas toujours dans un ordre garanti par Godot — un exited périmé (celui de
@@ -209,6 +236,7 @@ func _on_card_wrapper_exited(card_visual: Card, wrapper: Control) -> void:
 		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
@@ -271,3 +299,24 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## Positionnée au-dessus de la carte agrandie (dans `wrapper`) — voir
+## Hand._show_hint_panel (même principe).
+func _show_hint_panel(wrapper: Control) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(wrapper):
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 1000
+	add_child(_hint_panel)
+	await get_tree().process_frame
+	if not _hovering or wrapper != _hovered_wrapper or not is_instance_valid(_hint_panel):
+		return
+	var center_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE * 0.5
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, wrapper.global_position.y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null

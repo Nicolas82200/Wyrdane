@@ -66,6 +66,10 @@ var _race_tooltip:     Control        = null
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
+var _hovered_card_data: CardData      = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# preview agrandie — voir TooltipData.tooltips_expanded.
+var _hint_panel:       PanelContainer = null
 
 # Calque pour le tooltip « max de copies » (au-dessus de la grille)
 var _overlay_layer: CanvasLayer = null
@@ -435,21 +439,38 @@ func _on_buy_missing_finished(success: bool) -> void:
 		_show_buy_error_tooltip(buy_missing_button, "deck.buy_missing_error")
 
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_add_card(card_data)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_add_card(card_data)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
+	_hovered_card_data = card_data
 	_hovering = true
 	card_preview.set_data(card_data)
 	card_preview.scale = PREVIEW_SCALE
 	card_preview.show()
+	_show_hint_panel()
 	_position_hover_tooltips()
 	if _is_card_maxed(card_data) or _is_card_locked(card_data):
 		_show_max_copies_tooltip(wrapper, card_data)
-	await _show_keyword_tooltips(card_data, wrapper)
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(card_data, wrapper)
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si une carte est actuellement survolée.
+func _on_tooltip_right_click() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if not _hovering or _hovered_wrapper == null or not is_instance_valid(_hovered_wrapper):
+		return
+	_show_hint_panel()
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(_hovered_card_data, _hovered_wrapper)
+	else:
+		_hide_keyword_tooltips()
 
 ## `wrapper` (et non `card_visual`, inutile ici) permet d'ignorer une sortie
 ## « périmée » : mouse_entered/mouse_exited entre deux wrappers adjacents ne
@@ -461,10 +482,12 @@ func _on_card_wrapper_exited(wrapper: Control) -> void:
 	if wrapper != _hovered_wrapper:
 		return
 	_hovered_wrapper = null
+	_hovered_card_data = null
 	_hovering = false
 	card_preview.hide()
 	_clear_max_tooltip()
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 
 # ─── Liste deck à droite ──────────────────────────────────────────────────────
 
@@ -766,10 +789,11 @@ func _on_add_card(card_data: CardData) -> void:
 		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
 func _on_deck_row_input(event: InputEvent, path: String) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_remove_one(path)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_remove_one(path)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -1136,6 +1160,10 @@ func _position_hover_tooltips() -> void:
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):
 		_max_tooltip.global_position = \
 			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.global_position = Vector2(
+			card_center.x - _hint_panel.size.x / 2.0,
+			card_preview.global_position.y - _hint_panel.size.y - 6)
 
 func _process(_delta: float) -> void:
 	if _hovering:
@@ -1152,4 +1180,20 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## Recréée (plutôt que son seul texte mis à jour) pour rester cohérente avec
+## le reste de ce fichier (tous les autres tooltips sont reconstruits à chaque
+## affichage) — repositionnée à chaque frame par _position_hover_tooltips
+## tant que le survol dure.
+func _show_hint_panel() -> void:
+	_hide_hint_panel()
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.position = Vector2(-9999, -9999)
+	_hint_panel.z_index = 100
+	add_child(_hint_panel)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
 		
