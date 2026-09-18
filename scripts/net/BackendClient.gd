@@ -134,7 +134,16 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		if on_complete.is_valid():
 			var parsed = null
 			if response_body.size() > 0:
-				parsed = JSON.parse_string(response_body.get_string_from_utf8())
+				var text := response_body.get_string_from_utf8()
+				# Certaines routes répondent 200 avec un corps texte brut (ex.
+				# res.sendStatus(200) -> "OK", voir POST /api/reports) plutôt
+				# que du JSON : ne tenter le parse que si ça y ressemble, pour
+				# éviter le spam d'erreur "Parse JSON failed" côté moteur —
+				# parsed reste null dans les deux cas, comportement inchangé
+				# pour les appelants (déjà tous tolérants à un null/non-Dictionary).
+				var trimmed := text.strip_edges()
+				if trimmed.begins_with("{") or trimmed.begins_with("["):
+					parsed = JSON.parse_string(text)
 			on_complete.call(response_code, parsed)
 	)
 

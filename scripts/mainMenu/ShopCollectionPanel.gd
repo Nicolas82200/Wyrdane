@@ -16,6 +16,14 @@ const LOCKED_TINT := Color(0.38, 0.38, 0.38, 1)
 const CARDS_PER_FRAME := 8
 
 static var _filter_race: int = -1
+# Incrémenté à chaque (re)population : invalide toute chaîne _load_batch en
+# cours (filtre changé avant la fin du chargement précédent) pour éviter
+# qu'un batch obsolète continue à écrire dans une grille déjà reconstruite,
+# et pour que deux `bind()` successifs ne soient jamais des Callable égaux
+# (Godot compare les arguments par valeur : deux appels avec un même
+# contenu de `cards` et un même `end_index` sur la même grille produisaient
+# sinon un "Signal already connected").
+static var _load_token: int = 0
 
 ## Construit la grille dans `parent` (VBoxContainer, vidé puis reconstruit) :
 ## une barre de filtre par race suivie d'une grille en HFlowContainer.
@@ -87,10 +95,11 @@ static func _populate_grid(grid: HFlowContainer, count_label: Label) -> void:
 			owned_count += 1
 	count_label.text = SettingsManager.t("collection.owned_count") % [owned_count, cards.size()]
 
-	_load_batch(cards, 0, grid)
+	_load_token += 1
+	_load_batch(cards, 0, grid, _load_token)
 
-static func _load_batch(cards: Array[CardData], start_index: int, grid: HFlowContainer) -> void:
-	if not is_instance_valid(grid):
+static func _load_batch(cards: Array[CardData], start_index: int, grid: HFlowContainer, token: int) -> void:
+	if not is_instance_valid(grid) or token != _load_token:
 		return
 	var end_index: int = mini(start_index + CARDS_PER_FRAME, cards.size())
 	for i in range(start_index, end_index):
@@ -103,7 +112,7 @@ static func _load_batch(cards: Array[CardData], start_index: int, grid: HFlowCon
 		grid.add_child(wrapper)
 		_fill_card_wrapper(wrapper, cards[i])
 	if end_index < cards.size():
-		grid.get_tree().process_frame.connect(_load_batch.bind(cards, end_index, grid), CONNECT_ONE_SHOT)
+		grid.get_tree().process_frame.connect(_load_batch.bind(cards, end_index, grid, token), CONNECT_ONE_SHOT)
 
 static func _fill_card_wrapper(wrapper: Control, card_data: CardData) -> void:
 	var card_visual: Card = CARD_SCENE.instantiate()
