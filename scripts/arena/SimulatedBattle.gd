@@ -23,6 +23,10 @@ var player_graveyard := Graveyard.new()
 var enemy_graveyard := Graveyard.new()
 var net_registry := NetRegistry.new()
 var net_emitter = null
+# Sentinelle no-op : CombatSystem.resolve_combat/perform_hero_attack notifient
+# AfkGuard d'une action locale (voir Battle.afk_guard) — sans effet ici, le
+# combat Arena auto-résolu n'a pas de décompte de tour.
+var afk_guard := _NoOpAfkGuard.new()
 # Sentinelle non-nulle (jamais un vrai NetworkManager) : EffectManager
 # n'utilise `network_manager` que comme témoin booléen ("== null" => partie
 # solo locale, un humain peut être invité à choisir une cible de trigger).
@@ -670,6 +674,12 @@ class SimCombatLog:
 	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
+		pass
+
+
+class _NoOpAfkGuard:
+	extends RefCounted
+	func notify_local_action() -> void:
 		pass
 
 

@@ -7,6 +7,7 @@ func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	battle.afk_guard.notify_local_action()
 	if card_data.card_type == "Resource":
 		if not battle.can_afford_card(card_data):
 			return

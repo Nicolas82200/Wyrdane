@@ -75,6 +75,7 @@ func on_ally_minion_clicked(minion: Minion, visual: BoardMinion) -> void:
 		await _execute()
 
 func _execute() -> void:
+	battle.afk_guard.notify_local_action()
 	var ritual: CardData = _pending_ritual
 	var victims: Array[Minion] = _selected.duplicate()
 	_active = false
