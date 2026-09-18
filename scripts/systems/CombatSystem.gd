@@ -41,6 +41,8 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	if attacker.is_attacking:
 		return
 	attacker.is_attacking = true
+	if attacker.owner_is_player:
+		battle.afk_guard.notify_local_action()
 	# Émission réseau : uniquement les attaques initiées par le joueur LOCAL.
 	# Les attaques rejouées du pair (serviteur ennemi) ne réémettent pas.
 	# begin_capture/end_capture (comme CardSystem.resolve_with_target) : un
@@ -186,6 +188,8 @@ func perform_hero_attack(attacker: Minion) -> void:
 	if attacker.is_attacking:
 		return
 	attacker.is_attacking = true
+	if attacker.owner_is_player:
+		battle.afk_guard.notify_local_action()
 	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
 	if is_local_attack:
 		battle.net_registry.begin_capture()

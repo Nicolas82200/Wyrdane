@@ -121,18 +121,33 @@ const MAX_TURN_SAFETY_SECONDS := 30.0
 # jamais lue par la logique de jeu.
 var _current_phase: String = ""
 
+func _mark_phase(name: String) -> void:
+	_current_phase = name
+
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
-	_current_phase = "start"
-	var finished := false
-	_run_turn_actions(func(): finished = true)
+	_mark_phase("start")
+	# ATTENTION : un Dictionary, PAS un bool local. Une lambda GDScript capture
+	# les variables locales PAR VALEUR (une copie), pas par référence —
+	# `finished = true` dans le callback ci-dessous ne mutait donc RIEN dans la
+	# portée de cette fonction : la boucle d'attente plus bas ne voyait jamais
+	# `finished` passer à `true`, quelle que soit la rapidité réelle du tour.
+	# C'était LA cause du tour IA qui « attendait sans rien » ~30s à chaque fois
+	# (voir TODO.md « P10 ») : _run_turn_actions finissait en réalité en 1-2s,
+	# mais take_turn() patientait quand même jusqu'au plafond de sécurité avant
+	# de rendre la main — même classe de bug déjà rencontrée et corrigée sur
+	# PactChoiceSystem.ask (state["done"], même patron). Un Dictionary est un
+	# type par référence en GDScript, donc `state["finished"] = true` mute bien
+	# l'objet partagé.
+	var state := {"finished": false}
+	_run_turn_actions(func(): state["finished"] = true)
 	var elapsed := 0.0
-	while not finished and elapsed < MAX_TURN_SAFETY_SECONDS:
+	while not state["finished"] and elapsed < MAX_TURN_SAFETY_SECONDS:
 		await battle.get_tree().process_frame
 		elapsed += battle.get_process_delta_time()
-	if not finished:
+	if not state["finished"]:
 		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu (bloqué sur '%s'), on rend quand même la main pour ne jamais bloquer la partie." % _current_phase)
 	battle.set_enemy_turn(false)
 
@@ -140,25 +155,25 @@ func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
-	_current_phase = "turn_start_triggers"
+	_mark_phase("turn_start_triggers")
 	await battle.turn_system.run_turn_start_triggers(false)
-	_current_phase = "start_of_turn_phase"
+	_mark_phase("start_of_turn_phase")
 	await _start_of_turn_phase()
-	_current_phase = "play_cards_phase"
+	_mark_phase("play_cards_phase")
 	var played_cards := await _play_cards_phase()
-	_current_phase = "sacrifice_rituals"
+	_mark_phase("sacrifice_rituals")
 	await _maybe_activate_sacrifice_rituals()
-	_current_phase = "fusion"
+	_mark_phase("fusion")
 	await _maybe_activate_fusion()
-	_current_phase = "attack_phase"
+	_mark_phase("attack_phase")
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
-	_current_phase = "turn_end_triggers"
+	_mark_phase("turn_end_triggers")
 	await battle.turn_system.run_turn_end_triggers(false)
-	_current_phase = "discard_excess_hand"
+	_mark_phase("discard_excess_hand")
 	_discard_excess_hand()
-	_current_phase = "done"
+	_mark_phase("done")
 	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
@@ -193,7 +208,7 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
-		_current_phase = "play_cards_phase: %s" % card.card_name
+		_mark_phase("play_cards_phase: %s" % card.card_name)
 		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
@@ -212,7 +227,7 @@ func _attack_phase(already_acted: bool) -> void:
 	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
-			_current_phase = "attack_phase: %s" % attacker.card_data.card_name
+			_mark_phase("attack_phase: %s" % attacker.card_data.card_name)
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not battle._can_attack_hero(attacker):
 				break
