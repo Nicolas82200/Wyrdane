@@ -15,6 +15,15 @@ var _ending_turn: bool = false
 func init(_battle) -> void:
 	battle = _battle
 
+# Télémétrie temporaire (voir TODO.md « P10 ») : un joueur signale une attente
+# d'~20s sans aucune animation/popup visible juste avant que le tour IA ne
+# rende la main, potentiellement hors des phases déjà couvertes par
+# AISystem._mark_phase (ex: la transition de fin de tour elle-même, APRÈS que
+# l'IA ait fini d'agir). Log la durée de chaque étape de end_turn() dès qu'elle
+# dépasse PHASE_LOG_THRESHOLD_MSEC, pour croiser avec les logs AISystem au
+# prochain rapport. À retirer une fois la cause confirmée et corrigée.
+const PHASE_LOG_THRESHOLD_MSEC := 300
+
 func end_turn() -> void:
 	if _ending_turn:
 		return
@@ -39,7 +48,9 @@ func end_turn() -> void:
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()
 		battle.net_emitter.end_turn(ids)
+	var t_before_opponent := Time.get_ticks_msec()
 	await battle.opponent.take_turn()
+	_log_if_slow("opponent.take_turn (retour de la main)", t_before_opponent)
 	if battle.game_over:
 		_ending_turn = false
 		return
@@ -47,8 +58,15 @@ func end_turn() -> void:
 	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
+	var t_before_player_turn := Time.get_ticks_msec()
 	await _begin_player_turn()
+	_log_if_slow("_begin_player_turn (Déclin adverse + Éveil joueur)", t_before_player_turn)
 	_ending_turn = false
+
+func _log_if_slow(label: String, since_msec: int) -> void:
+	var elapsed: int = Time.get_ticks_msec() - since_msec
+	if elapsed >= PHASE_LOG_THRESHOLD_MSEC:
+		print("[TurnSystem] '%s' a pris %dms" % [label, elapsed])
 
 # Phase de fin de tour (Infection). is_local_turn : true si c'est le tour du
 # joueur local. Le déclencheur "fin de tour" côté cartes est porté par Déclin

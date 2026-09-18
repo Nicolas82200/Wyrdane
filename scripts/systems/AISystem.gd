@@ -120,12 +120,32 @@ const MAX_TURN_SAFETY_SECONDS := 30.0
 # depuis un rapport joueur. Volontairement une simple String de diagnostic,
 # jamais lue par la logique de jeu.
 var _current_phase: String = ""
+var _phase_start_msec: int = 0
+
+# Télémétrie temporaire (voir TODO.md « P10 ») : un joueur a signalé une
+# attente d'~20s SANS AUCUNE animation/popup visible juste avant la fin du
+# tour IA — donc a priori pas dans une des étapes déjà couvertes par le
+# push_warning de sécurité (qui, lui, ne s'affiche qu'au-delà de 30s). Log
+# systématiquement (pas seulement au timeout) la durée de chaque étape dès
+# qu'elle dépasse PHASE_LOG_THRESHOLD_MSEC, pour localiser la vraie étape en
+# cause au prochain rapport de log, sans avoir à deviner. À retirer une fois
+# la cause confirmée et corrigée.
+const PHASE_LOG_THRESHOLD_MSEC := 300
+
+func _mark_phase(name: String) -> void:
+	var now := Time.get_ticks_msec()
+	if _current_phase != "" and _phase_start_msec > 0:
+		var elapsed: int = now - _phase_start_msec
+		if elapsed >= PHASE_LOG_THRESHOLD_MSEC:
+			print("[AISystem] '%s' a pris %dms" % [_current_phase, elapsed])
+	_current_phase = name
+	_phase_start_msec = now
 
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
-	_current_phase = "start"
+	_mark_phase("start")
 	var finished := false
 	_run_turn_actions(func(): finished = true)
 	var elapsed := 0.0
@@ -140,25 +160,25 @@ func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
-	_current_phase = "turn_start_triggers"
+	_mark_phase("turn_start_triggers")
 	await battle.turn_system.run_turn_start_triggers(false)
-	_current_phase = "start_of_turn_phase"
+	_mark_phase("start_of_turn_phase")
 	await _start_of_turn_phase()
-	_current_phase = "play_cards_phase"
+	_mark_phase("play_cards_phase")
 	var played_cards := await _play_cards_phase()
-	_current_phase = "sacrifice_rituals"
+	_mark_phase("sacrifice_rituals")
 	await _maybe_activate_sacrifice_rituals()
-	_current_phase = "fusion"
+	_mark_phase("fusion")
 	await _maybe_activate_fusion()
-	_current_phase = "attack_phase"
+	_mark_phase("attack_phase")
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
-	_current_phase = "turn_end_triggers"
+	_mark_phase("turn_end_triggers")
 	await battle.turn_system.run_turn_end_triggers(false)
-	_current_phase = "discard_excess_hand"
+	_mark_phase("discard_excess_hand")
 	_discard_excess_hand()
-	_current_phase = "done"
+	_mark_phase("done")
 	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
@@ -193,7 +213,7 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
-		_current_phase = "play_cards_phase: %s" % card.card_name
+		_mark_phase("play_cards_phase: %s" % card.card_name)
 		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
@@ -212,7 +232,7 @@ func _attack_phase(already_acted: bool) -> void:
 	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
-			_current_phase = "attack_phase: %s" % attacker.card_data.card_name
+			_mark_phase("attack_phase: %s" % attacker.card_data.card_name)
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not battle._can_attack_hero(attacker):
 				break
