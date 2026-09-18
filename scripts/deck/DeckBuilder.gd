@@ -106,7 +106,11 @@ func _ready() -> void:
 	_overlay_layer.layer = 19
 	add_child(_overlay_layer)
 	card_preview.set_non_interactive()
-	card_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (pas IGNORE) : le joueur visant naturellement la grande carte plutôt
+	# que la petite carte d'origine derrière elle, le clic droit dessus doit
+	# aussi basculer les tooltips (voir TooltipData.tooltips_expanded).
+	card_preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	card_preview.gui_input.connect(_on_preview_right_click)
 	card_preview.z_index = 100
 	card_preview.hide()
 	save_button.pressed.connect(_on_save)
@@ -458,6 +462,15 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 		_show_max_copies_tooltip(wrapper, card_data)
 	if TooltipData.tooltips_expanded:
 		await _show_keyword_tooltips(card_data, wrapper)
+
+## Même bascule, depuis un clic droit sur la grande preview elle-même (voir
+## _ready, card_preview.mouse_filter = PASS) — le joueur visant naturellement
+## la carte agrandie plutôt que la petite carte d'origine dans la grille.
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	_on_tooltip_right_click()
 
 ## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
 ## l'affichage courant si une carte est actuellement survolée.

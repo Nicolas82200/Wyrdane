@@ -112,7 +112,13 @@ func _ready() -> void:
 	# cette valeur avec la référence garantie correcte.
 	_battle = get_tree().current_scene
 	preview.set_non_interactive()
-	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (pas IGNORE) : la preview doit rester inerte au clic gauche (déjà
+	# garanti par drag_enabled=false, voir set_non_interactive) mais doit
+	# recevoir le clic droit qui bascule les tooltips (voir _on_card_right_click),
+	# le joueur visant naturellement la grande carte plutôt que la petite carte
+	# d'origine derrière elle.
+	preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	preview.gui_input.connect(_on_preview_right_click)
 	preview.z_index = 100
 	preview.hide()
 	_preview_link = PreviewLinkOverlay.new()
@@ -547,7 +553,11 @@ func _show_summon_previews(card_data: CardData) -> void:
 		var token_card: Card = CARD_SCENE.instantiate()
 		add_child(token_card)
 		token_card.set_non_interactive()
-		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# PASS (pas IGNORE) : voir preview.mouse_filter dans _ready — même
+		# raison, le clic droit sur un jeton invoqué doit aussi basculer les
+		# tooltips.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click)
 		token_card.z_index = 150
 		token_card.set_data(token_data)
 		token_card.scale = token_scale
@@ -686,16 +696,49 @@ func _hide_hint_panel() -> void:
 		_hint_panel.queue_free()
 	_hint_panel = null
 
-## Bascule TooltipData.tooltips_expanded pour toute la session et, si la carte
-## visée est celle actuellement survolée, rafraîchit son affichage sans
-## attendre un nouveau survol.
+func _is_right_click_press(event: InputEvent) -> bool:
+	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT \
+		and event.pressed
+
+## Bascule TooltipData.tooltips_expanded pour toute la session, déclenchée
+## par un clic droit sur la petite carte d'origine (`card`, voir _connect_card).
 func _on_card_right_click(event: InputEvent, card: Card) -> void:
-	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
-			and event.pressed):
+	if not _is_right_click_press(event):
 		return
 	TooltipData.toggle_tooltips_expanded()
 	get_viewport().set_input_as_handled()
-	if card != _hovered_card or not _hovering:
+	if card == _hovered_card:
+		_refresh_tooltip_display()
+
+## Même bascule, mais depuis un clic droit sur la grande preview elle-même —
+## le joueur visant naturellement la carte agrandie plutôt que la petite carte
+## d'origine juste en dessous (voir _ready, preview.mouse_filter = PASS).
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not _is_right_click_press(event):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	_refresh_tooltip_display()
+
+## Même bascule depuis un clic droit sur un aperçu de jeton invoqué (voir
+## _show_summon_previews) — ces cartes n'ont pas leur propre pile de tooltips,
+## seule celle de la carte survolée compte, donc même rafraîchissement.
+func _on_token_preview_right_click(event: InputEvent) -> void:
+	if not _is_right_click_press(event):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	_refresh_tooltip_display()
+
+## Repositionne/reconstruit la bulle d'indication et, selon
+## TooltipData.tooltips_expanded, affiche ou cache les tooltips détaillés —
+## pour le survol actuellement en cours (mulligan ou normal). No-op si plus
+## aucune carte n'est survolée.
+func _refresh_tooltip_display() -> void:
+	if not _hovering:
+		return
+	var card: Card = _hovered_card
+	if card == null or not is_instance_valid(card):
 		return
 	if _mulligan_mode:
 		var card_rect := card.get_global_rect()
