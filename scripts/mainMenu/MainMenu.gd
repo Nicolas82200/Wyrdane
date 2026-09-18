@@ -168,9 +168,9 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var crash_report_popup: Control = $CrashReportPopup
 @onready var crash_report_title_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTitleLabel
 @onready var crash_report_desc_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportDescLabel
-@onready var crash_report_crash_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTypeRow/CrashReportCrashButton
-@onready var crash_report_freeze_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTypeRow/CrashReportFreezeButton
+@onready var crash_report_comment_edit: TextEdit = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportCommentEdit
 @onready var crash_report_status_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportStatusLabel
+@onready var crash_report_dismiss_hint_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportDismissHintLabel
 @onready var crash_report_dismiss_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportButtonsRow/CrashReportDismissButton
 @onready var crash_report_send_button: Button = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportButtonsRow/CrashReportSendButton
 
@@ -855,8 +855,9 @@ func _maybe_show_crash_report_popup() -> void:
 		return
 	crash_report_title_label.text = SettingsManager.t("CRASH_REPORT_TITLE")
 	crash_report_desc_label.text = SettingsManager.t("CRASH_REPORT_DESCRIPTION")
-	crash_report_crash_button.text = SettingsManager.t("CRASH_REPORT_TYPE_CRASH")
-	crash_report_freeze_button.text = SettingsManager.t("CRASH_REPORT_TYPE_FREEZE")
+	crash_report_comment_edit.placeholder_text = SettingsManager.t("CRASH_REPORT_COMMENT_PLACEHOLDER")
+	crash_report_comment_edit.text = ""
+	crash_report_dismiss_hint_label.text = SettingsManager.t("CRASH_REPORT_DISMISS_HINT")
 	crash_report_dismiss_button.text = SettingsManager.t("CRASH_REPORT_DISMISS")
 	crash_report_send_button.text = SettingsManager.t("CRASH_REPORT_SEND")
 	crash_report_status_label.hide()
@@ -874,8 +875,7 @@ func _on_crash_report_send_pressed() -> void:
 	crash_report_dismiss_button.disabled = true
 	crash_report_status_label.text = SettingsManager.t("CRASH_REPORT_SENDING")
 	crash_report_status_label.show()
-	var crash_type := "freeze" if crash_report_freeze_button.button_pressed else "crash"
-	CrashReporter.send_report(crash_type, func(success: bool):
+	CrashReporter.send_report(crash_report_comment_edit.text, func(success: bool):
 		if not is_instance_valid(self):
 			return
 		CrashReporter.dismiss_pending_report()
