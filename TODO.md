@@ -85,6 +85,10 @@ capture `finished` **par valeur** dans la lambda (comportement des closures GDSc
 
 **Télémétrie ajoutée.** `CrashReporter` (voir « Rapport de plantage/gel » dans `CLAUDE.md`) détecte désormais toute session qui ne s'est pas terminée proprement (plantage réel ou gel tué via le gestionnaire des tâches) et propose au joueur d'envoyer le dernier log, transmis sur le salon Discord de développement via `wyrdane-backend` (`POST /api/crash-report`). Ça ne corrige rien par soi-même, mais donne enfin une source de logs réels de joueurs pour identifier la cause exacte d'un futur gel — condition nécessaire avant de pouvoir vraiment fermer ce point.
 
+## P11 — Écran Statistiques : backend écrit mais pas encore déployé
+
+Client (`card-game`) : écran « Statistiques » complet (cartes les plus jouées + classement, voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`). Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) : table `card_play_stats`, colonne `match_reports.cards_played`, route `GET /api/ranked/stats/cards/top` — tests passants (270/270), mais **pas encore mergée dans `main` ni déployée**. À faire : review + merge de la branche backend, puis `npm run db:sync` en prod (même procédure que les chantiers précédents — quêtes hebdo, matchmaking classé) pour créer la table/colonne sans perte de données.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.

@@ -174,17 +174,40 @@ func get_profile(on_profile: Callable) -> void:
 # omis du payload plutôt qu'envoyé vide.
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "") -> void:
+		match_session_token: String = "", cards_played_names: Array = []) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
+		"cardsPlayed": cards_played_names,
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# ─── Statistiques cartes / classement ───────────────────────────────────────
+# Contrat détaillé : docs/backend-contracts/card-stats-and-leaderboard.md
+func get_card_stats(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/stats/cards/top", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed.get("cards", []))
+		else:
+			on_complete.call(false, [])
+	)
+
+# Route déjà existante côté backend (rankedController.getLeaderboardHandler),
+# pas une nouveauté de ce chantier — retourne un tableau brut de lignes
+# { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite
+# (calculé côté client depuis la position dans le tableau, voir StatsPanel).
+func get_leaderboard(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard?limit=100", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :

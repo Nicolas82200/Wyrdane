@@ -333,6 +333,15 @@ Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré ex
 
 La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
 
+### 📊 Statistiques & classement (menu principal)
+
+Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans `BottomCenterRow` du menu principal) — lecture seule, deux sections :
+
+- **Cartes les plus jouées** — taux de jeu et winrate par carte, calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement** (double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) : le solo IA et un rapport orphelin (pair jamais confirmé) n'y contribuent jamais. `Battle.track_card_played_for_quests` alimente `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race déjà existant, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`) puis exposé via `GET /api/ranked/stats/cards/top`. Une carte n'apparaît que si jouée dans au moins 20 matchs classés confirmés — sous ce seuil, exclue plutôt que d'afficher un winrate non significatif. Sert de signal d'équilibrage.
+- **Classement** — top 100 joueurs par MMR (`GET /api/ranked/leaderboard`, route déjà existante côté backend pour le profil mais pas encore affichée en jeu avant ce chantier), joueur local mis en surbrillance s'il y figure.
+
+Contrat détaillé : `docs/backend-contracts/card-stats-and-leaderboard.md`.
+
 ### 💰 Économie (méta-jeu, monnaie molle)
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
