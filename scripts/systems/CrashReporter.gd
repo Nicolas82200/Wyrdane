@@ -111,18 +111,19 @@ func get_previous_log_tail() -> String:
 		content = content.substr(content.length() - LOG_TAIL_CHARS)
 	return content
 
-# crash_type : "crash" ou "freeze" (choix fait par le joueur dans la popup,
-# cette détection ne peut pas distinguer les deux automatiquement).
-func send_report(crash_type: String, on_complete: Callable = Callable()) -> void:
+# comment : ce que le joueur faisait au moment du problème, saisi librement
+# dans la popup (peut être vide) — remplace le choix Plantage/Gel, que cette
+# détection ne peut de toute façon pas distinguer automatiquement.
+func send_report(comment: String, on_complete: Callable = Callable()) -> void:
 	var log_tail := get_previous_log_tail()
 	var steam_name := SteamService.local_persona_name()
 	var reporter_name := steam_name if steam_name != "" else "anonyme"
 	var body := {
-		"crashType": crash_type,
 		"platform": "%s %s" % [OS.get_name(), OS.get_version()],
 		"gameVersion": Engine.get_version_info().get("string", "inconnue"),
 		"reporterName": reporter_name,
 		"log": log_tail,
+		"comment": comment,
 	}
 	BackendClient.request(HTTPClient.METHOD_POST, "/api/crash-report", body, func(code: int, _parsed: Variant):
 		if on_complete.is_valid():
