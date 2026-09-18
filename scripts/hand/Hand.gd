@@ -83,6 +83,9 @@ var create_drag_preview: Callable      = Callable()
 var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# preview agrandie — voir TooltipData.tooltips_expanded.
+var _hint_panel:        PanelContainer = null
 var _hovering:          bool           = false
 var _mulligan_mode:     bool           = false
 var _discard_mode:      bool           = false
@@ -465,7 +468,9 @@ func _on_card_hover(card: Card) -> void:
 		var card_rect := card.get_global_rect()
 		var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
 		var tooltip_y0: float = card_rect.position.y
-		await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
+		if TooltipData.tooltips_expanded:
+			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
 		return
 	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
 	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
@@ -499,6 +504,8 @@ func _on_card_hover(card: Card) -> void:
 	)
 	_preview_link.show_link(link_from, link_to)
 	_show_summon_previews(card.data)
+	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
+	_show_hint_panel(hint_center_x, preview.global_position.y)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
@@ -506,14 +513,16 @@ func _on_card_hover(card: Card) -> void:
 	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
 			or not is_instance_valid(card) or card.dragging:
 		return
-	var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
-	var tooltip_y: float = preview.global_position.y
-	await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
+	if TooltipData.tooltips_expanded:
+		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+		var tooltip_y: float = preview.global_position.y
+		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
 
 func _hide_preview() -> void:
 	preview.hide()
 	_preview_link.hide_link()
 	_clear_summon_previews()
+	_hide_hint_panel()
 
 ## Instancie, à côté de la preview agrandie déjà positionnée, un aperçu
 ## supplémentaire par jeton fixe invoqué par la carte survolée (une carte
@@ -601,6 +610,7 @@ func _on_card_unhover(card: Card) -> void:
 	_preview_link.hide_link()
 	_clear_summon_previews()
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 	_hovered_card = null
 	_update_hand_layout(true)
 
@@ -655,6 +665,58 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## `center_x`/`above_y` : position (globale) du point médian-haut au-dessus
+## duquel centrer la bulle — son bas s'aligne juste au-dessus de `above_y`.
+func _show_hint_panel(center_x: float, above_y: float) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 160
+	_battle.add_child(_hint_panel)
+	await get_tree().process_frame
+	if not is_instance_valid(self) or not _hovering or not is_instance_valid(_hint_panel):
+		return
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, above_y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et, si la carte
+## visée est celle actuellement survolée, rafraîchit son affichage sans
+## attendre un nouveau survol.
+func _on_card_right_click(event: InputEvent, card: Card) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if card != _hovered_card or not _hovering:
+		return
+	if _mulligan_mode:
+		var card_rect := card.get_global_rect()
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
+		if TooltipData.tooltips_expanded:
+			var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
+			var tooltip_y0: float = card_rect.position.y
+			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
+		else:
+			_hide_keyword_tooltips()
+		return
+	if not preview.visible:
+		return
+	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
+	_show_hint_panel(hint_center_x, preview.global_position.y)
+	if TooltipData.tooltips_expanded:
+		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+		var tooltip_y: float = preview.global_position.y
+		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
+	else:
+		_hide_keyword_tooltips()
 
 
 # Sous-ensemble de _hand_order utilisé pour le calcul de la disposition
@@ -860,6 +922,8 @@ func _connect_card(card: Card) -> void:
 		card.mouse_entered.connect(_on_card_hover.bind(card))
 	if not card.mouse_exited.is_connected(_on_card_unhover):
 		card.mouse_exited.connect(_on_card_unhover.bind(card))
+	if not card.gui_input.is_connected(_on_card_right_click):
+		card.gui_input.connect(_on_card_right_click.bind(card))
 	if not card.mulligan_clicked.is_connected(_on_mulligan_card_clicked):
 		card.mulligan_clicked.connect(_on_mulligan_card_clicked.bind(card))
 	if not card.discard_clicked.is_connected(_on_discard_card_clicked):

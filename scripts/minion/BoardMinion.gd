@@ -102,6 +102,9 @@ var _token_previews:      Array[Card]              = []
 var _token_preview_links: Array[PreviewLinkOverlay] = []
 const TOKEN_PREVIEW_SCALE_RATIO := 0.75
 var _tooltip_layer: CanvasLayer = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de
+# l'aperçu agrandi — voir TooltipData.tooltips_expanded.
+var _hint_panel: PanelContainer = null
 
 # Référence Battle mise en cache
 var _battle: Node = null
@@ -423,10 +426,11 @@ func set_targetable(value: bool, color: Color = Color.WHITE) -> void:
 # ─── Input ────────────────────────────────────────────────────────────────────
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		minion_clicked.emit(minion, self)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			minion_clicked.emit(minion, self)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_right_click()
 
 # ─── Hover & Preview ──────────────────────────────────────────────────────────
 
@@ -505,9 +509,12 @@ func _on_mouse_entered() -> void:
 	)
 	_hover_preview.visible = true
 	_show_summon_previews(minion.get_display_card())
-	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
-	var tooltip_y := _hover_preview.global_position.y
-	await _show_keyword_tooltips(tooltip_x, tooltip_y)
+	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	if TooltipData.tooltips_expanded:
+		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
+		var tooltip_y := _hover_preview.global_position.y
+		await _show_keyword_tooltips(tooltip_x, tooltip_y)
 
 ## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
 ## par jeton fixe invoqué par ce serviteur, à côté de _hover_preview, relié
@@ -593,6 +600,7 @@ func _on_mouse_exited() -> void:
 
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 	_clear_summon_previews()
 	if _hover_preview:
 		# `visible = false` synchrone AVANT queue_free() : la destruction
@@ -709,6 +717,40 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## `center_x`/`above_y` : voir Hand._show_hint_panel (même principe).
+func _show_hint_panel(center_x: float, above_y: float) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(_battle):
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 1000
+	_battle.add_child(_hint_panel)
+	await get_tree().process_frame
+	if not _mouse_is_over or not is_instance_valid(_hint_panel):
+		return
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, above_y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si ce serviteur est actuellement survolé.
+func _on_right_click() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	if not _mouse_is_over or not is_instance_valid(_hover_preview) or not _hover_preview.visible:
+		return
+	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	if TooltipData.tooltips_expanded:
+		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
+		var tooltip_y := _hover_preview.global_position.y
+		await _show_keyword_tooltips(tooltip_x, tooltip_y)
+	else:
+		_hide_keyword_tooltips()
 
 # ─── Icônes de keywords ───────────────────────────────────────────────────────
 
