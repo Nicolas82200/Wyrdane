@@ -47,7 +47,19 @@ func init(_battle) -> void:
 	_effect_arrow = ArrowOverlay.new()
 	_popup_layer.add_child(_effect_arrow)
 
-func _hold_scale() -> float:
+# Lisibilité réduite pour ce qui vient du camp ADVERSE (spectateur, pas de
+# décision à prendre), pleine lisibilité pour les propres cartes du joueur.
+# Basé sur le camp propriétaire de la source quand on le connaît (serviteur ou
+# proxy d'enchantement/rituel, voir _make_proxy) plutôt que sur
+# battle.enemy_turn_active : un Déclin ennemi peut se résoudre APRÈS que ce
+# flag soit déjà repassé à false (voir TurnSystem._begin_player_turn, appelé
+# une fois le tour adverse terminé) — sans ce repère par propriétaire, ces
+# popups restaient à pleine durée alors qu'elles suivent immédiatement les
+# actions de l'IA, prolongeant d'autant l'attente perçue avant que le tour ne
+# revienne vraiment au joueur.
+func _hold_scale(source_minion: Minion = null) -> float:
+	if source_minion != null:
+		return 1.0 if source_minion.owner_is_player else ENEMY_TURN_HOLD_SCALE
 	return ENEMY_TURN_HOLD_SCALE if battle.enemy_turn_active else 1.0
 
 # Emplacement commun de toutes les popups : à gauche de l'écran, centré verticalement
@@ -227,7 +239,7 @@ func _play_popup(entry: Dictionary) -> void:
 
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
-	var hold_scale := _hold_scale()
+	var hold_scale := _hold_scale(entry.get("source_minion"))
 	await battle.get_tree().create_timer(READ_HOLD * hold_scale).timeout
 	entry["shown"] = true
 
@@ -308,7 +320,7 @@ func get_effect_popup_tip() -> Vector2:
 # skip_missile : true quand VFXManager a déjà joué un vrai projectile pour ce
 # sort (résolution immédiate d'un Éphémère/Rituel joué, voir CardSystem.gd) —
 # évite d'afficher les deux projectiles en double sur la même carte.
-func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false) -> void:
+func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false, source_minion: Minion = null) -> void:
 	var from: Vector2 = get_effect_popup_tip()
 	if from == Vector2.ZERO or target_positions.is_empty():
 		return
@@ -320,7 +332,7 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missil
 			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
-	await battle.get_tree().create_timer(hold * _hold_scale()).timeout
+	await battle.get_tree().create_timer(hold * _hold_scale(source_minion)).timeout
 
 func clear_effect_arrows() -> void:
 	if _effect_arrow != null and is_instance_valid(_effect_arrow):

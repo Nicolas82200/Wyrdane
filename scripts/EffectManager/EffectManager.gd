@@ -452,13 +452,13 @@ func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = nu
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():
-		await battle.card_popup_system.show_effect_arrows(positions, 0.35, source_minion == null)
+		await battle.card_popup_system.show_effect_arrows(positions, 0.35, source_minion == null, source_minion)
 
 func _point_arrow_to_hero(battle, is_enemy: bool, source_minion: Minion = null) -> Control:
 	var panel = battle.get_node_or_null("EnemyHeroPanel" if is_enemy else "PlayerHeroPanel")
 	if panel != null:
 		await battle.card_popup_system.show_effect_arrows(
-			[panel.global_position + panel.size * 0.5], 0.35, source_minion == null)
+			[panel.global_position + panel.size * 0.5], 0.35, source_minion == null, source_minion)
 	return panel
 
 # ─── Effets existants ─────────────────────────────────────────────────────────
