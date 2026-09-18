@@ -11,6 +11,12 @@ const DISPLAY_DURATION = 0.9
 # Temps où la popup d'une carte-ressource reste affichée avant de se désintégrer
 # vers le pool de mana (voir show_resource_popup / _absorb_resource_popup)
 const RESOURCE_HOLD = 0.5
+# Pendant le tour adverse (IA ou joueur réseau distant), le joueur local est
+# spectateur : il n'a pas besoin du même temps de lecture que pour ses propres
+# cartes (READ_HOLD/DISPLAY_DURATION ci-dessus, volontairement généreux pour
+# ses propres décisions). Un tour avec plusieurs serviteurs à Arrivée peut
+# sinon facilement dépasser 20s rien qu'en popups d'effet cumulées.
+const ENEMY_TURN_HOLD_SCALE = 0.5
 const LEFT_MARGIN = 24.0
 # File d'attente façon MTG Arena : une seule popup « se joue » à la fois à
 # l'emplacement principal ; les suivantes patientent empilées au-dessus,
@@ -40,6 +46,9 @@ func init(_battle) -> void:
 	battle.add_child(_popup_layer)
 	_effect_arrow = ArrowOverlay.new()
 	_popup_layer.add_child(_effect_arrow)
+
+func _hold_scale() -> float:
+	return ENEMY_TURN_HOLD_SCALE if battle.enemy_turn_active else 1.0
 
 # Emplacement commun de toutes les popups : à gauche de l'écran, centré verticalement
 func _get_left_slot_position(card_size: Vector2) -> Vector2:
@@ -218,17 +227,18 @@ func _play_popup(entry: Dictionary) -> void:
 
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
-	await battle.get_tree().create_timer(READ_HOLD).timeout
+	var hold_scale := _hold_scale()
+	await battle.get_tree().create_timer(READ_HOLD * hold_scale).timeout
 	entry["shown"] = true
 
 	if is_resource:
-		await battle.get_tree().create_timer(RESOURCE_HOLD).timeout
+		await battle.get_tree().create_timer(RESOURCE_HOLD * hold_scale).timeout
 		_active_card = null
 		_set_source_highlight(entry, false)
 		_absorb_resource_popup(card, entry["card_data"])
 		return
 
-	await battle.get_tree().create_timer(DISPLAY_DURATION).timeout
+	await battle.get_tree().create_timer(DISPLAY_DURATION * hold_scale).timeout
 
 	if _effect_card == card:
 		_effect_card = null
@@ -310,7 +320,7 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missil
 			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
-	await battle.get_tree().create_timer(hold).timeout
+	await battle.get_tree().create_timer(hold * _hold_scale()).timeout
 
 func clear_effect_arrows() -> void:
 	if _effect_arrow != null and is_instance_valid(_effect_arrow):
