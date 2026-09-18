@@ -89,6 +89,11 @@ func _on_mouse_entered() -> void:
 		push_error("EnchantmentCard: instantiate() returned null")
 		return
 	_hover_preview.drag_enabled = false
+	# PASS : le joueur visant naturellement la grande carte plutôt que la
+	# petite carte d'origine derrière elle, le clic droit dessus doit aussi
+	# basculer les tooltips (voir TooltipData.tooltips_expanded).
+	_hover_preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	_hover_preview.gui_input.connect(_on_preview_right_click)
 	_hover_preview.z_index = 1000
 	_hover_preview.visible = false
 	_battle.add_child(_hover_preview)
@@ -134,8 +139,32 @@ func _cleanup_hover() -> void:
 	_hover_preview = null
 
 ## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
-## l'affichage courant si cette carte est actuellement survolée.
+## l'affichage courant si cette carte est actuellement survolée. Déclenchée
+## par un clic droit sur cette carte elle-même (petite carte d'origine).
 func _on_right_click() -> void:
+	_toggle_and_refresh_tooltips()
+
+## Même bascule, depuis un clic droit sur la grande preview (voir
+## _on_mouse_entered, _hover_preview.mouse_filter = PASS) — le joueur visant
+## naturellement la carte agrandie plutôt que la petite carte derrière elle.
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	accept_event()
+	_toggle_and_refresh_tooltips()
+
+## Même bascule depuis un clic droit sur un aperçu de jeton invoqué (voir
+## _show_summon_previews) — ces cartes n'ont pas leur propre pile de tooltips,
+## seule celle de cette carte compte, donc même rafraîchissement.
+func _on_token_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	accept_event()
+	_toggle_and_refresh_tooltips()
+
+func _toggle_and_refresh_tooltips() -> void:
 	TooltipData.toggle_tooltips_expanded()
 	if not _mouse_is_over or not is_instance_valid(_hover_preview) or not _hover_preview.visible:
 		return
@@ -173,7 +202,11 @@ func _show_summon_previews(data: CardData) -> void:
 			continue
 		_battle.add_child(token_card)
 		token_card.set_non_interactive()
-		token_card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# PASS (pas IGNORE) : voir _hover_preview.mouse_filter ci-dessus, même
+		# raison — le clic droit sur un jeton invoqué doit aussi basculer les
+		# tooltips.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click)
 		token_card.z_index = 1000
 		token_card.set_data(token_data)
 		token_card.scale = token_scale
