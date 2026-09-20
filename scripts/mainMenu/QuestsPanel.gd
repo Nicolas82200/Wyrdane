@@ -82,6 +82,12 @@ const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
 const ACCENT_DIM := Color(0.42, 0.37, 0.3, 0.55)
 const ACCENT_GOLD := Color(0.92, 0.72, 0.28, 0.95)
 
+# Placeholder en attendant les vraies icônes de récompense (or/pack) — carré
+# marron foncé à remplacer par une TextureRect une fois les images
+# disponibles (voir _add_item).
+const REWARD_ICON_COLOR := Color(0.22, 0.13, 0.07, 1)
+const REWARD_ICON_SIZE := 36
+
 static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
@@ -134,6 +140,12 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	margin.add_child(hbox)
+
+	var icon := ColorRect.new()
+	icon.custom_minimum_size = Vector2(REWARD_ICON_SIZE, REWARD_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.color = REWARD_ICON_COLOR
+	hbox.add_child(icon)
 
 	var text_col := VBoxContainer.new()
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
