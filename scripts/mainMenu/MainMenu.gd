@@ -167,8 +167,18 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var login_reward_popup: Control = $LoginRewardPopup
 @onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
-@onready var login_reward_streak_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStreakLabel
-@onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
+# Frise des 5 prochains jours (voir ProfilePanel._show_login_reward_popup) :
+# index 0 = récompense du jour, 1-4 = aperçu des jours suivants (en supposant
+# une série ininterrompue). Chaque carte a la même structure interne
+# (DayCardMargin/DayCardVBox/DayLabel|DayIcon|AmountLabel), naviguée par nom
+# de nœud plutôt que par 15 @onready séparés.
+@onready var login_reward_day_panels: Array[PanelContainer] = [
+	$LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0,
+	$LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1,
+	$LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2,
+	$LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3,
+	$LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4,
+]
 @onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
 
 @onready var level_rewards_popup: Control = $LevelRewardsPopup
