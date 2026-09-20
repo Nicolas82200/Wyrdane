@@ -24,6 +24,12 @@ const ACCENT_CLAIMABLE := Color(0.92, 0.72, 0.28, 0.95)
 const ACCENT_LOCKED := Color(0.42, 0.37, 0.3, 0.4)
 const ACCENT_DONE := Color(0.42, 0.37, 0.3, 0.55)
 
+# Placeholder en attendant les vraies icônes de récompense (or/carte/pack) —
+# carré marron foncé à remplacer par une TextureRect une fois les images
+# disponibles (voir _make_row).
+const REWARD_ICON_COLOR := Color(0.22, 0.13, 0.07, 1)
+const REWARD_ICON_SIZE := 36
+
 static func open(menu) -> void:
 	menu.level_rewards_popup.visible = true
 	_load(menu)
@@ -109,6 +115,14 @@ static func _make_row(menu, entry: Dictionary, current_level: int, granted_by_le
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	margin.add_child(hbox)
+
+	var icon := ColorRect.new()
+	icon.custom_minimum_size = Vector2(REWARD_ICON_SIZE, REWARD_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.color = REWARD_ICON_COLOR
+	if not reached:
+		icon.modulate.a = 0.6
+	hbox.add_child(icon)
 
 	var text_col := VBoxContainer.new()
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
