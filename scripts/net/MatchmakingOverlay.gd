@@ -371,6 +371,11 @@ func _on_banner_cancel_pressed() -> void:
 			_quick_matching = false
 			_set_search_mode("")
 			_net.close()
+			# Le lobby Steam vient d'être quitté (voir SteamTransport.close) : sans
+			# ça, un prochain start_invite() le croirait toujours actif (voir son
+			# test _lobby_hosted) et appellerait invite_friends() sur un transport
+			# déjà fermé — l'overlay Steam ne s'ouvrirait plus jamais.
+			_lobby_hosted = false
 			_show_search_banner(false)
 			_set_loading(false)
 			_set_status("")
@@ -513,6 +518,11 @@ func _on_peer_connected() -> void:
 	_handshake.start()
 
 func _on_peer_disconnected(reason: String) -> void:
+	# Le lobby/la connexion qui viennent de tomber ne doivent plus être
+	# considérés valides pour un prochain start_invite() (voir _lobby_hosted) —
+	# sans ça, une invitation restée sans réponse puis coupée empêcherait
+	# d'en relancer une nouvelle.
+	_lobby_hosted = false
 	# Invalide un éventuel flash "adversaire trouvé" encore en attente (voir
 	# _on_peer_connected) : une coupure pendant ces 5 secondes ne doit pas
 	# quand même enchaîner sur l'écran de chargement plein écran.
