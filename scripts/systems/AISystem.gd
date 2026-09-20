@@ -10,7 +10,7 @@ class_name AISystem
 # SettingsManager.ai_difficulty ("easy", "normal", "hard").
 
 const DECK_SIZE       := 40  # cartes jouables (hors ressources), minimum imposé aux joueurs
-const RESOURCE_COUNT  := 12  # cartes-ressource mélangées au deck (minimum 10, voir README)
+const RESOURCE_COUNT  := 15  # cartes-ressource mélangées au deck (minimum 10, voir README)
 const MAX_COPIES      := 2
 const STARTING_HAND := 4
 
