@@ -260,6 +260,9 @@ func _ready() -> void:
 	solo_mode_button.pressed.connect(_on_solo_mode_selected)
 	multi_mode_button.pressed.connect(_on_multi_mode_selected)
 	arena_mode_button.pressed.connect(_on_arena_mode_selected)
+	# Masqué pour la build Steam (prototype pas prêt à être exposé aux joueurs
+	# réels) : remettre à true pour réactiver l'accès au mode Arena.
+	arena_mode_button.visible = false
 	mode_back_button.pressed.connect(_on_mode_back_pressed)
 	play_back_button.pressed.connect(_on_play_back_pressed)
 	launch_button.pressed.connect(_on_launch_pressed)
