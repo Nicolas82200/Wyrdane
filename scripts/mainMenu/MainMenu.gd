@@ -13,7 +13,7 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum ShopTab { PACKS, CARD_BACKS, COLLECTION }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -159,11 +159,26 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
 @onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
 
+@onready var stats_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/StatsButton
+@onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
+@onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
+@onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
+@onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
+
 @onready var login_reward_popup: Control = $LoginRewardPopup
 @onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
 @onready var login_reward_streak_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStreakLabel
 @onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
 @onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
+
+@onready var level_rewards_popup: Control = $LevelRewardsPopup
+@onready var level_rewards_title_label: Label = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow/LevelRewardsTitleLabel
+@onready var level_rewards_back_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow/LevelRewardsBackButton
+@onready var level_rewards_status_label: Label = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsStatusLabel
+@onready var level_rewards_scroll: ScrollContainer = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsScroll
+@onready var level_rewards_list_vbox: VBoxContainer = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsScroll/LevelRewardsListVBox
+@onready var level_rewards_claim_all_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow/LevelRewardsClaimAllButton
+@onready var level_rewards_go_to_current_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow/LevelRewardsGoToCurrentButton
 
 @onready var crash_report_popup: Control = $CrashReportPopup
 @onready var crash_report_title_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTitleLabel
@@ -205,6 +220,7 @@ func _ready() -> void:
 	shop_collection_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.COLLECTION))
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
+	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	crash_report_dismiss_button.pressed.connect(_on_crash_report_dismiss_pressed)
 	crash_report_send_button.pressed.connect(_on_crash_report_send_pressed)
@@ -212,7 +228,14 @@ func _ready() -> void:
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
-	profile_button.pressed.connect(_on_profile_button_pressed)
+	# Pas de connexion directe à .pressed : ProfileButton recouvre tout le
+	# panneau (avatar/pseudo compris), mais un clic précisément sur le niveau
+	# de compte (AccountLevelLabel/Bar, sous le pseudo) doit ouvrir la popup
+	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
+	profile_button.gui_input.connect(_on_player_status_gui_input)
+	level_rewards_back_button.pressed.connect(func(): LevelRewardsPanel.close(self))
+	level_rewards_claim_all_button.pressed.connect(func(): LevelRewardsPanel.claim_all(self))
+	level_rewards_go_to_current_button.pressed.connect(func(): LevelRewardsPanel.go_to_current_level(self))
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
@@ -385,6 +408,7 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.REPORT: report_button,
 		InfoView.CREDITS: credits_button,
 		InfoView.SHOP: shop_button,
+		InfoView.STATS: stats_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
@@ -539,7 +563,7 @@ func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
-		mode_select_view, deck_select_view]
+		mode_select_view, deck_select_view, stats_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
@@ -552,6 +576,7 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.QUESTS: quests_view,
 		InfoView.MODE_SELECT: mode_select_view,
 		InfoView.DECK_SELECT: deck_select_view,
+		InfoView.STATS: stats_view,
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
@@ -574,11 +599,25 @@ func _show_info_view(view: InfoView) -> void:
 		QuestsPanel.open(self)
 	elif view == InfoView.SHOP:
 		_select_shop_tab(_shop_tab)
+	elif view == InfoView.STATS:
+		StatsPanel.open(self)
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
+
+# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau...) ;
+# un clic relâché précisément sur AccountLevelLabel/Bar ouvre la popup de
+# récompenses de niveau à la place du profil (voir LevelRewardsPanel).
+func _on_player_status_gui_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
+		return
+	var level_rect := account_level_label.get_global_rect().merge(account_level_bar.get_global_rect())
+	if level_rect.has_point(event.global_position):
+		LevelRewardsPanel.open(self)
+	else:
+		_on_profile_button_pressed()
 
 func _on_credits() -> void:
 	credits_main_sub.show()
@@ -930,6 +969,11 @@ func _retranslate() -> void:
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
 
+	level_rewards_title_label.text = SettingsManager.t("LEVEL_REWARDS_TITLE")
+	level_rewards_back_button.text = SettingsManager.t("ui.back")
+	level_rewards_claim_all_button.text = SettingsManager.t("LEVEL_REWARDS_CLAIM_ALL")
+	level_rewards_go_to_current_button.text = SettingsManager.t("LEVEL_REWARDS_GO_TO_CURRENT")
+
 	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
 	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
 	multi_mode_button.text = SettingsManager.t("MENU_PLAY_MULTI")
@@ -949,8 +993,12 @@ func _retranslate() -> void:
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	stats_button.text = SettingsManager.t("MENU_STATS")
+	stats_title_label.text = SettingsManager.t("STATS_TITLE")
 	if quests_view.visible:
 		QuestsPanel.open(self)
+	if stats_view.visible:
+		StatsPanel.open(self)
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:

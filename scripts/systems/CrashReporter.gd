@@ -16,11 +16,16 @@ extends Node
 
 const MARKER_PATH := "user://crash_marker.cfg"
 const HEARTBEAT_INTERVAL_SECONDS := 10.0
-# Nombre de caractères de fin de log envoyés (le crash/gel est toujours la
-# dernière chose écrite avant l'arrêt) ; le backend retronque de toute façon
-# à ~950 caractères pour tenir dans un field Discord, cette marge sert juste
-# à ne pas lire un fichier de log entier en mémoire si énorme.
-const LOG_TAIL_CHARS := 20000
+# Le log COMPLET est envoyé (pas seulement sa fin) : le backend le joint en
+# pièce jointe .txt sur Discord, pour permettre de repérer d'autres erreurs
+# plus tôt dans la session, pas seulement celle qui a précédé l'arrêt. Borne
+# large, juste pour éviter de lire un fichier pathologiquement énorme en
+# mémoire (un vrai log de session atteint rarement plus de quelques Mo).
+const LOG_MAX_CHARS := 5_000_000
+# SteamID64 (toujours 17 chiffres) : apparaît dans les logs de démarrage
+# GodotSteam ("Caching Steam ID: ..."). Masqué avant tout envoi, le log
+# n'ayant sinon aucune raison de contenir un identifiant joueur.
+const _STEAM_ID_REGEX := "\\b\\d{17}\\b"
 
 var _pending_report: bool = false
 var _pending_timestamp: float = 0.0
@@ -98,7 +103,12 @@ func _find_previous_log_path() -> String:
 	dir.list_dir_end()
 	return best_path
 
-func get_previous_log_tail() -> String:
+func _redact_sensitive(text: String) -> String:
+	var regex := RegEx.new()
+	regex.compile(_STEAM_ID_REGEX)
+	return regex.sub(text, "[SteamID masqué]", true)
+
+func get_previous_log_full() -> String:
 	var path := _find_previous_log_path()
 	if path == "":
 		return ""
@@ -107,22 +117,22 @@ func get_previous_log_tail() -> String:
 		return ""
 	var content := file.get_as_text()
 	file.close()
-	if content.length() > LOG_TAIL_CHARS:
-		content = content.substr(content.length() - LOG_TAIL_CHARS)
-	return content
+	if content.length() > LOG_MAX_CHARS:
+		content = content.substr(content.length() - LOG_MAX_CHARS)
+	return _redact_sensitive(content)
 
 # comment : ce que le joueur faisait au moment du problème, saisi librement
 # dans la popup (peut être vide) — remplace le choix Plantage/Gel, que cette
 # détection ne peut de toute façon pas distinguer automatiquement.
 func send_report(comment: String, on_complete: Callable = Callable()) -> void:
-	var log_tail := get_previous_log_tail()
+	var log_full := get_previous_log_full()
 	var steam_name := SteamService.local_persona_name()
 	var reporter_name := steam_name if steam_name != "" else "anonyme"
 	var body := {
 		"platform": "%s %s" % [OS.get_name(), OS.get_version()],
 		"gameVersion": Engine.get_version_info().get("string", "inconnue"),
 		"reporterName": reporter_name,
-		"log": log_tail,
+		"log": log_full,
 		"comment": comment,
 	}
 	BackendClient.request(HTTPClient.METHOD_POST, "/api/crash-report", body, func(code: int, _parsed: Variant):

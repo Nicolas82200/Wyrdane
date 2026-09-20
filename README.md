@@ -333,6 +333,15 @@ Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré ex
 
 La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
 
+### 📊 Statistiques & classement (menu principal)
+
+Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans `BottomCenterRow` du menu principal) — lecture seule, deux sections :
+
+- **Cartes les plus jouées** — taux de jeu et winrate par carte, calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement** (double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) : le solo IA et un rapport orphelin (pair jamais confirmé) n'y contribuent jamais. `Battle.track_card_played_for_quests` alimente `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race déjà existant, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`) puis exposé via `GET /api/ranked/stats/cards/top`. Une carte n'apparaît que si jouée dans au moins 20 matchs classés confirmés — sous ce seuil, exclue plutôt que d'afficher un winrate non significatif. Sert de signal d'équilibrage.
+- **Classement** — top 100 joueurs par MMR (`GET /api/ranked/leaderboard`, route déjà existante côté backend pour le profil mais pas encore affichée en jeu avant ce chantier), joueur local mis en surbrillance s'il y figure.
+
+Contrat détaillé : `docs/backend-contracts/card-stats-and-leaderboard.md`.
+
 ### 💰 Économie (méta-jeu, monnaie molle)
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
@@ -357,6 +366,8 @@ XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 +
 | Tout autre niveau | Or croissant sur la série de 4 niveaux entre deux paliers carte/pack : 25, puis 50, 75, 100 — retombe à 25 dès le niveau suivant une carte/un pack |
 
 Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
+
+**Popup de récompenses de niveau** : cliquer sur le niveau de compte (« Niveau N », sous le pseudo dans `PlayerStatusPanel`) ouvre une popup dédiée (`LevelRewardsPanel.gd`) listant, avec défilement, la récompense de chaque niveau — y compris les niveaux pas encore atteints (catalogue calculé côté backend jusqu'à `max(60, niveau actuel + 10)`, toujours un peu au-delà du niveau réel). L'octroi (crédit d'or/carte/pack) reste immédiat et automatique au franchissement du niveau, comme ci-dessus : la popup ne fait que lister ce qui a déjà été journalisé et laisser le joueur marquer chaque ligne comme « vue » (bouton, se grise une fois cliqué) — un simple accusé de réception, aucun nouveau crédit. Un bouton « Tout récupérer » marque en un seul appel réseau toutes les lignes réclamables ; un bouton « Niveau actuel » recentre le défilement sur le niveau du joueur. Un niveau franchi avant l'introduction de cette popup (2026-09) n'a pas de ligne journalisée côté backend : affiché comme déjà acquis, rien à réclamer.
 
 **Autres gains**
 | Source | Montant | Limite |

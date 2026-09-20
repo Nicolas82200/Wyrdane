@@ -166,12 +166,15 @@ var hand_cards: Array[CardData]  = []
 # Suivi des quêtes quotidiennes de race (voir README « Économie »/CLAUDE.md) :
 # deck_races est figé au chargement du deck (DeckSystem.load_deck), avant
 # tirage, pour refléter la composition du deck entier — pas seulement les
-# cartes piochées. cards_played_by_race n'incrémente que sur les cartes
-# jouées par le joueur local (voir CardSystem.gd/play_resource_card), jamais
-# celles de l'IA/adversaire. Reportés une fois au backend en fin de match par
-# MatchResultReporter.
+# cartes piochées. cards_played_by_race/cards_played_names n'incrémentent que
+# sur les cartes jouées par le joueur local (voir CardSystem.gd/play_resource_card),
+# jamais celles de l'IA/adversaire. Reportés une fois au backend en fin de
+# match par MatchResultReporter (cards_played_names uniquement pour un match
+# classé, voir docs/backend-contracts/card-stats-and-leaderboard.md — pas de
+# valeur statistique pour un match solo contre l'IA).
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
+var cards_played_names: Array[String] = []
 # Compteurs de succès Steam (voir AchievementManager) accumulés au fil du
 # match courant, consultés/déclenchés depuis Battle._show_game_over.
 var player_resource_cards_played: int = 0
@@ -195,6 +198,7 @@ var match_start_msec: int = 0
 var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
+	cards_played_names.append(card_data.card_name)
 	if card_data.race == Race.Type.NONE:
 		return
 	var race_name := Race.get_race_name(card_data.race)
@@ -875,7 +879,7 @@ func _show_game_over(result: String) -> void:
 		})
 		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races, net_match_session_token)
+			cards_played_by_race, deck_races, net_match_session_token, cards_played_names)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:

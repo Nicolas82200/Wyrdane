@@ -134,7 +134,16 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		if on_complete.is_valid():
 			var parsed = null
 			if response_body.size() > 0:
-				parsed = JSON.parse_string(response_body.get_string_from_utf8())
+				var text := response_body.get_string_from_utf8()
+				# Certaines routes répondent 200 avec un corps texte brut (ex.
+				# res.sendStatus(200) -> "OK", voir POST /api/reports) plutôt
+				# que du JSON : ne tenter le parse que si ça y ressemble, pour
+				# éviter le spam d'erreur "Parse JSON failed" côté moteur —
+				# parsed reste null dans les deux cas, comportement inchangé
+				# pour les appelants (déjà tous tolérants à un null/non-Dictionary).
+				var trimmed := text.strip_edges()
+				if trimmed.begins_with("{") or trimmed.begins_with("["):
+					parsed = JSON.parse_string(text)
 			on_complete.call(response_code, parsed)
 	)
 
@@ -165,17 +174,40 @@ func get_profile(on_profile: Callable) -> void:
 # omis du payload plutôt qu'envoyé vide.
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "") -> void:
+		match_session_token: String = "", cards_played_names: Array = []) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
+		"cardsPlayed": cards_played_names,
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# ─── Statistiques cartes / classement ───────────────────────────────────────
+# Contrat détaillé : docs/backend-contracts/card-stats-and-leaderboard.md
+func get_card_stats(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/stats/cards/top", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed.get("cards", []))
+		else:
+			on_complete.call(false, [])
+	)
+
+# Route déjà existante côté backend (rankedController.getLeaderboardHandler),
+# pas une nouveauté de ce chantier — retourne un tableau brut de lignes
+# { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite
+# (calculé côté client depuis la position dans le tableau, voir StatsPanel).
+func get_leaderboard(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard?limit=100", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
@@ -252,6 +284,29 @@ func get_login_reward_status(on_data: Callable) -> void:
 # on_data appelé avec (success, {streak_day, reward_currency, balance}).
 func claim_login_reward(on_data: Callable) -> void:
 	request(HTTPClient.METHOD_POST, "/api/login-reward/claim", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# ─── Récompenses de niveau (popup dédiée, voir LevelRewardsPopup) ──────────
+# Contrat détaillé : voir « Popup de récompenses de niveau » dans le
+# CLAUDE.md de wyrdane-backend.
+
+# on_data appelé avec (success, {level, catalog: [{level, kind, rarity?,
+# gold?}], rewards: [{level, type, gold, claimed}]}).
+func get_level_rewards(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/level/rewards", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed: Array[int]}).
+func claim_level_rewards(levels: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/level/rewards/claim", {"levels": levels}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
 			on_data.call(true, parsed)
 		else:

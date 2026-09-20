@@ -359,7 +359,14 @@ func start_ranked() -> void:
 func _on_banner_cancel_pressed() -> void:
 	match _search_mode:
 		"ranked":
-			_cancel_ranked_search(true)
+			# manual: false — on ferme le bandeau immédiatement (voir plus bas)
+			# plutôt que de laisser traîner le message "Recherche annulée"
+			# pendant BANNER_MESSAGE_DURATION : le joueur vient de cliquer sur
+			# Annuler, inutile de le lui confirmer par un texte qui reste seul
+			# affiché (mode/minuteur déjà masqués à cet instant) — ça se voyait
+			# comme un bandeau vide pendant quelques secondes.
+			_cancel_ranked_search(false)
+			_show_search_banner(false)
 		"normal", "invite":
 			_quick_matching = false
 			_set_search_mode("")
