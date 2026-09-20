@@ -62,7 +62,7 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 # parrainage, niveau) : une fois en stock, un pack acheté et un pack gagné
 # s'ouvrent exactement pareil, voir open_owned_pack ci-dessous. L'achat
 # n'ouvre donc plus rien lui-même (voir PackShop.gd/ShopBuyPacksPanel.gd) —
-# l'ouverture se fait à part, depuis l'onglet Collection.
+# l'ouverture se fait à part, depuis la vue Collection.
 func buy_packs(quantity: int, on_complete: Callable = Callable()) -> void:
 	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/buy", {"quantity": quantity}, func(code: int, parsed) -> void:
 		var success := code == 200 and parsed is Dictionary

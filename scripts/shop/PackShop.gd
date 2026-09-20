@@ -6,16 +6,16 @@ class_name PackShop
 # créditer CurrencyManager.free_packs sans jamais tirer de carte. Cet écran,
 # lui, consomme ce stock (CurrencyManager.open_owned_pack, cartes aléatoires
 # pondérées par rareté — voir POST /api/packs/open-owned côté wyrdane-backend)
-# et anime la révélation. Appelé depuis l'onglet Collection (voir
+# et anime la révélation. Appelé depuis la vue Collection (voir
 # ShopCollectionPanel.gd/MainMenu.gd) via open_owned(quantity), 1/2/5/10 packs
 # à la fois : l'API n'ouvrant qu'un pack par requête, le client enchaîne les
 # appels puis révèle toutes les cartes dans une seule séquence.
 
 # Émis quand le joueur ferme l'écran via la croix (le nœud se contente de se
 # masquer lui-même — voir close_x_button plus bas) : permet à l'appelant
-# (MainMenu, qui affiche PackShop par-dessus l'onglet Collection de la
-# Boutique le temps d'une ouverture — voir _open_owned_packs_flow) de
-# réafficher l'onglet Collection à jour au lieu de laisser l'écran vide.
+# (MainMenu, qui affiche PackShop par-dessus la vue Collection le temps d'une
+# ouverture — voir _open_owned_packs_flow) de réafficher la vue Collection à
+# jour au lieu de laisser l'écran vide.
 signal closed
 
 @export var card_scene: PackedScene
@@ -191,7 +191,7 @@ func _set_action_buttons_disabled(disabled: bool) -> void:
 ## (CurrencyManager.free_packs — achetés en Boutique ou gagnés gratuitement,
 ## le stock ne distingue plus l'origine une fois crédité) puis révèle toutes
 ## les cartes tirées dans une seule séquence. Appelé par MainMenu quand le
-## joueur choisit 1/2/5/10 depuis l'onglet Collection ; borné au stock réel
+## joueur choisit 1/2/5/10 depuis la vue Collection ; borné au stock réel
 ## pour ignorer un double-clic ou un stock qui a changé entretemps. Si un
 ## appel échoue en cours de route, les cartes déjà obtenues sont tout de même
 ## révélées.
