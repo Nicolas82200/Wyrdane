@@ -100,6 +100,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
 @onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
 @onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/PackShop
+@onready var shop_buy_packs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll
+@onready var shop_buy_packs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll/BuyPacksSection
 @onready var shop_card_backs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll
 @onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
 @onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
@@ -221,10 +223,11 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
-	# Pas d'écran séparé pour les packs : l'onglet "Packs" affiche directement
-	# PackShop (déjà conçu pour être embarqué comme simple vue, voir son
-	# commentaire d'en-tête) plutôt que de mener à un panneau à part.
-	pack_shop.close_x_button.hide()
+	# PackShop n'est plus embarqué comme vue permanente d'un onglet : c'est
+	# l'écran d'ouverture (voir son commentaire d'en-tête), affiché par-dessus
+	# ShopContentRoot uniquement quand le joueur choisit une quantité à ouvrir
+	# depuis l'onglet Collection (voir _open_owned_packs_flow ci-dessous).
+	pack_shop.closed.connect(_on_pack_opening_closed)
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
 	shop_collection_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.COLLECTION))
@@ -429,31 +432,51 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 		var btn: BaseButton = _nav_active_buttons[v]
 		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
 
-# --- Boutique : mini-navbar Packs / Dos de cartes -------------------------
-# Deux onglets à l'intérieur de la même vue (InfoView.SHOP) : Packs affiche
-# directement PackShop (déjà conçu pour être embarqué comme simple vue plutôt
-# que comme overlay plein écran, voir son commentaire d'en-tête) et Dos de
-# cartes une simple grille — aucun des deux n'a besoin de sa propre InfoView.
+# --- Boutique : mini-navbar Packs / Dos de cartes / Collection ------------
+# Trois onglets à l'intérieur de la même vue (InfoView.SHOP), chacun une
+# simple grille/panneau construit dans un conteneur dédié — aucun n'a besoin
+# de sa propre InfoView. "Packs" = achat de packs uniquement (voir
+# ShopBuyPacksPanel.gd) ; "Collection" = stock de packs à ouvrir (voir
+# ShopCollectionPanel.gd) — l'écran d'ouverture PackShop lui-même n'est pas un
+# onglet, voir _open_owned_packs_flow.
 var _shop_tab: ShopTab = ShopTab.PACKS
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
-	pack_shop.visible = tab == ShopTab.PACKS
+	shop_buy_packs_scroll.visible = tab == ShopTab.PACKS
 	shop_card_backs_scroll.visible = tab == ShopTab.CARD_BACKS
 	shop_collection_scroll.visible = tab == ShopTab.COLLECTION
 	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
 	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
 	shop_collection_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.COLLECTION else Color.WHITE
 	if tab == ShopTab.PACKS:
-		if pack_shop.has_method("refresh"):
-			pack_shop.refresh()
+		# Reconstruit à chaque affichage pour refléter le solde d'or à jour.
+		ShopBuyPacksPanel.build_into(shop_buy_packs_section, func(): _select_shop_tab(ShopTab.PACKS))
 	elif tab == ShopTab.CARD_BACKS:
 		# Reconstruit à chaque affichage pour refléter la sélection courante.
 		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
 	elif tab == ShopTab.COLLECTION:
-		# Reconstruit à chaque affichage pour refléter la collection à jour
-		# (achat de carte, ouverture de pack depuis le dernier passage).
-		ShopCollectionPanel.build_into(shop_collection_section)
+		# Reconstruit à chaque affichage pour refléter le stock de packs à jour
+		# (achat en Boutique, ouverture depuis le dernier passage).
+		ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow)
+
+## Lance l'ouverture de `quantity` packs depuis l'onglet Collection : masque la
+## grille de l'onglet (sans quoi ses boutons resteraient cliquables sous
+## l'écran d'ouverture, qui ne bloque pas lui-même les clics en dessous — voir
+## PackShop.tscn, Overlay/ShakeLayer en mouse_filter IGNORE) et affiche
+## PackShop par-dessus ShopContentRoot pour l'animation de révélation.
+func _open_owned_packs_flow(quantity: int) -> void:
+	shop_collection_scroll.hide()
+	pack_shop.close_x_button.show()
+	pack_shop.show()
+	pack_shop.open_owned(quantity)
+
+## Referme l'écran d'ouverture (clic sur la croix) : revient sur l'onglet
+## Collection, reconstruit pour refléter le stock de packs restant.
+func _on_pack_opening_closed() -> void:
+	if _shop_tab == ShopTab.COLLECTION:
+		shop_collection_scroll.show()
+		ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow)
 
 # Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
 # menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
