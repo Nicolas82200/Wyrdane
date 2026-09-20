@@ -367,6 +367,8 @@ XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 +
 
 Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
 
+**Popup de récompenses de niveau** : cliquer sur le niveau de compte (« Niveau N », sous le pseudo dans `PlayerStatusPanel`) ouvre une popup dédiée (`LevelRewardsPanel.gd`) listant, avec défilement, la récompense de chaque niveau — y compris les niveaux pas encore atteints (catalogue calculé côté backend jusqu'à `max(60, niveau actuel + 10)`, toujours un peu au-delà du niveau réel). L'octroi (crédit d'or/carte/pack) reste immédiat et automatique au franchissement du niveau, comme ci-dessus : la popup ne fait que lister ce qui a déjà été journalisé et laisser le joueur marquer chaque ligne comme « vue » (bouton, se grise une fois cliqué) — un simple accusé de réception, aucun nouveau crédit. Un bouton « Tout récupérer » marque en un seul appel réseau toutes les lignes réclamables ; un bouton « Niveau actuel » recentre le défilement sur le niveau du joueur. Un niveau franchi avant l'introduction de cette popup (2026-09) n'a pas de ligne journalisée côté backend : affiché comme déjà acquis, rien à réclamer.
+
 **Autres gains**
 | Source | Montant | Limite |
 |---|---|---|

@@ -1571,6 +1571,106 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Réclamer"
 
+[node name="LevelRewardsPopup" type="Control" parent="." unique_id=900000200]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="LevelRewardsBackdrop" type="ColorRect" parent="LevelRewardsPopup" unique_id=900000201]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="LevelRewardsPanel" type="PanelContainer" parent="LevelRewardsPopup" unique_id=900000202]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -300.0
+offset_right = 230.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="LevelRewardsMargin" type="MarginContainer" parent="LevelRewardsPopup/LevelRewardsPanel" unique_id=900000203]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="LevelRewardsVBox" type="VBoxContainer" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin" unique_id=900000204]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LevelRewardsHeaderRow" type="HBoxContainer" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox" unique_id=900000205]
+layout_mode = 2
+
+[node name="LevelRewardsTitleLabel" type="Label" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow" unique_id=900000206]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 22
+text = "Récompenses de niveau"
+
+[node name="LevelRewardsBackButton" type="Button" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow" unique_id=900000207]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Retour"
+
+[node name="LevelRewardsStatusLabel" type="Label" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox" unique_id=900000208]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+horizontal_alignment = 1
+text = "Chargement..."
+
+[node name="LevelRewardsScroll" type="ScrollContainer" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox" unique_id=900000209]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LevelRewardsListVBox" type="VBoxContainer" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsScroll" unique_id=900000210]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="LevelRewardsBottomRow" type="HBoxContainer" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox" unique_id=900000211]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LevelRewardsClaimAllButton" type="Button" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow" unique_id=900000212]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
+theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
+text = "Tout récupérer"
+
+[node name="LevelRewardsGoToCurrentButton" type="Button" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow" unique_id=900000213]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Niveau actuel"
+
 [node name="CrashReportPopup" type="Control" parent="." unique_id=400000019]
 visible = false
 layout_mode = 1
