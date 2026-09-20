@@ -28,11 +28,13 @@ func is_active() -> bool:
 func can_activate(minion: Minion) -> bool:
 	if minion == null or not minion.owner_is_player or minion.is_dead():
 		return false
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target or battle.is_resolving_effects():
 		return false
 	if _active or battle.targeting_system.is_targeting() or battle.sacrifice_system.is_active():
 		return false
 	if not minion.has_abomination_keyword(KeywordAbomination.Type.FUSION):
+		return false
+	if minion.fusion_used:
 		return false
 	return not _valid_victims(minion).is_empty()
 
@@ -76,6 +78,7 @@ func _is_valid_victim(source: Minion, victim: Minion) -> bool:
 # ─── Exécution ────────────────────────────────────────────────────────────────
 
 func _execute(source: Minion, victim: Minion) -> void:
+	battle.afk_guard.notify_local_action()
 	var options: Array = _collect_keyword_choices(victim)
 	var chosen: Dictionary = {}
 	if options.size() == 1:
@@ -109,6 +112,12 @@ func _execute(source: Minion, victim: Minion) -> void:
 func apply_fusion(source: Minion, victim: Minion, pool: String, keyword: int) -> void:
 	if source == null or victim == null or source.is_dead() or victim.is_dead():
 		return
+	# Une seule fusion par serviteur posé : marqué avant même le traitement des
+	# morts (process_deaths peut invoquer un serviteur via Dernier Souffle, et
+	# ce nouveau serviteur ne doit jamais hériter d'un état "déjà fusionné").
+	if source.fusion_used:
+		return
+	source.fusion_used = true
 	var remaining_attack: int = victim.attack
 	var remaining_health: int = victim.health
 	victim.sacrificed = true

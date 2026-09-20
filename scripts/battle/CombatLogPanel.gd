@@ -18,10 +18,24 @@ const PANEL_WIDTH   := 260.0
 const VERTICAL_GAP  := 16.0  # marge par rapport au mana adverse (haut) et à la main (bas)
 const ANIM_TIME     := 0.25
 const THUMB_SIZE    := Vector2(58, 80)
+const BADGE_SIZE    := Vector2(26, 26)
 const COLOR_PLAYER  := Color("4CE071")
 const COLOR_ENEMY   := Color("FF4D4D")
 const COLOR_NEUTRAL := Color("d8c9a3")
 const COLOR_DEAD_TINT := Color(0.32, 0.32, 0.32, 1.0)
+const COLOR_DAMAGE  := Color("FF6B4A")
+
+# Un badge par type d'évènement (voir CombatLogSystem._add) : glyphe + teinte
+# de fond dérivée du camp acteur, pour reconnaître le type de ligne d'un coup
+# d'œil sans lire le texte (à la manière du journal de combat de Hearthstone).
+const EVENT_GLYPHS := {
+	"play_minion": "▶",
+	"play_spell":  "✦",
+	"attack":      "⚔",
+	"death":       "☠",
+	"infection":   "☣",
+	"self_damage": "⚡",
+}
 
 var battle
 var combat_log: CombatLogSystem
@@ -134,6 +148,7 @@ func _build_panel() -> void:
 
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list.add_theme_constant_override("separation", 3)
 	_scroll.add_child(_list)
 
 	_wrapper.add_child(_panel)
@@ -177,31 +192,141 @@ func _on_entry_added(entry: Dictionary) -> void:
 	else:
 		_badge.visible = true
 
-# Construit une ligne du journal de combat à partir d'une entrée
-# (icône + segments, voir CombatLogSystem._add) — statique et réutilisable en
-# dehors de ce panneau (voir MatchReplayView, écran "Voir le replay" affiché
-# juste après une partie).
+# Construit une ligne du journal de combat à partir d'une entrée (voir
+# CombatLogSystem._add/turn_started) — statique et réutilisable en dehors de
+# ce panneau (voir MatchReplayView, écran "Voir le replay" affiché juste
+# après une partie).
 static func make_entry_row(entry: Dictionary) -> Control:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 5)
+	if entry.get("kind") == "turn":
+		return _make_turn_row(entry)
+	return _make_event_row(entry)
 
-	var icon_label := Label.new()
-	icon_label.text = entry["icon"]
-	icon_label.add_theme_font_size_override("font_size", 22)
-	row.add_child(icon_label)
+# Séparateur "— Tour N —" entre deux tours, coloré par le camp qui commence
+# son tour : repère indispensable pour situer une action dans le temps en
+# faisant défiler l'historique, à la manière des marqueurs de tour Hearthstone.
+static func _make_turn_row(entry: Dictionary) -> Control:
+	var color := _segment_color(entry.get("is_player"))
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 2)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	margin.add_child(row)
+
+	var line_style := StyleBoxLine.new()
+	line_style.color = color
+	line_style.thickness = 1
+
+	var left_line := HSeparator.new()
+	left_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_line.add_theme_stylebox_override("separator", line_style)
+	row.add_child(left_line)
+
+	var label := Label.new()
+	label.text = SettingsManager.t("battle.log.turn_marker") % entry.get("turn_number", 0)
+	label.add_theme_font_override("font", FONT_BOLD)
+	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_color_override("font_color", color)
+	row.add_child(label)
+
+	var right_line := HSeparator.new()
+	right_line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_line.add_theme_stylebox_override("separator", line_style)
+	row.add_child(right_line)
+
+	return margin
+
+# Ligne d'évènement : badge d'icône (teinté par le camp acteur) + segments,
+# le tout posé sur un fond légèrement teinté du même camp pour repérer en un
+# coup d'œil "qui" a fait l'action avant même de lire les vignettes.
+static func _make_event_row(entry: Dictionary) -> Control:
+	var actor_color := _segment_color(entry.get("actor_is_player"))
+
+	var frame := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color              = Color(actor_color, 0.10)
+	style.border_width_left     = 3
+	style.border_color          = actor_color
+	style.content_margin_left   = 6
+	style.content_margin_right  = 4
+	style.content_margin_top    = 3
+	style.content_margin_bottom = 3
+	style.corner_radius_top_right    = 4
+	style.corner_radius_bottom_right = 4
+	frame.add_theme_stylebox_override("panel", style)
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	frame.add_child(row)
+
+	row.add_child(_make_icon_badge(entry.get("icon", ""), actor_color))
 
 	for segment in entry["segments"]:
-		if segment["type"] == "card":
-			row.add_child(_make_card_thumb(segment))
-		else:
-			var seg_label := Label.new()
-			seg_label.text = segment["text"]
-			seg_label.add_theme_font_override("font", FONT_REGULAR)
-			seg_label.add_theme_font_size_override("font_size", 18)
-			seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
-			row.add_child(seg_label)
+		match segment["type"]:
+			"card":
+				row.add_child(_make_card_thumb(segment))
+			"hero":
+				row.add_child(_make_hero_label(segment))
+			"dmg":
+				row.add_child(_make_dmg_label(segment))
+			_:
+				var seg_label := Label.new()
+				seg_label.text = segment["text"]
+				seg_label.add_theme_font_override("font", FONT_REGULAR)
+				seg_label.add_theme_font_size_override("font_size", 18)
+				seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
+				row.add_child(seg_label)
 
-	return row
+	return frame
+
+# Badge circulaire coloré par camp portant le glyphe du type d'évènement
+# (voir EVENT_GLYPHS) — permet de reconnaître "attaque"/"mort"/"infection"...
+# sans avoir à lire les vignettes de carte.
+static func _make_icon_badge(icon: String, color: Color) -> Control:
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = BADGE_SIZE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(color, 0.22)
+	style.border_width_top    = 2
+	style.border_width_bottom = 2
+	style.border_width_left   = 2
+	style.border_width_right  = 2
+	style.border_color = color
+	style.corner_radius_top_left     = int(BADGE_SIZE.x / 2)
+	style.corner_radius_top_right    = int(BADGE_SIZE.x / 2)
+	style.corner_radius_bottom_left  = int(BADGE_SIZE.x / 2)
+	style.corner_radius_bottom_right = int(BADGE_SIZE.x / 2)
+	badge.add_theme_stylebox_override("panel", style)
+
+	var glyph := Label.new()
+	glyph.text = EVENT_GLYPHS.get(icon, "?")
+	glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	glyph.add_theme_font_size_override("font_size", 15)
+	glyph.add_theme_color_override("font_color", color)
+	badge.add_child(glyph)
+
+	return badge
+
+# Segment "héros" : cœur coloré par camp plutôt qu'une lettre "H" ambiguë.
+static func _make_hero_label(segment: Dictionary) -> Control:
+	var label := Label.new()
+	label.text = "♥"
+	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
+	return label
+
+# Segment "dégâts" : toujours en rouge vif et gras, indépendamment du camp
+# qui les inflige/subit — c'est le chiffre qui doit sauter aux yeux.
+static func _make_dmg_label(segment: Dictionary) -> Control:
+	var label := Label.new()
+	label.text = segment["text"]
+	label.add_theme_font_override("font", FONT_BOLD)
+	label.add_theme_font_size_override("font_size", 19)
+	label.add_theme_color_override("font_color", COLOR_DAMAGE)
+	return label
 
 # Miniature de l'illustration de la carte, encadrée d'une bordure colorée par
 # camp (verte = vous, rouge = adversaire) — le nom reste accessible en tooltip.

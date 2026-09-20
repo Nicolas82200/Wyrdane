@@ -64,7 +64,7 @@ static func open(menu) -> void:
 		if not code_success:
 			status_label.text = SettingsManager.t("REFERRAL_UNAVAILABLE")
 			return
-		var code := String(code_data.get("code", ""))
+		var code := str(code_data.get("code", ""))
 		copy_button.disabled = code.is_empty()
 		copy_button.pressed.connect(func():
 			DisplayServer.clipboard_set(INVITE_LINK_PREFIX + code)
@@ -100,12 +100,18 @@ static func _fetch_status(menu, section: VBoxContainer, status_label: Label, cod
 		if not success:
 			status_label.text = SettingsManager.t("REFERRAL_UNAVAILABLE")
 			return
-		var status := String(data.get("status", "none"))
+		var status := str(data.get("status", "none"))
+		# referred_username peut être explicitement null côté backend (compte
+		# filleul supprimé après coup) même avec un statut pending/completed —
+		# ne jamais appeler String() dessus directement (plante sur null comme
+		# sur un nombre JSON, voir QuestsPanel._get_str).
+		var referred_username = data.get("referred_username", "")
+		var referred_username_str := "" if referred_username == null else str(referred_username)
 		match status:
 			"pending":
-				status_label.text = SettingsManager.t("REFERRAL_STATUS_PENDING") % String(data.get("referred_username", ""))
+				status_label.text = SettingsManager.t("REFERRAL_STATUS_PENDING") % referred_username_str
 			"completed":
-				status_label.text = SettingsManager.t("REFERRAL_STATUS_COMPLETED") % String(data.get("referred_username", ""))
+				status_label.text = SettingsManager.t("REFERRAL_STATUS_COMPLETED") % referred_username_str
 			_:
 				status_label.text = SettingsManager.t("REFERRAL_STATUS_NONE") % code
 	)
@@ -129,7 +135,7 @@ static func maybe_show_first_launch_prompt(menu) -> void:
 	BackendClient.get_referral_status(func(success: bool, data: Dictionary):
 		if not success:
 			return
-		if String(data.get("status", "none")) != "none":
+		if str(data.get("status", "none")) != "none":
 			SettingsManager.mark_referral_prompt_seen()
 			return
 		_show_first_launch_popup(menu)

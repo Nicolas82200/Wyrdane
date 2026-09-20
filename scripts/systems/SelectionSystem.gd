@@ -15,7 +15,7 @@ func init(_battle) -> void:
 # ─── Sélection joueur ─────────────────────────────────────────────────────────
 
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or not minion.can_attack():
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects() or not minion.can_attack():
 		return
 	# Clic destiné au ciblage (sort/effet) ou au choix d'une victime de
 	# Sacrifice/FUSION : pas une sélection d'attaquant.
@@ -57,7 +57,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 # ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
 func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects():
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -78,7 +78,7 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 	await battle.check_auto_pass_turn()
 
 func on_enemy_hero_clicked() -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects():
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():

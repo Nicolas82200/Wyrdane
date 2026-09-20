@@ -8,6 +8,10 @@ extends Node
 # nous-mêmes en header Cookie sur chaque appel.
 #
 const API_URL = "https://api.wyrdane.com"
+# Sans timeout, un backend qui ne répond jamais laisse request_completed ne
+# jamais se déclencher : l'appelant (ex. QuestsPanel, GameOverScreen) reste
+# bloqué indéfiniment et le HTTPRequest orphelin n'est jamais libéré.
+const REQUEST_TIMEOUT_SECONDS := 15.0
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en
@@ -77,6 +81,7 @@ func _send_ticket_to_backend(ticket_hex: String) -> void:
 	var body := JSON.stringify({"ticket": ticket_hex})
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 	http.request_completed.connect(_on_login_response.bind(http))
 	var err := http.request(
 		API_URL + "/api/auth/steam",
@@ -112,6 +117,7 @@ func _extract_cookie(headers: PackedStringArray) -> String:
 func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_complete: Callable = Callable()) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
+	http.timeout = REQUEST_TIMEOUT_SECONDS
 
 	# X-Requested-With : exigé par le backend (middleware/csrf.ts) sur toute
 	# route authentifiée par cookie, pour forcer un préflight CORS qu'un
@@ -128,7 +134,16 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		if on_complete.is_valid():
 			var parsed = null
 			if response_body.size() > 0:
-				parsed = JSON.parse_string(response_body.get_string_from_utf8())
+				var text := response_body.get_string_from_utf8()
+				# Certaines routes répondent 200 avec un corps texte brut (ex.
+				# res.sendStatus(200) -> "OK", voir POST /api/reports) plutôt
+				# que du JSON : ne tenter le parse que si ça y ressemble, pour
+				# éviter le spam d'erreur "Parse JSON failed" côté moteur —
+				# parsed reste null dans les deux cas, comportement inchangé
+				# pour les appelants (déjà tous tolérants à un null/non-Dictionary).
+				var trimmed := text.strip_edges()
+				if trimmed.begins_with("{") or trimmed.begins_with("["):
+					parsed = JSON.parse_string(text)
 			on_complete.call(response_code, parsed)
 	)
 
@@ -153,15 +168,46 @@ func get_profile(on_profile: Callable) -> void:
 # voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
+# match_session_token : preuve d'appariement classé émise par le backend au
+# matchmaking (voir MatchmakingOverlay._on_ranked_matched, TODO.md P9) — vide
+# pour une Partie rapide/Contre un ami, dans quel cas le champ est simplement
+# omis du payload plutôt qu'envoyé vide.
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
-		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable()) -> void:
-	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", {
+		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
+		match_session_token: String = "", cards_played_names: Array = []) -> void:
+	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
-	}, on_complete)
+		"cardsPlayed": cards_played_names,
+	}
+	if match_session_token != "":
+		payload["matchSessionToken"] = match_session_token
+	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# ─── Statistiques cartes / classement ───────────────────────────────────────
+# Contrat détaillé : docs/backend-contracts/card-stats-and-leaderboard.md
+func get_card_stats(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/stats/cards/top", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed.get("cards", []))
+		else:
+			on_complete.call(false, [])
+	)
+
+# Route déjà existante côté backend (rankedController.getLeaderboardHandler),
+# pas une nouveauté de ce chantier — retourne un tableau brut de lignes
+# { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite
+# (calculé côté client depuis la position dans le tableau, voir StatsPanel).
+func get_leaderboard(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard?limit=100", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
@@ -244,6 +290,29 @@ func claim_login_reward(on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Récompenses de niveau (popup dédiée, voir LevelRewardsPopup) ──────────
+# Contrat détaillé : voir « Popup de récompenses de niveau » dans le
+# CLAUDE.md de wyrdane-backend.
+
+# on_data appelé avec (success, {level, catalog: [{level, kind, rarity?,
+# gold?}], rewards: [{level, type, gold, claimed}]}).
+func get_level_rewards(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/level/rewards", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed: Array[int]}).
+func claim_level_rewards(levels: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/level/rewards/claim", {"levels": levels}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # ─── Quêtes hebdomadaires & parrainage ──────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
 # docs/backend-contracts/weekly-quests-and-referral.md
@@ -318,7 +387,12 @@ func redeem_referral_code(code: String, on_data: Callable) -> void:
 		if response_code == 200:
 			on_data.call(true, "")
 		else:
-			var error_code := String(parsed.get("error", "")) if parsed is Dictionary else ""
+			# str() plutôt que String() : le constructeur String() plante sur un
+			# type non-String (ex. un nombre JSON, toujours désérialisé en float
+			# par JSON.parse_string) — voir QuestsPanel._get_str pour le même
+			# correctif appliqué au même risque côté quêtes.
+			var raw_error = parsed.get("error", "") if parsed is Dictionary else ""
+			var error_code := "" if raw_error == null else str(raw_error)
 			on_data.call(false, error_code)
 	)
 

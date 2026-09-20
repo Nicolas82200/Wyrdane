@@ -36,9 +36,11 @@ func _find_group_of_three(player: ArenaPlayerState) -> Array:
 func _merge_group(player: ArenaPlayerState, group: Array) -> Minion:
 	var total_attack := 0
 	var total_health := 0
+	var total_corruption := 0
 	for m in group:
 		total_attack += (m as Minion).base_attack
 		total_health += (m as Minion).base_max_health
+		total_corruption += (m as Minion).corruption_stacks
 	var star_level := 2
 	var card_data: CardData = (group[0] as Minion).card_data
 
@@ -49,9 +51,29 @@ func _merge_group(player: ArenaPlayerState, group: Array) -> Minion:
 	merged.base_attack = total_attack
 	merged.base_max_health = total_health
 	merged.star_level = star_level
+	# Mots-clés dynamiquement accordés en jeu (GrantKeyword, absorption FUSION)
+	# sur les 3 copies sources : Minion.new() ne peuple que les mots-clés de
+	# base de la carte, pas ceux gagnés depuis — union des trois pour ne pas
+	# les perdre silencieusement à la fusion (même problème et même solution
+	# que GhostBoard._clone).
+	for m in group:
+		var src := m as Minion
+		merged.keywords = _merge_keyword_array(merged.keywords, src.keywords)
+		merged.human_keywords = _merge_keyword_array(merged.human_keywords, src.human_keywords)
+		merged.undead_keywords = _merge_keyword_array(merged.undead_keywords, src.undead_keywords)
+		merged.demon_keywords = _merge_keyword_array(merged.demon_keywords, src.demon_keywords)
+		merged.abomination_keywords = _merge_keyword_array(merged.abomination_keywords, src.abomination_keywords)
+	merged.corruption_stacks = total_corruption
 	# Toujours en main, même si une ou plusieurs sources étaient sur le
 	# plateau (exception explicite à "jamais de retour en main", README).
 	player.add_to_hand(merged)
+	return merged
+
+func _merge_keyword_array(current: Array[int], extra: Array[int]) -> Array[int]:
+	var merged: Array[int] = current.duplicate()
+	for kw in extra:
+		if kw not in merged:
+			merged.append(kw)
 	return merged
 
 func _remove_wherever_it_is(player: ArenaPlayerState, minion: Minion) -> void:

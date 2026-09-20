@@ -104,6 +104,11 @@ var _ranked_ticket_id: String = ""
 var _ranked_role: String = ""  # "host" | "guest", connu une fois apparié
 var _ranked_elapsed := 0.0
 var _ranked_poll_timer: Timer
+# Preuve d'appariement backend (voir TODO.md P9) : matchId serveur + jeton
+# signé, reçus dans la réponse "matched" du poll de file d'attente, identiques
+# des deux côtés (voir matchmakingModel.pairTickets côté wyrdane-backend).
+var _ranked_match_id: String = ""
+var _ranked_match_session_token: String = ""
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -354,7 +359,14 @@ func start_ranked() -> void:
 func _on_banner_cancel_pressed() -> void:
 	match _search_mode:
 		"ranked":
-			_cancel_ranked_search(true)
+			# manual: false — on ferme le bandeau immédiatement (voir plus bas)
+			# plutôt que de laisser traîner le message "Recherche annulée"
+			# pendant BANNER_MESSAGE_DURATION : le joueur vient de cliquer sur
+			# Annuler, inutile de le lui confirmer par un texte qui reste seul
+			# affiché (mode/minuteur déjà masqués à cet instant) — ça se voyait
+			# comme un bandeau vide pendant quelques secondes.
+			_cancel_ranked_search(false)
+			_show_search_banner(false)
 		"normal", "invite":
 			_quick_matching = false
 			_set_search_mode("")
@@ -385,6 +397,8 @@ func _reset_ranked_ui() -> void:
 		_ranked_poll_timer = null
 	_ranked_ticket_id = ""
 	_ranked_role = ""
+	_ranked_match_id = ""
+	_ranked_match_session_token = ""
 	_set_search_mode("")
 	_set_loading(false)
 
@@ -411,9 +425,13 @@ func _poll_ranked_queue() -> void:
 
 func _on_ranked_matched(data: Dictionary) -> void:
 	_ranked_role = str(data.get("role", ""))
+	_ranked_match_id = str(data.get("match_id", ""))
+	_ranked_match_session_token = str(data.get("match_session_token", ""))
 	if _ranked_role == "host":
 		if _ranked_poll_timer != null:
 			_ranked_poll_timer.stop()
+			_ranked_poll_timer.queue_free()
+			_ranked_poll_timer = null
 		_quick_matching = false
 		_net.session_ready.connect(_on_ranked_lobby_ready, CONNECT_ONE_SHOT)
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
@@ -432,6 +450,8 @@ func _on_ranked_matched(data: Dictionary) -> void:
 		return
 	if _ranked_poll_timer != null:
 		_ranked_poll_timer.stop()
+		_ranked_poll_timer.queue_free()
+		_ranked_poll_timer = null
 	_quick_matching = false
 	_ranked_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")
@@ -578,6 +598,15 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	# qu'après un appariement classé réussi (_on_ranked_matched), et n'est remis
 	# à "" que par _reset_ranked_ui() (annulation/timeout), jamais sur ce chemin.
 	setup["is_ranked"] = _ranked_role != ""
+	# Pour un match classé, le matchId qui fait foi côté rapport de fin de
+	# partie devient celui émis par le backend à l'appariement (preuve qu'un
+	# vrai appariement a eu lieu, voir TODO.md P9) plutôt que celui dérivé
+	# localement par NetHandshake (client_match_id, toujours présent — sert de
+	# repli pour Partie rapide/Contre un ami, qui n'ont pas d'appariement
+	# backend). _ranked_match_id n'est non-vide que côté classé.
+	if _ranked_match_id != "":
+		setup["client_match_id"] = _ranked_match_id
+	setup["match_session_token"] = _ranked_match_session_token
 	NetContext.setup = setup
 	# Sans cette étape, chaque client basculerait sur Battle.tscn dès que SON
 	# handshake local est fini, indépendamment du pair — un joueur pouvait

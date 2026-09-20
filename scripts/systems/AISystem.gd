@@ -4,13 +4,34 @@ class_name AISystem
 # IA adverse : gère son propre deck, sa main et son mana,
 # puis joue son tour en 3 phases (ressource, pose, attaque).
 # Joue tous les types de cartes (Serviteur, Éphémère, Rituel, Enchantement).
-# La qualité de ses décisions dépend du réglage SettingsManager.ai_difficulty
-# ("easy", "normal", "hard").
+# Deck mono-race tiré au hasard à chaque partie parmi les races implémentées
+# (voir AI_RACES/setup()), constitué aléatoirement dans le pool jouable de
+# cette race. La qualité de ses décisions dépend du réglage
+# SettingsManager.ai_difficulty ("easy", "normal", "hard").
 
 const DECK_SIZE       := 40  # cartes jouables (hors ressources), minimum imposé aux joueurs
 const RESOURCE_COUNT  := 12  # cartes-ressource mélangées au deck (minimum 10, voir README)
 const MAX_COPIES      := 2
 const STARTING_HAND := 4
+
+# Une race est tirée au hasard à chaque partie (voir setup()) : l'IA n'est
+# plus toujours Mort-Vivant. Carte-ressource et carte de repli associées à
+# chaque race jouable (Elfe/Nain pas encore implémentées, voir CLAUDE.md).
+const AI_RACES: Array[Race.Type] = [
+	Race.Type.UNDEAD, Race.Type.HUMAN, Race.Type.DEMON, Race.Type.ABOMINATION,
+]
+const RACE_RESOURCE_CARDS := {
+	Race.Type.UNDEAD: "res://resources/cards/undead/soul-shard.tres",
+	Race.Type.HUMAN: "res://resources/cards/human/royal-seal.tres",
+	Race.Type.DEMON: "res://resources/cards/demon/pact-fragment.tres",
+	Race.Type.ABOMINATION: "res://resources/cards/abomination/anomaly-shard.tres",
+}
+const RACE_FALLBACK_CARDS := {
+	Race.Type.UNDEAD: "res://resources/cards/undead/gaunt-servant.tres",
+	Race.Type.HUMAN: "res://resources/cards/human/brother-in-arms.tres",
+	Race.Type.DEMON: "res://resources/cards/demon/abyssal-thrall.tres",
+	Race.Type.ABOMINATION: "res://resources/cards/abomination/bitter-seed.tres",
+}
 
 # Facile : chance de gaspiller son tour (carte au hasard plutôt que le meilleur
 # choix, cible d'attaque au hasard plutôt que le meilleur trade).
@@ -32,11 +53,13 @@ const AUTO_TARGET_EFFECTS := ["SacrificeAlly", "SacrificeDrawPerVictim"]
 var deck: Array[CardData] = []
 var hand: Array[CardData] = []
 var difficulty: String = "normal"
+var ai_race: Race.Type = Race.Type.UNDEAD
 # race_mana / race_max_mana sont hérités d'OpponentDriver (partagés avec le mode réseau).
 
 func setup() -> void:
 	difficulty = CustomMatchContext.ai_difficulty_override if CustomMatchContext.ai_difficulty_override != "" else SettingsManager.ai_difficulty
 	CustomMatchContext.clear()
+	ai_race = AI_RACES.pick_random()
 	_build_deck()
 	deck.shuffle()
 	for i in range(STARTING_HAND):
@@ -81,24 +104,77 @@ func get_hand_count() -> int:
 
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
+# Filet de sécurité, même principe que TutorialOpponent.MAX_TURN_SAFETY : si un
+# bug fait boucler indéfiniment une des phases (ex: _play_cards_phase/_attack_phase
+# qui ne consomment jamais leur condition de sortie), le tour adverse ne doit
+# JAMAIS bloquer la partie pour toujours — take_turn() ne s'exécute donc pas
+# directement mais est sondée, avec une limite haute au-delà de laquelle la main
+# est rendue de force. Bien plus généreuse qu'en tutoriel (30s) : un vrai tour
+# d'IA (beaucoup de cartes/attaques à jouer) peut légitimement prendre du temps.
+const MAX_TURN_SAFETY_SECONDS := 30.0
+
+# Dernière étape connue du tour en cours (mis à jour au fil de
+# _run_turn_actions/_play_cards_phase/_attack_phase) : sans repère, le
+# push_warning ci-dessous ne dit jamais QUELLE phase/carte/attaquant a bloqué
+# le tour, ce qui rend le bug (voir TODO.md « P10 ») impossible à localiser
+# depuis un rapport joueur. Volontairement une simple String de diagnostic,
+# jamais lue par la logique de jeu.
+var _current_phase: String = ""
+
+func _mark_phase(name: String) -> void:
+	_current_phase = name
+
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
+	_mark_phase("start")
+	# ATTENTION : un Dictionary, PAS un bool local. Une lambda GDScript capture
+	# les variables locales PAR VALEUR (une copie), pas par référence —
+	# `finished = true` dans le callback ci-dessous ne mutait donc RIEN dans la
+	# portée de cette fonction : la boucle d'attente plus bas ne voyait jamais
+	# `finished` passer à `true`, quelle que soit la rapidité réelle du tour.
+	# C'était LA cause du tour IA qui « attendait sans rien » ~30s à chaque fois
+	# (voir TODO.md « P10 ») : _run_turn_actions finissait en réalité en 1-2s,
+	# mais take_turn() patientait quand même jusqu'au plafond de sécurité avant
+	# de rendre la main — même classe de bug déjà rencontrée et corrigée sur
+	# PactChoiceSystem.ask (state["done"], même patron). Un Dictionary est un
+	# type par référence en GDScript, donc `state["finished"] = true` mute bien
+	# l'objet partagé.
+	var state := {"finished": false}
+	_run_turn_actions(func(): state["finished"] = true)
+	var elapsed := 0.0
+	while not state["finished"] and elapsed < MAX_TURN_SAFETY_SECONDS:
+		await battle.get_tree().process_frame
+		elapsed += battle.get_process_delta_time()
+	if not state["finished"]:
+		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu (bloqué sur '%s'), on rend quand même la main pour ne jamais bloquer la partie." % _current_phase)
+	battle.set_enemy_turn(false)
+
+func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
+	_mark_phase("turn_start_triggers")
 	await battle.turn_system.run_turn_start_triggers(false)
+	_mark_phase("start_of_turn_phase")
 	await _start_of_turn_phase()
+	_mark_phase("play_cards_phase")
 	var played_cards := await _play_cards_phase()
+	_mark_phase("sacrifice_rituals")
 	await _maybe_activate_sacrifice_rituals()
+	_mark_phase("fusion")
 	await _maybe_activate_fusion()
+	_mark_phase("attack_phase")
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
+	_mark_phase("turn_end_triggers")
 	await battle.turn_system.run_turn_end_triggers(false)
+	_mark_phase("discard_excess_hand")
 	_discard_excess_hand()
-	battle.set_enemy_turn(false)
+	_mark_phase("done")
+	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
 # côté joueur avec UI/timer) : l'IA n'a pas d'interface pour choisir, donc
@@ -132,6 +208,7 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
+		_mark_phase("play_cards_phase: %s" % card.card_name)
 		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
@@ -150,6 +227,7 @@ func _attack_phase(already_acted: bool) -> void:
 	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
+			_mark_phase("attack_phase: %s" % attacker.card_data.card_name)
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not battle._can_attack_hero(attacker):
 				break
@@ -169,10 +247,10 @@ func _build_deck() -> void:
 	CardLibrary.load_all_cards()
 	var pool: Array[CardData] = []
 	for card in CardLibrary.all_cards:
-		if card.race == Race.Type.UNDEAD and card.card_type != "Resource":
+		if card.race == ai_race and card.card_type != "Resource":
 			pool.append(card)
 	if pool.is_empty():
-		var fallback := load("res://resources/cards/undead/gaunt-servant.tres") as CardData
+		var fallback := load(RACE_FALLBACK_CARDS[ai_race]) as CardData
 		for i in range(DECK_SIZE):
 			deck.append(fallback)
 	else:
@@ -186,8 +264,8 @@ func _build_deck() -> void:
 				continue
 			copies[card] = count + 1
 			deck.append(card)
-	# Cartes-ressource (Âme) mélangées au deck, comme l'impose le deckbuilder joueur.
-	var resource_card := load("res://resources/cards/undead/soul-shard.tres") as CardData
+	# Carte-ressource de la race tirée, mélangée au deck, comme l'impose le deckbuilder joueur.
+	var resource_card := load(RACE_RESOURCE_CARDS[ai_race]) as CardData
 	if resource_card != null:
 		for i in range(RESOURCE_COUNT):
 			deck.append(resource_card)
@@ -302,7 +380,7 @@ func _find_priority_removal(cards: Array[CardData]) -> CardData:
 
 # Rangée autorisée avec de la place ; les hybrides fragiles vont derrière
 func _pick_row_for(card: CardData) -> String:
-	var rows: Array[String] = battle.get_allowed_rows_for_card(card)
+	var rows: Array[String] = battle.get_allowed_rows_for_card(card, false)
 	var order: Array[String] = rows.duplicate()
 	if rows.size() > 1 and card.attack > card.health:
 		order = [battle.ROW_BACK, battle.ROW_FRONT]
@@ -360,8 +438,12 @@ func _cast_spell(card: CardData) -> void:
 		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
+		# skip_source_popup : la popup de cette carte a déjà été affichée
+		# ci-dessus (show_card_popup) avant le son du sort — sans ce flag, ce
+		# même proxy (nécessaire pour que la résolution de cible connaisse son
+		# camp) la referait réapparaître ici, sans le son cette fois.
 		for effect in card.effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target, true)
 	battle.board_visual_system.refresh_board()
 
 # ─── Rituels de Sacrifice ──────────────────────────────────────────────────────

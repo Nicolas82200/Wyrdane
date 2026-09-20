@@ -28,6 +28,9 @@ const ACH_FIRST_RANKED_WIN := "ACH_FIRST_RANKED_WIN"     # Première victoire en
 const ACH_RANK_GOLD := "ACH_RANK_GOLD"                   # Palier Or (ou supérieur) atteint en classé
 const ACH_VETERAN := "ACH_VETERAN"                       # 100 victoires cumulées
 const ACH_GRADUATE := "ACH_GRADUATE"                     # Tutoriel terminé
+const ACH_PACK_OPENER := "ACH_PACK_OPENER"               # Premier pack de cartes ouvert
+const ACH_SACRIFICE := "ACH_SACRIFICE"                   # 3 serviteurs alliés sacrifiés dans une même partie
+const ACH_FULL_ROSTER := "ACH_FULL_ROSTER"               # Au moins une victoire avec chacune des 4 races
 
 const MEGA_DECK_THRESHOLD := 100
 const MINIMALIST_RESOURCE_THRESHOLD := 10
@@ -40,6 +43,7 @@ const BLACK_BLOOD_TRIGGERS := 10
 const COMMANDEMENT_TRIGGERS := 5
 const MUTATION_MAX_STACKS := 5
 const VETERAN_WINS := 100
+const SACRIFICE_VICTIMS := 3
 
 # Débloque un succès (idempotent : ne fait rien s'il l'est déjà). Sans effet
 # si Steam est indisponible.
@@ -80,7 +84,18 @@ static func on_victory(battle) -> void:
 		unlock(ACH_FIRST_RANKED_WIN)
 	if SettingsManager.match_wins >= VETERAN_WINS:
 		unlock(ACH_VETERAN)
+	_check_full_roster(battle.deck_races)
 	_update_guardian_streak(hero != null and battle.player_min_hp_this_match >= GUARDIAN_STREAK_HP_FLOOR)
+
+# Marque chaque race du deck victorieux comme "gagnée avec" (persistant, voir
+# SettingsManager.record_race_win) et débloque une fois les 4 races couvertes.
+static func _check_full_roster(deck_races: Array) -> void:
+	var completed := false
+	for race_name in deck_races:
+		if SettingsManager.record_race_win(str(race_name)):
+			completed = true
+	if completed:
+		unlock(ACH_FULL_ROSTER)
 
 # À appeler depuis Battle._show_game_over quand result == "defeat" : une
 # défaite casse la série de victoires "sans passer sous 20 PV" au même titre
@@ -143,3 +158,13 @@ static func check_collector() -> void:
 static func check_rank_tier(tier: int) -> void:
 	if tier >= RankTier.Type.GOLD:
 		unlock(ACH_RANK_GOLD)
+
+# À appeler après une ouverture de pack réussie (voir PackShop._on_packs_opened).
+static func on_pack_opened() -> void:
+	unlock(ACH_PACK_OPENER)
+
+# À appeler après une activation de Sacrifice (voir SacrificeSystem._execute) —
+# victims_this_match déjà incrémenté par l'appelant.
+static func on_sacrifice(victims_this_match: int) -> void:
+	if victims_this_match >= SACRIFICE_VICTIMS:
+		unlock(ACH_SACRIFICE)

@@ -123,9 +123,48 @@ Mots-clés exclusifs (`KeywordAbomination.gd`, définitions complètes dans `CAR
 - **Trigger `OnMutation`** (« Mutation » Abomination) : se déclenche quand un serviteur mute — distinct de `OnResonance` (attaque d'un serviteur de la race de l'enchantement, déjà utilisé par Mort-Vivant/Humain). Câblé dans `roll_mutation`.
 - **Trigger `OnDevoration`** (« Dévoration ») : contrairement à Deuil/Carnage (scindés par camp), se déclenche sur TOUTE mort, allié ou ennemi. Câblé dans `DeathSystem._trigger_devoration`, appelé une fois par vague de morts après Deuil/Carnage. Les enchantements des deux camps y réagissent (deux appels `TriggerSystem.fire`, un par camp).
 - **Nouveaux effets data-driven** (`EffectManager.gd`) : `ApplyMutation` (déclenche N mutations sur la/les cible(s) résolues, `effect.count`), `GrantKeywordAdjacent` (octroie un mot-clé au serviteur allié adjacent à la source), `AbsorbAdjacentStats` (sacrifie la cible, l'allié adjacent absorbe ses stats restantes actuelles), `CopyAdjacentKeyword` (la cible copie un mot-clé tiré au hasard sur un autre serviteur en jeu). `SummonRandom` accepte aussi `mutate_on_summon_count` pour les invocations qui « mutent immédiatement » (L'Éternel Recommencement, Éclosion Sans Fin).
-- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
+- **Activation de FUSION** (`FusionSystem.gd`) : seule capacité activée manuellement depuis un serviteur déjà en jeu (pas un déclencheur passif) — un bouton dédié apparaît sur tout serviteur allié possédant FUSION tant qu'un allié adjacent est sacrifiable ET que ce serviteur n'a pas déjà fusionné (`Minion.fusion_used`, une seule activation par pose — nouvelle instance `Minion` à chaque redéploiement donc réinitialisé de fait, même mécanique que `revenant_triggered`) ; le joueur choisit ensuite la victime (surbrillance, même mécanique que `SacrificeSystem`) puis, si elle a plusieurs mots-clés, le mot-clé à absorber via une popup dédiée. Annulable par clic droit/Échap tant que la victime n'est pas choisie.
 
 **⚠️ Limitations connues (v1)** — plusieurs cartes ont un texte simplifié par rapport à `CARDS.md` faute de plomberie dédiée (UI de choix de cible/mot-clé, historique des HP restants d'un serviteur mort, réaction au tour adverse plutôt qu'au sien) : le texte affiché en jeu (`description`) reflète toujours le comportement réel implémenté, jamais le texte d'origine du design doc. Voir `CARDS.md` → section Abomination → « Simplifications connues » pour le détail carte par carte.
+
+### 🧝 Elfe & 🪓 Nain — proposition de design (brouillon, NON validé)
+
+**⚠️ Ceci est un premier jet à discuter, pas une spec figée.** Contrairement aux quatre races ci-dessus (dont les mots-clés sont validés et implémentés), rien ici n'est codé et rien ne doit être codé avant validation explicite — conformément à la règle du projet (« Notes pour les agents » dans `CLAUDE.md`) qui interdit d'inventer un mot-clé sans qu'il soit d'abord acté dans ce document. Objectif de ce brouillon : donner à chaque race une identité mécanique nette, distincte des quatre races existantes (Mort-Vivant = attrition/poison, Humain = tempo/leadership, Démon = risque/paiement en PV, Abomination = croissance aléatoire/absorption), en cohérence avec le ton dark fantasy du jeu (pas de fantasy lumineuse classique).
+
+#### 🧝 Elfe — thème : ruse, embuscade, magie de dérobade (« le bois qui ne pardonne pas »)
+
+Des elfes crépusculaires retranchés dans une forêt qui se meurt, hostiles à quiconque n'est pas des leurs — pas des archers nobles et lumineux, mais des chasseurs qui frappent et disparaissent avant la riposte.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `EMBUSCADE` | Ne peut pas être ciblé par un effet ou attaqué au tour où il est posé (immunité d'un tour), perd cette protection dès qu'il attaque ou déclenche un effet. | Défense temporaire passive et auto-supprimée par l'action — différent de REMPART (protège les autres) ou de CHAIR DE SOUFRE (immunité permanente) |
+| `VOLÉE` | Inflige ses dégâts d'attaque à une cible secondaire choisie au hasard dans la même rangée adverse, à valeur réduite (ex: 50 %). | Créneau dégâts-de-zone passif à l'attaque, distinct de CORRUPTION (dégâts + marqueur) ou VENIN MORTEL (dégâts + mort) |
+| `RETRAIT` | Après avoir attaqué, peut se replacer immédiatement de la rangée Avant vers l'Arrière (une fois par tour). | Mécanique de positionnement dynamique — aucune race existante ne manipule sa propre ligne en cours de tour |
+| `PACTE SYLVESTRE X` | Nécessite X serviteurs Elfes alliés en jeu pour s'activer (effet bonus conditionnel au nombre d'alliés de race, pas à un coût en PV comme PACTE Démon). | Synergie de horde mono-race sans copier PACTE (coût HP) ni HORDE (générique, non racial) |
+| `GRÂCE` | Immunisé aux effets qui le renvoient en main, le déplacent contre son gré, ou le ciblent depuis la rangée Arrière adverse tant que sa propre rangée Avant est occupée. | Complète VOLÉE/RETRAIT par une résilience passive plutôt qu'un buff de stats |
+
+Ressource-race proposée : **Murmure** (carte-ressource « Murmure de la Canopée »), thème sylvestre cohérent avec Chair/Sceau/Âme/Anomalie.
+
+#### 🪓 Nain — thème : fortification, forge, endurance cumulative (« ce qui est forgé ne rouille pas »)
+
+Un peuple retranché sous la montagne, dont la survie dépend de l'armement et de la solidité de ses lignes plutôt que du nombre.
+
+| Mot-clé (provisoire) | Idée d'effet | Pourquoi ça ne recoupe pas une race existante |
+|---|---|---|
+| `FORGE X` | Arrivée : confère un bonus permanent de +X/+X à un allié adjacent au lieu de soi-même (le Nain forgeron « équipe » son voisin). | Distinct de GrantKeywordAdjacent (Abomination, transfert de mot-clé) — ici un transfert de stats sans sacrifice de la source |
+| `RUNE` | Cumulable ; chaque marqueur RUNE ajoute +1 à la Réduction de dégâts inhérente (`CardData.damage_reduction`) du serviteur, au lieu d'un bonus d'ATK. | Aucune race n'a encore de mécanique de cumul dédiée à la réduction de dégâts (seul un effet ponctuel `AuraDamageReduction` existe côté Humain, non cumulable par marqueurs) |
+| `DERNIER REMPART` | Tant qu'il est seul (aucun autre allié) sur sa rangée, gagne +2/+2. | Anti-swarm delibéré, contraste avec Abomination (croissance par accumulation de copies/mutations) |
+| `FORGE ANCESTRALE` (enchantement propre à la race) | Chaque Nain allié posé gagne une charge de RUNE automatiquement. | Moteur de mise à l'échelle passive équivalent conceptuel à Sanctuaire Nécrotique (Mort-Vivant) mais appliqué à RUNE plutôt qu'au coût |
+| `INÉBRANLABLE` | Ne peut pas être déplacé de rangée par un effet ennemi (mais peut l'être par un effet allié). | Complète GRÂCE (Elfe, plus large — cible/déplacement) par une protection plus étroite et thématiquement défensive |
+
+Ressource-race proposée : **Minerai** (carte-ressource « Minerai des Forges Profondes »).
+
+#### Points ouverts avant tout code
+
+1. Choix final des mots-clés (garder/retirer/renommer chacun) — décision produit.
+2. Rareté du bonus PACTE SYLVESTRE (seuil de X alliés) et calibrage RUNE/FORGE X — passage playtest nécessaire une fois un premier lot de cartes écrit.
+3. `EffectManager`/`KeywordElf.gd`/`KeywordDwarf.gd` : aucun de ces mots-clés n'a d'implémentation, ce tableau ne sert qu'à cadrer la conception de cartes.
+4. Comme pour Abomination, prévoir dès le départ les jetons/tokens (`is_token`) et une carte-ressource par race avant d'écrire la première carte jouable.
 
 ### ☠️ Système de mort
 
@@ -235,7 +274,7 @@ Dans les deux cas, `battle.enemy_turn_active` verrouille les inputs joueur (cart
 
 #### IA (`AISystem`)
 
-L'IA (`scripts/systems/AISystem.gd`) a son propre deck (40 serviteurs Mort-Vivants aléatoires + 12 cartes-ressource Chair via `CardLibrary`, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
+L'IA (`scripts/systems/AISystem.gd`) tire au hasard une race mono-deck à chaque partie parmi les 4 implémentées (Mort-Vivant, Humain, Démon, Abomination — `AISystem.AI_RACES`), puis construit son propre deck (40 serviteurs aléatoires de cette race via `CardLibrary` + 12 exemplaires de sa carte-ressource, voir « Système de Ressources par Race »), sa main et ses pools de mana par race.
 
 Son tour s'exécute automatiquement dans `TurnSystem.end_turn()`, entre la fin du tour joueur et le début du suivant, en 3 phases :
 
@@ -280,28 +319,55 @@ Commandes échangées : `PLAY_CARD` (sert aussi à poser une carte-ressource, `r
 *   Main et deck adverses affichés en **compteurs cosmétiques** ; mana adverse affiché en continu.
 *   Déconnexion transitoire (coupure P2P) : le match se met en pause (voile + décompte) pendant un délai de grâce le temps d'une reconnexion automatique ; sans succès, ou en cas de départ délibéré (`LEAVE_MATCH` envoyé avant fermeture), la partie se termine et un message clair est affiché.
 
+#### Décompte de tour (`AfkGuard`, solo ET réseau)
+
+`AfkGuard` (`scripts/net/AfkGuard.gd`) pilote le décompte visuel de tour (`TurnTimer`, la bordure du bouton Fin du tour) dans les deux modes : **invisible par défaut**, il ne s'affiche (30s, puis fin de tour forcée à 0) que dans deux cas :
+- **Inactivité** : 30s sans la moindre action de jeu locale (carte jouée, attaque, Rituel de Sacrifice/FUSION activés). Toute action ultérieure referme immédiatement le timer et remet ce décompte à zéro.
+- **Tour trop long** : 60s écoulées depuis le début du tour, **même si le joueur reste actif** entre-temps — plafond absolu, jamais réinitialisé par une action, pour éviter les tours interminables.
+
+Un tour où le joueur n'a plus **aucune action possible** (voir le halo doré existant du bouton Fin du tour, `Battle._player_has_no_actions`) affiche/resserre immédiatement ce timer à 10s, pour nudger vers la fin de tour sans attendre le seuil d'inactivité normal.
+
+**Réseau uniquement** : après **3 tours d'affilée** terminés sans la moindre action, le joueur local est déclaré perdant (`LEAVE_MATCH` envoyé immédiatement, sans attendre le délai de grâce de reconnexion, puis écran de défaite normal — même report ranked/succès qu'une vraie défaite). Un clic explicite sur Fin du tour casse cette série même sans action de jeu (le joueur a simplement choisi de passer). En solo, l'expiration du timer se contente de terminer le tour (perdre contre une IA qui ne partira jamais n'aurait aucun sens) — jamais pendant le tutoriel, où le mulligan/le tour ne sont jamais sous pression de temps.
+
 ### 🗄️ Backend & progression persistante
 
 La progression joueur (collection de cartes possédées, monnaie molle, boutique de packs) passe par un backend séparé (`wyrdane-backend`, Node/Express + MySQL) consommé en HTTP par `BackendClient.gd`, avec authentification par ticket de session Steam. Ce backend, ainsi que le site compagnon `wyrdane-website` (deck builder web), sont hébergés sur un **VPS OVH** (Docker Compose + Nginx + HTTPS Let's Encrypt), avec déploiement continu : un push sur la branche `main` de chacun de ces deux dépôts déclenche automatiquement (GitHub Actions) le redéploiement en production. Détails d'infra complets dans le `CLAUDE.md` de `wyrdane-backend`.
+
+### 📊 Statistiques & classement (menu principal)
+
+Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans `BottomCenterRow` du menu principal) — lecture seule, deux sections :
+
+- **Cartes les plus jouées** — taux de jeu et winrate par carte, calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement** (double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) : le solo IA et un rapport orphelin (pair jamais confirmé) n'y contribuent jamais. `Battle.track_card_played_for_quests` alimente `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race déjà existant, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`) puis exposé via `GET /api/ranked/stats/cards/top`. Une carte n'apparaît que si jouée dans au moins 20 matchs classés confirmés — sous ce seuil, exclue plutôt que d'afficher un winrate non significatif. Sert de signal d'équilibrage.
+- **Classement** — top 100 joueurs par MMR (`GET /api/ranked/leaderboard`, route déjà existante côté backend pour le profil mais pas encore affichée en jeu avant ce chantier), joueur local mis en surbrillance s'il y figure.
+
+Contrat détaillé : `docs/backend-contracts/card-stats-and-leaderboard.md`.
 
 ### 💰 Économie (méta-jeu, monnaie molle)
 
 À ne pas confondre avec l'or du mode Battle Royale (voir « 💰 Économie » dans la section Battle Royale plus bas, propre à cette simulation de round et sans lien avec la progression de compte). La monnaie molle décrite ici est le solde persistant du joueur (`CurrencyManager.balance`), autoritaire côté `wyrdane-backend` — le client n'en affiche qu'une valeur indicative, tout est appliqué et vérifié serveur.
 
-**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie depuis 2026-08-26 (seuls les stats `solo_stats` et la progression des quêtes continuent) : jouer/gagner en solo ne rapporte plus d'or, pour ne pas concurrencer le classé.
+**Victoires/défaites vs IA (solo)** — aucune récompense en monnaie ni en XP de compte : jouer/gagner en solo ne rapporte ni or (depuis 2026-08-26) ni progression de niveau, pour ne pas concurrencer le classé.
 
-**Victoires/défaites en 1v1 classé (réseau)** — pas de plafond quotidien, même barème que l'ancienne récompense solo, désormais crédité aux **deux** joueurs selon leur propre résultat :
-| Résultat | Montant |
+**Victoires/défaites en 1v1 réseau (classé ou partie rapide)** — plus de récompense d'or directe par match : remplacée par de l'XP de compte (voir « 📈 Niveau de compte » ci-dessous), qui débloque à son tour or/cartes/packs par palier de niveau. La série de victoires classées (`ranked_stats.win_streak`) reste suivie et affichée (profil, succès Gardien) et pèse de nouveau sur une récompense — un multiplicateur d'XP de victoire cette fois, pas de l'or directement (voir « 📈 Niveau de compte » ci-dessous) — remise à 0 par une défaite comme avant.
+
+Le gain d'XP (et les récompenses de niveau éventuellement débloquées) n'est confirmé (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'XP est de toute façon déjà créditée en base dès la confirmation, que la popup ait pu s'afficher ou non.
+
+### 📈 Niveau de compte
+
+Progression de compte par XP, autoritaire côté `wyrdane-backend` (`levelModel.ts`, colonnes `users.level`/`users.xp`) et affichée dans `PlayerStatusPanel` (barre + libellé « Niveau N »). Seul un match réseau (classé ou partie rapide) en rapporte : **50 XP de base pour une victoire, 15 XP pour une défaite** — le solo n'en rapporte pas (voir ci-dessus).
+
+**Multiplicateur de série de victoires** : l'XP de victoire (pas celle de défaite) est multipliée selon `ranked_stats.win_streak` (série déjà incrémentée par ce match) : série ≥7 → ×1,75, ≥5 → ×1,5, ≥3 → ×1,25, sinon ×1 (arrondi au plus proche). Une défaite remet la série à 0, donc le multiplicateur retombe à ×1 dès le match suivant.
+
+XP requise pour passer du niveau `n` à `n+1` : croissance **linéaire**, `100 + 5×n` (105 XP au niveau 1, 110 au niveau 2, 115 au niveau 3...). Une récompense est accordée à **chaque** niveau franchi :
+| Niveau | Récompense |
 |---|---|
-| Défaite | 5 or (fixe) |
-| Victoire, série de 1-2 | 10 or |
-| Victoire, série de 3-4 | 15 or |
-| Victoire, série de 5-6 | 20 or |
-| Victoire, série de 7 ou plus | 25 or |
+| Multiple de 25 (25, 50, 75...) | 1 pack de cartes gratuit + 200 or |
+| Multiple de 5 sinon (5, 10, 15, 20, 30, 35...) | 1 carte aléatoire d'une rareté qui cycle sur 20 niveaux (5→Commune, 10→Rare, 15→Épique, 20/40/60...→Légendaire) + 100 or |
+| Tout autre niveau | Or croissant sur la série de 4 niveaux entre deux paliers carte/pack : 25, puis 50, 75, 100 — retombe à 25 dès le niveau suivant une carte/un pack |
 
-La série de victoires (win streak) ne compte que les victoires classées consécutives *de ce joueur* (suivie par joueur dans `ranked_stats.win_streak`, distinct côté serveur de `wins`/`losses` qui ne font qu'accumuler) ; une défaite la ramène immédiatement à 0.
+Une carte de récompense déjà possédée au maximum de copies (4) est convertie en or (même barème de dust que l'ouverture de pack : 25/50/75/100 or selon la rareté), cumulé avec les 100 or du palier plutôt qu'à leur place. Les récompenses (carte/pack/or) et l'XP gagnée sont affichées sur l'écran de fin de partie (`GameOverScreen.show_xp_reward`), une seule fois par match confirmé.
 
-Le montant n'est crédité (et affiché sur l'écran de fin de partie) qu'une fois le match confirmé côté serveur, c'est-à-dire quand les deux joueurs ont chacun rapporté un résultat concordant (voir `rankedController.reportMatch`) : si le rapport local arrive avant celui de l'adversaire, le client réessaie automatiquement pendant quelques secondes (voir `MatchResultReporter._report_ranked`) avant d'abandonner l'affichage — l'or est de toute façon déjà crédité en base dès la confirmation, que la popup ait pu s'afficher ou non.
+**Popup de récompenses de niveau** : cliquer sur le niveau de compte (« Niveau N », sous le pseudo dans `PlayerStatusPanel`) ouvre une popup dédiée (`LevelRewardsPanel.gd`) listant, avec défilement, la récompense de chaque niveau — y compris les niveaux pas encore atteints (catalogue calculé côté backend jusqu'à `max(60, niveau actuel + 10)`, toujours un peu au-delà du niveau réel). L'octroi (crédit d'or/carte/pack) reste immédiat et automatique au franchissement du niveau, comme ci-dessus : la popup ne fait que lister ce qui a déjà été journalisé et laisser le joueur marquer chaque ligne comme « vue » (bouton, se grise une fois cliqué) — un simple accusé de réception, aucun nouveau crédit. Un bouton « Tout récupérer » marque en un seul appel réseau toutes les lignes réclamables ; un bouton « Niveau actuel » recentre le défilement sur le niveau du joueur. Un niveau franchi avant l'introduction de cette popup (2026-09) n'a pas de ligne journalisée côté backend : affiché comme déjà acquis, rien à réclamer.
 
 **Autres gains**
 | Source | Montant | Limite |
@@ -462,7 +528,7 @@ Les systèmes sont des scripts autoloadés ou instanciés manuellement qui gère
 *   `TriggersSystem.gd`: Déclenchement des triggers des rituels/enchantements en jeu.
 *   `CardPopupSystem.gd`: Popups d'effets affichés sur le côté du plateau, avec flèches vers les cibles.
 *   `CostSystem.gd`: Coût effectif d'une carte (remises) et paiement race verrouillée/générique des pools de ressource (voir « Système de Ressources par Race »).
-*   `TooltipData.gd`: Tooltips des mots-clés (autoload).
+*   `TooltipData.gd`: Tooltips des mots-clés (autoload). Survoler une carte (main, plateau, cimetière, deck builder) n'affiche que son aperçu agrandi ; les panneaux détaillés (mots-clés/déclencheurs/effets/état runtime) restent cachés par défaut derrière une bulle « Clic droit pour afficher les informations » au-dessus de l'aperçu, et un clic droit sur la carte survolée les révèle pour tous les survols suivants (bascule globale `TooltipData.tooltips_expanded`, valable pour la session) jusqu'à un nouveau clic droit qui les recache.
 
 ### Scripts Réseau (`scripts/net/`)
 
@@ -554,7 +620,7 @@ Le projet utilise des singletons pour des systèmes globaux :
 
 Un prototype jouable existe (accessible depuis le menu principal, bouton Arena), mais avec un périmètre volontairement réduit par rapport au design ci-dessous — à étendre progressivement :
 
-- **8 participants, solo local uniquement** (1 joueur humain + 7 bots, `ArenaBotDriver`) — pas encore de réseau (le design ci-dessous vise 8 joueurs réels, mais chacun sur sa propre machine/session ; ici tous simulés localement pour tester les conditions réelles d'une partie complète).
+- **8 participants, solo local OU réseau** (1 joueur humain + 7 bots en solo ; en réseau, jusqu'à 8 vrais joueurs — voir section « Réseau & Visibilité » ci-dessous — les sièges sans vrai joueur restant pilotés par `ArenaBotDriver`). Le mode réseau est écrit et testé en pure logique (transport simulé), mais jamais validé avec un vrai second compte Steam.
 - **Économie identique au design** (or de départ 1, +1/round, plafond 15, reroll 1 or, coût d'achat = coût mana de la carte), pool partagé (`ArenaCardPool`), fusion 3→2★, Ghost Board, anti-répétition d'appariement et gel de la boutique façon TFT (bouton flocon, préserve l'offre ENTIÈRE — pas une carte à la fois — pour la manche suivante, dégelé automatiquement dès qu'il a servi une fois ou qu'un reroll manuel est demandé) : tout ça est implémenté tel que décrit plus bas.
 - **Timers de phase (à ajuster, différents des 45s/30s du design)** : phase Boutique 25 secondes (seul le joueur humain y est contraint, les bots jouent après coup), phase Combat 15 secondes (affichage du résultat), enchaînement automatique par défaut, mais un bouton Prêt permet de terminer la phase Boutique en avance sans attendre l'expiration du minuteur.
 - **Combat du joueur humain rejoué avec animation** (réutilise telle quelle `CombatSystem`/`AnimationSystem`/`BoardVisualSystem`/`DeathSystem` du 1v1, sur les propres rangées Avant/Arrière du joueur + les rangées de la boutique reconverties en plateau adverse le temps du combat) — contrairement à la note « pas de ralenti visuel » plus bas, qui décrivait l'intention initiale avant que l'animation ne soit ajoutée. Les combats bots-contre-bots que le joueur ne voit pas restent résolus headless et instantanément (`SimulatedBattle`).
@@ -857,7 +923,15 @@ Logique : tous les coûts restent accessibles à tout niveau (jamais 0% une fois
 #### Hébergement (non tranché)
 Décision reportée. Recommandation actuelle : réutiliser le backend Steam existant (**P2P, un joueur hôte**, lobby Steam) pour une v1 jouable entre amis, sans infra serveur à héberger. Migration vers un serveur dédié envisageable plus tard si besoin de matchmaking public, sans réécrire la logique de jeu (`CombatSystem`/`EffectManager` restent inchangés, seule la couche transport change). Reste aussi à trancher : simulation de combat centralisée (hôte calcule et diffuse le résultat) vs déterministe locale par seed partagée (à la HS BG).
 
-👉 **Base déjà en place** : le multijoueur 1v1 (voir section « Multijoueur 1v1 » plus haut) fournit désormais la couche transport Steam P2P, le handshake avec graine RNG partagée et le protocole de commandes — réutilisables pour le mode BR (reste à étendre le lobby à 8 joueurs).
+👉 **Choix tranché entre-temps** : simulation centralisée (l'hôte fait autorité et relaie), en topologie **étoile** — l'hôte ouvre une connexion P2P distincte vers chaque client, jamais de mesh complet (28 connexions à 8 joueurs). Le transport du 1v1 (`SteamTransport`/`NetworkManager`) n'est PAS réutilisé tel quel : câblé en dur pour exactement 2 pairs à plusieurs niveaux (lobby plafonné à 2, une seule connexion P2P scalaire, pas de champ émetteur dans les commandes), l'étendre aurait risqué de régresser le 1v1 déjà en production, impossible à valider sans deux comptes Steam réels. `ArenaNetTransport`/`ArenaSteamTransport`/`ArenaTransportFactory` (`scripts/net/`) posent donc la fondation d'un chemin séparé, ne partageant avec le 1v1 que la validation de sécurité P2P réellement commune (`SteamP2PGuard` : appartenance au lobby, extraction d'identité Steam). Le handshake d'ouverture (quorum de prêts) est fait : `ArenaNetHandshake` attribue un `seat_id` stable à chaque client au fil des `HELLO` reçus (`ArenaNetCommand`), combine une graine RNG partagée par XOR des contributions (comme le 1v1) et diffuse `START_MATCH` (graine finale + roster) dès que la table est complète — testé en pure logique via un transport simulé (`tests/unit/doubles/fake_arena_net_transport.gd`), sans Steam réel. Le protocole de PARTIE (achats/vente/reroll/XP/gel/positionnement) est fait, en modèle **hôte autoritaire** : un client envoie une `REQUEST_*` (`ArenaGameCommand`) pour agir sur son propre siège, l'hôte l'applique à l'`ArenaMatch` réel (`ArenaHostAuthority`) puis produit DEUX réponses — un `BOARD_SYNC` (état PUBLIC du siège : plateau + PV) **diffusé à tous** (`ArenaRemoteBoardMirror`), et un `PRIVATE_STATE_SYNC` (or/XP/niveau/gel/main/boutique) **envoyé uniquement au siège concerné** (`ArenaPrivateStateMirror`). Ce second message a été ajouté après coup (revue de code) : sans lui, un client n'aurait jamais pu savoir ce qu'il recevait en boutique ni son or restant, ces informations étant privées par design et donc absentes du `BOARD_SYNC`. Choix délibéré pour les deux : resynchroniser tout l'état plutôt qu'un delta, pour éliminer tout risque de dérive entre clients (coût négligeable). Le relais entre ce protocole et la pile réseau est fait : `ArenaHostGameRouter` (hôte) route chaque `REQUEST_*` reçue vers `ArenaHostAuthority` puis distribue les deux réponses ; `ArenaClientGameLink` (client) envoie les siennes et applique celles reçues. Toute la pile (transport → handshake → protocole → relais) est désormais validée de bout en bout en pure logique, à travers un transport simulé où les paquets sont réellement sérialisés/désérialisés — sans jamais dépendre de Steam.
+
+Le combat — seule chose qui manquait encore côté protocole — est couvert : `ArenaHostRoundSync.broadcast_after_combat` diffuse, après résolution, un `BOARD_SYNC` pour **chaque** siège (pas seulement celui qui a agi) puis `ROUND_ADVANCED` (nouvelle manche + résumé texte) ou `GAME_OVER` (classement). Décision actée : le combat entre vrais joueurs se résout **headless côté hôte**, sans animation rejouée en direct (comme les combats bot-contre-bot en solo aujourd'hui) — chacun reçoit juste le résultat. Animer le combat en direct entre plusieurs clients réels demanderait une synchronisation bien plus fine (RNG/évènements), jugée disproportionnée pour une première version jouable jamais testée en conditions réseau réelles.
+
+Pour tester sans réunir 7 pairs réels : `ArenaNetHandshake.force_start_with_bots()` comble les sièges vacants avec des bots dès que l'hôte le décide, pilotés ensuite comme en solo.
+
+Le branchement sur `ArenaBattle.gd` est fait : `scenes/arena/ArenaNetLobby.tscn` (Solo/Héberger/Rejoindre) précède désormais `ArenaBattle.tscn` depuis le menu principal — "Solo" y mène sans aucun changement de comportement. Côté hôte, chaque handler d'action (achat, pose, vente...) reste inchangé mais diffuse en plus l'état public concerné ; côté client, les mêmes handlers envoient une requête à l'hôte au lieu de muter l'état localement. Le combat réseau se résout headless (décision actée plus haut), y compris l'appariement de l'hôte lui-même (pas de traitement de faveur). Validé par la suite de tests GUT (comportement solo inchangé, construction des sièges hôte/client testée via le transport simulé) — **jamais testé avec un vrai second compte Steam**, seule validation possible restant hors de portée d'un agent sans accès à deux sessions Steam distinctes.
+
+Encore à faire : lancer une Incantation achetée en réseau (bloqué côté client pour l'instant, aucune `REQUEST_*` ne le couvre encore), le quorum de passage de phase ("tout le monde prêt" plus tôt que le minuteur fixe), et le cas d'un hôte lui-même éliminé avant la fin globale de la partie (sa scène s'arrête aujourd'hui comme en solo, sans continuer à faire progresser les manches pour les autres vrais joueurs encore en jeu).
 
 #### Visibilité entre joueurs (validé)
 - **Le plateau (board)** de chaque joueur est **visible par tous les autres joueurs** à tout moment (permet de scouter les adversaires, anticiper les fusions/synergies en cours, décision stratégique classique d'autobattler).
@@ -876,7 +950,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
 *   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
-*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
+*   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire, anti-AFK avec forfait après 3 tours d'inactivité d'affilée (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
 *   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
 *   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
@@ -885,7 +959,7 @@ Décision reportée. Recommandation actuelle : réutiliser le backend Steam exis
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
 
 ### À faire
-*   Steam : invitations d'amis, puis build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`)
+*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`) — les invitations d'amis (overlay Steam) sont déjà implémentées, voir « Multijoueur 1v1 »
 *   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
 *   Nouvelles races : Elfe, Nain
 *   Animations shaders
@@ -922,14 +996,14 @@ Le `TurnChoicePanel` (choix Mana OU Pioche) est supprimé : chaque tour, `TurnSy
 - **Minimum 10 cartes-ressource**, sans maximum, **mélangées dans le même deck/pioche** que les cartes jouables (pas de paquet séparé). Les deux minimums sont validés indépendamment par `DeckBuilder._can_save` et affichés séparément (`deck.count_format` / `deck.resource_count_format`).
 - Les cartes-ressource sont **en quantité illimitée**, à la fois dans un deck (exemptées de la limite de 4 copies `MAX_COPIES_PER_CARD`) et en collection (aucun lien avec ce qui est réellement possédé, côté client comme côté backend) : un deck a besoin de nombreux exemplaires de la même carte-ressource pour atteindre son minimum, sans que le joueur ait à en farmer davantage.
 - Avertissements bloquant la sauvegarde (`DeckBuilder._race_warnings`, affichés dans `%WarningLabel`) sur deux incohérences de composition : une race jouée dans le deck sans assez de cartes-ressource de cette race pour couvrir le `race_cost` de sa carte la plus chère (`CostSystem.compute_race_cost`), ou des cartes-ressource d'une race présentes sans aucune carte jouable de cette race (ressources gâchées).
-- Le deckbuilder peut à terme suggérer un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
+- Le deckbuilder suggère un nombre de ressources basé sur le coût moyen du deck (logique proche des calculateurs de manabase MTG type Karsten) :
 
 ```
 ratio_ressource = clamp(15% + (coût_moyen - 1) × 6%, min: 15%, max: 45%)
 nombre_ressources_suggéré = arrondi(taille_deck × ratio_ressource)
 ```
 
-*(Non encore implémenté dans l'UI — seule la validation des deux minimums et des avertissements de cohérence de race l'est.)*
+Implémenté dans `DeckManager.suggested_resource_ratio`/`suggested_resource_count` (coût moyen calculé sur les cartes jouables du deck, taille de deck prise en compte = `max(taille réelle, MIN_TOTAL_CARDS)` pour rester pertinent avant que le deck n'atteigne 50 cartes) ; affiché dans `DeckBuilder._update_count_label` sous forme d'indication `(suggestion : N selon le coût moyen du deck)` tant que le nombre de ressources actuel est sous la suggestion — n'apparaît plus une fois la suggestion atteinte ou dépassée, et ne bloque jamais la sauvegarde (c'est une indication, pas un avertissement comme `race_warnings`).
 
 ### 💰 Coût des cartes : race-locked + générique
 
@@ -956,12 +1030,12 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 - `CostSystem.get_race_cost`/`get_generic_cost`/`can_afford`/`pay` : calcul et paiement race verrouillée + générique.
 - `Battle.play_resource_card` : pose d'une ressource (zone dédiée, +1 pool, limite 1/tour).
 - `DeckManager`/`DeckBuilder` : validation des deux minimums (40 jouables + 10 ressources), plus de plafond de deck, cartes-ressource en quantité illimitée (ni limite de copies, ni lien avec la collection possédée), avertissements bloquant la sauvegarde en cas d'incohérence race/ressource, dédoublonnage automatique des noms de deck (`DeckManager.make_unique_name`), bouton Sauvegarder désactivé tant que rien n'a changé, confirmation avant de quitter avec des modifications non sauvegardées.
-- `AISystem` : deck avec cartes-ressource mélangées (40 Mort-Vivants + 12 Chair), pose d'une ressource par tour avant sa phase de jeu normale.
+- `AISystem` : race tirée au hasard à chaque partie parmi les 4 implémentées, deck de cette race avec ses cartes-ressource mélangées (40 serviteurs + 12 ressources), pose d'une ressource par tour avant sa phase de jeu normale.
 - Aucun nouveau flux réseau : une carte-ressource se joue comme une carte classique via `NetCommand.PLAY_CARD` existant (`row = "Resource"`) ; la commande `TURN_CHOICE` est supprimée du protocole (plus de choix Mana/Pioche à synchroniser).
 
 ### 📋 Points encore ouverts
 
-1. Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus non encore branchée à l'UI).
+1. **Résolu.** Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus, branchée à l'UI — voir détail plus haut).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
 4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

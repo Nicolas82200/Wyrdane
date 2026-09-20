@@ -23,6 +23,10 @@ var player_graveyard := Graveyard.new()
 var enemy_graveyard := Graveyard.new()
 var net_registry := NetRegistry.new()
 var net_emitter = null
+# Sentinelle no-op : CombatSystem.resolve_combat/perform_hero_attack notifient
+# AfkGuard d'une action locale (voir Battle.afk_guard) — sans effet ici, le
+# combat Arena auto-résolu n'a pas de décompte de tour.
+var afk_guard := _NoOpAfkGuard.new()
 # Sentinelle non-nulle (jamais un vrai NetworkManager) : EffectManager
 # n'utilise `network_manager` que comme témoin booléen ("== null" => partie
 # solo locale, un humain peut être invité à choisir une cible de trigger).
@@ -36,6 +40,9 @@ var game_over: bool = false
 var reconnecting: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : EffectManager.execute_effect/TriggerSystem.fire
+# l'incrémentent/décrémentent tels quels (réutilisés sans modification ici).
+var effects_resolving: int = 0
 var counter_offensive: Dictionary = {true: false, false: false}
 # Ajoutés côté 1v1 après la divergence de cette branche (Ordre de Tenir /
 # Dernier Soupir, voir FakeBattle et Battle.gd) : DeathSystem/EffectManager
@@ -43,6 +50,15 @@ var counter_offensive: Dictionary = {true: false, false: false}
 # qu'un Dernier Souffle pose REMPART_TEMPORAIRE, même en combat simulé Arena.
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
+# Ajouté côté 1v1 pour ACH_EXECUTIONER (voir CLAUDE.md « Succès Steam ») :
+# DeathSystem.process_deaths y accède inconditionnellement à chaque mort
+# ennemie hors tour adverse, y compris en combat simulé Arena — sans stub ici
+# le combat plantait dès le premier serviteur tué (accès invalide sur ce
+# RefCounted), laissant l'état du combat (player_minions/enemy_minions
+# jamais filtrés des morts, cimetière/Dernier Souffle jamais déclenchés)
+# corrompu pour le reste du match. Jamais lu côté Arena (pas de succès
+# équivalent ici), seulement écrit par DeathSystem — stub sans autre usage.
+var player_kills_this_turn: int = 0
 var game_rng := RandomNumberGenerator.new()
 
 # Non utilisés en Arena v1 (pas de pioche/deck/enchantements pendant le combat
@@ -573,7 +589,7 @@ class SimAiSystemStub:
 
 
 class SimCostSystemStub:
-	func add_temp_discount(_card_data: CardData, _amount: int) -> void:
+	func add_temp_discount(_card_data: CardData, _amount: int, _is_player: bool = true) -> void:
 		pass
 
 
@@ -658,6 +674,12 @@ class SimCombatLog:
 	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
+		pass
+
+
+class _NoOpAfkGuard:
+	extends RefCounted
+	func notify_local_action() -> void:
 		pass
 
 

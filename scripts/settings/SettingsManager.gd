@@ -14,7 +14,6 @@ signal ai_difficulty_changed(level: String)
 signal display_settings_changed
 signal keybind_changed(action: String, keycode: int)
 signal match_stats_changed(wins: int, losses: int)
-signal account_xp_changed(total_xp: int)
 signal reduced_motion_changed(enabled: bool)
 signal high_contrast_changed(enabled: bool)
 
@@ -83,9 +82,9 @@ var referral_prompt_seen: bool = false
 # réseau, tutoriel exclu (voir Battle._show_game_over).
 # Journal de combat (voir CombatLogSystem.entries) de la toute dernière
 # partie jouée — mémoire uniquement, jamais persisté sur disque (référence
-# des Texture2D des cartes, contrairement à match_history/account_xp ci-
-# dessous). Alimente le bouton "Voir le replay" de GameOverScreen ; vide dès
-# le lancement d'une nouvelle partie ou la fermeture du jeu.
+# des Texture2D des cartes, contrairement à match_history ci-dessous).
+# Alimente le bouton "Voir le replay" de GameOverScreen ; vide dès le
+# lancement d'une nouvelle partie ou la fermeture du jeu.
 var last_match_log: Array = []
 var match_wins: int = 0
 var match_losses: int = 0
@@ -100,13 +99,10 @@ const MATCH_HISTORY_MAX_ENTRIES := 20
 # (succès Steam "Gardien", voir AchievementManager.ACH_GUARDIAN_STREAK) —
 # cassée par toute défaite ou toute victoire où le PV plancher est franchi.
 var high_hp_win_streak: int = 0
-# Niveau de compte — progression purement locale (même statut que match_wins
-# ci-dessus, aucune notion de niveau côté backend : monnaie/cartes
-# restent entièrement autoritaires côté serveur).
-var account_xp: int = 0
-const ACCOUNT_XP_PER_LEVEL := 1000
-const ACCOUNT_XP_WIN := 150
-const ACCOUNT_XP_LOSS := 50
+# Races (noms Race.get_race_name) avec lesquelles le joueur a déjà remporté au
+# moins une victoire — succès Steam "Panoplie complète", voir
+# AchievementManager.ACH_FULL_ROSTER.
+var races_won_with: Array = []
 # Pseudos des derniers adversaires réseau affrontés (le plus récent en tête),
 # purement local — jamais leur SteamID64 (voir NetTransport.remote_display_name/
 # règle "aucun identifiant Steam ne fuit hors de SteamTransport"). "Ajouter en
@@ -210,19 +206,6 @@ func record_match_history_entry(entry: Dictionary) -> void:
 		match_history.resize(MATCH_HISTORY_MAX_ENTRIES)
 	_save()
 
-func account_level() -> int:
-	return (account_xp / ACCOUNT_XP_PER_LEVEL) + 1
-
-func account_xp_into_level() -> int:
-	return account_xp % ACCOUNT_XP_PER_LEVEL
-
-func award_account_xp(amount: int) -> void:
-	if amount <= 0:
-		return
-	account_xp += amount
-	_save()
-	account_xp_changed.emit(account_xp)
-
 func record_recent_opponent(opponent_name: String) -> void:
 	recent_opponents.erase(opponent_name)
 	recent_opponents.push_front(opponent_name)
@@ -242,6 +225,14 @@ func record_high_hp_win_streak(qualifies: bool) -> int:
 	high_hp_win_streak = high_hp_win_streak + 1 if qualifies else 0
 	_save()
 	return high_hp_win_streak
+
+# Marque race_name comme "gagnée avec" et retourne true si les 4 races
+# implémentées (voir Race.get_implemented_races) sont désormais toutes couvertes.
+func record_race_win(race_name: String) -> bool:
+	if race_name != "" and race_name not in races_won_with:
+		races_won_with.append(race_name)
+		_save()
+	return races_won_with.size() >= Race.get_implemented_races().size()
 
 # --- Affichage (résolution / plein écran / vsync / qualité) ---------------
 
@@ -486,10 +477,10 @@ func _save() -> void:
 	cfg.set_value("stats", "match_wins", match_wins)
 	cfg.set_value("stats", "match_losses", match_losses)
 	cfg.set_value("stats", "match_history", match_history)
-	cfg.set_value("stats", "account_xp", account_xp)
 	cfg.set_value("stats", "recent_opponents", recent_opponents)
 	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
+	cfg.set_value("stats", "races_won_with", races_won_with)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
@@ -526,7 +517,6 @@ func _load() -> void:
 	match_losses = cfg.get_value("stats", "match_losses", 0) as int
 	var saved_history = cfg.get_value("stats", "match_history", [])
 	match_history = saved_history if saved_history is Array else []
-	account_xp = cfg.get_value("stats", "account_xp", 0) as int
 	var saved_recent = cfg.get_value("stats", "recent_opponents", [])
 	recent_opponents.clear()
 	if saved_recent is Array:
@@ -535,6 +525,7 @@ func _load() -> void:
 				recent_opponents.append(name)
 	selected_card_back = cfg.get_value("stats", "selected_card_back", 0) as int
 	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
+	races_won_with = cfg.get_value("stats", "races_won_with", []) as Array
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String

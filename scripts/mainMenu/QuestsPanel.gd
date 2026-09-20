@@ -82,6 +82,12 @@ const ACCENT_EMBER := Color(0.72, 0.48, 0.19, 0.85)
 const ACCENT_DIM := Color(0.42, 0.37, 0.3, 0.55)
 const ACCENT_GOLD := Color(0.92, 0.72, 0.28, 0.95)
 
+# Placeholder en attendant les vraies icônes de récompense (or/pack) — carré
+# marron foncé à remplacer par une TextureRect une fois les images
+# disponibles (voir _add_item).
+const REWARD_ICON_COLOR := Color(0.22, 0.13, 0.07, 1)
+const REWARD_ICON_SIZE := 36
+
 static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
@@ -98,15 +104,19 @@ static func _make_accent_card_style(accent: Color) -> StyleBoxFlat:
 
 # Le backend peut renvoyer une clé présente avec une valeur JSON `null`
 # explicite (ex. champ optionnel non renseigné) plutôt que d'omettre la clé :
-# Dictionary.get() ne retombe alors PAS sur son défaut, et int(null)/String(null)
-# plante ("Invalid call. Nonexistent 'int'/'String' constructor.").
+# Dictionary.get() ne retombe alors PAS sur son défaut dans ce cas, et
+# int(null) plante ("Invalid call. Nonexistent 'int' constructor.").
 static func _get_int(quest: Dictionary, key: String, default: int) -> int:
 	var value = quest.get(key, default)
 	return default if value == null else int(value)
 
+# JSON.parse_string() désérialise TOUS les nombres JSON en float (jamais en
+# int) : le constructeur String(float) n'existe pas en GDScript et plante
+# ("Invalid call. Nonexistent 'String' constructor.") — contrairement à
+# str(), qui accepte n'importe quel type. Utiliser str() ici, jamais String().
 static func _get_str(quest: Dictionary, key: String, default: String) -> String:
 	var value = quest.get(key, default)
-	return default if value == null else String(value)
+	return default if value == null else str(value)
 
 static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var progress := _get_int(quest, "progress", 0)
@@ -130,6 +140,12 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
 	margin.add_child(hbox)
+
+	var icon := ColorRect.new()
+	icon.custom_minimum_size = Vector2(REWARD_ICON_SIZE, REWARD_ICON_SIZE)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	icon.color = REWARD_ICON_COLOR
+	hbox.add_child(icon)
 
 	var text_col := VBoxContainer.new()
 	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -168,7 +184,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
 		match kind:
 			"weekly":
-				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, _get_str(quest, "id", ""), action_button))
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, str(_get_int(quest, "id", 0)), action_button))
 			"unique":
 				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
 			_:
@@ -180,9 +196,14 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 
 	menu.quests_list_vbox.add_child(row)
 
-static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+# Les trois types de quête (quotidienne/hebdo/unique) partagent la même
+# réaction de réclamation, seul l'appel réseau diffère (requester, un lambda
+# qui appelle explicitement la bonne fonction BackendClient — on évite de
+# faire transiter une référence de méthode nue en paramètre, peu fiable ici)
+# — voir _on_claim_weekly/unique/_pressed.
+static func _handle_claim_pressed(menu, button: Button, requester: Callable) -> void:
 	button.disabled = true
-	BackendClient.claim_weekly_quest(quest_id, func(success: bool, data: Dictionary):
+	requester.call(func(success: bool, data: Dictionary):
 		if not success:
 			button.disabled = false
 			return
@@ -191,27 +212,12 @@ static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> 
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
 		menu._fetch_quests_badge()
 	)
+
+static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_unique_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_unique_quest(quest_id, on_data))
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	button.disabled = true
-	BackendClient.claim_quest(quest_id, func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		menu._fetch_quests_badge()
-	)
+	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_quest(quest_id, on_data))

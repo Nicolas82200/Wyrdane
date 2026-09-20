@@ -125,16 +125,27 @@ func _get_raw_player_drop_index_at(mouse: Vector2, row: String) -> int:
 	var container: Control = _get_player_row_container(row)
 	if container == null:
 		return -1
-	var index: int = 0
+	# Calcul analytique plutôt que get_global_rect() des BoardMinion : un HBoxContainer ne
+	# retrie ses enfants qu'en différé (queue_sort), donc juste après un move_child() du
+	# placeholder les rects des serviteurs restent parfois ceux d'avant le déplacement, ce qui
+	# décale l'index d'insertion pendant un ou deux frames. Le rect du conteneur lui-même (taille
+	# fixe, ancré au centre du Board — voir Battle.tscn) ne dépend pas de ce layout différé.
+	var minion_count: int = 0
 	for child in container.get_children():
-		if child == _drop_placeholder:
-			continue
 		if child is BoardMinion:
-			var rect: Rect2 = child.get_global_rect()
-			if mouse.x < rect.position.x + rect.size.x * 0.5:
-				return index
-			index += 1
-	return index
+			minion_count += 1
+	if minion_count == 0:
+		return 0
+	var separation: float = container.get_theme_constant("separation")
+	var card_width: float = BOARD_MINION_SIZE.x
+	var total_width: float = minion_count * card_width + (minion_count - 1) * separation
+	var container_rect: Rect2 = container.get_global_rect()
+	var start_x: float = container_rect.position.x + (container_rect.size.x - total_width) * 0.5
+	for i in range(minion_count):
+		var center_x: float = start_x + i * (card_width + separation) + card_width * 0.5
+		if mouse.x < center_x:
+			return i
+	return minion_count
 
 func _get_stable_player_drop_index_at(mouse: Vector2, row: String) -> int:
 	if _drop_placeholder != null \

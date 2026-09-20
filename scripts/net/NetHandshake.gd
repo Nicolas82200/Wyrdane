@@ -83,7 +83,6 @@ func _send_hello() -> void:
 func _on_command_received(command: Dictionary) -> void:
 	match NetCommand.type_of(command):
 		NetCommand.HELLO:
-			print("[NetHandshake] HELLO reçu  self=%s  sent=%s  remote_received_avant=%s" % [self, _sent, _remote_received])
 			_remote_deck = _sanitize_deck(command.get("deck", []))
 			_remote_received = true
 			# Combine notre contribution avec celle du pair (déjà envoyée avant
@@ -117,6 +116,7 @@ func _sanitize_deck(deck: Array) -> Array:
 		if entry is String:
 			clean.append(entry)
 		if clean.size() >= MAX_DECK_ENTRIES:
+			push_warning("NetHandshake : deck adverse tronqué à %d entrées" % MAX_DECK_ENTRIES)
 			break
 	return clean
 
@@ -128,7 +128,6 @@ func _try_finish() -> void:
 		_finish()
 
 func _finish() -> void:
-	print("[NetHandshake] _finish  self=%s" % [self])
 	_finished = true
 	set_process(false)
 	var setup := {

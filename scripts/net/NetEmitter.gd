@@ -9,6 +9,11 @@ class_name NetEmitter
 # d'entrée du joueur local (clic sur une carte, attaque initiée, choix de tour,
 # bouton fin de tour). Le rejeu des commandes distantes (NetworkOpponent) passe
 # par des méthodes plus bas niveau qui n'émettent pas, donc aucune boucle.
+#
+# Note : AfkGuard.notify_local_action (preuve de présence) est appelé directement
+# par CardSystem/CombatSystem/SacrificeSystem/FusionSystem à la source de chaque
+# action (solo ET réseau), pas ici — inutile de le redupliquer sur ce chemin
+# réseau qui s'exécute toujours après.
 
 var _net: NetworkManager
 

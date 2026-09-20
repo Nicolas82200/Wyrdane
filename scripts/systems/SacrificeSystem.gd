@@ -29,7 +29,7 @@ func is_active() -> bool:
 func can_activate(card_data: CardData, is_player: bool) -> bool:
 	if card_data == null or not is_player:
 		return false
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target or battle.is_resolving_effects():
 		return false
 	if _active or battle.targeting_system.is_targeting():
 		return false
@@ -75,6 +75,7 @@ func on_ally_minion_clicked(minion: Minion, visual: BoardMinion) -> void:
 		await _execute()
 
 func _execute() -> void:
+	battle.afk_guard.notify_local_action()
 	var ritual: CardData = _pending_ritual
 	var victims: Array[Minion] = _selected.duplicate()
 	_active = false
@@ -89,6 +90,9 @@ func _execute() -> void:
 	var victim_ids: Array = []
 	for v in victims:
 		victim_ids.append(v.net_id)
+	# Succès Steam "Sacrifice" (voir AchievementManager) : cumulé sur toute la partie.
+	battle.player_sacrifices_this_match += victims.size()
+	AchievementManager.on_sacrifice(battle.player_sacrifices_this_match)
 	await battle.trigger_system.activate_sacrifice_ritual(ritual, true, victims)
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture()

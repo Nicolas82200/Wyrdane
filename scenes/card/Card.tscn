@@ -6,6 +6,7 @@
 [ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
 [ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
+[ext_resource type="FontFile" uid="uid://blcle0h87knxw" path="res://assets/fonts/CrimsonText-SemiBoldItalic.ttf" id="12_italicfont"]
 [ext_resource type="Texture2D" path="res://assets/icons/fleshy-mass.svg" id="8_resicon_undead"]
 [ext_resource type="Texture2D" path="res://assets/icons/wax-seal.svg" id="9_resicon_human"]
 [ext_resource type="Texture2D" path="res://assets/icons/soul.svg" id="10_resicon_demon"]
@@ -44,6 +45,20 @@ corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+corner_detail = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_typeicon_bg"]
+bg_color = Color(0.07058824, 0.06666667, 0.0627451, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.65882355, 0.47843137, 0.20392157, 1)
+border_blend = true
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
 corner_detail = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wcykg"]
@@ -122,14 +137,24 @@ anchor_bottom = 1.0
 mouse_filter = 2
 expand_mode = 1
 
-[node name="LaneIcon" type="TextureRect" parent="." unique_id=1153858896]
-modulate = Color(1, 1, 1, 0.42)
-custom_minimum_size = Vector2(140, 140)
+[node name="CardTypeIconBg" type="Panel" parent="." unique_id=1153858895]
+custom_minimum_size = Vector2(51, 51)
 layout_mode = 0
-offset_left = 55.0
-offset_top = 187.5
-offset_right = 195.0
-offset_bottom = 327.5
+offset_left = 13.5
+offset_top = 13.5
+offset_right = 64.5
+offset_bottom = 64.5
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_typeicon_bg")
+
+[node name="CardTypeIcon" type="TextureRect" parent="." unique_id=1153858896]
+texture_filter = 4
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 0
+offset_left = 19.0
+offset_top = 19.0
+offset_right = 59.0
+offset_bottom = 59.0
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
@@ -142,7 +167,7 @@ offset_right = 236.5
 offset_bottom = 183.0
 theme_override_colors/font_color = Color(0.9490196, 0.8901961, 0.7764706, 1)
 theme_override_fonts/font = ExtResource("3_wcykg")
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_3dwn4")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -176,6 +201,7 @@ vertical_alignment = 1
 
 [node name="ResourceIcon" type="TextureRect" parent="." unique_id=707796709]
 visible = false
+texture_filter = 4
 layout_mode = 0
 offset_left = 195.0
 offset_top = 23.0
@@ -194,8 +220,10 @@ offset_bottom = 328.5
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_fonts/normal_font = ExtResource("4_wcykg")
 theme_override_fonts/bold_font = ExtResource("7_boldfont")
-theme_override_font_sizes/normal_font_size = 13
-theme_override_font_sizes/bold_font_size = 13
+theme_override_fonts/italics_font = ExtResource("12_italicfont")
+theme_override_font_sizes/normal_font_size = 15
+theme_override_font_sizes/bold_font_size = 15
+theme_override_font_sizes/italics_font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
 bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
@@ -261,7 +289,7 @@ offset_bottom = 8.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("5_1oahe")
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 text_overrun_behavior = 3

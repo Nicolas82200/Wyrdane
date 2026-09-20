@@ -17,7 +17,13 @@ const PREVIEW_SCALE := Vector2(1.15, 1.15)
 # Teinte des cartes de la grille dont le max de copies est atteint
 const MAXED_TINT := Color(0.38, 0.38, 0.38, 1)
 
-@onready var card_grid:        GridContainer = %CardGrid
+# Police sans-serif dédiée aux textes d'info denses (badges, liste du deck...) :
+# le thème global (Crimson Text/Cinzel, décoratifs) devient illisible en dessous
+# de ~15px, remplacée ici plutôt que dans ui_theme.tres pour ne pas changer
+# l'habillage du reste du jeu.
+const UI_FONT: Font = preload("res://assets/fonts/PTSans-Regular.ttf")
+
+@onready var card_grid:        HFlowContainer = %CardGrid
 @onready var deck_list:        VBoxContainer = %DeckList
 @onready var deck_name_edit:   LineEdit      = %DeckNameEdit
 @onready var card_count_label: Label         = %CardCountLabel
@@ -60,6 +66,10 @@ var _race_tooltip:     Control        = null
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
+var _hovered_card_data: CardData      = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# preview agrandie — voir TooltipData.tooltips_expanded.
+var _hint_panel:       PanelContainer = null
 
 # Calque pour le tooltip « max de copies » (au-dessus de la grille)
 var _overlay_layer: CanvasLayer = null
@@ -96,7 +106,11 @@ func _ready() -> void:
 	_overlay_layer.layer = 19
 	add_child(_overlay_layer)
 	card_preview.set_non_interactive()
-	card_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (pas IGNORE) : le joueur visant naturellement la grande carte plutôt
+	# que la petite carte d'origine derrière elle, le clic droit dessus doit
+	# aussi basculer les tooltips (voir TooltipData.tooltips_expanded).
+	card_preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	card_preview.gui_input.connect(_on_preview_right_click)
 	card_preview.z_index = 100
 	card_preview.hide()
 	save_button.pressed.connect(_on_save)
@@ -247,7 +261,7 @@ func _add_card_to_grid(card_data: CardData) -> void:
 	card_visual.set_data(card_data)
 
 	_grid_visuals[card_data.resource_path] = card_visual
-	if _is_card_maxed(card_data):
+	if _is_card_maxed(card_data) or _is_card_locked(card_data):
 		card_visual.modulate = MAXED_TINT
 
 	wrapper.gui_input.connect(_on_card_wrapper_input.bind(card_data))
@@ -275,7 +289,8 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var badge_label := Label.new()
-	badge_label.add_theme_font_size_override("font_size", 12)
+	badge_label.add_theme_font_override("font", UI_FONT)
+	badge_label.add_theme_font_size_override("font_size", 13)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_panel.add_child(badge_label)
 	wrapper.add_child(badge_panel)
@@ -315,7 +330,8 @@ func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
 	var buy_button := Button.new()
 	buy_button.text = SettingsManager.t("deck.buy_button") % price
 	buy_button.custom_minimum_size = Vector2(0, 26)
-	buy_button.add_theme_font_size_override("font_size", 12)
+	buy_button.add_theme_font_override("font", UI_FONT)
+	buy_button.add_theme_font_size_override("font_size", 13)
 	buy_button.anchor_left   = 0.0
 	buy_button.anchor_right  = 1.0
 	buy_button.anchor_top    = 1.0
@@ -427,21 +443,47 @@ func _on_buy_missing_finished(success: bool) -> void:
 		_show_buy_error_tooltip(buy_missing_button, "deck.buy_missing_error")
 
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_add_card(card_data)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_add_card(card_data)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
+	_hovered_card_data = card_data
 	_hovering = true
 	card_preview.set_data(card_data)
 	card_preview.scale = PREVIEW_SCALE
 	card_preview.show()
+	_show_hint_panel()
 	_position_hover_tooltips()
-	if _is_card_maxed(card_data):
+	if _is_card_maxed(card_data) or _is_card_locked(card_data):
 		_show_max_copies_tooltip(wrapper, card_data)
-	await _show_keyword_tooltips(card_data, wrapper)
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(card_data, wrapper)
+
+## Même bascule, depuis un clic droit sur la grande preview elle-même (voir
+## _ready, card_preview.mouse_filter = PASS) — le joueur visant naturellement
+## la carte agrandie plutôt que la petite carte d'origine dans la grille.
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	_on_tooltip_right_click()
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si une carte est actuellement survolée.
+func _on_tooltip_right_click() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if not _hovering or _hovered_wrapper == null or not is_instance_valid(_hovered_wrapper):
+		return
+	_show_hint_panel()
+	if TooltipData.tooltips_expanded:
+		await _show_keyword_tooltips(_hovered_card_data, _hovered_wrapper)
+	else:
+		_hide_keyword_tooltips()
 
 ## `wrapper` (et non `card_visual`, inutile ici) permet d'ignorer une sortie
 ## « périmée » : mouse_entered/mouse_exited entre deux wrappers adjacents ne
@@ -453,10 +495,12 @@ func _on_card_wrapper_exited(wrapper: Control) -> void:
 	if wrapper != _hovered_wrapper:
 		return
 	_hovered_wrapper = null
+	_hovered_card_data = null
 	_hovering = false
 	card_preview.hide()
 	_clear_max_tooltip()
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 
 # ─── Liste deck à droite ──────────────────────────────────────────────────────
 
@@ -480,15 +524,22 @@ func _refresh_deck_list() -> void:
 	for path in current_deck.card_paths:
 		if path not in seen:
 			seen.append(path)
+	# Chaque carte chargée une seule fois (load() met déjà en cache la
+	# ressource, mais le comparateur d'un sort_custom est appelé O(n log n)
+	# fois) plutôt que dans le comparateur lui-même, rappelé pour chaque
+	# comparaison de la boucle de tri.
+	var loaded: Dictionary = {}
+	for path in seen:
+		loaded[path] = load(path) as CardData
 	seen.sort_custom(func(a: String, b: String) -> bool:
-		var ca := load(a) as CardData
-		var cb := load(b) as CardData
+		var ca: CardData = loaded[a]
+		var cb: CardData = loaded[b]
 		if ca.cost != cb.cost:
 			return ca.cost < cb.cost
 		return ca.display_name() < cb.display_name())
 
 	for path in seen:
-		var card := load(path) as CardData
+		var card: CardData = loaded[path]
 		if card == null:
 			continue
 		var total: int = counts[path]
@@ -514,15 +565,22 @@ func _refresh_deck_list() -> void:
 ## n'en possède qu'une partie) — grisée, avec un bouton d'achat dédié, mais le
 ## badge de coût garde sa couleur de race (repère visuel même sans posséder la carte).
 func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) -> Control:
+	# Ligne "possédée" teintée plus doré (confirmée/jouable) ; ligne "manquante"
+	# reste sombre (voir _refresh_deck_list pour la séparation des deux).
 	var bg := StyleBoxFlat.new()
-	bg.bg_color                   = Color(0.08, 0.07, 0.06, 1) if is_missing else Color(0.12, 0.10, 0.08, 1)
+	if is_missing:
+		bg.bg_color = Color(0.08, 0.07, 0.06, 1)
+	else:
+		bg.bg_color              = Color(0.22, 0.17, 0.07, 1)
+		bg.border_color          = Color(0.55, 0.41, 0.08, 0.4)
+		bg.set_border_width_all(1)
 	bg.corner_radius_top_left     = 3
 	bg.corner_radius_top_right    = 3
 	bg.corner_radius_bottom_left  = 3
 	bg.corner_radius_bottom_right = 3
 
 	var bg_hover := bg.duplicate() as StyleBoxFlat
-	bg_hover.bg_color             = Color(0.15, 0.13, 0.10, 1) if is_missing else Color(0.20, 0.16, 0.10, 1)
+	bg_hover.bg_color             = Color(0.15, 0.13, 0.10, 1) if is_missing else Color(0.28, 0.21, 0.09, 1)
 	bg_hover.border_color         = Color(0.55, 0.41, 0.08, 0.6)
 	bg_hover.border_width_left    = 1
 	bg_hover.border_width_right   = 1
@@ -554,16 +612,19 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_color_override("font_color", Color(0.05, 0.04, 0.02, 1))
-	cost_lbl.add_theme_font_size_override("font_size", 13)
+	cost_lbl.add_theme_font_override("font", UI_FONT)
+	cost_lbl.add_theme_font_size_override("font_size", 14)
 	cost_panel.add_child(cost_lbl)
 	row.add_child(cost_panel)
 
 	var name_lbl := Label.new()
 	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_color_override("font_color",
-		Color(0.91, 0.835, 0.639, 0.45) if is_missing else Color(0.91, 0.835, 0.639, 1))
-	name_lbl.add_theme_font_size_override("font_size", 14)
+	# Même couleur possédée/manquante (voir _make_deck_row) : seul le bandeau
+	# de la ligne distingue les deux, pas le nom.
+	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	name_lbl.add_theme_font_override("font", UI_FONT)
+	name_lbl.add_theme_font_size_override("font_size", 15)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -577,7 +638,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	qty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	qty_lbl.add_theme_color_override("font_color",
 		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
-	qty_lbl.add_theme_font_size_override("font_size", 13)
+	qty_lbl.add_theme_font_override("font", UI_FONT)
+	qty_lbl.add_theme_font_size_override("font_size", 14)
 	row.add_child(qty_lbl)
 
 	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
@@ -589,7 +651,8 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 		var buy_btn := Button.new()
 		buy_btn.text = SettingsManager.t("deck.buy_button") % price
 		buy_btn.custom_minimum_size = Vector2(0, 26)
-		buy_btn.add_theme_font_size_override("font_size", 11)
+		buy_btn.add_theme_font_override("font", UI_FONT)
+		buy_btn.add_theme_font_size_override("font_size", 13)
 		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
 		row.add_child(buy_btn)
@@ -641,9 +704,13 @@ func _resource_count() -> int:
 func _update_count_label() -> void:
 	var playable := _playable_count()
 	var resources := _resource_count()
+	var suggested := DeckManager.suggested_resource_count(current_deck)
+	var resource_line := SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS]
+	if resources < suggested:
+		resource_line += " " + SettingsManager.t("deck.resource_suggestion_format") % suggested
 	card_count_label.text = "%s\n%s" % [
 		SettingsManager.t("deck.count_format") % [playable, DeckManager.MIN_PLAYABLE_CARDS],
-		SettingsManager.t("deck.resource_count_format") % [resources, DeckManager.MIN_RESOURCE_CARDS],
+		resource_line,
 	]
 	var ok: bool = playable >= DeckManager.MIN_PLAYABLE_CARDS and resources >= DeckManager.MIN_RESOURCE_CARDS
 	card_count_label.modulate = Color(0.5, 0.9, 0.5) if ok else Color(1, 0.4, 0.4)
@@ -735,10 +802,11 @@ func _on_add_card(card_data: CardData) -> void:
 		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
 func _on_deck_row_input(event: InputEvent, path: String) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_remove_one(path)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_remove_one(path)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -949,27 +1017,32 @@ func _is_card_locked(card_data: CardData) -> bool:
 	return CollectionManager.owned_quantity(card_data) <= 0
 
 ## Grise les cartes de la grille dont le deck contient déjà le nombre maximum
-## de copies (voir _is_card_maxed).
+## de copies (voir _is_card_maxed), ou dont le joueur ne possède aucun
+## exemplaire (voir _is_card_locked — reste ajoutable au deck malgré tout,
+## juste un repère visuel de ce qui n'est pas encore débloqué).
 func _update_grid_maxed_states() -> void:
 	for path in _grid_visuals.keys():
 		var visual: Card = _grid_visuals[path]
 		if not is_instance_valid(visual):
 			continue
 		var card_data: CardData = visual.data
-		var maxed: bool = card_data != null and _is_card_maxed(card_data)
-		visual.modulate = MAXED_TINT if maxed else Color.WHITE
+		var greyed: bool = card_data != null and (_is_card_maxed(card_data) or _is_card_locked(card_data))
+		visual.modulate = MAXED_TINT if greyed else Color.WHITE
 		if card_data != null and _stock_labels.has(path):
 			var stock_label: Label = _stock_labels[path]
 			if is_instance_valid(stock_label):
 				_update_stock_label(card_data, stock_label)
 
-## Tooltip centré sur la carte grisée quand le deck contient déjà le nombre
-## maximum de copies (DeckManager.MAX_COPIES_PER_CARD) — indépendant de la
-## possession : une carte non possédée reste ajoutable au deck (voir
-## DeckManager.can_add_card), seul le plafond de copies bloque l'ajout.
+## Tooltip centré sur la carte grisée : max de copies déjà présentes dans le
+## deck (DeckManager.MAX_COPIES_PER_CARD), ou carte pas encore débloquée du
+## tout (message distinct, voir _is_card_locked) — reste ajoutable au deck
+## dans les deux cas tant que le plafond de copies n'est pas atteint (voir
+## DeckManager.can_add_card), c'est juste un repère visuel.
 func _show_max_copies_tooltip(anchor: Control, card_data: CardData = null) -> void:
 	_clear_max_tooltip()
-	var panel := TooltipData.make_race_tooltip("deck.max_copies_reached")
+	var text_key := "deck.card_locked" if (card_data != null and _is_card_locked(card_data)) \
+		else "deck.max_copies_reached"
+	var panel := TooltipData.make_race_tooltip(text_key)
 	panel.position = Vector2(-9999, -9999)
 	_overlay_layer.add_child(panel)
 	_max_tooltip = panel
@@ -1100,6 +1173,10 @@ func _position_hover_tooltips() -> void:
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):
 		_max_tooltip.global_position = \
 			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.global_position = Vector2(
+			card_center.x - _hint_panel.size.x / 2.0,
+			card_preview.global_position.y - _hint_panel.size.y - 6)
 
 func _process(_delta: float) -> void:
 	if _hovering:
@@ -1116,4 +1193,20 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## Recréée (plutôt que son seul texte mis à jour) pour rester cohérente avec
+## le reste de ce fichier (tous les autres tooltips sont reconstruits à chaque
+## affichage) — repositionnée à chaque frame par _position_hover_tooltips
+## tant que le survol dure.
+func _show_hint_panel() -> void:
+	_hide_hint_panel()
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.position = Vector2(-9999, -9999)
+	_hint_panel.z_index = 100
+	add_child(_hint_panel)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
 		

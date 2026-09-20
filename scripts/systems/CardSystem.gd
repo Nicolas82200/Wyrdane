@@ -7,11 +7,21 @@ func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	battle.afk_guard.notify_local_action()
 	if card_data.card_type == "Resource":
 		if not battle.can_afford_card(card_data):
 			return
 		battle.play_resource_card(card_data, true)
 		_remove_from_hand(card_data)
+		# Contrairement aux autres types (plusieurs await avant d'arriver ici,
+		# le temps que le queue_free() du nœud Card glissé — déclenché dans
+		# Card._on_drag_released — soit bien traité), une carte-ressource
+		# arrive ici dès la 1ère frame : un seul process_frame ne garantit pas
+		# que le nœud soit déjà retiré de l'arbre, donc pas encore élagué par
+		# _prune_hand_order → un trou reste dans la main tant qu'un autre
+		# recalcul de layout (survol...) n'est pas déclenché. Deux frames
+		# laissent le temps à la suppression différée de s'appliquer.
+		await battle.get_tree().process_frame
 		await battle.get_tree().process_frame
 		battle.hand._update_hand_layout(true)
 		# Popup d'effet (glisse depuis la gauche, lisible) qui se désintègre

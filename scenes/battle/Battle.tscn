@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
 [ext_resource type="Texture2D" uid="uid://bs3l57fgcqb6k" path="res://assets/heros_art/king-aldric-dawnbearer.jpg" id="20_pheroart"]
 [ext_resource type="Texture2D" uid="uid://dypdopuwgal1s" path="res://assets/heros_art/azhar-the-fallen.jpg" id="21_eheroart"]
+[ext_resource type="Script" uid="uid://bbnx2073bncdp" path="res://scripts/battle/LockAttacksButton.gd" id="22_lockatk"]
 [ext_resource type="Shader" uid="uid://cj050hs40vohd" path="res://resources/shaders/rounded_corners.gdshader" id="22_roundshader"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laneback"]
@@ -675,6 +676,7 @@ grow_vertical = 2
 
 [node name="MulliganDimOverlay" type="ColorRect" parent="." unique_id=900000005]
 visible = false
+z_index = 90
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -683,9 +685,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.6)
-z_index = 90
 
 [node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
+z_index = 91
 custom_minimum_size = Vector2(170, 48)
 layout_mode = 1
 anchors_preset = 3
@@ -699,7 +701,6 @@ offset_right = -60.0
 offset_bottom = -56.0
 grow_horizontal = 0
 grow_vertical = 0
-z_index = 91
 action_mode = 0
 text = "Fin du tour"
 script = ExtResource("13_etbtn")
@@ -987,18 +988,18 @@ mouse_filter = 2
 script = ExtResource("16_enhand")
 
 [node name="SettingsButton" type="Button" parent="." unique_id=1329099647]
+z_index = 91
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
-z_index = 91
 text = "S"
 
 [node name="HelpButton" type="Button" parent="." unique_id=1329099648]
+z_index = 91
 layout_mode = 0
 offset_left = 46.0
 offset_right = 54.0
 offset_bottom = 8.0
-z_index = 91
 text = "?"
 
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]

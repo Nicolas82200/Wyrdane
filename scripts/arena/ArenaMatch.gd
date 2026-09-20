@@ -28,9 +28,26 @@ var elimination_order: Array[ArenaPlayerState] = []
 func _init(_players: Array[ArenaPlayerState], _pool: ArenaCardPool) -> void:
 	players = _players
 	pool = _pool
+	# Assigne un seat_id stable par index si aucun n'a été fourni à l'avance
+	# (voir ArenaPlayerState.seat_id) — c'est cette valeur qu'ArenaPairing
+	# utilise pour ses clés d'appariement plutôt que get_instance_id().
+	for i in players.size():
+		if players[i].seat_id < 0:
+			players[i].seat_id = i
 
 func alive_players() -> Array[ArenaPlayerState]:
 	return players.filter(func(p: ArenaPlayerState): return p.is_alive())
+
+# Retrouve le participant portant ce seat_id (voir ArenaPlayerState.seat_id),
+# ou null. Consommé par la couche réseau (ArenaHostAuthority/
+# ArenaRemoteBoardMirror) pour retrouver le bon ArenaPlayerState à partir d'un
+# identifiant de siège reçu du réseau — jamais par get_instance_id(), qui
+# n'a de sens que localement.
+func find_by_seat(seat_id: int) -> ArenaPlayerState:
+	for player in players:
+		if player.seat_id == seat_id:
+			return player
+	return null
 
 func is_match_over() -> bool:
 	return alive_players().size() <= 1
@@ -114,9 +131,21 @@ func cast_spell(player: ArenaPlayerState, card_data: CardData) -> bool:
 	sim.player_minions = (player.board_front + player.board_back).duplicate()
 	for m in sim.player_minions:
 		m.owner_is_player = true
+	var board_before: Array[Minion] = sim.player_minions.duplicate()
 	for effect in card_data.effects:
 		await sim.effect_manager.execute_effect(sim, null, effect, null)
+	# Une Incantation auto-ciblée (ex. dégâts au lanceur) peut tuer un allié
+	# via une aura/réaction : sans ce passage, ce mort resterait présent sur
+	# player_minions au moment de la resynchronisation (même problème et même
+	# solution que _summon_minion_return, voir SimulatedBattle.gd). DeathSystem
+	# réassigne sim.player_minions vers un nouveau tableau filtré (ne mute pas
+	# player.board_front/board_back par effet de bord) : on répercute donc les
+	# morts manuellement ci-dessous.
+	await sim.death_system.process_deaths()
 	sim.aura_system.recompute_all()
+	for minion in board_before:
+		if minion.is_dead():
+			player.remove_from_board(minion)
 	player.hero_hp = sim.player_hero.health
 	player.spell_hand.erase(card_data)
 	return true

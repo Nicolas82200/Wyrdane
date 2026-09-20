@@ -74,7 +74,15 @@ func get_active_enchantments(is_player: bool) -> Array:
 # Retourne l'état "au moins une action a eu lieu" pour chaîner le pacing.
 func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false, already_acted: bool = false) -> bool:
 	var ctx := TriggerContext.new(trigger_name, source, is_player, extra)
-	return await _fire_on_enchantments(ctx, paced, already_acted)
+	# Englobe toute la chaîne (y compris les pauses de pacing entre chaque
+	# enchantement/rituel déclenché) pour que battle.effects_resolving reste
+	# vrai en continu pendant toute la résolution, sans micro-fenêtre où
+	# l'input reviendrait entre deux effets d'une même chaîne.
+	battle.effects_resolving += 1
+	var result: bool = await _fire_on_enchantments(ctx, paced, already_acted)
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
+	return result
 
 # ─── Enchantements ────────────────────────────────────────────────────────────
 
@@ -93,10 +101,12 @@ func _fire_on_enchantments(ctx: TriggerContext, paced: bool = false, already_act
 			# consommeraient une charge sur chaque sort, ciblé ou non).
 			if ctx.trigger_name == "OnSpell" and _is_spell_cancel_card(card_data):
 				continue
-			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort) :
+			# Condition non remplie (ex: pas assez d'alliés, mauvaise race du mort)
+			# ou aucune cible valide pour l'effet (ex: aucun serviteur ennemi en jeu) :
 			# le rituel ne réagit pas et ne consomme donc pas de charge.
 			var proxy := _make_proxy(card_data, is_player)
-			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, ctx.source_minion):
+			var context_target: Minion = ctx.extra.get("target", ctx.source_minion)
+			if not battle.effect_manager.any_condition_met(battle, proxy, card_data, context_target):
 				continue
 			if paced and acted:
 				await battle.pace_actions()
@@ -203,8 +213,6 @@ func _enchantment_reacts(card_data: CardData, ctx: TriggerContext, enchantment_o
 				return enchantment_owner_is_player == ctx.is_player_event
 			"OnSpell":
 				return enchantment_owner_is_player != ctx.is_player_event
-			"OnAura":
-				return true
 			"OnSummon":
 				return enchantment_owner_is_player == ctx.is_player_event
 			_:

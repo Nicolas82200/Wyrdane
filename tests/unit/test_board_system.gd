@@ -17,14 +17,14 @@ func before_each() -> void:
 func after_each() -> void:
 	board_system.free()
 
-func _card(attack: int = 1, health: int = 1, race: int = Race.Type.NONE, allows_overflow: bool = false) -> CardData:
+func _card(attack: int = 1, health: int = 1, race: int = Race.Type.NONE, board_position: String = "Front") -> CardData:
 	var data := CardData.new()
 	data.card_name = "TEST_CARD"
 	data.card_type = "Minion"
 	data.attack = attack
 	data.health = health
 	data.race = race
-	data.allows_row_overflow = allows_overflow
+	data.board_position = board_position
 	return data
 
 # Serviteur déjà en jeu, sans passer par BoardSystem (évite de dupliquer le
@@ -52,31 +52,40 @@ func test_summon_minion_return_sets_board_row() -> void:
 	var minion := await board_system.summon_minion_return(_card(), true, "Back")
 	assert_eq(minion.board_row, "Back")
 
-# ─── Dépassement de rangée ──────────────────────────────────────────────────────
+# ─── Rangée pleine ──────────────────────────────────────────────────────────────
 
-func test_summon_fails_when_row_is_full_and_no_overflow_ally() -> void:
+func test_summon_fails_when_row_is_full() -> void:
 	for i in 10:
 		_existing_minion(true, "Front")
 	var minion := await board_system.summon_minion_return(_card(), true, "Front")
-	assert_null(minion, "aucune place en Avant, aucun allié REMPART/débordement : la pose doit échouer")
+	assert_null(minion, "aucune place en Avant : la pose doit échouer")
 	assert_eq(battle.player_minions.size(), 10, "le serviteur refusé ne doit pas être ajouté au plateau")
 
-func test_summon_redirects_to_other_row_with_overflow_ally_and_room() -> void:
-	for i in 10:
-		_existing_minion(true, "Front")
-	_existing_minion(true, "Front", Race.Type.NONE).card_data.allows_row_overflow = true
-	var minion := await board_system.summon_minion_return(_card(), true, "Front")
-	assert_not_null(minion, "un allié à débordement de rangée doit permettre la redirection")
-	assert_eq(minion.board_row, "Back", "redirigé vers la rangée alternative disponible")
+# ─── Pose libre de rangée (Stratège Royal) ──────────────────────────────────────
 
-func test_summon_fails_when_both_rows_are_full_even_with_overflow_ally() -> void:
-	for i in 10:
-		_existing_minion(true, "Front")
-	for i in 10:
-		_existing_minion(true, "Back")
-	_existing_minion(true, "Front").card_data.allows_row_overflow = true
-	var minion := await board_system.summon_minion_return(_card(), true, "Front")
-	assert_null(minion, "les deux rangées pleines : impossible de rediriger")
+func test_get_allowed_rows_restricts_to_fixed_board_position_by_default() -> void:
+	var front_card := _card(1, 1, Race.Type.NONE, "Front")
+	var back_card := _card(1, 1, Race.Type.NONE, "Back")
+	assert_eq(board_system.get_allowed_rows_for_card(front_card, true), ["Front"])
+	assert_eq(board_system.get_allowed_rows_for_card(back_card, true), ["Back"])
+
+func test_get_allowed_rows_for_hybrid_card_is_always_both_rows() -> void:
+	var hybrid_card := _card(1, 1, Race.Type.NONE, "Hybrid")
+	assert_eq(board_system.get_allowed_rows_for_card(hybrid_card, true), ["Front", "Back"])
+
+func test_free_row_placement_ally_lets_fixed_row_card_be_played_anywhere() -> void:
+	_existing_minion(true, "Front").card_data.allows_free_row_placement = true
+	var front_card := _card(1, 1, Race.Type.NONE, "Front")
+	var back_card := _card(1, 1, Race.Type.NONE, "Back")
+	assert_eq(board_system.get_allowed_rows_for_card(front_card, true), ["Front", "Back"],
+		"un Stratège Royal allié doit permettre de poser un serviteur à rangée fixe n'importe où")
+	assert_eq(board_system.get_allowed_rows_for_card(back_card, true), ["Front", "Back"])
+
+func test_free_row_placement_ally_only_applies_to_its_own_camp() -> void:
+	_existing_minion(false, "Front").card_data.allows_free_row_placement = true
+	var front_card := _card(1, 1, Race.Type.NONE, "Front")
+	assert_eq(board_system.get_allowed_rows_for_card(front_card, true), ["Front"],
+		"le Stratège Royal ennemi ne doit pas assouplir la pose côté joueur")
 
 # ─── Ordre d'insertion ──────────────────────────────────────────────────────────
 

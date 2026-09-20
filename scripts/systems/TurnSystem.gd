@@ -44,6 +44,7 @@ func end_turn() -> void:
 		_ending_turn = false
 		return
 	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
 	await _begin_player_turn()
@@ -85,7 +86,7 @@ func _begin_player_turn() -> void:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_player_turn_began()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnAwaken vise le camp dont c'est le tour, OnDecline le camp adverse (dont le
@@ -184,6 +185,10 @@ func start_match() -> void:
 	else:
 		battle.deck_system.deal_opening_hand()
 	var deck_origin: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
+	# Mode mulligan activé avant la pioche de la main de départ : les cartes
+	# volent directement du deck vers leur position centrée/agrandie de
+	# mulligan, sans passer d'abord par la main repliée en bas de l'écran.
+	battle.hand.set_mulligan_mode(true)
 	await battle.hand.play_opening_draw(battle.hand_cards, deck_origin)
 	if battle.tutorial_active:
 		await battle.tutorial_manager.intro_mulligan()
@@ -205,7 +210,7 @@ func start_match() -> void:
 		TutorialContext.clear()
 		battle.tutorial_manager.start()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
 # normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
@@ -216,10 +221,8 @@ func run_mulligan() -> void:
 	battle._mulligan_active = true
 	battle._mulligan_swap_count = 0
 	battle._mulligan_swapped_indices.clear()
-	# Transition étalée réservée à la partie normale : le tutoriel guidé mesure
-	# la position des cartes très tôt (voir TutorialManager.guided_mulligan) et
-	# a besoin qu'elles soient déjà stables à cet instant.
-	battle.hand.set_mulligan_mode(true, -1.0 if battle.tutorial_active else Hand.MULLIGAN_TRANSITION_DURATION)
+	# Mode mulligan déjà activé avant la pioche de la main de départ (voir
+	# start_match) : les cartes sont déjà centrées/agrandies à cet instant.
 	battle.hand.mulligan_card_clicked.connect(_on_mulligan_card_clicked)
 	battle.mulligan_dim_overlay.visible = true
 	battle.turn_banner.show_banner_persistent(
@@ -270,7 +273,6 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
 	battle.hand.flip_replace_at(index, new_data)
-	battle.hand.set_card_mulligan_swapped(index, true)
 	if battle.tutorial_active:
 		battle.tutorial_manager.notify_mulligan_swap(_card_data)
 

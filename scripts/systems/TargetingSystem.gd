@@ -218,7 +218,7 @@ func _highlight_hero(is_player: bool) -> void:
 	var panel: Control = battle.get_node("PlayerHeroPanel") if is_player else battle.get_node("EnemyHeroPanel")
 	if panel == null:
 		return
-	panel.modulate = HIGHLIGHT_ENEMY_COLOR
+	panel.modulate = HIGHLIGHT_ALLY_COLOR if is_player else HIGHLIGHT_ENEMY_COLOR
 	_highlighted.append(panel)
 
 func _highlight_enchantment_side(is_player: bool, color: Color) -> void:

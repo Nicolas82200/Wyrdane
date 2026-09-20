@@ -5,10 +5,18 @@ const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 # Temps de lecture, popup en place, AVANT que l'effet ne se joue
 const READ_HOLD = 0.4
 # Temps où la popup reste affichée pendant/après la résolution de l'effet
-const DISPLAY_DURATION = 0.6
+# (0.6 -> 0.9, +50% : le temps de lecture précédent laissait trop peu de
+# temps pour lire la description avant que la popup ne s'efface)
+const DISPLAY_DURATION = 0.9
 # Temps où la popup d'une carte-ressource reste affichée avant de se désintégrer
 # vers le pool de mana (voir show_resource_popup / _absorb_resource_popup)
 const RESOURCE_HOLD = 0.5
+# Pendant le tour adverse (IA ou joueur réseau distant), le joueur local est
+# spectateur : il n'a pas besoin du même temps de lecture que pour ses propres
+# cartes (READ_HOLD/DISPLAY_DURATION ci-dessus, volontairement généreux pour
+# ses propres décisions). Un tour avec plusieurs serviteurs à Arrivée peut
+# sinon facilement dépasser 20s rien qu'en popups d'effet cumulées.
+const ENEMY_TURN_HOLD_SCALE = 0.5
 const LEFT_MARGIN = 24.0
 # File d'attente façon MTG Arena : une seule popup « se joue » à la fois à
 # l'emplacement principal ; les suivantes patientent empilées au-dessus,
@@ -38,6 +46,21 @@ func init(_battle) -> void:
 	battle.add_child(_popup_layer)
 	_effect_arrow = ArrowOverlay.new()
 	_popup_layer.add_child(_effect_arrow)
+
+# Lisibilité réduite pour ce qui vient du camp ADVERSE (spectateur, pas de
+# décision à prendre), pleine lisibilité pour les propres cartes du joueur.
+# Basé sur le camp propriétaire de la source quand on le connaît (serviteur ou
+# proxy d'enchantement/rituel, voir _make_proxy) plutôt que sur
+# battle.enemy_turn_active : un Déclin ennemi peut se résoudre APRÈS que ce
+# flag soit déjà repassé à false (voir TurnSystem._begin_player_turn, appelé
+# une fois le tour adverse terminé) — sans ce repère par propriétaire, ces
+# popups restaient à pleine durée alors qu'elles suivent immédiatement les
+# actions de l'IA, prolongeant d'autant l'attente perçue avant que le tour ne
+# revienne vraiment au joueur.
+func _hold_scale(source_minion: Minion = null) -> float:
+	if source_minion != null:
+		return 1.0 if source_minion.owner_is_player else ENEMY_TURN_HOLD_SCALE
+	return ENEMY_TURN_HOLD_SCALE if battle.enemy_turn_active else 1.0
 
 # Emplacement commun de toutes les popups : à gauche de l'écran, centré verticalement
 func _get_left_slot_position(card_size: Vector2) -> Vector2:
@@ -92,7 +115,10 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		card.position.x = -card.size.x
 		card.scale = Vector2(STACK_SCALE, STACK_SCALE)
 
-	var entry := {"card": card, "shown": false, "source_minion": source_minion}
+	var entry := {
+		"card": card, "shown": false, "source_minion": source_minion,
+		"origin": origin, "has_origin": has_origin,
+	}
 	# Un nouvel effet déclenché passe DEVANT la file : il se jouera en premier
 	_pending.push_front(entry)
 	_reflow_pending()
@@ -197,19 +223,34 @@ func _play_popup(entry: Dictionary) -> void:
 	# qui n'ont pas de serviteur source.
 	_set_source_highlight(entry, true)
 
+	# Trait reliant la carte/serviteur source à cette popup (voir
+	# PreviewLinkOverlay), pour que le joueur identifie qui a déclenché
+	# l'effet prévisualisé — absent pour les cartes-ressource (pas de source
+	# à relier) ou si la source a quitté le plateau (voir show_card_popup).
+	# Instance locale à cet appel : deux popups jouées en léger recouvrement
+	# (fondu de sortie de l'une pendant l'entrée de la suivante, voir plus
+	# bas) ont donc chacune leur propre trait, jamais partagé ni réutilisé.
+	var link: PreviewLinkOverlay = null
+	if not is_resource and entry.get("has_origin", false):
+		link = PreviewLinkOverlay.new()
+		_popup_layer.add_child(link)
+		var link_to: Vector2 = card.get_screen_position() + Vector2(card.size.x * 0.5, card.size.y)
+		link.show_link(entry["origin"], link_to)
+
 	# La popup est en place : temps de lecture AVANT de libérer l'effet, pour que
 	# le joueur voie la description de l'effet avant qu'il ne se joue.
-	await battle.get_tree().create_timer(READ_HOLD).timeout
+	var hold_scale := _hold_scale(entry.get("source_minion"))
+	await battle.get_tree().create_timer(READ_HOLD * hold_scale).timeout
 	entry["shown"] = true
 
 	if is_resource:
-		await battle.get_tree().create_timer(RESOURCE_HOLD).timeout
+		await battle.get_tree().create_timer(RESOURCE_HOLD * hold_scale).timeout
 		_active_card = null
 		_set_source_highlight(entry, false)
 		_absorb_resource_popup(card, entry["card_data"])
 		return
 
-	await battle.get_tree().create_timer(DISPLAY_DURATION).timeout
+	await battle.get_tree().create_timer(DISPLAY_DURATION * hold_scale).timeout
 
 	if _effect_card == card:
 		_effect_card = null
@@ -217,7 +258,7 @@ func _play_popup(entry: Dictionary) -> void:
 	_active_card = null
 	_set_source_highlight(entry, false)
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
-	_fade_out_popup(card)
+	_fade_out_popup(card, link)
 
 # Active/désactive le halo de preview sur le serviteur source de cette popup
 # (absent pour les cartes-ressource, ou si le serviteur a quitté le plateau
@@ -245,14 +286,20 @@ func _absorb_resource_popup(card: Card, card_data: CardData) -> void:
 	else:
 		card.queue_free()
 
-func _fade_out_popup(card: Card) -> void:
+func _fade_out_popup(card: Card, link: PreviewLinkOverlay = null) -> void:
 	_kill_popup_tween(card)
 	var t_out = card.create_tween().set_parallel(true)
 	t_out.tween_property(card, "scale", card.scale * 0.8, 0.15)\
 		.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	t_out.tween_property(card, "modulate:a", 0.0, 0.15)
+	# Le trait vers la source (s'il y en a un) s'efface en même temps que la
+	# popup, pour ne jamais laisser un trait affiché sans popup à son bout.
+	if link != null and is_instance_valid(link):
+		t_out.tween_property(link, "modulate:a", 0.0, 0.15)
 	await t_out.finished
 	card.queue_free()
+	if link != null and is_instance_valid(link):
+		link.queue_free()
 
 # ── Courbe d'effet : de la popup vers les cibles ──────────────────────────────
 
@@ -273,7 +320,7 @@ func get_effect_popup_tip() -> Vector2:
 # skip_missile : true quand VFXManager a déjà joué un vrai projectile pour ce
 # sort (résolution immédiate d'un Éphémère/Rituel joué, voir CardSystem.gd) —
 # évite d'afficher les deux projectiles en double sur la même carte.
-func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false) -> void:
+func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missile: bool = false, source_minion: Minion = null) -> void:
 	var from: Vector2 = get_effect_popup_tip()
 	if from == Vector2.ZERO or target_positions.is_empty():
 		return
@@ -285,7 +332,7 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missil
 			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
-	await battle.get_tree().create_timer(hold).timeout
+	await battle.get_tree().create_timer(hold * _hold_scale(source_minion)).timeout
 
 func clear_effect_arrows() -> void:
 	if _effect_arrow != null and is_instance_valid(_effect_arrow):
