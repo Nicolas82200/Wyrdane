@@ -122,7 +122,18 @@ func _exit_tree() -> void:
 	_cleanup_hover()
 
 func _ready() -> void:
-	_battle = get_tree().current_scene
+	# En différé, pas immédiat : `SceneTransition._swap_scene` fait
+	# `tree.root.add_child(next_root)` (qui déclenche ce _ready() de façon
+	# synchrone, y compris pour tout serviteur déjà construit pendant le
+	# _ready() de la scène elle-même — ex. la toute première boutique Arena,
+	# bâtie synchrone dans ArenaBattle._ready() -> _start_match()) AVANT
+	# `tree.current_scene = next_root` sur la ligne suivante. Capturé
+	# immédiatement ici, `get_tree().current_scene` vaudrait donc encore
+	# l'ANCIENNE scène (sur le point d'être libérée) pour ces serviteurs-là :
+	# leur aperçu de survol serait ajouté à une scène morte, jamais affiché.
+	# En laissant passer un tour de boucle (call_deferred), `_swap_scene` a
+	# fini de mettre `current_scene` à jour avant qu'on ne le lise.
+	call_deferred("_resolve_battle_reference")
 
 	# Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
 	_highlight_style = StyleBoxFlat.new()
@@ -227,6 +238,9 @@ func _ready() -> void:
 	_fusion_button.add_theme_color_override("font_color", Color.WHITE)
 	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
 	add_child(_fusion_button)
+
+func _resolve_battle_reference() -> void:
+	_battle = get_tree().current_scene
 
 func _process(delta: float) -> void:
 	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de
