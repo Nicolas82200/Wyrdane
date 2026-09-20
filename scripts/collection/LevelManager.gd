@@ -53,3 +53,16 @@ func _apply(data: Dictionary) -> void:
 	xp = int(data.get("xp", xp))
 	xp_to_next = int(data.get("xpToNext", xp_to_next))
 	level_changed.emit(level, xp, xp_to_next)
+
+# ─── Popup de récompenses de niveau (voir LevelRewardsPopup) ───────────────
+# Pas de cache local : chaque ouverture de la popup relit l'état à jour
+# depuis le backend (même philosophie que le reste du fichier).
+
+# on_complete appelé avec (success, {level, catalog: [{level, kind, rarity?,
+# gold?}], rewards: [{level, type, gold, claimed}]}).
+func fetch_rewards(on_complete: Callable) -> void:
+	BackendClient.get_level_rewards(on_complete)
+
+# on_complete appelé avec (success, {claimed: Array[int]}).
+func claim_rewards(levels: Array, on_complete: Callable) -> void:
+	BackendClient.claim_level_rewards(levels, on_complete)

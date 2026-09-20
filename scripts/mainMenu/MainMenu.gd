@@ -171,6 +171,15 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var login_reward_amount_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardAmountLabel
 @onready var login_reward_claim_button: Button = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardClaimButton
 
+@onready var level_rewards_popup: Control = $LevelRewardsPopup
+@onready var level_rewards_title_label: Label = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow/LevelRewardsTitleLabel
+@onready var level_rewards_back_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow/LevelRewardsBackButton
+@onready var level_rewards_status_label: Label = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsStatusLabel
+@onready var level_rewards_scroll: ScrollContainer = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsScroll
+@onready var level_rewards_list_vbox: VBoxContainer = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsScroll/LevelRewardsListVBox
+@onready var level_rewards_claim_all_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow/LevelRewardsClaimAllButton
+@onready var level_rewards_go_to_current_button: Button = $LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsBottomRow/LevelRewardsGoToCurrentButton
+
 @onready var crash_report_popup: Control = $CrashReportPopup
 @onready var crash_report_title_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportTitleLabel
 @onready var crash_report_desc_label: Label = $CrashReportPopup/CrashReportPanel/CrashReportMargin/CrashReportVBox/CrashReportDescLabel
@@ -219,7 +228,14 @@ func _ready() -> void:
 	discord_button.pressed.connect(_on_discord_pressed)
 	website_button.pressed.connect(_on_website_pressed)
 	profile_button.set_meta("no_click_sound", true)
-	profile_button.pressed.connect(_on_profile_button_pressed)
+	# Pas de connexion directe à .pressed : ProfileButton recouvre tout le
+	# panneau (avatar/pseudo compris), mais un clic précisément sur le niveau
+	# de compte (AccountLevelLabel/Bar, sous le pseudo) doit ouvrir la popup
+	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
+	profile_button.gui_input.connect(_on_player_status_gui_input)
+	level_rewards_back_button.pressed.connect(func(): LevelRewardsPanel.close(self))
+	level_rewards_claim_all_button.pressed.connect(func(): LevelRewardsPanel.claim_all(self))
+	level_rewards_go_to_current_button.pressed.connect(func(): LevelRewardsPanel.go_to_current_level(self))
 	settings_button.pressed.connect(func(): _show_info_view(InfoView.SETTINGS))
 
 	deck_comp_preview_card.set_non_interactive()
@@ -591,6 +607,18 @@ func _show_info_view(view: InfoView) -> void:
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
 
+# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau...) ;
+# un clic relâché précisément sur AccountLevelLabel/Bar ouvre la popup de
+# récompenses de niveau à la place du profil (voir LevelRewardsPanel).
+func _on_player_status_gui_input(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
+		return
+	var level_rect := account_level_label.get_global_rect().merge(account_level_bar.get_global_rect())
+	if level_rect.has_point(event.global_position):
+		LevelRewardsPanel.open(self)
+	else:
+		_on_profile_button_pressed()
+
 func _on_credits() -> void:
 	credits_main_sub.show()
 	credits_legal_sub.hide()
@@ -940,6 +968,11 @@ func _retranslate() -> void:
 	discord_button.tooltip_text = SettingsManager.t("MENU_DISCORD_TOOLTIP")
 	website_button.tooltip_text = SettingsManager.t("MENU_WEBSITE_TOOLTIP")
 	offline_banner_label.text = SettingsManager.t("MENU_OFFLINE_BANNER")
+
+	level_rewards_title_label.text = SettingsManager.t("LEVEL_REWARDS_TITLE")
+	level_rewards_back_button.text = SettingsManager.t("ui.back")
+	level_rewards_claim_all_button.text = SettingsManager.t("LEVEL_REWARDS_CLAIM_ALL")
+	level_rewards_go_to_current_button.text = SettingsManager.t("LEVEL_REWARDS_GO_TO_CURRENT")
 
 	mode_title_label.text = SettingsManager.t("MENU_PLAY_CHOOSE_MODE")
 	solo_mode_button.text = SettingsManager.t("MENU_PLAY_SOLO")
