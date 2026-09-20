@@ -28,6 +28,14 @@ var _selection_mode:   bool           = false
 # carte survolée — voir TooltipData.tooltips_expanded.
 var _hint_panel:       PanelContainer = null
 
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards / Hand._show_summon_previews, même
+# principe) — au-dessus de la carte agrandie si la place le permet, sinon en
+# dessous.
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
+
 func _ready() -> void:
 	# Le son de fermeture est joué dans close(), pas le clic générique
 	close_btn.set_meta("no_click_sound", true)
@@ -45,6 +53,7 @@ func close() -> void:
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
 	_hide_hint_panel()
+	_clear_summon_previews()
 	hide()
 	if _selection_mode:
 		_selection_mode = false
@@ -79,6 +88,7 @@ func _pick(card_data: CardData) -> void:
 	_selection_mode = false
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	hide()
 	card_picked.emit(card_data)
 
@@ -101,6 +111,7 @@ func open_deck(cards: Array) -> void:
 func _open_entries(entries: Array) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	for child in container.get_children():
 		child.queue_free()
 	var grouped: Array = []
@@ -196,6 +207,7 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
 		return
 	_show_hint_panel(wrapper)
+	_show_summon_previews(card_data, wrapper)
 	if TooltipData.tooltips_expanded:
 		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
 
@@ -237,6 +249,89 @@ func _on_card_wrapper_exited(card_visual: Card, wrapper: Control) -> void:
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_hide_keyword_tooltips()
 	_hide_hint_panel()
+	_clear_summon_previews()
+
+## Aperçu supplémentaire par jeton fixe invoqué par la carte survolée (voir
+## CardData.get_summon_preview_cards) — repose sur CardEffect.summon_card,
+## donc rien pour SummonRandom (cible aléatoire, pas de jeton précis à
+## montrer). Centré horizontalement sur la carte agrandie, au-dessus si la
+## place le permet, sinon en dessous.
+func _show_summon_previews(card_data: CardData, wrapper: Control) -> void:
+	_clear_summon_previews()
+	if card_data == null or not is_instance_valid(wrapper):
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 12.0
+	var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
+	var token_size := CARD_BASE_SIZE * token_scale.x
+
+	var new_tokens: Array[Card] = []
+	for token_data in tokens:
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null:
+			continue
+		add_child(token_card)
+		token_card.set_non_interactive()
+		# PASS (pas IGNORE) : le clic droit sur un jeton invoqué doit aussi
+		# basculer les tooltips détaillés de la carte survolée.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click.bind(card_data, wrapper))
+		token_card.z_index = 5
+		token_card.set_data(token_data)
+		token_card.scale = token_scale
+		new_tokens.append(token_card)
+	if new_tokens.is_empty():
+		return
+
+	var strip_width: float = float(new_tokens.size()) * token_size.x \
+		+ float(new_tokens.size() - 1) * TOKEN_SPACING
+	var vp := get_viewport_rect().size
+	var strip_x: float = clampf(
+		wrapper.global_position.x + card_size.x / 2.0 - strip_width / 2.0,
+		4.0, vp.x - strip_width - 4.0)
+
+	var above_y: float = wrapper.global_position.y - token_size.y - 12.0
+	var place_above: bool = above_y >= 4.0
+	var strip_y: float = above_y if place_above else wrapper.global_position.y + card_size.y + 12.0
+	strip_y = clampf(strip_y, 4.0, vp.y - token_size.y - 4.0)
+
+	var link_from_y: float = wrapper.global_position.y if place_above \
+		else wrapper.global_position.y + card_size.y
+
+	for i in range(new_tokens.size()):
+		var token_card: Card = new_tokens[i]
+		var tx: float = strip_x + float(i) * (token_size.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(tx, strip_y)
+		token_card.visible = true
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 4
+		add_child(link)
+		var link_from := Vector2(wrapper.global_position.x + card_size.x / 2.0, link_from_y)
+		var link_to_y: float = strip_y + token_size.y if place_above else strip_y
+		var link_to := Vector2(tx + token_size.x / 2.0, link_to_y)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
+
+## Même bascule que _on_card_wrapper_right_click, depuis un clic droit sur un
+## aperçu de jeton invoqué (voir _show_summon_previews) — ces cartes n'ont
+## pas leur propre pile de tooltips, seule celle de la carte survolée compte.
+func _on_token_preview_right_click(event: InputEvent, card_data: CardData, wrapper: Control) -> void:
+	_on_card_wrapper_right_click(event, card_data, wrapper)
 
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
