@@ -397,6 +397,8 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 
 **Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
 
+**Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. L'onglet « Collection » de la Boutique affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) et permet de l'ouvrir par lot de 1/2/5/10 (`POST /api/packs/open-owned`, une requête par pack, l'écran de révélation les enchaîne).
+
 Toutes ces valeurs vivent en dur dans le code (`CurrencyManager.gd` côté client à titre indicatif, `packModel.ts`/`collectionModel.ts`/`questModel.ts`/`loginRewardModel.ts`/`rewardsController.ts` côté `wyrdane-backend` en source de vérité) — les deux côtés doivent rester synchronisés manuellement, voir les commentaires croisés dans chaque fichier.
 
 ### 🌍 Internationalisation (i18n)

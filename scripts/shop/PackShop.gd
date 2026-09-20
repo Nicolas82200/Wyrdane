@@ -1,17 +1,21 @@
 extends Control
 class_name PackShop
 
-# Écran d'ouverture de packs : monnaie gagnée en jouant, dépensée ici contre
-# des cartes aléatoires pondérées par rareté (voir POST /api/packs/open côté
-# wyrdane-backend). Le joueur peut ouvrir plusieurs packs d'affilée (x1/x3/x5) :
-# l'API n'ouvrant qu'un pack par requête, le client enchaîne les appels puis
-# révèle toutes les cartes dans une seule séquence.
+# Écran d'OUVERTURE de packs uniquement : les packs sont achetés à part, dans
+# l'onglet Packs de la Boutique (voir ShopBuyPacksPanel.gd), qui se contente de
+# créditer CurrencyManager.free_packs sans jamais tirer de carte. Cet écran,
+# lui, consomme ce stock (CurrencyManager.open_owned_pack, cartes aléatoires
+# pondérées par rareté — voir POST /api/packs/open-owned côté wyrdane-backend)
+# et anime la révélation. Appelé depuis l'onglet Collection (voir
+# ShopCollectionPanel.gd/MainMenu.gd) via open_owned(quantity), 1/2/5/10 packs
+# à la fois : l'API n'ouvrant qu'un pack par requête, le client enchaîne les
+# appels puis révèle toutes les cartes dans une seule séquence.
 
 # Émis quand le joueur ferme l'écran via la croix (le nœud se contente de se
 # masquer lui-même — voir close_x_button plus bas) : permet à l'appelant
-# (MainMenu, quand PackShop est embarqué comme vue du panneau d'infos plutôt
-# que comme overlay plein écran) de revenir sur une autre vue au lieu de
-# laisser le panneau vide.
+# (MainMenu, qui affiche PackShop par-dessus l'onglet Collection de la
+# Boutique le temps d'une ouverture — voir _open_owned_packs_flow) de
+# réafficher l'onglet Collection à jour au lieu de laisser l'écran vide.
 signal closed
 
 @export var card_scene: PackedScene
@@ -25,7 +29,7 @@ const HOVER_SCALE := 1.1
 const GRID_MIN_SCALE := 0.55
 # Plafond d'échelle utilisé à la place de HOVER_SCALE quand un seul pack est
 # ouvert (peu de cartes à révéler, donc la place ne manque pas) : les cartes
-# reçues sont alors affichées nettement plus grandes que le cas x3/x5.
+# reçues sont alors affichées nettement plus grandes que pour plusieurs packs.
 const SINGLE_PACK_MAX_SCALE := 1.55
 # Décalage vertical additionnel de la grille de révélation en mode pack unique
 # : les cartes étant plus grandes, les centrer un peu plus bas évite qu'elles
@@ -41,10 +45,10 @@ const PACK_FLIP_DURATION := 0.22
 const CARD_FLY_DURATION := 0.45
 const FIRST_REVEAL_DELAY := 0.2
 # Délai entre deux révélations : part de REVEAL_STAGGER puis s'accélère de
-# REVEAL_STAGGER_DECAY par carte déjà révélée dans CETTE séquence (x3/x5 ou
-# plusieurs packs gratuits d'un coup), jusqu'au plancher REVEAL_STAGGER_MIN —
-# ouvrir beaucoup de packs d'affilée devient progressivement plus rapide au
-# lieu de garder un rythme fixe et lassant.
+# REVEAL_STAGGER_DECAY par carte déjà révélée dans CETTE séquence (2/5/10
+# packs ouverts d'un coup), jusqu'au plancher REVEAL_STAGGER_MIN — ouvrir
+# beaucoup de packs d'affilée devient progressivement plus rapide au lieu de
+# garder un rythme fixe et lassant.
 const REVEAL_STAGGER := 0.7
 const REVEAL_STAGGER_DECAY := 0.05
 const REVEAL_STAGGER_MIN := 0.3
@@ -60,9 +64,9 @@ const GRID_AREA_LEFT_RATIO := 0.22
 const GRID_AREA_SIDE_MARGIN := 40.0
 const GRID_AREA_TOP := 150.0
 # Doit rester au-dessus de la pile de boutons ancrée en bas de l'écran (voir
-# OwnedButtonRow/BottomBar/SkipHintLabel dans PackShop.tscn, qui
-# culmine à 186px du bas) pour que les cartes révélées ne les chevauchent pas.
-const GRID_AREA_BOTTOM := 196.0
+# BottomBar/SkipHintLabel dans PackShop.tscn, qui culmine à 140px du bas) pour
+# que les cartes révélées ne les chevauchent pas.
+const GRID_AREA_BOTTOM := 150.0
 const GRID_MAX_COLUMNS := 5
 # Fraction de chaque cellule de grille effectivement occupée par la carte (le
 # reste forme l'espacement entre cartes).
@@ -70,16 +74,11 @@ const GRID_CELL_PADDING := 0.86
 
 @onready var shake_layer: Control = $ShakeLayer
 @onready var title_label: Label = $ShakeLayer/TitleLabel
-@onready var balance_label: Label = $ShakeLayer/InfoRow/BalanceLabel
 @onready var progress_label: Label = $ShakeLayer/InfoRow/ProgressLabel
 @onready var status_label: Label = $ShakeLayer/StatusLabel
 @onready var close_x_button: Button = $ShakeLayer/CloseXButton
 @onready var pack_stage: Control = $ShakeLayer/PackStage
 @onready var pack_center: CenterContainer = $ShakeLayer/PackStage/PackCenter
-@onready var owned_button: Button = $ShakeLayer/OwnedButtonRow/OpenOwnedButton
-@onready var open_x1_button: Button = $ShakeLayer/BottomBar/OpenX1Button
-@onready var open_x3_button: Button = $ShakeLayer/BottomBar/OpenX3Button
-@onready var open_x5_button: Button = $ShakeLayer/BottomBar/OpenX5Button
 @onready var odds_button: Button = $ShakeLayer/BottomBar/OddsButton
 @onready var skip_hint_label: Label = $ShakeLayer/SkipHintLabel
 @onready var flash_rect: ColorRect = $FlashRect
@@ -112,36 +111,15 @@ func _ready() -> void:
 	resized.connect(_resize_shake_layer)
 	_pack_visual = _build_pack_visual(pack_center)
 	_style_close_x_button()
-	for btn in [open_x1_button, open_x3_button, open_x5_button, odds_button, owned_button]:
-		_style_action_button(btn)
-	open_x1_button.pressed.connect(func(): _open_pack(false, 1))
-	open_x3_button.pressed.connect(func(): _open_pack(false, 3))
-	open_x5_button.pressed.connect(func(): _open_pack(false, 5))
+	_style_action_button(odds_button)
 	odds_button.pressed.connect(_on_odds_pressed)
-	# Packs gratuits gagnés (quêtes hebdo, parrainage — voir
-	# docs/backend-contracts/weekly-quests-and-referral.md) : consomme
-	# CurrencyManager.free_packs plutôt que l'or, visible seulement s'il y en
-	# a au moins un.
-	owned_button.pressed.connect(_open_owned_packs)
-	CurrencyManager.free_packs_changed.connect(func(_n): _update_owned_button())
 	close_x_button.set_meta("no_click_sound", true)
 	close_x_button.pressed.connect(func(): AudioManager.play(AudioManager.CLOSE_MENU); hide(); closed.emit())
 	skip_hint_label.gui_input.connect(_on_skip_input)
-	CurrencyManager.balance_changed.connect(func(new_balance: int): _update_balance_label(new_balance))
 	CollectionManager.collection_loaded.connect(_update_progress_label)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
-	_update_balance_label(CurrencyManager.balance)
 	_update_progress_label()
-	_update_owned_button()
-	_start_idle_spin()
-
-func refresh() -> void:
-	_resize_shake_layer()
-	CurrencyManager.sync_from_backend()
-	CollectionManager.sync_from_backend()
-	_clear_cards()
-	status_label.hide()
 	_start_idle_spin()
 
 func _resize_shake_layer() -> void:
@@ -206,51 +184,28 @@ func _set_layers_scale_x(value: float) -> void:
 			layer.scale.x = value
 
 func _set_action_buttons_disabled(disabled: bool) -> void:
-	open_x1_button.disabled = disabled
-	open_x3_button.disabled = disabled
-	open_x5_button.disabled = disabled
-	owned_button.disabled = disabled
+	close_x_button.disabled = disabled
+	odds_button.disabled = disabled
 
-## Ouvre `quantity` packs d'affilée (l'API backend n'en ouvre qu'un par
-## requête) puis révèle toutes les cartes tirées dans une seule séquence. Si
-## un appel échoue en cours de route (solde épuisé après les premiers packs
-## payés, par ex.), les cartes déjà obtenues sont tout de même révélées.
-func _open_pack(free: bool, quantity: int) -> void:
-	_set_action_buttons_disabled(true)
-	status_label.hide()
-
-	var all_cards: Array = []
-	var last_code := 200
-	for i in quantity:
-		var result: Dictionary = await _request_single_pack(free)
-		if not is_instance_valid(self):
-			return
-		last_code = result["code"]
-		var cards: Array = result["cards"]
-		if last_code != 200 or cards.is_empty():
-			break
-		all_cards.append_array(cards)
-
-	_on_packs_opened(last_code, all_cards, quantity == 1)
-
-func _request_single_pack(free: bool) -> Dictionary:
-	CurrencyManager.open_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards), free)
-	var result: Array = await _pack_request_completed
-	return {"code": result[0], "cards": result[1]}
-
-## Ouvre d'un coup tous les packs gratuits gagnés (quêtes hebdo, parrainage —
-## voir CurrencyManager.free_packs), même séquence de révélation que x1/x3/x5
-## mais débité du solde de packs plutôt que de l'or.
-func _open_owned_packs() -> void:
-	var quantity: int = CurrencyManager.free_packs
-	if quantity <= 0:
+## Point d'entrée public : ouvre jusqu'à `quantity` packs du stock du joueur
+## (CurrencyManager.free_packs — achetés en Boutique ou gagnés gratuitement,
+## le stock ne distingue plus l'origine une fois crédité) puis révèle toutes
+## les cartes tirées dans une seule séquence. Appelé par MainMenu quand le
+## joueur choisit 1/2/5/10 depuis l'onglet Collection ; borné au stock réel
+## pour ignorer un double-clic ou un stock qui a changé entretemps. Si un
+## appel échoue en cours de route, les cartes déjà obtenues sont tout de même
+## révélées.
+func open_owned(quantity: int) -> void:
+	var count: int = min(quantity, CurrencyManager.free_packs)
+	if count <= 0:
 		return
-	_set_action_buttons_disabled(true)
+	_clear_cards()
 	status_label.hide()
+	_set_action_buttons_disabled(true)
 
 	var all_cards: Array = []
 	var last_code := 200
-	for i in quantity:
+	for i in count:
 		var result: Dictionary = await _request_single_owned_pack()
 		if not is_instance_valid(self):
 			return
@@ -260,7 +215,7 @@ func _open_owned_packs() -> void:
 			break
 		all_cards.append_array(cards)
 
-	_on_packs_opened(last_code, all_cards, quantity == 1)
+	_on_packs_opened(last_code, all_cards, count == 1)
 
 func _request_single_owned_pack() -> Dictionary:
 	CurrencyManager.open_owned_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
@@ -607,16 +562,6 @@ func _clear_cards() -> void:
 			continue
 		child.queue_free()
 
-func _update_balance_label(new_balance: int) -> void:
-	balance_label.text = str(new_balance)
-
-## Visible seulement si le joueur a au moins un pack gratuit à ouvrir (quêtes
-## hebdo, parrainage) — CurrencyManager.free_packs, séparé du solde d'or.
-func _update_owned_button() -> void:
-	var count: int = CurrencyManager.free_packs
-	owned_button.get_parent().visible = count > 0
-	owned_button.text = SettingsManager.t("pack_shop.open_owned") % count
-
 ## Teaser de complétion de collection : cartes obtenues (>=1 exemplaire) sur
 ## le total de cartes collectionnables (exclut les cartes-ressource, jamais
 ## octroyées par un pack — voir packModel.fetchDrawablePool côté backend).
@@ -640,7 +585,7 @@ func _style_close_x_button() -> void:
 	hover.bg_color = Color("8b1a1a55")
 	close_x_button.add_theme_stylebox_override("hover", hover)
 
-## Habille un bouton d'action (x1/x3/x5, ?, packs gagnés) dans le même style
+## Habille un bouton d'action (?) dans le même style
 ## parchemin/or que le reste des popups custom du jeu (voir
 ## DeckBuilder._make_popup_overlay : fond sombre, bordure or, coins arrondis)
 ## au lieu du thème Godot par défaut — aucun Theme global n'est configuré
@@ -672,14 +617,9 @@ func _style_action_button(btn: Button) -> void:
 	btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.5, 0.45, 0.7))
 
 func _retranslate() -> void:
-	title_label.text = SettingsManager.t("pack_shop.title")
-	open_x1_button.text = SettingsManager.t("pack_shop.open_x1") % (CurrencyManager.PACK_COST * 1)
-	open_x3_button.text = SettingsManager.t("pack_shop.open_x3") % (CurrencyManager.PACK_COST * 3)
-	open_x5_button.text = SettingsManager.t("pack_shop.open_x5") % (CurrencyManager.PACK_COST * 5)
+	title_label.text = SettingsManager.t("pack_shop.opening_title")
 	odds_button.text = SettingsManager.t("pack_shop.odds_button")
 	close_x_button.tooltip_text = SettingsManager.t("pack_shop.close")
 	skip_hint_label.text = SettingsManager.t("pack_shop.skip_hint")
 	status_label.text = SettingsManager.t("pack_shop.error")
-	_update_balance_label(CurrencyManager.balance)
 	_update_progress_label()
-	_update_owned_button()
