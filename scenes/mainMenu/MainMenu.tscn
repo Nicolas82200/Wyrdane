@@ -34,6 +34,30 @@ corner_radius_bottom_left = 12
 shadow_color = Color(0.35, 0.24, 0.08, 0.4)
 shadow_size = 18
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loginday_today"]
+bg_color = Color(0.09, 0.075, 0.06, 0.55)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.92, 0.72, 0.28, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_loginday_future"]
+bg_color = Color(0.09, 0.075, 0.06, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.42, 0.37, 0.3, 0.5)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rail"]
 bg_color = Color(0.043, 0.035, 0.027, 0.72)
 border_width_right = 2
@@ -1514,10 +1538,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -140.0
-offset_right = 200.0
-offset_bottom = 140.0
+offset_left = -210.0
+offset_top = -150.0
+offset_right = 210.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
@@ -1543,28 +1567,213 @@ text = "Récompense de connexion"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="LoginRewardIconCenter" type="CenterContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox"]
+[node name="LoginRewardStripRow" type="HBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=900000300]
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 6
 
-[node name="LoginRewardIcon" type="ColorRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardIconCenter"]
-custom_minimum_size = Vector2(56, 56)
+[node name="LoginRewardDay0" type="PanelContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow" unique_id=900000301]
+custom_minimum_size = Vector2(62, 84)
 layout_mode = 2
-color = Color(0.22, 0.13, 0.07, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_loginday_today")
 
-[node name="LoginRewardStreakLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000016]
+[node name="DayCardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0" unique_id=900000302]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 6
+
+[node name="DayCardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin" unique_id=900000303]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin/DayCardVBox" unique_id=900000304]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 18
-text = "Jour 1"
+theme_override_font_sizes/font_size = 10
+text = "Auj."
 horizontal_alignment = 1
+autowrap_mode = 2
 
-[node name="LoginRewardAmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000017]
+[node name="DayIcon" type="TextureRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin/DayCardVBox" unique_id=900000305]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("14_goldicon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin/DayCardVBox" unique_id=900000306]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.30, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 22
-text = "+10 or"
+theme_override_font_sizes/font_size = 12
+text = "+10"
+horizontal_alignment = 1
+
+[node name="LoginRewardDay1" type="PanelContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow" unique_id=900000307]
+custom_minimum_size = Vector2(62, 84)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_loginday_future")
+
+[node name="DayCardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1" unique_id=900000308]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 6
+
+[node name="DayCardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin" unique_id=900000309]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin/DayCardVBox" unique_id=900000310]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "+1"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DayIcon" type="TextureRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin/DayCardVBox" unique_id=900000311]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("14_goldicon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin/DayCardVBox" unique_id=900000312]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "+15"
+horizontal_alignment = 1
+
+[node name="LoginRewardDay2" type="PanelContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow" unique_id=900000313]
+custom_minimum_size = Vector2(62, 84)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_loginday_future")
+
+[node name="DayCardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2" unique_id=900000314]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 6
+
+[node name="DayCardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin" unique_id=900000315]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin/DayCardVBox" unique_id=900000316]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "+2"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DayIcon" type="TextureRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin/DayCardVBox" unique_id=900000317]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("14_goldicon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin/DayCardVBox" unique_id=900000318]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "+20"
+horizontal_alignment = 1
+
+[node name="LoginRewardDay3" type="PanelContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow" unique_id=900000319]
+custom_minimum_size = Vector2(62, 84)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_loginday_future")
+
+[node name="DayCardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3" unique_id=900000320]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 6
+
+[node name="DayCardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin" unique_id=900000321]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin/DayCardVBox" unique_id=900000322]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "+3"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DayIcon" type="TextureRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin/DayCardVBox" unique_id=900000323]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("14_goldicon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin/DayCardVBox" unique_id=900000324]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "+25"
+horizontal_alignment = 1
+
+[node name="LoginRewardDay4" type="PanelContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow" unique_id=900000325]
+custom_minimum_size = Vector2(62, 84)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_loginday_future")
+
+[node name="DayCardMargin" type="MarginContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4" unique_id=900000326]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 6
+
+[node name="DayCardVBox" type="VBoxContainer" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin" unique_id=900000327]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 2
+
+[node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin/DayCardVBox" unique_id=900000328]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "+4"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="DayIcon" type="TextureRect" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin/DayCardVBox" unique_id=900000329]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("14_goldicon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.6)
+
+[node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin/DayCardVBox" unique_id=900000330]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "+30"
 horizontal_alignment = 1
 
 [node name="LoginRewardClaimButton" type="Button" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox" unique_id=400000018]
