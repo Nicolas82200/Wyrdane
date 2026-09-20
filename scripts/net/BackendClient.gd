@@ -290,6 +290,29 @@ func claim_login_reward(on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Récompenses de niveau (popup dédiée, voir LevelRewardsPopup) ──────────
+# Contrat détaillé : voir « Popup de récompenses de niveau » dans le
+# CLAUDE.md de wyrdane-backend.
+
+# on_data appelé avec (success, {level, catalog: [{level, kind, rarity?,
+# gold?}], rewards: [{level, type, gold, claimed}]}).
+func get_level_rewards(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/level/rewards", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed: Array[int]}).
+func claim_level_rewards(levels: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/level/rewards/claim", {"levels": levels}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # ─── Quêtes hebdomadaires & parrainage ──────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
 # docs/backend-contracts/weekly-quests-and-referral.md
