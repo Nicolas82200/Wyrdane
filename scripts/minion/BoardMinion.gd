@@ -527,10 +527,12 @@ func _on_mouse_entered() -> void:
 		(size.y - _hover_preview.size.y * Card.HOVER_ZOOM_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
-	_show_summon_previews(minion.get_display_card())
 	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
 	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	# Alignés sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi ces aperçus.
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(minion.get_display_card())
 		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 		var tooltip_y := _hover_preview.global_position.y
 		await _show_keyword_tooltips(tooltip_x, tooltip_y)
@@ -793,10 +795,12 @@ func _toggle_and_refresh_tooltips() -> void:
 	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
 	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(minion.get_display_card())
 		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 		var tooltip_y := _hover_preview.global_position.y
 		await _show_keyword_tooltips(tooltip_x, tooltip_y)
 	else:
+		_clear_summon_previews()
 		_hide_keyword_tooltips()
 
 # ─── Icônes de keywords ───────────────────────────────────────────────────────

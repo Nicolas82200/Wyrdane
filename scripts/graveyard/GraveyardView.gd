@@ -207,8 +207,10 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
 		return
 	_show_hint_panel(wrapper)
-	_show_summon_previews(card_data, wrapper)
+	# Aligné sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi cet aperçu.
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data, wrapper)
 		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
 
 ## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
@@ -227,8 +229,10 @@ func _on_card_wrapper_right_click(event: InputEvent, card_data: CardData, wrappe
 	var tooltip_y: float = wrapper.global_position.y
 	_show_hint_panel(wrapper)
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data, wrapper)
 		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
 	else:
+		_clear_summon_previews()
 		_hide_keyword_tooltips()
 
 ## `wrapper` : mouse_entered/mouse_exited entre deux cartes adjacentes n'arrivent

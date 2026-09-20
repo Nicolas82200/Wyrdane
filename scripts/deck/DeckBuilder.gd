@@ -466,11 +466,13 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	card_preview.scale = PREVIEW_SCALE
 	card_preview.show()
 	_show_hint_panel()
-	_show_summon_previews(card_data)
 	_position_hover_tooltips()
 	if _is_card_maxed(card_data) or _is_card_locked(card_data):
 		_show_max_copies_tooltip(wrapper, card_data)
+	# Aligné sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi cet aperçu.
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data)
 		await _show_keyword_tooltips(card_data, wrapper)
 
 ## Même bascule, depuis un clic droit sur la grande preview elle-même (voir
@@ -491,8 +493,10 @@ func _on_tooltip_right_click() -> void:
 		return
 	_show_hint_panel()
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(_hovered_card_data)
 		await _show_keyword_tooltips(_hovered_card_data, _hovered_wrapper)
 	else:
+		_clear_summon_previews()
 		_hide_keyword_tooltips()
 
 ## `wrapper` (et non `card_visual`, inutile ici) permet d'ignorer une sortie
