@@ -359,6 +359,14 @@ func set_mulligan_mode(active: bool) -> void:
 	if active and not _hand_expanded:
 		_hand_expanded = true
 		_update_hand_layout(true)
+	elif not active and _hand_expanded:
+		# Repli immédiat en sortie de mulligan (même logique que
+		# _relay_drag_ended) : sans ça, la main resterait centrée/agrandie
+		# jusqu'à COLLAPSE_DELAY (1s) + l'animation, alors que la popup
+		# suivante (ex. mission du tutoriel) s'affiche déjà par-dessus.
+		_collapse_elapsed = 0.0
+		_hand_expanded = false
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
