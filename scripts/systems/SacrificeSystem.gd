@@ -85,8 +85,9 @@ func _execute() -> void:
 	battle.card_popup_system.hide_targeting_popup()
 
 	# Capture les serviteurs créés par l'effet (ex. invocation) pour le rejeu réseau.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	var victim_ids: Array = []
 	for v in victims:
 		victim_ids.append(v.net_id)
@@ -95,7 +96,7 @@ func _execute() -> void:
 	AchievementManager.on_sacrifice(battle.player_sacrifices_this_match)
 	await battle.trigger_system.activate_sacrifice_ritual(ritual, true, victims)
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.activate_ritual(ritual, victim_ids, ids)
 
 # ─── Validité ─────────────────────────────────────────────────────────────────

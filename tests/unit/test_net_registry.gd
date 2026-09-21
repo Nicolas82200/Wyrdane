@@ -61,27 +61,49 @@ func test_clear_resets_ids_and_resolution() -> void:
 	assert_eq(next_id, 1, "clear() doit remettre le compteur à 1 (parité par défaut)")
 
 func test_begin_end_capture_returns_ids_created_during_capture() -> void:
-	registry.begin_capture()
+	var token := registry.begin_capture()
 	var a := registry.register(_minion())
 	var b := registry.register(_minion())
-	var captured := registry.end_capture()
+	var captured := registry.end_capture(token)
 	assert_eq(captured, [a, b])
 
 func test_capture_does_not_include_registrations_before_or_after() -> void:
 	registry.register(_minion())  # avant la capture
-	registry.begin_capture()
+	var token := registry.begin_capture()
 	var captured_id := registry.register(_minion())
-	var captured := registry.end_capture()
+	var captured := registry.end_capture(token)
 	registry.register(_minion())  # après la capture
 	assert_eq(captured, [captured_id])
 
 func test_end_capture_stops_capturing() -> void:
-	registry.begin_capture()
+	var token := registry.begin_capture()
 	registry.register(_minion())
-	registry.end_capture()
+	registry.end_capture(token)
 	registry.register(_minion())  # après la capture : ne doit pas s'ajouter à _captured
-	registry.begin_capture()  # nouvelle capture : repart de zéro
-	assert_eq(registry.end_capture(), [], "une capture fraîchement commencée sans nouveau register() doit être vide")
+	var next_token := registry.begin_capture()  # nouvelle capture : repart de zéro
+	assert_eq(registry.end_capture(next_token), [], "une capture fraîchement commencée sans nouveau register() doit être vide")
+
+func test_end_capture_with_unknown_token_returns_empty() -> void:
+	assert_eq(registry.end_capture(999), [], "un jeton inconnu (déjà consommé ou jamais ouvert) ne doit rien retourner")
+
+# Bug corrigé : deux captures qui se CHEVAUCHENT sans imbrication stricte
+# (ex. deux attaques différentes lancées coup sur coup, voir CombatSystem
+# .resolve_combat — seul le serviteur attaquant est verrouillé pendant sa
+# résolution, un second attaquant différent peut démarrer une nouvelle
+# capture avant que la première ne se termine). Avec une pile aveugle
+# (avant ce fix), la capture qui se termine en premier volait le niveau de
+# l'autre au lieu du sien.
+func test_two_overlapping_captures_each_keep_their_own_ids() -> void:
+	var token_a := registry.begin_capture()
+	var id_a1 := registry.register(_minion())
+	var token_b := registry.begin_capture()  # B démarre pendant que A est encore ouverte
+	var id_shared := registry.register(_minion())  # visible par A ET B
+	# A se termine EN PREMIER, alors que B (ouverte après A) est toujours active.
+	var captured_a := registry.end_capture(token_a)
+	var id_b_only := registry.register(_minion())  # après la fin de A : seule B doit le voir
+	var captured_b := registry.end_capture(token_b)
+	assert_eq(captured_a, [id_a1, id_shared], "A garde ses propres ids malgré la fermeture précoce")
+	assert_eq(captured_b, [id_shared, id_b_only], "B garde les siens, non contaminés par la fermeture de A")
 
 func test_set_imposed_ids_consumes_them_in_order_instead_of_generating() -> void:
 	registry.set_imposed_ids([10, 20, 30])

@@ -243,7 +243,15 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		# comme côté émetteur (voir CardSystem.resolve_with_target).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
 		var target: Minion = battle.net_registry.resolve(target_id) if target_id != NetCommand.TARGET_NONE else null
-		await battle.board_system.summon_minion_return(card, false, row, index, false, target)
+		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index, false, target)
+		if summoned == null:
+			# L'émetteur a réellement posé ce serviteur (sinon il n'aurait pas
+			# émis PLAY_CARD) : un rejet local ("rangée pleine") ici signifie que
+			# notre plateau a divergé du sien. Sans ce log, ce serviteur devient
+			# fantôme côté émetteur — il existe et peut attaquer chez lui, mais
+			# n'a jamais été créé chez nous, donc jamais visible ni résolu par
+			# net_id (voir ATTACK/ATTACK_HERO : attacker introuvable -> ignoré).
+			push_warning("NetworkOpponent : PLAY_CARD '%s' rejeté localement (rangée %s pleine) alors que le pair l'a joué — désynchronisation de plateau" % [card.card_name, row])
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de

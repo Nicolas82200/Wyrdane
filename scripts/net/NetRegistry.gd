@@ -19,12 +19,22 @@ var _by_id: Dictionary = {}  # int -> Minion
 # lieu de générer, pour que les serviteurs miroirs (carte + jetons d'effet)
 # portent EXACTEMENT les mêmes ids que chez l'émetteur.
 var _imposed: Array[int] = []
-# Capture (côté émetteur) : pile de niveaux de capture. Une capture peut être
-# imbriquée (ex. un effet ONPLAY qui déclenche lui-même un combat capturé) :
-# chaque id enregistré est ajouté à TOUS les niveaux actifs, pour qu'une
-# capture englobante récupère aussi les ids créés pendant une capture imbriquée
-# au lieu de les perdre quand celle-ci se termine en premier.
-var _capture_stack: Array = []  # Array[Array[int]]
+# Capture (côté émetteur) : ensemble de niveaux de capture actifs, chacun
+# identifié par un jeton unique plutôt qu'empilés sans identité. Deux captures
+# peuvent être imbriquées (ex. un effet ONPLAY qui déclenche lui-même un combat
+# capturé) OU simplement se chevaucher sans imbrication stricte (ex. deux
+# attaques différentes lancées coup sur coup avant que la première ne soit
+# résolue, voir CombatSystem.resolve_combat — seul le SERVITEUR attaquant est
+# verrouillé pendant sa résolution, rien n'empêche un second attaquant
+# différent de démarrer entre-temps) : dans les deux cas, chaque id enregistré
+# est ajouté à TOUS les niveaux actifs (une capture englobante récupère aussi
+# les ids créés pendant une capture imbriquée), et end_capture() retire
+# précisément le niveau demandé par son jeton — jamais "le dernier ouvert" —
+# pour qu'une capture qui se termine avant une autre, plus ancienne, ne lui
+# vole pas son propre niveau (ce qui assignerait le mauvais net_id au mauvais
+# serviteur entre les deux clients).
+var _capture_levels: Dictionary = {}  # int (jeton) -> Array[int]
+var _next_capture_token: int = 1
 
 # À appeler en début de partie réseau pour fixer la parité locale.
 func configure(start_id: int, stride: int) -> void:
@@ -42,20 +52,35 @@ func register(minion: Minion) -> int:
 		_next_id += _stride
 	minion.net_id = id
 	_by_id[id] = minion
-	for level in _capture_stack:
+	for level in _capture_levels.values():
 		level.append(id)
 	return id
 
 # ─── Capture (émetteur) ───────────────────────────────────────────────────────
 
-func begin_capture() -> void:
+# Retourne un jeton à conserver par l'appelant et à repasser tel quel à
+# end_capture() — jamais un end_capture() "générique" qui retirerait par
+# erreur le niveau d'un autre appelant encore actif (voir commentaire plus haut).
+func begin_capture() -> int:
+	var token: int = _next_capture_token
+	_next_capture_token += 1
+	# Le tableau DOIT être typé (Array[int]) dès sa création, pas seulement au
+	# retour : GDScript ne convertit un Array vers Array[int] qu'à l'affectation
+	# d'une variable typée, jamais à un `return` ni au stockage/relecture depuis
+	# un Dictionary — un niveau créé "nu" ([]) resterait un Array générique à
+	# vie même une fois relu dans une variable Array[int], et end_capture()
+	# échouerait alors silencieusement à l'exécution, renvoyant [] et perdant
+	# tous les ids capturés (piégé une première fois de cette façon ici).
 	var level: Array[int] = []
-	_capture_stack.append(level)
+	_capture_levels[token] = level
+	return token
 
-func end_capture() -> Array[int]:
-	if _capture_stack.is_empty():
+func end_capture(token: int) -> Array[int]:
+	if not _capture_levels.has(token):
 		return []
-	return _capture_stack.pop_back()
+	var level: Array[int] = _capture_levels[token]
+	_capture_levels.erase(token)
+	return level
 
 # ─── Ids imposés (rejeu distant) ──────────────────────────────────────────────
 
