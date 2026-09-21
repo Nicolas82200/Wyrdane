@@ -38,20 +38,20 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.75)
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=1666176405]
-custom_minimum_size = Vector2(1000, 720)
+custom_minimum_size = Vector2(1300, 860)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -500.0
-offset_top = -360.0
-offset_right = 500.0
-offset_bottom = 360.0
+offset_left = -650.0
+offset_top = -430.0
+offset_right = 650.0
+offset_bottom = 430.0
 grow_horizontal = 2
 grow_vertical = 2
-pivot_offset = Vector2(-500, -360)
+pivot_offset = Vector2(-650, -430)
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
 [node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=1025961307]
@@ -93,20 +93,20 @@ text = "✕"
 layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1499386852]
-custom_minimum_size = Vector2(0, 600)
+custom_minimum_size = Vector2(0, 730)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
 [node name="GridMargin" type="MarginContainer" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer" unique_id=1000180938]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
 [node name="GridContainer" type="GridContainer" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/GridMargin" unique_id=1000180937]
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 20
-columns = 4
+columns = 5
