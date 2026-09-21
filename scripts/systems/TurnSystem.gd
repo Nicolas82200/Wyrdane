@@ -28,8 +28,9 @@ func end_turn() -> void:
 	await battle.hand_discard_system.run_if_needed()
 	# Capture les ids des serviteurs créés par les déclencheurs de fin de tour
 	# (ex. Dernier Souffle), pour que le pair les rejoue avec les mêmes ids.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
 	await battle.temp_effect_system.expire_end_of_player_turn()
 	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
@@ -37,7 +38,7 @@ func end_turn() -> void:
 	battle.hero_system.self_damage_blocked[true] = false  # Absolution Écarlate expire
 	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.end_turn(ids)
 	await battle.opponent.take_turn()
 	if battle.game_over:
@@ -73,12 +74,13 @@ func run_turn_end_triggers(is_local_turn: bool = true) -> void:
 
 func _begin_player_turn() -> void:
 	# Capture les ids des serviteurs créés par les déclencheurs de début de tour.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	await run_turn_start_triggers(true)
 	# Émission réseau : le pair rejoue la même phase pour le tour qui commence.
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.turn_start(ids)
 	_finish_turn_start()
 	battle.deck_system.draw_card()
