@@ -234,6 +234,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 - Langage : GDScript, Godot 4.6
 - Les données de carte (stats, coût, rareté, triggers, texte d'effet) doivent rester cohérentes avec le format des tableaux dans `CARDS.md` — toute nouvelle carte ajoutée en code doit avoir son entrée correspondante dans `CARDS.md`
 - Rester cohérent avec les patterns déjà en place dans `scripts/data/` (CardData, Keyword) plutôt que d'introduire de nouvelles structures
+- **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=12, `BODY`=16, `SECTION`=20, `HEADER`=28, `HERO`=40). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
 
 ### Isolation des agents
 

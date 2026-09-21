@@ -523,7 +523,7 @@ func _add_dust_badge(card_instance: Control, gold_earned: int) -> void:
 	var badge_label := Label.new()
 	badge_label.text = SettingsManager.t("pack_shop.dust_format") % gold_earned
 	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	badge_label.add_theme_color_override("font_color", Color(0.98, 0.85, 0.40, 1))
 	badge_panel.add_child(badge_label)
 

@@ -80,7 +80,7 @@ func _ready() -> void:
 
 	_title_label = Label.new()
 	_title_label.add_theme_font_override("font", FONT_BOLD)
-	_title_label.add_theme_font_size_override("font_size", 20)
+	_title_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	_title_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(_title_label)
@@ -168,7 +168,7 @@ func _add_section(header_key: String, entries: Dictionary, color: Color, icons: 
 
 	var header := Label.new()
 	header.add_theme_font_override("font", FONT_BOLD)
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", Typography.BODY)
 	header.add_theme_color_override("font_color", Color("f2e6c8"))
 	_register_i18n(header, header_key)
 	header_panel.add_child(header)
@@ -216,7 +216,7 @@ func _add_entry(info: Dictionary, color: Color, icon: Texture2D) -> void:
 
 	var name_label := Label.new()
 	name_label.add_theme_font_override("font", FONT_BOLD)
-	name_label.add_theme_font_size_override("font_size", 14)
+	name_label.add_theme_font_size_override("font_size", Typography.BODY)
 	name_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_register_i18n(name_label, info["title"])
@@ -224,7 +224,7 @@ func _add_entry(info: Dictionary, color: Color, icon: Texture2D) -> void:
 
 	var desc_label := Label.new()
 	desc_label.add_theme_font_override("font", FONT_REGULAR)
-	desc_label.add_theme_font_size_override("font_size", 13)
+	desc_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	desc_label.add_theme_color_override("font_color", Color("c9beac"))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_register_i18n(desc_label, info["desc"])

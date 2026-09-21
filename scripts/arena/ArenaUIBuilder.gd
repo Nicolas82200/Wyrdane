@@ -152,7 +152,7 @@ static func build(arena) -> void:
 	arena.hero_hp_label = _make_stat(header, ArenaIcon.Kind.HEART, null, SettingsManager.t("ARENA_TOOLTIP_HERO_HP"))
 	arena.level_label = _make_stat(header, ArenaIcon.Kind.STAR, null, SettingsManager.t("ARENA_TOOLTIP_LEVEL"))
 	arena.xp_label = _make_label(header)
-	arena.xp_label.add_theme_font_size_override("font_size", 12)
+	arena.xp_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	arena.xp_label.tooltip_text = SettingsManager.t("ARENA_TOOLTIP_XP")
 
 	# Nom du plateau consulté (voir portraits_column) : sous l'en-tête.
@@ -228,12 +228,12 @@ static func build(arena) -> void:
 
 	arena.phase_label = Label.new()
 	arena.phase_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	arena.phase_label.add_theme_font_size_override("font_size", 18)
+	arena.phase_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	timer_box.add_child(arena.phase_label)
 
 	arena.phase_time_label = Label.new()
 	arena.phase_time_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	arena.phase_time_label.add_theme_font_size_override("font_size", 30)
+	arena.phase_time_label.add_theme_font_size_override("font_size", Typography.HEADER)
 	timer_box.add_child(arena.phase_time_label)
 
 	arena.phase_timer = Timer.new()
@@ -327,7 +327,7 @@ static func _build_combat_banner(arena) -> void:
 	arena.combat_banner_label.offset_bottom = 66.0
 	arena.combat_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	arena.combat_banner_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	arena.combat_banner_label.add_theme_font_size_override("font_size", 40)
+	arena.combat_banner_label.add_theme_font_size_override("font_size", Typography.HERO)
 	arena.combat_banner_label.add_theme_color_override("font_color", Color(0.92, 0.3, 0.25))
 	arena.combat_banner_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	arena.combat_banner_label.add_theme_constant_override("outline_size", 8)
@@ -402,7 +402,7 @@ static func _build_game_over_screen(arena) -> void:
 
 	arena.end_game_title_label = Label.new()
 	arena.end_game_title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	arena.end_game_title_label.add_theme_font_size_override("font_size", 32)
+	arena.end_game_title_label.add_theme_font_size_override("font_size", Typography.HEADER)
 	arena.end_game_title_label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
 	box.add_child(arena.end_game_title_label)
 
@@ -410,7 +410,7 @@ static func _build_game_over_screen(arena) -> void:
 
 	arena.end_game_label = Label.new()
 	arena.end_game_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	arena.end_game_label.add_theme_font_size_override("font_size", 16)
+	arena.end_game_label.add_theme_font_size_override("font_size", Typography.BODY)
 	arena.end_game_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 1))
 	box.add_child(arena.end_game_label)
 
@@ -479,7 +479,7 @@ static func _make_hero_portrait(arena, art: Texture2D, scale_factor: float = 1.0
 	overlay.anchor_bottom = 1.0
 	overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	overlay.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	overlay.add_theme_font_size_override("font_size", 24)
+	overlay.add_theme_font_size_override("font_size", Typography.HEADER)
 	overlay.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85))
 	overlay.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	overlay.add_theme_constant_override("outline_size", 6)

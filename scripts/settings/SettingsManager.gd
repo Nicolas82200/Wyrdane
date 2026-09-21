@@ -75,6 +75,13 @@ var tutorial_completed: bool = false
 # ReferralPromptPopup dans MainMenu.gd) — jamais réaffiché après, qu'il ait
 # entré un code ou fermé le popup sans rien saisir.
 var referral_prompt_seen: bool = false
+# true dès qu'un code de parrainage a été validé avec succès (redeem_referral_code)
+# depuis cet appareil, via la vue Profil ou le popup de premier lancement — le
+# backend n'expose aucun moyen de savoir après coup qu'un compte a déjà été
+# parrainé (voir docs/backend-contracts/weekly-quests-and-referral.md), donc
+# ce flag local sert uniquement à masquer durablement le champ de saisie
+# devenu inutile (un compte n'est jamais parrainé deux fois, voir ReferralPanel.gd).
+var referral_redeemed: bool = false
 
 # Historique de parties (victoires/défaites), stocké localement uniquement —
 # pas de synchronisation backend, contrairement à la collection/monnaie
@@ -190,6 +197,12 @@ func mark_referral_prompt_seen() -> void:
 	if referral_prompt_seen:
 		return
 	referral_prompt_seen = true
+	_save()
+
+func mark_referral_redeemed() -> void:
+	if referral_redeemed:
+		return
+	referral_redeemed = true
 	_save()
 
 func record_match_result(won: bool) -> void:
@@ -469,6 +482,7 @@ func _save() -> void:
 	cfg.set_value("display", "ai_difficulty", ai_difficulty)
 	cfg.set_value("display", "tutorial_completed", tutorial_completed)
 	cfg.set_value("display", "referral_prompt_seen", referral_prompt_seen)
+	cfg.set_value("display", "referral_redeemed", referral_redeemed)
 	cfg.set_value("display", "resolution_x", resolution.x)
 	cfg.set_value("display", "resolution_y", resolution.y)
 	cfg.set_value("display", "fullscreen", fullscreen)
@@ -504,6 +518,7 @@ func _load() -> void:
 		ai_difficulty = DEFAULT_AI_DIFFICULTY
 	tutorial_completed = cfg.get_value("display", "tutorial_completed", false) as bool
 	referral_prompt_seen = cfg.get_value("display", "referral_prompt_seen", false) as bool
+	referral_redeemed = cfg.get_value("display", "referral_redeemed", false) as bool
 
 	var res_x: int = cfg.get_value("display", "resolution_x", DEFAULT_RESOLUTION.x) as int
 	var res_y: int = cfg.get_value("display", "resolution_y", DEFAULT_RESOLUTION.y) as int

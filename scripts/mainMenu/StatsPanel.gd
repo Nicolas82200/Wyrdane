@@ -81,20 +81,20 @@ static func _add_leaderboard_row(menu, player: Dictionary, rank: int, local_name
 	var rank_label := Label.new()
 	rank_label.text = "#%d" % rank
 	rank_label.custom_minimum_size = Vector2(48, 0)
-	rank_label.add_theme_font_size_override("font_size", 15)
+	rank_label.add_theme_font_size_override("font_size", Typography.BODY)
 	rank_label.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
 	hbox.add_child(rank_label)
 
 	var name_label := Label.new()
 	name_label.text = display_name
-	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_font_size_override("font_size", Typography.BODY)
 	name_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(name_label)
 
 	var mmr_label := Label.new()
 	mmr_label.text = str(_get_int(player, "mmr", 0))
-	mmr_label.add_theme_font_size_override("font_size", 14)
+	mmr_label.add_theme_font_size_override("font_size", Typography.BODY)
 	mmr_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
 	hbox.add_child(mmr_label)
 

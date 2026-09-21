@@ -43,7 +43,7 @@ func _ready() -> void:
 	_label = Label.new()
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.add_theme_font_override("font", FONT_BOLD)
-	_label.add_theme_font_size_override("font_size", 28)
+	_label.add_theme_font_size_override("font_size", Typography.HEADER)
 	_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	_label.add_theme_constant_override("shadow_offset_x", 2)
