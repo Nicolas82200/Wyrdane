@@ -1209,6 +1209,28 @@ theme_override_font_sizes/font_size = 16
 text = "Chargement..."
 autowrap_mode = 3
 
+[node name="LeaderboardTiersRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="LeaderboardSearchRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LeaderboardSearchField" type="LineEdit" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Rechercher un joueur..."
+
+[node name="LeaderboardSearchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+text = "Rechercher"
+
+[node name="LeaderboardJumpToMeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+text = "Mon rang"
+
 [node name="StatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2
 size_flags_vertical = 3

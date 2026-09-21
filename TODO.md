@@ -89,6 +89,21 @@ capture `finished` **par valeur** dans la lambda (comportement des closures GDSc
 
 **Résolu, puis revu.** Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) mergé dans `main` et déployé (table `card_play_stats`, colonne `match_reports.cards_played`). Le classement MMR est resté en jeu (écran « Classement », `StatsPanel.gd`), mais les statistiques de cartes (taux de jeu/winrate) ont été retirées de l'écran en jeu et déplacées vers un dashboard admin sur `wyrdane-website` (`/admin/card-stats`, `GET /api/admin/card-stats`, `requireAdmin`) — donnée d'équilibrage interne, pas destinée aux joueurs. Voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`.
 
+## P12 — Classement par palier : backend écrit, pas encore mergé/déployé
+
+Refonte du panneau « Classement » côté client (`StatsPanel.gd`) : 4 onglets
+de palier (Bronze/Argent/Or/Légende) au lieu d'un top-100 plat, ouverture
+centrée sur la position du joueur local, recherche de joueur, avatars Steam,
+bannières or/argent/bronze pour le top 3 de chaque palier. Nécessite le
+backend de la branche `wyrdane-backend` `0072-ranked-leaderboard-browse`
+(**pas encore mergée dans `main`, donc pas déployée**) : enveloppe
+`{ total, players }` + `rank`/`steam_id` sur `GET /api/ranked/leaderboard`,
+et les nouvelles routes `/leaderboard/me`, `/leaderboard/around-me`,
+`/leaderboard/search`. Tant que cette branche n'est pas mergée et déployée
+sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
+format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
+section 5.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
