@@ -4,6 +4,8 @@ class_name RankTier
 # Paliers dérivés côté client depuis le MMR brut renvoyé par
 # /api/profile (champ ranked.mmr) — le backend ne connaît que le MMR, aucun
 # concept de palier n'existe de son côté. 7 paliers (voir CLAUDE.md §Roadmap).
+# Tout joueur démarre à 0 MMR (rankedModel.DEFAULT_MMR côté wyrdane-backend),
+# donc Bronze est bien le palier de départ commun à tous.
 enum Type {
 	BRONZE,
 	SILVER,
@@ -15,12 +17,12 @@ enum Type {
 }
 
 const THRESHOLDS := {
-	Type.LEGEND:   2000,
-	Type.MASTER:   1800,
-	Type.DIAMOND:  1600,
-	Type.PLATINUM: 1400,
-	Type.GOLD:     1200,
-	Type.SILVER:   1000,
+	Type.LEGEND:   1200,
+	Type.MASTER:   1000,
+	Type.DIAMOND:  800,
+	Type.PLATINUM: 600,
+	Type.GOLD:     400,
+	Type.SILVER:   200,
 }
 
 const TIER_COLORS := {
