@@ -51,6 +51,7 @@ QUESTS_UNAVAILABLE,"Quêtes indisponibles (connexion au serveur requise).","Ques
 MENU_STATS,"Statistiques","Statistics"
 STATS_TITLE,"Statistiques","Statistics"
 STATS_UNAVAILABLE,"Statistiques indisponibles (connexion au serveur requise).","Statistics unavailable (server connection required)."
+STATS_NO_DATA,"Pas encore assez de parties classées jouées pour afficher des statistiques.","Not enough ranked matches played yet to display statistics."
 STATS_TOP_CARDS_TITLE,"Cartes les plus jouées (classé)","Most played cards (ranked)"
 STATS_LEADERBOARD_TITLE,"Classement","Leaderboard"
 STATS_CARD_ROW,"Jouée %.0f%% des parties — %.0f%% de victoires","Played in %.0f%% of matches — %.0f%% winrate"

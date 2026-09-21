@@ -20,7 +20,7 @@ static func open(menu) -> void:
 	BackendClient.get_card_stats(func(success: bool, cards: Array):
 		if menu._current_info_view != menu.InfoView.STATS:
 			return
-		_populate_cards(menu, cards)
+		_populate_cards(menu, success, cards)
 	)
 	BackendClient.get_leaderboard(func(success: bool, players: Array):
 		if menu._current_info_view != menu.InfoView.STATS:
@@ -28,10 +28,11 @@ static func open(menu) -> void:
 		_populate_leaderboard(menu, players)
 	)
 
-static func _populate_cards(menu, cards: Array) -> void:
+static func _populate_cards(menu, success: bool, cards: Array) -> void:
 	menu.stats_status_label.visible = cards.is_empty()
 	if cards.is_empty():
-		menu.stats_status_label.text = SettingsManager.t("STATS_UNAVAILABLE")
+		menu.stats_status_label.text = SettingsManager.t("STATS_UNAVAILABLE") if not success else SettingsManager.t("STATS_NO_DATA")
+		return
 	var header := Label.new()
 	header.text = SettingsManager.t("STATS_TOP_CARDS_TITLE")
 	header.add_theme_font_size_override("font_size", 16)
