@@ -168,10 +168,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
 @onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
-@onready var leaderboard_tier_bronze_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierBronzeButton
-@onready var leaderboard_tier_silver_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierSilverButton
-@onready var leaderboard_tier_gold_button:   Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierGoldButton
-@onready var leaderboard_tier_legend_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierLegendButton
+@onready var leaderboard_tiers_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardTiersRow
 @onready var leaderboard_search_field: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchField
 @onready var leaderboard_search_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchButton
 @onready var leaderboard_jump_to_me_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardJumpToMeButton
@@ -260,10 +257,6 @@ func _ready() -> void:
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
-	leaderboard_tier_bronze_button.pressed.connect(func(): StatsPanel.select_tier(self, RankTier.Type.BRONZE))
-	leaderboard_tier_silver_button.pressed.connect(func(): StatsPanel.select_tier(self, RankTier.Type.SILVER))
-	leaderboard_tier_gold_button.pressed.connect(func(): StatsPanel.select_tier(self, RankTier.Type.GOLD))
-	leaderboard_tier_legend_button.pressed.connect(func(): StatsPanel.select_tier(self, RankTier.Type.LEGEND))
 	leaderboard_search_button.pressed.connect(func(): StatsPanel.search_player(self))
 	leaderboard_search_field.text_submitted.connect(func(_text): StatsPanel.search_player(self))
 	leaderboard_jump_to_me_button.pressed.connect(func(): StatsPanel.jump_to_me(self))
@@ -1099,10 +1092,6 @@ func _retranslate() -> void:
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	stats_button.text = SettingsManager.t("MENU_STATS")
 	stats_title_label.text = SettingsManager.t("STATS_TITLE")
-	leaderboard_tier_bronze_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.BRONZE), SettingsManager.t("RANK_TIER_BRONZE")]
-	leaderboard_tier_silver_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.SILVER), SettingsManager.t("RANK_TIER_SILVER")]
-	leaderboard_tier_gold_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.GOLD), SettingsManager.t("RANK_TIER_GOLD")]
-	leaderboard_tier_legend_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.LEGEND), SettingsManager.t("RANK_TIER_LEGEND")]
 	leaderboard_search_field.placeholder_text = SettingsManager.t("LEADERBOARD_SEARCH_PLACEHOLDER")
 	leaderboard_search_button.text = SettingsManager.t("LEADERBOARD_SEARCH_BUTTON")
 	leaderboard_jump_to_me_button.text = SettingsManager.t("LEADERBOARD_JUMP_TO_ME")

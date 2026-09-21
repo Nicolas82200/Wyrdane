@@ -219,8 +219,6 @@ corner_radius_bottom_left = 11
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_transparent"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_leaderboard_tiers"]
-
 [node name="MainMenu" type="Control" unique_id=1995000585]
 layout_mode = 3
 anchors_preset = 15
@@ -1211,41 +1209,10 @@ theme_override_font_sizes/font_size = 16
 text = "Chargement..."
 autowrap_mode = 3
 
-[node name="LeaderboardHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+[node name="LeaderboardTiersRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="LeaderboardHeaderSpacer" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="LeaderboardTierBronzeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
-custom_minimum_size = Vector2(76, 0)
-layout_mode = 2
-toggle_mode = true
-button_group = SubResource("ButtonGroup_leaderboard_tiers")
-text = "● Bronze"
-
-[node name="LeaderboardTierSilverButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-toggle_mode = true
-button_group = SubResource("ButtonGroup_leaderboard_tiers")
-text = "◆ Argent"
-
-[node name="LeaderboardTierGoldButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
-custom_minimum_size = Vector2(58, 0)
-layout_mode = 2
-toggle_mode = true
-button_group = SubResource("ButtonGroup_leaderboard_tiers")
-text = "★ Or"
-
-[node name="LeaderboardTierLegendButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
-custom_minimum_size = Vector2(80, 0)
-layout_mode = 2
-toggle_mode = true
-button_group = SubResource("ButtonGroup_leaderboard_tiers")
-text = "♛ Légende"
+theme_override_constants/separation = 6
+alignment = 1
 
 [node name="LeaderboardSearchRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2

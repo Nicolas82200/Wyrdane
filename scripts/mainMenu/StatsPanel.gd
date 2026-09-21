@@ -9,9 +9,12 @@ class_name StatsPanel
 # `menu._current_info_view` sert à ignorer une réponse backend arrivée après
 # que le joueur a quitté la vue.
 #
-# Les 4 paliers (RankTier.Type) sont des bornes de MMR contiguës : un onglet
-# sélectionné demande au backend une page filtrée par ces bornes
-# (BackendClient.get_leaderboard min_mmr/max_mmr). Le palier du joueur local
+# Les paliers (RankTier.Type, nombre variable — actuellement 7) sont des
+# bornes de MMR contiguës : un onglet sélectionné demande au backend une page
+# filtrée par ces bornes (BackendClient.get_leaderboard min_mmr/max_mmr). Les
+# onglets sont construits dynamiquement depuis RankTier.Type.values() plutôt
+# que codés en dur dans la scène, pour rester valides si le nombre de paliers
+# change à nouveau. Le palier du joueur local
 # est ouvert par défaut, centré sur sa propre position (route dédiée
 # /leaderboard/around-me, offset calculé côté serveur) — les autres paliers
 # s'ouvrent sur leur sommet (offset 0). Une recherche par pseudo peut cibler
@@ -41,22 +44,38 @@ static func open(menu) -> void:
 
 # ── Chargement ───────────────────────────────────────────────────────────────
 
+# Bornes MMR [min, max[ du palier (-1 = pas de borne) — dérivées de
+# RankTier.THRESHOLDS/Type.values() plutôt que d'un match() codé en dur, pour
+# rester correctes quel que soit le nombre de paliers.
 static func _tier_bounds(tier: int) -> Vector2i:
-	match tier:
-		RankTier.Type.LEGEND:
-			return Vector2i(RankTier.THRESHOLDS[RankTier.Type.LEGEND], -1)
-		RankTier.Type.GOLD:
-			return Vector2i(RankTier.THRESHOLDS[RankTier.Type.GOLD], RankTier.THRESHOLDS[RankTier.Type.LEGEND])
-		RankTier.Type.SILVER:
-			return Vector2i(RankTier.THRESHOLDS[RankTier.Type.SILVER], RankTier.THRESHOLDS[RankTier.Type.GOLD])
-		_:
-			return Vector2i(-1, RankTier.THRESHOLDS[RankTier.Type.SILVER])
+	var tiers: Array = RankTier.Type.values()
+	var idx := tiers.find(tier)
+	var min_mmr: int = RankTier.THRESHOLDS.get(tier, -1)
+	var max_mmr := -1
+	if idx >= 0 and idx + 1 < tiers.size():
+		max_mmr = RankTier.THRESHOLDS.get(tiers[idx + 1], -1)
+	return Vector2i(min_mmr, max_mmr)
 
-static func _set_tier_buttons_state(menu) -> void:
-	menu.leaderboard_tier_bronze_button.button_pressed = menu.leaderboard_tier == RankTier.Type.BRONZE
-	menu.leaderboard_tier_silver_button.button_pressed = menu.leaderboard_tier == RankTier.Type.SILVER
-	menu.leaderboard_tier_gold_button.button_pressed = menu.leaderboard_tier == RankTier.Type.GOLD
-	menu.leaderboard_tier_legend_button.button_pressed = menu.leaderboard_tier == RankTier.Type.LEGEND
+# (Re)construit les onglets de palier depuis RankTier.Type.values() : un petit
+# bouton par palier (glyphe seul, teinte du palier, infobulle = nom complet)
+# plutôt que du texte complet — 7 paliers en toutes lettres ne tiendraient pas
+# dans la largeur du panneau.
+static func _build_tier_buttons(menu) -> void:
+	for c in menu.leaderboard_tiers_row.get_children():
+		c.queue_free()
+	var group := ButtonGroup.new()
+	for tier in RankTier.Type.values():
+		var btn := Button.new()
+		btn.toggle_mode = true
+		btn.button_group = group
+		btn.custom_minimum_size = Vector2(40, 36)
+		btn.text = RankTier.symbol(tier)
+		btn.tooltip_text = SettingsManager.t(RankTier.tier_key(tier))
+		btn.add_theme_font_size_override("font_size", Typography.SECTION)
+		btn.add_theme_color_override("font_color", RankTier.color(tier))
+		btn.button_pressed = tier == menu.leaderboard_tier
+		btn.pressed.connect(select_tier.bind(menu, tier))
+		menu.leaderboard_tiers_row.add_child(btn)
 
 static func _clear_leaderboard(menu) -> void:
 	for c in menu.stats_list_vbox.get_children():
@@ -82,7 +101,7 @@ static func _init_leaderboard(menu) -> void:
 			menu.leaderboard_own_tier = -1
 			menu.leaderboard_tier = RankTier.Type.BRONZE
 			menu.leaderboard_highlight_user_id = -1
-		_set_tier_buttons_state(menu)
+		_build_tier_buttons(menu)
 		_load_current_tier(menu, success)
 	)
 
@@ -136,7 +155,7 @@ static func _load_tier_centered_on_rank(menu, tier: int, target_rank: int) -> vo
 static func select_tier(menu, tier: int) -> void:
 	menu.leaderboard_tier = tier
 	menu.leaderboard_highlight_user_id = menu.leaderboard_own_user_id if (tier == menu.leaderboard_own_tier and menu.leaderboard_own_user_id != -1) else -1
-	_set_tier_buttons_state(menu)
+	_build_tier_buttons(menu)
 	_show_status(menu, SettingsManager.t("PROFILE_LOADING"))
 	_clear_leaderboard(menu)
 	_load_current_tier(menu, menu.leaderboard_highlight_user_id == menu.leaderboard_own_user_id and menu.leaderboard_own_user_id != -1)
@@ -147,7 +166,7 @@ static func jump_to_me(menu) -> void:
 		return
 	menu.leaderboard_tier = menu.leaderboard_own_tier
 	menu.leaderboard_highlight_user_id = menu.leaderboard_own_user_id
-	_set_tier_buttons_state(menu)
+	_build_tier_buttons(menu)
 	_show_status(menu, SettingsManager.t("PROFILE_LOADING"))
 	_clear_leaderboard(menu)
 	_load_current_tier(menu, true)
@@ -171,7 +190,7 @@ static func search_player(menu) -> void:
 		menu.leaderboard_tier = RankTier.from_mmr(int(found.get("mmr", 0)))
 		menu.leaderboard_highlight_user_id = int(found.get("user_id", -1))
 		var target_rank := int(found.get("rank", -1))
-		_set_tier_buttons_state(menu)
+		_build_tier_buttons(menu)
 		_clear_leaderboard(menu)
 		if menu.leaderboard_highlight_user_id == menu.leaderboard_own_user_id and menu.leaderboard_own_user_id != -1:
 			_load_current_tier(menu, true)
