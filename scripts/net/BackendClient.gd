@@ -188,12 +188,57 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
 
 # ─── Classement ──────────────────────────────────────────────────────────────
-# Route déjà existante côté backend (rankedController.getLeaderboardHandler),
-# pas une nouveauté de ce chantier — retourne un tableau brut de lignes
-# { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite
-# (calculé côté client depuis la position dans le tableau, voir StatsPanel).
-func get_leaderboard(on_complete: Callable) -> void:
-	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard?limit=100", {}, func(code: int, parsed: Variant):
+# GET /api/ranked/leaderboard?limit=&offset=&minMmr=&maxMmr= — renvoie
+# désormais une enveloppe { total, players } (players = lignes { user_id, mmr,
+# wins, losses, season, username, steam_id, rank }, rank calculé côté serveur
+# donc valide même filtré par palier). min_mmr/max_mmr optionnels (-1 = pas de
+# borne) servent à ne demander qu'un palier (voir RankTier.THRESHOLDS côté
+# client — le backend ne connaît pas les paliers, juste des bornes de MMR).
+# on_complete(success: bool, total: int, players: Array).
+func get_leaderboard(limit: int, offset: int, min_mmr: int, max_mmr: int, on_complete: Callable) -> void:
+	var path := "/api/ranked/leaderboard?limit=%d&offset=%d" % [limit, offset]
+	if min_mmr >= 0:
+		path += "&minMmr=%d" % min_mmr
+	if max_mmr >= 0:
+		path += "&maxMmr=%d" % max_mmr
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary and parsed.get("players") is Array:
+			on_complete.call(true, int(parsed.get("total", 0)), parsed["players"])
+		else:
+			on_complete.call(false, 0, [])
+	)
+
+# Position du joueur connecté dans le classement de la saison courante.
+# on_complete(success: bool, row: Dictionary) — row vide (succès faux) si le
+# joueur n'a encore aucun match classé rapporté (404 côté backend).
+func get_my_leaderboard_position(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard/me", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, {})
+	)
+
+# Page de classement centrée sur la position du joueur connecté au sein d'un
+# palier (min_mmr/max_mmr), calculée côté serveur (voir
+# rankedModel.getLeaderboardAroundUser). on_complete(success, total, offset, players).
+func get_leaderboard_around_me(limit: int, min_mmr: int, max_mmr: int, on_complete: Callable) -> void:
+	var path := "/api/ranked/leaderboard/around-me?limit=%d" % limit
+	if min_mmr >= 0:
+		path += "&minMmr=%d" % min_mmr
+	if max_mmr >= 0:
+		path += "&maxMmr=%d" % max_mmr
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary and parsed.get("players") is Array:
+			on_complete.call(true, int(parsed.get("total", 0)), int(parsed.get("offset", 0)), parsed["players"])
+		else:
+			on_complete.call(false, 0, 0, [])
+	)
+
+# Recherche d'un joueur par pseudo (sous-chaîne, insensible à la casse) pour
+# la barre de recherche du classement. on_complete(success: bool, results: Array).
+func search_leaderboard(query: String, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard/search?q=%s" % query.uri_encode(), {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Array:
 			on_complete.call(true, parsed)
 		else:
