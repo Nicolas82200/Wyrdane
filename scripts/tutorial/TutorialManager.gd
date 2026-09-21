@@ -675,10 +675,13 @@ func run() -> void:
 	await _popup_play_card("tutorial.spell_intro", TutorialDeck.necrotic_breath_card())
 	await _wait_card(TutorialDeck.necrotic_breath_card())
 
+	await _popup_wait_action("tutorial.turn3_end_wait", [b.end_turn_button], "player_turn_began",
+		Callable(), "tutorial.hint_end_turn", false)
+
 	await _popup_play_card("tutorial.enchantment_intro", TutorialDeck.doomed_whisper_card())
 	await _wait_card(TutorialDeck.doomed_whisper_card())
 
-	await _popup_wait_action("tutorial.turn3_end_wait", [b.end_turn_button], "player_turn_began",
+	await _popup_wait_action("tutorial.turn4_end_wait", [b.end_turn_button], "player_turn_began",
 		Callable(), "tutorial.hint_end_turn", false)
 
 	await _popup_play_card("tutorial.trigger_intro", TutorialDeck.gaunt_servant_card())
