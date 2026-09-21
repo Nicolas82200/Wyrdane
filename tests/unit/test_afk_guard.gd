@@ -129,20 +129,31 @@ func test_manual_end_turn_resets_afk_streak() -> void:
 	guard.notify_manual_end_turn()
 	assert_eq(guard.consecutive_afk_turns, 0)
 
-# ─── Tour sans action possible : affiché/resserré à 10s, jamais compté AFK ───
+# ─── Tour sans action possible : réseau uniquement, affiché/resserré à 10s ───
+# En solo, le halo doré existant du bouton Fin du tour (indépendant d'AfkGuard)
+# sert déjà de nudge visuel : pas de compte à rebours ici, pour ne jamais faire
+# apparaître le timer avant le seuil normal de 30s d'inactivité.
 
-func test_no_action_state_shows_timer_immediately_at_ten_seconds() -> void:
+func test_no_action_state_is_a_no_op_in_solo() -> void:
+	guard.begin_turn()
+	guard.set_no_action_state(true)
+	assert_eq(battle.turn_timer.start_calls, [], "solo : pas de timer forcé sur main sans jouable")
+
+func test_no_action_state_shows_timer_immediately_at_ten_seconds_in_network() -> void:
+	_make_network()
 	guard.begin_turn()
 	guard.set_no_action_state(true)
 	assert_eq(battle.turn_timer.start_calls, [AfkGuard.NO_ACTION_TIMEOUT])
 
-func test_no_action_state_shortens_an_already_running_timer() -> void:
+func test_no_action_state_shortens_an_already_running_timer_in_network() -> void:
+	_make_network()
 	guard.begin_turn()
 	guard.update(AfkGuard.IDLE_BEFORE_VISIBLE)  # affiché à 30s
 	guard.set_no_action_state(true)
 	assert_eq(battle.turn_timer.start_calls[-1], AfkGuard.NO_ACTION_TIMEOUT)
 
-func test_no_action_state_does_not_extend_an_already_shorter_timer() -> void:
+func test_no_action_state_does_not_extend_an_already_shorter_timer_in_network() -> void:
+	_make_network()
 	guard.begin_turn()
 	guard.update(AfkGuard.IDLE_BEFORE_VISIBLE)
 	battle.turn_timer.time_left = 5.0  # déjà plus court que 10s
@@ -157,7 +168,8 @@ func test_forced_no_action_timeout_does_not_count_as_afk() -> void:
 	assert_true(should_continue)
 	assert_eq(guard.consecutive_afk_turns, 0, "à court de coups n'est pas de l'AFK")
 
-func test_no_action_state_ignored_during_enemy_turn() -> void:
+func test_no_action_state_ignored_during_enemy_turn_in_network() -> void:
+	_make_network()
 	battle.enemy_turn_active = true
 	guard.set_no_action_state(true)
 	assert_eq(battle.turn_timer.start_calls, [], "pas de démarrage hors tour local en cours")
