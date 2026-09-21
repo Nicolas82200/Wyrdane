@@ -168,6 +168,11 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
 @onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
+@onready var leaderboard_tiers_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardTiersRow
+@onready var leaderboard_search_field: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchField
+@onready var leaderboard_search_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchButton
+@onready var leaderboard_jump_to_me_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardJumpToMeButton
+@onready var leaderboard_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll
 
 @onready var login_reward_popup: Control = $LoginRewardPopup
 @onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
@@ -208,6 +213,22 @@ var _remote_news_entries: Array = []
 var _use_remote_news := false
 
 var _current_info_view: InfoView = InfoView.NEWS
+# État du classement (voir StatsPanel.gd) : palier actuellement affiché,
+# identité/palier du joueur local une fois connus (-1 tant que non classé ou
+# pas encore résolu), et éventuel joueur à surligner (soi-même ou résultat de
+# recherche) avec son rang global déjà connu (évite un aller-retour de plus).
+var leaderboard_tier: int = RankTier.Type.BRONZE
+var leaderboard_own_user_id: int = -1
+var leaderboard_own_tier: int = -1
+var leaderboard_highlight_user_id: int = -1
+var leaderboard_highlight_rank: int = -1
+# Fenêtre actuellement chargée (défilement infini vers le bas, voir
+# StatsPanel.on_leaderboard_scrolled) : [start_offset, end_offset[ dans le
+# palier courant, sur un total de leaderboard_total lignes.
+var leaderboard_start_offset: int = 0
+var leaderboard_end_offset: int = 0
+var leaderboard_total: int = 0
+var leaderboard_loading_more: bool = false
 var _play_mode: int = PlayMode.SOLO
 var _play_selected_deck_index: int = -1
 var _composition_deck_index: int = -1
@@ -236,6 +257,10 @@ func _ready() -> void:
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
+	leaderboard_search_button.pressed.connect(func(): StatsPanel.search_player(self))
+	leaderboard_search_field.text_submitted.connect(func(_text): StatsPanel.search_player(self))
+	leaderboard_jump_to_me_button.pressed.connect(func(): StatsPanel.jump_to_me(self))
+	leaderboard_scroll.get_v_scroll_bar().value_changed.connect(func(_v): StatsPanel.on_leaderboard_scrolled(self))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	crash_report_dismiss_button.pressed.connect(_on_crash_report_dismiss_pressed)
 	crash_report_send_button.pressed.connect(_on_crash_report_send_pressed)
@@ -1067,6 +1092,9 @@ func _retranslate() -> void:
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	stats_button.text = SettingsManager.t("MENU_STATS")
 	stats_title_label.text = SettingsManager.t("STATS_TITLE")
+	leaderboard_search_field.placeholder_text = SettingsManager.t("LEADERBOARD_SEARCH_PLACEHOLDER")
+	leaderboard_search_button.text = SettingsManager.t("LEADERBOARD_SEARCH_BUTTON")
+	leaderboard_jump_to_me_button.text = SettingsManager.t("LEADERBOARD_JUMP_TO_ME")
 	if quests_view.visible:
 		QuestsPanel.open(self)
 	if stats_view.visible:

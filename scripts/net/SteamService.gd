@@ -93,7 +93,10 @@ static func local_avatar_texture() -> ImageTexture:
 	var s := steam()
 	if not _initialized or s == null:
 		return null
-	var steam_id: int = s.getSteamID()
+	return _build_avatar_texture(s.getSteamID())
+
+static func _build_avatar_texture(steam_id: int) -> ImageTexture:
+	var s := steam()
 	var handle: int = s.getMediumFriendAvatar(steam_id)
 	if handle <= 0:
 		return null
@@ -105,6 +108,54 @@ static func local_avatar_texture() -> ImageTexture:
 		return null
 	var image := Image.create_from_data(size["width"], size["height"], false, Image.FORMAT_RGBA8, rgba["buffer"])
 	return ImageTexture.create_from_image(image)
+
+# ── Avatar d'un joueur arbitraire (classement) ──────────────────────────────
+# Steam ne garantit l'avatar en cache local que pour les amis/joueurs déjà
+# croisés (lobby, partie...) — pour un inconnu du classement, on déclenche une
+# requête asynchrone (requestUserInformation) et on rappelle on_ready plus
+# tard via le signal persona_state_change si Steam finit par la fournir.
+# Best-effort : beaucoup de lignes du classement resteront sans avatar
+# (silhouette générique affichée côté StatsPanel dans ce cas), c'est attendu.
+static var _avatar_cache: Dictionary = {}
+static var _pending_avatar_callbacks: Dictionary = {}
+static var _persona_signal_connected := false
+
+static func request_avatar_async(steam_id_str: String, on_ready: Callable) -> void:
+	if steam_id_str == "" or not steam_id_str.is_valid_int():
+		return
+	if _avatar_cache.has(steam_id_str):
+		on_ready.call(_avatar_cache[steam_id_str])
+		return
+	if not ensure_init():
+		return
+	var id := int(steam_id_str)
+	var texture := _build_avatar_texture(id)
+	if texture != null:
+		_avatar_cache[steam_id_str] = texture
+		on_ready.call(texture)
+		return
+	var s := steam()
+	if not _persona_signal_connected:
+		s.connect("persona_state_change", _on_persona_state_change)
+		_persona_signal_connected = true
+	if not _pending_avatar_callbacks.has(steam_id_str):
+		_pending_avatar_callbacks[steam_id_str] = []
+		s.requestUserInformation(id, true)
+	_pending_avatar_callbacks[steam_id_str].append(on_ready)
+
+static func _on_persona_state_change(steam_id: int, _flags: int) -> void:
+	var key := str(steam_id)
+	if not _pending_avatar_callbacks.has(key):
+		return
+	var texture := _build_avatar_texture(steam_id)
+	if texture == null:
+		return
+	_avatar_cache[key] = texture
+	var callbacks: Array = _pending_avatar_callbacks[key]
+	_pending_avatar_callbacks.erase(key)
+	for cb in callbacks:
+		if cb.is_valid():
+			cb.call(texture)
 
 # Écoute les demandes de rejoindre un lobby via ami Steam (overlay « Rejoindre
 # la partie », invitation acceptée) — indépendamment de tout host()/join() déjà

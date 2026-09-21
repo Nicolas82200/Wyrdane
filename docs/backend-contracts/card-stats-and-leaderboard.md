@@ -153,7 +153,44 @@ surbrillance dorée s'il apparaît dans le top 100 affiché, via
 réclamation contrairement aux quêtes. Ne montre plus de statistiques de
 cartes (voir section 1, mise à jour du 2026-09-21).
 
-## 5. Reste à faire
+## 5. Navigation par palier, recherche et avatars (branche `0072-ranked-leaderboard-browse`)
+
+Chantier suivant, sur `wyrdane-backend` (branche `0072-ranked-leaderboard-browse`,
+**pas encore mergée dans `main`**) — étend `GET /api/ranked/leaderboard`
+plutôt que de le remplacer :
+
+- Réponse changée : enveloppe `{ total, players }` au lieu d'un tableau brut
+  (`total` = nombre de joueurs classés correspondant au filtre). Chaque ligne
+  de `players` porte désormais `rank` (calculé en SQL via `RANK() OVER (ORDER
+  BY mmr DESC)`, donc toujours correct même filtré/paginé — plus besoin de le
+  déduire de la position dans le tableau) et `steam_id` (`LEFT JOIN
+  linked_accounts`, peut être `null`).
+- Nouveaux paramètres optionnels `minMmr`/`maxMmr` : filtrent par palier —
+  les paliers eux-mêmes restent une notion purement client (`RankTier.gd`,
+  bornes 1000/1300/1600), le backend ne connaît que des bornes de MMR.
+- `GET /api/ranked/leaderboard/me` : position du joueur authentifié (`rank`,
+  `mmr`...), 404 si jamais classé.
+- `GET /api/ranked/leaderboard/around-me?limit=&minMmr=&maxMmr=` : page déjà
+  centrée sur le joueur authentifié au sein d'un palier — le serveur calcule
+  l'offset (compte des lignes du palier avec un MMR strictement supérieur au
+  sien) plutôt que de le faire déduire côté client. 404 si jamais classé.
+- `GET /api/ranked/leaderboard/search?q=` : recherche par pseudo
+  (sous-chaîne, insensible à la casse, 20 résultats max), pour que la barre
+  de recherche du client retrouve le rang exact d'un joueur.
+
+### Côté client
+`scripts/mainMenu/StatsPanel.gd` (panneau « Classement ») : 4 onglets de
+palier (Bronze/Argent/Or/Légende), ouverture sur
+le palier du joueur local centré sur sa position, recherche par pseudo,
+défilement infini vers le bas (pas de rechargement vers le haut au-delà de la
+page initiale — limitation assumée). `BackendClient.get_leaderboard`/
+`get_my_leaderboard_position`/`get_leaderboard_around_me`/`search_leaderboard`
+(`scripts/net/BackendClient.gd`). Avatars via `SteamService.request_avatar_async`
+(`scripts/net/SteamService.gd`) : best-effort, Steam ne garantit l'avatar en
+cache que pour des joueurs déjà croisés (amis, parties communes...) — beaucoup
+de lignes resteront sans avatar, c'est attendu.
+
+## 6. Reste à faire
 
 - Mergé côté client dans ce worktree ; côté backend, la branche
   `0065-card-stats-and-leaderboard` doit être review/mergée dans `main` puis
