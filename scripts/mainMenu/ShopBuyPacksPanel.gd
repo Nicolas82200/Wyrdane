@@ -5,7 +5,7 @@ class_name ShopBuyPacksPanel
 # de packs UNIQUEMENT, contre de l'or — aucune carte n'est jamais tirée ici
 # (CurrencyManager.buy_packs crédite le stock CurrencyManager.free_packs sans
 # ouvrir quoi que ce soit). Ouvrir les packs ainsi achetés se fait à part,
-# depuis l'onglet Collection (voir ShopCollectionPanel.gd), qui consomme ce
+# depuis la vue Collection (voir ShopCollectionPanel.gd), qui consomme ce
 # même stock. `on_purchased` est rappelé après un achat réussi pour que
 # l'appelant (MainMenu) rafraîchisse le solde/stock affichés ailleurs.
 

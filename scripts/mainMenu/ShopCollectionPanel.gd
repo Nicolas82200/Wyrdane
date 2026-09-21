@@ -1,8 +1,8 @@
 extends RefCounted
 class_name ShopCollectionPanel
 
-# Inventaire de packs de l'onglet "Collection" de la Boutique (voir
-# MainMenu.gd, _select_shop_tab) — n'affiche plus la grille de cartes
+# Inventaire de packs de la vue "Collection" (voir MainMenu.gd,
+# _open_collection_view) — n'affiche plus la grille de cartes
 # possédées (déplacée nulle part : ce n'était qu'un teaser, le deckbuilder
 # reste la vraie vue de collection pour construire un deck) mais le stock de
 # packs non ouverts (CurrencyManager.free_packs, qu'ils viennent d'un achat

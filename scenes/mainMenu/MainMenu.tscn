@@ -368,6 +368,24 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
 alignment = 0
 text = "Packs"
 
+[node name="CollectionButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
+text = "Collection"
+
+[node name="StatsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
+alignment = 0
+text = "Statistiques"
+
 [node name="NavSep1" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000010]
 layout_mode = 2
 
@@ -1037,28 +1055,12 @@ theme_override_fonts/font = ExtResource("6_subtitle")
 theme_override_font_sizes/font_size = 15
 text = "Dos de cartes"
 
-[node name="ShopCollectionTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow" unique_id=300000106]
-custom_minimum_size = Vector2(0, 36)
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 15
-text = "Collection"
-
 [node name="ShopSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000092]
 layout_mode = 2
 
 [node name="ShopContentRoot" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000105]
 layout_mode = 2
 size_flags_vertical = 3
-
-[node name="PackShop" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000033 instance=ExtResource("7_packshop")]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="ShopBuyPacksScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000109]
 layout_mode = 1
@@ -1093,7 +1095,7 @@ theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
 autowrap_mode = 3
 text = "Débloqués gratuitement en progressant (niveau de compte)."
 
-[node name="ShopCollectionScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000107]
+[node name="CollectionView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot"]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1101,8 +1103,40 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 12
 
-[node name="CollectionSection" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll" unique_id=300000108]
+[node name="CollectionTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 26
+text = "Collection"
+
+[node name="CollectionSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
+layout_mode = 2
+
+[node name="CollectionContentRoot" type="Control" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PackShop" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot" unique_id=300000033 instance=ExtResource("7_packshop")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ShopCollectionScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot" unique_id=300000107]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CollectionSection" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll" unique_id=300000108]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
@@ -1515,15 +1549,6 @@ theme_override_font_sizes/font_size = 13
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="StatsButton" type="Button" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow"]
-custom_minimum_size = Vector2(170, 56)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
-text = "Statistiques"
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
 visible = false

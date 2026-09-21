@@ -335,7 +335,7 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 ### 📊 Statistiques & classement (menu principal)
 
-Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans `BottomCenterRow` du menu principal) — lecture seule, deux sections :
+Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans le menu latéral du menu principal, juste sous Collection) — lecture seule, deux sections :
 
 - **Cartes les plus jouées** — taux de jeu et winrate par carte, calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement** (double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) : le solo IA et un rapport orphelin (pair jamais confirmé) n'y contribuent jamais. `Battle.track_card_played_for_quests` alimente `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race déjà existant, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`) puis exposé via `GET /api/ranked/stats/cards/top`. Une carte n'apparaît que si jouée dans au moins 20 matchs classés confirmés — sous ce seuil, exclue plutôt que d'afficher un winrate non significatif. Sert de signal d'équilibrage.
 - **Classement** — top 100 joueurs par MMR (`GET /api/ranked/leaderboard`, route déjà existante côté backend pour le profil mais pas encore affichée en jeu avant ce chantier), joueur local mis en surbrillance s'il y figure.
