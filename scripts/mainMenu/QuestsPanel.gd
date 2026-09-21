@@ -1,9 +1,19 @@
 extends RefCounted
 class_name QuestsPanel
 
-# Panneau des quêtes quotidiennes du menu principal — extrait de MainMenu.gd.
+# Panneau des quêtes du menu principal — extrait de MainMenu.gd.
 # `menu._current_info_view`/`menu.InfoView` servent à ignorer une réponse
 # backend arrivée après que le joueur a quitté la vue Quêtes.
+#
+# Deux onglets (menu.QuestTab, boutons QuestsRegularTabButton/
+# QuestsUniqueTabButton dans MainMenu.tscn) : "Quêtes" regroupe quotidienne/
+# hebdo/mensuelle (fréquentes, reset périodique), "Uniques" isole les jalons
+# de carrière (jamais reset, liste potentiellement longue) — mélanger les
+# deux dans une seule liste rendait la vue difficile à parcourir une fois les
+# quêtes mensuelles ajoutées. Les quatre catégories sont toujours chargées
+# ensemble (menu._quests_cache, une entrée par catégorie) : changer d'onglet
+# ne fait que reconstruire l'affichage depuis ce cache, sans refetch — seul
+# `open()` (ouverture de la vue, changement de langue) refetch réellement.
 
 static func open(menu) -> void:
 	if not BackendClient.is_authenticated():
@@ -14,91 +24,83 @@ static func open(menu) -> void:
 	menu.quests_status_label.visible = true
 	for child in menu.quests_list_vbox.get_children():
 		child.queue_free()
+	menu._quests_cache = {}
 	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
 		if menu._current_info_view != menu.InfoView.QUESTS:
 			return
 		if not success:
 			menu.quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
 			return
-		_populate(menu, data.get("quests", []))
+		_store_and_render(menu, "daily", data.get("quests", []))
 	)
-	# Section hebdo chargée séparément (échec silencieux tant que la route
-	# n'existe pas côté backend — voir docs/backend-contracts/weekly-quests-and-referral.md).
+	# Les trois autres catégories sont chargées séparément (échec silencieux,
+	# la quotidienne suffit à couvrir l'état d'erreur global de la vue).
 	BackendClient.get_weekly_quests(func(success: bool, data: Dictionary):
 		if menu._current_info_view != menu.InfoView.QUESTS or not success:
 			return
-		_populate_weekly(menu, data.get("quests", []))
+		_store_and_render(menu, "weekly", data.get("quests", []))
 	)
-	# Section mensuelle chargée séparément, toujours après la hebdo et avant
-	# l'unique dans le conteneur (échec silencieux, même logique).
 	BackendClient.get_monthly_quests(func(success: bool, data: Dictionary):
 		if menu._current_info_view != menu.InfoView.QUESTS or not success:
 			return
-		_populate_monthly(menu, data.get("quests", []))
+		_store_and_render(menu, "monthly", data.get("quests", []))
 	)
-	# Section unique chargée séparément, toujours après la hebdo dans le
-	# conteneur (échec silencieux, même logique que la hebdo).
 	BackendClient.get_unique_quests(func(success: bool, data: Dictionary):
 		if menu._current_info_view != menu.InfoView.QUESTS or not success:
 			return
-		_populate_unique(menu, data.get("quests", []))
+		_store_and_render(menu, "unique", data.get("quests", []))
 	)
 
-static func _populate(menu, quests: Array) -> void:
+static func _store_and_render(menu, kind: String, quests: Array) -> void:
+	menu._quests_cache[kind] = quests
+	menu._update_quests_badge(quests, kind)
+	render(menu)
+
+# Reconstruit la liste affichée depuis le cache selon l'onglet actif — appelé
+# après chaque réponse backend (open) et à chaque changement d'onglet
+# (MainMenu._select_quest_tab), jamais de refetch pour ce second cas.
+static func render(menu) -> void:
+	for child in menu.quests_list_vbox.get_children():
+		child.queue_free()
+	var cache: Dictionary = menu._quests_cache
+	if menu._quest_tab == menu.QuestTab.UNIQUE:
+		_render_unique(menu, cache.get("unique", []))
+	else:
+		_render_regular(menu, cache.get("daily", []), cache.get("weekly", []), cache.get("monthly", []))
+
+static func _render_regular(menu, daily: Array, weekly: Array, monthly: Array) -> void:
+	var has_any := not daily.is_empty() or not weekly.is_empty() or not monthly.is_empty()
+	menu.quests_status_label.visible = not has_any
+	if not has_any:
+		menu.quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
+	for quest in daily:
+		_add_item(menu, quest)
+	if not weekly.is_empty():
+		_add_section_header(menu, "QUESTS_WEEKLY_TITLE")
+		for quest in weekly:
+			_add_item(menu, quest, "weekly")
+	if not monthly.is_empty():
+		_add_section_header(menu, "QUESTS_MONTHLY_TITLE")
+		for quest in monthly:
+			_add_item(menu, quest, "monthly")
+
+# Toujours le catalogue entier (pas de rotation/reset côté backend, voir
+# uniqueQuestModel.ts), donc potentiellement une longue liste — pas d'en-tête
+# de section ici, l'onglet lui-même sert de titre.
+static func _render_unique(menu, quests: Array) -> void:
 	menu.quests_status_label.visible = quests.is_empty()
 	if quests.is_empty():
 		menu.quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
 	for quest in quests:
-		_add_item(menu, quest)
-	menu._update_quests_badge(quests)
-
-# Ajoutée sous les quêtes quotidiennes dans le même conteneur, précédée d'un
-# séparateur — pas de nœud de scène dédié pour rester cohérent avec le reste
-# de la vue (entièrement construite dynamiquement, voir _populate/_add_item).
-static func _populate_weekly(menu, quests: Array) -> void:
-	menu._update_quests_badge(quests, "weekly")
-	if quests.is_empty():
-		return
-	var header := Label.new()
-	header.text = SettingsManager.t("QUESTS_WEEKLY_TITLE")
-	header.add_theme_font_size_override("font_size", Typography.BODY)
-	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
-	menu.quests_list_vbox.add_child(HSeparator.new())
-	menu.quests_list_vbox.add_child(header)
-	for quest in quests:
-		_add_item(menu, quest, "weekly")
-
-# Ajoutée sous la hebdo, même logique que _populate_weekly mais récompense
-# double (or + packs, voir monthlyQuestModel.ts) affichée via
-# QUESTS_MONTHLY_PROGRESS.
-static func _populate_monthly(menu, quests: Array) -> void:
-	menu._update_quests_badge(quests, "monthly")
-	if quests.is_empty():
-		return
-	var header := Label.new()
-	header.text = SettingsManager.t("QUESTS_MONTHLY_TITLE")
-	header.add_theme_font_size_override("font_size", Typography.BODY)
-	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
-	menu.quests_list_vbox.add_child(HSeparator.new())
-	menu.quests_list_vbox.add_child(header)
-	for quest in quests:
-		_add_item(menu, quest, "monthly")
-
-# Ajoutée sous la hebdo, même logique que _populate_weekly — toujours le
-# catalogue entier (pas de rotation/reset côté backend, voir
-# uniqueQuestModel.ts), donc potentiellement une longue liste.
-static func _populate_unique(menu, quests: Array) -> void:
-	menu._update_quests_badge(quests, "unique")
-	if quests.is_empty():
-		return
-	var header := Label.new()
-	header.text = SettingsManager.t("QUESTS_UNIQUE_TITLE")
-	header.add_theme_font_size_override("font_size", Typography.BODY)
-	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
-	menu.quests_list_vbox.add_child(HSeparator.new())
-	menu.quests_list_vbox.add_child(header)
-	for quest in quests:
 		_add_item(menu, quest, "unique")
+
+static func _add_section_header(menu, translation_key: String) -> void:
+	var header := Label.new()
+	header.text = SettingsManager.t(translation_key)
+	header.add_theme_font_size_override("font_size", Typography.BODY)
+	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
+	menu.quests_list_vbox.add_child(HSeparator.new())
+	menu.quests_list_vbox.add_child(header)
 
 # Style de carte à liseré coloré (façon MTGA), même petit helper que
 # NewsPanel._make_accent_card_style (dupliqué plutôt qu'extrait dans un 3e
@@ -211,15 +213,16 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		action_button.disabled = true
 	elif completed:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
+		var quest_id := _get_int(quest, "id", 0)
 		match kind:
 			"weekly":
-				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, str(_get_int(quest, "id", 0)), action_button))
+				action_button.pressed.connect(_on_claim_weekly_pressed.bind(menu, str(quest_id), action_button))
 			"monthly":
-				action_button.pressed.connect(_on_claim_monthly_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
+				action_button.pressed.connect(_on_claim_monthly_pressed.bind(menu, quest_id, action_button))
 			"unique":
-				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
+				action_button.pressed.connect(_on_claim_unique_pressed.bind(menu, quest_id, action_button))
 			_:
-				action_button.pressed.connect(_on_claim_pressed.bind(menu, _get_int(quest, "id", 0), action_button))
+				action_button.pressed.connect(_on_claim_pressed.bind(menu, quest_id, action_button))
 	else:
 		action_button.text = SettingsManager.t("QUESTS_IN_PROGRESS")
 		action_button.disabled = true
@@ -227,12 +230,22 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 
 	menu.quests_list_vbox.add_child(row)
 
+# Marque la quête réclamée dans le cache (menu._quests_cache), sans quoi un
+# changement d'onglet après réclamation la réafficherait comme non réclamée
+# (render() reconstruit toujours la liste depuis ce cache, jamais depuis le
+# DOM affiché).
+static func _mark_claimed_in_cache(menu, kind: String, quest_id) -> void:
+	for quest in menu._quests_cache.get(kind, []):
+		if str(quest.get("id", -1)) == str(quest_id):
+			quest["claimed"] = true
+			return
+
 # Les quatre types de quête (quotidienne/hebdo/mensuelle/unique) partagent la
 # même réaction de réclamation, seul l'appel réseau diffère (requester, un
 # lambda qui appelle explicitement la bonne fonction BackendClient — on évite
 # de faire transiter une référence de méthode nue en paramètre, peu fiable
 # ici) — voir _on_claim_weekly/monthly/unique/_pressed.
-static func _handle_claim_pressed(menu, button: Button, requester: Callable) -> void:
+static func _handle_claim_pressed(menu, button: Button, kind: String, quest_id, requester: Callable) -> void:
 	button.disabled = true
 	requester.call(func(success: bool, data: Dictionary):
 		if not success:
@@ -241,17 +254,18 @@ static func _handle_claim_pressed(menu, button: Button, requester: Callable) -> 
 		AudioManager.play(AudioManager.CONFIRM)
 		CurrencyManager.sync_from_backend()
 		button.text = SettingsManager.t("QUESTS_CLAIMED")
+		_mark_claimed_in_cache(menu, kind, quest_id)
 		menu._fetch_quests_badge()
 	)
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
-	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))
+	_handle_claim_pressed(menu, button, "weekly", quest_id, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))
 
 static func _on_claim_monthly_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_monthly_quest(quest_id, on_data))
+	_handle_claim_pressed(menu, button, "monthly", quest_id, func(on_data: Callable): BackendClient.claim_monthly_quest(quest_id, on_data))
 
 static func _on_claim_unique_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_unique_quest(quest_id, on_data))
+	_handle_claim_pressed(menu, button, "unique", quest_id, func(on_data: Callable): BackendClient.claim_unique_quest(quest_id, on_data))
 
 static func _on_claim_pressed(menu, quest_id: int, button: Button) -> void:
-	_handle_claim_pressed(menu, button, func(on_data: Callable): BackendClient.claim_quest(quest_id, on_data))
+	_handle_claim_pressed(menu, button, "daily", quest_id, func(on_data: Callable): BackendClient.claim_quest(quest_id, on_data))

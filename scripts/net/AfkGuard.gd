@@ -112,8 +112,13 @@ func notify_manual_end_turn() -> void:
 # (voir Battle.update_end_turn_hint) : si le joueur n'a plus rien à jouer,
 # affiche/resserre le timer à NO_ACTION_TIMEOUT au plus, pour nudger vers la
 # fin de tour sans attendre le seuil d'inactivité normal.
+# RÉSEAU UNIQUEMENT (voir MAX_AFK_STREAK/_forfeit) : en solo, le halo doré
+# existant du bouton Fin du tour (Battle.update_end_turn_hint, indépendant
+# d'AfkGuard) sert déjà de nudge visuel, sans compte à rebours — en ajouter un
+# ici ferait apparaître le timer dès la moindre main sans jouable, bien avant
+# le seuil d'inactivité de 30s que le joueur solo peut légitimement attendre.
 func set_no_action_state(no_actions: bool) -> void:
-	if not _tracking_enabled():
+	if not _tracking_enabled() or not _is_network():
 		return
 	if no_actions and not _no_action_forced:
 		_no_action_forced = true

@@ -115,8 +115,13 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	battle.hand._update_hand_layout(true)
 
 	# Capture les ids de tous les serviteurs créés par l'action, pour les rejouer.
+	# Le jeton retourné est repassé tel quel à end_capture() : ne jamais utiliser
+	# un end_capture() sans jeton, qui pourrait retirer le niveau d'une AUTRE
+	# capture encore active si deux actions capturées se chevauchent (voir
+	# NetRegistry.gd).
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
@@ -140,7 +145,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				var cancelled_ids0: Array = battle.net_registry.end_capture(capture_token)
 				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, target if target is Minion else null)
 			battle.reset_targeting_state()
 			return
@@ -151,7 +156,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids: Array = battle.net_registry.end_capture()
+				var cancelled_ids: Array = battle.net_registry.end_capture(capture_token)
 				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids, target)
 			battle.reset_targeting_state()
 			return
@@ -206,7 +211,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	# pour les enchantements, et un flag dédié pour le héros). À faire avant
 	# d'utiliser ce ciblage en multijoueur.
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.play_card(card_data, row, insert_index,
 			ids, target if target is Minion else null)
 
@@ -216,8 +221,9 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	await battle.check_auto_pass_turn()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
@@ -227,7 +233,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids0: Array = battle.net_registry.end_capture()
+				var cancelled_ids0: Array = battle.net_registry.end_capture(capture_token)
 				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, null)
 			return
 		battle.combat_log.card_played(card_data, true)
@@ -266,7 +272,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 
 	# Émission réseau : le joueur local a joué cette carte (sans cible).
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.play_card(card_data, row, insert_index, ids, null)
 
 func _remove_from_hand(card_data: CardData) -> void:
