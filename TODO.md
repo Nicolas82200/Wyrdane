@@ -87,7 +87,7 @@ capture `finished` **par valeur** dans la lambda (comportement des closures GDSc
 
 ## P11 — Écran Statistiques : backend écrit mais pas encore déployé
 
-Client (`card-game`) : écran « Statistiques » complet (cartes les plus jouées + classement, voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`). Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) : table `card_play_stats`, colonne `match_reports.cards_played`, route `GET /api/ranked/stats/cards/top` — tests passants (270/270), mais **pas encore mergée dans `main` ni déployée**. À faire : review + merge de la branche backend, puis `npm run db:sync` en prod (même procédure que les chantiers précédents — quêtes hebdo, matchmaking classé) pour créer la table/colonne sans perte de données.
+**Résolu, puis revu.** Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) mergé dans `main` et déployé (table `card_play_stats`, colonne `match_reports.cards_played`). Le classement MMR est resté en jeu (écran « Classement », `StatsPanel.gd`), mais les statistiques de cartes (taux de jeu/winrate) ont été retirées de l'écran en jeu et déplacées vers un dashboard admin sur `wyrdane-website` (`/admin/card-stats`, `GET /api/admin/card-stats`, `requireAdmin`) — donnée d'équilibrage interne, pas destinée aux joueurs. Voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`.
 
 ## Non-problèmes vérifiés pendant cette revue
 
