@@ -163,7 +163,9 @@ static func _on_persona_state_change(steam_id: int, _flags: int) -> void:
 # pour capter une invitation même avant que le joueur ait cliqué un bouton :
 # initialise Steam si besoin (idempotent) et pompe les callbacks à chaque appel
 # de run_callbacks(), qu'une session de jeu soit active ou non.
-# Callback appelé avec (lobby_id: int) quand une demande arrive.
+# Callback appelé avec (lobby_id: int, friend_id: int) quand une demande arrive
+# — friend_id sert à afficher le nom de l'ami dans le popup de choix de deck
+# (voir MatchmakingOverlay._on_steam_join_requested), 0 si inconnu.
 static func watch_join_requests(on_join_requested: Callable) -> bool:
 	if not ensure_init():
 		return false
@@ -174,9 +176,17 @@ static func watch_join_requests(on_join_requested: Callable) -> bool:
 		_join_signal_connected = true
 	return true
 
-static func _on_join_requested(lobby_id: int, _friend_id: int = 0) -> void:
+static func _on_join_requested(lobby_id: int, friend_id: int = 0) -> void:
 	if _join_requested_callback.is_valid():
-		_join_requested_callback.call(lobby_id)
+		_join_requested_callback.call(lobby_id, friend_id)
+
+# Nom Steam d'un ami à partir de son SteamID64, "" si Steam indisponible ou nom
+# non résolu (même repli que SteamTransport._peer_display_name).
+static func friend_persona_name(steam_id: int) -> String:
+	var s := steam()
+	if not _initialized or s == null or steam_id == 0:
+		return ""
+	return s.getFriendPersonaName(steam_id)
 
 # Ouvre l'onglet Amis de l'overlay Steam (liste d'amis, demandes, blocage —
 # tout géré nativement par Steam, aucun système d'amis dédié côté jeu). No-op
