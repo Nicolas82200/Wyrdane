@@ -13,6 +13,10 @@ const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
 enum ShopTab { PACKS, CARD_BACKS }
+# REGULAR regroupe quotidienne/hebdo/mensuelle (fréquentes, reset
+# périodique) ; UNIQUE isole les jalons de carrière (jamais reset, liste
+# potentiellement longue) — voir QuestsPanel.render.
+enum QuestTab { REGULAR, UNIQUE }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -160,6 +164,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
 @onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
+@onready var quests_regular_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow/QuestsRegularTabButton
+@onready var quests_unique_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow/QuestsUniqueTabButton
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
 @onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
 
@@ -235,6 +241,9 @@ func _ready() -> void:
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
+	quests_regular_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.REGULAR))
+	quests_unique_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.UNIQUE))
+	_update_quest_tab_tints()
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
 	login_reward_claim_button.pressed.connect(ProfilePanel.on_claim_login_reward_pressed.bind(self))
 	crash_report_dismiss_button.pressed.connect(_on_crash_report_dismiss_pressed)
@@ -443,6 +452,25 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 # ShopCollectionPanel.gd) vit désormais dans sa propre InfoView.COLLECTION,
 # distincte de la Boutique — voir _show_info_view.
 var _shop_tab: ShopTab = ShopTab.PACKS
+
+# --- Quêtes : mini-navbar Quêtes / Uniques ---------------------------------
+# Même principe que la Boutique juste au-dessus : deux onglets dans la même
+# vue (InfoView.QUESTS), pas besoin d'InfoView séparée. Les quatre catégories
+# de quêtes sont toujours chargées ensemble (voir QuestsPanel._quests_cache
+# côté QuestsPanel.gd, stocké ici sur _quests_cache) ; changer d'onglet ne
+# fait que reconstruire l'affichage depuis ce cache (QuestsPanel.render),
+# jamais de refetch.
+var _quest_tab: QuestTab = QuestTab.REGULAR
+var _quests_cache: Dictionary = {}
+
+func _select_quest_tab(tab: QuestTab) -> void:
+	_quest_tab = tab
+	_update_quest_tab_tints()
+	QuestsPanel.render(self)
+
+func _update_quest_tab_tints() -> void:
+	quests_regular_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.REGULAR else Color.WHITE
+	quests_unique_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.UNIQUE else Color.WHITE
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
@@ -1061,6 +1089,8 @@ func _retranslate() -> void:
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	quests_regular_tab_button.text = SettingsManager.t("QUESTS_TAB_REGULAR")
+	quests_unique_tab_button.text = SettingsManager.t("QUESTS_TAB_UNIQUE")
 	stats_button.text = SettingsManager.t("MENU_STATS")
 	stats_title_label.text = SettingsManager.t("STATS_TITLE")
 	if quests_view.visible:
