@@ -69,12 +69,18 @@ func _on_peer_disconnected(_reason: String) -> void:
 
 # Ferme proprement la connexion réseau (appelé en quittant ou en rejouant un
 # match) : prévient le pair (voir NetCommand.leave_match) pour qu'il ne
-# poursuive pas inutilement le délai de grâce de reconnexion, puis libère le
-# transport reparenté sous la racine. No-op en solo.
+# poursuive pas inutilement le délai de grâce de reconnexion, puis ferme le
+# transport. battle.network_manager n'est qu'un emprunt de l'instance
+# NetworkManager vivant sous l'autoload MatchmakingOverlay (voir
+# MatchmakingOverlay._net/_on_handshake_ready) : ne jamais la queue_free()
+# ici, sous peine de laisser MatchmakingOverlay avec une référence libérée et
+# de rendre toute partie/invitation suivante impossible pour le reste de la
+# session. NetworkManager.close() suffit (ferme juste le transport, le nœud
+# reste réutilisable pour le prochain host_game_with/join_game_with). No-op
+# en solo.
 func close() -> void:
 	if battle.network_manager != null:
 		battle.network_manager.send_command(NetCommand.leave_match())
 		battle.network_manager.close()
-		battle.network_manager.queue_free()
 		battle.network_manager = null
 	NetContext.clear()
