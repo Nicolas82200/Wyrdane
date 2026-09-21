@@ -193,7 +193,7 @@ func _add_reward_row(text: String) -> void:
 	var label := Label.new()
 	label.text = text
 	label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
-	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_font_size_override("font_size", Typography.SECTION)
 	row.add_child(label)
 	reward_box.add_child(row)
 
@@ -254,7 +254,7 @@ func _add_quest_row(quest: Dictionary) -> void:
 	var completed := progress >= target
 	var row := Label.new()
 	row.autowrap_mode = TextServer.AUTOWRAP_WORD
-	row.add_theme_font_size_override("font_size", 14)
+	row.add_theme_font_size_override("font_size", Typography.BODY)
 	# Coche en préfixe plutôt qu'une distinction uniquement par couleur (voir
 	# accessibilité dans CLAUDE.md) : quête accomplie vs en cours.
 	var prefix := "✓ " if completed else "• "
@@ -309,4 +309,4 @@ func _style_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("pressed", pressed_style)
 	btn.add_theme_color_override("font_color",       Color("e8d5a3"))
 	btn.add_theme_color_override("font_hover_color", Color("fff5d6"))
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_font_size_override("font_size", Typography.SECTION)

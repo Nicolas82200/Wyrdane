@@ -24,7 +24,7 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 
 	var count_label := Label.new()
 	count_label.name = "PackInventoryCountLabel"
-	count_label.add_theme_font_size_override("font_size", 20)
+	count_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	count_label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
 	count_label.text = SettingsManager.t("collection.packs_owned") % count
 	parent.add_child(count_label)
@@ -32,7 +32,7 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 	var hint_label := Label.new()
 	hint_label.name = "PackInventoryHintLabel"
 	hint_label.add_theme_color_override("font_color", Color(0.65, 0.62, 0.55, 1))
-	hint_label.add_theme_font_size_override("font_size", 13)
+	hint_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	hint_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	hint_label.text = SettingsManager.t("collection.packs_hint")
 	parent.add_child(hint_label)

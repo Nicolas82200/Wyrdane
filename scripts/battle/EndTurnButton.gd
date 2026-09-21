@@ -48,7 +48,7 @@ func _apply_style() -> void:
 	add_theme_stylebox_override("disabled", disabled_style)
 
 	add_theme_font_override("font", FONT_BOLD)
-	add_theme_font_size_override("font_size", 20)
+	add_theme_font_size_override("font_size", Typography.SECTION)
 	add_theme_color_override("font_color",          Color("e8d5a3"))
 	add_theme_color_override("font_hover_color",    Color("fff5d6"))
 	add_theme_color_override("font_pressed_color",  Color("f0c040"))

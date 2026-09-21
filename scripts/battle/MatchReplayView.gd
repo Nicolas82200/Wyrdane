@@ -54,7 +54,7 @@ func _ready() -> void:
 
 	_title_label = Label.new()
 	_title_label.add_theme_font_override("font", FONT_BOLD)
-	_title_label.add_theme_font_size_override("font_size", 20)
+	_title_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	_title_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	vbox.add_child(_title_label)
 

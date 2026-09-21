@@ -25,7 +25,7 @@ static func open(menu) -> void:
 
 	var title := Label.new()
 	title.text = SettingsManager.t("MATCH_HISTORY_TITLE")
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	section.add_child(title)
 
@@ -68,7 +68,7 @@ static func _make_row(entry: Dictionary) -> PanelContainer:
 	var race_suffix := " (%s)" % opponent_race if opponent_race != "" else ""
 	var duration_sec: int = int(entry.get("duration_sec", 0))
 	label.text = "%s — %s%s — %d:%02d" % [result_text, opponent_name, race_suffix, duration_sec / 60, duration_sec % 60]
-	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_font_size_override("font_size", Typography.BODY)
 	label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
 	margin.add_child(label)
 
