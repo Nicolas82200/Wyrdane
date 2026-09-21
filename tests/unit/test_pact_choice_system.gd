@@ -125,8 +125,11 @@ func test_resolve_trigger_cross_case_sends_request_then_awaits_reply() -> void:
 	assert_eq(_result, "PENDING", "doit rester en attente tant que le pair n'a pas répondu")
 
 	net.command_received.emit(NetCommand.pact_choice(true))
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# _watch_remote_answer affiche d'abord la carte en attente (tween de
+	# show_targeting_popup, 0.25s) avant même de consulter la réponse déjà
+	# arrivée : il faut laisser cette animation se terminer, 2 frames ne
+	# suffisent plus depuis l'ajout de cette preview.
+	await get_tree().create_timer(0.4).timeout
 
 	assert_eq(_result, true, "la réponse du pair doit débloquer resolve_trigger avec sa décision")
 
@@ -145,8 +148,10 @@ func test_resolve_trigger_replay_case_waits_without_sending_request() -> void:
 	assert_true(net.sent.is_empty(), "en rejeu, la décision du pair est déjà en route : aucune requête à émettre")
 
 	net.command_received.emit(NetCommand.pact_choice(false))
-	await get_tree().process_frame
-	await get_tree().process_frame
+	# Voir le commentaire équivalent dans le test ci-dessus (cross_case) :
+	# _watch_remote_answer affiche d'abord la carte en attente avant de
+	# consulter la réponse déjà arrivée.
+	await get_tree().create_timer(0.4).timeout
 
 	assert_eq(_result, false, "la décision déjà envoyée par le pair doit débloquer resolve_trigger")
 
@@ -193,3 +198,36 @@ func test_on_net_command_received_pact_request_asks_local_player_and_replies() -
 
 func _resolve_async(card: CardData, is_player: bool) -> void:
 	_result = await pact_choice_system.resolve_trigger(card, is_player)
+
+# Couvre le blocage "tour de l'adversaire" bloqué des deux côtés en partie
+# réelle : la décision du propriétaire (PACT_CHOICE) peut arriver AVANT le
+# tout premier appel local à resolve_trigger (elle est envoyée avant même la
+# commande d'action qui la déclenchera chez le pair). Si le listener réseau de
+# PactChoiceSystem ne se connecte que paresseusement au premier resolve_trigger
+# (ancien comportement), ce tout premier message arrive dans le vide — signal
+# perdu — et _await_remote_answer() attend indéfiniment une réponse déjà
+# passée, bloquant tout le rejeu du tour adverse. Le listener doit donc être
+# connecté dès init(), AVANT tout resolve_trigger — reproduit ici en émettant
+# PACT_CHOICE avant même d'appeler resolve_trigger, avec network_manager déjà
+# assigné avant init() (même ordre que Battle.gd : NetSessionSystem.setup()
+# avant pact_choice_system.init()).
+func test_init_connects_listener_before_first_resolve_trigger_so_early_answer_is_not_lost() -> void:
+	var net := FakeNetworkManager.new()
+	add_child_autofree(net)
+	var early_battle := BattleStub.new()
+	add_child_autofree(early_battle)
+	early_battle.card_popup_system = load("res://scripts/systems/CardPopupSystem.gd").new()
+	early_battle.card_popup_system.init(early_battle)
+	early_battle.network_manager = net
+	early_battle.enemy_turn_active = true  # rejeu du tour du pair, pas de PACT_REQUEST attendu
+	var early_pact_system := PactChoiceSystem.new()
+	early_pact_system.init(early_battle)  # network_manager déjà assigné : doit se connecter tout de suite
+
+	# La décision du pair arrive AVANT tout resolve_trigger local.
+	net.command_received.emit(NetCommand.pact_choice(true))
+
+	var card := _pact_card(2)
+	_result = "PENDING"
+	_result = await early_pact_system.resolve_trigger(card, false)
+
+	assert_eq(_result, true, "la décision arrivée avant le premier resolve_trigger ne doit pas être perdue (régression : blocage indéfini)")

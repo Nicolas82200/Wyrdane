@@ -275,6 +275,10 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 		var victim: Minion = battle.net_registry.resolve(victim_id)
 		if victim != null:
 			victims.append(victim)
+	# Preview de la carte activée, comme pour un sort adverse rejoué
+	# (_apply_enemy_spell) : sans elle, le joueur local ne voyait ici que ses
+	# propres serviteurs mourir sans savoir quel Rituel en était la cause.
+	await battle.card_popup_system.show_card_popup(card)
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
 	battle.net_registry.set_imposed_ids([])
