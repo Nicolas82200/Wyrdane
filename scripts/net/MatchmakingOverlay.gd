@@ -130,6 +130,11 @@ var _ranked_poll_timer: Timer
 # des deux côtés (voir matchmakingModel.pairTickets côté wyrdane-backend).
 var _ranked_match_id: String = ""
 var _ranked_match_session_token: String = ""
+# true entre le clic Annuler et la réponse de queue_join quand ce dernier
+# n'est pas encore revenu (voir _cancel_ranked_search/start_ranked) : le
+# ticket sera annulé dès qu'il arrive au lieu d'être laissé actif en tâche de
+# fond pendant que l'UI se croit déjà revenue au repos.
+var _ranked_cancel_pending := false
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -388,11 +393,20 @@ func start_ranked() -> void:
 	if not BackendClient.is_authenticated():
 		_flash_banner("NET_RANKED_UNAVAILABLE")
 		return
+	_ranked_cancel_pending = false
 	_set_search_mode("ranked")
 	_show_search_banner(true)
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
 	BackendClient.queue_join(func(success: bool, data: Dictionary) -> void:
+		# Annulé pendant l'aller-retour réseau (voir _cancel_ranked_search) :
+		# l'UI est déjà revenue au repos, il ne reste qu'à ne pas laisser le
+		# ticket vivre côté backend si jamais il a été créé entre-temps.
+		if _ranked_cancel_pending:
+			_ranked_cancel_pending = false
+			if success and str(data.get("ticket_id", "")) != "":
+				BackendClient.queue_cancel(str(data.get("ticket_id", "")))
+			return
 		if not success or str(data.get("ticket_id", "")) == "":
 			_flash_banner("NET_RANKED_UNAVAILABLE")
 			_reset_ranked_ui()
@@ -441,6 +455,17 @@ func _on_banner_cancel_pressed() -> void:
 # silencieusement (ex: coupure réseau déjà annoncée par ailleurs).
 func _cancel_ranked_search(manual: bool) -> void:
 	if _ranked_ticket_id == "":
+		# queue_join n'a pas encore répondu (voir start_ranked) : impossible
+		# d'annuler un ticket qui n'existe pas encore côté backend, mais il faut
+		# quand même libérer l'UI tout de suite — sinon _search_mode/_loading
+		# restent bloqués à "ranked"/true pour le reste de la session, empêchant
+		# toute recherche future (Normal/Classé/Ami). _ranked_cancel_pending
+		# fera annuler le ticket dès qu'il arrivera.
+		if _search_mode == "ranked":
+			_ranked_cancel_pending = true
+			_reset_ranked_ui()
+			if manual:
+				_flash_banner("NET_RANKED_CANCELLED")
 		return
 	BackendClient.queue_cancel(_ranked_ticket_id)
 	_reset_ranked_ui()
@@ -823,6 +848,12 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	_battle_sync.start()
 
 func _on_battle_sync_ready() -> void:
+	# La connexion/le handshake sont terminés ici (bataille sur le point de
+	# démarrer) : sans ce reset, _loading reste bloqué à true pour le reste de
+	# la session (cet autoload survit à tout change_scene_to_file) et
+	# start_normal/start_ranked/start_invite refusent silencieusement de
+	# relancer une recherche après cette partie (concède ou fin normale).
+	_set_loading(false)
 	await _show_vs_screen()
 	# _net vit déjà sous cet autoload (racine de l'arbre, jamais affecté par un
 	# change_scene_to_file) : pas besoin de le reparenter avant de charger
