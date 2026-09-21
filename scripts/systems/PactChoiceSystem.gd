@@ -52,6 +52,16 @@ var _prefetched_own_answers: Array[bool] = []
 
 func init(_battle) -> void:
 	battle = _battle
+	# Connexion immédiate (pas d'attente du premier resolve_trigger) : en
+	# réseau, la décision du propriétaire (PACT_CHOICE) peut arriver AVANT le
+	# premier appel local à resolve_trigger (elle est envoyée avant même la
+	# commande d'action qui la déclenchera chez le pair, voir resolve_trigger).
+	# Une connexion tardive manquait ce tout premier message — signal perdu,
+	# _await_remote_answer() attendait alors indéfiniment une réponse déjà
+	# passée, bloquant tout le rejeu du tour adverse (et donc la partie des
+	# deux côtés, l'un attendant l'autre). Bug confirmé en partie réelle avec
+	# le tout premier Pacte joué dans un match.
+	_ensure_net_listener()
 
 func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
 	var value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
@@ -76,7 +86,7 @@ func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
 		# en route ou déjà arrivée.
 		if not battle.enemy_turn_active:
 			battle.network_manager.send_command(NetCommand.pact_request(card_data.resource_path, value))
-		return await _await_remote_answer()
+		return await _watch_remote_answer(card_data, value)
 	if is_player:
 		return await ask(card_data, value)
 	return heuristic_decision(is_player, value)
@@ -117,6 +127,54 @@ func _handle_remote_request(command: Dictionary) -> void:
 	_prefetched_own_answers.append(paid)
 	if is_instance_valid(battle) and battle.network_manager != null:
 		battle.network_manager.send_command(NetCommand.pact_choice(paid))
+
+# Affiche la carte du Pacte (comme ask()) pendant qu'on attend la décision du
+# VRAI propriétaire — sans bouton, juste un texte d'attente — pour que le
+# joueur qui n'a pas la main sur la décision voie quand même la carte, le
+# Pacte en jeu, et le résultat une fois connu. Avant ce correctif, ce joueur
+# ne voyait strictement rien pendant l'attente (aucune popup, aucun indice
+# qu'une décision de Pacte était en cours) : l'effet semblait se résoudre
+# d'un coup une fois la réponse arrivée. Couvre les deux cas qui attendent une
+# réponse (cas courant : rejeu du tour du pair ; cas croisé : notre action en
+# direct touche sa carte, PACT_REQUEST déjà envoyé par l'appelant).
+func _watch_remote_answer(card_data: CardData, value: int) -> bool:
+	await battle.card_popup_system.show_targeting_popup(card_data)
+	var card: Card = battle.card_popup_system.get_persistent_card()
+	var layer: CanvasLayer = battle.card_popup_system.get_popup_layer()
+
+	var panel := PanelContainer.new()
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("1a0e0eee")
+	style.border_width_left = 2
+	style.border_width_right = 2
+	style.border_width_top = 2
+	style.border_width_bottom = 2
+	style.border_color = Color("c9a227")
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 12
+	style.content_margin_bottom = 12
+	panel.add_theme_stylebox_override("panel", style)
+
+	var label := Label.new()
+	label.text = SettingsManager.t("PACT_WAITING_TEXT") % value
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(label)
+
+	layer.add_child(panel)
+	if card != null and is_instance_valid(card):
+		panel.custom_minimum_size.x = card.size.x
+		await panel.get_tree().process_frame
+		panel.position = card.position + Vector2(0.0, card.size.y + 12.0)
+
+	var paid: bool = await _await_remote_answer()
+
+	if is_instance_valid(panel):
+		panel.queue_free()
+	if is_instance_valid(battle):
+		battle.card_popup_system.hide_targeting_popup()
+	return paid
 
 func _await_remote_answer() -> bool:
 	while _remote_answers.is_empty():
