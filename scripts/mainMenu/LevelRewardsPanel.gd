@@ -130,7 +130,7 @@ static func _make_row(menu, entry: Dictionary, current_level: int, granted_by_le
 
 	var level_label := Label.new()
 	level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % level
-	level_label.add_theme_font_size_override("font_size", 16)
+	level_label.add_theme_font_size_override("font_size", Typography.BODY)
 	level_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	if not reached:
 		level_label.modulate.a = 0.6
@@ -138,7 +138,7 @@ static func _make_row(menu, entry: Dictionary, current_level: int, granted_by_le
 
 	var reward_label := Label.new()
 	reward_label.text = _reward_description(entry)
-	reward_label.add_theme_font_size_override("font_size", 14)
+	reward_label.add_theme_font_size_override("font_size", Typography.BODY)
 	reward_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
 	if not reached:
 		reward_label.modulate.a = 0.6

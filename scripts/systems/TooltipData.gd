@@ -176,7 +176,7 @@ func make_hint_panel() -> PanelContainer:
 	var label := Label.new()
 	label.text = _tr("TOOLTIP_HINT_HIDE" if tooltips_expanded else "TOOLTIP_HINT_SHOW")
 	label.add_theme_color_override("font_color", Color(0.85, 0.80, 0.65, 1.0))
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", Typography.MICRO)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(label)
 
@@ -265,7 +265,7 @@ func make_tooltip_panel(title: String, desc: String,
 	var title_label := Label.new()
 	title_label.text = title
 	title_label.add_theme_color_override("font_color", Color(0.95, 0.80, 0.35, 1.0))
-	title_label.add_theme_font_size_override("font_size", 14)
+	title_label.add_theme_font_size_override("font_size", Typography.BODY)
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_row.add_child(title_label)
@@ -273,7 +273,7 @@ func make_tooltip_panel(title: String, desc: String,
 	var desc_label := Label.new()
 	desc_label.text = desc
 	desc_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.70, 1.0))
-	desc_label.add_theme_font_size_override("font_size", 12)
+	desc_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	# Largeur minimale posée directement sur le label, pas seulement sur le
 	# panel ancêtre : sans ça, Godot peut le mesurer à ~0 avant stabilisation
@@ -317,7 +317,7 @@ func make_race_tooltip(race_key: String) -> PanelContainer:
 	var label := Label.new()
 	label.text = _tr(race_key)
 	label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.75, 1.0))
-	label.add_theme_font_size_override("font_size", 12)
+	label.add_theme_font_size_override("font_size", Typography.MICRO)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 

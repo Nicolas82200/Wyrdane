@@ -26,7 +26,7 @@ static func add_to(target: Control, star_level: int) -> void:
 
 	var count := Label.new()
 	count.text = str(star_level)
-	count.add_theme_font_size_override("font_size", 14)
+	count.add_theme_font_size_override("font_size", Typography.BODY)
 	count.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
 	count.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.85))
 	count.add_theme_constant_override("outline_size", 4)

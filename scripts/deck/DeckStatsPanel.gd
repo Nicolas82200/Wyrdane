@@ -44,7 +44,7 @@ static func refresh(builder) -> void:
 	curve_title.text = SettingsManager.t("deck.stats_curve_title")
 	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
 	curve_title.add_theme_font_override("font", UI_FONT_BOLD)
-	curve_title.add_theme_font_size_override("font_size", 14)
+	curve_title.add_theme_font_size_override("font_size", Typography.BODY)
 	builder.stats_panel.add_child(curve_title)
 
 	builder.stats_panel.add_child(_make_curve_chart(curve))
@@ -53,7 +53,7 @@ static func refresh(builder) -> void:
 	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
 	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
 	avg_label.add_theme_font_override("font", UI_FONT)
-	avg_label.add_theme_font_size_override("font_size", 13)
+	avg_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	builder.stats_panel.add_child(avg_label)
 
@@ -61,7 +61,7 @@ static func refresh(builder) -> void:
 	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
 	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
 	breakdown_title.add_theme_font_override("font", UI_FONT_BOLD)
-	breakdown_title.add_theme_font_size_override("font_size", 14)
+	breakdown_title.add_theme_font_size_override("font_size", Typography.BODY)
 	builder.stats_panel.add_child(breakdown_title)
 
 	var type_row := HFlowContainer.new()
@@ -104,7 +104,7 @@ static func _make_curve_chart(curve: Array) -> Control:
 		count_lbl.text = str(count) if count > 0 else ""
 		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		count_lbl.add_theme_font_override("font", UI_FONT)
-		count_lbl.add_theme_font_size_override("font_size", 12)
+		count_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
 		col.add_child(count_lbl)
 
@@ -118,7 +118,7 @@ static func _make_curve_chart(curve: Array) -> Control:
 		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
 		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		cost_lbl.add_theme_font_override("font", UI_FONT)
-		cost_lbl.add_theme_font_size_override("font_size", 12)
+		cost_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
 		col.add_child(cost_lbl)
 
@@ -143,7 +143,7 @@ static func _make_chip(label_text: String, count: int) -> Control:
 	var lbl := Label.new()
 	lbl.text = "%s: %d" % [label_text, count]
 	lbl.add_theme_font_override("font", UI_FONT)
-	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
 	panel.add_child(lbl)
 

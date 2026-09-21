@@ -18,7 +18,7 @@ static func build_into(parent: Control, on_purchased: Callable = Callable()) -> 
 
 	var balance_label := Label.new()
 	balance_label.name = "BuyPacksBalanceLabel"
-	balance_label.add_theme_font_size_override("font_size", 18)
+	balance_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	balance_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	balance_label.text = SettingsManager.t("shop_buy.balance") % CurrencyManager.balance
 	parent.add_child(balance_label)

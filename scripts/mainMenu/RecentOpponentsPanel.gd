@@ -30,7 +30,7 @@ static func open(menu) -> void:
 	var title := Label.new()
 	title.text = SettingsManager.t("RECENT_OPPONENTS_TITLE")
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	header_row.add_child(title)
 

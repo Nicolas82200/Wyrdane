@@ -46,7 +46,7 @@ func _ready() -> void:
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.add_theme_font_override("font", FONT_BOLD)
-	_label.add_theme_font_size_override("font_size", 42)
+	_label.add_theme_font_size_override("font_size", Typography.HERO)
 	_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	_label.add_theme_constant_override("shadow_offset_x", 2)
@@ -57,7 +57,7 @@ func _ready() -> void:
 	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_hint_label.add_theme_font_override("font", FONT_BOLD)
-	_hint_label.add_theme_font_size_override("font_size", 20)
+	_hint_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	_hint_label.add_theme_color_override("font_color", Color("c9a227"))
 	_hint_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	_hint_label.add_theme_constant_override("shadow_offset_x", 1)

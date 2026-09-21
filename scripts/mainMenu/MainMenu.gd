@@ -777,7 +777,7 @@ func _refresh_play_deck_list() -> void:
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
-		empty_lbl.add_theme_font_size_override("font_size", 16)
+		empty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 		play_decks_container.add_child(empty_lbl)
 		return
 	for i in range(DeckManager.decks.size()):
@@ -850,7 +850,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	select_indicator.text = "●" if is_selected else "○"
 	select_indicator.custom_minimum_size = Vector2(28, 0)
 	select_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	select_indicator.add_theme_font_size_override("font_size", 18)
+	select_indicator.add_theme_font_size_override("font_size", Typography.SECTION)
 	select_indicator.add_theme_color_override("font_color",
 		Color(0.94, 0.75, 0.25, 1) if is_selected else Color(0.91, 0.835, 0.639, 0.35))
 	row.add_child(select_indicator)
@@ -859,7 +859,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	name_lbl.text = SettingsManager.t(deck.name)
 	name_lbl.clip_text = true
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	row.add_child(name_lbl)
 
@@ -867,7 +867,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(44, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_lbl.add_theme_font_size_override("font_size", 12)
+	count_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	count_lbl.add_theme_color_override("font_color",
 		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)

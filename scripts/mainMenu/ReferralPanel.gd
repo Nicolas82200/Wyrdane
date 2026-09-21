@@ -30,7 +30,7 @@ static func open(menu) -> void:
 
 	var title := Label.new()
 	title.text = SettingsManager.t("REFERRAL_TITLE")
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	section.add_child(title)
 
@@ -179,7 +179,7 @@ static func _show_first_launch_popup(menu) -> void:
 
 	var title := Label.new()
 	title.text = SettingsManager.t("REFERRAL_FIRST_LAUNCH_TITLE")
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD

@@ -45,7 +45,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "Confirmation avant attaque"
 
 [node name="ConfirmAttackCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ConfirmAttackRow"]
@@ -60,7 +60,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "Confirmation avant sacrifice"
 
 [node name="ConfirmSacrificeCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ConfirmSacrificeRow"]
@@ -75,7 +75,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 20
 text = "Auto-passe du tour"
 
 [node name="AutoPassCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/AutoPassRow"]

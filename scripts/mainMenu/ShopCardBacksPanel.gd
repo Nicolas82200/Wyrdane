@@ -55,7 +55,7 @@ static func _make_swatch(index: int, card_back_tex: Texture2D, on_selection_chan
 
 	var name_label := Label.new()
 	name_label.text = SettingsManager.t(cb["key"])
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	name_label.custom_minimum_size = Vector2(SWATCH_SIZE.x, 0)
