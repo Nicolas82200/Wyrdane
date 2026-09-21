@@ -78,7 +78,7 @@ func _ready() -> void:
 	_badge = Label.new()
 	_badge.text = "!"
 	_badge.add_theme_color_override("font_color", Color("ff4444"))
-	_badge.add_theme_font_size_override("font_size", 20)
+	_badge.add_theme_font_size_override("font_size", Typography.SECTION)
 	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_badge.position = Vector2(TOGGLE_SIZE.x - 14, -6)
 	_badge.visible = false
@@ -136,7 +136,7 @@ func _build_panel() -> void:
 
 	_title_label = Label.new()
 	_title_label.add_theme_font_override("font", FONT_BOLD)
-	_title_label.add_theme_font_size_override("font_size", 16)
+	_title_label.add_theme_font_size_override("font_size", Typography.BODY)
 	_title_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	_title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(_title_label)
@@ -227,7 +227,7 @@ static func _make_turn_row(entry: Dictionary) -> Control:
 	var label := Label.new()
 	label.text = SettingsManager.t("battle.log.turn_marker") % entry.get("turn_number", 0)
 	label.add_theme_font_override("font", FONT_BOLD)
-	label.add_theme_font_size_override("font_size", 13)
+	label.add_theme_font_size_override("font_size", Typography.MICRO)
 	label.add_theme_color_override("font_color", color)
 	row.add_child(label)
 
@@ -275,7 +275,7 @@ static func _make_event_row(entry: Dictionary) -> Control:
 				var seg_label := Label.new()
 				seg_label.text = segment["text"]
 				seg_label.add_theme_font_override("font", FONT_REGULAR)
-				seg_label.add_theme_font_size_override("font_size", 18)
+				seg_label.add_theme_font_size_override("font_size", Typography.SECTION)
 				seg_label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
 				row.add_child(seg_label)
 
@@ -304,7 +304,7 @@ static func _make_icon_badge(icon: String, color: Color) -> Control:
 	glyph.text = EVENT_GLYPHS.get(icon, "?")
 	glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	glyph.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	glyph.add_theme_font_size_override("font_size", 15)
+	glyph.add_theme_font_size_override("font_size", Typography.BODY)
 	glyph.add_theme_color_override("font_color", color)
 	badge.add_child(glyph)
 
@@ -314,7 +314,7 @@ static func _make_icon_badge(icon: String, color: Color) -> Control:
 static func _make_hero_label(segment: Dictionary) -> Control:
 	var label := Label.new()
 	label.text = "♥"
-	label.add_theme_font_size_override("font_size", 20)
+	label.add_theme_font_size_override("font_size", Typography.SECTION)
 	label.add_theme_color_override("font_color", _segment_color(segment.get("is_player")))
 	return label
 
@@ -324,7 +324,7 @@ static func _make_dmg_label(segment: Dictionary) -> Control:
 	var label := Label.new()
 	label.text = segment["text"]
 	label.add_theme_font_override("font", FONT_BOLD)
-	label.add_theme_font_size_override("font_size", 19)
+	label.add_theme_font_size_override("font_size", Typography.SECTION)
 	label.add_theme_color_override("font_color", COLOR_DAMAGE)
 	return label
 

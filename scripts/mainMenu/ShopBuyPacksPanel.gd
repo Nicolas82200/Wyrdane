@@ -5,7 +5,7 @@ class_name ShopBuyPacksPanel
 # de packs UNIQUEMENT, contre de l'or — aucune carte n'est jamais tirée ici
 # (CurrencyManager.buy_packs crédite le stock CurrencyManager.free_packs sans
 # ouvrir quoi que ce soit). Ouvrir les packs ainsi achetés se fait à part,
-# depuis l'onglet Collection (voir ShopCollectionPanel.gd), qui consomme ce
+# depuis la vue Collection (voir ShopCollectionPanel.gd), qui consomme ce
 # même stock. `on_purchased` est rappelé après un achat réussi pour que
 # l'appelant (MainMenu) rafraîchisse le solde/stock affichés ailleurs.
 
@@ -33,7 +33,7 @@ static func build_into(parent: Control, on_purchased: Callable = Callable()) -> 
 
 	var balance_label := Label.new()
 	balance_label.name = "BuyPacksBalanceLabel"
-	balance_label.add_theme_font_size_override("font_size", 18)
+	balance_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	balance_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	balance_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	balance_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

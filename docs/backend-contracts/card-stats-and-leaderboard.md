@@ -7,12 +7,19 @@ pas encore mergée dans `main` au moment de l'écriture) — conservé ici comme
 référence plutôt que retiré, cohérent avec les autres contrats du dossier.
 
 Objectif double : (1) donner des données d'équilibrage (taux de jeu et
-winrate par carte) et (2) un classement des joueurs par MMR, tous deux
-affichés dans un nouvel écran en jeu (« Statistiques », voir
-`scripts/mainMenu/StatsPanel.gd`). Portée volontairement réduite aux
-**matchs classés confirmés uniquement** — le solo contre l'IA et les parties
-non confirmées (un seul rapport reçu) ne sont pas représentatifs pour de
-l'équilibrage et gonfleraient le volume sans signal utile.
+winrate par carte) et (2) un classement des joueurs par MMR. Portée
+volontairement réduite aux **matchs classés confirmés uniquement** — le solo
+contre l'IA et les parties non confirmées (un seul rapport reçu) ne sont pas
+représentatifs pour de l'équilibrage et gonfleraient le volume sans signal
+utile.
+
+**Mise à jour 2026-09-21** : les données de taux de jeu/winrate par carte
+sont une donnée d'équilibrage interne, pas une information destinée aux
+joueurs — retirées de l'écran en jeu (`StatsPanel.gd` ne montre plus que le
+classement, voir section 4) et déplacées vers un dashboard admin sur
+`wyrdane-website` (`/admin/card-stats`, protégé par `requireAdmin` — voir
+`GET /api/admin/card-stats` ci-dessous, section 2). Le classement, lui, reste
+en jeu (donnée intéressante pour un joueur, pas sensible pour l'équilibrage).
 
 ---
 
@@ -70,23 +77,24 @@ jouent la même carte dans le même match, chacun contribue sa propre issue
 (victoire/défaite) au calcul du winrate plutôt que de s'écraser l'un
 l'autre.
 
-`rankedModel.getTopCards` agrège ensuite :
+`rankedModel.getCardStats` agrège ensuite :
 - **Taux de jeu** = `COUNT(DISTINCT client_match_id) / total_matchs_classés`
   (dénominateur = nombre de lignes dans `match_history` pour la saison).
 - **Winrate** = `SUM(won) / COUNT(*)` (au niveau instance carte-jouée, pas
   match — si les deux joueurs jouent la même carte avec des issues
   différentes, les deux comptent).
 
-Seuil minimum : une carte n'apparaît dans les résultats que si
-`matches_played >= 20` (`MIN_MATCHES_FOR_CARD_STATS`), pour éviter un
-winrate à 100%/0% non significatif en tout début de vie du jeu.
+Pas de seuil minimum de parties (contrairement à une première version qui
+excluait toute carte sous 20 matchs) : réservé à l'admin (voir section 2),
+qui peut juger lui-même de la significativité d'un winrate via
+`matches_played`, y compris en tout début de saison.
 
 ---
 
-## 2. `GET /api/ranked/stats/cards/top`
+## 2. `GET /api/admin/card-stats` (admin uniquement)
 
-Retourne les cartes les plus jouées en classé, triées par taux de jeu
-décroissant (`rankedController.getTopCardsHandler`) :
+Retourne toutes les cartes jouées en classé, triées par nombre de parties
+décroissant (`adminController.getAdminCardStats`) :
 
 ```json
 {
@@ -98,16 +106,17 @@ décroissant (`rankedController.getTopCardsHandler`) :
 }
 ```
 
-Mounté sous `/api/ranked` (comme `/me`, `/leaderboard`, `/matches/report`),
-donc nécessite le cookie de session comme le reste de cette route — pas une
-lecture publique (choix pragmatique : cohérent avec le reste de
-`rankedRouter`, pas de middleware séparé à ajouter pour cette seule route ;
-à revoir si un affichage public sur `wyrdane-website` est voulu plus tard).
+Mounté sous `/api/admin` (comme `/admin/stats`, `/admin/wishlist`), donc
+`authorization` + `requireAdmin` + `requireCsrfHeader` (voir
+`router/index.ts`) — inatteignable pour un joueur non-admin. Anciennement une
+route joueur publique-authentifiée (`/api/ranked/stats/cards/top`, avec le
+seuil de 20 matchs) : déplacée ici le 2026-09-21, la donnée étant destinée à
+l'équilibrage plutôt qu'à l'affichage joueur.
 
 ### Côté client
-`BackendClient.get_card_stats(on_complete: Callable)`
-(`scripts/net/BackendClient.gd`) — `(success: bool, cards: Array)`, chaque
-entrée étant le dictionnaire JSON tel quel ci-dessus.
+Consommé uniquement par `wyrdane-website` (`src/pages/AdminCardStats.tsx`,
+route `/admin/card-stats`, même garde `AdminRequire` que `/admin`) — plus
+aucun appel côté jeu.
 
 ---
 
@@ -135,16 +144,53 @@ players: Array)`, forme du tableau ci-dessus.
 
 ## 4. Écran en jeu
 
-`scripts/mainMenu/StatsPanel.gd` (nouveau, même pattern statique que
-`QuestsPanel.gd`/`ProfilePanel.gd`) ajoute une nouvelle `InfoView.STATS`
-(bouton « Statistiques » dans `BottomCenterRow` de `MainMenu.tscn`), avec
-deux sections dans le même conteneur défilant : « Cartes les plus jouées »
-(triées par `play_rate`, `winrate` affiché à côté) et « Classement » (rang
-calculé + nom + MMR, le joueur local mis en surbrillance dorée s'il
-apparaît dans le top 100 affiché, via `SteamService.local_persona_name()`).
-Lecture seule, aucune action de réclamation contrairement aux quêtes.
+`scripts/mainMenu/StatsPanel.gd` (même pattern statique que
+`QuestsPanel.gd`/`ProfilePanel.gd`) ajoute une `InfoView.STATS` (bouton «
+Classement » dans `BottomCenterRow` de `MainMenu.tscn`) avec une seule
+section : « Classement » (rang calculé + nom + MMR, le joueur local mis en
+surbrillance dorée s'il apparaît dans le top 100 affiché, via
+`SteamService.local_persona_name()`). Lecture seule, aucune action de
+réclamation contrairement aux quêtes. Ne montre plus de statistiques de
+cartes (voir section 1, mise à jour du 2026-09-21).
 
-## 5. Reste à faire
+## 5. Navigation par palier, recherche et avatars (branche `0072-ranked-leaderboard-browse`)
+
+Chantier suivant, sur `wyrdane-backend` (branche `0072-ranked-leaderboard-browse`,
+**pas encore mergée dans `main`**) — étend `GET /api/ranked/leaderboard`
+plutôt que de le remplacer :
+
+- Réponse changée : enveloppe `{ total, players }` au lieu d'un tableau brut
+  (`total` = nombre de joueurs classés correspondant au filtre). Chaque ligne
+  de `players` porte désormais `rank` (calculé en SQL via `RANK() OVER (ORDER
+  BY mmr DESC)`, donc toujours correct même filtré/paginé — plus besoin de le
+  déduire de la position dans le tableau) et `steam_id` (`LEFT JOIN
+  linked_accounts`, peut être `null`).
+- Nouveaux paramètres optionnels `minMmr`/`maxMmr` : filtrent par palier —
+  les paliers eux-mêmes restent une notion purement client (`RankTier.gd`,
+  bornes 1000/1300/1600), le backend ne connaît que des bornes de MMR.
+- `GET /api/ranked/leaderboard/me` : position du joueur authentifié (`rank`,
+  `mmr`...), 404 si jamais classé.
+- `GET /api/ranked/leaderboard/around-me?limit=&minMmr=&maxMmr=` : page déjà
+  centrée sur le joueur authentifié au sein d'un palier — le serveur calcule
+  l'offset (compte des lignes du palier avec un MMR strictement supérieur au
+  sien) plutôt que de le faire déduire côté client. 404 si jamais classé.
+- `GET /api/ranked/leaderboard/search?q=` : recherche par pseudo
+  (sous-chaîne, insensible à la casse, 20 résultats max), pour que la barre
+  de recherche du client retrouve le rang exact d'un joueur.
+
+### Côté client
+`scripts/mainMenu/StatsPanel.gd` (panneau « Classement ») : 4 onglets de
+palier (Bronze/Argent/Or/Légende), ouverture sur
+le palier du joueur local centré sur sa position, recherche par pseudo,
+défilement infini vers le bas (pas de rechargement vers le haut au-delà de la
+page initiale — limitation assumée). `BackendClient.get_leaderboard`/
+`get_my_leaderboard_position`/`get_leaderboard_around_me`/`search_leaderboard`
+(`scripts/net/BackendClient.gd`). Avatars via `SteamService.request_avatar_async`
+(`scripts/net/SteamService.gd`) : best-effort, Steam ne garantit l'avatar en
+cache que pour des joueurs déjà croisés (amis, parties communes...) — beaucoup
+de lignes resteront sans avatar, c'est attendu.
+
+## 6. Reste à faire
 
 - Mergé côté client dans ce worktree ; côté backend, la branche
   `0065-card-stats-and-leaderboard` doit être review/mergée dans `main` puis
@@ -152,6 +198,6 @@ Lecture seule, aucune action de réclamation contrairement aux quêtes.
   la synchro de schéma (`npm run db:sync`) appliquée en prod pour créer
   `card_play_stats` et la colonne `match_reports.cards_played` — même
   procédure que les chantiers précédents (quêtes hebdo, matchmaking classé).
-- Pas de pagination sur `stats/cards/top` (320 cartes max, acceptable) ni
+- Pas de pagination sur `/admin/card-stats` (320 cartes max, acceptable) ni
   granularité par saison passée (toujours `CURRENT_SEASON`) — à revoir si le
   jeu introduit un reset de saison ranked avant que ça devienne un problème.
