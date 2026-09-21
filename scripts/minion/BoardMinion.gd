@@ -219,7 +219,7 @@ func _ready() -> void:
 	_fusion_button.position = Vector2(66, -2)
 	_fusion_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_fusion_button.visible = false
-	_fusion_button.add_theme_font_size_override("font_size", 18)
+	_fusion_button.add_theme_font_size_override("font_size", Typography.SECTION)
 	_fusion_button.tooltip_text = TranslationServer.translate("KW_FUSION_NAME")
 	# Fond violet plein + bordure pulsante (voir _process) : le bouton "F"
 	# passait inaperçu en style par défaut Godot, discret dans le coin de la

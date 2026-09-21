@@ -299,7 +299,7 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 
 	var badge_label := Label.new()
 	badge_label.add_theme_font_override("font", UI_FONT)
-	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_panel.add_child(badge_label)
 	wrapper.add_child(badge_panel)
@@ -340,7 +340,7 @@ func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
 	buy_button.text = SettingsManager.t("deck.buy_button") % price
 	buy_button.custom_minimum_size = Vector2(0, 26)
 	buy_button.add_theme_font_override("font", UI_FONT)
-	buy_button.add_theme_font_size_override("font_size", 13)
+	buy_button.add_theme_font_size_override("font_size", Typography.MICRO)
 	buy_button.anchor_left   = 0.0
 	buy_button.anchor_right  = 1.0
 	buy_button.anchor_top    = 1.0
@@ -628,7 +628,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	cost_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_color_override("font_color", Color(0.05, 0.04, 0.02, 1))
 	cost_lbl.add_theme_font_override("font", UI_FONT)
-	cost_lbl.add_theme_font_size_override("font_size", 14)
+	cost_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	cost_panel.add_child(cost_lbl)
 	row.add_child(cost_panel)
 
@@ -639,7 +639,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	# de la ligne distingue les deux, pas le nom.
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_override("font", UI_FONT)
-	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -654,7 +654,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	qty_lbl.add_theme_color_override("font_color",
 		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_override("font", UI_FONT)
-	qty_lbl.add_theme_font_size_override("font_size", 14)
+	qty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	row.add_child(qty_lbl)
 
 	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
@@ -667,7 +667,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 		buy_btn.text = SettingsManager.t("deck.buy_button") % price
 		buy_btn.custom_minimum_size = Vector2(0, 26)
 		buy_btn.add_theme_font_override("font", UI_FONT)
-		buy_btn.add_theme_font_size_override("font_size", 13)
+		buy_btn.add_theme_font_size_override("font_size", Typography.MICRO)
 		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
 		row.add_child(buy_btn)
@@ -678,7 +678,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	del_btn.custom_minimum_size = Vector2(28, 0)
 	del_btn.add_theme_color_override("font_color",       Color(0.6, 0.3, 0.3, 1))
 	del_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.4, 0.4, 1))
-	del_btn.add_theme_font_size_override("font_size", 12)
+	del_btn.add_theme_font_size_override("font_size", Typography.MICRO)
 	del_btn.pressed.connect(_on_remove_all.bind(path))
 	row.add_child(del_btn)
 
@@ -897,7 +897,7 @@ func _show_unsaved_changes_dialog() -> void:
 	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	text_lbl.add_theme_font_size_override("font_size", 15)
+	text_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	vbox.add_child(text_lbl)
 
 	var btn_row := HBoxContainer.new()
@@ -944,7 +944,7 @@ func _show_saved_but_unplayable_popup() -> void:
 	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	text_lbl.add_theme_font_size_override("font_size", 15)
+	text_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	vbox.add_child(text_lbl)
 
 	var ok_btn := Button.new()

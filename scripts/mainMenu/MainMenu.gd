@@ -12,8 +12,8 @@ const WEBSITE_DEVLOG_PATH := "/dev-log"
 const DECK_BUILDER_SCENE := "res://scenes/deck/DeckBuilder.tscn"
 
 enum PlayMode { SOLO, MULTI }
-enum ShopTab { PACKS, CARD_BACKS, COLLECTION }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS }
+enum ShopTab { PACKS, CARD_BACKS }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -92,6 +92,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
 @onready var shop_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
+@onready var collection_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CollectionButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
@@ -99,13 +100,16 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
 @onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
 @onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
-@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/PackShop
+@onready var shop_buy_packs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll
+@onready var shop_buy_packs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll/BuyPacksSection
 @onready var shop_card_backs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll
 @onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
 @onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
-@onready var shop_collection_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCollectionTabButton
-@onready var shop_collection_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll
-@onready var shop_collection_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCollectionScroll/CollectionSection
+@onready var collection_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView
+@onready var collection_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleLabel
+@onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/PackShop
+@onready var shop_collection_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll
+@onready var shop_collection_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll/CollectionSection
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
 @onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
@@ -159,7 +163,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
 @onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
 
-@onready var stats_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/StatsButton
+@onready var stats_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/StatsButton
 @onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
 @onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
@@ -221,13 +225,14 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
-	# Pas d'écran séparé pour les packs : l'onglet "Packs" affiche directement
-	# PackShop (déjà conçu pour être embarqué comme simple vue, voir son
-	# commentaire d'en-tête) plutôt que de mener à un panneau à part.
-	pack_shop.close_x_button.hide()
+	collection_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
+	# PackShop n'est plus embarqué comme vue permanente : c'est l'écran
+	# d'ouverture (voir son commentaire d'en-tête), affiché par-dessus
+	# CollectionContentRoot uniquement quand le joueur choisit une quantité à
+	# ouvrir depuis la vue Collection (voir _open_owned_packs_flow ci-dessous).
+	pack_shop.closed.connect(_on_pack_opening_closed)
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
-	shop_collection_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.COLLECTION))
 	_select_shop_tab(ShopTab.PACKS)
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
@@ -422,6 +427,7 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.CREDITS: credits_button,
 		InfoView.SHOP: shop_button,
 		InfoView.STATS: stats_button,
+		InfoView.COLLECTION: collection_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
@@ -430,30 +436,52 @@ func _update_nav_active_indicators(view: InfoView) -> void:
 		btn.self_modulate = NAV_ACTIVE_TINT if v == view else Color.WHITE
 
 # --- Boutique : mini-navbar Packs / Dos de cartes -------------------------
-# Deux onglets à l'intérieur de la même vue (InfoView.SHOP) : Packs affiche
-# directement PackShop (déjà conçu pour être embarqué comme simple vue plutôt
-# que comme overlay plein écran, voir son commentaire d'en-tête) et Dos de
-# cartes une simple grille — aucun des deux n'a besoin de sa propre InfoView.
+# Deux onglets à l'intérieur de la même vue (InfoView.SHOP), chacun une
+# simple grille/panneau construit dans un conteneur dédié — aucun n'a besoin
+# de sa propre InfoView. "Packs" = achat de packs uniquement (voir
+# ShopBuyPacksPanel.gd). La Collection (stock de packs à ouvrir, voir
+# ShopCollectionPanel.gd) vit désormais dans sa propre InfoView.COLLECTION,
+# distincte de la Boutique — voir _show_info_view.
 var _shop_tab: ShopTab = ShopTab.PACKS
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
-	pack_shop.visible = tab == ShopTab.PACKS
+	shop_buy_packs_scroll.visible = tab == ShopTab.PACKS
 	shop_card_backs_scroll.visible = tab == ShopTab.CARD_BACKS
-	shop_collection_scroll.visible = tab == ShopTab.COLLECTION
 	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
 	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
-	shop_collection_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.COLLECTION else Color.WHITE
 	if tab == ShopTab.PACKS:
-		if pack_shop.has_method("refresh"):
-			pack_shop.refresh()
+		# Reconstruit à chaque affichage pour refléter le solde d'or à jour.
+		ShopBuyPacksPanel.build_into(shop_buy_packs_section, func(): _select_shop_tab(ShopTab.PACKS))
 	elif tab == ShopTab.CARD_BACKS:
 		# Reconstruit à chaque affichage pour refléter la sélection courante.
 		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
-	elif tab == ShopTab.COLLECTION:
-		# Reconstruit à chaque affichage pour refléter la collection à jour
-		# (achat de carte, ouverture de pack depuis le dernier passage).
-		ShopCollectionPanel.build_into(shop_collection_section)
+
+# --- Collection (vue indépendante, hors Boutique) -------------------------
+
+## Reconstruit le stock de packs à ouvrir à chaque affichage de la vue
+## Collection, pour refléter le solde à jour (achat en Boutique, ouverture
+## depuis le dernier passage).
+func _open_collection_view() -> void:
+	shop_collection_scroll.show()
+	ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow)
+
+## Lance l'ouverture de `quantity` packs depuis la vue Collection : masque la
+## grille (sans quoi ses boutons resteraient cliquables sous l'écran
+## d'ouverture, qui ne bloque pas lui-même les clics en dessous — voir
+## PackShop.tscn, Overlay/ShakeLayer en mouse_filter IGNORE) et affiche
+## PackShop par-dessus CollectionContentRoot pour l'animation de révélation.
+func _open_owned_packs_flow(quantity: int) -> void:
+	shop_collection_scroll.hide()
+	pack_shop.close_x_button.show()
+	pack_shop.show()
+	pack_shop.open_owned(quantity)
+
+## Referme l'écran d'ouverture (clic sur la croix) : revient sur la vue
+## Collection, reconstruite pour refléter le stock de packs restant.
+func _on_pack_opening_closed() -> void:
+	if _current_info_view == InfoView.COLLECTION:
+		_open_collection_view()
 
 # Pastille rouge sur le bouton Quêtes du dock (façon MTGA), visible dès le
 # menu principal sans avoir besoin d'ouvrir le panneau — indique combien de
@@ -529,9 +557,11 @@ func _apply_tutorial_lock() -> void:
 	multi_mode_button.disabled = locked
 	decks_button.disabled = locked
 	shop_button.disabled = locked
+	collection_button.disabled = locked
 	multi_mode_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	decks_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 	shop_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
+	collection_button.tooltip_text = SettingsManager.t("MENU_LOCKED_TUTORIAL") if locked else ""
 
 # Enchaîne auth Steam -> mapping id carte backend -> chargement des decks
 # en tâche de fond, sans bloquer l'affichage du menu. Si une étape échoue
@@ -576,7 +606,7 @@ func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
-		mode_select_view, deck_select_view, stats_view]
+		mode_select_view, deck_select_view, stats_view, collection_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
@@ -590,6 +620,7 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.MODE_SELECT: mode_select_view,
 		InfoView.DECK_SELECT: deck_select_view,
 		InfoView.STATS: stats_view,
+		InfoView.COLLECTION: collection_view,
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
@@ -614,6 +645,8 @@ func _show_info_view(view: InfoView) -> void:
 		_select_shop_tab(_shop_tab)
 	elif view == InfoView.STATS:
 		StatsPanel.open(self)
+	elif view == InfoView.COLLECTION:
+		_open_collection_view()
 
 # --- Profil (vue "actualités", plus de popup séparée) --------------------
 
@@ -744,7 +777,7 @@ func _refresh_play_deck_list() -> void:
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
-		empty_lbl.add_theme_font_size_override("font_size", 16)
+		empty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 		play_decks_container.add_child(empty_lbl)
 		return
 	for i in range(DeckManager.decks.size()):
@@ -817,7 +850,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	select_indicator.text = "●" if is_selected else "○"
 	select_indicator.custom_minimum_size = Vector2(28, 0)
 	select_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	select_indicator.add_theme_font_size_override("font_size", 18)
+	select_indicator.add_theme_font_size_override("font_size", Typography.SECTION)
 	select_indicator.add_theme_color_override("font_color",
 		Color(0.94, 0.75, 0.25, 1) if is_selected else Color(0.91, 0.835, 0.639, 0.35))
 	row.add_child(select_indicator)
@@ -826,7 +859,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	name_lbl.text = SettingsManager.t(deck.name)
 	name_lbl.clip_text = true
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	row.add_child(name_lbl)
 
@@ -834,7 +867,7 @@ func _make_play_deck_row(deck: DeckData, index: int) -> Control:
 	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(44, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_lbl.add_theme_font_size_override("font_size", 12)
+	count_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	count_lbl.add_theme_color_override("font_color",
 		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
@@ -958,7 +991,8 @@ func _retranslate() -> void:
 	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
 	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
 	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
-	shop_collection_tab_button.text = SettingsManager.t("SHOP_TAB_COLLECTION")
+	collection_button.text = SettingsManager.t("MENU_COLLECTION")
+	collection_title_label.text = SettingsManager.t("COLLECTION_TITLE")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
@@ -1012,6 +1046,8 @@ func _retranslate() -> void:
 		QuestsPanel.open(self)
 	if stats_view.visible:
 		StatsPanel.open(self)
+	if collection_view.visible:
+		_open_collection_view()
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:

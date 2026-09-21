@@ -187,16 +187,7 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
 
-# ─── Statistiques cartes / classement ───────────────────────────────────────
-# Contrat détaillé : docs/backend-contracts/card-stats-and-leaderboard.md
-func get_card_stats(on_complete: Callable) -> void:
-	request(HTTPClient.METHOD_GET, "/api/ranked/stats/cards/top", {}, func(code: int, parsed: Variant):
-		if code == 200 and parsed is Dictionary:
-			on_complete.call(true, parsed.get("cards", []))
-		else:
-			on_complete.call(false, [])
-	)
-
+# ─── Classement ──────────────────────────────────────────────────────────────
 # Route déjà existante côté backend (rankedController.getLeaderboardHandler),
 # pas une nouveauté de ce chantier — retourne un tableau brut de lignes
 # { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite

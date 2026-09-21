@@ -183,7 +183,7 @@ func _add_count_badge(wrapper: Control, count: int) -> void:
 	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var badge_label := Label.new()
-	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_label.text = SettingsManager.t("deck_view.card_count_badge") % count
 	badge_panel.add_child(badge_label)

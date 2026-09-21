@@ -53,7 +53,7 @@ static func _populate_weekly(menu, quests: Array) -> void:
 		return
 	var header := Label.new()
 	header.text = SettingsManager.t("QUESTS_WEEKLY_TITLE")
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", Typography.BODY)
 	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
 	menu.quests_list_vbox.add_child(HSeparator.new())
 	menu.quests_list_vbox.add_child(header)
@@ -68,7 +68,7 @@ static func _populate_unique(menu, quests: Array) -> void:
 		return
 	var header := Label.new()
 	header.text = SettingsManager.t("QUESTS_UNIQUE_TITLE")
-	header.add_theme_font_size_override("font_size", 16)
+	header.add_theme_font_size_override("font_size", Typography.BODY)
 	header.add_theme_color_override("font_color", Color(0.85, 0.72, 0.5, 0.9))
 	menu.quests_list_vbox.add_child(HSeparator.new())
 	menu.quests_list_vbox.add_child(header)
@@ -153,7 +153,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 
 	var desc_label := Label.new()
 	desc_label.text = SettingsManager.t(_get_str(quest, "description_key", ""))
-	desc_label.add_theme_font_size_override("font_size", 17)
+	desc_label.add_theme_font_size_override("font_size", Typography.BODY)
 	desc_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_col.add_child(desc_label)
@@ -170,7 +170,7 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 		_:
 			var reward := _get_int(quest, "reward_currency", 0)
 			progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
-	progress_label.add_theme_font_size_override("font_size", 14)
+	progress_label.add_theme_font_size_override("font_size", Typography.BODY)
 	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
 	text_col.add_child(progress_label)
 
