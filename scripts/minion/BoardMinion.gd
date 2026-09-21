@@ -572,6 +572,7 @@ func _show_summon_previews(card_data: CardData) -> void:
 		return
 
 	var token_width: float = new_tokens[0].size.x * token_scale.x
+	var token_height: float = new_tokens[0].size.y * token_scale.y
 	var strip_width: float = float(new_tokens.size()) * token_width \
 		+ float(new_tokens.size() - 1) * TOKEN_SPACING
 	var preview_left: float = _hover_preview.global_position.x
@@ -588,10 +589,18 @@ func _show_summon_previews(card_data: CardData) -> void:
 		_hover_preview.size.y * Card.HOVER_ZOOM_SCALE * 0.5
 	)
 
+	# Reste dans l'écran même si ni la gauche ni la droite n'ont assez de place
+	# (ex: serviteur tout au bord du plateau) — sans ce clamp, la bande de
+	# jetons pouvait déborder hors champ, invisible.
+	var vp := get_viewport_rect().size
+	start_x = clampf(start_x, 4.0, vp.x - strip_width - 4.0)
+	var token_y: float = clampf(
+		base_y - token_height * 0.5, 4.0, vp.y - token_height - 4.0)
+
 	for i in range(new_tokens.size()):
 		var token_card: Card = new_tokens[i]
 		var token_x: float = start_x + float(i) * (token_width + TOKEN_SPACING)
-		token_card.global_position = Vector2(token_x, base_y - token_card.size.y * token_scale.y * 0.5)
+		token_card.global_position = Vector2(token_x, token_y)
 		token_card.visible = true
 		_token_previews.append(token_card)
 
