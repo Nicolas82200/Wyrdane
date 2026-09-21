@@ -163,18 +163,32 @@ func _apply(cmd: Dictionary) -> void:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			# Revalide la règle "Rangée Avant vide"/Rempart côté réception (battle._can_attack_hero
-			# est généralisé pour n'importe quel camp attaquant) : un pair distant désynchronisé
-			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
-			# perform_hero_attack lui-même n'effectue aucune validation.
-			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
-				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-				await battle.combat_system.perform_hero_attack(attacker)
-				battle.net_registry.set_imposed_ids([])
-			elif attacker != null:
-				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
-			else:
+			if attacker == null:
 				push_warning("NetworkOpponent : ATTACK_HERO avec un attacker introuvable")
+				return
+			if attacker.owner_is_player:
+				# Contrôle de propriété (jamais assoupli) : sans lui, un pair distant
+				# pourrait désigner un net_id de NOTRE propre camp et nous forcer à
+				# attaquer notre propre héros.
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
+				return
+			# battle._can_attack_hero revalide la règle "Rangée Avant vide"/Rempart
+			# côté réception à partir de NOTRE mirroir du plateau distant. Cette
+			# règle a déjà été validée par l'émetteur sur SON propre plateau avant
+			# d'émettre la commande : un refus ici ne peut donc venir que d'une
+			# désynchronisation entre les deux plateaux (ex. un serviteur Avant ou
+			# un Rempart mort d'un côté mais pas encore reflété de l'autre au
+			# moment où cette commande est rejouée), jamais d'une action
+			# réellement illégale. On applique donc quand même les dégâts plutôt que
+			# de les rejeter en silence : sans ça, le héros visé ne meurt jamais de
+			# son côté alors qu'il est déjà mort chez le pair, et la partie ne se
+			# termine plus jamais pour lui (vécu en partie réelle : victoire affichée
+			# chez l'un, "joueur déconnecté" chez l'autre une fois qu'il a quitté).
+			if not battle._can_attack_hero(attacker):
+				push_warning("NetworkOpponent : ATTACK_HERO — règle locale non respectée (désync de plateau), dégâts appliqués quand même")
+			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+			await battle.combat_system.perform_hero_attack(attacker)
+			battle.net_registry.set_imposed_ids([])
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		NetCommand.ACTIVATE_FUSION:
