@@ -57,9 +57,12 @@ const ODDS_TOOLTIP_DURATION := 4.0
 
 var _odds_panel: Control = null
 const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
-# Zone de révélation : partie droite de l'écran, à droite du paquet (voir
-# PackCenter dans PackShop.tscn, ancré sur les ~22% gauches de l'écran —
-# réduit depuis 34% pour laisser plus de place aux cartes révélées).
+# Zone de révélation : partie droite de l'écran, à droite du paquet une fois
+# décalé (voir _shift_pack_to_open_position) — PackCenter dans PackShop.tscn
+# est ancré centré sur TOUTE la largeur au repos (aperçu avant ouverture,
+# cohérent avec l'image centrée de l'onglet Collection) puis animé vers cette
+# colonne de gauche (~22%) au moment d'ouvrir, pour laisser la place aux
+# cartes révélées à droite.
 const GRID_AREA_LEFT_RATIO := 0.22
 const GRID_AREA_SIDE_MARGIN := 40.0
 const GRID_AREA_TOP := 150.0
@@ -67,7 +70,12 @@ const GRID_AREA_TOP := 150.0
 # BottomBar/SkipHintLabel dans PackShop.tscn, qui culmine à 140px du bas) pour
 # que les cartes révélées ne les chevauchent pas.
 const GRID_AREA_BOTTOM := 150.0
-const GRID_MAX_COLUMNS := 5
+# Toujours 4 (= CARDS_PER_PACK côté backend, voir packModel.ts) : la grille
+# forme une ligne de 4 cartes par pack ouvert plutôt qu'un nombre de colonnes
+# dépendant du total de cartes — 1 pack = 1 ligne de 4, 5 packs = 4 colonnes
+# de 5 cartes (une ligne par pack), etc.
+const GRID_MAX_COLUMNS := 4
+const PACK_SHIFT_DURATION := 0.5
 # Fraction de chaque cellule de grille effectivement occupée par la carte (le
 # reste forme l'espacement entre cartes).
 const GRID_CELL_PADDING := 0.86
@@ -202,6 +210,9 @@ func open_owned(quantity: int) -> void:
 	_clear_cards()
 	status_label.hide()
 	_set_action_buttons_disabled(true)
+	await _shift_pack_to_open_position()
+	if not is_instance_valid(self):
+		return
 
 	var all_cards: Array = []
 	var last_code := 200
@@ -216,6 +227,18 @@ func open_owned(quantity: int) -> void:
 		all_cards.append_array(cards)
 
 	_on_packs_opened(last_code, all_cards, count == 1)
+
+## Décale le paquet, centré au repos (aperçu avant ouverture, voir
+## PackShop.tscn), vers la colonne de gauche pour laisser la place à la
+## grille de révélation à droite. Repart toujours de l'ancrage centré (plutôt
+## que de l'ancrage courant) : sans ça, une deuxième ouverture consécutive
+## depuis l'onglet Collection repartirait déjà décalée, sans animation visible.
+func _shift_pack_to_open_position() -> void:
+	pack_center.anchor_right = 1.0
+	var tween := create_tween()
+	tween.tween_property(pack_center, "anchor_right", GRID_AREA_LEFT_RATIO, PACK_SHIFT_DURATION) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tween.finished
 
 func _request_single_owned_pack() -> Dictionary:
 	CurrencyManager.open_owned_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
