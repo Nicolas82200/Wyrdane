@@ -1876,6 +1876,7 @@ ARENA_LOBBY_STEAM_UNAVAILABLE,"Steam indisponible (extension absente ou client S
 PACT_CONFIRM_TEXT,"Payer %d points de vie pour améliorer l'effet ?","Pay %d HP to improve the effect?"
 PACT_CONFIRM_YES,"Payer","Pay"
 PACT_CONFIRM_NO,"Refuser","Decline"
+PACT_WAITING_TEXT,"En attente de la décision de l'adversaire (Pacte : %d PV)...","Waiting for the opponent's Pact decision (%d HP)..."
 "REMPART, REVENANT","REMPART, REVENANT","TAUNT, REVENANT"
 "Tous les serviteurs alliés gagnent +1/+1 de façon permanente.","Tous les serviteurs alliés gagnent +1/+1 de façon permanente.","All your allied minions permanently gain +1/+1."
 "Tous les serviteurs alliés en rangée Avant gagnent ÉGIDE.","Tous les serviteurs alliés en rangée Avant gagnent ÉGIDE.","All your allied minions in the Front row gain AEGIS."
