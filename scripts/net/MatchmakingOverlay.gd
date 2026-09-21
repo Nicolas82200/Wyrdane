@@ -79,11 +79,12 @@ const AVERAGE_WAIT_SECONDS := {
 	"ranked": 60,
 }
 
-# Le bandeau clignote avec ce message le temps que les deux clients
+# Le bandeau clignote et décompte (5/4/3/2/1) le temps que les deux clients
 # confirment la connexion P2P, avant de basculer sur l'écran de chargement
-# plein écran (voir _on_peer_connected) — pour que le joueur, même s'il
-# navigue ailleurs dans le menu, voie clairement qu'une partie va démarrer.
-const MATCH_READY_FLASH_DURATION := 5.0
+# plein écran (voir _on_peer_connected/_run_match_ready_countdown) — pour que
+# le joueur, même s'il navigue ailleurs dans le menu, voie clairement qu'une
+# partie va démarrer.
+const MATCH_READY_COUNTDOWN_START := 5
 const MATCH_READY_BLINK_HALF_PERIOD := 0.4
 
 # Astuces affichées en boucle sur l'écran de chargement une fois l'adversaire
@@ -99,6 +100,7 @@ var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
 var _status_key := ""  # clé de traduction affichée par le bandeau
+var _status_format_arg = null  # argument % substitué dans _status_key, voir _set_status
 var _loading := false  # affiche le spinner tant qu'une connexion est en cours
 var _search_mode := ""  # "" | "normal" | "ranked" | "invite" — pilote le bouton Annuler
 var _tip_timer: Timer
@@ -133,6 +135,7 @@ func _ready() -> void:
 	_net = NetworkManager.new()
 	add_child(_net)
 	_net.peer_connected.connect(_on_peer_connected)
+	_net.peer_identified.connect(_on_peer_identified)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
 	# Détail technique (ids de lobby, codes de connexion P2P...) utile en debug
 	# mais pas au joueur : direction console uniquement (voir _flash_banner/
@@ -194,19 +197,30 @@ func _update_search_meta() -> void:
 func _format_mmss(total_seconds: int) -> String:
 	return "%d:%02d" % [total_seconds / 60, total_seconds % 60]
 
+# Texte traduit du statut courant — %s/%d substitué depuis _status_format_arg
+# si présent (ex. nom de l'ami, voir _on_peer_identified), sinon texte fixe.
+func _format_status_text() -> String:
+	if _status_key == "":
+		return ""
+	var text := SettingsManager.t(_status_key)
+	return (text % _status_format_arg) if _status_format_arg != null else text
+
 # Recompose le texte principal du bandeau : statut traduit + temps écoulé tant
 # qu'une recherche est active (voir _process).
 func _refresh_banner_text() -> void:
-	var text := SettingsManager.t(_status_key) if _status_key != "" else ""
+	var text := _format_status_text()
 	if _loading and _search_mode != "":
 		text += "  " + _format_mmss(int(_search_elapsed))
 	search_banner_label.text = text
 
-func _set_status(key: String) -> void:
+# format_arg substitué dans le texte traduit (ex. nom de l'ami qui se prépare,
+# voir _on_peer_identified) — null pour un statut sans partie dynamique.
+func _set_status(key: String, format_arg = null) -> void:
 	_status_key = key
+	_status_format_arg = format_arg
 	_refresh_banner_text()
 	if match_found_overlay.visible:
-		overlay_phase_label.text = SettingsManager.t(key)
+		overlay_phase_label.text = _format_status_text()
 
 func _set_loading(active: bool) -> void:
 	_loading = active
@@ -239,19 +253,32 @@ func _flash_banner(key: String) -> void:
 	_banner_hide_timer.start(BANNER_MESSAGE_DURATION)
 
 # Bandeau clignotant affiché dès que le pair est connecté, avant l'écran de
-# chargement plein écran (voir _on_peer_connected) — la recherche est finie
-# mais le joueur (peut-être ailleurs dans le menu) doit voir que la partie va
-# démarrer, pas juste basculer brutalement sur l'overlay plein écran.
-func _flash_match_ready_banner() -> void:
+# chargement plein écran (voir _on_peer_connected/_run_match_ready_countdown)
+# — la recherche est finie mais le joueur (peut-être ailleurs dans le menu)
+# doit voir que la partie va démarrer, pas juste basculer brutalement sur
+# l'overlay plein écran. Décompte le texte lui-même de
+# MATCH_READY_COUNTDOWN_START à 1 (une seconde par palier) : titre fixe
+# ("Partie trouvée" ou, en mode invitation, "<ami> est prêt") sur la première
+# ligne, "Début dans N" sur la seconde. `token` est celui de _connect_token au
+# moment de l'appel (voir _on_peer_connected) : une coupure en cours de route
+# invalide le décompte sans avoir à l'annuler explicitement.
+func _run_match_ready_countdown(token: int, peer_name: String) -> void:
 	if _banner_hide_timer != null:
 		_banner_hide_timer.stop()
 	search_banner.visible = true
 	search_banner_cancel.visible = false
-	search_banner_label.text = SettingsManager.t("NET_MATCH_LOADING")
+	var title := SettingsManager.t("NET_INVITE_PEER_READY_FORMAT") % peer_name if peer_name != "" \
+		else SettingsManager.t("NET_MATCH_FOUND_BANNER")
 	_banner_flash_tween = create_tween()
 	_banner_flash_tween.set_loops()
 	_banner_flash_tween.tween_property(search_banner, "modulate:a", 0.35, MATCH_READY_BLINK_HALF_PERIOD)
 	_banner_flash_tween.tween_property(search_banner, "modulate:a", 1.0, MATCH_READY_BLINK_HALF_PERIOD)
+	for count in range(MATCH_READY_COUNTDOWN_START, 0, -1):
+		if token != _connect_token:
+			return
+		search_banner_label.text = title + "\n" + (SettingsManager.t("NET_MATCH_STARTING_IN_FORMAT") % count)
+		await get_tree().create_timer(1.0).timeout
+	_stop_match_ready_flash()
 
 func _stop_match_ready_flash() -> void:
 	if _banner_flash_tween != null and is_instance_valid(_banner_flash_tween):
@@ -516,19 +543,34 @@ func _cleanup_connection_flow() -> void:
 		_battle_sync.queue_free()
 	_battle_sync = null
 
+# Le pair distant est identifié (nom Steam connu) avant même que la connexion
+# P2P soit établie (voir NetTransport.peer_identified) — en mode invitation
+# uniquement, où le nom de l'ami a un sens : pour Normal/Classé l'adversaire
+# est un inconnu apparié au hasard, afficher son nom n'apporterait rien.
+func _on_peer_identified() -> void:
+	if _search_mode != "invite":
+		return
+	var peer_name := _net.remote_display_name()
+	if peer_name != "":
+		_set_status("NET_INVITE_PEER_PREPARING_FORMAT", peer_name)
+	else:
+		_set_status("NET_INVITE_PEER_PREPARING_UNKNOWN")
+
 func _on_peer_connected() -> void:
+	# Le nom (mode invitation) doit être capturé AVANT de réinitialiser
+	# _search_mode ci-dessous : _run_match_ready_countdown en a besoin pour
+	# afficher "<ami> est prêt" plutôt que le générique "Partie trouvée".
+	var ready_peer_name := _net.remote_display_name() if _search_mode == "invite" else ""
 	_quick_matching = false
 	_set_search_mode("")
 	# La recherche est finie mais la partie ne démarre pas tout de suite : le
-	# bandeau clignote quelques secondes ("Chargement de la partie") avant de
+	# bandeau clignote et décompte (5/4/3/2/1) quelques secondes avant de
 	# basculer sur l'écran de chargement plein écran, pour que le joueur —
 	# peut-être ailleurs dans le menu — voie qu'une partie va commencer plutôt
-	# que de se faire happer sans prévenir (voir _flash_match_ready_banner).
+	# que de se faire happer sans prévenir (voir _run_match_ready_countdown).
 	_connect_token += 1
 	var token := _connect_token
-	_flash_match_ready_banner()
-	await get_tree().create_timer(MATCH_READY_FLASH_DURATION).timeout
-	_stop_match_ready_flash()
+	await _run_match_ready_countdown(token, ready_peer_name)
 	if token != _connect_token:
 		return  # déconnecté entre-temps : cette tentative est périmée
 	_show_search_banner(false)
@@ -728,7 +770,7 @@ func _on_invite_join_pressed() -> void:
 	_pending_invite_lobby_id = 0
 	_pending_invite_deck_index = -1
 	_quick_matching = false
-	_set_search_mode("normal")
+	_set_search_mode("invite")
 	_set_status("NET_STEAM_INVITE_RECEIVED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err == OK:
