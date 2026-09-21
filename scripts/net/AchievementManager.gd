@@ -12,18 +12,18 @@ class_name AchievementManager
 
 const ACH_FLAWLESS_VICTORY := "ACH_FLAWLESS_VICTORY"     # Victoire sans perdre le moindre PV de héros
 const ACH_MEGA_DECK := "ACH_MEGA_DECK"                   # Deck sauvegardé avec plus de 100 cartes jouables
-const ACH_MINIMALIST := "ACH_MINIMALIST"                 # Victoire avec moins de 10 cartes-ressource jouées
+const ACH_MINIMALIST := "ACH_MINIMALIST"                 # Victoire avec moins de 5 cartes-ressource jouées
 const ACH_COMEBACK := "ACH_COMEBACK"                     # Victoire après être passé à 5 PV ou moins
 const ACH_GUARDIAN_STREAK := "ACH_GUARDIAN_STREAK"       # 2 victoires d'affilée sans jamais passer sous 20 PV
 const ACH_EXECUTIONER := "ACH_EXECUTIONER"               # 5 serviteurs ennemis tués en un seul tour
-const ACH_FRONT_ONLY := "ACH_FRONT_ONLY"                 # Victoire sans jamais poser de serviteur en Arrière
+const ACH_FRONT_ONLY := "ACH_FRONT_ONLY"                 # 3 victoires cumulées sans jamais poser en Arrière
 const ACH_PLAGUE := "ACH_PLAGUE"                         # Victoire avec 15+ dégâts d'Infection cumulés infligés
 const ACH_BLACK_BLOOD := "ACH_BLACK_BLOOD"               # Réaction Sang Noir déclenchée 10 fois dans une partie
 const ACH_COMMANDEMENT := "ACH_COMMANDEMENT"             # Victoire deck 100% Humain, Commandement activé 5 fois
 const ACH_MUTATION_MAX := "ACH_MUTATION_MAX"             # Un serviteur atteint 5 mutations ou plus
 const ACH_COLLECTOR := "ACH_COLLECTOR"                   # Toutes les cartes jouables d'une race possédées
-const ACH_MONO_RACE := "ACH_MONO_RACE"                   # Victoire avec un deck mono-race
-const ACH_NO_LEGENDARY := "ACH_NO_LEGENDARY"             # Victoire avec un deck sans carte Légendaire
+const ACH_MONO_RACE := "ACH_MONO_RACE"                   # 3 victoires cumulées avec un deck mono-race
+const ACH_NO_LEGENDARY := "ACH_NO_LEGENDARY"             # 3 victoires cumulées avec un deck sans Légendaire
 const ACH_FIRST_RANKED_WIN := "ACH_FIRST_RANKED_WIN"     # Première victoire en partie classée
 const ACH_RANK_GOLD := "ACH_RANK_GOLD"                   # Palier Or (ou supérieur) atteint en classé
 const ACH_VETERAN := "ACH_VETERAN"                       # 100 victoires cumulées
@@ -33,7 +33,7 @@ const ACH_SACRIFICE := "ACH_SACRIFICE"                   # 3 serviteurs alliés 
 const ACH_FULL_ROSTER := "ACH_FULL_ROSTER"               # Au moins une victoire avec chacune des 4 races
 
 const MEGA_DECK_THRESHOLD := 100
-const MINIMALIST_RESOURCE_THRESHOLD := 10
+const MINIMALIST_RESOURCE_THRESHOLD := 5
 const COMEBACK_HP_THRESHOLD := 5
 const GUARDIAN_STREAK_HP_FLOOR := 20
 const GUARDIAN_STREAK_TARGET := 2
@@ -44,6 +44,9 @@ const COMMANDEMENT_TRIGGERS := 5
 const MUTATION_MAX_STACKS := 5
 const VETERAN_WINS := 100
 const SACRIFICE_VICTIMS := 3
+const FRONT_ONLY_WINS_TARGET := 3
+const MONO_RACE_WINS_TARGET := 3
+const NO_LEGENDARY_WINS_TARGET := 3
 
 # Débloque un succès (idempotent : ne fait rien s'il l'est déjà). Sans effet
 # si Steam est indisponible.
@@ -71,21 +74,29 @@ static func on_victory(battle) -> void:
 	if battle.player_was_low_hp_this_match:
 		unlock(ACH_COMEBACK)
 	if not battle.player_used_back_row_this_match:
-		unlock(ACH_FRONT_ONLY)
+		_check_cumulative(SettingsManager.record_front_only_win(), FRONT_ONLY_WINS_TARGET, ACH_FRONT_ONLY)
 	if battle.player_infection_damage_dealt >= PLAGUE_DAMAGE_THRESHOLD:
 		unlock(ACH_PLAGUE)
 	if battle.deck_races.size() == 1:
-		unlock(ACH_MONO_RACE)
+		_check_cumulative(SettingsManager.record_mono_race_win(), MONO_RACE_WINS_TARGET, ACH_MONO_RACE)
 		if battle.deck_races[0] == "Human" and battle.player_commandement_triggers_this_match >= COMMANDEMENT_TRIGGERS:
 			unlock(ACH_COMMANDEMENT)
 	if not battle.deck_has_legendary:
-		unlock(ACH_NO_LEGENDARY)
+		_check_cumulative(SettingsManager.record_no_legendary_win(), NO_LEGENDARY_WINS_TARGET, ACH_NO_LEGENDARY)
 	if battle.is_ranked_match:
 		unlock(ACH_FIRST_RANKED_WIN)
 	if SettingsManager.match_wins >= VETERAN_WINS:
 		unlock(ACH_VETERAN)
 	_check_full_roster(battle.deck_races)
 	_update_guardian_streak(hero != null and battle.player_min_hp_this_match >= GUARDIAN_STREAK_HP_FLOOR)
+
+# Débloque achievement_id une fois qu'un compteur persistant (voir
+# SettingsManager.record_front_only_win/record_mono_race_win/record_no_legendary_win)
+# atteint sa cible — évite qu'une seule victoire "facile" (deck de départ
+# mono-race sans Légendaire) débloque le succès d'un coup.
+static func _check_cumulative(count: int, target: int, achievement_id: String) -> void:
+	if count >= target:
+		unlock(achievement_id)
 
 # Marque chaque race du deck victorieux comme "gagnée avec" (persistant, voir
 # SettingsManager.record_race_win) et débloque une fois les 4 races couvertes.

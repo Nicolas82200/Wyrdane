@@ -16,7 +16,9 @@ var _preview_link: PreviewLinkOverlay = null
 
 # Aperçus des jetons invoqués par la carte survolée (voir
 # CardData.get_summon_preview_cards), instanciés à la volée à côté de la
-# preview agrandie, chacun relié par son propre PreviewLinkOverlay.
+# preview agrandie, chacun relié par son propre PreviewLinkOverlay. Alignés
+# sur TooltipData.tooltips_expanded comme les tooltips détaillés (masqués par
+# le même clic droit).
 var _token_previews:      Array[Card]               = []
 var _token_preview_links: Array[PreviewLinkOverlay]  = []
 # Échelle des aperçus de jetons relative à celle de la preview principale
@@ -517,7 +519,6 @@ func _on_card_hover(card: Card) -> void:
 		preview.size.y * preview.scale.y
 	)
 	_preview_link.show_link(link_from, link_to)
-	_show_summon_previews(card.data)
 	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
 	_show_hint_panel(hint_center_x, preview.global_position.y)
 	if not card.drag_started.is_connected(_hide_preview):
@@ -527,7 +528,10 @@ func _on_card_hover(card: Card) -> void:
 	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
 			or not is_instance_valid(card) or card.dragging:
 		return
+	# Alignés sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi ces aperçus.
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card.data)
 		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
 		var tooltip_y: float = preview.global_position.y
 		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
@@ -763,10 +767,12 @@ func _refresh_tooltip_display() -> void:
 	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
 	_show_hint_panel(hint_center_x, preview.global_position.y)
 	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card.data)
 		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
 		var tooltip_y: float = preview.global_position.y
 		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
 	else:
+		_clear_summon_previews()
 		_hide_keyword_tooltips()
 
 
