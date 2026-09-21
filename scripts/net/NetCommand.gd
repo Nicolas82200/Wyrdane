@@ -27,6 +27,8 @@ const DISCARD := "DISCARD"  # défausse de fin de tour (limite 10 cartes) — no
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 const EMOTE := "EMOTE"  # emote cosmétique (voir EmoteWheel) — aucun impact sur l'état de partie
+const PACT_REQUEST := "PACT_REQUEST"  # demande au pair de décider MAINTENANT pour SA carte Pacte (voir PactChoiceSystem)
+const PACT_CHOICE := "PACT_CHOICE"    # réponse (ou notification proactive) d'une décision de Pacte
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
@@ -142,6 +144,21 @@ static func battle_ready() -> Dictionary:
 # de texte libre (pas de chat, pour éviter tout abus).
 static func emote(emote_id: int) -> Dictionary:
 	return {"type": EMOTE, "id": emote_id}
+
+# Envoyé par le camp qui résout EN DIRECT un déclencheur touchant une carte
+# Pacte appartenant au PAIR (ex. Blessure déclenchée par notre propre attaque
+# sur son serviteur) : lui seul peut décider, et il ne sait pas encore que ce
+# déclencheur a eu lieu (la commande de l'action elle-même n'est envoyée
+# qu'après résolution complète — voir NetEmitter) — voir PactChoiceSystem.
+static func pact_request(card_path: String, value: int) -> Dictionary:
+	return {"type": PACT_REQUEST, "card": card_path, "value": value}
+
+# Décision de Pacte : soit réponse directe à un PACT_REQUEST reçu, soit
+# notification proactive du propriétaire pour l'un de ses propres
+# déclencheurs (consommée plus tard par le pair au moment du rejeu de
+# l'action correspondante) — voir PactChoiceSystem.
+static func pact_choice(paid: bool) -> Dictionary:
+	return {"type": PACT_CHOICE, "paid": paid}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

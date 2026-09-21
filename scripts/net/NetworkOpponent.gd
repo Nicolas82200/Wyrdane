@@ -114,6 +114,11 @@ func _on_command_received(command: Dictionary) -> void:
 			# Purement cosmétique : affiché immédiatement, quel que soit le tour
 			# en cours (pas une action de jeu à rejouer dans l'ordre).
 			battle.show_enemy_emote(int(command.get("id", -1)))
+		NetCommand.PACT_REQUEST, NetCommand.PACT_CHOICE:
+			# Géré directement par PactChoiceSystem (écoute sa propre connexion
+			# à network_manager.command_received) : ni une action de tour à
+			# rejouer dans l'ordre, ni une commande à ignorer.
+			pass
 		_:
 			_queue.append(command)
 
