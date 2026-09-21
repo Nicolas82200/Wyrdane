@@ -167,8 +167,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
 @onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
-@onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsCardsScroll/StatsListVBox
-@onready var leaderboard_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTitleLabel
+@onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
 @onready var leaderboard_tier_bronze_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierBronzeButton
 @onready var leaderboard_tier_silver_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierSilverButton
 @onready var leaderboard_tier_gold_button:   Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow/LeaderboardTierGoldButton
@@ -176,9 +175,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var leaderboard_search_field: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchField
 @onready var leaderboard_search_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchButton
 @onready var leaderboard_jump_to_me_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardJumpToMeButton
-@onready var leaderboard_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardStatusLabel
 @onready var leaderboard_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll
-@onready var leaderboard_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/LeaderboardListVBox
 
 @onready var login_reward_popup: Control = $LoginRewardPopup
 @onready var login_reward_title_label: Label = $LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardTitleLabel
@@ -1098,7 +1095,6 @@ func _retranslate() -> void:
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	stats_button.text = SettingsManager.t("MENU_STATS")
 	stats_title_label.text = SettingsManager.t("STATS_TITLE")
-	leaderboard_title_label.text = SettingsManager.t("LEADERBOARD_SECTION_TITLE")
 	leaderboard_tier_bronze_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.BRONZE), SettingsManager.t("RANK_TIER_BRONZE")]
 	leaderboard_tier_silver_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.SILVER), SettingsManager.t("RANK_TIER_SILVER")]
 	leaderboard_tier_gold_button.text = "%s %s" % [RankTier.symbol(RankTier.Type.GOLD), SettingsManager.t("RANK_TIER_GOLD")]
