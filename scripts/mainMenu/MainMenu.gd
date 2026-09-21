@@ -677,6 +677,10 @@ func _show_info_view(view: InfoView) -> void:
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
+	# Grisé pendant tout le flux "Jouer" (choix du mode puis du deck) pour
+	# éviter de le rouvrir par-dessus lui-même ; réactivé dès qu'on quitte ce
+	# flux (retour aux actualités ou navigation vers un autre onglet).
+	play_button.disabled = view == InfoView.MODE_SELECT or view == InfoView.DECK_SELECT
 	if view == InfoView.PROFILE:
 		ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
