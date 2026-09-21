@@ -110,6 +110,14 @@ var high_hp_win_streak: int = 0
 # moins une victoire — succès Steam "Panoplie complète", voir
 # AchievementManager.ACH_FULL_ROSTER.
 var races_won_with: Array = []
+# Compteurs cumulatifs (pas forcément consécutifs) de victoires qualifiantes
+# pour trois succès Steam de deckbuilding — convertis en cumulatif plutôt
+# qu'à la première victoire pour éviter qu'un deck de départ mono-race sans
+# Légendaire ne débloque plusieurs succès d'un coup dès la première partie
+# (voir AchievementManager.ACH_FRONT_ONLY/ACH_MONO_RACE/ACH_NO_LEGENDARY).
+var front_only_wins: int = 0
+var mono_race_wins: int = 0
+var no_legendary_wins: int = 0
 # Pseudos des derniers adversaires réseau affrontés (le plus récent en tête),
 # purement local — jamais leur SteamID64 (voir NetTransport.remote_display_name/
 # règle "aucun identifiant Steam ne fuit hors de SteamTransport"). "Ajouter en
@@ -246,6 +254,21 @@ func record_race_win(race_name: String) -> bool:
 		races_won_with.append(race_name)
 		_save()
 	return races_won_with.size() >= Race.get_implemented_races().size()
+
+func record_front_only_win() -> int:
+	front_only_wins += 1
+	_save()
+	return front_only_wins
+
+func record_mono_race_win() -> int:
+	mono_race_wins += 1
+	_save()
+	return mono_race_wins
+
+func record_no_legendary_win() -> int:
+	no_legendary_wins += 1
+	_save()
+	return no_legendary_wins
 
 # --- Affichage (résolution / plein écran / vsync / qualité) ---------------
 
@@ -495,6 +518,9 @@ func _save() -> void:
 	cfg.set_value("stats", "selected_card_back", selected_card_back)
 	cfg.set_value("stats", "high_hp_win_streak", high_hp_win_streak)
 	cfg.set_value("stats", "races_won_with", races_won_with)
+	cfg.set_value("stats", "front_only_wins", front_only_wins)
+	cfg.set_value("stats", "mono_race_wins", mono_race_wins)
+	cfg.set_value("stats", "no_legendary_wins", no_legendary_wins)
 	cfg.set_value("display", "text_scale", text_scale)
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
@@ -541,6 +567,9 @@ func _load() -> void:
 	selected_card_back = cfg.get_value("stats", "selected_card_back", 0) as int
 	high_hp_win_streak = cfg.get_value("stats", "high_hp_win_streak", 0) as int
 	races_won_with = cfg.get_value("stats", "races_won_with", []) as Array
+	front_only_wins = cfg.get_value("stats", "front_only_wins", 0) as int
+	mono_race_wins = cfg.get_value("stats", "mono_race_wins", 0) as int
+	no_legendary_wins = cfg.get_value("stats", "no_legendary_wins", 0) as int
 	text_scale = cfg.get_value("display", "text_scale", DEFAULT_TEXT_SCALE) as float
 	text_scale = clampf(text_scale, TEXT_SCALE_MIN, TEXT_SCALE_MAX)
 	colorblind_mode = cfg.get_value("display", "colorblind_mode", DEFAULT_COLORBLIND_MODE) as String
