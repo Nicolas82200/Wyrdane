@@ -64,6 +64,11 @@ func _wire_visual_signals(visual: BoardMinion, is_player: bool) -> void:
 
 
 func spawn_minion_visual(minion: Minion, is_player: bool) -> void:
+	# Idempotent : évite un doublon si le filet de sécurité de refresh_board()
+	# et l'appel normal (BoardSystem._spawn) se chevauchent pour le même serviteur.
+	var existing: BoardMinion = minion_to_visual.get(minion)
+	if existing != null and is_instance_valid(existing):
+		return
 	var container: Control = _row_container(minion, is_player)
 	if container == null:
 		push_error("Container null pour spawn minion !")
@@ -142,6 +147,16 @@ func refresh_board() -> void:
 
 		if visual and is_instance_valid(visual):
 			visual.update_display()
+		else:
+			# Filet de sécurité réseau : un serviteur présent dans les données
+			# (donc bien réel et attaquable) mais sans noeud visuel — spawn échoué
+			# ou sauté silencieusement (ex. course avec un refresh concurrent,
+			# conteneur transitoirement indisponible) — resterait invisible pour
+			# toujours sinon, puisque rien d'autre ne rappelle spawn_minion_visual.
+			if visual != null:
+				minion_to_visual.erase(minion)
+			push_warning("BoardVisualSystem : serviteur '%s' sans visuel, respawn de secours" % minion.card_data.card_name)
+			spawn_minion_visual(minion, minion.owner_is_player)
 
 	if battle.selection_system.selected_attacker \
 	and battle.selection_system.selected_attacker not in battle.player_minions:
