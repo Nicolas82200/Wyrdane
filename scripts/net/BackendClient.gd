@@ -327,6 +327,30 @@ func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Quêtes mensuelles ───────────────────────────────────────────────────────
+# Implémenté côté wyrdane-backend (voir monthlyQuestModel.ts) : même principe
+# que les hebdomadaires mais objectifs plus longs et récompense double
+# (or ET packs) pour une grosse récompense mensuelle.
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, reward_pack, claimed}], resets_at}).
+func get_monthly_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/monthly", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, free_packs, reward_currency, reward_pack}).
+func claim_monthly_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/monthly/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # ─── Quêtes uniques (one-shot, jamais reset) ────────────────────────────────
 # Implémenté côté wyrdane-backend (voir uniqueQuestModel.ts).
 

@@ -497,7 +497,13 @@ func _update_account_level_display() -> void:
 	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
 	account_level_bar.value = float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
 
-func _update_quests_badge(quests: Array) -> void:
+# Compteur de récompenses réclamables par type de quête (quotidienne/hebdo/
+# mensuelle/unique) — le badge affiche la somme des quatre, chaque type
+# mettant à jour sa propre entrée indépendamment (fetch parallèles dans
+# _fetch_quests_badge, ou depuis QuestsPanel après chaque _populate_*).
+var _quests_badge_counts: Dictionary = {}
+
+func _update_quests_badge(quests: Array, kind: String = "daily") -> void:
 	var claimable := 0
 	for quest in quests:
 		var progress := int(quest.get("progress", 0))
@@ -505,8 +511,12 @@ func _update_quests_badge(quests: Array) -> void:
 		var claimed := bool(quest.get("claimed", false))
 		if progress >= target and not claimed:
 			claimable += 1
-	quests_badge.visible = claimable > 0
-	quests_badge_label.text = str(claimable)
+	_quests_badge_counts[kind] = claimable
+	var total := 0
+	for count in _quests_badge_counts.values():
+		total += int(count)
+	quests_badge.visible = total > 0
+	quests_badge_label.text = str(total)
 
 func _fetch_quests_badge() -> void:
 	if not BackendClient.is_authenticated():
@@ -514,9 +524,20 @@ func _fetch_quests_badge() -> void:
 			BackendClient.login_succeeded.connect(_on_quests_badge_login_succeeded, CONNECT_ONE_SHOT)
 		return
 	BackendClient.get_daily_quests(func(success: bool, data: Dictionary):
-		if not success:
-			return
-		_update_quests_badge(data.get("quests", []))
+		if success:
+			_update_quests_badge(data.get("quests", []), "daily")
+	)
+	BackendClient.get_weekly_quests(func(success: bool, data: Dictionary):
+		if success:
+			_update_quests_badge(data.get("quests", []), "weekly")
+	)
+	BackendClient.get_monthly_quests(func(success: bool, data: Dictionary):
+		if success:
+			_update_quests_badge(data.get("quests", []), "monthly")
+	)
+	BackendClient.get_unique_quests(func(success: bool, data: Dictionary):
+		if success:
+			_update_quests_badge(data.get("quests", []), "unique")
 	)
 
 func _on_quests_badge_login_succeeded(_user: Dictionary) -> void:
