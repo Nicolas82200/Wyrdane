@@ -98,13 +98,14 @@ func _execute(source: Minion, victim: Minion) -> void:
 	# peut invoquer un serviteur — voir CombatSystem.resolve_combat pour le
 	# même mécanisme et l'explication du risque de désync sans elle.
 	var is_local: bool = battle.net_emitter != null
+	var capture_token: int = -1
 	if is_local:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 
 	await apply_fusion(source, victim, pool, keyword)
 
 	if is_local:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		var keyword_name: String = keyword_to_name(pool, keyword) if pool != "" else ""
 		battle.net_emitter.activate_fusion(source_id, victim_id, pool, keyword_name, ids)
 

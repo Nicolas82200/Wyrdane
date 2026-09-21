@@ -51,8 +51,13 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	# chaque client attribuerait son propre id local au jeton et divergerait
 	# durablement sur toute référence future à ce serviteur.
 	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	# Jeton dédié : deux attaques différentes peuvent se chevaucher (le verrou
+	# ci-dessus ne protège que CE serviteur, un second attaquant différent peut
+	# démarrer pendant que celle-ci résout encore) — end_capture() doit retirer
+	# précisément CE niveau, jamais "le dernier ouvert" (voir NetRegistry.gd).
+	var capture_token: int = -1
 	if is_local_attack:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	var speed_scale := _combo_speed_scale()
 	var attacker_visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
 	var defender_visual: BoardMinion = battle.board_visual_system.find_visual(defender)
@@ -75,7 +80,7 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	battle.hero_system.update_ui()
 	battle.check_game_end()
 	if is_local_attack:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.attack(attacker, defender, ids)
 	attacker.is_attacking = false
 	# _execute_damage a déjà rafraîchi l'affichage pendant que is_attacking
@@ -191,8 +196,9 @@ func perform_hero_attack(attacker: Minion) -> void:
 	if attacker.owner_is_player:
 		battle.afk_guard.notify_local_action()
 	var is_local_attack: bool = battle.net_emitter != null and attacker.owner_is_player
+	var capture_token: int = -1
 	if is_local_attack:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	var speed_scale := _combo_speed_scale()
 	var panel_name: String = "EnemyHeroPanel" if attacker.owner_is_player else "PlayerHeroPanel"
 	var visual: BoardMinion = battle.board_visual_system.find_visual(attacker)
@@ -221,7 +227,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 			var owner_panel: Control = battle.get_node("PlayerHeroPanel" if attacker.owner_is_player else "EnemyHeroPanel")
 			battle.animation_system.play_lifesteal(visual, owner_panel, attacker.attack)
 	if is_local_attack:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.attack_hero(attacker, ids)
 	attacker.consume_attack()
 	attacker.is_attacking = false

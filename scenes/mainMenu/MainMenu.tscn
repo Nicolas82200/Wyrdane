@@ -1157,7 +1157,27 @@ theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 28
-text = "Quêtes quotidiennes"
+text = "Quêtes"
+
+[node name="QuestsTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=2146294701]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="QuestsRegularTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow" unique_id=2146294702]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Quêtes"
+
+[node name="QuestsUniqueTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow" unique_id=2146294703]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Uniques"
 
 [node name="QuestsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000004]
 layout_mode = 2

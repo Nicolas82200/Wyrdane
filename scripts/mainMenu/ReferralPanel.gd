@@ -140,7 +140,7 @@ static func maybe_show_first_launch_prompt(menu) -> void:
 	if not BackendClient.is_authenticated():
 		return
 	BackendClient.get_referral_status(func(success: bool, data: Dictionary):
-		if not success:
+		if not is_instance_valid(menu) or not success:
 			return
 		if str(data.get("status", "none")) != "none":
 			SettingsManager.mark_referral_prompt_seen()
