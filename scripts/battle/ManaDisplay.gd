@@ -114,7 +114,7 @@ func _build_style() -> void:
 func _make_amount_label() -> Label:
 	var amount_label := Label.new()
 	amount_label.add_theme_font_override("font", FONT_BOLD)
-	amount_label.add_theme_font_size_override("font_size", 18)
+	amount_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	amount_label.add_theme_color_override("font_color", COLOR_TEXT)
 	amount_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	amount_label.add_theme_constant_override("shadow_offset_x", 1)

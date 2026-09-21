@@ -9,8 +9,6 @@ class_name ReferralPanel
 # (3 packs + 500 or) est créditée au parrain quand le filleul termine le
 # tutoriel.
 
-const INVITE_LINK_PREFIX := "https://wyrdane.com/invite/"
-
 static func open(menu) -> void:
 	# Section reconstruite à chaque ouverture de la vue Profil — supprime
 	# l'ancienne avant d'en ajouter une nouvelle (évite l'empilement si
@@ -30,7 +28,7 @@ static func open(menu) -> void:
 
 	var title := Label.new()
 	title.text = SettingsManager.t("REFERRAL_TITLE")
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	section.add_child(title)
 
@@ -43,12 +41,17 @@ static func open(menu) -> void:
 	link_row.add_theme_constant_override("separation", 8)
 	section.add_child(link_row)
 	var copy_button := Button.new()
-	copy_button.text = SettingsManager.t("REFERRAL_COPY_LINK")
+	copy_button.text = SettingsManager.t("REFERRAL_COPY_CODE")
 	copy_button.disabled = true
 	link_row.add_child(copy_button)
 
 	var redeem_row := HBoxContainer.new()
 	redeem_row.add_theme_constant_override("separation", 8)
+	# Un compte n'est jamais parrainé deux fois (contrainte serveur) : une fois
+	# un code entré avec succès, ce champ ne sert plus jamais à rien pour ce
+	# joueur — caché durablement via le flag local (persisté, le backend
+	# n'expose aucun moyen de savoir après coup qu'on a déjà été parrainé).
+	redeem_row.visible = not SettingsManager.referral_redeemed
 	section.add_child(redeem_row)
 	var redeem_field := LineEdit.new()
 	redeem_field.placeholder_text = SettingsManager.t("REFERRAL_REDEEM_PLACEHOLDER")
@@ -67,11 +70,11 @@ static func open(menu) -> void:
 		var code := str(code_data.get("code", ""))
 		copy_button.disabled = code.is_empty()
 		copy_button.pressed.connect(func():
-			DisplayServer.clipboard_set(INVITE_LINK_PREFIX + code)
+			DisplayServer.clipboard_set(code)
 			AudioManager.play(AudioManager.CONFIRM)
-			copy_button.text = SettingsManager.t("REFERRAL_LINK_COPIED")
+			copy_button.text = SettingsManager.t("REFERRAL_CODE_COPIED")
 		)
-		_fetch_status(menu, section, status_label, code)
+		_fetch_status(menu, section, status_label, code, link_row)
 	)
 
 	redeem_button.pressed.connect(func():
@@ -85,15 +88,15 @@ static func open(menu) -> void:
 			redeem_button.disabled = false
 			if success:
 				AudioManager.play(AudioManager.CONFIRM)
-				redeem_field.editable = false
-				redeem_button.text = SettingsManager.t("REFERRAL_REDEEM_DONE")
+				SettingsManager.mark_referral_redeemed()
+				redeem_row.visible = false
 			else:
 				var message_key := error_code if not error_code.is_empty() else "REFERRAL_UNAVAILABLE"
 				status_label.text = SettingsManager.t(message_key)
 		)
 	)
 
-static func _fetch_status(menu, section: VBoxContainer, status_label: Label, code: String) -> void:
+static func _fetch_status(menu, section: VBoxContainer, status_label: Label, code: String, link_row: HBoxContainer) -> void:
 	BackendClient.get_referral_status(func(success: bool, data: Dictionary):
 		if not is_instance_valid(section) or menu._current_info_view != menu.InfoView.PROFILE:
 			return
@@ -107,6 +110,10 @@ static func _fetch_status(menu, section: VBoxContainer, status_label: Label, cod
 		# sur un nombre JSON, voir QuestsPanel._get_str).
 		var referred_username = data.get("referred_username", "")
 		var referred_username_str := "" if referred_username == null else str(referred_username)
+		# Un parrainage réussi (filleul entré, complété ou non) : le parrain a
+		# déjà consommé son unique parrainage possible, plus rien à copier.
+		if is_instance_valid(link_row):
+			link_row.visible = status == "none"
 		match status:
 			"pending":
 				status_label.text = SettingsManager.t("REFERRAL_STATUS_PENDING") % referred_username_str
@@ -179,7 +186,7 @@ static func _show_first_launch_popup(menu) -> void:
 
 	var title := Label.new()
 	title.text = SettingsManager.t("REFERRAL_FIRST_LAUNCH_TITLE")
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -236,6 +243,7 @@ static func _show_first_launch_popup(menu) -> void:
 			submit_button.disabled = false
 			if success:
 				AudioManager.play(AudioManager.CONFIRM)
+				SettingsManager.mark_referral_redeemed()
 				close_popup.call()
 			else:
 				var message_key := error_code if not error_code.is_empty() else "REFERRAL_UNAVAILABLE"

@@ -79,7 +79,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.65, 0.62, 0.55, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 
 [node name="StatusLabel" type="Label" parent="ShakeLayer"]
 layout_mode = 1
@@ -102,7 +102,7 @@ offset_top = 20.0
 offset_right = -16.0
 offset_bottom = 64.0
 grow_horizontal = 0
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 text = "✕"
 
 [node name="PackStage" type="Control" parent="ShakeLayer"]
@@ -154,7 +154,7 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 0
 theme_override_colors/font_color = Color(0.6, 0.58, 0.5, 1)
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "Cliquer pour tout révéler"
 horizontal_alignment = 1
 

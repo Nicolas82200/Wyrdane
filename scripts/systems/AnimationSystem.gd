@@ -369,7 +369,7 @@ func _floating_text(visual: Control, text: String, color: Color) -> void:
 		return
 	var label := Label.new()
 	label.text = text
-	label.add_theme_font_size_override("font_size", 18)
+	label.add_theme_font_size_override("font_size", Typography.SECTION)
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	label.add_theme_constant_override("shadow_offset_x", 1)

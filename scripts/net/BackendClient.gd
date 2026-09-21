@@ -187,16 +187,7 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
 
-# ─── Statistiques cartes / classement ───────────────────────────────────────
-# Contrat détaillé : docs/backend-contracts/card-stats-and-leaderboard.md
-func get_card_stats(on_complete: Callable) -> void:
-	request(HTTPClient.METHOD_GET, "/api/ranked/stats/cards/top", {}, func(code: int, parsed: Variant):
-		if code == 200 and parsed is Dictionary:
-			on_complete.call(true, parsed.get("cards", []))
-		else:
-			on_complete.call(false, [])
-	)
-
+# ─── Classement ──────────────────────────────────────────────────────────────
 # Route déjà existante côté backend (rankedController.getLeaderboardHandler),
 # pas une nouveauté de ce chantier — retourne un tableau brut de lignes
 # { user_id, mmr, wins, losses, season, username }, pas de "rank" explicite
@@ -330,6 +321,30 @@ func get_weekly_quests(on_data: Callable) -> void:
 # on_data appelé avec (success, {free_packs, reward_pack}).
 func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
 	request(HTTPClient.METHOD_POST, "/api/quests/weekly/%s/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# ─── Quêtes mensuelles ───────────────────────────────────────────────────────
+# Implémenté côté wyrdane-backend (voir monthlyQuestModel.ts) : même principe
+# que les hebdomadaires mais objectifs plus longs et récompense double
+# (or ET packs) pour une grosse récompense mensuelle.
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, reward_pack, claimed}], resets_at}).
+func get_monthly_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/monthly", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, free_packs, reward_currency, reward_pack}).
+func claim_monthly_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/monthly/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
 			on_data.call(true, parsed)
 		else:

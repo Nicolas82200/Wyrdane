@@ -42,14 +42,14 @@ static func show(menu, deck_index: int) -> void:
 		var count_lbl := Label.new()
 		count_lbl.text = "x%d" % counts[card.resource_path]
 		count_lbl.custom_minimum_size = Vector2(32, 0)
-		count_lbl.add_theme_font_size_override("font_size", 14)
+		count_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 		count_lbl.add_theme_color_override("font_color", Color(0.94, 0.75, 0.25, 1))
 		line.add_child(count_lbl)
 
 		var name_lbl := Label.new()
 		name_lbl.text = SettingsManager.t(card.card_name)
 		name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_lbl.add_theme_font_size_override("font_size", 14)
+		name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 		name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 		line.add_child(name_lbl)
 
@@ -57,7 +57,7 @@ static func show(menu, deck_index: int) -> void:
 		cost_lbl.text = str(card.cost)
 		cost_lbl.custom_minimum_size = Vector2(20, 0)
 		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 14)
+		cost_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 		cost_lbl.add_theme_color_override("font_color", Color(0.6, 0.75, 0.95, 1))
 		line.add_child(cost_lbl)
 
@@ -100,7 +100,7 @@ static func _update_stats(menu, cards: Array[CardData]) -> void:
 	var curve_title := Label.new()
 	curve_title.text = SettingsManager.t("deck.stats_curve_title")
 	curve_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	curve_title.add_theme_font_size_override("font_size", 13)
+	curve_title.add_theme_font_size_override("font_size", Typography.MICRO)
 	menu.deck_comp_stats_panel.add_child(curve_title)
 
 	menu.deck_comp_stats_panel.add_child(_make_curve_chart(curve))
@@ -108,14 +108,14 @@ static func _update_stats(menu, cards: Array[CardData]) -> void:
 	var avg_label := Label.new()
 	avg_label.text = SettingsManager.t("deck.stats_avg_cost") % (float(total_cost) / cards.size())
 	avg_label.add_theme_color_override("font_color", STATS_VALUE_COLOR)
-	avg_label.add_theme_font_size_override("font_size", 12)
+	avg_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	avg_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	menu.deck_comp_stats_panel.add_child(avg_label)
 
 	var breakdown_title := Label.new()
 	breakdown_title.text = SettingsManager.t("deck.stats_types_title")
 	breakdown_title.add_theme_color_override("font_color", STATS_LABEL_COLOR)
-	breakdown_title.add_theme_font_size_override("font_size", 13)
+	breakdown_title.add_theme_font_size_override("font_size", Typography.MICRO)
 	menu.deck_comp_stats_panel.add_child(breakdown_title)
 
 	# Colonne étroite : un chip par ligne plutôt qu'une rangée horizontale
@@ -149,7 +149,7 @@ static func _make_curve_chart(curve: Array) -> Control:
 		var count_lbl := Label.new()
 		count_lbl.text = str(count) if count > 0 else ""
 		count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_lbl.add_theme_font_size_override("font_size", 10)
+		count_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 		count_lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
 		col.add_child(count_lbl)
 
@@ -162,7 +162,7 @@ static func _make_curve_chart(curve: Array) -> Control:
 		var cost_lbl := Label.new()
 		cost_lbl.text = str(i) if i < CURVE_BUCKETS - 1 else "%d+" % i
 		cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		cost_lbl.add_theme_font_size_override("font_size", 10)
+		cost_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 		cost_lbl.add_theme_color_override("font_color", STATS_LABEL_COLOR)
 		col.add_child(cost_lbl)
 
@@ -188,7 +188,7 @@ static func _make_chip(label_text: String, count: int) -> Control:
 	var lbl := Label.new()
 	lbl.text = "%s ×%d" % [label_text, count]
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	lbl.add_theme_color_override("font_color", STATS_VALUE_COLOR)
 	panel.add_child(lbl)
 

@@ -55,7 +55,7 @@ func _refresh() -> void:
 		empty_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty_lbl.custom_minimum_size = Vector2(0, 120)
 		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
-		empty_lbl.add_theme_font_size_override("font_size", 18)
+		empty_lbl.add_theme_font_size_override("font_size", Typography.SECTION)
 		decks_container.add_child(empty_lbl)
 		return
 	for i in range(DeckManager.decks.size()):
@@ -119,7 +119,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	active_indicator.text = "★" if is_active else "☆"
 	active_indicator.custom_minimum_size = Vector2(28, 0)
 	active_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	active_indicator.add_theme_font_size_override("font_size", 20)
+	active_indicator.add_theme_font_size_override("font_size", Typography.SECTION)
 	active_indicator.add_theme_color_override("font_color",
 		Color(0.94, 0.75, 0.25, 1) if is_active else Color(0.91, 0.835, 0.639, 0.35))
 	row.add_child(active_indicator)
@@ -128,7 +128,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	var name_lbl := Label.new()
 	name_lbl.text = SettingsManager.t(deck.name)
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_lbl.add_theme_font_size_override("font_size", 18)
+	name_lbl.add_theme_font_size_override("font_size", Typography.SECTION)
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	row.add_child(name_lbl)
 
@@ -137,7 +137,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
 	count_lbl.custom_minimum_size = Vector2(56, 0)
 	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	count_lbl.add_theme_font_size_override("font_size", 14)
+	count_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	count_lbl.add_theme_color_override("font_color",
 		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
 	row.add_child(count_lbl)
@@ -147,7 +147,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	select_btn.text = SettingsManager.t("decklist.active") if is_active else SettingsManager.t("decklist.select")
 	select_btn.disabled = is_active
 	select_btn.custom_minimum_size = Vector2(96, 0)
-	select_btn.add_theme_font_size_override("font_size", 15)
+	select_btn.add_theme_font_size_override("font_size", Typography.BODY)
 	select_btn.pressed.connect(_on_select_deck.bind(index))
 	row.add_child(select_btn)
 
@@ -155,7 +155,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	var edit_btn := Button.new()
 	edit_btn.text = SettingsManager.t("decklist.edit")
 	edit_btn.custom_minimum_size = Vector2(84, 0)
-	edit_btn.add_theme_font_size_override("font_size", 15)
+	edit_btn.add_theme_font_size_override("font_size", Typography.BODY)
 	edit_btn.pressed.connect(_on_edit_deck.bind(index))
 	row.add_child(edit_btn)
 
@@ -163,7 +163,7 @@ func _make_deck_row(deck: DeckData, index: int) -> Control:
 	var dup_btn := Button.new()
 	dup_btn.text = SettingsManager.t("decklist.duplicate")
 	dup_btn.custom_minimum_size = Vector2(96, 0)
-	dup_btn.add_theme_font_size_override("font_size", 15)
+	dup_btn.add_theme_font_size_override("font_size", Typography.BODY)
 	dup_btn.pressed.connect(_on_duplicate_deck.bind(index))
 	row.add_child(dup_btn)
 
