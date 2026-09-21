@@ -121,37 +121,50 @@ static func fetch_rank_badge(menu) -> void:
 # --- Récompense de connexion quotidienne ---------------------------------
 # Popup automatique au chargement du menu (une fois la sync backend faite),
 # uniquement si pas déjà réclamée aujourd'hui — voir BackendClient.get_login_reward_status.
-# Le montant n'est connu qu'une fois réclamé (POST /claim) : /status ne renvoie
-# que le palier, pas la récompense associée — évite de dupliquer la table de
-# récompenses par palier (REWARD_BY_DAY) côté client, où elle pourrait dériver
-# de celle du backend sans que personne ne s'en aperçoive.
+# Frise de 5 jours (carte 0 = récompense du jour, cliquable ; 1-4 = aperçu des
+# jours suivants en supposant une série ininterrompue) : le montant de chaque
+# jour vient de `upcoming` (calculé et renvoyé par le backend), jamais dupliqué
+# côté client (voir « Récompense de connexion quotidienne » dans le CLAUDE.md
+# de wyrdane-backend) — élimine le risque de dérive qu'un REWARD_BY_DAY local
+# aurait posé, tout en permettant d'afficher les jours à venir par avance.
 static func fetch_login_reward_status(menu) -> void:
 	if not BackendClient.is_authenticated():
 		return
 	BackendClient.get_login_reward_status(func(success: bool, data: Dictionary):
 		if not success or bool(data.get("claimed_today", true)):
 			return
-		_show_login_reward_popup(menu, int(data.get("streak_day", 1)))
+		_show_login_reward_popup(menu, data.get("upcoming", []))
 	)
 
-static func _show_login_reward_popup(menu, streak_day: int) -> void:
+static func _show_login_reward_popup(menu, upcoming: Array) -> void:
 	menu.login_reward_title_label.text = SettingsManager.t("LOGIN_REWARD_TITLE")
-	menu.login_reward_streak_label.text = SettingsManager.t("LOGIN_REWARD_STREAK") % streak_day
-	menu.login_reward_amount_label.text = ""
+	_populate_strip(menu, upcoming)
 	menu.login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIM")
 	menu.login_reward_claim_button.disabled = false
 	menu.login_reward_popup.visible = true
 	menu._fade_in_overlay(menu.login_reward_popup)
 
+static func _populate_strip(menu, upcoming: Array) -> void:
+	for i in menu.login_reward_day_panels.size():
+		var panel: PanelContainer = menu.login_reward_day_panels[i]
+		panel.modulate.a = 1.0
+		var day_label: Label = panel.get_node("DayCardMargin/DayCardVBox/DayLabel")
+		var amount_label: Label = panel.get_node("DayCardMargin/DayCardVBox/AmountLabel")
+		day_label.text = SettingsManager.t("LOGIN_REWARD_TODAY") if i == 0 else SettingsManager.t("LOGIN_REWARD_DAY_OFFSET") % i
+		var entry: Dictionary = upcoming[i] if i < upcoming.size() else {}
+		amount_label.text = SettingsManager.t("LOGIN_REWARD_AMOUNT_SHORT") % int(entry.get("reward", 0))
+
 static func on_claim_login_reward_pressed(menu) -> void:
 	menu.login_reward_claim_button.disabled = true
-	BackendClient.claim_login_reward(func(success: bool, data: Dictionary):
+	BackendClient.claim_login_reward(func(success: bool, _data: Dictionary):
 		if not success:
 			menu.login_reward_claim_button.disabled = false
 			return
 		AudioManager.play(AudioManager.CONFIRM)
 		CurrencyManager.sync_from_backend()
-		menu.login_reward_amount_label.text = SettingsManager.t("LOGIN_REWARD_AMOUNT") % int(data.get("reward_currency", 0))
+		# Grise uniquement la carte du jour (index 0) : elle vient d'être
+		# réclamée, les jours suivants restent un aperçu, pas encore acquis.
+		menu.login_reward_day_panels[0].modulate.a = 0.55
 		menu.login_reward_claim_button.text = SettingsManager.t("LOGIN_REWARD_CLAIMED")
 		await menu.get_tree().create_timer(1.4).timeout
 		menu.login_reward_popup.visible = false

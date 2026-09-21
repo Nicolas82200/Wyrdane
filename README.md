@@ -335,10 +335,9 @@ La progression joueur (collection de cartes possédées, monnaie molle, boutique
 
 ### 📊 Statistiques & classement (menu principal)
 
-Écran « Statistiques » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans `BottomCenterRow` du menu principal) — lecture seule, deux sections :
+Écran « Classement » (`scripts/mainMenu/StatsPanel.gd`, `InfoView.STATS`, bouton dédié dans le menu latéral du menu principal, juste sous Collection) — lecture seule : top 100 joueurs par MMR (`GET /api/ranked/leaderboard`), joueur local mis en surbrillance s'il y figure.
 
-- **Cartes les plus jouées** — taux de jeu et winrate par carte, calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement** (double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) : le solo IA et un rapport orphelin (pair jamais confirmé) n'y contribuent jamais. `Battle.track_card_played_for_quests` alimente `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race déjà existant, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`) puis exposé via `GET /api/ranked/stats/cards/top`. Une carte n'apparaît que si jouée dans au moins 20 matchs classés confirmés — sous ce seuil, exclue plutôt que d'afficher un winrate non significatif. Sert de signal d'équilibrage.
-- **Classement** — top 100 joueurs par MMR (`GET /api/ranked/leaderboard`, route déjà existante côté backend pour le profil mais pas encore affichée en jeu avant ce chantier), joueur local mis en surbrillance s'il y figure.
+Le taux de jeu et le winrate par carte (calculés côté `wyrdane-backend` sur les **matchs classés confirmés uniquement**, double-report concordant, voir `rankedController.reportMatch`/`recordCardPlays`) ne sont **pas** affichés en jeu — c'est un signal d'équilibrage destiné au développement, pas aux joueurs. `Battle.track_card_played_for_quests` alimente toujours `cards_played_names` (une entrée par carte posée par le joueur local, doublons inclus) au même point que le suivi de quêtes par race, envoyé dans `POST /api/ranked/matches/report` (`cardsPlayed`), mais l'agrégation n'est exposée que côté admin (`GET /api/admin/card-stats`, `requireAdmin`), consultable sur `wyrdane-website` (`/admin/card-stats`, bouton depuis `/admin`) — sans seuil minimum de parties, contrairement à l'ancienne version joueur (20 matchs).
 
 Contrat détaillé : `docs/backend-contracts/card-stats-and-leaderboard.md`.
 
@@ -396,6 +395,8 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 | Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
 
 **Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
+
+**Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. L'onglet « Collection » de la Boutique affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) et permet de l'ouvrir par lot de 1/2/5/10 (`POST /api/packs/open-owned`, une requête par pack, l'écran de révélation les enchaîne).
 
 Toutes ces valeurs vivent en dur dans le code (`CurrencyManager.gd` côté client à titre indicatif, `packModel.ts`/`collectionModel.ts`/`questModel.ts`/`loginRewardModel.ts`/`rewardsController.ts` côté `wyrdane-backend` en source de vérité) — les deux côtés doivent rester synchronisés manuellement, voir les commentaires croisés dans chaque fichier.
 

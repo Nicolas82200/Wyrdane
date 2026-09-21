@@ -151,13 +151,13 @@ func _build_ui() -> void:
 	# largeur du popup entier bien au-delà de POPUP_WIDTH.
 	_popup_label.custom_minimum_size = Vector2(POPUP_WIDTH - 40, 0)
 	_popup_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_popup_label.add_theme_font_size_override("font_size", 20)
+	_popup_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	_popup_label.add_theme_color_override("font_color", Color("e8d5a3"))
 	vbox.add_child(_popup_label)
 
 	_hint_label = Label.new()
 	_hint_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hint_label.add_theme_font_size_override("font_size", 14)
+	_hint_label.add_theme_font_size_override("font_size", Typography.BODY)
 	_hint_label.add_theme_color_override("font_color", Color("a89a7a"))
 	vbox.add_child(_hint_label)
 
@@ -675,10 +675,13 @@ func run() -> void:
 	await _popup_play_card("tutorial.spell_intro", TutorialDeck.necrotic_breath_card())
 	await _wait_card(TutorialDeck.necrotic_breath_card())
 
+	await _popup_wait_action("tutorial.turn3_end_wait", [b.end_turn_button], "player_turn_began",
+		Callable(), "tutorial.hint_end_turn", false)
+
 	await _popup_play_card("tutorial.enchantment_intro", TutorialDeck.doomed_whisper_card())
 	await _wait_card(TutorialDeck.doomed_whisper_card())
 
-	await _popup_wait_action("tutorial.turn3_end_wait", [b.end_turn_button], "player_turn_began",
+	await _popup_wait_action("tutorial.turn4_end_wait", [b.end_turn_button], "player_turn_began",
 		Callable(), "tutorial.hint_end_turn", false)
 
 	await _popup_play_card("tutorial.trigger_intro", TutorialDeck.gaunt_servant_card())

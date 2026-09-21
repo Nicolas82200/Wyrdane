@@ -2,7 +2,7 @@ extends GutTest
 
 # Couvre CurrencyManager (scripts/collection/CurrencyManager.gd) : la partie
 # pure du script (tarifs affichés, mise à jour de solde et de ses signaux),
-# sans passer par sync_from_backend/open_pack/report_solo_match_result qui
+# sans passer par sync_from_backend/buy_packs/open_owned_pack/report_solo_match_result qui
 # dépendent de BackendClient — non instancié ici (voir CLAUDE.md, ne pas
 # dépendre des autoloads globaux dans les tests GUT en mode -s). Chargé via
 # load().new() plutôt que via l'autoload : _ready() n'est jamais appelé
