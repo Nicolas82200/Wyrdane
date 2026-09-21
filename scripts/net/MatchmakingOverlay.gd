@@ -47,6 +47,20 @@ const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 @onready var vs_remote_race_label:  Label   = %RemoteRaceLabel
 const VS_SCREEN_DURATION := 2.2
 
+# Popup affiché quand une invitation Steam (overlay ami / lien « Rejoindre la
+# partie ») est acceptée : contrairement au flux normal/classé/héberger, où le
+# deck est choisi dans MainMenu AVANT de lancer la recherche, un invité peut
+# accepter l'invitation depuis n'importe où (y compris juste après le lancement
+# du jeu) sans jamais être passé par DeckSelectView — ce popup est donc le seul
+# moment où on lui laisse choisir son deck avant de rejoindre le lobby de
+# l'hôte (voir _on_steam_join_requested).
+@onready var invite_deck_overlay:    Control         = $InviteDeckChoiceOverlay
+@onready var invite_title_label:     Label           = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteHeaderRow/InviteTitleLabel
+@onready var invite_decline_button:  Button          = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteHeaderRow/InviteDeclineButton
+@onready var invite_from_label:      Label           = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteFromLabel
+@onready var invite_decks_container: VBoxContainer   = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteDeckScroll/InviteDecksContainer
+@onready var invite_join_button:     Button          = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteJoinButton
+
 # Durée d'affichage d'un message de fin de recherche (erreur/annulation) dans
 # le bandeau avant qu'il ne se referme tout seul (voir _flash_banner).
 const BANNER_MESSAGE_DURATION := 4.0
@@ -65,11 +79,12 @@ const AVERAGE_WAIT_SECONDS := {
 	"ranked": 60,
 }
 
-# Le bandeau clignote avec ce message le temps que les deux clients
+# Le bandeau clignote et décompte (5/4/3/2/1) le temps que les deux clients
 # confirment la connexion P2P, avant de basculer sur l'écran de chargement
-# plein écran (voir _on_peer_connected) — pour que le joueur, même s'il
-# navigue ailleurs dans le menu, voie clairement qu'une partie va démarrer.
-const MATCH_READY_FLASH_DURATION := 5.0
+# plein écran (voir _on_peer_connected/_run_match_ready_countdown) — pour que
+# le joueur, même s'il navigue ailleurs dans le menu, voie clairement qu'une
+# partie va démarrer.
+const MATCH_READY_COUNTDOWN_START := 5
 const MATCH_READY_BLINK_HALF_PERIOD := 0.4
 
 # Astuces affichées en boucle sur l'écran de chargement une fois l'adversaire
@@ -85,6 +100,7 @@ var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
 var _status_key := ""  # clé de traduction affichée par le bandeau
+var _status_format_arg = null  # argument % substitué dans _status_key, voir _set_status
 var _loading := false  # affiche le spinner tant qu'une connexion est en cours
 var _search_mode := ""  # "" | "normal" | "ranked" | "invite" — pilote le bouton Annuler
 var _tip_timer: Timer
@@ -94,6 +110,11 @@ var _search_elapsed := 0.0  # secondes depuis le début de la recherche active
 var _last_shown_elapsed := -1  # évite de retoucher le Label plus d'une fois par seconde
 var _connect_token := 0  # incrémenté à chaque (dé)connexion : annule un flash "adversaire trouvé" périmé
 var _banner_flash_tween: Tween
+
+# ─── Popup de choix de deck sur invitation ─────────────────────────────────────
+var _pending_invite_lobby_id := 0  # 0 = aucune invitation en attente de choix de deck
+var _pending_invite_friend_name := ""  # "" si nom non résolu (voir _retranslate, réappliqué si la langue change pendant que le popup est ouvert)
+var _pending_invite_deck_index := -1
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
@@ -114,12 +135,15 @@ func _ready() -> void:
 	_net = NetworkManager.new()
 	add_child(_net)
 	_net.peer_connected.connect(_on_peer_connected)
+	_net.peer_identified.connect(_on_peer_identified)
 	_net.peer_disconnected.connect(_on_peer_disconnected)
 	# Détail technique (ids de lobby, codes de connexion P2P...) utile en debug
 	# mais pas au joueur : direction console uniquement (voir _flash_banner/
 	# _set_status pour le texte réellement affiché, un message à la fois).
 	_net.status.connect(func(text: String) -> void: print("[MatchmakingOverlay] " + text))
 	search_banner_cancel.pressed.connect(_on_banner_cancel_pressed)
+	invite_decline_button.pressed.connect(_on_invite_decline_pressed)
+	invite_join_button.pressed.connect(_on_invite_join_pressed)
 	_net.session_ready.connect(_on_session_ready)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
@@ -173,19 +197,30 @@ func _update_search_meta() -> void:
 func _format_mmss(total_seconds: int) -> String:
 	return "%d:%02d" % [total_seconds / 60, total_seconds % 60]
 
+# Texte traduit du statut courant — %s/%d substitué depuis _status_format_arg
+# si présent (ex. nom de l'ami, voir _on_peer_identified), sinon texte fixe.
+func _format_status_text() -> String:
+	if _status_key == "":
+		return ""
+	var text := SettingsManager.t(_status_key)
+	return (text % _status_format_arg) if _status_format_arg != null else text
+
 # Recompose le texte principal du bandeau : statut traduit + temps écoulé tant
 # qu'une recherche est active (voir _process).
 func _refresh_banner_text() -> void:
-	var text := SettingsManager.t(_status_key) if _status_key != "" else ""
+	var text := _format_status_text()
 	if _loading and _search_mode != "":
 		text += "  " + _format_mmss(int(_search_elapsed))
 	search_banner_label.text = text
 
-func _set_status(key: String) -> void:
+# format_arg substitué dans le texte traduit (ex. nom de l'ami qui se prépare,
+# voir _on_peer_identified) — null pour un statut sans partie dynamique.
+func _set_status(key: String, format_arg = null) -> void:
 	_status_key = key
+	_status_format_arg = format_arg
 	_refresh_banner_text()
 	if match_found_overlay.visible:
-		overlay_phase_label.text = SettingsManager.t(key)
+		overlay_phase_label.text = _format_status_text()
 
 func _set_loading(active: bool) -> void:
 	_loading = active
@@ -218,19 +253,32 @@ func _flash_banner(key: String) -> void:
 	_banner_hide_timer.start(BANNER_MESSAGE_DURATION)
 
 # Bandeau clignotant affiché dès que le pair est connecté, avant l'écran de
-# chargement plein écran (voir _on_peer_connected) — la recherche est finie
-# mais le joueur (peut-être ailleurs dans le menu) doit voir que la partie va
-# démarrer, pas juste basculer brutalement sur l'overlay plein écran.
-func _flash_match_ready_banner() -> void:
+# chargement plein écran (voir _on_peer_connected/_run_match_ready_countdown)
+# — la recherche est finie mais le joueur (peut-être ailleurs dans le menu)
+# doit voir que la partie va démarrer, pas juste basculer brutalement sur
+# l'overlay plein écran. Décompte le texte lui-même de
+# MATCH_READY_COUNTDOWN_START à 1 (une seconde par palier) : titre fixe
+# ("Partie trouvée" ou, en mode invitation, "<ami> est prêt") sur la première
+# ligne, "Début dans N" sur la seconde. `token` est celui de _connect_token au
+# moment de l'appel (voir _on_peer_connected) : une coupure en cours de route
+# invalide le décompte sans avoir à l'annuler explicitement.
+func _run_match_ready_countdown(token: int, peer_name: String) -> void:
 	if _banner_hide_timer != null:
 		_banner_hide_timer.stop()
 	search_banner.visible = true
 	search_banner_cancel.visible = false
-	search_banner_label.text = SettingsManager.t("NET_MATCH_LOADING")
+	var title := SettingsManager.t("NET_INVITE_PEER_READY_FORMAT") % peer_name if peer_name != "" \
+		else SettingsManager.t("NET_MATCH_FOUND_BANNER")
 	_banner_flash_tween = create_tween()
 	_banner_flash_tween.set_loops()
 	_banner_flash_tween.tween_property(search_banner, "modulate:a", 0.35, MATCH_READY_BLINK_HALF_PERIOD)
 	_banner_flash_tween.tween_property(search_banner, "modulate:a", 1.0, MATCH_READY_BLINK_HALF_PERIOD)
+	for count in range(MATCH_READY_COUNTDOWN_START, 0, -1):
+		if token != _connect_token:
+			return
+		search_banner_label.text = title + "\n" + (SettingsManager.t("NET_MATCH_STARTING_IN_FORMAT") % count)
+		await get_tree().create_timer(1.0).timeout
+	_stop_match_ready_flash()
 
 func _stop_match_ready_flash() -> void:
 	if _banner_flash_tween != null and is_instance_valid(_banner_flash_tween):
@@ -273,6 +321,10 @@ func _retranslate() -> void:
 	search_banner_cancel.tooltip_text = SettingsManager.t("NET_SEARCH_CANCEL")
 	_refresh_banner_text()
 	_update_search_meta()
+	invite_title_label.text = SettingsManager.t("NET_INVITE_TITLE")
+	invite_decline_button.text = SettingsManager.t("NET_INVITE_DECLINE")
+	invite_join_button.text = SettingsManager.t("NET_INVITE_JOIN")
+	_refresh_invite_from_label()
 
 # ─── Actions UI ───────────────────────────────────────────────────────────────
 # Appelées directement par MainMenu une fois le deck choisi (voir
@@ -491,19 +543,34 @@ func _cleanup_connection_flow() -> void:
 		_battle_sync.queue_free()
 	_battle_sync = null
 
+# Le pair distant est identifié (nom Steam connu) avant même que la connexion
+# P2P soit établie (voir NetTransport.peer_identified) — en mode invitation
+# uniquement, où le nom de l'ami a un sens : pour Normal/Classé l'adversaire
+# est un inconnu apparié au hasard, afficher son nom n'apporterait rien.
+func _on_peer_identified() -> void:
+	if _search_mode != "invite":
+		return
+	var peer_name := _net.remote_display_name()
+	if peer_name != "":
+		_set_status("NET_INVITE_PEER_PREPARING_FORMAT", peer_name)
+	else:
+		_set_status("NET_INVITE_PEER_PREPARING_UNKNOWN")
+
 func _on_peer_connected() -> void:
+	# Le nom (mode invitation) doit être capturé AVANT de réinitialiser
+	# _search_mode ci-dessous : _run_match_ready_countdown en a besoin pour
+	# afficher "<ami> est prêt" plutôt que le générique "Partie trouvée".
+	var ready_peer_name := _net.remote_display_name() if _search_mode == "invite" else ""
 	_quick_matching = false
 	_set_search_mode("")
 	# La recherche est finie mais la partie ne démarre pas tout de suite : le
-	# bandeau clignote quelques secondes ("Chargement de la partie") avant de
+	# bandeau clignote et décompte (5/4/3/2/1) quelques secondes avant de
 	# basculer sur l'écran de chargement plein écran, pour que le joueur —
 	# peut-être ailleurs dans le menu — voie qu'une partie va commencer plutôt
-	# que de se faire happer sans prévenir (voir _flash_match_ready_banner).
+	# que de se faire happer sans prévenir (voir _run_match_ready_countdown).
 	_connect_token += 1
 	var token := _connect_token
-	_flash_match_ready_banner()
-	await get_tree().create_timer(MATCH_READY_FLASH_DURATION).timeout
-	_stop_match_ready_flash()
+	await _run_match_ready_countdown(token, ready_peer_name)
 	if token != _connect_token:
 		return  # déconnecté entre-temps : cette tentative est périmée
 	_show_search_banner(false)
@@ -571,12 +638,139 @@ func _start_quick_match_host() -> void:
 		_show_search_banner(false)
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
-# Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») alors
-# qu'aucune connexion n'est en cours : on rejoint directement ce lobby, peu
-# importe l'écran sur lequel le joueur se trouve.
-func _on_steam_join_requested(lobby_id: int) -> void:
+# Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») —
+# peu importe l'écran sur lequel le joueur se trouve, y compris s'il n'est
+# jamais passé par DeckSelectView (invitation acceptée juste après le
+# lancement du jeu). On ne rejoint PAS le lobby tout de suite : le popup de
+# choix de deck (_show_invite_deck_popup) est le seul moment où ce joueur
+# choisit son deck pour ce match, _on_invite_join_pressed rejoint ensuite
+# réellement le lobby une fois un deck confirmé.
+func _on_steam_join_requested(lobby_id: int, friend_id: int = 0) -> void:
+	_pending_invite_lobby_id = lobby_id
+	_pending_invite_friend_name = SteamService.friend_persona_name(friend_id)
+	_show_invite_deck_popup()
+
+func _show_invite_deck_popup() -> void:
+	_pending_invite_deck_index = -1
+	invite_join_button.disabled = true
+	_refresh_invite_from_label()
+	_refresh_invite_deck_list()
+	invite_deck_overlay.visible = true
+
+func _refresh_invite_from_label() -> void:
+	if _pending_invite_friend_name != "":
+		invite_from_label.text = SettingsManager.t("NET_INVITE_FROM_FORMAT") % _pending_invite_friend_name
+	else:
+		invite_from_label.text = SettingsManager.t("NET_INVITE_FROM_UNKNOWN")
+
+# Liste simplifiée (choix uniquement) des decks du joueur — même principe que
+# MainMenu._refresh_play_deck_list/_make_play_deck_row, dupliqué en plus
+# léger ici (pas de bandeau de race, pas d'édition) : ce popup n'a besoin que
+# de choisir un deck jouable, pas de le prévisualiser en détail.
+func _refresh_invite_deck_list() -> void:
+	for child in invite_decks_container.get_children():
+		child.queue_free()
+	if DeckManager.decks.is_empty():
+		var empty_lbl := Label.new()
+		empty_lbl.text = SettingsManager.t("decklist.empty")
+		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
+		empty_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.5))
+		empty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
+		invite_decks_container.add_child(empty_lbl)
+		return
+	for i in range(DeckManager.decks.size()):
+		invite_decks_container.add_child(_make_invite_deck_row(DeckManager.decks[i], i))
+
+func _make_invite_deck_row(deck: DeckData, index: int) -> Control:
+	var is_selected := index == _pending_invite_deck_index
+
+	var bg := StyleBoxFlat.new()
+	bg.bg_color = Color(0.12, 0.10, 0.08, 1)
+	bg.border_color = Color(0.78, 0.58, 0.10, 0.9) if is_selected else Color(0.30, 0.24, 0.10, 0.5)
+	bg.set_border_width_all(1)
+	bg.set_corner_radius_all(5)
+	bg.content_margin_left   = 12
+	bg.content_margin_right  = 10
+	bg.content_margin_top    = 8
+	bg.content_margin_bottom = 8
+
+	var bg_hover := bg.duplicate() as StyleBoxFlat
+	bg_hover.bg_color     = Color(0.18, 0.15, 0.10, 1)
+	bg_hover.border_color = Color(0.78, 0.58, 0.10, 1)
+
+	var bg_disabled := bg.duplicate() as StyleBoxFlat
+	bg_disabled.bg_color = Color(0.08, 0.07, 0.055, 0.7)
+
+	var button := Button.new()
+	button.flat = true
+	button.custom_minimum_size = Vector2(0, 44)
+	button.add_theme_stylebox_override("normal", bg)
+	button.add_theme_stylebox_override("hover", bg_hover)
+	button.add_theme_stylebox_override("pressed", bg_hover)
+	button.add_theme_stylebox_override("disabled", bg_disabled)
+	button.pressed.connect(_on_invite_deck_selected.bind(index))
+	var warnings := DeckManager.playability_warnings(deck)
+	if not warnings.is_empty():
+		button.tooltip_text = "\n".join(warnings)
+		button.disabled = true
+
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation", 10)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.add_child(row)
+
+	var select_indicator := Label.new()
+	select_indicator.text = "●" if is_selected else "○"
+	select_indicator.custom_minimum_size = Vector2(24, 0)
+	select_indicator.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	select_indicator.add_theme_font_size_override("font_size", Typography.SECTION)
+	select_indicator.add_theme_color_override("font_color",
+		Color(0.94, 0.75, 0.25, 1) if is_selected else Color(0.91, 0.835, 0.639, 0.35))
+	row.add_child(select_indicator)
+
+	var name_lbl := Label.new()
+	name_lbl.text = SettingsManager.t(deck.name)
+	name_lbl.clip_text = true
+	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
+	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	row.add_child(name_lbl)
+
+	var count_lbl := Label.new()
+	count_lbl.text = "%d/%d" % [deck.size(), DeckManager.MIN_TOTAL_CARDS]
+	count_lbl.custom_minimum_size = Vector2(44, 0)
+	count_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	count_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
+	count_lbl.add_theme_color_override("font_color",
+		Color(0.5, 0.9, 0.5, 1) if deck.size() >= DeckManager.MIN_TOTAL_CARDS else Color(1, 0.4, 0.4, 1))
+	row.add_child(count_lbl)
+
+	return button
+
+func _on_invite_deck_selected(index: int) -> void:
+	_pending_invite_deck_index = index
+	invite_join_button.disabled = false
+	_refresh_invite_deck_list()
+
+# Refuse l'invitation : ferme simplement le popup sans jamais rejoindre le
+# lobby de l'hôte (celui-ci reste en attente, voir NET_STEAM_HOSTING côté hôte).
+func _on_invite_decline_pressed() -> void:
+	invite_deck_overlay.visible = false
+	_pending_invite_lobby_id = 0
+	_pending_invite_deck_index = -1
+
+func _on_invite_join_pressed() -> void:
+	if _pending_invite_deck_index < 0:
+		return
+	DeckManager.set_active_deck(_pending_invite_deck_index)
+	var lobby_id := _pending_invite_lobby_id
+	invite_deck_overlay.visible = false
+	_pending_invite_lobby_id = 0
+	_pending_invite_deck_index = -1
 	_quick_matching = false
-	_set_search_mode("normal")
+	_set_search_mode("invite")
 	_set_status("NET_STEAM_INVITE_RECEIVED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err == OK:

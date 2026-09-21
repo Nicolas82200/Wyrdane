@@ -66,7 +66,11 @@ func open(graveyard: Graveyard) -> void:
 	for i in range(graveyard.entries.size() - 1, -1, -1):
 		var entry = graveyard.entries[i]
 		entries.append({"card_data": entry["card_data"], "face_down": graveyard.is_face_down(entry)})
-	_open_entries(entries)
+	# Pas de regroupement ici : chaque mort doit rester visible individuellement,
+	# dans son ordre d'arrivée, même si plusieurs copies d'une même carte sont
+	# mortes (contrairement à la pioche restante, voir open_deck, où grouper les
+	# doublons a du sens puisqu'il n'y a pas d'ordre chronologique à préserver).
+	_open_entries(entries, false)
 
 # Mode sélection : le joueur doit choisir une carte parmi `candidates` (déjà
 # filtrées par l'appelant — ex: Mort-Vivants du cimetière allié). Le signal
@@ -107,13 +111,20 @@ func open_deck(cards: Array) -> void:
 ## avec un badge "xN" au lieu d'en afficher une par copie (ex: 20 cartes-
 ## ressource identiques) — les cartes face cachée ne sont jamais regroupées
 ## (chacune reste une carte individuelle, sans donnée exploitable pour grouper
-## visuellement sans révéler d'information).
-func _open_entries(entries: Array) -> void:
+## visuellement sans révéler d'information). `group_duplicates` désactivé pour
+## le cimetière (voir open()) : chaque mort doit rester une vignette distincte,
+## dans l'ordre chronologique, plutôt que fusionnée derrière un badge "xN".
+func _open_entries(entries: Array, group_duplicates: bool = true) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
 	_clear_summon_previews()
 	for child in container.get_children():
 		child.queue_free()
+	if not group_duplicates:
+		for entry in entries:
+			_add_card(entry["card_data"], entry["face_down"], 1)
+		show()
+		return
 	var grouped: Array = []
 	var index_by_path: Dictionary = {}
 	for entry in entries:
@@ -142,8 +153,15 @@ func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 	card_visual.set_non_interactive()
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.scale        = Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE)
-	card_visual.pivot_offset = Vector2.ZERO
-	card_visual.position     = Vector2.ZERO
+	# Pivot au centre de la carte (plutôt qu'en haut-gauche) : le zoom au survol
+	# grandit alors symétriquement dans les 4 directions autour du centre de la
+	# vignette, au lieu de déborder uniquement vers le bas-droite — ce qui le
+	# faisait sortir du cadre visible (coupé par la ScrollContainer) pour les
+	# cartes de la dernière colonne/ligne. `position` compense ce pivot pour que
+	# la carte reste centrée dans la vignette au repos (échelle GRID_CARD_SCALE).
+	card_visual.pivot_offset = CARD_BASE_SIZE / 2.0
+	card_visual.position     = (GRID_WRAPPER_SIZE - CARD_BASE_SIZE * GRID_CARD_SCALE) / 2.0 \
+		- CARD_BASE_SIZE / 2.0 * (1.0 - GRID_CARD_SCALE)
 	wrapper.add_child(card_visual)
 
 	if face_down:

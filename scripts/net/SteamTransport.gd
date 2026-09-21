@@ -209,6 +209,7 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 	if chat_state == CHAT_ENTERED:
 		status.emit("Steam : « %s » est entré dans le lobby — en attente de sa connexion P2P…" % _persona(changed_id))
 		_remote_id = changed_id
+		peer_identified.emit()
 	elif changed_id == _remote_id:
 		_remote_id = 0
 		disconnected.emit("peer_left_lobby")
@@ -249,6 +250,7 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		_remote_id = 0
 		disconnected.emit("steam_same_account")
 		return
+	peer_identified.emit()
 	status.emit("Steam : ouverture de la connexion P2P vers l'hôte…")
 	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
 

@@ -11,6 +11,12 @@ class_name NetTransport
 
 # Le pair distant est connecté : on peut commencer le handshake.
 signal connected()
+# L'identité du pair distant est connue (ex. Steam : membre entré dans le
+# lobby), AVANT que la connexion P2P elle-même soit établie — permet
+# d'afficher son nom pendant qu'on attend encore `connected` (voir
+# MatchmakingOverlay, bandeau "<ami> se prépare…"). No-op pour un backend qui
+# ne peut identifier son pair qu'au moment de la connexion.
+signal peer_identified()
 # Des octets sont arrivés du pair distant.
 signal packet_received(bytes: PackedByteArray)
 # Le pair distant est parti (déconnexion volontaire ou perte de lien).

@@ -667,6 +667,160 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 1
 
+[node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -860.0
+offset_top = 142.5
+offset_right = -710.0
+offset_bottom = 367.5
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
+
+[node name="CountLabel" type="Label" parent="PlayerGraveyardButton" unique_id=376800410]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPreview" parent="PlayerGraveyardButton" unique_id=2019163809 instance=ExtResource("7_kos6x")]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0
+scale = Vector2(0.48, 0.48)
+mouse_filter = 2
+
+[node name="EnemyGraveyardButton" type="Button" parent="." unique_id=622605851]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 710.0
+offset_top = -367.5
+offset_right = 860.0
+offset_bottom = -142.5
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
+
+[node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPreview" parent="EnemyGraveyardButton" unique_id=392166078 instance=ExtResource("7_kos6x")]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 375.0
+scale = Vector2(0.48, 0.48)
+mouse_filter = 2
+
+[node name="DeckButton" type="Button" parent="." unique_id=1670745458]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -860.0
+offset_top = -27.5
+offset_right = -710.0
+offset_bottom = 197.5
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
+
+[node name="CountLabel" type="Label" parent="DeckButton" unique_id=2036986601]
+custom_minimum_size = Vector2(100, 150)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardBack" type="TextureRect" parent="DeckButton" unique_id=2108505834]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("9_2ckr4")
+expand_mode = 1
+
+[node name="EnemyDeckButton" type="Button" parent="." unique_id=635030300]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 710.0
+offset_top = -197.5
+offset_right = 860.0
+offset_bottom = 27.5
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 1.5707964
+scale = Vector2(1.05, 1.05)
+pivot_offset = Vector2(75, 112.5)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
+
+[node name="CountLabel" type="Label" parent="EnemyDeckButton" unique_id=1766859381]
+custom_minimum_size = Vector2(100, 150)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardBack" type="TextureRect" parent="EnemyDeckButton" unique_id=26543079]
+custom_minimum_size = Vector2(150, 225)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("9_2ckr4")
+expand_mode = 1
+
 [node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
 layout_mode = 1
 anchors_preset = -1
@@ -816,163 +970,9 @@ theme_override_font_sizes/font_size = 28
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -860.0
-offset_top = 142.5
-offset_right = -710.0
-offset_bottom = 367.5
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 1.5707964
-scale = Vector2(1.05, 1.05)
-pivot_offset = Vector2(75, 112.5)
-
-[node name="CountLabel" type="Label" parent="PlayerGraveyardButton" unique_id=376800410]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="CardPreview" parent="PlayerGraveyardButton" unique_id=2019163809 instance=ExtResource("7_kos6x")]
-layout_mode = 0
-offset_right = 250.0
-offset_bottom = 375.0
-scale = Vector2(0.48, 0.48)
-mouse_filter = 2
-
-[node name="EnemyGraveyardButton" type="Button" parent="." unique_id=622605851]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = 710.0
-offset_top = -367.5
-offset_right = 860.0
-offset_bottom = -142.5
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 1.5707964
-scale = Vector2(1.05, 1.05)
-pivot_offset = Vector2(75, 112.5)
-
-[node name="CountLabel" type="Label" parent="EnemyGraveyardButton" unique_id=1098059623]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="CardPreview" parent="EnemyGraveyardButton" unique_id=392166078 instance=ExtResource("7_kos6x")]
-layout_mode = 0
-offset_right = 250.0
-offset_bottom = 375.0
-scale = Vector2(0.48, 0.48)
-mouse_filter = 2
-
 [node name="GraveyardView" parent="." unique_id=1579032817 instance=ExtResource("7_nyp61")]
 visible = false
 layout_mode = 1
-
-[node name="DeckButton" type="Button" parent="." unique_id=1670745458]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -860.0
-offset_top = -27.5
-offset_right = -710.0
-offset_bottom = 197.5
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 1.5707964
-scale = Vector2(1.05, 1.05)
-pivot_offset = Vector2(75, 112.5)
-theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
-
-[node name="CountLabel" type="Label" parent="DeckButton" unique_id=2036986601]
-custom_minimum_size = Vector2(100, 150)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="CardBack" type="TextureRect" parent="DeckButton" unique_id=2108505834]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("9_2ckr4")
-expand_mode = 1
-
-[node name="EnemyDeckButton" type="Button" parent="." unique_id=635030300]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = 710.0
-offset_top = -197.5
-offset_right = 860.0
-offset_bottom = 27.5
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 1.5707964
-scale = Vector2(1.05, 1.05)
-pivot_offset = Vector2(75, 112.5)
-theme_override_styles/normal = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_deck")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_deck")
-
-[node name="CountLabel" type="Label" parent="EnemyDeckButton" unique_id=1766859381]
-custom_minimum_size = Vector2(100, 150)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="CardBack" type="TextureRect" parent="EnemyDeckButton" unique_id=26543079]
-custom_minimum_size = Vector2(150, 225)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("9_2ckr4")
-expand_mode = 1
 
 [node name="EnemyHandDisplay" type="Control" parent="." unique_id=1474603863]
 layout_mode = 1

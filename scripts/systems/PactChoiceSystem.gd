@@ -5,17 +5,50 @@
 # traitement à part : `resolve_trigger()` est appelé identiquement par
 # EffectManager.trigger_effects (serviteurs) et TriggerSystem
 # (_fire_on_enchantments / activate_sacrifice_ritual / try_cancel_spell pour
-# Rituels/Enchantements). Aucun canal réseau dédié n'existe pour ce choix
-# répété : en partie réseau, les deux camps décident via la même heuristique
-# déterministe que l'IA (`heuristic_decision`), pour rester synchronisés sans
-# nouveau protocole. `ask()` n'affiche la popup que pour le joueur LOCAL hors
-# partie réseau.
+# Rituels/Enchantements).
+#
+# En partie réseau, le propriétaire réel de la carte décide TOUJOURS (popup
+# `ask()`), des deux côtés — plus de décision automatique par heuristique pour
+# le joueur local. Deux façons pour le pair de connaître la décision distante,
+# selon QUI résout le déclencheur en direct (voir `resolve_trigger`) :
+#   - Cas courant (le propriétaire résout son propre déclencheur — Arrivée
+#     d'un de ses serviteurs, Éveil de tour, etc.) : le propriétaire décide et
+#     envoie sa décision (PACT_CHOICE) AVANT même d'émettre la commande de
+#     l'action elle-même (PLAY_CARD/TURN_START/...), puisque cette commande
+#     n'est émise par NetEmitter qu'une fois toute la résolution locale
+#     terminée (voir NetEmitter.play_card/turn_start...) — la décision est
+#     donc déjà en route quand le pair rejoue cette action via NetworkOpponent
+#     et en a besoin (`_await_remote_answer`, pas de round-trip nécessaire).
+#   - Cas croisé (l'ADVERSAIRE résout en direct un déclencheur qui touche NOTRE
+#     carte — ex. Blessure causée par SON attaque sur notre serviteur Pacte) :
+#     à cet instant, nous ne savons même pas encore qu'une action est en cours
+#     (sa commande n'arrivera qu'après sa résolution complète) — impossible
+#     d'attendre passivement une décision qui n'existe pas encore. Le camp qui
+#     résout en direct envoie alors une requête explicite (PACT_REQUEST) et
+#     BLOQUE sa propre résolution en attendant la réponse (PACT_CHOICE) du
+#     vrai propriétaire, qui répond hors-tour via `_on_command_received` dès
+#     réception (popup affichée même si ce n'est pas son tour). Sa décision est
+#     mise en cache (`_prefetched_own_answers`) pour que le rejeu ultérieur de
+#     cette même action chez lui (une fois la commande reçue normalement) ne
+#     la redemande pas une seconde fois.
 extends RefCounted
 class_name PactChoiceSystem
 
 const SAFE_HEALTH_MARGIN := 6
 
 var battle
+# Non typé NetworkManager (plutôt que dupliquer ce test dans une scène Steam
+# hors de portée — voir CLAUDE.md) : un faux réseau minimal (signal
+# command_received + send_command) suffit dans les tests, voir
+# test_pact_choice_system.gd.
+var _connected_net = null
+# Réponses reçues pour une carte du PAIR (consommées par _await_remote_answer,
+# que la réponse ait été sollicitée via PACT_REQUEST ou envoyée par avance).
+var _remote_answers: Array[bool] = []
+# Décisions déjà données hors-tour pour NOS PROPRES cartes en répondant à un
+# PACT_REQUEST distant : le rejeu normal de la même action ne doit pas
+# redemander, seulement consommer cette valeur déjà transmise au pair.
+var _prefetched_own_answers: Array[bool] = []
 
 func init(_battle) -> void:
 	battle = _battle
@@ -25,17 +58,72 @@ func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
 	if value <= 0:
 		return true
 	if battle.network_manager != null:
-		return heuristic_decision(is_player, value)
+		_ensure_net_listener()
+		if is_player:
+			if not _prefetched_own_answers.is_empty():
+				return _prefetched_own_answers.pop_front()
+			var paid: bool = await ask(card_data, value)
+			if is_instance_valid(battle) and battle.network_manager != null:
+				battle.network_manager.send_command(NetCommand.pact_choice(paid))
+			return paid
+		# battle.enemy_turn_active : false uniquement pendant NOTRE résolution
+		# EN DIRECT (Battle.set_enemy_turn) — jamais vrai en même temps chez les
+		# deux clients, le jeu étant strictement au tour par tour. Si c'est le
+		# cas, cette carte du pair est touchée par NOTRE action en cours : il ne
+		# sait pas encore qu'il doit décider, il faut le lui demander. Sinon,
+		# nous sommes en train de rejouer SON action (NetworkOpponent) : sa
+		# décision, prise chez lui avant l'envoi de cette même action, est déjà
+		# en route ou déjà arrivée.
+		if not battle.enemy_turn_active:
+			battle.network_manager.send_command(NetCommand.pact_request(card_data.resource_path, value))
+		return await _await_remote_answer()
 	if is_player:
 		return await ask(card_data, value)
 	return heuristic_decision(is_player, value)
 
-# Décision déterministe (IA, ou joueur en partie réseau pour un choix de
-# Rituel/Enchantement sans canal réseau dédié) : paie si la marge de PV restante
-# après paiement reste confortable.
+# Décision déterministe (IA uniquement désormais — le joueur local a toujours
+# la main via `ask()`, en solo comme en réseau).
 func heuristic_decision(is_player: bool, value: int) -> bool:
 	var hero: Hero = battle.player_hero if is_player else battle.enemy_hero
 	return hero.health - value >= SAFE_HEALTH_MARGIN
+
+# ─── Synchronisation réseau ───────────────────────────────────────────────────
+
+func _ensure_net_listener() -> void:
+	if battle.network_manager == null or _connected_net == battle.network_manager:
+		return
+	_connected_net = battle.network_manager
+	_connected_net.command_received.connect(_on_net_command_received)
+
+func _on_net_command_received(command: Dictionary) -> void:
+	match NetCommand.type_of(command):
+		NetCommand.PACT_REQUEST:
+			_handle_remote_request(command)
+		NetCommand.PACT_CHOICE:
+			_remote_answers.append(bool(command.get("paid", false)))
+
+# Le pair résout EN DIRECT un déclencheur sur l'UNE DE NOS cartes et attend
+# notre décision pour pouvoir continuer sa propre résolution : on répond tout
+# de suite (popup affichée même hors de notre tour), sans passer par la file
+# d'attente normale du rejeu de tour.
+func _handle_remote_request(command: Dictionary) -> void:
+	var card: CardData = NetCardResolver.resolve(command.get("card", ""))
+	var value: int = int(command.get("value", 0))
+	if card == null or value <= 0:
+		if is_instance_valid(battle) and battle.network_manager != null:
+			battle.network_manager.send_command(NetCommand.pact_choice(false))
+		return
+	var paid: bool = await ask(card, value)
+	_prefetched_own_answers.append(paid)
+	if is_instance_valid(battle) and battle.network_manager != null:
+		battle.network_manager.send_command(NetCommand.pact_choice(paid))
+
+func _await_remote_answer() -> bool:
+	while _remote_answers.is_empty():
+		if not is_instance_valid(battle):
+			return false
+		await battle.get_tree().process_frame
+	return _remote_answers.pop_front()
 
 # Affiche la carte du Pacte via la popup persistante (CardPopupSystem, même
 # emplacement que le ciblage), avec un panneau de choix Oui/Non ancré juste
