@@ -219,6 +219,8 @@ corner_radius_bottom_left = 11
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_transparent"]
 
+[sub_resource type="ButtonGroup" id="ButtonGroup_leaderboard_tiers"]
+
 [node name="MainMenu" type="Control" unique_id=1995000585]
 layout_mode = 3
 anchors_preset = 15
@@ -1209,12 +1211,90 @@ theme_override_font_sizes/font_size = 16
 text = "Chargement..."
 autowrap_mode = 3
 
+[node name="StatsCardsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="StatsListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsCardsScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LeaderboardSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+
+[node name="LeaderboardHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LeaderboardTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.72, 0.5, 0.9)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+text = "Classement"
+
+[node name="LeaderboardTierBronzeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
+custom_minimum_size = Vector2(76, 0)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_leaderboard_tiers")
+text = "● Bronze"
+
+[node name="LeaderboardTierSilverButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_leaderboard_tiers")
+text = "◆ Argent"
+
+[node name="LeaderboardTierGoldButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
+custom_minimum_size = Vector2(58, 0)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_leaderboard_tiers")
+text = "★ Or"
+
+[node name="LeaderboardTierLegendButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardHeaderRow"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+toggle_mode = true
+button_group = SubResource("ButtonGroup_leaderboard_tiers")
+text = "♛ Légende"
+
+[node name="LeaderboardSearchRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LeaderboardSearchField" type="LineEdit" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Rechercher un joueur..."
+
+[node name="LeaderboardSearchButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+text = "Rechercher"
+
+[node name="LeaderboardJumpToMeButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow"]
+layout_mode = 2
+text = "Mon rang"
+
+[node name="LeaderboardStatusLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = ""
+autowrap_mode = 3
+
 [node name="StatsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="StatsListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll"]
+[node name="LeaderboardListVBox" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
