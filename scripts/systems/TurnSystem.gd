@@ -32,7 +32,7 @@ func end_turn() -> void:
 	if battle.net_emitter != null:
 		capture_token = battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
-	await battle.temp_effect_system.expire_end_of_player_turn()
+	await battle.temp_effect_system.expire_end_of_local_turn()
 	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
 	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[true] = false  # Absolution Écarlate expire
@@ -44,7 +44,7 @@ func end_turn() -> void:
 	if battle.game_over:
 		_ending_turn = false
 		return
-	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	await battle.temp_effect_system.expire_after_remote_turn()
 	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false

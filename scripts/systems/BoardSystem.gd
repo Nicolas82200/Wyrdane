@@ -12,7 +12,10 @@ func init(_battle) -> void:
 func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
 	await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
 
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target: Minion = null) -> Minion:
+# onplay_target : Minion, Hero, ou null — cible choisie transmise au trigger
+# ONPLAY (ex. Croc de Braise/Embermaw, Pacte "EnemyAny" visant un serviteur ou
+# le héros ennemi). Volontairement non typé Minion pour accepter aussi Hero.
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target = null) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return null

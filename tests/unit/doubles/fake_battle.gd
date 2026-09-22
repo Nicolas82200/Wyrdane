@@ -532,6 +532,9 @@ class FakeOpponent:
 		return deck.size()
 	func get_hand_count() -> int:
 		return hand.size()
+	func receive_card_to_hand(card_data: CardData) -> void:
+		if card_data != null:
+			hand.append(card_data)
 
 
 class FakeHand:
