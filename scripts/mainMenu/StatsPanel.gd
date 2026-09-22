@@ -57,9 +57,9 @@ static func _tier_bounds(tier: int) -> Vector2i:
 	return Vector2i(min_mmr, max_mmr)
 
 # (Re)construit les onglets de palier depuis RankTier.Type.values() : un petit
-# bouton par palier (glyphe seul, teinte du palier, infobulle = nom complet)
-# plutôt que du texte complet — 7 paliers en toutes lettres ne tiendraient pas
-# dans la largeur du panneau.
+# bouton par palier (icône seule, infobulle = nom complet) plutôt que du texte
+# complet — 7 paliers en toutes lettres ne tiendraient pas dans la largeur du
+# panneau.
 static func _build_tier_buttons(menu) -> void:
 	for c in menu.leaderboard_tiers_row.get_children():
 		c.queue_free()
@@ -69,10 +69,9 @@ static func _build_tier_buttons(menu) -> void:
 		btn.toggle_mode = true
 		btn.button_group = group
 		btn.custom_minimum_size = Vector2(40, 36)
-		btn.text = RankTier.symbol(tier)
+		btn.icon = RankTier.icon(tier)
+		btn.expand_icon = true
 		btn.tooltip_text = SettingsManager.t(RankTier.tier_key(tier))
-		btn.add_theme_font_size_override("font_size", Typography.SECTION)
-		btn.add_theme_color_override("font_color", RankTier.color(tier))
 		btn.button_pressed = tier == menu.leaderboard_tier
 		btn.pressed.connect(select_tier.bind(menu, tier))
 		menu.leaderboard_tiers_row.add_child(btn)

@@ -18,7 +18,6 @@
 [ext_resource type="PackedScene" path="res://scenes/battle/GameOverScreen.tscn" id="19_gameover"]
 [ext_resource type="Texture2D" uid="uid://bs3l57fgcqb6k" path="res://assets/heros_art/king-aldric-dawnbearer.jpg" id="20_pheroart"]
 [ext_resource type="Texture2D" uid="uid://dypdopuwgal1s" path="res://assets/heros_art/azhar-the-fallen.jpg" id="21_eheroart"]
-[ext_resource type="Script" uid="uid://bbnx2073bncdp" path="res://scripts/battle/LockAttacksButton.gd" id="22_lockatk"]
 [ext_resource type="Shader" uid="uid://cj050hs40vohd" path="res://resources/shaders/rounded_corners.gdshader" id="22_roundshader"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laneback"]

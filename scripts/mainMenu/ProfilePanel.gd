@@ -87,16 +87,17 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
 		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
 	]
-	apply_rank_badge(menu.profile_rank_badge_label, int(ranked.get("mmr", 0)), true)
+	apply_rank_badge(menu.profile_rank_badge_label, menu.profile_rank_icon, int(ranked.get("mmr", 0)), true)
 
 # Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
 # (persistant, avec_progress = false) et à celui de la vue Profil (avec la
 # progression vers le palier suivant, plus lisible dans un contexte dédié).
-static func apply_rank_badge(label: Label, mmr: int, with_progress: bool) -> void:
+static func apply_rank_badge(label: Label, icon: TextureRect, mmr: int, with_progress: bool) -> void:
 	var tier := RankTier.from_mmr(mmr)
 	AchievementManager.check_rank_tier(tier)
 	label.add_theme_color_override("font_color", RankTier.color(tier))
-	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [RankTier.symbol(tier), SettingsManager.t(RankTier.tier_key(tier)), mmr]
+	icon.texture = RankTier.icon(tier)
+	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [SettingsManager.t(RankTier.tier_key(tier)), mmr]
 	if with_progress:
 		var remaining := RankTier.mmr_to_next_tier(mmr)
 		if remaining >= 0:
@@ -111,11 +112,11 @@ static func fetch_rank_badge(menu) -> void:
 		return
 	BackendClient.get_profile(func(success: bool, data: Dictionary):
 		if success:
-			apply_rank_badge(menu.rank_badge_label, int(data.get("ranked", {}).get("mmr", 0)), false)
+			apply_rank_badge(menu.rank_badge_label, menu.rank_icon, int(data.get("ranked", {}).get("mmr", 0)), false)
 			# Masqué par défaut (voir MainMenu.tscn) : un "-" de remplissage restait
 			# affiché en permanence entre l'or et le niveau tant que la synchronisation
 			# backend n'avait pas encore résolu (ou échouait) le palier réel.
-			menu.rank_badge_label.visible = true
+			menu.rank_badge_row.visible = true
 	)
 
 # --- Récompense de connexion quotidienne ---------------------------------
