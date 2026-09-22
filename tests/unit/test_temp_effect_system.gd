@@ -65,7 +65,7 @@ func test_expire_end_of_player_turn_reverts_matching_stat_change() -> void:
 	assert_eq(minion.base_attack, 2)
 	minion.base_attack += 3
 	minion.base_max_health += 2
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_eq(minion.base_attack, 2, "le buff temporaire doit être retiré à l'expiration")
 	assert_eq(minion.base_max_health, 4, "le buff temporaire doit être retiré à l'expiration")
 
@@ -73,22 +73,67 @@ func test_expire_end_of_player_turn_does_not_revert_enemy_turn_duration() -> voi
 	var minion := _minion(2, 4)
 	minion.base_attack += 3
 	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfEnemyTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_eq(minion.base_attack, 5, "UntilEndOfEnemyTurn ne doit expirer qu'en fin de tour adverse")
 
 func test_expire_end_of_enemy_turn_reverts_matching_duration() -> void:
 	var minion := _minion(2, 4)
 	minion.base_attack += 3
 	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfEnemyTurn")
-	await temp_effect_system.expire_end_of_enemy_turn()
+	await temp_effect_system.expire_after_remote_turn()
 	assert_eq(minion.base_attack, 2)
+
+# ─── Expiration : provenance (créé pendant le tour local vs. distant) ─────────
+# Couvre le bug "Sergent de Troupe posé par l'adversaire réseau restait
+# buffé en permanence" (et son symétrique, Fortification des Lignes) :
+# "UntilEndOfTurn"/"UntilEndOfEnemyTurn" sont relatifs au tour PENDANT LEQUEL
+# l'effet a été créé, pas au camp qui le lance — voir l'en-tête de
+# TempEffectSystem.gd.
+
+func test_until_end_of_turn_created_remotely_is_not_reverted_by_local_turn_end() -> void:
+	var minion := _minion(2, 4)
+	minion.base_attack += 3
+	battle.enemy_turn_active = true
+	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfTurn")
+	battle.enemy_turn_active = false
+	await temp_effect_system.expire_end_of_local_turn()
+	assert_eq(minion.base_attack, 5,
+		"un effet créé pendant le tour adverse ne doit pas attendre la fin du tour local suivant")
+
+func test_until_end_of_turn_created_remotely_is_reverted_by_remote_turn_end() -> void:
+	var minion := _minion(2, 4)
+	minion.base_attack += 3
+	battle.enemy_turn_active = true
+	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfTurn")
+	await temp_effect_system.expire_end_of_remote_turn()
+	assert_eq(minion.base_attack, 2,
+		"un effet créé pendant le tour adverse doit expirer à la fin de CE tour adverse")
+
+func test_until_end_of_enemy_turn_created_remotely_is_reverted_by_local_turn_end() -> void:
+	var minion := _minion(2, 4)
+	minion.base_attack += 3
+	battle.enemy_turn_active = true
+	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfEnemyTurn")
+	battle.enemy_turn_active = false
+	await temp_effect_system.expire_end_of_local_turn()
+	assert_eq(minion.base_attack, 2,
+		"un effet 'jusqu'à la fin du tour adverse' créé par l'adversaire doit expirer à la fin de NOTRE tour suivant")
+
+func test_until_end_of_enemy_turn_created_remotely_is_not_reverted_by_expire_after_remote_turn() -> void:
+	var minion := _minion(2, 4)
+	minion.base_attack += 3
+	battle.enemy_turn_active = true
+	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfEnemyTurn")
+	await temp_effect_system.expire_after_remote_turn()
+	assert_eq(minion.base_attack, 5,
+		"un effet 'jusqu'à la fin du tour adverse' créé par l'adversaire ne doit pas expirer juste après SON propre tour")
 
 func test_expired_entry_is_not_reapplied_twice() -> void:
 	var minion := _minion(2, 4)
 	minion.base_attack += 3
 	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_eq(minion.base_attack, 2, "une entrée déjà expirée ne doit pas être revert une seconde fois")
 
 # ─── Expiration : mots-clés ────────────────────────────────────────────────────
@@ -97,28 +142,28 @@ func test_expire_reverts_temp_keyword_non_human() -> void:
 	var minion := _minion()
 	minion.add_keyword(Keyword.Type.FURY)
 	temp_effect_system.add_temp_keyword(minion, Keyword.Type.FURY, false, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.has_keyword(Keyword.Type.FURY))
 
 func test_expire_reverts_temp_keyword_human() -> void:
 	var minion := _minion()
 	minion.add_human_keyword(KeywordHuman.Type.DISCIPLINE)
 	temp_effect_system.add_temp_keyword(minion, KeywordHuman.Type.DISCIPLINE, true, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.has_human_keyword(KeywordHuman.Type.DISCIPLINE))
 
 func test_expire_reverts_temp_demon_keyword() -> void:
 	var minion := _minion()
 	minion.add_demon_keyword(KeywordDemon.Type.TERREUR)
 	temp_effect_system.add_temp_demon_keyword(minion, KeywordDemon.Type.TERREUR, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.has_demon_keyword(KeywordDemon.Type.TERREUR))
 
 func test_expire_reverts_temp_abomination_keyword() -> void:
 	var minion := _minion()
 	minion.add_abomination_keyword(KeywordAbomination.Type.VIRULENT)
 	temp_effect_system.add_temp_abomination_keyword(minion, KeywordAbomination.Type.VIRULENT, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.has_abomination_keyword(KeywordAbomination.Type.VIRULENT))
 
 # ─── Expiration : immunité aux sorts / silence / destruction ──────────────────
@@ -127,7 +172,7 @@ func test_expire_reverts_temp_spell_immunity() -> void:
 	var minion := _minion()
 	minion.spell_immune = true
 	temp_effect_system.add_temp_spell_immunity(minion, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.spell_immune)
 
 func test_expire_restores_keywords_after_temp_silence() -> void:
@@ -140,7 +185,7 @@ func test_expire_restores_keywords_after_temp_silence() -> void:
 	minion.keywords.clear()
 	minion.human_keywords.clear()
 	minion.silenced = true
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_true(minion.has_keyword(Keyword.Type.TAUNT), "les mots-clés capturés avant le Silence doivent être restaurés")
 	assert_true(minion.has_human_keyword(KeywordHuman.Type.FORTIFICATION))
 	assert_false(minion.silenced)
@@ -150,13 +195,13 @@ func test_add_temp_silence_with_permanent_duration_captures_nothing() -> void:
 	minion.add_keyword(Keyword.Type.TAUNT)
 	temp_effect_system.add_temp_silence(minion, "Permanent")
 	minion.keywords.clear()
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_false(minion.has_keyword(Keyword.Type.TAUNT), "un Silence Permanent ne doit jamais être restauré")
 
 func test_expire_destroys_minion_registered_via_add_destroy_at_expiry() -> void:
 	var minion := _minion(2, 4)
 	temp_effect_system.add_destroy_at_expiry(minion, "UntilEndOfTurn")
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_true(minion.is_dead(), "le serviteur emprunté temporairement doit mourir à l'expiration")
 
 # ─── Garde-fou : minion mort ou retiré du plateau ─────────────────────────────
@@ -166,7 +211,7 @@ func test_revert_is_skipped_for_minion_no_longer_on_board() -> void:
 	minion.base_attack += 3
 	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfTurn")
 	battle.player_minions.erase(minion)
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_eq(minion.base_attack, 5, "un serviteur retiré du plateau (mort/volé) ne doit pas être revert")
 
 func test_revert_is_skipped_for_already_dead_minion() -> void:
@@ -174,5 +219,5 @@ func test_revert_is_skipped_for_already_dead_minion() -> void:
 	minion.base_attack += 3
 	temp_effect_system.add_temp_stat_change(minion, 3, 0, "UntilEndOfTurn")
 	minion.health = 0
-	await temp_effect_system.expire_end_of_player_turn()
+	await temp_effect_system.expire_end_of_local_turn()
 	assert_eq(minion.base_attack, 5, "un serviteur déjà mort ne doit pas être revert")

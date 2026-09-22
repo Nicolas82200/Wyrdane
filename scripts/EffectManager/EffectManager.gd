@@ -38,7 +38,9 @@ func _execute_effect_impl(
 	# Condition d'exécution : si non remplie, l'effet est purement et simplement
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
+		NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, false)
 		return
+	NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, true)
 	# skip_source_popup : l'appelant (ex. AISystem/NetworkOpponent pour un sort
 	# ciblé) a déjà affiché la popup de cette carte AVANT de jouer le son du
 	# sort — sans ce flag, ce même proxy (source_minion non nul, nécessaire pour
@@ -672,7 +674,7 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 			battle.hand_cards.append(target.card_data)
 			await battle.hand.set_hand(battle.hand_cards, true, origin)
 		else:
-			battle.ai_system.hand.append(target.card_data)
+			battle.opponent.receive_card_to_hand(target.card_data)
 			await battle.animate_enemy_card_returned(origin)
 
 func _remove_from_board(battle, minion: Minion) -> void:
@@ -1142,7 +1144,7 @@ func _fly_from_graveyard_to_hand(battle, card_data: CardData, is_player: bool) -
 		battle.hand_cards.append(card_data)
 		await battle.hand.set_hand(battle.hand_cards, true, origin)
 	else:
-		battle.ai_system.hand.append(card_data)
+		battle.opponent.receive_card_to_hand(card_data)
 		await battle.animate_enemy_card_returned(origin)
 
 # Ramène depuis le cimetière en main une carte CHOISIE par le joueur (Communion
@@ -1406,11 +1408,16 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 		battle.update_enemy_mana_ui()
 
 # Pioche `value` carte(s) ; chaque carte piochée de la race `race_filter` (ou
-# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Décharné). Pioche
+# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Écarlate). Pioche
 # pour le camp propriétaire de `source_minion` : le joueur dans son deck, l'IA
 # dans le sien (remise appliquée sur sa propre copie) ; côté réseau, la carte
-# réelle du pair distant est inconnue localement donc seule la pioche
-# cosmétique a lieu, sans remise (que le pair applique de son côté).
+# réelle du pair distant est inconnue localement donc cette branche ne peut
+# pas non plus appliquer de remise ici (drawn reste null) — mais ce n'est plus
+# un manque : CostSystem.add_temp_discount capture la remise sur SON client
+# (is_player=true) et la transmet via PLAY_CARD (voir
+# CostSystem.take_pending_sync_discounts / NetworkOpponent._apply_play_card),
+# qui l'applique de son côté à la vraie carte désignée par resource_path
+# avant même que cette fonction ne rejoue l'effet ici.
 func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
 	# Mode Arena (SimulatedBattle.gd) : pas de deck/coût — sans intérêt,
 	# no-op plutôt qu'un crash sur deck_system/cost_system absents.

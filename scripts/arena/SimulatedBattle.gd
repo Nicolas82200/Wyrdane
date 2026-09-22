@@ -574,6 +574,10 @@ class SimNoDrawOpponent:
 		pass
 	func get_deck_count() -> int:
 		return 0
+	# Voir SimAiSystemStub plus bas : renvoi en main côté adverse inerte en
+	# combat simulé (pas de vraie main/tour adverse ici).
+	func receive_card_to_hand(_card_data: CardData) -> void:
+		pass
 
 
 class SimNoDrawDeckSystem:

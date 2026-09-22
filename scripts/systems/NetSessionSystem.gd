@@ -25,7 +25,7 @@ func setup() -> void:
 	battle.net_opponent_backend_id = setup.get("opponent_backend_id", 0)
 	battle.net_client_match_id = setup.get("client_match_id", "")
 	battle.net_match_session_token = setup.get("match_session_token", "")
-	battle.net_emitter = NetEmitter.new(net)
+	battle.net_emitter = NetEmitter.new(net, battle)
 	net.connection_lost.connect(_on_connection_lost)
 	net.connection_restored.connect(_on_connection_restored)
 	net.peer_disconnected.connect(_on_peer_disconnected)
@@ -80,7 +80,24 @@ func _on_peer_disconnected(_reason: String) -> void:
 # en solo.
 func close() -> void:
 	if battle.network_manager != null:
-		battle.network_manager.send_command(NetCommand.leave_match())
-		battle.network_manager.close()
+		var net: NetworkManager = battle.network_manager
+		net.send_command(NetCommand.leave_match())
+		net.close()
+		# NetworkManager est une instance persistante réutilisée par toute la
+		# session (voir note plus haut) : sans ces déconnexions explicites, ce
+		# NetSessionSystem (et le PactChoiceSystem de cette même bataille,
+		# maintenant terminée) restaient abonnés à ses signaux et continuaient
+		# à réagir aux parties suivantes une fois la scène Battle détruite —
+		# cause du "SCRIPT ERROR: ... on a base object of type 'previously
+		# freed'" et de désynchronisations observées en partie réelle après
+		# plusieurs reconnexions dans la même session.
+		if net.connection_lost.is_connected(_on_connection_lost):
+			net.connection_lost.disconnect(_on_connection_lost)
+		if net.connection_restored.is_connected(_on_connection_restored):
+			net.connection_restored.disconnect(_on_connection_restored)
+		if net.peer_disconnected.is_connected(_on_peer_disconnected):
+			net.peer_disconnected.disconnect(_on_peer_disconnected)
+		if is_instance_valid(battle) and battle.pact_choice_system != null:
+			battle.pact_choice_system.cleanup()
 		battle.network_manager = null
 	NetContext.clear()

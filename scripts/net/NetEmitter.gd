@@ -16,37 +16,54 @@ class_name NetEmitter
 # réseau qui s'exécute toujours après.
 
 var _net: NetworkManager
+# Référence faible en pratique (Battle possède net_emitter, pas l'inverse) —
+# uniquement pour l'instantané d'état de NetDebugLog après chaque émission.
+var _battle
 
-func _init(net: NetworkManager) -> void:
+func _init(net: NetworkManager, battle = null) -> void:
 	_net = net
+	_battle = battle
+
+# Envoie la commande puis journalise l'état local résultant (voir
+# NetDebugLog) — factorisé ici pour que chaque méthode d'émission n'ait pas à
+# le répéter.
+func _send(command: Dictionary) -> void:
+	_net.send_command(command)
+	NetDebugLog.action_applied(_battle, "LOCAL", command)
 
 # ids : net_id de tous les serviteurs créés par l'action (capturés via NetRegistry).
-# target : cible choisie de l'effet, null si aucune.
+# target : cible choisie de l'effet — Minion, Hero, ou null si aucune (une
+# cible CardData, ex. enchantement/rituel visé, n'est pas encore synchronisable
+# faute d'id stable pour ce cas, voir CardSystem.gd).
 func play_card(card_data: CardData, row: String, insert_index: int,
-		ids: Array = [], target: Minion = null) -> void:
-	var target_id: int = target.net_id if target != null else NetCommand.TARGET_NONE
-	_net.send_command(NetCommand.play_card(
-		card_data.resource_path, row, insert_index, ids, target_id))
+		ids: Array = [], target = null, discounts: Array = []) -> void:
+	var target_id: int = NetCommand.TARGET_NONE
+	if target is Minion:
+		target_id = target.net_id
+	elif target is Hero:
+		target_id = NetCommand.TARGET_HERO
+	_send(NetCommand.play_card(
+		card_data.resource_path, row, insert_index, ids, target_id, discounts))
 
 func attack(attacker: Minion, defender: Minion, ids: Array = []) -> void:
-	_net.send_command(NetCommand.attack(attacker.net_id, defender.net_id, ids))
+	_send(NetCommand.attack(attacker.net_id, defender.net_id, ids))
 
 func attack_hero(attacker: Minion, ids: Array = []) -> void:
-	_net.send_command(NetCommand.attack_hero(attacker.net_id, ids))
+	_send(NetCommand.attack_hero(attacker.net_id, ids))
 
 func end_turn(ids: Array = []) -> void:
-	_net.send_command(NetCommand.end_turn(ids))
+	_send(NetCommand.end_turn(ids))
 
 func turn_start(ids: Array = []) -> void:
-	_net.send_command(NetCommand.turn_start(ids))
+	_send(NetCommand.turn_start(ids))
 
 # Activation locale d'un Rituel de Sacrifice (victimes déjà choisies).
 func activate_ritual(card_data: CardData, victim_ids: Array, ids: Array = []) -> void:
-	_net.send_command(NetCommand.activate_ritual(card_data.resource_path, victim_ids, ids))
+	_send(NetCommand.activate_ritual(card_data.resource_path, victim_ids, ids))
 
 # Activation locale du mot-clé FUSION (victime et mot-clé déjà choisis).
 func activate_fusion(source_id: int, victim_id: int, keyword_pool: String, keyword_name: String, ids: Array = []) -> void:
-	_net.send_command(NetCommand.activate_fusion(source_id, victim_id, keyword_pool, keyword_name, ids))
+	_send(NetCommand.activate_fusion(source_id, victim_id, keyword_pool, keyword_name, ids))
 
 # Emote cosmétique (voir EmoteWheel) — purement décoratif, aucun état à
 # resynchroniser si le paquet se perdait (improbable, le transport est fiable

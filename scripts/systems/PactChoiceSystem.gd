@@ -105,6 +105,16 @@ func _ensure_net_listener() -> void:
 	_connected_net = battle.network_manager
 	_connected_net.command_received.connect(_on_net_command_received)
 
+# Appelé par NetSessionSystem.close() : NetworkManager est une instance
+# persistante réutilisée par toute la session (voir NetSessionSystem.gd),
+# donc sans ce déconnect explicite, ce PactChoiceSystem (lié à une bataille
+# désormais terminée) resterait abonné à command_received et continuerait à
+# répondre aux PACT_REQUEST/PACT_CHOICE de parties suivantes.
+func cleanup() -> void:
+	if _connected_net != null and _connected_net.command_received.is_connected(_on_net_command_received):
+		_connected_net.command_received.disconnect(_on_net_command_received)
+	_connected_net = null
+
 func _on_net_command_received(command: Dictionary) -> void:
 	match NetCommand.type_of(command):
 		NetCommand.PACT_REQUEST:
