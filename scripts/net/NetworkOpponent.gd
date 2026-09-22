@@ -105,9 +105,11 @@ func take_turn() -> void:
 				# TempEffectSystem — ne s'exécute jamais pour le tour du pair.
 				await battle.temp_effect_system.expire_end_of_remote_turn()
 				battle.net_registry.set_imposed_ids([])
+				NetDebugLog.action_applied(battle, "DISTANT", cmd)
 				_turn_over = true
 				break
 			await _apply(cmd)
+			NetDebugLog.action_applied(battle, "DISTANT", cmd)
 			await battle.pace_actions()
 		if not _turn_over:
 			# Rien à rejouer pour l'instant : on attend le prochain paquet.
