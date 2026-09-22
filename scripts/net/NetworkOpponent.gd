@@ -20,6 +20,16 @@ func _init(network_manager: NetworkManager) -> void:
 	net = network_manager
 	net.command_received.connect(_on_command_received)
 
+# NetworkManager est une instance persistante réutilisée pour toute la
+# session (voir NetSessionSystem.gd) : sans ce déconnect, ce NetworkOpponent
+# (lié à une bataille désormais détruite) resterait abonné à command_received
+# et continuerait à recevoir/traiter les commandes des parties suivantes en
+# parallèle de l'adversaire réseau réellement actif — désynchronisation de
+# plateau observée en partie réelle après plusieurs reconnexions successives.
+func _exit_tree() -> void:
+	if net != null and net.command_received.is_connected(_on_command_received):
+		net.command_received.disconnect(_on_command_received)
+
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
 const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
