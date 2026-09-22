@@ -32,7 +32,14 @@ func _exit_tree() -> void:
 
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
-const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
+# Référence directe à DeckSystem.STARTING_HAND plutôt qu'une copie littérale :
+# une constante dupliquée à la main a divergé silencieusement de la vraie
+# valeur (7) pendant un temps indéterminé, mirrorant la main adverse à 5 dès
+# le début de CHAQUE partie réseau (2 cartes manquantes des deux côtés,
+# confirmé par diff de deux vrais godot.log de la même partie) — jusqu'à faire
+# rejeter à tort les PLAY_CARD de fin de main une fois le déficit cumulé assez
+# grand ("main distante vide").
+const STARTING_HAND := DeckSystem.STARTING_HAND
 
 # Compteurs cosmétiques du camp distant (dos de deck / main), suivis via les
 # commandes reçues faute de connaître les cartes réelles de l'adversaire.
