@@ -38,7 +38,9 @@ func _execute_effect_impl(
 	# Condition d'exécution : si non remplie, l'effet est purement et simplement
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
+		NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, false)
 		return
+	NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, true)
 	# skip_source_popup : l'appelant (ex. AISystem/NetworkOpponent pour un sort
 	# ciblé) a déjà affiché la popup de cette carte AVANT de jouer le son du
 	# sort — sans ce flag, ce même proxy (source_minion non nul, nécessaire pour

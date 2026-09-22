@@ -45,6 +45,46 @@ static func action_applied(battle, label: String, command: Dictionary) -> void:
 static func _format_command(command: Dictionary) -> String:
 	return str(command)
 
+# Trace CHAQUE effet de carte réellement résolu par EffectManager (Damage,
+# Buff, SummonMinion...) — appelé pour les DEUX camps, sur les DEUX clients
+# (EffectManager tourne identiquement pour une carte locale ou rejouée depuis
+# le réseau), donc directement comparable ligne à ligne entre les deux
+# godot.log : si un des deux ne voit pas la même ligne "EFFET" au même
+# endroit de la séquence, l'effet n'a pas été résolu pareil des deux côtés.
+# `executed` distingue un effet réellement appliqué d'un effet ignoré par sa
+# condition (CardEffect.condition_type) — une condition qui s'évalue
+# différemment d'un client à l'autre (ex. dépendant d'un compteur pas encore
+# synchronisé) serait sinon invisible dans ce log.
+static func effect_resolved(battle, source_minion, effect, selected_target, executed: bool) -> void:
+	# battle.get(...) plutôt que battle.network_manager : cette fonction est
+	# appelée depuis EffectManager, exercé par de nombreux doubles de test
+	# légers (et SimulatedBattle en mode Arena) qui ne déclarent pas cette
+	# propriété — un accès direct y lèverait une erreur d'exécution ("Invalid
+	# get index"), avortant l'effet en cours de résolution (régression
+	# constatée : 79 tests en échec/pending après l'introduction de ce log).
+	if not ENABLED or not is_instance_valid(battle) or battle.get("network_manager") == null:
+		return
+	var source_name: String = "(sort)"
+	if source_minion != null and source_minion.card_data != null:
+		source_name = "%s(#%d)" % [source_minion.card_data.card_name, source_minion.net_id]
+	var status: String = "exécuté" if executed else "IGNORÉ (condition non remplie)"
+	print("[NETDBG] EFFET %s : %s -> effect_id=%s cible=%s valeur=%d/%d" % [
+		source_name, status, effect.effect_id,
+		_format_target(battle, selected_target), effect.value, effect.value_2,
+	])
+
+static func _format_target(battle, target) -> String:
+	if target == null:
+		return "(aucune)"
+	if target is Minion:
+		var name: String = target.card_data.card_name if target.card_data != null else "?"
+		return "%s(#%d)" % [name, target.net_id]
+	if target is Hero:
+		return "Héros(%s)" % ("joueur" if target == battle.player_hero else "adversaire")
+	if target is CardData:
+		return "Carte:%s" % target.card_name
+	return str(target)
+
 # Instantané compact et déterministe de l'état de jeu, normalisé Hôte/Invité.
 static func snapshot_line(battle) -> String:
 	if battle.network_manager == null:
