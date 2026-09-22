@@ -62,6 +62,7 @@ func join_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) 
 func send_command(command: Dictionary, reliable: bool = true) -> void:
 	if transport == null:
 		return
+	NetDebugLog.command_sent(command)
 	transport.send(var_to_bytes(command), reliable)
 
 func close() -> void:
@@ -131,6 +132,7 @@ func _on_packet_received(bytes: PackedByteArray) -> void:
 	var command: Variant = bytes_to_var(bytes)
 	if not (command is Dictionary):
 		return
+	NetDebugLog.command_received(command)
 	if command.get("type", "") == NetCommand.LEAVE_MATCH:
 		# Départ volontaire du pair : pas de tentative de reconnexion, la partie
 		# est terminée pour de bon, immédiatement.
