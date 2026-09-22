@@ -35,17 +35,16 @@ const TIER_COLORS := {
 	Type.LEGEND:   Color(0.70, 0.35, 0.85, 1),
 }
 
-# Un seul glyphe par palier plutôt qu'une icône dédiée : cohérent avec les
-# autres indicateurs non basés sur la seule couleur du projet (voir
-# CLAUDE.md §Accessibilité, Card.RARITY_SYMBOLS).
-const TIER_SYMBOLS := {
-	Type.BRONZE:   "●",
-	Type.SILVER:   "◆",
-	Type.GOLD:     "★",
-	Type.PLATINUM: "▲",
-	Type.DIAMOND:  "✦",
-	Type.MASTER:   "⚔",
-	Type.LEGEND:   "♛",
+# Icône dédiée par palier (voir CLAUDE.md §Accessibilité) : remplace les
+# anciens glyphes texte, toujours affichée en plus de la couleur.
+const TIER_ICONS := {
+	Type.BRONZE:   preload("res://assets/icons/rank/bronze.png"),
+	Type.SILVER:   preload("res://assets/icons/rank/silver.png"),
+	Type.GOLD:     preload("res://assets/icons/rank/gold.png"),
+	Type.PLATINUM: preload("res://assets/icons/rank/platine.png"),
+	Type.DIAMOND:  preload("res://assets/icons/rank/diamond.png"),
+	Type.MASTER:   preload("res://assets/icons/rank/master.png"),
+	Type.LEGEND:   preload("res://assets/icons/rank/legend.png"),
 }
 
 static func from_mmr(mmr: int) -> int:
@@ -76,8 +75,8 @@ static func tier_key(tier: int) -> String:
 static func color(tier: int) -> Color:
 	return TIER_COLORS.get(tier, TIER_COLORS[Type.BRONZE])
 
-static func symbol(tier: int) -> String:
-	return TIER_SYMBOLS.get(tier, TIER_SYMBOLS[Type.BRONZE])
+static func icon(tier: int) -> Texture2D:
+	return TIER_ICONS.get(tier, TIER_ICONS[Type.BRONZE])
 
 # Nombre de points de MMR restants pour atteindre le palier suivant, ou -1 si
 # déjà au palier maximal (Légende, pas de plafond supérieur affiché).
