@@ -56,10 +56,12 @@ static func _tier_bounds(tier: int) -> Vector2i:
 		max_mmr = RankTier.THRESHOLDS.get(tiers[idx + 1], -1)
 	return Vector2i(min_mmr, max_mmr)
 
-# (Re)construit les onglets de palier depuis RankTier.Type.values() : un petit
+# (Re)construit les onglets de palier depuis RankTier.Type.values() : un
 # bouton par palier (icône seule, infobulle = nom complet) plutôt que du texte
 # complet — 7 paliers en toutes lettres ne tiendraient pas dans la largeur du
-# panneau.
+# panneau. Le nom du palier sélectionné est affiché en grand juste en dessous
+# (LeaderboardTierNameLabel, même taille que le titre de la vue) puisque
+# l'icône seule ne suffit pas à l'identifier sans ambiguïté.
 static func _build_tier_buttons(menu) -> void:
 	for c in menu.leaderboard_tiers_row.get_children():
 		c.queue_free()
@@ -68,13 +70,15 @@ static func _build_tier_buttons(menu) -> void:
 		var btn := Button.new()
 		btn.toggle_mode = true
 		btn.button_group = group
-		btn.custom_minimum_size = Vector2(40, 36)
+		btn.custom_minimum_size = Vector2(64, 60)
 		btn.icon = RankTier.icon(tier)
 		btn.expand_icon = true
 		btn.tooltip_text = SettingsManager.t(RankTier.tier_key(tier))
 		btn.button_pressed = tier == menu.leaderboard_tier
 		btn.pressed.connect(select_tier.bind(menu, tier))
 		menu.leaderboard_tiers_row.add_child(btn)
+	menu.leaderboard_tier_name_label.text = SettingsManager.t(RankTier.tier_key(menu.leaderboard_tier))
+	menu.leaderboard_tier_name_label.add_theme_color_override("font_color", RankTier.color(menu.leaderboard_tier))
 
 static func _clear_leaderboard(menu) -> void:
 	for c in menu.stats_list_vbox.get_children():
