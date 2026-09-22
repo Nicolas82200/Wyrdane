@@ -181,20 +181,25 @@ func _collect_virulent_adjacent(dead_minions: Array[Minion]) -> Array[Minion]:
 # ASSIMILATION (mot-clé) est traité ici en dur, sur le même modèle que
 # NÉCROPHAGE ci-dessus, mais +1/+1 seulement jusqu'au début du prochain tour
 # (une fois par vague de morts, pas par mort individuelle) : enregistré via
-# TempEffectSystem plutôt qu'en dur pour être réverti automatiquement. La
-# vague entière partage la même échéance ("UntilEndOfTurn" si c'est le tour
-# du joueur local, "UntilEndOfEnemyTurn" si c'est le tour adverse), afin que
-# le retrait coïncide avec le tout début du prochain tour, quel qu'il soit.
+# TempEffectSystem plutôt qu'en dur pour être réverti automatiquement.
+# "UntilEndOfTurn" pour toute la vague, quel que soit le tour en cours : ce
+# n'est PAS une ambiguïté avec le "UntilEndOfTurn" statique d'une carte —
+# TempEffectSystem détecte lui-même la provenance (tour local ou distant) au
+# moment de l'ajout et route vers la bonne expiration (fin du MÊME tour,
+# local ou distant), donnant exactement le "tout début du prochain tour, quel
+# qu'il soit" voulu ici. Utiliser encore "UntilEndOfEnemyTurn" pendant le tour
+# adverse serait redondant avec cette détection ET incorrect (cette valeur
+# signifie "survit tout le PROCHAIN tour adverse", pas "expire à la fin de
+# CE tour adverse-ci") — voir l'en-tête de TempEffectSystem.gd.
 func _trigger_devoration(dead_minions: Array[Minion]) -> void:
 	if dead_minions.is_empty():
 		return
 	var survivors: Array[Minion] = battle.player_minions + battle.enemy_minions
-	var duration: String = "UntilEndOfEnemyTurn" if battle.enemy_turn_active else "UntilEndOfTurn"
 	for minion in survivors:
 		if minion.has_abomination_keyword(KeywordAbomination.Type.ASSIMILATION):
 			minion.base_attack     += 1
 			minion.base_max_health += 1
-			battle.temp_effect_system.add_temp_stat_change(minion, 1, 1, duration)
+			battle.temp_effect_system.add_temp_stat_change(minion, 1, 1, "UntilEndOfTurn")
 			var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
 			if visual:
 				battle.animation_system.play_assimilation_buff(visual)

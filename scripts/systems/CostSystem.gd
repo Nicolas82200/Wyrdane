@@ -21,6 +21,10 @@ var battle
 var _temp_discounts: Dictionary = {true: {}, false: {}}
 # Nombre de serviteurs joués ce tour, par camp puis par race (clé = Race.Type).
 var _race_played_this_turn: Dictionary = {true: {}, false: {}}
+# Remises accordées côté joueur LOCAL à une carte non encore jouée (ex. Doigt
+# Écarlate : pioche une carte, celle-ci coûte moins ce tour si Démon) en
+# attente de synchronisation réseau — voir take_pending_sync_discounts().
+var _pending_sync_discounts: Array[Dictionary] = []
 
 # ─── Ressources de race (voir README « Système de Ressources par Race ») ──────
 # % du coût verrouillé sur le pool de race de la carte, selon sa rareté.
@@ -134,6 +138,22 @@ func add_temp_discount(card_data: CardData, amount: int, is_player: bool = true)
 	discounts[card_data] = int(discounts.get(card_data, 0)) + amount
 	if is_player and battle.hand != null:
 		battle.hand.refresh_costs()
+	# Remise sur une carte de NOTRE main réelle (donc inconnue du pair) : sans
+	# transmission explicite, son mirroir de notre coût resterait trop haut et
+	# pourrait rejeter à tort notre PLAY_CARD plus tard (can_afford renvoyant
+	# false alors que le coût réel, remisé, est payable) — voir
+	# NetworkOpponent._apply_play_card et take_pending_sync_discounts().
+	if is_player and battle.net_emitter != null and not card_data.resource_path.is_empty():
+		_pending_sync_discounts.append({"card": card_data.resource_path, "amount": amount})
+
+# Vide et retourne les remises accordées depuis le dernier appel, à joindre à
+# la commande réseau PLAY_CARD de la carte actuellement en cours de résolution
+# (voir CardSystem.gd) — le pair les rejoue via
+# NetworkOpponent._apply_play_card -> add_temp_discount(..., false).
+func take_pending_sync_discounts() -> Array[Dictionary]:
+	var pending: Array[Dictionary] = _pending_sync_discounts
+	_pending_sync_discounts = []
+	return pending
 
 # ─── Suivi de tour ────────────────────────────────────────────────────────────
 

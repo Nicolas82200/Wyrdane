@@ -21,12 +21,18 @@ func _init(net: NetworkManager) -> void:
 	_net = net
 
 # ids : net_id de tous les serviteurs créés par l'action (capturés via NetRegistry).
-# target : cible choisie de l'effet, null si aucune.
+# target : cible choisie de l'effet — Minion, Hero, ou null si aucune (une
+# cible CardData, ex. enchantement/rituel visé, n'est pas encore synchronisable
+# faute d'id stable pour ce cas, voir CardSystem.gd).
 func play_card(card_data: CardData, row: String, insert_index: int,
-		ids: Array = [], target: Minion = null) -> void:
-	var target_id: int = target.net_id if target != null else NetCommand.TARGET_NONE
+		ids: Array = [], target = null, discounts: Array = []) -> void:
+	var target_id: int = NetCommand.TARGET_NONE
+	if target is Minion:
+		target_id = target.net_id
+	elif target is Hero:
+		target_id = NetCommand.TARGET_HERO
 	_net.send_command(NetCommand.play_card(
-		card_data.resource_path, row, insert_index, ids, target_id))
+		card_data.resource_path, row, insert_index, ids, target_id, discounts))
 
 func attack(attacker: Minion, defender: Minion, ids: Array = []) -> void:
 	_net.send_command(NetCommand.attack(attacker.net_id, defender.net_id, ids))

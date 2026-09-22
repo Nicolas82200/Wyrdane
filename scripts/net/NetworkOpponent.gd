@@ -58,6 +58,14 @@ func get_deck_count() -> int:
 func get_hand_count() -> int:
 	return _hand_count
 
+# Carte rejoignant la main du pair par un autre biais que la pioche (renvoyée
+# du plateau, ramenée du cimetière...) — voir OpponentDriver.receive_card_to_hand.
+# Comme draw_card() : contenu réel inconnu localement, seul le compteur
+# cosmétique bouge (le pair reçoit la vraie carte de son côté).
+func receive_card_to_hand(_card_data: CardData) -> void:
+	_hand_count += 1
+	battle.update_enemy_hand_ui()
+
 # Effet local (ex. Autel des Damnés côté ennemi) déclenché en miroir sur les
 # deux clients : le pair distant pioche déjà sa vraie carte de son côté, on se
 # contente ici de refléter le changement dans les compteurs cosmétiques.
@@ -90,6 +98,12 @@ func take_turn() -> void:
 				# avec les ids imposés pour d'éventuelles invocations de triggers.
 				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.turn_system.run_turn_end_triggers(false)
+				# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour distant
+				# (ex. Sergent de Troupe joué par le pair) : sans cet appel, ils ne
+				# seraient purgés qu'à la fin de NOTRE tour suivant (un tour de
+				# retard) puisque TurnSystem.end_turn() — seul autre appelant de
+				# TempEffectSystem — ne s'exécute jamais pour le tour du pair.
+				await battle.temp_effect_system.expire_end_of_remote_turn()
 				battle.net_registry.set_imposed_ids([])
 				_turn_over = true
 				break
@@ -216,6 +230,16 @@ func _apply(cmd: Dictionary) -> void:
 func _load_remote_card(path: String) -> CardData:
 	return NetCardResolver.resolve(path)
 
+# Résout un target_id reçu du réseau en Minion (net_id), en héros (voir
+# NetCommand.TARGET_HERO — le héros ENNEMI du point de vue de l'émetteur est
+# NOTRE propre héros local, puisque nous sommes son adversaire), ou null.
+func _resolve_target(target_id: int):
+	if target_id == NetCommand.TARGET_HERO:
+		return battle.player_hero
+	if target_id != NetCommand.TARGET_NONE:
+		return battle.net_registry.resolve(target_id)
+	return null
+
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
 # Limité aux serviteurs pour l'instant : les sorts distants demandent un
@@ -224,6 +248,15 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
 		return
+	# Remises accordées par CETTE carte à une (ou plusieurs) autre(s) carte(s)
+	# de la main réelle du pair (ex. Doigt Écarlate) — voir
+	# CostSystem.take_pending_sync_discounts(). Appliquées avant toute autre
+	# vérification : sans elles, notre mirroir de son coût resterait trop haut
+	# et pourrait rejeter à tort son PLAY_CARD suivant pour la carte remisée.
+	for entry in cmd.get("discounts", []):
+		var discounted: CardData = _load_remote_card(entry.get("card", ""))
+		if discounted != null:
+			battle.cost_system.add_temp_discount(discounted, int(entry.get("amount", 0)), false)
 	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
 	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
 	if _hand_count <= 0:
@@ -257,7 +290,7 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		# résolue par net_id puis transmise directement au déclenchement ONPLAY,
 		# comme côté émetteur (voir CardSystem.resolve_with_target).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
-		var target: Minion = battle.net_registry.resolve(target_id) if target_id != NetCommand.TARGET_NONE else null
+		var target = _resolve_target(target_id)
 		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index, false, target)
 		if summoned == null:
 			# L'émetteur a réellement posé ce serviteur (sinon il n'aurait pas
@@ -313,16 +346,14 @@ func _apply_activate_fusion(cmd: Dictionary) -> void:
 # du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
 func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	battle.combat_log.card_played(card, false)
-	var early_target: Minion = null
-	if target_id != NetCommand.TARGET_NONE:
-		early_target = battle.net_registry.resolve(target_id)
+	var early_target = _resolve_target(target_id)
 	var shows_popup: bool = card.card_type != "Enchantment" \
 		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
 	if shows_popup:
 		await battle.card_popup_system.show_card_popup(card)
 	if card.card_type == "Instant" or card.card_type == "Ritual":
 		AudioManager.play_spell_cast(card)
-		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target if early_target is Minion else null)
 	if card.card_type == "Enchantment":
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
@@ -335,15 +366,17 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
-		var target: Minion = early_target
+		var target = early_target
 		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), même
 		# vérification que CardSystem côté émetteur, pour rester synchrone.
 		if await battle.trigger_system.try_cancel_first_enemy_spell(false):
 			battle.board_visual_system.refresh_board()
 			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
-		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
-		if target != null and await battle.trigger_system.try_cancel_spell(false, target):
+		# CardSystem côté émetteur (qui exige aussi un Minion), pour que les deux
+		# clients restent synchrones — un Rituel de ce genre ne s'applique de
+		# toute façon qu'à un serviteur, jamais au héros.
+		if target is Minion and await battle.trigger_system.try_cancel_spell(false, target):
 			battle.board_visual_system.refresh_board()
 			return
 		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent

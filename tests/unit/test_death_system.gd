@@ -145,21 +145,27 @@ func test_assimilation_buff_expires_at_start_of_next_turn() -> void:
 	battle.enemy_turn_active = false
 	await death_system.process_deaths()
 	assert_eq(survivor.base_attack, 3, "ASSIMILATION : +1/+1 accordé à la mort")
-	await battle.temp_effect_system.expire_end_of_player_turn()
+	await battle.temp_effect_system.expire_end_of_local_turn()
 	assert_eq(survivor.base_attack, 2, "ASSIMILATION : le buff n'est plus permanent, il expire au tour suivant")
 	assert_eq(survivor.base_max_health, 4)
 
-func test_assimilation_buff_granted_on_enemy_turn_expires_end_of_enemy_turn() -> void:
+# Depuis le correctif de provenance dans TempEffectSystem (voir son en-tête),
+# DeathSystem utilise systématiquement "UntilEndOfTurn" (jamais
+# "UntilEndOfEnemyTurn") : c'est la détection automatique de provenance
+# (created_locally, capturée via battle.enemy_turn_active à l'ajout) qui route
+# désormais vers la bonne expiration, plus le choix manuel de chaîne fait par
+# DeathSystem auparavant.
+func test_assimilation_buff_granted_on_enemy_turn_expires_end_of_remote_turn() -> void:
 	var survivor := _minion(2, 4, false, Race.Type.ABOMINATION, -1, KeywordAbomination.Type.ASSIMILATION)
 	var dying := _minion(1, 1, false)
 	dying.health = 0
 	battle.enemy_turn_active = true
 	await death_system.process_deaths()
 	assert_eq(survivor.base_attack, 3)
-	await battle.temp_effect_system.expire_end_of_player_turn()
+	await battle.temp_effect_system.expire_end_of_local_turn()
 	assert_eq(survivor.base_attack, 3, "granté pendant le tour adverse : ne doit pas expirer sur la fin du tour du joueur")
-	await battle.temp_effect_system.expire_end_of_enemy_turn()
-	assert_eq(survivor.base_attack, 2, "expire au début du prochain tour du joueur (fin du tour adverse)")
+	await battle.temp_effect_system.expire_end_of_remote_turn()
+	assert_eq(survivor.base_attack, 2, "expire à la fin de CE tour adverse (même tour que sa création)")
 
 func test_on_grief_fires_for_surviving_allies_when_ally_dies() -> void:
 	var survivor := _survivor_with_trigger("OnGrief")

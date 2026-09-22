@@ -15,12 +15,19 @@ func test_play_card_builds_expected_dictionary() -> void:
 		"index": 2,
 		"ids": [5, 6],
 		"target": 3,
+		"discounts": [],
 	})
 
 func test_play_card_defaults_to_no_ids_and_no_target() -> void:
 	var cmd := NetCommand.play_card("res://card.tres", "Back", -1)
 	assert_eq(cmd["ids"], [])
 	assert_eq(cmd["target"], NetCommand.TARGET_NONE)
+	assert_eq(cmd["discounts"], [])
+
+func test_play_card_carries_discounts() -> void:
+	var discounts := [{"card": "res://resources/cards/demon/troop-sergeant.tres", "amount": 1}]
+	var cmd := NetCommand.play_card("res://card.tres", "Front", -1, [], NetCommand.TARGET_NONE, discounts)
+	assert_eq(cmd["discounts"], discounts)
 
 func test_attack_builds_expected_dictionary() -> void:
 	assert_eq(NetCommand.attack(7, 9), {"type": NetCommand.ATTACK, "attacker": 7, "defender": 9, "ids": []})

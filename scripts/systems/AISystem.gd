@@ -102,6 +102,12 @@ func draw_card() -> void:
 func get_hand_count() -> int:
 	return hand.size()
 
+# Carte rejoignant la main de l'IA par un autre biais que la pioche (renvoyée
+# du plateau, ramenée du cimetière...) — voir OpponentDriver.receive_card_to_hand.
+func receive_card_to_hand(card_data: CardData) -> void:
+	if card_data != null:
+		hand.append(card_data)
+
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
 
 # Filet de sécurité, même principe que TutorialOpponent.MAX_TURN_SAFETY : si un
@@ -171,6 +177,11 @@ func _run_turn_actions(on_done: Callable) -> void:
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
 	_mark_phase("turn_end_triggers")
 	await battle.turn_system.run_turn_end_triggers(false)
+	# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour IA (ex. l'IA
+	# joue Sergent de Troupe) : sans cet appel, ils ne seraient purgés qu'à la
+	# fin de notre tour suivant (un tour de retard) — même correctif que côté
+	# réseau, voir NetworkOpponent.take_turn().
+	await battle.temp_effect_system.expire_end_of_remote_turn()
 	_mark_phase("discard_excess_hand")
 	_discard_excess_hand()
 	_mark_phase("done")
