@@ -178,6 +178,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
 @onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
 @onready var leaderboard_tiers_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardTiersRow
+@onready var leaderboard_tier_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardTierNameLabel
 @onready var leaderboard_search_field: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchField
 @onready var leaderboard_search_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardSearchButton
 @onready var leaderboard_jump_to_me_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardSearchRow/LeaderboardJumpToMeButton
