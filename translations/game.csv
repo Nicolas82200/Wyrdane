@@ -310,6 +310,7 @@ mulligan.hint,"Vous pouvez changer jusqu'à %d cartes","You may change up to %d 
 discard.banner,"Main trop pleine : défaussez %d carte(s)","Hand too full: discard %d card(s)"
 discard.hint,"Cliquez sur les cartes à défausser (15 secondes, sinon défausse aléatoire)","Click the cards to discard (15 seconds, otherwise a random discard)"
 mulligan.start_button,"Commencer","Start"
+mulligan.waiting_opponent,"En attente de l'adversaire...","Waiting for opponent..."
 KW_TAUNT_NAME,"Rempart","Taunt"
 KW_CHARGE_NAME,"Assaut","Charge"
 KW_AEGIS_NAME,"Égide","Aegis"
