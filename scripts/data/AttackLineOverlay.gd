@@ -47,9 +47,9 @@ func _draw_curve(from: Vector2, to: Vector2) -> void:
 	var delta := to - from
 	if delta.length() < 10.0:
 		return
-	# Courbe douce : part vers le haut avant de redescendre sur la souris
-	var cp1 := from + Vector2(delta.x * 0.3, -absf(delta.y) * 0.4 - 40.0)
-	var cp2 := to   + Vector2(-delta.x * 0.3, -absf(delta.y) * 0.2 - 20.0)
+	# Courbe légère : part vers le haut avant de redescendre sur la souris
+	var cp1 := from + Vector2(delta.x * 0.15, -absf(delta.y) * 0.2 - 18.0)
+	var cp2 := to   + Vector2(-delta.x * 0.15, -absf(delta.y) * 0.1 - 8.0)
 	var points := BezierCurve.cubic_points(from, cp1, cp2, to, SEGMENTS)
 	for i in range(points.size() - 1):
 		draw_line(points[i], points[i + 1], OUTLINE_COLOR, OUTLINE_WIDTH, true)
