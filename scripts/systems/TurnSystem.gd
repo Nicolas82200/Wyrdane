@@ -274,7 +274,8 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	if index not in battle._mulligan_swapped_indices:
 		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
-	battle.hand.flip_replace_at(index, new_data)
+	var deck_origin: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
+	battle.hand.flip_replace_at(index, new_data, deck_origin)
 	if battle.tutorial_active:
 		battle.tutorial_manager.notify_mulligan_swap(_card_data)
 
