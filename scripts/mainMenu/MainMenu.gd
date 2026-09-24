@@ -245,6 +245,7 @@ var _play_selected_deck_index: int = -1
 var _composition_deck_index: int = -1
 
 func _ready() -> void:
+	%VersionLabel.text = AppVersion.get_display_string()
 	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
@@ -258,10 +259,10 @@ func _ready() -> void:
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
 	collection_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
-	# PackShop n'est plus embarqué comme vue permanente : c'est l'écran
-	# d'ouverture (voir son commentaire d'en-tête), affiché par-dessus
-	# CollectionContentRoot uniquement quand le joueur choisit une quantité à
-	# ouvrir depuis la vue Collection (voir _open_owned_packs_flow ci-dessous).
+	# PackShop est un overlay transparent toujours présent par-dessus
+	# CollectionContentRoot (voir son commentaire d'en-tête) : il ne révèle
+	# des cartes qu'à la demande, directement autour du pack cliqué dans la
+	# vue Collection (voir _open_owned_packs_flow ci-dessous).
 	pack_shop.closed.connect(_on_pack_opening_closed)
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
@@ -522,21 +523,24 @@ func _select_shop_tab(tab: ShopTab) -> void:
 ## depuis le dernier passage).
 func _open_collection_view() -> void:
 	shop_collection_scroll.show()
-	ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow)
+	ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow, _on_buy_packs_from_collection_pressed)
 
-## Lance l'ouverture de `quantity` packs depuis la vue Collection : masque la
-## grille (sans quoi ses boutons resteraient cliquables sous l'écran
-## d'ouverture, qui ne bloque pas lui-même les clics en dessous — voir
-## PackShop.tscn, Overlay/ShakeLayer en mouse_filter IGNORE) et affiche
-## PackShop par-dessus CollectionContentRoot pour l'animation de révélation.
-func _open_owned_packs_flow(quantity: int) -> void:
-	shop_collection_scroll.hide()
-	pack_shop.close_x_button.show()
-	pack_shop.show()
-	pack_shop.open_owned(quantity)
+## Lance l'ouverture de `quantity` packs depuis la vue Collection : la grille
+## reste affichée (l'animation de révélation se joue directement autour du
+## pack cliqué, voir PackShop.open_owned) — le pack lui-même se désactive
+## dès le clic (voir ShopCollectionPanel._make_pack_input_handler) pour
+## éviter un double déclenchement pendant la révélation.
+func _open_owned_packs_flow(quantity: int, pack_image: Control) -> void:
+	pack_shop.open_owned(quantity, pack_image)
 
-## Referme l'écran d'ouverture (clic sur la croix) : revient sur la vue
-## Collection, reconstruite pour refléter le stock de packs restant.
+## Renvoie vers l'onglet "Packs" de la Boutique (bouton "Acheter des packs"
+## de la vue Collection).
+func _on_buy_packs_from_collection_pressed() -> void:
+	_select_shop_tab(ShopTab.PACKS)
+	_show_info_view(InfoView.SHOP)
+
+## Fin d'une séquence d'ouverture (dernier "Cliquer pour continuer") : revient
+## sur la vue Collection, reconstruite pour refléter le stock de packs restant.
 func _on_pack_opening_closed() -> void:
 	if _current_info_view == InfoView.COLLECTION:
 		_open_collection_view()

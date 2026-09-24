@@ -169,12 +169,17 @@ func get_profile(on_profile: Callable) -> void:
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
 # match_session_token : preuve d'appariement classé émise par le backend au
-# matchmaking (voir MatchmakingOverlay._on_ranked_matched, TODO.md P9) — vide
+# matchmaking (voir MatchmakingOverlay._on_queue_matched, TODO.md P9) — vide
 # pour une Partie rapide/Contre un ami, dans quel cas le champ est simplement
 # omis du payload plutôt qu'envoyé vide.
+# is_ranked : reflète Battle.is_ranked_match — seul "ranked" fait gagner/perdre
+# des points de classement (MMR public) côté backend ; toute autre partie
+# réseau (Normal, Contre un ami) est rapportée "normal" et ne touche jamais à
+# ce MMR public (voir rankedModel.confirmMatch côté wyrdane-backend — un MMR
+# caché distinct est mis à jour pour Normal, jamais exposé au client).
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "", cards_played_names: Array = []) -> void:
+		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
@@ -182,6 +187,7 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
 		"cardsPlayed": cards_played_names,
+		"mode": "ranked" if is_ranked else "normal",
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
@@ -255,9 +261,12 @@ func search_leaderboard(query: String, on_complete: Callable) -> void:
 # poll de queue_status et le rejoint directement (NetTransport.join avec
 # {"lobby_id": ...}), sans passer par la recherche de lobby publique.
 
-# Rejoint la file d'attente classée. on_complete(success, {ticket_id}).
-func queue_join(on_complete: Callable) -> void:
-	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue", {}, func(code: int, parsed: Variant):
+# Rejoint la file d'attente. mode : "ranked" (apparié sur le MMR public,
+# gagne/perd des points de classement) ou "normal" (apparié sur un MMR caché,
+# jamais affiché ni modifié par le classé — voir MatchmakingOverlay.start_normal
+# et rankedModel.confirmMatch côté wyrdane-backend). on_complete(success, {ticket_id}).
+func queue_join(mode: String, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue", {"mode": mode}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
 			on_complete.call(true, parsed)
 		else:

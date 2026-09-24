@@ -3,11 +3,16 @@ class_name CardPopupSystem
 
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 # Temps de lecture, popup en place, AVANT que l'effet ne se joue
-const READ_HOLD = 0.4
+# (0.4 -> 0.6, retour utilisateur : toujours trop rapide pour lire l'effet
+# avant qu'il ne se déclenche, notamment en réseau où la popup de l'adversaire
+# est la seule source d'information sur ce qu'il vient de jouer/payer)
+const READ_HOLD = 0.6
 # Temps où la popup reste affichée pendant/après la résolution de l'effet
-# (0.6 -> 0.9, +50% : le temps de lecture précédent laissait trop peu de
-# temps pour lire la description avant que la popup ne s'efface)
-const DISPLAY_DURATION = 0.9
+# (0.6 -> 0.9 -> 1.3, mêmes retours répétés sur la lisibilité — voir
+# ENEMY_TURN_HOLD_SCALE juste en dessous, qui compense côté rythme de tour
+# adverse pour ne pas réintroduire les tours à rallonge signalés le 2026-09-18,
+# voir TODO.md)
+const DISPLAY_DURATION = 1.3
 # Temps où la popup d'une carte-ressource reste affichée avant de se désintégrer
 # vers le pool de mana (voir show_resource_popup / _absorb_resource_popup)
 const RESOURCE_HOLD = 0.5

@@ -28,12 +28,12 @@ const CARD_PRICE_BY_RARITY := {
 # réelles sont appliquées côté serveur, doivent rester synchronisées avec
 # CARDS_PER_PACK/RARITY_WEIGHTS dans wyrdane-backend/backend/src/model/packModel.ts.
 # Clés en anglais (contrairement au backend) pour matcher CardData.rarity.
-const CARDS_PER_PACK_DISPLAY := 4
+const CARDS_PER_PACK_DISPLAY := 5
 const RARITY_WEIGHTS_DISPLAY := {
-	"Common": 60,
+	"Common": 58,
 	"Rare": 25,
 	"Epic": 12,
-	"Legendary": 3,
+	"Legendary": 5,
 }
 
 var balance: int = 0

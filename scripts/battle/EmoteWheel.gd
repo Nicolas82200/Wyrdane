@@ -5,7 +5,7 @@ class_name EmoteWheel
 ## purement décoratif, aucune incidence sur l'état de partie. Envoyé au pair
 ## distant via NetCommand.EMOTE (id seulement, jamais de texte libre, pour
 ## éviter tout abus type chat). Créé entièrement en code par Battle, même
-## convention que ConfirmActionPopup/TurnBanner.
+## convention que TurnBanner.
 
 signal emote_picked(emote_id: int)
 
