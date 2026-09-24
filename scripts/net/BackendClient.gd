@@ -501,6 +501,14 @@ func search_friends(query: String, on_data: Callable) -> void:
 		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
 	)
 
+# Résout les SteamID64 des amis Steam locaux (voir SteamService.
+# get_steam_friend_ids) vers les comptes Wyrdane correspondants — alimente la
+# section "Amis Steam" de FriendsPanel.gd. Chaque entrée : {id, username, steam_id}.
+func resolve_steam_friends(steam_ids: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/resolve-steam-ids", {"steamIds": steam_ids}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
 # Chaque entrée : {friendship_id, id, username, steam_id, presence}, presence
 # déjà résolue côté serveur ("online"/"in_game"/"offline" — voir
 # friendModel.getFriends côté backend).

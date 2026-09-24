@@ -23,6 +23,7 @@ static func open(menu) -> void:
 	menu.show_nav(menu.NavMode.FRIENDS)
 	menu.friends_search_line_edit.text = ""
 	menu.friends_search_results = []
+	menu.steam_friends_cache = []
 	fetch(menu)
 
 static func close(menu) -> void:
@@ -33,12 +34,39 @@ static func fetch(menu) -> void:
 		if menu._nav_mode != menu.NavMode.FRIENDS:
 			return
 		menu.friends_cache = friends if success else []
+		_fetch_steam_friends(menu)
 		BackendClient.get_incoming_friend_requests(func(req_success: bool, requests: Array):
 			if menu._nav_mode != menu.NavMode.FRIENDS:
 				return
 			menu.friend_requests_cache = requests if req_success else []
 			render(menu)
 		)
+	)
+
+# Amis Steam locaux qui ont un compte Wyrdane mais ne sont pas encore amis
+# Wyrdane (voir demande utilisateur : "je veux voir tous mes amis Steam qui
+# ont joué à Wyrdane"), pour les proposer en ajout en un clic sans recherche
+# manuelle. Appel réseau évité si le joueur n'a aucun ami Steam local ou si
+# Steam est indisponible (get_steam_friend_ids() renvoie [] dans les deux cas).
+static func _fetch_steam_friends(menu) -> void:
+	var steam_ids: Array = SteamService.get_steam_friend_ids()
+	if steam_ids.is_empty():
+		menu.steam_friends_cache = []
+		render(menu)
+		return
+	BackendClient.resolve_steam_friends(steam_ids, func(success: bool, results: Array):
+		if menu._nav_mode != menu.NavMode.FRIENDS:
+			return
+		var already_friend_ids: Array = []
+		for friend in menu.friends_cache:
+			if friend is Dictionary:
+				already_friend_ids.append(int(friend.get("id", 0)))
+		menu.steam_friends_cache = []
+		if success:
+			for result in results:
+				if result is Dictionary and not already_friend_ids.has(int(result.get("id", 0))):
+					menu.steam_friends_cache.append(result)
+		render(menu)
 	)
 
 static func search(menu) -> void:
@@ -61,6 +89,12 @@ static func render(menu) -> void:
 	if not menu.friends_search_results.is_empty():
 		_add_section_title(menu, SettingsManager.t("FRIENDS_SEARCH_RESULTS_TITLE"))
 		for result in menu.friends_search_results:
+			if result is Dictionary:
+				menu.friends_body.add_child(_make_search_result_row(menu, result))
+
+	if not menu.steam_friends_cache.is_empty():
+		_add_section_title(menu, SettingsManager.t("FRIENDS_STEAM_FRIENDS_TITLE"))
+		for result in menu.steam_friends_cache:
 			if result is Dictionary:
 				menu.friends_body.add_child(_make_search_result_row(menu, result))
 
