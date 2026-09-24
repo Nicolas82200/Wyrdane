@@ -1,8 +1,14 @@
-[gd_resource type="Resource" script_class="CardData" format=3]
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://crl7730wewyvc"]
 
+[ext_resource type="Script" uid="uid://c85woqh2ck2sx" path="res://scripts/card/KeywordChoiceAbomination.gd" id="1_bw8vk"]
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Script" uid="uid://ca1o1l2ekku4e" path="res://scripts/card/KeywordChoiceDemon.gd" id="2_sgtbf"]
 [ext_resource type="Texture2D" uid="uid://cpe7nkxwd5m6t" path="res://assets/card_art/artefact/stones-blessing.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
+[ext_resource type="Script" uid="uid://ibfjbfqajwqd" path="res://scripts/card/KeywordChoiceHuman.gd" id="4_qklf0"]
+[ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="5_epqmr"]
+[ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="8_qypm5"]
+[ext_resource type="Script" uid="uid://fly4qfjek3e6" path="res://scripts/card/KeywordChoiceUndead.gd" id="9_i3c3h"]
 
 [sub_resource type="Resource" id="Resource_eff1"]
 script = ExtResource("1_cardeffect")
@@ -19,9 +25,8 @@ description = "Un serviteur ciblé que vous contrôlez gagne ÉGIDE jusqu'à la 
 flavour_text = "La pierre ne bénit personne. Elle absorbe, simplement, ce qui devait frapper."
 texture = ExtResource("2_texture")
 cost = 2
-race = 0
+race = 7
 card_type = "Instant"
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_eff1")])
 requires_target = true
-rarity = "Common"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

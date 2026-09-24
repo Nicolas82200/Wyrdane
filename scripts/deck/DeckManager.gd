@@ -151,7 +151,7 @@ func race_warnings(deck: DeckData) -> Array[String]:
 		if card.card_type == "Resource":
 			resource_race_present[card.race] = true
 			resource_counts[card.race] = int(resource_counts.get(card.race, 0)) + 1
-		elif card.race != Race.Type.NONE:
+		elif not Race.is_raceless(card.race):
 			playable_race_present[card.race] = true
 			var race_cost: int = CostSystem.compute_race_cost(
 				card.cost, card.race, card.rarity, card.race_cost_override)

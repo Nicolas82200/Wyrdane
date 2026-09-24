@@ -131,6 +131,7 @@ const RACE_DESCRIPTIONS := {
 	Race.Type.DWARF:  "RACE_DWARF",
 	Race.Type.DEMON:  "RACE_DEMON",
 	Race.Type.ABOMINATION: "RACE_ABOMINATION",
+	Race.Type.ARTIFACT: "RACE_ARTIFACT",
 }
 
 # Résout une clé de traduction dans la langue courante.

@@ -72,7 +72,7 @@ var deck_has_legendary: bool = false
 var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
-	if card_data.race == Race.Type.NONE:
+	if Race.is_raceless(card_data.race):
 		return
 	var race_name := Race.get_race_name(card_data.race)
 	cards_played_by_race[race_name] = cards_played_by_race.get(race_name, 0) + 1

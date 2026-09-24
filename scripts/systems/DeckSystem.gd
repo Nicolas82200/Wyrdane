@@ -39,7 +39,7 @@ func _compute_deck_races() -> void:
 	for card in battle.deck:
 		if card.rarity == "Legendary":
 			battle.deck_has_legendary = true
-		if card.race == Race.Type.NONE:
+		if Race.is_raceless(card.race):
 			continue
 		var race_name := Race.get_race_name(card.race)
 		if race_name not in battle.deck_races:

@@ -68,7 +68,7 @@ const RACE_COLORS := {
 	Race.Type.ELF:    Color("#1f4038b0"),
 	Race.Type.DWARF:  Color("#3f280fb0"),
 	Race.Type.DEMON:  Color("#1e0308d6"),
-	Race.Type.NONE:   Color("#1a1712d6"),
+	Race.Type.ARTIFACT: Color("#1a1712d6"),
 }
 
 # Fond de NameLabel/DescLabel : fraction de l'opacité de RACE_COLORS appliquée
@@ -78,7 +78,7 @@ const LABEL_BG_ALPHA_FACTOR := 0.7
 
 # Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
 const RACE_ICON_COLORS := {
-	Race.Type.NONE:   Color("#c9b389"),
+	Race.Type.ARTIFACT: Color("#c9b389"),
 	Race.Type.UNDEAD: Color("#e2e2e2"),
 	Race.Type.ABOMINATION: Color("#bdeb9c"),
 	Race.Type.HUMAN:  Color("#f2d98f"),
@@ -251,9 +251,9 @@ func set_display_cost(cost_split: Dictionary) -> void:
 	var generic_cost: int = cost_split.get("generic", 0)
 	var reduced: bool = race_cost + generic_cost < data.cost
 	var color := Color(0.45, 1.0, 0.45) if reduced else Color.WHITE
-	# Race.Type.NONE (ex. Artefact) : coût entièrement générique, affiché dans
-	# le gros badge de race (voir update_display) plutôt qu'à "0".
-	if data.race == Race.Type.NONE:
+	# Race.Type.ARTIFACT : coût entièrement générique, affiché dans le gros
+	# badge de race (voir update_display) plutôt qu'à "0".
+	if data.race == Race.Type.ARTIFACT:
 		cost_label.text = str(race_cost + generic_cost)
 		cost_label.add_theme_color_override("font_color", color)
 		generic_cost_label.visible = false
@@ -272,10 +272,10 @@ func update_display() -> void:
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
 	cost_label.visible = true
-	# Race.Type.NONE (ex. Artefact) n'a pas de pool de race : le coût est
-	# entièrement générique. Affiché dans le badge de race (gros, premier plan)
-	# plutôt que dans le petit badge générique, sinon le gros badge reste à "0".
-	if not is_resource and data.race == Race.Type.NONE:
+	# Race.Type.ARTIFACT n'a pas de pool de race : le coût est entièrement
+	# générique. Affiché dans le badge de race (gros, premier plan) plutôt
+	# que dans le petit badge générique, sinon le gros badge reste à "0".
+	if not is_resource and data.race == Race.Type.ARTIFACT:
 		cost_label.text = str(data.cost)
 		generic_cost_label.visible = false
 	else:

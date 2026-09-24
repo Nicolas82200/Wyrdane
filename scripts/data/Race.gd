@@ -9,7 +9,16 @@ enum Type {
 	UNDEAD,
 	DEMON,
 	ABOMINATION,
+	ARTIFACT,
 }
+
+## Races "sans race" au sens deck/quêtes/coût : jamais comptées dans
+## l'identité de race d'un deck (Battle.deck_races, quêtes par race, coût de
+## race à payer). NONE = vraiment aucune race (cartes de test, sentinelle
+## par défaut) ; ARTIFACT = la race Artefact, volontairement jouable dans
+## n'importe quel deck (pas de pool/carte-ressource dédiée).
+static func is_raceless(race: int) -> bool:
+	return race == Type.NONE or race == Type.ARTIFACT
 
 static func get_race_name(race: int) -> String:
 	match race:
@@ -19,6 +28,7 @@ static func get_race_name(race: int) -> String:
 		Type.UNDEAD:      return "Undead"
 		Type.DEMON:       return "Demon"
 		Type.ABOMINATION: return "Abomination"
+		Type.ARTIFACT:    return "Artifact"
 		_:                return "None"
 
 ## Races dotées d'au moins une carte (utilisé pour ne proposer, dans l'UI,
@@ -34,6 +44,7 @@ static func from_string(s: String) -> int:
 		"Undead":      return Type.UNDEAD
 		"Demon":       return Type.DEMON
 		"Abomination": return Type.ABOMINATION
+		"Artifact":    return Type.ARTIFACT
 		_:             return Type.NONE
 
 # Libellé traduit des races distinctes présentes dans un deck (liste de

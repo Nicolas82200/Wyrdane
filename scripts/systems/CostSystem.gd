@@ -43,7 +43,7 @@ func get_race_cost(card_data: CardData, is_player: bool) -> int:
 # bataille (aperçus en main-hors-partie, deck builder, cimetière...) : n'a besoin
 # que du coût total déjà connu (typiquement card_data.cost, sans remises).
 static func compute_race_cost(total: int, race: int, rarity: String, override: int) -> int:
-	if total <= 0 or race == Race.Type.NONE:
+	if total <= 0 or Race.is_raceless(race):
 		return 0
 	if override >= 0:
 		return clampi(override, 0, total)

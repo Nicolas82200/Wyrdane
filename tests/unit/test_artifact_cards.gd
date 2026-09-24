@@ -1,7 +1,7 @@
 extends GutTest
 
-# Couvre la 5e race de cartes "Artefact" (thème Reliques Anciennes, Race.Type.NONE,
-# jouable dans n'importe quel deck) : intégrité des ressources .tres de
+# Couvre la 5e race de cartes "Artefact" (thème Reliques Anciennes, Race.Type.ARTIFACT,
+# jouable dans n'importe quel deck, sans pool/carte-ressource dédiée) : intégrité des ressources .tres de
 # resources/cards/artifact/ et logique non triviale carte par carte, exécutée
 # via EffectManager + FakeBattle (tests/unit/doubles/fake_battle.gd), sans
 # dépendre des autoloads globaux — convention GUT du projet (voir CLAUDE.md).
@@ -57,7 +57,7 @@ func test_all_artifact_resources_load_and_have_consistent_base_fields() -> void:
 		if file_name.ends_with(".tres"):
 			var card: CardData = load(ARTIFACT_DIR + file_name)
 			assert_not_null(card, "%s ne charge pas" % file_name)
-			assert_eq(card.race, Race.Type.NONE, "%s : race doit être NONE (Artefact, jouable dans n'importe quel deck)" % file_name)
+			assert_eq(card.race, Race.Type.ARTIFACT, "%s : race doit être ARTIFACT (jouable dans n'importe quel deck)" % file_name)
 			assert_ne(card.card_name, "", "%s : card_name vide" % file_name)
 			assert_true(card.cost >= 0, "%s : coût négatif (%d)" % [file_name, card.cost])
 			if card.card_type == "Minion":
