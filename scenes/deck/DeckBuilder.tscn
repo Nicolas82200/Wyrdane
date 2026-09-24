@@ -64,7 +64,7 @@ theme_override_constants/separation = 12
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "← Retour"
 
 [node name="HeaderLabel" type="Label" parent="MainVBox/HeaderBar/HeaderMargin/HeaderHBox" unique_id=100000023]
@@ -75,7 +75,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Constructeur de Deck"
 horizontal_alignment = 1
 
@@ -165,14 +165,14 @@ theme_override_constants/separation = 6
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 placeholder_text = "Nom du deck..."
 
 [node name="CardCountLabel" type="Label" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/HeaderRow" unique_id=100000010]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("6_uifont")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "0 / 60  (min 40)"
 horizontal_alignment = 0
 autowrap_mode = 3
@@ -204,7 +204,7 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.6, 0.3, 1)
 theme_override_fonts/font = ExtResource("6_uifont")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = ""
 autowrap_mode = 3
 
@@ -231,21 +231,21 @@ unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Acheter les cartes manquantes"
 
 [node name="SaveButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000015]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Sauvegarder le deck"
 
 [node name="TestDeckButton" type="Button" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000043]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Tester le deck"
 
 [node name="CardPreview" parent="." unique_id=100000040 instance=ExtResource("4_card")]

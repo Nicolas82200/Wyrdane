@@ -214,7 +214,7 @@ Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck bui
 ### Accessibilité
 
 Réglages centralisés dans `SettingsManager.gd`, tous persistés dans `user://display_settings.cfg` et exposés dans `GraphismSettingsMenu`/`ControlSettingsMenu` (menu Réglages, onglet Graphismes/Contrôles) :
-- **Échelle de l'interface** (`text_scale`, 85%–130%) — `content_scale_factor` du viewport racine.
+- **Échelle de l'interface** (`text_scale`, 85%–115%) — `content_scale_factor` du viewport racine. Plafond volontairement réduit (130% cassait complètement plusieurs écrans à taille fixe, deck builder/menu principal en tête) : pas de mise à l'échelle réellement robuste tant que ces écrans n'ont pas été audités un par un.
 - **Assistance daltonisme** (`colorblind_mode` : aucune/protanopie/deutéranopie/tritanopie) — overlay plein écran (`resources/shaders/colorblind_filter.gdshader`) qui décale les teintes confondues plutôt que de les simuler.
 - **Contraste élevé** (`high_contrast`) — overlay plein écran séparé (`resources/shaders/high_contrast_filter.gdshader`, boost contraste + saturation), cumulable avec l'assistance daltonisme.
 - **Réduction des animations** (`reduced_motion`) — désactive le shake d'écran (`AnimationSystem._shake`, y compris le shake inline de `play_attack_lunge`) et raccourcit à 35 % (`SettingsManager.motion_scale()`/`REDUCED_MOTION_SCALE`) la durée des tweens de déplacement/rotation les plus visibles (`AnimationSystem._t()`, `Hand.gd` animation de pioche, `CardPopupSystem.gd` popups d'effet). N'affecte pas les fondus courts (flash, disparition), dont la coupure nette serait plus perturbante que le mouvement.
@@ -235,7 +235,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 - Langage : GDScript, Godot 4.6
 - Les données de carte (stats, coût, rareté, triggers, texte d'effet) doivent rester cohérentes avec le format des tableaux dans `CARDS.md` — toute nouvelle carte ajoutée en code doit avoir son entrée correspondante dans `CARDS.md`
 - Rester cohérent avec les patterns déjà en place dans `scripts/data/` (CardData, Keyword) plutôt que d'introduire de nouvelles structures
-- **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=12, `BODY`=16, `SECTION`=20, `HEADER`=28, `HERO`=40). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
+- **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=13, `BODY`=17, `SECTION`=21, `HEADER`=29, `HERO`=41). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
 
 ### Isolation des agents
 
