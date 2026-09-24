@@ -241,10 +241,14 @@ var _mulligan_swapped_indices: Array[int] = []
 
 func _ready() -> void:
 	AudioManager.play_battle_music()
+	PresenceService.in_battle = true
 	_init_data()
 	_init_systems()
 	_connect_signals()
 	turn_system.start_match()
+
+func _exit_tree() -> void:
+	PresenceService.in_battle = false
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
