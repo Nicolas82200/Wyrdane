@@ -392,12 +392,12 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 **Dépenses**
 | Achat | Coût | Détail |
 |---|---|---|
-| Pack de cartes | 500 or | 4 cartes par pack, pondération par rareté Commune 60 / Rare 25 / Épique 12 / Légendaire 3 (ratio, somme non normalisée à 100) |
+| Pack de cartes | 500 or | 5 cartes par pack, pondération par rareté Commune 58 / Rare 25 / Épique 12 / Légendaire 5 (ratio, somme non normalisée à 100) |
 | Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
 
 **Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
 
-**Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. L'onglet « Collection » de la Boutique affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) et permet de l'ouvrir par lot de 1/2/5/10 (`POST /api/packs/open-owned`, une requête par pack, l'écran de révélation les enchaîne).
+**Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. La vue « Collection » (menu principal, distincte de la Boutique) affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) sous forme d'une pastille dorée à côté du pack, et permet de l'ouvrir directement en cliquant dessus (1 pack), Ctrl+clic (5) ou Maj+clic (10, uniquement si le stock couvre la quantité demandée) — `POST /api/packs/open-owned`, une requête par pack, la révélation les enchaîne. Un bouton « Acheter des packs » en bas de la vue renvoie vers l'onglet Packs de la Boutique. Les cartes révélées apparaissent directement autour du pack cliqué (pas d'écran séparé) : 1ère à gauche, 2e à droite, 3e sous la 1ère, 4e sous la 2e, 5e sous le pack — agrandies x1,5 au survol une fois révélées, un clic sur « Cliquer pour continuer » referme la révélation (ou enchaîne le pack suivant pour un lot).
 
 Toutes ces valeurs vivent en dur dans le code (`CurrencyManager.gd` côté client à titre indicatif, `packModel.ts`/`collectionModel.ts`/`questModel.ts`/`loginRewardModel.ts`/`rewardsController.ts` côté `wyrdane-backend` en source de vérité) — les deux côtés doivent rester synchronisés manuellement, voir les commentaires croisés dans chaque fichier.
 
