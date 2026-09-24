@@ -879,7 +879,7 @@ func _show_game_over(result: String) -> void:
 		})
 		game_over_screen.show_quests()
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races, net_match_session_token, cards_played_names)
+			cards_played_by_race, deck_races, net_match_session_token, cards_played_names, is_ranked_match)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:
