@@ -12,13 +12,18 @@
 # le joueur local. Deux façons pour le pair de connaître la décision distante,
 # selon QUI résout le déclencheur en direct (voir `resolve_trigger`) :
 #   - Cas courant (le propriétaire résout son propre déclencheur — Arrivée
-#     d'un de ses serviteurs, Éveil de tour, etc.) : le propriétaire décide et
-#     envoie sa décision (PACT_CHOICE) AVANT même d'émettre la commande de
-#     l'action elle-même (PLAY_CARD/TURN_START/...), puisque cette commande
-#     n'est émise par NetEmitter qu'une fois toute la résolution locale
-#     terminée (voir NetEmitter.play_card/turn_start...) — la décision est
-#     donc déjà en route quand le pair rejoue cette action via NetworkOpponent
-#     et en a besoin (`_await_remote_answer`, pas de round-trip nécessaire).
+#     d'un de ses serviteurs, Éveil de tour, etc.) : le propriétaire envoie
+#     d'abord une annonce (PACT_ANNOUNCE, AVANT même d'ouvrir sa propre popup
+#     `ask()`) puis sa décision (PACT_CHOICE) une fois choisie — les deux AVANT
+#     même d'émettre la commande de l'action elle-même (PLAY_CARD/TURN_START/...),
+#     puisque cette commande n'est émise par NetEmitter qu'une fois toute la
+#     résolution locale terminée (voir NetEmitter.play_card/turn_start...).
+#     Sans l'annonce, le pair n'aurait aucun moyen de savoir qu'une décision
+#     est en cours tant que PLAY_CARD n'arrive pas — à ce moment-là la
+#     décision serait déjà connue (déjà reçue via PACT_CHOICE), donnant
+#     l'impression que la carte n'est jamais "en attente" (voir
+#     `_handle_remote_announce`, qui affiche la popup d'attente dès l'annonce
+#     et met la réponse en cache pour le rejeu ultérieur de la même action).
 #   - Cas croisé (l'ADVERSAIRE résout en direct un déclencheur qui touche NOTRE
 #     carte — ex. Blessure causée par SON attaque sur notre serviteur Pacte) :
 #     à cet instant, nous ne savons même pas encore qu'une action est en cours
@@ -49,6 +54,11 @@ var _remote_answers: Array[bool] = []
 # PACT_REQUEST distant : le rejeu normal de la même action ne doit pas
 # redemander, seulement consommer cette valeur déjà transmise au pair.
 var _prefetched_own_answers: Array[bool] = []
+# Réponses pour une carte du PAIR déjà obtenues via une popup d'attente
+# affichée par anticipation (PACT_ANNOUNCE, voir _handle_remote_announce) :
+# le rejeu normal de resolve_trigger (déclenché par PLAY_CARD) ne doit pas
+# réafficher une seconde popup, seulement consommer cette valeur.
+var _prefetched_remote_answers: Array[bool] = []
 
 func init(_battle) -> void:
 	battle = _battle
@@ -72,10 +82,21 @@ func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
 		if is_player:
 			if not _prefetched_own_answers.is_empty():
 				return _prefetched_own_answers.pop_front()
+			# Annonce envoyée AVANT d'ouvrir notre propre popup de choix : le pair
+			# affiche alors sa popup d'attente en direct, en même temps que la
+			# nôtre, plutôt que de ne rien voir jusqu'au rejeu de PLAY_CARD (voir
+			# le commentaire d'en-tête et _handle_remote_announce).
+			if is_instance_valid(battle) and battle.network_manager != null:
+				battle.network_manager.send_command(NetCommand.pact_announce(card_data.resource_path, value))
 			var paid: bool = await ask(card_data, value)
 			if is_instance_valid(battle) and battle.network_manager != null:
 				battle.network_manager.send_command(NetCommand.pact_choice(paid))
 			return paid
+		# Réponse déjà obtenue par anticipation (popup d'attente affichée dès
+		# l'annonce, voir _handle_remote_announce) : rien à réafficher, ce rejeu
+		# ne fait que consommer la valeur déjà connue.
+		if not _prefetched_remote_answers.is_empty():
+			return _prefetched_remote_answers.pop_front()
 		# battle.enemy_turn_active : false uniquement pendant NOTRE résolution
 		# EN DIRECT (Battle.set_enemy_turn) — jamais vrai en même temps chez les
 		# deux clients, le jeu étant strictement au tour par tour. Si c'est le
@@ -83,7 +104,8 @@ func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
 		# sait pas encore qu'il doit décider, il faut le lui demander. Sinon,
 		# nous sommes en train de rejouer SON action (NetworkOpponent) : sa
 		# décision, prise chez lui avant l'envoi de cette même action, est déjà
-		# en route ou déjà arrivée.
+		# en route ou déjà arrivée (ou sera captée par _handle_remote_announce
+		# avant même ce rejeu, dans le cas courant d'un déclencheur Arrivée).
 		if not battle.enemy_turn_active:
 			battle.network_manager.send_command(NetCommand.pact_request(card_data.resource_path, value))
 		return await _watch_remote_answer(card_data, value)
@@ -121,6 +143,8 @@ func _on_net_command_received(command: Dictionary) -> void:
 			_handle_remote_request(command)
 		NetCommand.PACT_CHOICE:
 			_remote_answers.append(bool(command.get("paid", false)))
+		NetCommand.PACT_ANNOUNCE:
+			_handle_remote_announce(command)
 
 # Le pair résout EN DIRECT un déclencheur sur l'UNE DE NOS cartes et attend
 # notre décision pour pouvoir continuer sa propre résolution : on répond tout
@@ -137,6 +161,23 @@ func _handle_remote_request(command: Dictionary) -> void:
 	_prefetched_own_answers.append(paid)
 	if is_instance_valid(battle) and battle.network_manager != null:
 		battle.network_manager.send_command(NetCommand.pact_choice(paid))
+
+# Le pair vient de commencer à décider pour SA PROPRE carte tout juste jouée
+# (déclencheur Arrivée résolu avant même l'envoi de PLAY_CARD, voir
+# resolve_trigger) : on affiche déjà la popup d'attente ICI, en même temps que
+# sa propre popup de choix chez lui, plutôt que d'attendre le rejeu de
+# PLAY_CARD — qui arrivera une fois sa décision déjà connue (PACT_CHOICE,
+# envoyé juste après cette annonce) et ne donnerait alors plus aucune
+# impression d'attente réelle. La réponse est mise en cache
+# (_prefetched_remote_answers) pour que ce rejeu ultérieur de resolve_trigger
+# la consomme directement sans réafficher une seconde popup.
+func _handle_remote_announce(command: Dictionary) -> void:
+	var card: CardData = NetCardResolver.resolve(command.get("card", ""))
+	var value: int = int(command.get("value", 0))
+	if card == null or value <= 0:
+		return
+	var paid: bool = await _watch_remote_answer(card, value)
+	_prefetched_remote_answers.append(paid)
 
 # Affiche la carte du Pacte (comme ask()) pendant qu'on attend la décision du
 # VRAI propriétaire — sans bouton, juste un texte d'attente — pour que le

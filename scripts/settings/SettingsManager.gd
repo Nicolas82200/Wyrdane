@@ -37,8 +37,13 @@ const QUALITIES := ["low", "medium", "high"]
 const DEFAULT_QUALITY := "high"
 
 # Échelle de l'interface (accessibilité : agrandit texte + éléments d'UI).
+# Implémentée via Window.content_scale_factor (zoom du viewport racine) :
+# au-delà de ~1.15, plusieurs panneaux à taille fixe (deck builder, menu
+# principal...) débordent de leur conteneur faute d'un passage en revue
+# complet de tous les écrans pour un système de mise à l'échelle robuste.
+# Plafond volontairement réduit (1.3 cassait complètement l'interface).
 const TEXT_SCALE_MIN := 0.85
-const TEXT_SCALE_MAX := 1.3
+const TEXT_SCALE_MAX := 1.15
 const DEFAULT_TEXT_SCALE := 1.0
 
 # Filtre d'assistance daltonisme, voir resources/shaders/colorblind_filter.gdshader.
@@ -138,16 +143,6 @@ var text_scale: float = DEFAULT_TEXT_SCALE
 var colorblind_mode: String = DEFAULT_COLORBLIND_MODE
 var high_contrast: bool = DEFAULT_HIGH_CONTRAST
 var reduced_motion: bool = DEFAULT_REDUCED_MOTION
-# Réglages Gameplay (voir GameplaySettingsMenu) : demandent une confirmation
-# avant d'exécuter une attaque/un sacrifice (single-attaquant uniquement, voir
-# SelectionSystem/SacrificeSystem — la multi-attaque via Ctrl+clic reste sans
-# confirmation, déjà un choix groupé délibéré du joueur).
-var confirm_before_attack: bool = false
-var confirm_before_sacrifice: bool = false
-# Fin de tour automatique dès que la main est vide et qu'aucun serviteur ne
-# peut plus attaquer (voir Battle.check_auto_pass_turn — cas volontairement
-# conservateur, ne couvre pas un Rituel de Sacrifice encore activable).
-var auto_pass_turn: bool = false
 var _colorblind_overlay: ColorRect
 var _high_contrast_overlay: ColorRect
 
@@ -406,24 +401,6 @@ func set_reduced_motion(enabled: bool) -> void:
 	reduced_motion_changed.emit(enabled)
 	display_settings_changed.emit()
 
-func set_confirm_before_attack(enabled: bool) -> void:
-	if confirm_before_attack == enabled:
-		return
-	confirm_before_attack = enabled
-	_save()
-
-func set_confirm_before_sacrifice(enabled: bool) -> void:
-	if confirm_before_sacrifice == enabled:
-		return
-	confirm_before_sacrifice = enabled
-	_save()
-
-func set_auto_pass_turn(enabled: bool) -> void:
-	if auto_pass_turn == enabled:
-		return
-	auto_pass_turn = enabled
-	_save()
-
 # Facteur multiplicatif à appliquer à la durée des tweens de déplacement
 # (voir AnimationSystem._t, Hand.gd, CardPopupSystem.gd).
 func motion_scale() -> float:
@@ -525,9 +502,6 @@ func _save() -> void:
 	cfg.set_value("display", "colorblind_mode", colorblind_mode)
 	cfg.set_value("display", "high_contrast", high_contrast)
 	cfg.set_value("display", "reduced_motion", reduced_motion)
-	cfg.set_value("gameplay", "confirm_before_attack", confirm_before_attack)
-	cfg.set_value("gameplay", "confirm_before_sacrifice", confirm_before_sacrifice)
-	cfg.set_value("gameplay", "auto_pass_turn", auto_pass_turn)
 	cfg.set_value("input", "keybinds", keybinds)
 	cfg.save(CONFIG_PATH)
 
@@ -577,9 +551,6 @@ func _load() -> void:
 		colorblind_mode = DEFAULT_COLORBLIND_MODE
 	high_contrast = cfg.get_value("display", "high_contrast", DEFAULT_HIGH_CONTRAST) as bool
 	reduced_motion = cfg.get_value("display", "reduced_motion", DEFAULT_REDUCED_MOTION) as bool
-	confirm_before_attack = cfg.get_value("gameplay", "confirm_before_attack", false) as bool
-	confirm_before_sacrifice = cfg.get_value("gameplay", "confirm_before_sacrifice", false) as bool
-	auto_pass_turn = cfg.get_value("gameplay", "auto_pass_turn", false) as bool
 	var saved_keybinds = cfg.get_value("input", "keybinds", {})
 	if saved_keybinds is Dictionary:
 		for action in saved_keybinds:
