@@ -4,8 +4,10 @@ class_name RecentOpponentsPanel
 # Section "Social" minimale, ajoutée dynamiquement en bas de la vue Profil
 # (même esprit que ReferralPanel) : liste des derniers adversaires réseau
 # affrontés (purement local, voir SettingsManager.recent_opponents) + accès à
-# l'overlay natif Steam pour la liste d'amis/demandes/blocage — pas de système
-# d'amis dédié côté jeu, Steam gère déjà tout cela nativement.
+# l'overlay natif Steam pour la liste d'amis/demandes/blocage (distinct du
+# système d'amis Wyrdane, voir FriendsPanel.gd — le bouton Amis dédié vit sous
+# l'avatar/pseudo dans le menu principal, pas ici, mais un raccourci y renvoie
+# pour rester découvrable depuis l'onglet Communauté du profil).
 # "Ajouter en ami" pour un adversaire précis n'est proposé qu'immédiatement
 # après la partie (voir GameOverScreen), jamais depuis cette liste
 # rétrospective : on n'y connaît que son pseudo, jamais son SteamID64 (voir
@@ -33,6 +35,11 @@ static func open(menu) -> void:
 	title.add_theme_font_size_override("font_size", Typography.SECTION)
 	title.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	header_row.add_child(title)
+
+	var wyrdane_friends_button := Button.new()
+	wyrdane_friends_button.text = SettingsManager.t("MENU_FRIENDS_NAV_BUTTON")
+	wyrdane_friends_button.pressed.connect(func(): FriendsPanel.open(menu))
+	header_row.add_child(wyrdane_friends_button)
 
 	var friends_button := Button.new()
 	friends_button.text = SettingsManager.t("MENU_FRIENDS_BUTTON")

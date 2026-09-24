@@ -48,9 +48,23 @@ static func deck_race_label(card_paths: Array, unknown_key: String = "NET_VS_UNK
 		var card := load(path) as CardData
 		if card == null or card.race == Type.NONE:
 			continue
-		var race_name := SettingsManager.t("RACE_" + get_race_name(card.race).to_upper())
+		var race_name := get_race_name(card.race)
 		if race_name not in race_names:
 			race_names.append(race_name)
-	if race_names.is_empty():
+	return race_names_label(race_names, unknown_key)
+
+# Même libellé traduit que deck_race_label, mais à partir de noms de race déjà
+# résolus (ex. "Human"/"Undead", tels que renvoyés par
+# rankedModel.getMatchHistory côté backend, deck_races/opponent_deck_races) —
+# pas de CardData à charger. Utilisé par MatchHistoryPanel.
+static func race_names_label(race_names: Array, unknown_key: String = "NET_VS_UNKNOWN_DECK") -> String:
+	var translated: Array[String] = []
+	for race_name in race_names:
+		if not (race_name is String):
+			continue
+		var label := SettingsManager.t("RACE_" + race_name.to_upper())
+		if label not in translated:
+			translated.append(label)
+	if translated.is_empty():
 		return SettingsManager.t(unknown_key)
-	return " / ".join(race_names)
+	return " / ".join(translated)

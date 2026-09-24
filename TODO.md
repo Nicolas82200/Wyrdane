@@ -21,6 +21,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 **Page Steamworks validée par Valve.** `SteamService.APP_ID` pointe sur le vrai AppID Wyrdane (5052390), accessible à tout compte Steam sans ajout manuel comme testeur. Reste :
 - Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
 - Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
+- **Résolu (2026-09-24)** : versionning (`VERSION.txt`, `AppVersion.gd`, affichage dynamique dans `MainMenu`) — voir « Versionning » dans `CLAUDE.md`. Penser à lancer `tools/bump_version.ps1` avant chaque build Steam.
 - ~~Invitations d'amis~~ **Déjà implémenté** — vérifié dans le code : `SteamTransport.invite_friends()` (overlay `activateGameOverlayInviteDialog`) câblé bout en bout via `MatchmakingOverlay.start_invite()` (héberge un lobby si besoin, puis ouvre l'overlay dès qu'il est prêt). Cette liste et la roadmap listaient ce point par erreur comme restant à faire.
 - Effort : moyen mais surtout administratif (hors code).
 
@@ -103,6 +104,90 @@ et les nouvelles routes `/leaderboard/me`, `/leaderboard/around-me`,
 sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
 format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
 section 5.
+
+## P13 — MMR caché Normal / MMR public Classé : migration prod à jouer
+
+**Code écrit des deux côtés (client + `wyrdane-backend`), pas encore actif en
+prod.** Avant cette tâche, n'importe quelle partie réseau (Normal, Contre un
+ami, Classé) modifiait le MMR public (`ranked_stats.mmr`) — aucune distinction
+côté backend. Désormais `report_ranked_match` porte un champ `mode` et seul le
+Classé touche à `ranked_stats.mmr`/`wins`/`losses` ; Normal (et tout ce qui
+n'est pas explicitement classé) met à jour un MMR **caché** séparé
+(`ranked_stats.hidden_mmr`, jamais exposé au client) utilisé uniquement pour
+apparier des Normal de niveau similaire — voir « Ranked / paliers /
+matchmaking classé » plus haut pour le détail (`_queue_mode`,
+`NORMAL_QUEUE_TIMEOUT`, repli silencieux sur l'ancien comportement direct si
+le backend est indisponible).
+
+Reste à faire avant que ce soit réellement actif :
+- **Migration DB** : `npm run db:sync` (ou l'équivalent conteneur, voir
+  « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de
+  `wyrdane-backend`) doit tourner sur le VPS pour ajouter `ranked_stats.hidden_mmr`,
+  `matchmaking_tickets.mode` et `match_reports.mode` — sans ça, le code neuf
+  échouera sur les colonnes absentes dès le déploiement.
+- **Merge + déploiement** de la branche `wyrdane-backend` correspondante dans
+  `main` (déploiement continu déjà en place, voir « Infra & déploiement »).
+- **Jamais testé en conditions Steam réelles** (comme tout ce qui touche au
+  matchmaking, nécessite deux comptes Steam) : en particulier le repli Normal
+  → recherche directe après `NORMAL_QUEUE_TIMEOUT`/échec backend, et le
+  réessai de `queue_report_lobby` (voir bug ci-dessous).
+- Le bug historique « partie classée qui ne se lance jamais entre deux amis
+  qui viennent de la lancer » n'a pas de cause confirmée en conditions
+  réelles (pas reproduit dans une session de dev) : la piste la plus probable
+  identifiée est un échec silencieux de `queue_report_lobby` côté hôte
+  (appelé jusque-là sans callback ni retry) — corrigé (réessai + message
+  d'erreur explicite si les 3 tentatives échouent, voir
+  `MatchmakingOverlay._report_queue_lobby`), mais à confirmer en vrai avant de
+  considérer le ticket clos.
+
+## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
+
+Même situation que P12/P13 ci-dessus : le client (`MatchHistoryPanel.gd`,
+onglet « Historique » du profil) consomme `GET /api/ranked/matches/history`
+et `ranked.totalPlayers` sur `GET /api/profile`, tous deux ajoutés côté
+`wyrdane-backend` branche `0077-profile-rank-and-match-history` — **pas
+encore mergée dans `main`, donc pas déployée**. `match_history` gagne aussi
+trois colonnes additives (`mmr_change_player1/2`, `duration_sec`), ajoutées
+via `db:sync` comme les autres migrations additives (voir « Appliquer un
+changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`) —
+aucune donnée existante affectée, mais sans ce `db:sync` en prod l'onglet
+Historique affichera des échecs de chargement (404) une fois le client
+déployé. Le champ `mode` ajouté par P13 ci-dessus à `POST /api/ranked/matches/report`
+est envoyé par le client dans tous les cas (`report_ranked_match` porte
+maintenant `is_ranked`/`durationSec` ensemble) mais ignoré par cette branche
+backend tant qu'elle n'a pas elle-même absorbé le changement de P13 — sans
+conséquence : le backend actuel n'exploite aucun champ de payload inconnu.
+
+## P15 — Système d'amis Wyrdane + chat : écrit des deux côtés, pas encore mergé/déployé
+
+Demande utilisateur du 2026-09-24, implémentée en session suivante (les deux
+côtés, voir CLAUDE.md « Amis et chat » côté `card-game` et « Amis, chat et
+présence » côté `wyrdane-backend`) : système d'amis propre à Wyrdane (ajout
+par pseudo, liste avec statut en ligne/en jeu/hors ligne + étiquette Steam si
+l'ami est aussi un ami Steam), panneau Amis qui prend la place des boutons de
+navigation du menu principal (clic gauche sur un ami = ouvre le chat, clic
+droit = menu contextuel Inviter/Voir le profil/Signaler/Supprimer), chat privé
+entre amis avec badge de non-lus, historique **persisté en base**, polling
+HTTP (pas de WebSocket, décision utilisateur).
+
+**Pas encore mergé/déployé** (même situation que P12/P14 ci-dessus) :
+- Backend : `wyrdane-backend` branche `0079-friends-and-chat` — tables
+  `friendships`/`messages` + colonnes `users.last_heartbeat_at`/`in_game`,
+  nécessite `db:sync` sur le VPS après déploiement.
+- Client : worktree `0614-friends-chat` (`FriendsPanel.gd`, `ChatPanel.gd`,
+  `PresenceService.gd`).
+- Tant que le backend n'est pas déployé, le panneau Amis/le chat afficheront
+  des échecs de chargement silencieux (les BackendClient.* correspondants
+  répondent `success=false`/liste vide sur toute erreur HTTP, pas de crash).
+
+**Limitation connue, pas de bonne solution actuellement** : « Inviter à
+jouer » depuis le menu contextuel ne cible pas directement l'ami — il renvoie
+vers l'écran de choix de mode (Multijoueur → Contre un ami), qui ouvre
+l'overlay natif Steam d'invitation. Le transport reste Steam P2P (voir
+« Multijoueur (1v1 réseau) »), qui n'expose aucune API pour inviter un
+SteamID précis en dehors de cet overlay — lequel ne liste que les amis
+*Steam*, pas les amis *Wyrdane* qui ne le seraient pas. Repenser cela
+demanderait de revoir le transport réseau lui-même, hors de portée ici.
 
 ## Non-problèmes vérifiés pendant cette revue
 

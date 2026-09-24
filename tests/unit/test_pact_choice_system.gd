@@ -196,6 +196,70 @@ func test_on_net_command_received_pact_request_asks_local_player_and_replies() -
 	assert_true(net.sent[0].get("paid", false), "doit répondre avec la décision du joueur local")
 	assert_eq(pact_choice_system._prefetched_own_answers, [true], "la décision doit être mise en cache pour le rejeu ultérieur de cette même action")
 
+# ─── Annonce anticipée (PACT_ANNOUNCE) ────────────────────────────────────────
+# Couvre le cas courant (déclencheur Arrivée résolu au moment même où la carte
+# est posée, ex. Croc de Braise/Embermaw) : sans annonce préalable, le pair ne
+# voit la carte qu'au rejeu de PLAY_CARD, à un moment où sa décision de Pacte
+# est déjà connue (PACT_CHOICE envoyé juste après) — la popup d'attente
+# n'aurait alors plus rien à attendre. Voir le commentaire d'en-tête du script.
+
+func test_resolve_trigger_own_card_sends_announce_before_asking() -> void:
+	var net := FakeNetworkManager.new()
+	add_child_autofree(net)
+	battle.network_manager = net
+	var card := _pact_card(3)
+
+	_result = "PENDING"
+	_resolve_async(card, true)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	assert_eq(net.sent.size(), 1, "l'annonce doit partir avant même que le joueur local ait choisi")
+	assert_eq(NetCommand.type_of(net.sent[0]), NetCommand.PACT_ANNOUNCE)
+	assert_eq(int(net.sent[0].get("value", -1)), 3)
+
+	await get_tree().create_timer(0.6).timeout
+	var yes_button := _find_button(get_tree().root, SettingsManager.t("PACT_CONFIRM_YES"))
+	assert_not_null(yes_button, "la popup de choix du joueur local doit s'afficher après l'annonce")
+	yes_button.emit_signal("pressed")
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	assert_eq(_result, true)
+	assert_eq(net.sent.size(), 2, "la décision doit être envoyée après l'annonce")
+	assert_eq(NetCommand.type_of(net.sent[1]), NetCommand.PACT_CHOICE)
+
+func test_handle_remote_announce_shows_waiting_popup_and_caches_answer_for_later_replay() -> void:
+	var net := FakeNetworkManager.new()
+	add_child_autofree(net)
+	battle.network_manager = net
+	battle.enemy_turn_active = true  # rejeu du tour du pair
+	pact_choice_system._ensure_net_listener()
+
+	net.command_received.emit(NetCommand.pact_announce("res://resources/cards/demon/embermaw.tres", 2))
+	# _watch_remote_answer affiche d'abord la carte en attente (tween de
+	# show_targeting_popup, 0.25s) avant de consulter la réponse.
+	await get_tree().create_timer(0.35).timeout
+
+	net.command_received.emit(NetCommand.pact_choice(true))
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	assert_eq(pact_choice_system._prefetched_remote_answers, [true],
+		"la réponse doit être mise en cache dès l'annonce, sans attendre le rejeu de PLAY_CARD")
+
+	# Le rejeu réel (déclenché plus tard par PLAY_CARD) ne doit ni redemander
+	# (PACT_REQUEST) ni réafficher de popup : juste consommer la valeur en cache.
+	net.sent.clear()
+	var card := _pact_card(2)
+	_result = "PENDING"
+	_resolve_async(card, false)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	assert_eq(_result, true, "doit consommer la réponse déjà obtenue par anticipation")
+	assert_true(net.sent.is_empty(), "aucune nouvelle requête : la réponse était déjà en cache")
+
 func _resolve_async(card: CardData, is_player: bool) -> void:
 	_result = await pact_choice_system.resolve_trigger(card, is_player)
 

@@ -307,7 +307,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Un jeu de cartes stratégique"
 horizontal_alignment = 0
 
@@ -350,7 +350,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_crest")
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.72, 0.32, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "W"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -453,7 +453,7 @@ clip_text = true
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Pseudo Steam"
 vertical_alignment = 1
 
@@ -469,7 +469,7 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "0"
 
 [node name="CurrencyIcon" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow" unique_id=300000035]
@@ -497,7 +497,7 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = ""
 autowrap_mode = 3
 
@@ -510,7 +510,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Niveau 1"
 
 [node name="AccountLevelXpLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/AccountLevelRow" unique_id=900000031]
@@ -537,6 +537,44 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
+[node name="SocialRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000040]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FriendsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow" unique_id=900000041]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Amis"
+
+[node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow" unique_id=900000042]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Chat"
+
+[node name="ChatBadge" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+offset_left = -26.0
+offset_top = -6.0
+offset_right = -4.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="ChatBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
 
@@ -546,9 +584,61 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_item_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_nav_item_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 alignment = 0
 text = "Quitter"
+
+[node name="FriendsNavView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=900000050]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="FriendsHeaderRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000051]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow" unique_id=900000052]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+text = "Amis"
+vertical_alignment = 1
+
+[node name="FriendsBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow" unique_id=900000053]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Retour"
+
+[node name="FriendsSearchRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000054]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FriendsSearchLineEdit" type="LineEdit" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow" unique_id=900000055]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Pseudo..."
+
+[node name="FriendsSearchButton" type="Button" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow" unique_id=900000056]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Chercher"
+
+[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000057]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsScroll" unique_id=900000058]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -578,12 +668,13 @@ theme_override_constants/separation = 12
 alignment = 1
 
 [node name="VersionLabel" type="Label" parent="FooterPanel/FooterMargin/FooterRow" unique_id=1202251540]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.5)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.6)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
-text = "v0.1 - prototype"
+theme_override_font_sizes/font_size = 17
+text = "v0.1.0"
 vertical_alignment = 1
 
 [node name="DiscordButton" type="TextureButton" parent="FooterPanel/FooterMargin/FooterRow" unique_id=300000051]
@@ -598,7 +689,7 @@ stretch_mode = 5
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "W"
 
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
@@ -641,7 +732,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Actualités"
 
 [node name="NewsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/NewsView" unique_id=300000044]
@@ -672,7 +763,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Composition du deck"
 
 [node name="DeckCompSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView" unique_id=928353797]
@@ -736,7 +827,7 @@ offset_bottom = 375.0
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.45)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Survole une carte pour l'aperçu"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -765,7 +856,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Profil"
 
 [node name="ProfileSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1426168721]
@@ -804,9 +895,44 @@ theme_override_constants/separation = 0
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "Pseudo Steam"
 vertical_alignment = 1
+
+[node name="ProfilePlaceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol" unique_id=800367536]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "-"
+vertical_alignment = 1
+
+[node name="ProfileTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=900000030]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProfileMainTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000031]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Principal"
+
+[node name="ProfileHistoryTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000032]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Historique"
+
+[node name="ProfileCommunityTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000033]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Communauté"
 
 [node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=731961068]
 layout_mode = 2
@@ -814,31 +940,31 @@ layout_mode = 2
 [node name="ProfileMatchStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1526835562]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "0V - 0D"
 
 [node name="ProfileMemberSinceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1306289257]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "-"
 
 [node name="ProfileCollectionLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=992127025]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "-"
 
 [node name="ProfileSoloStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=194106145]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "-"
 
 [node name="ProfileRankedStatsLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1136697271]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "-"
 
 [node name="ProfileRankBadgeRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=1136697272]
@@ -856,7 +982,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "-"
 
 [node name="CreditsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=1875120101]
@@ -879,7 +1005,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Crédits"
 
 [node name="CloseLegalButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CreditsView/CreditsHeaderRow" unique_id=1141914078]
@@ -887,7 +1013,7 @@ custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
@@ -916,7 +1042,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Credits
 
 Developpe par Nico
@@ -932,7 +1058,7 @@ custom_minimum_size = Vector2(220, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
@@ -958,7 +1084,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Mentions légales"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -983,7 +1109,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Signalement"
 
 [node name="ReportBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView/ReportHeaderRow" unique_id=300000201]
@@ -991,7 +1117,7 @@ custom_minimum_size = Vector2(110, 36)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
@@ -1004,7 +1130,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Catégorie :"
 
 [node name="ReportCategorySelect" type="OptionButton" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000078]
@@ -1016,7 +1142,7 @@ size_flags_horizontal = 0
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Description :"
 
 [node name="ReportTextEdit" type="TextEdit" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000080]
@@ -1028,7 +1154,7 @@ wrap_mode = 1
 [node name="ReportStatusLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ReportView" unique_id=300000081]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.3, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = ""
 autowrap_mode = 3
 
@@ -1040,7 +1166,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1069,7 +1195,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Boutique"
 
 [node name="ShopTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000102]
@@ -1081,7 +1207,7 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Packs"
 
 [node name="ShopCardBacksTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow" unique_id=300000104]
@@ -1089,7 +1215,7 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Dos de cartes"
 
 [node name="ShopSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000092]
@@ -1147,7 +1273,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Collection"
 
 [node name="CollectionSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
@@ -1193,7 +1319,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Quêtes"
 
 [node name="QuestsTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=2146294701]
@@ -1205,7 +1331,7 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Quêtes"
 
 [node name="QuestsUniqueTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow" unique_id=2146294703]
@@ -1213,7 +1339,7 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Uniques"
 
 [node name="QuestsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000004]
@@ -1223,7 +1349,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Chargement..."
 autowrap_mode = 3
 
@@ -1252,7 +1378,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Statistiques"
 
 [node name="StatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
@@ -1262,7 +1388,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.9)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Chargement..."
 autowrap_mode = 3
 
@@ -1293,7 +1419,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 horizontal_alignment = 1
 text = ""
 
@@ -1322,7 +1448,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Choisis ton mode de jeu"
 autowrap_mode = 3
 
@@ -1343,7 +1469,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1358,7 +1484,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1373,7 +1499,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1414,7 +1540,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Choisis ton deck"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -1431,7 +1557,7 @@ theme_override_constants/separation = 6
 [node name="MatchTypeLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow" unique_id=900000121]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.75)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Type de partie"
 
 [node name="MatchTypeButtonsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckSelectView/MatchTypeRow" unique_id=900000122]
@@ -1446,7 +1572,7 @@ disabled = true
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1460,7 +1586,7 @@ disabled = true
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1474,7 +1600,7 @@ disabled = true
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1511,7 +1637,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1547,7 +1673,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.95, 0.75, 0.35, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Connexion au serveur impossible : mode hors ligne."
 vertical_alignment = 1
 autowrap_mode = 3
@@ -1556,7 +1682,7 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "✕"
 
 [node name="BottomCenterPanel" type="PanelContainer" parent="." unique_id=1248303570]
@@ -1603,7 +1729,7 @@ theme_override_colors/font_focus_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1633,10 +1759,135 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
 [node name="QuestsBadgeLabel" type="Label" parent="BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ChatPopup" type="Control" parent="." unique_id=900000060]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ChatBackdrop" type="ColorRect" parent="ChatPopup" unique_id=900000061]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="ChatPanel" type="PanelContainer" parent="ChatPopup" unique_id=900000062]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -220.0
+offset_right = 350.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="ChatMargin" type="MarginContainer" parent="ChatPopup/ChatPanel" unique_id=900000063]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ChatMainVBox" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin" unique_id=900000064]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ChatHeaderRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000065]
+layout_mode = 2
+
+[node name="ChatTitleLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000066]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+text = "Messages"
+vertical_alignment = 1
+
+[node name="ChatCloseButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000067]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Fermer"
+
+[node name="ChatSep" type="HSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000068]
+layout_mode = 2
+
+[node name="ChatBodyHBox" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000069]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ChatConversationsCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000070]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChatConversationsScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol" unique_id=900000071]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatConversationsList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll" unique_id=900000072]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChatVSep" type="VSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000073]
+layout_mode = 2
+
+[node name="ChatThreadCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000074]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ChatThreadNameLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000075]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "-"
+
+[node name="ChatThreadScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000076]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatThreadList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll" unique_id=900000077]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChatInputRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000078]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ChatInputLineEdit" type="LineEdit" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000079]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Écrire un message..."
+max_length = 500
+
+[node name="ChatSendButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000080]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Envoyer"
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
 visible = false
@@ -1688,7 +1939,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Récompense de connexion"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -1718,7 +1969,7 @@ theme_override_constants/separation = 2
 [node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin/DayCardVBox" unique_id=900000304]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "Auj."
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -1734,7 +1985,7 @@ stretch_mode = 5
 [node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay0/DayCardMargin/DayCardVBox" unique_id=900000306]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.30, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+10"
 horizontal_alignment = 1
 
@@ -1758,7 +2009,7 @@ theme_override_constants/separation = 2
 [node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin/DayCardVBox" unique_id=900000310]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+1"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -1775,7 +2026,7 @@ modulate = Color(1, 1, 1, 0.6)
 [node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay1/DayCardMargin/DayCardVBox" unique_id=900000312]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+15"
 horizontal_alignment = 1
 
@@ -1799,7 +2050,7 @@ theme_override_constants/separation = 2
 [node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin/DayCardVBox" unique_id=900000316]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+2"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -1816,7 +2067,7 @@ modulate = Color(1, 1, 1, 0.6)
 [node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay2/DayCardMargin/DayCardVBox" unique_id=900000318]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+20"
 horizontal_alignment = 1
 
@@ -1840,7 +2091,7 @@ theme_override_constants/separation = 2
 [node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin/DayCardVBox" unique_id=900000322]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+3"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -1857,7 +2108,7 @@ modulate = Color(1, 1, 1, 0.6)
 [node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay3/DayCardMargin/DayCardVBox" unique_id=900000324]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+25"
 horizontal_alignment = 1
 
@@ -1881,7 +2132,7 @@ theme_override_constants/separation = 2
 [node name="DayLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin/DayCardVBox" unique_id=900000328]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+4"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -1898,7 +2149,7 @@ modulate = Color(1, 1, 1, 0.6)
 [node name="AmountLabel" type="Label" parent="LoginRewardPopup/LoginRewardPanel/LoginRewardMargin/LoginRewardVBox/LoginRewardStripRow/LoginRewardDay4/DayCardMargin/DayCardVBox" unique_id=900000330]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.7)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "+30"
 horizontal_alignment = 1
 
@@ -1908,7 +2159,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
@@ -1967,7 +2218,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Récompenses de niveau"
 
 [node name="LevelRewardsBackButton" type="Button" parent="LevelRewardsPopup/LevelRewardsPanel/LevelRewardsMargin/LevelRewardsVBox/LevelRewardsHeaderRow" unique_id=900000207]
@@ -2064,7 +2315,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Un souci est survenu"
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -2073,7 +2324,7 @@ autowrap_mode = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "La partie précédente semble avoir planté ou s'être figée. Envoyer le dernier journal technique nous aide à corriger le problème, rien d'autre n'est transmis."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -2084,7 +2335,7 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.91, 0.87, 0.8, 1)
 theme_override_colors/font_placeholder_color = Color(0.6, 0.56, 0.5, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/focus = SubResource("StyleBoxFlat_dock_hover")
 wrap_mode = 1
@@ -2095,7 +2346,7 @@ visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.30, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -2103,7 +2354,7 @@ autowrap_mode = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.6, 0.54, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Si cette fenêtre s'est ouverte par erreur ou que tu n'as rien à signaler, appuie sur Ne rien envoyer."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -2117,7 +2368,7 @@ alignment = 1
 custom_minimum_size = Vector2(180, 48)
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
@@ -2130,7 +2381,7 @@ theme_override_colors/font_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_pressed_color = Color(0.078, 0.055, 0.02, 1)
 theme_override_colors/font_hover_color = Color(0.05, 0.035, 0.012, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")

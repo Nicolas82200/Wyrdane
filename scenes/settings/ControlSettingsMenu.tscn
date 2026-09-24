@@ -41,7 +41,7 @@ theme_override_constants/margin_top = 4
 [node name="HintLabel" type="Label" parent="VBox/HintMargin" unique_id=700000008]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 text = "Clique sur une touche pour la modifier"
 
 [node name="BindsMargin" type="MarginContainer" parent="VBox" unique_id=700000009]
@@ -66,7 +66,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Fin de tour"
 
 [node name="EndTurnButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/EndTurnRow" unique_id=700000016]
@@ -75,7 +75,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "Espace"
 
@@ -87,7 +87,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Cimetière allié"
 
 [node name="ToggleGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleGraveyardRow" unique_id=700000019]
@@ -96,7 +96,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "G"
 
@@ -108,7 +108,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Cimetière ennemi"
 
 [node name="ToggleEnemyGraveyardButton" type="Button" parent="VBox/BindsMargin/BindsScroll/BindsVBox/ToggleEnemyGraveyardRow" unique_id=984335547]
@@ -117,7 +117,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "H"
 
@@ -128,7 +128,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 13
 visible = false
 
 [node name="BtnsMargin" type="MarginContainer" parent="VBox" unique_id=700000021]
@@ -147,5 +147,5 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 44)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Réinitialiser"

@@ -76,14 +76,14 @@ theme_override_constants/separation = 2
 [node name="SearchBannerModeLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.82, 0.35, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Classé"
 clip_text = true
 
 [node name="SearchBannerLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Recherche d'adversaire…"
 clip_text = true
 autowrap_mode = 2
@@ -91,7 +91,7 @@ autowrap_mode = 2
 [node name="SearchBannerAvgLabel" type="Label" parent="SearchBanner/SearchBannerMargin/SearchBannerTextBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.65)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Temps d'attente moyen : ~1:00"
 clip_text = true
 
@@ -99,7 +99,7 @@ clip_text = true
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "✕"
 
 [node name="MatchFoundOverlay" type="Control" parent="."]
@@ -160,7 +160,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("2_title")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Adversaire trouvé !"
 horizontal_alignment = 1
 
@@ -170,7 +170,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Astuce : ..."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -232,7 +232,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("2_title")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Vous"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -243,7 +243,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -256,7 +256,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("2_title")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 41
 text = "VS"
 
 [node name="RemoteSide" type="VBoxContainer" parent="VsOverlay/VsCenter/VsHBox"]
@@ -272,7 +272,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("2_title")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 29
 text = "Adversaire"
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -283,7 +283,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.85)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = ""
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -354,7 +354,7 @@ vertical_alignment = 1
 [node name="InviteDeclineButton" type="Button" parent="InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteHeaderRow"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Refuser"
 
 [node name="InviteFromLabel" type="Label" parent="InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox"]

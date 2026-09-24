@@ -85,7 +85,10 @@ const AVERAGE_WAIT_SECONDS := {
 # le joueur, même s'il navigue ailleurs dans le menu, voie clairement qu'une
 # partie va démarrer.
 const MATCH_READY_COUNTDOWN_START := 5
-const MATCH_READY_BLINK_HALF_PERIOD := 0.4
+# Demi-période choisie pour qu'un cycle complet (0.5 x2) dure exactement 1s,
+# soit la même cadence que le décompte du texte (voir _run_match_ready_countdown)
+# — le texte change à chaque clignotement, pas de façon désynchronisée.
+const MATCH_READY_BLINK_HALF_PERIOD := 0.5
 
 # Astuces affichées en boucle sur l'écran de chargement une fois l'adversaire
 # trouvé (voir _start_tip_cycle) — clés dans translations/game.csv.
@@ -120,21 +123,41 @@ var _pending_invite_deck_index := -1
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
 const RANKED_POLL_INTERVAL := 2.0
 const RANKED_QUEUE_TIMEOUT := 180.0  # abandon après 3 min sans adversaire
+# "Normal" tente désormais lui aussi l'appariement par MMR (caché, voir
+# start_normal) sur cette même file backend — mais avec un délai d'abandon
+# bien plus court : contrairement au Classé, il existe un repli (recherche de
+# lobby Steam directe, ancien comportement) si personne n'est trouvé à temps,
+# pas de raison de faire attendre le joueur aussi longtemps qu'en Classé.
+const NORMAL_QUEUE_TIMEOUT := 20.0
+# queue_report_lobby (voir _on_queue_lobby_ready) était appelée sans callback :
+# un échec réseau ponctuel restait totalement silencieux, l'invité restant
+# bloqué à repoller un lobby qui n'arrivait jamais jusqu'au timeout de 3 min
+# (bug rapporté : partie classée qui ne se lance jamais). Réessai avec un
+# court délai avant d'abandonner et de prévenir explicitement l'hôte.
+const RANKED_REPORT_LOBBY_MAX_ATTEMPTS := 3
+const RANKED_REPORT_LOBBY_RETRY_DELAY := 1.5
 
-var _ranked_ticket_id: String = ""
-var _ranked_role: String = ""  # "host" | "guest", connu une fois apparié
-var _ranked_elapsed := 0.0
-var _ranked_poll_timer: Timer
+# Mode de la file backend en cours ("ranked"|"normal"|"") — distinct de
+# _search_mode (qui reste "normal" même une fois basculé sur le repli Steam
+# direct, voir _start_direct_quick_match) : sert uniquement à savoir si le
+# match en cours de connexion vient réellement d'un appariement CLASSÉ (voir
+# _on_handshake_ready, setup["is_ranked"]) — _queue_role, lui, est désormais
+# partagé par les deux modes depuis que Normal passe aussi par cette file.
+var _queue_mode: String = ""
+var _queue_ticket_id: String = ""
+var _queue_role: String = ""  # "host" | "guest", connu une fois apparié
+var _queue_elapsed := 0.0
+var _queue_poll_timer: Timer
 # Preuve d'appariement backend (voir TODO.md P9) : matchId serveur + jeton
 # signé, reçus dans la réponse "matched" du poll de file d'attente, identiques
 # des deux côtés (voir matchmakingModel.pairTickets côté wyrdane-backend).
-var _ranked_match_id: String = ""
-var _ranked_match_session_token: String = ""
+var _queue_match_id: String = ""
+var _queue_match_session_token: String = ""
 # true entre le clic Annuler et la réponse de queue_join quand ce dernier
-# n'est pas encore revenu (voir _cancel_ranked_search/start_ranked) : le
+# n'est pas encore revenu (voir _cancel_queue_search/start_ranked) : le
 # ticket sera annulé dès qu'il arrive au lieu d'être laissé actif en tâche de
 # fond pendant que l'UI se croit déjà revenue au repos.
-var _ranked_cancel_pending := false
+var _queue_cancel_pending := false
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -337,11 +360,37 @@ func _retranslate() -> void:
 # Ignorées si une recherche/connexion est déjà en cours : le bandeau + son
 # bouton Annuler donnent déjà tout le contrôle nécessaire.
 
-# « Normal » : matchmaking automatique, sans choix héberger/rejoindre — cherche
-# un lobby existant et, si aucun n'est trouvé, héberge à la place (voir
-# _on_peer_disconnected/_start_quick_match_host).
+# « Normal » : matchmaking automatique, sans choix héberger/rejoindre. Tente
+# d'abord un appariement par MMR CACHÉ via la file backend (même mécanisme que
+# le Classé, voir _queue_join_and_poll) — façon MMR caché League of Legends :
+# apparie des adversaires de niveau similaire sans jamais afficher ce MMR ni
+# lui faire gagner/perdre de points de classement (voir
+# BackendClient.report_ranked_match, mode="normal"). Si le backend est
+# indisponible, si la requête échoue, ou si personne n'est trouvé sous
+# NORMAL_QUEUE_TIMEOUT, repli silencieux sur l'ancien comportement (recherche
+# d'un lobby Steam existant puis hébergement, voir _start_direct_quick_match)
+# — jamais d'erreur affichée pour ce repli, un joueur ne doit pas voir Normal
+# devenir indisponible juste parce que l'appariement par niveau l'est.
 func start_normal() -> void:
 	if _search_mode != "" or _loading:
+		return
+	_queue_mode = ""  # jamais un résidu d'une précédente recherche classée
+	if not BackendClient.is_authenticated():
+		_start_direct_quick_match()
+		return
+	_queue_cancel_pending = false
+	_set_search_mode("normal")
+	_show_search_banner(true)
+	_set_loading(true)
+	_set_status("NET_RANKED_QUEUEING")
+	_queue_join_and_poll("normal")
+
+# Ancien comportement de start_normal() avant l'ajout du MMR caché ci-dessus :
+# recherche directe d'un lobby Steam public existant, hébergement en secours
+# si aucun n'est trouvé (voir _on_peer_disconnected/_start_quick_match_host).
+# Sert désormais de repli quand la file backend est indisponible/infructueuse.
+func _start_direct_quick_match() -> void:
+	if _search_mode != "" and _search_mode != "normal":
 		return
 	_quick_matching = true
 	_set_search_mode("normal")
@@ -393,47 +442,72 @@ func start_ranked() -> void:
 	if not BackendClient.is_authenticated():
 		_flash_banner("NET_RANKED_UNAVAILABLE")
 		return
-	_ranked_cancel_pending = false
+	_queue_mode = ""  # posé à "ranked" une fois le ticket obtenu, voir _queue_join_and_poll
+	_queue_cancel_pending = false
 	_set_search_mode("ranked")
 	_show_search_banner(true)
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
-	BackendClient.queue_join(func(success: bool, data: Dictionary) -> void:
-		# Annulé pendant l'aller-retour réseau (voir _cancel_ranked_search) :
+	_queue_join_and_poll("ranked")
+
+# Rejoint la file backend pour `mode` ("ranked" ou "normal", voir start_ranked/
+# start_normal — mêmes hypothèses des deux côtés : _search_mode déjà posé au
+# mode courant, bandeau déjà affiché). Partagé entre les deux : appariement
+# par MMR public (Classé) ou MMR caché (Normal), identique côté serveur, voir
+# matchmakingModel.joinQueue côté wyrdane-backend.
+func _queue_join_and_poll(mode: String) -> void:
+	BackendClient.queue_join(mode, func(success: bool, data: Dictionary) -> void:
+		# Annulé pendant l'aller-retour réseau (voir _cancel_queue_search) :
 		# l'UI est déjà revenue au repos, il ne reste qu'à ne pas laisser le
 		# ticket vivre côté backend si jamais il a été créé entre-temps.
-		if _ranked_cancel_pending:
-			_ranked_cancel_pending = false
+		if _queue_cancel_pending:
+			_queue_cancel_pending = false
 			if success and str(data.get("ticket_id", "")) != "":
 				BackendClient.queue_cancel(str(data.get("ticket_id", "")))
 			return
 		if not success or str(data.get("ticket_id", "")) == "":
-			_flash_banner("NET_RANKED_UNAVAILABLE")
-			_reset_ranked_ui()
+			if mode == "normal":
+				# Repli silencieux (voir start_normal) : le backend n'a pas pu
+				# être joint, mais Normal doit rester jouable sans lui.
+				_reset_queue_ui()
+				_start_direct_quick_match()
+			else:
+				_flash_banner("NET_RANKED_UNAVAILABLE")
+				_reset_queue_ui()
 			return
-		_ranked_ticket_id = str(data.get("ticket_id", ""))
-		_ranked_elapsed = 0.0
-		_ranked_poll_timer = Timer.new()
-		_ranked_poll_timer.wait_time = RANKED_POLL_INTERVAL
-		_ranked_poll_timer.timeout.connect(_poll_ranked_queue)
-		add_child(_ranked_poll_timer)
-		_ranked_poll_timer.start()
+		_queue_ticket_id = str(data.get("ticket_id", ""))
+		_queue_mode = mode
+		_queue_elapsed = 0.0
+		_queue_poll_timer = Timer.new()
+		_queue_poll_timer.wait_time = RANKED_POLL_INTERVAL
+		_queue_poll_timer.timeout.connect(_poll_queue)
+		add_child(_queue_poll_timer)
+		_queue_poll_timer.start()
 	)
 
 # Annulation générique de la recherche en cours, quel que soit le mode
-# (Normal/Classé/Ami) — bouton "✕" du bandeau (voir _search_mode).
+# (Normal/Classé/Ami) — bouton "✕" du bandeau (voir _search_mode). "normal" et
+# "ranked" partagent le même chemin depuis que Normal tente aussi la file
+# backend (MMR caché, voir start_normal) : _cancel_queue_search annule le
+# ticket s'il y en a un, _net.close() est de toute façon nécessaire dans les
+# deux cas pour couper une éventuelle session Steam déjà ouverte (Normal a pu
+# retomber sur _start_direct_quick_match avant que le joueur n'annule).
 func _on_banner_cancel_pressed() -> void:
 	match _search_mode:
-		"ranked":
+		"ranked", "normal":
 			# manual: false — on ferme le bandeau immédiatement (voir plus bas)
 			# plutôt que de laisser traîner le message "Recherche annulée"
 			# pendant BANNER_MESSAGE_DURATION : le joueur vient de cliquer sur
 			# Annuler, inutile de le lui confirmer par un texte qui reste seul
 			# affiché (mode/minuteur déjà masqués à cet instant) — ça se voyait
 			# comme un bandeau vide pendant quelques secondes.
-			_cancel_ranked_search(false)
+			_cancel_queue_search(false)
+			_quick_matching = false
+			_net.close()
+			_lobby_hosted = false
 			_show_search_banner(false)
-		"normal", "invite":
+			_set_status("")
+		"invite":
 			_quick_matching = false
 			_set_search_mode("")
 			_net.close()
@@ -452,77 +526,93 @@ func _on_banner_cancel_pressed() -> void:
 			_show_search_banner(false)
 
 # manual : true si annulé par le joueur (statut dédié), false si on abandonne
-# silencieusement (ex: coupure réseau déjà annoncée par ailleurs).
-func _cancel_ranked_search(manual: bool) -> void:
-	if _ranked_ticket_id == "":
-		# queue_join n'a pas encore répondu (voir start_ranked) : impossible
-		# d'annuler un ticket qui n'existe pas encore côté backend, mais il faut
-		# quand même libérer l'UI tout de suite — sinon _search_mode/_loading
-		# restent bloqués à "ranked"/true pour le reste de la session, empêchant
-		# toute recherche future (Normal/Classé/Ami). _ranked_cancel_pending
-		# fera annuler le ticket dès qu'il arrivera.
-		if _search_mode == "ranked":
-			_ranked_cancel_pending = true
-			_reset_ranked_ui()
-			if manual:
+# silencieusement (ex: coupure réseau déjà annoncée par ailleurs). Le message
+# de confirmation ("Recherche annulée") n'a de sens qu'en Classé — Normal n'a
+# jamais eu de confirmation de ce type (voir l'ancien comportement direct).
+func _cancel_queue_search(manual: bool) -> void:
+	var was_ranked := _search_mode == "ranked"
+	if _queue_ticket_id == "":
+		# queue_join n'a pas encore répondu (voir start_ranked/start_normal) :
+		# impossible d'annuler un ticket qui n'existe pas encore côté backend,
+		# mais il faut quand même libérer l'UI tout de suite — sinon
+		# _search_mode/_loading restent bloqués pour le reste de la session,
+		# empêchant toute recherche future (Normal/Classé/Ami).
+		# _queue_cancel_pending fera annuler le ticket dès qu'il arrivera.
+		if _search_mode == "ranked" or _search_mode == "normal":
+			_queue_cancel_pending = true
+			_reset_queue_ui()
+			if manual and was_ranked:
 				_flash_banner("NET_RANKED_CANCELLED")
 		return
-	BackendClient.queue_cancel(_ranked_ticket_id)
-	_reset_ranked_ui()
-	if manual:
+	BackendClient.queue_cancel(_queue_ticket_id)
+	_reset_queue_ui()
+	if manual and was_ranked:
 		_flash_banner("NET_RANKED_CANCELLED")
 
-func _reset_ranked_ui() -> void:
-	if _ranked_poll_timer != null:
-		_ranked_poll_timer.stop()
-		_ranked_poll_timer.queue_free()
-		_ranked_poll_timer = null
-	_ranked_ticket_id = ""
-	_ranked_role = ""
-	_ranked_match_id = ""
-	_ranked_match_session_token = ""
+func _reset_queue_ui() -> void:
+	if _queue_poll_timer != null:
+		_queue_poll_timer.stop()
+		_queue_poll_timer.queue_free()
+		_queue_poll_timer = null
+	_queue_ticket_id = ""
+	_queue_role = ""
+	_queue_match_id = ""
+	_queue_match_session_token = ""
 	_set_search_mode("")
 	_set_loading(false)
 
-func _poll_ranked_queue() -> void:
-	_ranked_elapsed += RANKED_POLL_INTERVAL
-	if _ranked_elapsed >= RANKED_QUEUE_TIMEOUT:
-		_cancel_ranked_search(false)
-		_flash_banner("NET_RANKED_TIMEOUT")
+func _poll_queue() -> void:
+	_queue_elapsed += RANKED_POLL_INTERVAL
+	var is_normal := _search_mode == "normal"
+	var timeout := NORMAL_QUEUE_TIMEOUT if is_normal else RANKED_QUEUE_TIMEOUT
+	if _queue_elapsed >= timeout:
+		if _queue_ticket_id != "":
+			BackendClient.queue_cancel(_queue_ticket_id)
+		_reset_queue_ui()
+		if is_normal:
+			# Repli silencieux (voir start_normal) plutôt qu'un abandon avec
+			# message d'erreur : Normal reste jouable même sans appariement
+			# par niveau.
+			_start_direct_quick_match()
+		else:
+			_flash_banner("NET_RANKED_TIMEOUT")
 		return
-	var ticket_id := _ranked_ticket_id
+	var ticket_id := _queue_ticket_id
 	BackendClient.queue_status(ticket_id, func(success: bool, data: Dictionary) -> void:
 		# La recherche a pu être annulée pendant l'aller-retour réseau.
-		if ticket_id != _ranked_ticket_id or not success:
+		if ticket_id != _queue_ticket_id or not success:
 			return
 		match str(data.get("status", "waiting")):
 			"matched":
-				_on_ranked_matched(data)
+				_on_queue_matched(data)
 			"cancelled", "expired":
-				_reset_ranked_ui()
-				_flash_banner("NET_RANKED_TIMEOUT")
+				_reset_queue_ui()
+				if is_normal:
+					_start_direct_quick_match()
+				else:
+					_flash_banner("NET_RANKED_TIMEOUT")
 			_:
 				pass  # "waiting" : rien à faire, on repollera au prochain tick
 	)
 
-func _on_ranked_matched(data: Dictionary) -> void:
-	_ranked_role = str(data.get("role", ""))
-	_ranked_match_id = str(data.get("match_id", ""))
-	_ranked_match_session_token = str(data.get("match_session_token", ""))
-	if _ranked_role == "host":
-		if _ranked_poll_timer != null:
-			_ranked_poll_timer.stop()
-			_ranked_poll_timer.queue_free()
-			_ranked_poll_timer = null
+func _on_queue_matched(data: Dictionary) -> void:
+	_queue_role = str(data.get("role", ""))
+	_queue_match_id = str(data.get("match_id", ""))
+	_queue_match_session_token = str(data.get("match_session_token", ""))
+	if _queue_role == "host":
+		if _queue_poll_timer != null:
+			_queue_poll_timer.stop()
+			_queue_poll_timer.queue_free()
+			_queue_poll_timer = null
 		_quick_matching = false
-		_net.session_ready.connect(_on_ranked_lobby_ready, CONNECT_ONE_SHOT)
+		_net.session_ready.connect(_on_queue_lobby_ready, CONNECT_ONE_SHOT)
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 		if err == OK:
 			_set_status("NET_RANKED_MATCHED")
 		else:
-			if _net.session_ready.is_connected(_on_ranked_lobby_ready):
-				_net.session_ready.disconnect(_on_ranked_lobby_ready)
-			_cancel_ranked_search(false)
+			if _net.session_ready.is_connected(_on_queue_lobby_ready):
+				_net.session_ready.disconnect(_on_queue_lobby_ready)
+			_cancel_queue_search(false)
 			_flash_banner("NET_STEAM_UNAVAILABLE")
 		return
 	# Invité : le lobby n'est disponible qu'une fois l'hôte l'ayant rapporté
@@ -530,26 +620,46 @@ func _on_ranked_matched(data: Dictionary) -> void:
 	var lobby_id := int(data.get("steam_lobby_id", 0))
 	if lobby_id == 0:
 		return
-	if _ranked_poll_timer != null:
-		_ranked_poll_timer.stop()
-		_ranked_poll_timer.queue_free()
-		_ranked_poll_timer = null
+	if _queue_poll_timer != null:
+		_queue_poll_timer.stop()
+		_queue_poll_timer.queue_free()
+		_queue_poll_timer = null
 	_quick_matching = false
-	_ranked_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
+	_queue_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err != OK:
-		_reset_ranked_ui()
+		_reset_queue_ui()
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Hôte classé uniquement : le lobby vient d'être créé, on transmet son id au
 # backend pour que l'invité puisse le rejoindre directement (voir
-# _on_ranked_matched, branche invité).
-func _on_ranked_lobby_ready(session_id: int) -> void:
-	if _ranked_ticket_id == "":
+# _on_queue_matched, branche invité).
+func _on_queue_lobby_ready(session_id: int) -> void:
+	if _queue_ticket_id == "":
 		return
-	BackendClient.queue_report_lobby(_ranked_ticket_id, session_id)
-	_ranked_ticket_id = ""  # le rôle d'hôte n'a plus besoin de repoller/annuler
+	var ticket_id := _queue_ticket_id
+	_queue_ticket_id = ""  # le rôle d'hôte n'a plus besoin de repoller/annuler
+	_report_queue_lobby(ticket_id, session_id, 1)
+
+func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> void:
+	BackendClient.queue_report_lobby(ticket_id, session_id, func(code: int, _parsed: Variant) -> void:
+		if code == 200 or code ==204:
+			return
+		push_warning("[Ranked] queue_report_lobby a échoué (code %d, tentative %d/%d, ticket %s)" \
+			% [code, attempt, RANKED_REPORT_LOBBY_MAX_ATTEMPTS, ticket_id])
+		if attempt < RANKED_REPORT_LOBBY_MAX_ATTEMPTS:
+			await get_tree().create_timer(RANKED_REPORT_LOBBY_RETRY_DELAY).timeout
+			_report_queue_lobby(ticket_id, session_id, attempt + 1)
+		else:
+			# L'invité ne recevra jamais ce lobby : inutile de laisser l'hôte
+			# héberger dans le vide jusqu'à ce que l'invité expire de son côté
+			# (jusqu'à 3 min) — on referme et on prévient tout de suite.
+			_net.close()
+			_lobby_hosted = false
+			_reset_queue_ui()
+			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
+	)
 
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
@@ -628,7 +738,7 @@ func _on_peer_disconnected(reason: String) -> void:
 	match reason:
 		"steam_same_account":
 			_quick_matching = false
-			_reset_ranked_ui()
+			_reset_queue_ui()
 			_show_search_banner(false)
 			_flash_banner("NET_STEAM_SAME_ACCOUNT")
 		"steam_no_lobby_found":
@@ -637,13 +747,13 @@ func _on_peer_disconnected(reason: String) -> void:
 				_start_quick_match_host()
 			else:
 				_set_search_mode("")
-				_reset_ranked_ui()
+				_reset_queue_ui()
 				_show_search_banner(false)
 				_flash_banner("NET_STEAM_NO_LOBBY")
 		_:
 			_quick_matching = false
 			_set_search_mode("")
-			_reset_ranked_ui()
+			_reset_queue_ui()
 			_show_search_banner(false)
 			print("[MatchmakingOverlay] Pair déconnecté (%s)" % [reason])
 			_flash_banner("NET_STEAM_DISCONNECTED")
@@ -821,21 +931,26 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	NetContext.active = true
 	NetContext.net = _net
 	NetContext.is_host = _net.is_host
-	# Le backend ne distingue pas ranked/partie rapide (voir CLAUDE.md § Ranked) :
-	# ce flag n'existe que côté client, propagé jusqu'à Battle pour le succès
-	# Steam "Premier sang" (voir AchievementManager). _ranked_role n'est non-vide
-	# qu'après un appariement classé réussi (_on_ranked_matched), et n'est remis
-	# à "" que par _reset_ranked_ui() (annulation/timeout), jamais sur ce chemin.
-	setup["is_ranked"] = _ranked_role != ""
-	# Pour un match classé, le matchId qui fait foi côté rapport de fin de
-	# partie devient celui émis par le backend à l'appariement (preuve qu'un
-	# vrai appariement a eu lieu, voir TODO.md P9) plutôt que celui dérivé
-	# localement par NetHandshake (client_match_id, toujours présent — sert de
-	# repli pour Partie rapide/Contre un ami, qui n'ont pas d'appariement
-	# backend). _ranked_match_id n'est non-vide que côté classé.
-	if _ranked_match_id != "":
-		setup["client_match_id"] = _ranked_match_id
-	setup["match_session_token"] = _ranked_match_session_token
+	# Ce flag pilote le mode envoyé à report_ranked_match (voir BackendClient/
+	# rankedController côté wyrdane-backend) : seul un vrai appariement CLASSÉ
+	# fait gagner/perdre des points de MMR public — Normal, même apparié via la
+	# même file d'attente backend (MMR caché, voir start_normal), ne doit
+	# jamais être compté comme classé ici. _queue_role, lui, est désormais
+	# partagé par les deux modes (host/guest s'applique aussi bien à un
+	# appariement Normal) — c'est _queue_mode qui distingue les deux, posé à
+	# "ranked"/"normal" par _queue_join_and_poll une fois le ticket obtenu,
+	# jamais à autre chose sur un repli direct (Steam sans backend).
+	setup["is_ranked"] = _queue_mode == "ranked"
+	# Pour un match apparié via la file backend (classé OU Normal caché), le
+	# matchId qui fait foi côté rapport de fin de partie devient celui émis par
+	# le backend à l'appariement (preuve qu'un vrai appariement a eu lieu, voir
+	# TODO.md P9) plutôt que celui dérivé localement par NetHandshake
+	# (client_match_id, toujours présent — sert de repli pour un Normal en
+	# repli direct/Contre un ami, qui n'ont pas d'appariement backend).
+	# _queue_match_id n'est non-vide qu'après un appariement via la file.
+	if _queue_match_id != "":
+		setup["client_match_id"] = _queue_match_id
+	setup["match_session_token"] = _queue_match_session_token
 	NetContext.setup = setup
 	# Sans cette étape, chaque client basculerait sur Battle.tscn dès que SON
 	# handshake local est fini, indépendamment du pair — un joueur pouvait
