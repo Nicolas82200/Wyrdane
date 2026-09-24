@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://cs6l2cgbs5yas" path="res://assets/card_art/artefact/fossilized-luckbearer.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 
@@ -21,6 +22,7 @@ script = ExtResource("3_carddata")
 card_name = "Porte-Chance Fossilisé"
 description = "Arrivée : Un serviteur ciblé que vous contrôlez gagne MOISSON jusqu'à la fin du tour."
 flavour_text = "Il n'a jamais porté chance à personne. Mais on continue d'y croire."
+texture = ExtResource("2_texture")
 cost = 3
 race = 0
 attack = 3

@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://c56q5qcwrggek" path="res://assets/card_art/artefact/the-last-fossilized-bastion.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 [ext_resource type="Script" uid="uid://cbo6rhh3g8djf" path="res://scripts/card/KeywordChoice.gd" id="5_kw"]
@@ -34,6 +35,7 @@ script = ExtResource("3_carddata")
 card_name = "Le Dernier Rempart Fossilisé"
 description = "REMPART. Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART et ÉGIDE de façon permanente."
 flavour_text = "Il fut le dernier à tenir la ligne. Il enseigne encore, à qui veut l'entendre, comment tenir la sienne."
+texture = ExtResource("2_texture")
 cost = 7
 race = 0
 attack = 5

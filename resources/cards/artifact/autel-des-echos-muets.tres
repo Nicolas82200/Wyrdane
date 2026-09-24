@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://chjumlq1skmfr" path="res://assets/card_art/artefact/altar-of-silent-echoes.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 
@@ -20,6 +21,7 @@ script = ExtResource("3_carddata")
 card_name = "Autel des Échos Muets"
 description = "Deuil : Un serviteur ciblé que vous contrôlez restaure 2 points de vie."
 flavour_text = "L'autel ne parle jamais des morts. Il se contente de rendre un peu de souffle aux vivants."
+texture = ExtResource("2_texture")
 cost = 5
 race = 0
 card_type = "Enchantment"

@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://xos70mbrcybj" path="res://assets/card_art/artefact/memory-shard.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 
 [sub_resource type="Resource" id="Resource_eff1"]
@@ -14,6 +15,7 @@ script = ExtResource("3_carddata")
 card_name = "Éclat de Mémoire"
 description = "Piochez 1 carte."
 flavour_text = "Un fragment de souvenir qui n'est pas le vôtre, mais qui vous éclaire quand même."
+texture = ExtResource("2_texture")
 cost = 0
 race = 0
 card_type = "Instant"

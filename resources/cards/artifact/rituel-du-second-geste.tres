@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://bh1v27m3cnign" path="res://assets/card_art/artefact/rite-of-the-second-gesture.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 
@@ -20,6 +21,7 @@ script = ExtResource("3_carddata")
 card_name = "Rituel du Second Geste"
 description = "Éveil : Réactive tous les déclencheurs d'un serviteur ciblé que vous contrôlez, de coût 2 ou moins."
 flavour_text = "Le premier geste s'est perdu depuis longtemps. Le rituel, lui, sait encore le refaire."
+texture = ExtResource("2_texture")
 cost = 4
 race = 0
 card_type = "Ritual"

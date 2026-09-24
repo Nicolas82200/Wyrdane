@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" uid="uid://ddqetdlahmfmu" path="res://scripts/card/CardEffect.gd" id="1_cardeffect"]
+[ext_resource type="Texture2D" uid="uid://dlke3xwdqg8f0" path="res://assets/card_art/artefact/bearer-of-the-forgotten-wall.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 [ext_resource type="Script" uid="uid://ib4p8n6y0r0j" path="res://scripts/card/TriggerTypeChoice.gd" id="4_trig"]
 
@@ -21,6 +22,7 @@ script = ExtResource("3_carddata")
 card_name = "Porteur de Rempart Oublié"
 description = "Arrivée : Un serviteur ciblé que vous contrôlez gagne REMPART jusqu'à la fin du tour."
 flavour_text = "Il ne construit rien. Il se contente de rappeler comment on tenait, autrefois."
+texture = ExtResource("2_texture")
 cost = 2
 race = 0
 attack = 2

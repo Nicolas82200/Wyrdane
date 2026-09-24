@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
+[ext_resource type="Texture2D" uid="uid://c38gpxcgxa7d" path="res://assets/card_art/artefact/the-echo-without-origin.jpg" id="2_texture"]
 [ext_resource type="Script" uid="uid://bru7ohxxvloht" path="res://scripts/card/CardData.gd" id="3_carddata"]
 
 [resource]
@@ -7,6 +8,7 @@ script = ExtResource("3_carddata")
 card_name = "L'Écho Sans Origine"
 description = "Tant que ce serviteur est en jeu, tous les déclencheurs des serviteurs que vous contrôlez se déclenchent une fois de plus."
 flavour_text = "Il n'a jamais rien fait la première fois. Il se contente d'imiter, exactement."
+texture = ExtResource("2_texture")
 cost = 8
 race = 0
 attack = 6
