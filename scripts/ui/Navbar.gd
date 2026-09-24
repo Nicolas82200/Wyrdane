@@ -18,8 +18,10 @@ func _ready() -> void:
 
 func _on_shop_pressed() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
-	pack_shop.visible = true
-	pack_shop.refresh()
+	# PackShop n'est plus un écran de boutique autonome (voir son
+	# commentaire d'en-tête) : il ne révèle des cartes qu'à la demande,
+	# ancré sur un pack précis passé par ShopCollectionPanel. Ce bouton,
+	# hors de ce contexte (DeckBuilder), n'a donc plus rien à ouvrir ici.
 
 func _update_currency_label(new_balance: int) -> void:
 	currency_label.text = str(new_balance)
