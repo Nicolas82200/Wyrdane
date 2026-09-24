@@ -17,6 +17,14 @@ enum ShopTab { PACKS, CARD_BACKS }
 # périodique) ; UNIQUE isole les jalons de carrière (jamais reset, liste
 # potentiellement longue) — voir QuestsPanel.render.
 enum QuestTab { REGULAR, UNIQUE }
+# MAIN = pseudo/place au classement/rang ; HISTORY = 20 dernières parties
+# réseau ; COMMUNITY = parrainage + amis (voir ProfilePanel.render).
+enum ProfileTab { MAIN, HISTORY, COMMUNITY }
+# Bascule du contenu de NavStack (voir MainMenu.tscn) : le panneau Amis prend
+# la place des boutons de navigation habituels (Packs/Collection/...) plutôt
+# que d'ouvrir une nouvelle vue dans InfoPanel — demande utilisateur explicite,
+# voir FriendsPanel.gd.
+enum NavMode { MAIN, FRIENDS }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -90,6 +98,27 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
+@onready var friends_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/FriendsButton
+@onready var chat_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton
+@onready var chat_badge:     Control = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge
+@onready var chat_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge/ChatBadgeLabel
+
+@onready var friends_nav_view: VBoxContainer = $NavPanel/NavMargin/NavStack/FriendsNavView
+@onready var friends_title_label: Label = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow/FriendsTitleLabel
+@onready var friends_back_button: Button = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow/FriendsBackButton
+@onready var friends_search_line_edit: LineEdit = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow/FriendsSearchLineEdit
+@onready var friends_search_button: Button = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow/FriendsSearchButton
+@onready var friends_body:     VBoxContainer = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsScroll/FriendsBodyVBox
+
+@onready var chat_popup:       Control = $ChatPopup
+@onready var chat_close_button: Button = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow/ChatCloseButton
+@onready var chat_title_label: Label = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow/ChatTitleLabel
+@onready var chat_conversations_list: VBoxContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll/ChatConversationsList
+@onready var chat_thread_name_label: Label = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadNameLabel
+@onready var chat_thread_scroll: ScrollContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll
+@onready var chat_thread_list: VBoxContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll/ChatThreadList
+@onready var chat_input_line_edit: LineEdit = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatInputLineEdit
+@onready var chat_send_button: Button = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatSendButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -135,11 +164,17 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
 @onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileAvatarFrame/ProfileAvatar
 @onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfileNameLabel
+@onready var profile_place_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfilePlaceLabel
+@onready var profile_main_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileMainTabButton
+@onready var profile_history_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileHistoryTabButton
+@onready var profile_community_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileCommunityTabButton
 @onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMatchStatsLabel
+@onready var profile_stats_sep: HSeparator = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileStatsSep
 @onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMemberSinceLabel
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileSoloStatsLabel
 @onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankedStatsLabel
+@onready var profile_rank_badge_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow
 @onready var profile_rank_icon: TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow/ProfileRankIcon
 @onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow/ProfileRankBadgeLabel
 
@@ -247,6 +282,11 @@ var _composition_deck_index: int = -1
 func _ready() -> void:
 	%VersionLabel.text = AppVersion.get_display_string()
 	AudioManager.play_menu_music()
+	# Filet de sécurité : Battle._exit_tree devrait déjà l'avoir remis à false
+	# en quittant une partie, mais une sortie anormale (crash, forfait réseau)
+	# ne doit jamais laisser un joueur affiché "en jeu" indéfiniment aux yeux
+	# de ses amis une fois revenu au menu.
+	PresenceService.in_battle = false
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	_apply_tutorial_lock()
@@ -270,6 +310,9 @@ func _ready() -> void:
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	quests_regular_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.REGULAR))
 	quests_unique_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.UNIQUE))
+	profile_main_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.MAIN))
+	profile_history_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.HISTORY))
+	profile_community_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.COMMUNITY))
 	_update_quest_tab_tints()
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
 	leaderboard_search_button.pressed.connect(func(): StatsPanel.search_player(self))
@@ -288,6 +331,22 @@ func _ready() -> void:
 	# de compte (AccountLevelLabel/Bar, sous le pseudo) doit ouvrir la popup
 	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
 	profile_button.gui_input.connect(_on_player_status_gui_input)
+	friends_button.pressed.connect(func(): FriendsPanel.open(self))
+	friends_back_button.pressed.connect(func(): FriendsPanel.close(self))
+	friends_search_button.pressed.connect(func(): FriendsPanel.search(self))
+	friends_search_line_edit.text_submitted.connect(func(_text): FriendsPanel.search(self))
+	chat_button.pressed.connect(func(): ChatPanel.open_inbox(self))
+	chat_close_button.pressed.connect(func(): ChatPanel.close(self))
+	chat_send_button.pressed.connect(func(): ChatPanel.send(self))
+	chat_input_line_edit.text_submitted.connect(func(_text): ChatPanel.send(self))
+	ChatPanel.refresh_unread_badge(self)
+	# Badge de non-lus tenu à jour même sans jamais ouvrir le chat (voir
+	# ChatPanel._ensure_poll_timer, qui lui ne tourne que popup ouvert).
+	var chat_badge_timer := Timer.new()
+	chat_badge_timer.wait_time = 30.0
+	chat_badge_timer.autostart = true
+	chat_badge_timer.timeout.connect(func(): ChatPanel.refresh_unread_badge(self))
+	add_child(chat_badge_timer)
 	level_rewards_back_button.pressed.connect(func(): LevelRewardsPanel.close(self))
 	level_rewards_claim_all_button.pressed.connect(func(): LevelRewardsPanel.claim_all(self))
 	level_rewards_go_to_current_button.pressed.connect(func(): LevelRewardsPanel.go_to_current_level(self))
@@ -502,6 +561,41 @@ func _select_quest_tab(tab: QuestTab) -> void:
 func _update_quest_tab_tints() -> void:
 	quests_regular_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.REGULAR else Color.WHITE
 	quests_unique_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.UNIQUE else Color.WHITE
+
+# --- Profil : mini-navbar Principal / Historique / Communauté --------------
+# Même principe que les onglets Quêtes ci-dessus : un seul InfoView (PROFILE),
+# l'onglet actif décide seul quelles sections sont reconstruites dans
+# profile_body (voir ProfilePanel.render) — jamais de refetch du profil lui-
+# même en changeant d'onglet, seul l'historique (backend) est requêté à la
+# demande, la première fois que l'onglet Historique est sélectionné.
+var _profile_tab: ProfileTab = ProfileTab.MAIN
+
+func _select_profile_tab(tab: ProfileTab) -> void:
+	_profile_tab = tab
+	_update_profile_tab_tints()
+	ProfilePanel.render(self)
+
+func _update_profile_tab_tints() -> void:
+	profile_main_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.MAIN else Color.WHITE
+	profile_history_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.HISTORY else Color.WHITE
+	profile_community_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.COMMUNITY else Color.WHITE
+
+# --- Amis : bascule NavStack (voir FriendsPanel.gd) -------------------------
+var _nav_mode: NavMode = NavMode.MAIN
+var friends_cache: Array = []
+var friend_requests_cache: Array = []
+var friends_search_results: Array = []
+
+# --- Chat (voir ChatPanel.gd) -------------------------------------------
+var chat_thread_friend_id: int = 0
+var chat_thread_friend_name: String = ""
+var chat_thread_messages: Array = []
+var chat_conversations_cache: Array = []
+
+func show_nav(mode: NavMode) -> void:
+	_nav_mode = mode
+	main_nav_view.visible = mode == NavMode.MAIN
+	friends_nav_view.visible = mode == NavMode.FRIENDS
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
@@ -1130,6 +1224,19 @@ func _retranslate() -> void:
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
+	profile_main_tab_button.text = SettingsManager.t("PROFILE_TAB_MAIN")
+	profile_history_tab_button.text = SettingsManager.t("PROFILE_TAB_HISTORY")
+	profile_community_tab_button.text = SettingsManager.t("PROFILE_TAB_COMMUNITY")
+	friends_button.text = SettingsManager.t("MENU_FRIENDS_NAV_BUTTON")
+	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON")
+	friends_title_label.text = SettingsManager.t("FRIENDS_TITLE")
+	friends_back_button.text = SettingsManager.t("FRIENDS_BACK_BUTTON")
+	friends_search_button.text = SettingsManager.t("FRIENDS_SEARCH_BUTTON")
+	friends_search_line_edit.placeholder_text = SettingsManager.t("FRIENDS_SEARCH_PLACEHOLDER")
+	chat_title_label.text = SettingsManager.t("CHAT_TITLE")
+	chat_close_button.text = SettingsManager.t("CHAT_CLOSE_BUTTON")
+	chat_send_button.text = SettingsManager.t("CHAT_SEND_BUTTON")
+	chat_input_line_edit.placeholder_text = SettingsManager.t("CHAT_INPUT_PLACEHOLDER")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	quests_regular_tab_button.text = SettingsManager.t("QUESTS_TAB_REGULAR")

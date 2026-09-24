@@ -248,13 +248,23 @@ func run_mulligan() -> void:
 	battle.turn_banner.hide_banner()
 	battle.end_turn_button.disabled = true
 	battle.end_turn_button.set_ready_hint(false)
-	battle.mulligan_dim_overlay.visible = false
 	battle.hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
-	battle.hand.set_mulligan_mode(false)
-	battle._mulligan_active = false
+	# IMPORTANT : _mulligan_active/hand.mulligan_mode/l'overlay d'assombrissement
+	# restent actifs pendant cette attente, même si le joueur local a déjà
+	# confirmé son propre mulligan. Sans ça, un joueur plus rapide que son
+	# adversaire se retrouvait avec une main redevenue draggable/jouable et un
+	# plateau non assombri AVANT que le vrai tour 1 ne démarre (aucun garde-fou
+	# de jeu de carte ne vérifie autre chose que enemy_turn_active) : il pouvait
+	# poser des cartes gratuitement pendant que l'adversaire finissait encore
+	# son propre mulligan, un avantage qui ne devrait jamais exister.
 	if battle.net_emitter != null:
 		battle.net_emitter.mulligan_done()
+		battle.turn_banner.show_banner_persistent(SettingsManager.t("mulligan.waiting_opponent"), "", TurnBanner.MULLIGAN_Y_RATIO)
 	await battle.opponent.await_mulligan()
+	battle.turn_banner.hide_banner()
+	battle.mulligan_dim_overlay.visible = false
+	battle.hand.set_mulligan_mode(false)
+	battle._mulligan_active = false
 	battle.end_turn_button.disabled = false
 	battle._retranslate_battle()
 	battle.update_end_turn_hint()
