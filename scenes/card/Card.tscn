@@ -130,6 +130,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_black")
 
 [node name="Art" type="TextureRect" parent="." unique_id=1275732162]
 light_mask = 3
+texture_filter = 4
 custom_minimum_size = Vector2(250, 375)
 layout_mode = 0
 anchor_right = 1.0
@@ -273,6 +274,7 @@ offset_bottom = 9.5
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+texture_filter = 4
 texture = ExtResource("6_u4wdl")
 expand_mode = 1
 
