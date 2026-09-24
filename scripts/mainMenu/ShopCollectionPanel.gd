@@ -2,16 +2,19 @@ extends RefCounted
 class_name ShopCollectionPanel
 
 # Inventaire de packs de la vue "Collection" (voir MainMenu.gd,
-# _open_collection_view) : image du pack, pastille dorée indiquant le stock,
-# et bouton "Acheter des packs" qui renvoie vers la Boutique. Cliquer sur le
-# pack l'ouvre directement (1 exemplaire) ; Ctrl+clic en ouvre 5, Maj+clic en
-# ouvre 10, uniquement si le stock le permet (voir _on_pack_gui_input) — le
-# rappel de ces raccourcis est affiché en permanence en bas à droite du
-# panneau par PackShop (voir CornerHintLabel dans PackShop.tscn). L'ouverture
-# elle-même (révélation des cartes) est déléguée à `open_callback` (voir
-# MainMenu._open_owned_packs_flow → PackShop.open_owned), qui anime les
-# cartes directement autour de l'image du pack ci-dessous plutôt que dans un
-# écran séparé.
+# _open_collection_view) : image du pack (centrée, comme avant) avec sa
+# pastille dorée indiquant le stock. Cliquer sur le pack l'ouvre directement
+# (1 exemplaire) ; Ctrl+clic en ouvre 5, Maj+clic en ouvre 10, uniquement si
+# le stock le permet (voir _make_pack_input_handler) — le rappel de ces
+# raccourcis est affiché en permanence en bas à droite du panneau, et le
+# bouton "Acheter des packs" tout en bas (vraiment au bas du PANNEAU, pas
+# juste sous le pack) : les deux vivent dans PackShop (voir CornerHintLabel/
+# BuyPacksButton dans PackShop.tscn), un overlay permanent qui couvre tout
+# CollectionContentRoot, plutôt qu'ici où ils suivraient le pack dans le flux
+# de la colonne. L'ouverture elle-même (révélation des cartes) est déléguée
+# à `open_callback` (voir MainMenu._open_owned_packs_flow → PackShop.open_owned),
+# qui anime les cartes directement autour de l'image du pack ci-dessous
+# plutôt que dans un écran séparé.
 
 const PACK_IMAGE_SIZE := Vector2(160, 240)
 const PACK_BACK_TEXTURE := "res://assets/card_back/card-back.png"
@@ -21,11 +24,10 @@ const OPEN_QUANTITY_CTRL := 5
 const OPEN_QUANTITY_SHIFT := 10
 
 ## Construit le panneau dans `parent` (VBoxContainer, vidé puis reconstruit) :
-## image du dos de pack (cliquable) avec sa pastille de stock, puis un
-## bouton "Acheter des packs" en bas. `open_callback(quantity, pack_image)`
-## est appelé au clic sur le pack si le stock le permet ; `buy_packs_callback()`
-## au clic sur le bouton d'achat.
-static func build_into(parent: Control, open_callback: Callable, buy_packs_callback: Callable = Callable()) -> void:
+## image du dos de pack (cliquable) avec sa pastille de stock, centrée.
+## `open_callback(quantity, pack_image)` est appelé au clic sur le pack si le
+## stock le permet.
+static func build_into(parent: Control, open_callback: Callable) -> void:
 	for child in parent.get_children():
 		child.queue_free()
 
@@ -91,14 +93,6 @@ static func build_into(parent: Control, open_callback: Callable, buy_packs_callb
 		empty_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		empty_label.text = SettingsManager.t("collection.no_packs")
 		col.add_child(empty_label)
-
-	var buy_button := Button.new()
-	buy_button.name = "BuyPacksButton"
-	buy_button.custom_minimum_size = Vector2(220, 48)
-	buy_button.text = SettingsManager.t("collection.buy_packs_button")
-	if buy_packs_callback.is_valid():
-		buy_button.pressed.connect(buy_packs_callback)
-	col.add_child(buy_button)
 
 ## Clic gauche simple = ouvrir 1 pack ; Ctrl+clic = 5 ; Maj+clic = 10 —
 ## uniquement si le stock couvre exactement la quantité demandée (sinon un
