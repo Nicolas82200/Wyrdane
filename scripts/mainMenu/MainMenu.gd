@@ -245,6 +245,7 @@ var _play_selected_deck_index: int = -1
 var _composition_deck_index: int = -1
 
 func _ready() -> void:
+	%VersionLabel.text = AppVersion.get_display_string()
 	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
