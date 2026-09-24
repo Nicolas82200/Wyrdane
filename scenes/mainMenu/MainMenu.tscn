@@ -537,6 +537,44 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
+[node name="SocialRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000040]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FriendsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow" unique_id=900000041]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Amis"
+
+[node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow" unique_id=900000042]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14
+text = "Chat"
+
+[node name="ChatBadge" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+offset_left = -26.0
+offset_top = -6.0
+offset_right = -4.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="ChatBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="NavSep2" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000011]
 layout_mode = 2
 
@@ -549,6 +587,58 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_nav_item_hover")
 theme_override_font_sizes/font_size = 17
 alignment = 0
 text = "Quitter"
+
+[node name="FriendsNavView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=900000050]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="FriendsHeaderRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000051]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow" unique_id=900000052]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+text = "Amis"
+vertical_alignment = 1
+
+[node name="FriendsBackButton" type="Button" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow" unique_id=900000053]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Retour"
+
+[node name="FriendsSearchRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000054]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FriendsSearchLineEdit" type="LineEdit" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow" unique_id=900000055]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Pseudo..."
+
+[node name="FriendsSearchButton" type="Button" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow" unique_id=900000056]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Chercher"
+
+[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView" unique_id=900000057]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/FriendsNavView/FriendsScroll" unique_id=900000058]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -1673,6 +1763,131 @@ theme_override_font_sizes/font_size = 13
 text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ChatPopup" type="Control" parent="." unique_id=900000060]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="ChatBackdrop" type="ColorRect" parent="ChatPopup" unique_id=900000061]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="ChatPanel" type="PanelContainer" parent="ChatPopup" unique_id=900000062]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -220.0
+offset_right = 350.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
+
+[node name="ChatMargin" type="MarginContainer" parent="ChatPopup/ChatPanel" unique_id=900000063]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="ChatMainVBox" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin" unique_id=900000064]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ChatHeaderRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000065]
+layout_mode = 2
+
+[node name="ChatTitleLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000066]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 20
+text = "Messages"
+vertical_alignment = 1
+
+[node name="ChatCloseButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000067]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Fermer"
+
+[node name="ChatSep" type="HSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000068]
+layout_mode = 2
+
+[node name="ChatBodyHBox" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000069]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="ChatConversationsCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000070]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ChatConversationsScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol" unique_id=900000071]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatConversationsList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll" unique_id=900000072]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChatVSep" type="VSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000073]
+layout_mode = 2
+
+[node name="ChatThreadCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000074]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ChatThreadNameLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000075]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_font_sizes/font_size = 16
+text = "-"
+
+[node name="ChatThreadScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000076]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ChatThreadList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll" unique_id=900000077]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChatInputRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000078]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ChatInputLineEdit" type="LineEdit" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000079]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Écrire un message..."
+max_length = 500
+
+[node name="ChatSendButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000080]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Envoyer"
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
 visible = false

@@ -158,24 +158,36 @@ maintenant `is_ranked`/`durationSec` ensemble) mais ignoré par cette branche
 backend tant qu'elle n'a pas elle-même absorbé le changement de P13 — sans
 conséquence : le backend actuel n'exploite aucun champ de payload inconnu.
 
-## P15 — Système d'amis Wyrdane + chat : demandé, rien d'implémenté
+## P15 — Système d'amis Wyrdane + chat : écrit des deux côtés, pas encore mergé/déployé
 
-Demande utilisateur du 2026-09-24 : système d'amis propre à Wyrdane (ajout
-par pseudo depuis une barre de recherche, distinct d'une invitation Steam),
-liste d'amis avec indicateur en ligne/en jeu/hors ligne et badge Steam vs
-Wyrdane selon la source de l'ajout, ouverte en place des boutons de
-navigation du menu principal (bouton Amis sous l'avatar/pseudo, clic gauche
-= chat, clic droit = inviter/profil/signaler/supprimer). Chat associé (bouton
-à côté du bouton Amis, badge de messages non lus, conversations triées par
-plus récente), historique **persisté en base** (décision utilisateur) via
-polling HTTP (pas de WebSocket — décision utilisateur, cohérent avec le
-pattern de polling déjà utilisé par le matchmaking classé, évite d'ajouter
-une brique d'infra temps réel côté VPS/Nginx). Rien n'est encore posé côté
-backend (tables `friends`/`friend_requests`/`messages` à créer) ni côté
-client (l'onglet « Communauté » du profil et le futur bouton Amis affichent
-pour l'instant une simple note « bientôt disponible », voir
-`RecentOpponentsPanel.gd`) — c'est la suite prévue après la phase 1
-(historique de parties + place au classement, voir P14 ci-dessus).
+Demande utilisateur du 2026-09-24, implémentée en session suivante (les deux
+côtés, voir CLAUDE.md « Amis et chat » côté `card-game` et « Amis, chat et
+présence » côté `wyrdane-backend`) : système d'amis propre à Wyrdane (ajout
+par pseudo, liste avec statut en ligne/en jeu/hors ligne + étiquette Steam si
+l'ami est aussi un ami Steam), panneau Amis qui prend la place des boutons de
+navigation du menu principal (clic gauche sur un ami = ouvre le chat, clic
+droit = menu contextuel Inviter/Voir le profil/Signaler/Supprimer), chat privé
+entre amis avec badge de non-lus, historique **persisté en base**, polling
+HTTP (pas de WebSocket, décision utilisateur).
+
+**Pas encore mergé/déployé** (même situation que P12/P14 ci-dessus) :
+- Backend : `wyrdane-backend` branche `0079-friends-and-chat` — tables
+  `friendships`/`messages` + colonnes `users.last_heartbeat_at`/`in_game`,
+  nécessite `db:sync` sur le VPS après déploiement.
+- Client : worktree `0614-friends-chat` (`FriendsPanel.gd`, `ChatPanel.gd`,
+  `PresenceService.gd`).
+- Tant que le backend n'est pas déployé, le panneau Amis/le chat afficheront
+  des échecs de chargement silencieux (les BackendClient.* correspondants
+  répondent `success=false`/liste vide sur toute erreur HTTP, pas de crash).
+
+**Limitation connue, pas de bonne solution actuellement** : « Inviter à
+jouer » depuis le menu contextuel ne cible pas directement l'ami — il renvoie
+vers l'écran de choix de mode (Multijoueur → Contre un ami), qui ouvre
+l'overlay natif Steam d'invitation. Le transport reste Steam P2P (voir
+« Multijoueur (1v1 réseau) »), qui n'expose aucune API pour inviter un
+SteamID précis en dehors de cet overlay — lequel ne liste que les amis
+*Steam*, pas les amis *Wyrdane* qui ne le seraient pas. Repenser cela
+demanderait de revoir le transport réseau lui-même, hors de portée ici.
 
 ## Non-problèmes vérifiés pendant cette revue
 

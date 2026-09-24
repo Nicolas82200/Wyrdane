@@ -188,6 +188,20 @@ static func friend_persona_name(steam_id: int) -> String:
 		return ""
 	return s.getFriendPersonaName(steam_id)
 
+# Vrai si ce SteamID64 fait partie de la liste d'amis Steam locale — sert au
+# badge Steam vs Wyrdane d'un ami côté FriendsPanel.gd (un ami ajouté via
+# Wyrdane peut aussi être un ami Steam, les deux badges ne s'excluent pas).
+# FRIEND_FLAG_IMMEDIATE (4) = amis "directs" au sens Steamworks, pas les
+# connaissances/bloqués. false si Steam indisponible ou id invalide/vide.
+static func is_steam_friend(steam_id: String) -> bool:
+	var s := steam()
+	if not _initialized or s == null or steam_id == "" or not s.has_method("hasFriend"):
+		return false
+	var id := int(steam_id)
+	if id == 0:
+		return false
+	return s.hasFriend(id, 4)
+
 # Ouvre l'onglet Amis de l'overlay Steam (liste d'amis, demandes, blocage —
 # tout géré nativement par Steam, aucun système d'amis dédié côté jeu). No-op
 # si Steam est indisponible.
