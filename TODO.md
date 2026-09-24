@@ -104,6 +104,40 @@ sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
 format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
 section 5.
 
+## P12b — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
+
+Même situation que P12 ci-dessus : le client (`MatchHistoryPanel.gd`,
+onglet « Historique » du profil) consomme `GET /api/ranked/matches/history`
+et `ranked.totalPlayers` sur `GET /api/profile`, tous deux ajoutés côté
+`wyrdane-backend` branche `0077-profile-rank-and-match-history` — **pas
+encore mergée dans `main`, donc pas déployée**. `match_history` gagne aussi
+trois colonnes additives (`mmr_change_player1/2`, `duration_sec`), ajoutées
+via `db:sync` comme les autres migrations additives (voir « Appliquer un
+changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`) —
+aucune donnée existante affectée, mais sans ce `db:sync` en prod l'onglet
+Historique affichera des échecs de chargement (404) une fois le client
+déployé.
+
+## P13 — Système d'amis Wyrdane + chat : demandé, rien d'implémenté
+
+Demande utilisateur du 2026-09-24 : système d'amis propre à Wyrdane (ajout
+par pseudo depuis une barre de recherche, distinct d'une invitation Steam),
+liste d'amis avec indicateur en ligne/en jeu/hors ligne et badge Steam vs
+Wyrdane selon la source de l'ajout, ouverte en place des boutons de
+navigation du menu principal (bouton Amis sous l'avatar/pseudo, clic gauche
+= chat, clic droit = inviter/profil/signaler/supprimer). Chat associé (bouton
+à côté du bouton Amis, badge de messages non lus, conversations triées par
+plus récente), historique **persisté en base** (décision utilisateur) via
+polling HTTP (pas de WebSocket — décision utilisateur, cohérent avec le
+pattern de polling déjà utilisé par le matchmaking classé, évite d'ajouter
+une brique d'infra temps réel côté VPS/Nginx). Rien n'est encore posé côté
+backend (tables `friends`/`friend_requests`/`messages` à créer) ni côté
+client (l'onglet « Communauté » du profil et le futur bouton Amis affichent
+pour l'instant une simple note « bientôt disponible », voir
+`RecentOpponentsPanel.gd`) — c'est la suite prévue après la phase 1
+(historique de parties + place au classement, voir P12 ci-dessus pour le
+statut du classement par palier, chantier voisin mais indépendant).
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.

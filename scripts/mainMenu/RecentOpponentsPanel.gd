@@ -39,6 +39,15 @@ static func open(menu) -> void:
 	friends_button.pressed.connect(SteamService.open_friends_overlay)
 	header_row.add_child(friends_button)
 
+	# Signale la feature à venir (système d'amis/chat propre à Wyrdane, pas
+	# seulement l'overlay Steam ci-dessus) sans encore rien implémenter —
+	# évite de laisser croire que l'overlay Steam est la solution définitive.
+	var coming_soon_label := Label.new()
+	coming_soon_label.text = SettingsManager.t("COMMUNITY_FRIENDS_COMING_SOON")
+	coming_soon_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	coming_soon_label.add_theme_color_override("font_color", Color(0.7, 0.65, 0.58, 0.75))
+	section.add_child(coming_soon_label)
+
 	var opponents: Array = SettingsManager.recent_opponents
 	if opponents.is_empty():
 		var empty_label := Label.new()
