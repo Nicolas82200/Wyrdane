@@ -241,10 +241,14 @@ var _mulligan_swapped_indices: Array[int] = []
 
 func _ready() -> void:
 	AudioManager.play_battle_music()
+	PresenceService.in_battle = true
 	_init_data()
 	_init_systems()
 	_connect_signals()
 	turn_system.start_match()
+
+func _exit_tree() -> void:
+	PresenceService.in_battle = false
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
@@ -842,8 +846,9 @@ func _show_game_over(result: String) -> void:
 			"duration_sec": (Time.get_ticks_msec() - match_start_msec) / 1000,
 		})
 		game_over_screen.show_quests()
+	var duration_sec := (Time.get_ticks_msec() - match_start_msec) / 1000
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races, net_match_session_token, cards_played_names, is_ranked_match)
+			cards_played_by_race, deck_races, net_match_session_token, cards_played_names, is_ranked_match, duration_sec)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:

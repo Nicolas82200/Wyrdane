@@ -179,7 +179,8 @@ func get_profile(on_profile: Callable) -> void:
 # caché distinct est mis à jour pour Normal, jamais exposé au client).
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false) -> void:
+		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false,
+		duration_sec: int = 0) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
@@ -188,10 +189,24 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		"deckRaces": deck_races,
 		"cardsPlayed": cards_played_names,
 		"mode": "ranked" if is_ranked else "normal",
+		"durationSec": duration_sec,
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# Historique des dernières parties réseau (ranked + partie rapide, voir
+# rankedModel.getMatchHistory côté backend) du joueur connecté — alimente
+# l'onglet "Historique" du profil (voir MatchHistoryPanel.gd). Chaque entrée :
+# {client_match_id, played_at, duration_sec, winner_id, mmr_change,
+# opponent_username, opponent_deck_races}. on_complete(success: bool, entries: Array).
+func get_match_history(limit: int, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/matches/history?limit=%d" % limit, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Classement ──────────────────────────────────────────────────────────────
 # GET /api/ranked/leaderboard?limit=&offset=&minMmr=&maxMmr= — renvoie
@@ -475,3 +490,87 @@ func report_issue(type: String, description: String, reported_user_id: int = 0, 
 	if match_id != "":
 		body["matchId"] = match_id
 	request(HTTPClient.METHOD_POST, "/api/reports", body, on_complete)
+
+# ─── Amis Wyrdane (voir FriendsPanel.gd) ────────────────────────────────────
+# Système d'amis propre à Wyrdane, distinct de la liste d'amis Steam (overlay
+# natif, voir SteamService.open_friends_overlay) — voir CLAUDE.md « Système
+# d'amis Wyrdane + chat » côté wyrdane-backend.
+
+func search_friends(query: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends/search?q=" + query.uri_encode(), {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Résout les SteamID64 des amis Steam locaux (voir SteamService.
+# get_steam_friend_ids) vers les comptes Wyrdane correspondants — alimente la
+# section "Amis Steam" de FriendsPanel.gd. Chaque entrée : {id, username, steam_id}.
+func resolve_steam_friends(steam_ids: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/resolve-steam-ids", {"steamIds": steam_ids}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Chaque entrée : {friendship_id, id, username, steam_id, presence}, presence
+# déjà résolue côté serveur ("online"/"in_game"/"offline" — voir
+# friendModel.getFriends côté backend).
+func get_friends(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+func get_incoming_friend_requests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends/requests", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# on_data(success: bool, status: String) — status parmi "sent"/"already_friends"/
+# "already_pending"/"auto_accepted" (voir friendModel.sendFriendRequest côté backend).
+func send_friend_request(target_user_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/requests", {"userId": target_user_id}, func(code: int, parsed: Variant):
+		var status: String = parsed.get("status", "") if parsed is Dictionary else ""
+		on_data.call(code == 200, status)
+	)
+
+func accept_friend_request(friendship_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/requests/%d/accept" % friendship_id, {}, on_complete)
+
+# Sert à la fois à refuser une demande reçue, annuler une demande envoyée, et
+# supprimer un ami existant — voir friendModel.deleteFriendship côté backend.
+func remove_friendship(friendship_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_DELETE, "/api/friends/%d" % friendship_id, {}, on_complete)
+
+# ─── Présence (voir PresenceService.gd) ─────────────────────────────────────
+func send_presence_heartbeat(in_game: bool, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/presence/heartbeat", {"inGame": in_game}, on_complete)
+
+# ─── Chat privé entre amis (voir ChatWindow.gd) ─────────────────────────────
+
+func send_message(recipient_id: int, body: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/messages", {"recipientId": recipient_id, "body": body}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Dictionary, parsed if parsed is Dictionary else {})
+	)
+
+# Historique le plus récent en tête (le client réaffiche dans l'ordre inverse)
+# — before_id (0 = pas de curseur) permet de remonter plus loin (infinite scroll).
+func get_conversation(friend_id: int, limit: int = 50, before_id: int = 0, on_data: Callable = Callable()) -> void:
+	var path := "/api/messages/%d?limit=%d" % [friend_id, limit]
+	if before_id > 0:
+		path += "&beforeId=%d" % before_id
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Conversations ayant au moins un message échangé, la plus récente en tête —
+# un ami jamais contacté n'y apparaît pas (voir ChatPanel.gd).
+func get_conversations(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/messages/conversations", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+func mark_conversation_read(friend_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/messages/%d/read" % friend_id, {}, on_complete)
+
+# on_data(total: int) — alimente le badge du bouton Chat du menu principal.
+func get_unread_message_total(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/messages/unread-total", {}, func(code: int, parsed: Variant):
+		on_data.call(int(parsed.get("total", 0)) if code == 200 and parsed is Dictionary else 0)
+	)
