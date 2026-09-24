@@ -179,7 +179,8 @@ func get_profile(on_profile: Callable) -> void:
 # caché distinct est mis à jour pour Normal, jamais exposé au client).
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false) -> void:
+		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false,
+		duration_sec: int = 0) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
@@ -188,10 +189,24 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 		"deckRaces": deck_races,
 		"cardsPlayed": cards_played_names,
 		"mode": "ranked" if is_ranked else "normal",
+		"durationSec": duration_sec,
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# Historique des dernières parties réseau (ranked + partie rapide, voir
+# rankedModel.getMatchHistory côté backend) du joueur connecté — alimente
+# l'onglet "Historique" du profil (voir MatchHistoryPanel.gd). Chaque entrée :
+# {client_match_id, played_at, duration_sec, winner_id, mmr_change,
+# opponent_username, opponent_deck_races}. on_complete(success: bool, entries: Array).
+func get_match_history(limit: int, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/matches/history?limit=%d" % limit, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Classement ──────────────────────────────────────────────────────────────
 # GET /api/ranked/leaderboard?limit=&offset=&minMmr=&maxMmr= — renvoie

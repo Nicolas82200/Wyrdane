@@ -805,9 +805,44 @@ theme_override_constants/separation = 0
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 28
 text = "Pseudo Steam"
 vertical_alignment = 1
+
+[node name="ProfilePlaceLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol" unique_id=800367536]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 1)
+theme_override_font_sizes/font_size = 16
+text = "-"
+vertical_alignment = 1
+
+[node name="ProfileTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=900000030]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProfileMainTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000031]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Principal"
+
+[node name="ProfileHistoryTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000032]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Historique"
+
+[node name="ProfileCommunityTabButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow" unique_id=900000033]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 16
+text = "Communauté"
 
 [node name="ProfileStatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox" unique_id=731961068]
 layout_mode = 2

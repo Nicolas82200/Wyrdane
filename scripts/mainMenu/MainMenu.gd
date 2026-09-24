@@ -17,6 +17,9 @@ enum ShopTab { PACKS, CARD_BACKS }
 # périodique) ; UNIQUE isole les jalons de carrière (jamais reset, liste
 # potentiellement longue) — voir QuestsPanel.render.
 enum QuestTab { REGULAR, UNIQUE }
+# MAIN = pseudo/place au classement/rang ; HISTORY = 20 dernières parties
+# réseau ; COMMUNITY = parrainage + amis (voir ProfilePanel.render).
+enum ProfileTab { MAIN, HISTORY, COMMUNITY }
 enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
@@ -135,11 +138,17 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
 @onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileAvatarFrame/ProfileAvatar
 @onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfileNameLabel
+@onready var profile_place_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfilePlaceLabel
+@onready var profile_main_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileMainTabButton
+@onready var profile_history_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileHistoryTabButton
+@onready var profile_community_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileTabsRow/ProfileCommunityTabButton
 @onready var profile_match_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMatchStatsLabel
+@onready var profile_stats_sep: HSeparator = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileStatsSep
 @onready var profile_member_since_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileMemberSinceLabel
 @onready var profile_collection_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileCollectionLabel
 @onready var profile_solo_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileSoloStatsLabel
 @onready var profile_ranked_stats_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankedStatsLabel
+@onready var profile_rank_badge_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow
 @onready var profile_rank_icon: TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow/ProfileRankIcon
 @onready var profile_rank_badge_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow/ProfileRankBadgeLabel
 
@@ -270,6 +279,9 @@ func _ready() -> void:
 	quests_button.pressed.connect(func(): _show_info_view(InfoView.QUESTS))
 	quests_regular_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.REGULAR))
 	quests_unique_tab_button.pressed.connect(func(): _select_quest_tab(QuestTab.UNIQUE))
+	profile_main_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.MAIN))
+	profile_history_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.HISTORY))
+	profile_community_tab_button.pressed.connect(func(): _select_profile_tab(ProfileTab.COMMUNITY))
 	_update_quest_tab_tints()
 	stats_button.pressed.connect(func(): _show_info_view(InfoView.STATS))
 	leaderboard_search_button.pressed.connect(func(): StatsPanel.search_player(self))
@@ -502,6 +514,24 @@ func _select_quest_tab(tab: QuestTab) -> void:
 func _update_quest_tab_tints() -> void:
 	quests_regular_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.REGULAR else Color.WHITE
 	quests_unique_tab_button.self_modulate = NAV_ACTIVE_TINT if _quest_tab == QuestTab.UNIQUE else Color.WHITE
+
+# --- Profil : mini-navbar Principal / Historique / Communauté --------------
+# Même principe que les onglets Quêtes ci-dessus : un seul InfoView (PROFILE),
+# l'onglet actif décide seul quelles sections sont reconstruites dans
+# profile_body (voir ProfilePanel.render) — jamais de refetch du profil lui-
+# même en changeant d'onglet, seul l'historique (backend) est requêté à la
+# demande, la première fois que l'onglet Historique est sélectionné.
+var _profile_tab: ProfileTab = ProfileTab.MAIN
+
+func _select_profile_tab(tab: ProfileTab) -> void:
+	_profile_tab = tab
+	_update_profile_tab_tints()
+	ProfilePanel.render(self)
+
+func _update_profile_tab_tints() -> void:
+	profile_main_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.MAIN else Color.WHITE
+	profile_history_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.HISTORY else Color.WHITE
+	profile_community_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.COMMUNITY else Color.WHITE
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
@@ -1130,6 +1160,9 @@ func _retranslate() -> void:
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
+	profile_main_tab_button.text = SettingsManager.t("PROFILE_TAB_MAIN")
+	profile_history_tab_button.text = SettingsManager.t("PROFILE_TAB_HISTORY")
+	profile_community_tab_button.text = SettingsManager.t("PROFILE_TAB_COMMUNITY")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
 	quests_regular_tab_button.text = SettingsManager.t("QUESTS_TAB_REGULAR")

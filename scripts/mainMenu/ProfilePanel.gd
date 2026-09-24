@@ -17,11 +17,40 @@ static func open(menu) -> void:
 			menu.profile_avatar.texture = tex
 	menu.profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
 	_show_placeholders(menu)
+	# Revient toujours sur l'onglet Principal à l'ouverture de la vue Profil —
+	# un onglet Historique/Communauté resterait sinon sélectionné (et vide,
+	# ses sections ayant été libérées en quittant la vue) au prochain retour.
+	menu._profile_tab = menu.ProfileTab.MAIN
+	menu._update_profile_tab_tints()
 	_fetch(menu)
-	ReferralPanel.open(menu)
-	RecentOpponentsPanel.open(menu)
-	MatchHistoryPanel.open(menu)
-	SupporterPackPanel.open(menu)
+	render(menu)
+
+# Reconstruit les sections dynamiques de profile_body selon l'onglet actif
+# (voir MainMenu._select_profile_tab) — les stats/badge de rang (remplies par
+# _populate_stats une fois la requête GET /api/profile terminée) ne sont
+# affichées que sur l'onglet Principal, jamais refetchées en changeant d'onglet.
+static func render(menu) -> void:
+	var main_visible: bool = menu._profile_tab == menu.ProfileTab.MAIN
+	menu.profile_stats_sep.visible = main_visible
+	menu.profile_member_since_label.visible = main_visible
+	menu.profile_collection_label.visible = main_visible
+	menu.profile_solo_stats_label.visible = main_visible
+	menu.profile_ranked_stats_label.visible = main_visible
+	menu.profile_rank_badge_row.visible = main_visible
+
+	for section_name in ["MatchHistorySection", "SocialSection", "ReferralSection", "SupporterPackSection"]:
+		var existing: Node = menu.profile_body.get_node_or_null(section_name)
+		if existing:
+			existing.queue_free()
+
+	match menu._profile_tab:
+		menu.ProfileTab.MAIN:
+			SupporterPackPanel.open(menu)
+		menu.ProfileTab.HISTORY:
+			MatchHistoryPanel.open(menu)
+		menu.ProfileTab.COMMUNITY:
+			RecentOpponentsPanel.open(menu)
+			ReferralPanel.open(menu)
 
 # BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
 # du menu (voir MainMenu._start_backend_sync) : si le joueur ouvre cette vue
@@ -57,6 +86,7 @@ static func _on_response(success: bool, data: Dictionary, menu) -> void:
 
 static func _show_placeholders(menu) -> void:
 	var dash := SettingsManager.t("PROFILE_LOADING")
+	menu.profile_place_label.text = dash
 	menu.profile_member_since_label.text = dash
 	menu.profile_collection_label.text = dash
 	menu.profile_solo_stats_label.text = dash
@@ -65,6 +95,7 @@ static func _show_placeholders(menu) -> void:
 
 static func _show_unavailable(menu) -> void:
 	var dash := SettingsManager.t("PROFILE_UNAVAILABLE")
+	menu.profile_place_label.text = dash
 	menu.profile_member_since_label.text = dash
 	menu.profile_collection_label.text = dash
 	menu.profile_solo_stats_label.text = dash
@@ -86,6 +117,9 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	menu.profile_ranked_stats_label.text = SettingsManager.t("PROFILE_RANKED_STATS") % [
 		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
 		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
+	]
+	menu.profile_place_label.text = SettingsManager.t("PROFILE_RANK_PLACE") % [
+		int(ranked.get("rank", 0)), int(ranked.get("totalPlayers", 0)),
 	]
 	apply_rank_badge(menu.profile_rank_badge_label, menu.profile_rank_icon, int(ranked.get("mmr", 0)), true)
 
