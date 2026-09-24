@@ -2,7 +2,7 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cywgeg713wkxw"
+uid="uid://cddnfm4wq3eys"
 path="res://.godot/imported/diamond.png-1421fbafb073a203a0f30045ac22d2ca.ctex"
 metadata={
 "vram_texture": false
@@ -23,11 +23,7 @@ compress/rdo_quality_loss=0.0
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-<<<<<<< HEAD
 mipmaps/generate=false
-=======
-mipmaps/generate=true
->>>>>>> 972d8e51c65a804d8d4eae48d0ad83ad90fc2b35
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -319,6 +319,51 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 	if is_instance_valid(self) and is_instance_valid(target_card):
 		on_landed.call()
 
+# Trajet inverse de _fly_ghost_card : fait voler une carte fantôme (face
+# visible, celle qu'on vient d'échanger) depuis local_start_pos (dans le
+# repère de Hand) jusqu'à deck_origin (position globale du deck), en se
+# retournant (face -> dos) à mi-chemin puis en se redressant à 90° (même
+# orientation que le deck, voir _fly_ghost_card) avant de disparaître.
+func _fly_ghost_card_to_deck(card_data: CardData, local_start_pos: Vector2, start_scale: Vector2, deck_origin: Vector2) -> void:
+	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
+		return
+	var ghost: Card = CARD_SCENE.instantiate()
+	_battle.add_child(ghost)
+	ghost.set_data(card_data)
+	ghost.drag_enabled = false
+	ghost.show_back(false)
+	ghost.scale    = start_scale
+	ghost.modulate = Color.WHITE
+	ghost.z_index  = 100
+	ghost.visible  = false
+	await get_tree().process_frame
+	if not is_instance_valid(ghost):
+		return
+	if not is_instance_valid(self):
+		ghost.queue_free()
+		return
+	var start_pos: Vector2 = global_position + local_start_pos
+	ghost.pivot_offset = ghost.size / 2.0
+	ghost.rotation = 0.0
+	ghost.global_position = start_pos - ghost.pivot_offset
+	ghost.visible = true
+	var mid_pos := Vector2(
+		(start_pos.x + deck_origin.x) / 2.0,
+		(start_pos.y + deck_origin.y) / 2.0 - 100
+	)
+	var step_duration: float = 0.1 * SettingsManager.motion_scale()
+	var tween := create_tween()
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos, step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_property(ghost, "scale:x",          0.0,          step_duration).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(func(): ghost.show_back(true))
+	tween.tween_property(ghost, "scale:x",          start_scale.x, step_duration).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position",  deck_origin,   step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(ghost, "rotation", PI / 2.0, step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	await tween.finished
+	if is_instance_valid(ghost):
+		ghost.queue_free()
+
 func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	var new_card_data: CardData = cards.back()
 	var new_card: Card = CARD_SCENE.instantiate()
@@ -435,19 +480,39 @@ func _on_discard_card_clicked(card: Card) -> void:
 	if index != -1:
 		discard_card_clicked.emit(index, card.data)
 
-func flip_replace_at(index: int, new_data: CardData) -> void:
+# Remplace la carte à index par new_data pendant le mulligan : la carte
+# échangée s'envole vers le deck (dos visible en arrivant), puis une carte
+# fantôme s'envole depuis le deck jusqu'à cette même position (voir
+# _fly_ghost_card) pour matérialiser la nouvelle carte reçue. Repli sur un
+# simple flip sur place si deck_origin est inconnue (ex. appel sans le deck
+# visible à l'écran).
+func flip_replace_at(index: int, new_data: CardData, deck_origin: Vector2 = Vector2.ZERO) -> void:
 	if index < 0 or index >= _hand_order.size():
 		return
 	var card: Card = _hand_order[index]
-	var target_scale_x: float = card.scale.x
-	var tween := create_tween()
-	tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_callback(func():
-		card.set_data(new_data)
-		if display_cost.is_valid():
-			card.set_display_cost(display_cost.call(new_data))
-	)
-	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
+	if deck_origin == Vector2.ZERO or not is_instance_valid(_battle):
+		var target_scale_x: float = card.scale.x
+		var tween := create_tween()
+		tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
+		tween.tween_callback(func():
+			card.set_data(new_data)
+			if display_cost.is_valid():
+				card.set_display_cost(display_cost.call(new_data))
+		)
+		tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
+		return
+
+	var old_data: CardData = card.data
+	var local_pos: Vector2 = card.position
+	var target_scale: Vector2 = card.scale
+	card.visible = false
+	await _fly_ghost_card_to_deck(old_data, local_pos, target_scale, deck_origin)
+	if not is_instance_valid(self) or not is_instance_valid(card):
+		return
+	card.set_data(new_data)
+	if display_cost.is_valid():
+		card.set_display_cost(display_cost.call(new_data))
+	await _fly_ghost_card(new_data, deck_origin, local_pos, target_scale, card, func(): card.visible = true)
 
 
 func _on_card_hover(card: Card) -> void:

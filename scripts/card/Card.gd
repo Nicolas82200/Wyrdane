@@ -284,16 +284,22 @@ func update_display() -> void:
 	# Les cartes-ressource affichent déjà leur icône de race à la place du
 	# coût (voir _apply_resource_icon) : pas de logo de type redondant ici.
 	if is_minion:
+		# Médaillon de rangée déjà entièrement illustré en couleur (or) :
+		# aucune teinte à appliquer, la modulation blanche laisse ses
+		# couleurs d'origine intactes.
 		card_type_icon.visible = LANE_ICONS.has(data.board_position)
 		if card_type_icon.visible:
 			card_type_icon.texture = LANE_ICONS[data.board_position]
+		card_type_icon.modulate = Color.WHITE
 	else:
+		# Icône de type (Instant/Ritual/Enchantment) : silhouette blanche
+		# teintée par race (RACE_ICON_COLORS, tons pastel) pour rester
+		# lisible sur le fond sombre du médaillon (voir CardTypeIconBg) —
+		# un blanc pur s'y confondait avec le trait noir de l'artwork source.
 		card_type_icon.visible = TYPE_ICONS.has(data.card_type)
 		if card_type_icon.visible:
 			card_type_icon.texture = TYPE_ICONS[data.card_type]
-	# Blanc plutôt que teinté par race : ressort mieux sur le fond sombre du
-	# médaillon (voir CardTypeIconBg) que les teintes pastel de RACE_ICON_COLORS.
-	card_type_icon.modulate = Color.WHITE
+		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color.WHITE)
 	card_type_icon_bg.visible = card_type_icon.visible
 
 	if not data.flavour_text.is_empty() and data.description.is_empty():
