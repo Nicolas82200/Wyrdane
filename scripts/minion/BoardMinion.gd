@@ -96,7 +96,15 @@ const STAT_COLOR_DEBUFF_TEMPORARY  := Color(1.0, 0.6, 0.15)
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 var _hover_preview: Card = null
 var _last_card_scene_error_msec: int = -999999
+# Aperçus des jetons invoqués par ce serviteur (voir
+# CardData.get_summon_preview_cards), affichés à côté de _hover_preview.
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
 var _tooltip_layer: CanvasLayer = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de
+# l'aperçu agrandi — voir TooltipData.tooltips_expanded.
+var _hint_panel: PanelContainer = null
 
 # Référence Battle mise en cache
 var _battle: Node = null
@@ -114,7 +122,18 @@ func _exit_tree() -> void:
 	_cleanup_hover()
 
 func _ready() -> void:
-	_battle = get_tree().current_scene
+	# En différé, pas immédiat : `SceneTransition._swap_scene` fait
+	# `tree.root.add_child(next_root)` (qui déclenche ce _ready() de façon
+	# synchrone, y compris pour tout serviteur déjà construit pendant le
+	# _ready() de la scène elle-même — ex. la toute première boutique Arena,
+	# bâtie synchrone dans ArenaBattle._ready() -> _start_match()) AVANT
+	# `tree.current_scene = next_root` sur la ligne suivante. Capturé
+	# immédiatement ici, `get_tree().current_scene` vaudrait donc encore
+	# l'ANCIENNE scène (sur le point d'être libérée) pour ces serviteurs-là :
+	# leur aperçu de survol serait ajouté à une scène morte, jamais affiché.
+	# En laissant passer un tour de boucle (call_deferred), `_swap_scene` a
+	# fini de mettre `current_scene` à jour avant qu'on ne le lise.
+	call_deferred("_resolve_battle_reference")
 
 	# Chaque instance crée son propre StyleBoxFlat — pas de partage accidentel
 	_highlight_style = StyleBoxFlat.new()
@@ -200,7 +219,7 @@ func _ready() -> void:
 	_fusion_button.position = Vector2(66, -2)
 	_fusion_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_fusion_button.visible = false
-	_fusion_button.add_theme_font_size_override("font_size", 18)
+	_fusion_button.add_theme_font_size_override("font_size", Typography.SECTION)
 	_fusion_button.tooltip_text = TranslationServer.translate("KW_FUSION_NAME")
 	# Fond violet plein + bordure pulsante (voir _process) : le bouton "F"
 	# passait inaperçu en style par défaut Godot, discret dans le coin de la
@@ -219,6 +238,9 @@ func _ready() -> void:
 	_fusion_button.add_theme_color_override("font_color", Color.WHITE)
 	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
 	add_child(_fusion_button)
+
+func _resolve_battle_reference() -> void:
+	_battle = get_tree().current_scene
 
 func _process(delta: float) -> void:
 	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de
@@ -339,6 +361,8 @@ func _is_player_turn() -> bool:
 		return false
 	if "game_over" in _battle and _battle.game_over:
 		return false
+	if "effects_resolving" in _battle and _battle.effects_resolving > 0:
+		return false
 	return not _battle.enemy_turn_active
 
 func _update_ready_glow() -> void:
@@ -416,10 +440,11 @@ func set_targetable(value: bool, color: Color = Color.WHITE) -> void:
 # ─── Input ────────────────────────────────────────────────────────────────────
 
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		minion_clicked.emit(minion, self)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			minion_clicked.emit(minion, self)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_right_click()
 
 # ─── Hover & Preview ──────────────────────────────────────────────────────────
 
@@ -474,6 +499,11 @@ func _on_mouse_entered() -> void:
 		_hover_preview = null
 		return
 	_hover_preview.drag_enabled = false
+	# PASS : le joueur visant naturellement la grande carte plutôt que le
+	# petit serviteur d'origine derrière elle, le clic droit dessus doit aussi
+	# basculer les tooltips (voir TooltipData.tooltips_expanded).
+	_hover_preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	_hover_preview.gui_input.connect(_on_preview_right_click)
 	_hover_preview.z_index = 1000
 	_hover_preview.visible = false
 	_battle.add_child(_hover_preview)
@@ -497,9 +527,103 @@ func _on_mouse_entered() -> void:
 		(size.y - _hover_preview.size.y * Card.HOVER_ZOOM_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
-	var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
-	var tooltip_y := _hover_preview.global_position.y
-	await _show_keyword_tooltips(tooltip_x, tooltip_y)
+	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	# Alignés sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi ces aperçus.
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(minion.get_display_card())
+		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
+		var tooltip_y := _hover_preview.global_position.y
+		await _show_keyword_tooltips(tooltip_x, tooltip_y)
+
+## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
+## par jeton fixe invoqué par ce serviteur, à côté de _hover_preview, relié
+## par un PreviewLinkOverlay dédié. Placés à GAUCHE de _hover_preview s'il y a
+## la place, sinon à DROITE.
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null or not is_instance_valid(_hover_preview) or not is_instance_valid(_battle):
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	const SIDE_MARGIN := 20.0
+
+	var new_tokens: Array[Card] = []
+	for token_data in tokens:
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null:
+			continue
+		_battle.add_child(token_card)
+		token_card.set_non_interactive()
+		# PASS (pas IGNORE) : voir _hover_preview.mouse_filter ci-dessus, même
+		# raison — le clic droit sur un jeton invoqué doit aussi basculer les
+		# tooltips.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click)
+		token_card.z_index = 1000
+		token_card.set_data(token_data)
+		token_card.scale = token_scale
+		new_tokens.append(token_card)
+	if new_tokens.is_empty():
+		return
+
+	var token_width: float = new_tokens[0].size.x * token_scale.x
+	var token_height: float = new_tokens[0].size.y * token_scale.y
+	var strip_width: float = float(new_tokens.size()) * token_width \
+		+ float(new_tokens.size() - 1) * TOKEN_SPACING
+	var preview_left: float = _hover_preview.global_position.x
+	var preview_right: float = preview_left + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE
+	var space_left: float = preview_left - SIDE_MARGIN
+	var place_left: bool = space_left >= strip_width
+
+	var base_y: float = _hover_preview.global_position.y \
+		+ _hover_preview.size.y * Card.HOVER_ZOOM_SCALE * 0.5
+	var start_x: float = preview_left - SIDE_MARGIN - strip_width if place_left \
+		else preview_right + SIDE_MARGIN
+	var link_from: Vector2 = _hover_preview.global_position + Vector2(
+		0.0 if place_left else _hover_preview.size.x * Card.HOVER_ZOOM_SCALE,
+		_hover_preview.size.y * Card.HOVER_ZOOM_SCALE * 0.5
+	)
+
+	# Reste dans l'écran même si ni la gauche ni la droite n'ont assez de place
+	# (ex: serviteur tout au bord du plateau) — sans ce clamp, la bande de
+	# jetons pouvait déborder hors champ, invisible.
+	var vp := get_viewport_rect().size
+	start_x = clampf(start_x, 4.0, vp.x - strip_width - 4.0)
+	var token_y: float = clampf(
+		base_y - token_height * 0.5, 4.0, vp.y - token_height - 4.0)
+
+	for i in range(new_tokens.size()):
+		var token_card: Card = new_tokens[i]
+		var token_x: float = start_x + float(i) * (token_width + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, token_y)
+		token_card.visible = true
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 999
+		_battle.add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(
+			token_width if place_left else 0.0,
+			token_card.size.y * token_scale.y * 0.5
+		)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.visible = false
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 func _on_mouse_exited() -> void:
 	_mouse_is_over = false
@@ -510,6 +634,8 @@ func _on_mouse_exited() -> void:
 
 func _cleanup_hover() -> void:
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
+	_clear_summon_previews()
 	if _hover_preview:
 		# `visible = false` synchrone AVANT queue_free() : la destruction
 		# réelle du nœud est différée à la fin de la frame (voir SceneTree),
@@ -625,6 +751,66 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## `center_x`/`above_y` : voir Hand._show_hint_panel (même principe).
+func _show_hint_panel(center_x: float, above_y: float) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(_battle):
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 1000
+	_battle.add_child(_hint_panel)
+	await get_tree().process_frame
+	if not _mouse_is_over or not is_instance_valid(_hint_panel):
+		return
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, above_y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si ce serviteur est actuellement survolé. Déclenchée
+## par un clic droit sur ce BoardMinion lui-même (petit serviteur d'origine).
+func _on_right_click() -> void:
+	_toggle_and_refresh_tooltips()
+
+## Même bascule, depuis un clic droit sur la grande preview (voir
+## _on_mouse_entered, _hover_preview.mouse_filter = PASS) — le joueur visant
+## naturellement la carte agrandie plutôt que le petit serviteur derrière elle.
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	get_viewport().set_input_as_handled()
+	_toggle_and_refresh_tooltips()
+
+## Même bascule depuis un clic droit sur un aperçu de jeton invoqué (voir
+## _show_summon_previews) — ces cartes n'ont pas leur propre pile de tooltips,
+## seule celle de ce serviteur compte, donc même rafraîchissement.
+func _on_token_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	get_viewport().set_input_as_handled()
+	_toggle_and_refresh_tooltips()
+
+func _toggle_and_refresh_tooltips() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	if not _mouse_is_over or not is_instance_valid(_hover_preview) or not _hover_preview.visible:
+		return
+	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
+	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(minion.get_display_card())
+		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
+		var tooltip_y := _hover_preview.global_position.y
+		await _show_keyword_tooltips(tooltip_x, tooltip_y)
+	else:
+		_clear_summon_previews()
+		_hide_keyword_tooltips()
 
 # ─── Icônes de keywords ───────────────────────────────────────────────────────
 

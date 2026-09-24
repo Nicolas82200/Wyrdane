@@ -28,12 +28,12 @@ const CARD_PRICE_BY_RARITY := {
 # réelles sont appliquées côté serveur, doivent rester synchronisées avec
 # CARDS_PER_PACK/RARITY_WEIGHTS dans wyrdane-backend/backend/src/model/packModel.ts.
 # Clés en anglais (contrairement au backend) pour matcher CardData.rarity.
-const CARDS_PER_PACK_DISPLAY := 4
+const CARDS_PER_PACK_DISPLAY := 5
 const RARITY_WEIGHTS_DISPLAY := {
-	"Common": 60,
+	"Common": 58,
 	"Rare": 25,
 	"Epic": 12,
-	"Legendary": 3,
+	"Legendary": 5,
 }
 
 var balance: int = 0
@@ -56,9 +56,27 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 			on_complete.call(success)
 	)
 
-# Ouvre un pack en consommant le solde de packs gratuits (quêtes hebdo,
-# parrainage — voir docs/backend-contracts/weekly-quests-and-referral.md),
-# pas l'or. on_complete(code, cards) même forme que open_pack.
+# Achète `quantity` packs SANS les ouvrir : débite l'or (PACK_COST * quantity,
+# vérifié côté serveur) et crédite `quantity` packs au stock du joueur — même
+# compteur free_packs que les packs gagnés gratuitement (quêtes hebdo,
+# parrainage, niveau) : une fois en stock, un pack acheté et un pack gagné
+# s'ouvrent exactement pareil, voir open_owned_pack ci-dessous. L'achat
+# n'ouvre donc plus rien lui-même (voir PackShop.gd/ShopBuyPacksPanel.gd) —
+# l'ouverture se fait à part, depuis la vue Collection.
+func buy_packs(quantity: int, on_complete: Callable = Callable()) -> void:
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/buy", {"quantity": quantity}, func(code: int, parsed) -> void:
+		var success := code == 200 and parsed is Dictionary
+		if success:
+			_set_balance(int(parsed.get("balance", balance)))
+			_set_free_packs(int(parsed.get("free_packs", free_packs)))
+		if on_complete.is_valid():
+			on_complete.call(success)
+	)
+
+# Ouvre un pack en consommant le stock de packs (achetés en Boutique OU
+# gagnés gratuitement — quêtes hebdo, parrainage, voir
+# docs/backend-contracts/weekly-quests-and-referral.md), pas directement
+# l'or : voir buy_packs ci-dessus. on_complete(code, cards).
 func open_owned_pack(on_complete: Callable = Callable()) -> void:
 	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/open-owned", {}, func(code: int, parsed) -> void:
 		var cards: Array = []
@@ -91,21 +109,6 @@ func report_solo_match_result(won: bool, cards_played_by_race: Dictionary = {}, 
 			_set_balance(int(parsed.get("balance", balance)))
 		if on_complete.is_valid():
 			on_complete.call(credited, reward)
-	)
-
-# Ouvre un pack (coût fixe côté serveur) : renvoie les cartes tirées (tableau
-# de dictionnaires bruts backend, avec au moins "id") au callback, vide si échec.
-# `free` passe par la route dev /open-free (sans débit), refusée par le
-# serveur (403) tant que DEV_FREE_PACKS n'y est pas activé.
-func open_pack(on_complete: Callable = Callable(), free: bool = false) -> void:
-	var path := "/api/packs/open-free" if free else "/api/packs/open"
-	BackendClient.request(HTTPClient.METHOD_POST, path, {}, func(code: int, parsed) -> void:
-		var cards: Array = []
-		if code == 200 and parsed is Dictionary:
-			cards = parsed.get("cards", [])
-			_set_balance(int(parsed.get("balance", balance)))
-		if on_complete.is_valid():
-			on_complete.call(code, cards)
 	)
 
 ## Prix affiché pour une carte de la rareté donnée, 0 si non tarifée (ex.

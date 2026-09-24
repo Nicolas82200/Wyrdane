@@ -42,6 +42,19 @@ const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 328.5
 const DESC_LABEL_MAX_GROWTH     := 3.0
 
+# Si le texte deborde encore une fois DESC_LABEL_MAX_GROWTH atteint, on reduit
+# la police (voir _fit_desc_label) plutot que de laisser le texte deborder de
+# la carte ou se faire rogner. Deux seules tailles utilisees (echelle unique
+# du jeu, voir Typography.gd) : Typography.BODY par defaut, Typography.MICRO
+# en dernier recours pour les descriptions les plus longues.
+const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.MICRO
+
+# Au-dela de ce nombre de caracteres, la description seule (hors flavour text)
+# remplit deja la case par defaut : le flavour text (ambiance, cosmetique) est
+# alors masque plutot que d'aggraver le debordement au detriment du texte de
+# regle, qui lui est indispensable a la lisibilite de la carte.
+const DESC_FLAVOUR_HIDE_THRESHOLD := 120
+
 # AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
 # _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
 const STATS_LABEL_DEFAULT_TOP    := 330.0
@@ -76,7 +89,9 @@ const RACE_COLORS := {
 # sans le rendre illisible).
 const LABEL_BG_ALPHA_FACTOR := 0.7
 
-# Teinte du logo de type/rangée selon la race (remplace l'ancien badge circulaire)
+# Teinte de repère par race (utilisée par DeckBuilder pour le badge de coût
+# des cartes en grille) ; le logo de type/rangée sur la carte elle-même est
+# désormais blanc (voir update_display), pas teinté par cette table.
 const RACE_ICON_COLORS := {
 	Race.Type.ARTIFACT: Color("#c9b389"),
 	Race.Type.UNDEAD: Color("#e2e2e2"),
@@ -298,24 +313,32 @@ func update_display() -> void:
 	# Les cartes-ressource affichent déjà leur icône de race à la place du
 	# coût (voir _apply_resource_icon) : pas de logo de type redondant ici.
 	if is_minion:
+		# Médaillon de rangée déjà entièrement illustré en couleur (or) :
+		# aucune teinte à appliquer, la modulation blanche laisse ses
+		# couleurs d'origine intactes.
 		card_type_icon.visible = LANE_ICONS.has(data.board_position)
 		if card_type_icon.visible:
 			card_type_icon.texture = LANE_ICONS[data.board_position]
+		card_type_icon.modulate = Color.WHITE
 	else:
+		# Icône de type (Instant/Ritual/Enchantment) : silhouette blanche
+		# teintée par race (RACE_ICON_COLORS, tons pastel) pour rester
+		# lisible sur le fond sombre du médaillon (voir CardTypeIconBg) —
+		# un blanc pur s'y confondait avec le trait noir de l'artwork source.
 		card_type_icon.visible = TYPE_ICONS.has(data.card_type)
 		if card_type_icon.visible:
 			card_type_icon.texture = TYPE_ICONS[data.card_type]
-	if card_type_icon.visible:
-		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color("#bebebe"))
+		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color.WHITE)
 	card_type_icon_bg.visible = card_type_icon.visible
 
-	if not data.flavour_text.is_empty() and data.description.is_empty():
+	var display_description: String = data.display_description()
+	if not data.flavour_text.is_empty() and display_description.is_empty():
 		desc_label.text = "[center][i]" + data.display_flavour() + "[/i][/center]"
-	elif not data.flavour_text.is_empty():
-		desc_label.text = bold_keywords_and_triggers(data.display_description())
+	elif not data.flavour_text.is_empty() and display_description.length() < DESC_FLAVOUR_HIDE_THRESHOLD:
+		desc_label.text = bold_keywords_and_triggers(display_description)
 		desc_label.text += "\n[i]" + data.display_flavour() + "[/i]"
 	else:
-		desc_label.text = bold_keywords_and_triggers(data.display_description())
+		desc_label.text = bold_keywords_and_triggers(display_description)
 
 	if data.texture:
 		art.texture = data.texture
@@ -366,13 +389,21 @@ func _fit_name_label() -> float:
 func _fit_desc_label(name_growth: float) -> void:
 	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
+	_set_desc_font_size(Typography.BODY)
 	if attack_label:
 		attack_label.offset_top = STATS_LABEL_DEFAULT_TOP
 		attack_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
 	if health_label:
 		health_label.offset_top = STATS_LABEL_DEFAULT_TOP
 		health_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
-	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
+	var available: float = DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top
+	var overflow: float = desc_label.get_content_height() - available
+	# Texte encore trop long une fois la case agrandie au maximum : on reduit
+	# la police plutot que de laisser deborder ou rogner (voir
+	# DESC_LABEL_SHRUNK_FONT_SIZE) et on recalcule le debordement restant.
+	if overflow > DESC_LABEL_MAX_GROWTH:
+		_set_desc_font_size(DESC_LABEL_SHRUNK_FONT_SIZE)
+		overflow = desc_label.get_content_height() - available
 	if overflow <= 0.0:
 		return
 	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
@@ -383,6 +414,13 @@ func _fit_desc_label(name_growth: float) -> void:
 	if health_label:
 		health_label.offset_top += growth
 		health_label.offset_bottom += growth
+
+# Applique une taille de police au DescLabel (texte normal/gras/italique -
+# effet + flavour) : voir _fit_desc_label.
+func _set_desc_font_size(size: int) -> void:
+	desc_label.add_theme_font_size_override("normal_font_size", size)
+	desc_label.add_theme_font_size_override("bold_font_size", size)
+	desc_label.add_theme_font_size_override("italics_font_size", size)
 
 # Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
 # ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
@@ -438,6 +476,8 @@ func _is_players_turn() -> bool:
 	if _battle == null or not ("enemy_turn_active" in _battle):
 		return true
 	if "game_over" in _battle and _battle.game_over:
+		return false
+	if "effects_resolving" in _battle and _battle.effects_resolving > 0:
 		return false
 	return not _battle.enemy_turn_active
 
@@ -538,7 +578,8 @@ func _gui_input(event: InputEvent) -> void:
 	if battle and "enemy_turn_active" in battle \
 			and (battle.enemy_turn_active \
 				or ("game_over" in battle and battle.game_over) \
-				or ("reconnecting" in battle and battle.reconnecting)):
+				or ("reconnecting" in battle and battle.reconnecting) \
+				or ("effects_resolving" in battle and battle.effects_resolving > 0)):
 		get_viewport().set_input_as_handled()
 		return
 

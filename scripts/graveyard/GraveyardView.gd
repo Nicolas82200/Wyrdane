@@ -14,7 +14,7 @@ const GRID_WRAPPER_SIZE     := Vector2(215, 320)
 const CARD_BASE_SIZE        := Vector2(250, 375)  # taille native de Card.tscn
 const TOOLTIP_WIDTH         := 220.0
 
-@onready var container   = $PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/GridContainer
+@onready var container   = $PanelContainer/MarginContainer/VBoxContainer/ScrollContainer/GridMargin/GridContainer
 @onready var count_label = $PanelContainer/MarginContainer/VBoxContainer/Header/CountLabel
 @onready var close_btn   = $PanelContainer/MarginContainer/VBoxContainer/Header/CloseButton
 @onready var color_rect  = $ColorRect
@@ -24,6 +24,17 @@ var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
 var _selection_mode:   bool           = false
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# carte survolée — voir TooltipData.tooltips_expanded.
+var _hint_panel:       PanelContainer = null
+
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards / Hand._show_summon_previews, même
+# principe) — au-dessus de la carte agrandie si la place le permet, sinon en
+# dessous.
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
 
 func _ready() -> void:
 	# Le son de fermeture est joué dans close(), pas le clic générique
@@ -41,6 +52,8 @@ func _on_background_clicked(event: InputEvent) -> void:
 func close() -> void:
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
+	_clear_summon_previews()
 	hide()
 	if _selection_mode:
 		_selection_mode = false
@@ -53,7 +66,11 @@ func open(graveyard: Graveyard) -> void:
 	for i in range(graveyard.entries.size() - 1, -1, -1):
 		var entry = graveyard.entries[i]
 		entries.append({"card_data": entry["card_data"], "face_down": graveyard.is_face_down(entry)})
-	_open_entries(entries)
+	# Pas de regroupement ici : chaque mort doit rester visible individuellement,
+	# dans son ordre d'arrivée, même si plusieurs copies d'une même carte sont
+	# mortes (contrairement à la pioche restante, voir open_deck, où grouper les
+	# doublons a du sens puisqu'il n'y a pas d'ordre chronologique à préserver).
+	_open_entries(entries, false)
 
 # Mode sélection : le joueur doit choisir une carte parmi `candidates` (déjà
 # filtrées par l'appelant — ex: Mort-Vivants du cimetière allié). Le signal
@@ -75,6 +92,7 @@ func _pick(card_data: CardData) -> void:
 	_selection_mode = false
 	AudioManager.play(AudioManager.CLOSE_MENU)
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	hide()
 	card_picked.emit(card_data)
 
@@ -93,12 +111,20 @@ func open_deck(cards: Array) -> void:
 ## avec un badge "xN" au lieu d'en afficher une par copie (ex: 20 cartes-
 ## ressource identiques) — les cartes face cachée ne sont jamais regroupées
 ## (chacune reste une carte individuelle, sans donnée exploitable pour grouper
-## visuellement sans révéler d'information).
-func _open_entries(entries: Array) -> void:
+## visuellement sans révéler d'information). `group_duplicates` désactivé pour
+## le cimetière (voir open()) : chaque mort doit rester une vignette distincte,
+## dans l'ordre chronologique, plutôt que fusionnée derrière un badge "xN".
+func _open_entries(entries: Array, group_duplicates: bool = true) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_hide_keyword_tooltips()
+	_clear_summon_previews()
 	for child in container.get_children():
 		child.queue_free()
+	if not group_duplicates:
+		for entry in entries:
+			_add_card(entry["card_data"], entry["face_down"], 1)
+		show()
+		return
 	var grouped: Array = []
 	var index_by_path: Dictionary = {}
 	for entry in entries:
@@ -127,8 +153,15 @@ func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 	card_visual.set_non_interactive()
 	card_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card_visual.scale        = Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE)
-	card_visual.pivot_offset = Vector2.ZERO
-	card_visual.position     = Vector2.ZERO
+	# Pivot au centre de la carte (plutôt qu'en haut-gauche) : le zoom au survol
+	# grandit alors symétriquement dans les 4 directions autour du centre de la
+	# vignette, au lieu de déborder uniquement vers le bas-droite — ce qui le
+	# faisait sortir du cadre visible (coupé par la ScrollContainer) pour les
+	# cartes de la dernière colonne/ligne. `position` compense ce pivot pour que
+	# la carte reste centrée dans la vignette au repos (échelle GRID_CARD_SCALE).
+	card_visual.pivot_offset = CARD_BASE_SIZE / 2.0
+	card_visual.position     = (GRID_WRAPPER_SIZE - CARD_BASE_SIZE * GRID_CARD_SCALE) / 2.0 \
+		- CARD_BASE_SIZE / 2.0 * (1.0 - GRID_CARD_SCALE)
 	wrapper.add_child(card_visual)
 
 	if face_down:
@@ -140,6 +173,7 @@ func _add_card(card_data: CardData, face_down: bool, count: int = 1) -> void:
 		_add_count_badge(wrapper, count)
 	wrapper.mouse_entered.connect(_on_card_wrapper_entered.bind(card_data, card_visual, wrapper))
 	wrapper.mouse_exited.connect(_on_card_wrapper_exited.bind(card_visual, wrapper))
+	wrapper.gui_input.connect(_on_card_wrapper_right_click.bind(card_data, wrapper))
 	if _selection_mode:
 		wrapper.gui_input.connect(_on_card_wrapper_clicked.bind(card_data))
 
@@ -167,7 +201,7 @@ func _add_count_badge(wrapper: Control, count: int) -> void:
 	badge_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var badge_label := Label.new()
-	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_label.text = SettingsManager.t("deck_view.card_count_badge") % count
 	badge_panel.add_child(badge_label)
@@ -190,7 +224,34 @@ func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: C
 	await get_tree().process_frame
 	if _hovered_wrapper != wrapper or not is_instance_valid(wrapper):
 		return
-	await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+	_show_hint_panel(wrapper)
+	# Aligné sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi cet aperçu.
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data, wrapper)
+		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si cette carte est actuellement survolée.
+func _on_card_wrapper_right_click(event: InputEvent, card_data: CardData, wrapper: Control) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if wrapper != _hovered_wrapper or not _hovering:
+		return
+	var tooltip_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE + 12
+	if tooltip_x + TOOLTIP_WIDTH > get_viewport_rect().size.x:
+		tooltip_x = wrapper.global_position.x - TOOLTIP_WIDTH - 12
+	var tooltip_y: float = wrapper.global_position.y
+	_show_hint_panel(wrapper)
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data, wrapper)
+		await _show_keyword_tooltips(card_data, tooltip_x, tooltip_y, wrapper)
+	else:
+		_clear_summon_previews()
+		_hide_keyword_tooltips()
 
 ## `wrapper` : mouse_entered/mouse_exited entre deux cartes adjacentes n'arrivent
 ## pas toujours dans un ordre garanti par Godot — un exited périmé (celui de
@@ -209,6 +270,90 @@ func _on_card_wrapper_exited(card_visual: Card, wrapper: Control) -> void:
 		Vector2(GRID_CARD_SCALE, GRID_CARD_SCALE), 0.12)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
+	_clear_summon_previews()
+
+## Aperçu supplémentaire par jeton fixe invoqué par la carte survolée (voir
+## CardData.get_summon_preview_cards) — repose sur CardEffect.summon_card,
+## donc rien pour SummonRandom (cible aléatoire, pas de jeton précis à
+## montrer). Centré horizontalement sur la carte agrandie, au-dessus si la
+## place le permet, sinon en dessous.
+func _show_summon_previews(card_data: CardData, wrapper: Control) -> void:
+	_clear_summon_previews()
+	if card_data == null or not is_instance_valid(wrapper):
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(GRID_CARD_HOVER_SCALE, GRID_CARD_HOVER_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 12.0
+	var card_size := CARD_BASE_SIZE * GRID_CARD_HOVER_SCALE
+	var token_size := CARD_BASE_SIZE * token_scale.x
+
+	var new_tokens: Array[Card] = []
+	for token_data in tokens:
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null:
+			continue
+		add_child(token_card)
+		token_card.set_non_interactive()
+		# PASS (pas IGNORE) : le clic droit sur un jeton invoqué doit aussi
+		# basculer les tooltips détaillés de la carte survolée.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click.bind(card_data, wrapper))
+		token_card.z_index = 5
+		token_card.set_data(token_data)
+		token_card.scale = token_scale
+		new_tokens.append(token_card)
+	if new_tokens.is_empty():
+		return
+
+	var strip_width: float = float(new_tokens.size()) * token_size.x \
+		+ float(new_tokens.size() - 1) * TOKEN_SPACING
+	var vp := get_viewport_rect().size
+	var strip_x: float = clampf(
+		wrapper.global_position.x + card_size.x / 2.0 - strip_width / 2.0,
+		4.0, vp.x - strip_width - 4.0)
+
+	var above_y: float = wrapper.global_position.y - token_size.y - 12.0
+	var place_above: bool = above_y >= 4.0
+	var strip_y: float = above_y if place_above else wrapper.global_position.y + card_size.y + 12.0
+	strip_y = clampf(strip_y, 4.0, vp.y - token_size.y - 4.0)
+
+	var link_from_y: float = wrapper.global_position.y if place_above \
+		else wrapper.global_position.y + card_size.y
+
+	for i in range(new_tokens.size()):
+		var token_card: Card = new_tokens[i]
+		var tx: float = strip_x + float(i) * (token_size.x + TOKEN_SPACING)
+		token_card.global_position = Vector2(tx, strip_y)
+		token_card.visible = true
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 4
+		add_child(link)
+		var link_from := Vector2(wrapper.global_position.x + card_size.x / 2.0, link_from_y)
+		var link_to_y: float = strip_y + token_size.y if place_above else strip_y
+		var link_to := Vector2(tx + token_size.x / 2.0, link_to_y)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
+
+## Même bascule que _on_card_wrapper_right_click, depuis un clic droit sur un
+## aperçu de jeton invoqué (voir _show_summon_previews) — ces cartes n'ont
+## pas leur propre pile de tooltips, seule celle de la carte survolée compte.
+func _on_token_preview_right_click(event: InputEvent, card_data: CardData, wrapper: Control) -> void:
+	_on_card_wrapper_right_click(event, card_data, wrapper)
 
 # ─── Tooltips — délégués à TooltipData ───────────────────────────────────────
 
@@ -271,3 +416,24 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## Positionnée au-dessus de la carte agrandie (dans `wrapper`) — voir
+## Hand._show_hint_panel (même principe).
+func _show_hint_panel(wrapper: Control) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(wrapper):
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 1000
+	add_child(_hint_panel)
+	await get_tree().process_frame
+	if not _hovering or wrapper != _hovered_wrapper or not is_instance_valid(_hint_panel):
+		return
+	var center_x: float = wrapper.global_position.x + CARD_BASE_SIZE.x * GRID_CARD_HOVER_SCALE * 0.5
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, wrapper.global_position.y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null

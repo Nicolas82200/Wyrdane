@@ -666,155 +666,6 @@ mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.0
-offset_top = 0.0
-grow_vertical = 2
-
-[node name="MulliganDimOverlay" type="ColorRect" parent="." unique_id=900000005]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 0.6)
-z_index = 90
-
-[node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
-custom_minimum_size = Vector2(170, 48)
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -230.0
-offset_top = -104.0
-offset_right = -60.0
-offset_bottom = -56.0
-grow_horizontal = 0
-grow_vertical = 0
-z_index = 91
-action_mode = 0
-text = "Fin du tour"
-script = ExtResource("13_etbtn")
-
-[node name="ManaDisplay" type="PanelContainer" parent="." unique_id=1934083572]
-custom_minimum_size = Vector2(170, 60)
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -230.0
-offset_top = -172.0
-offset_right = -60.0
-offset_bottom = -112.0
-grow_horizontal = 0
-grow_vertical = 0
-script = ExtResource("14_manad")
-
-[node name="EnemyManaDisplay" type="PanelContainer" parent="." unique_id=243820744]
-custom_minimum_size = Vector2(170, 60)
-layout_mode = 1
-offset_left = 60.0
-offset_top = 112.0
-offset_right = 230.0
-offset_bottom = 172.0
-script = ExtResource("14_manad")
-
-[node name="PlayerHeroPanel" type="Panel" parent="." unique_id=1723469268]
-clip_contents = true
-custom_minimum_size = Vector2(135, 187)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -67.5
-offset_top = -187.0
-offset_right = 67.5
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBoxFlat_vbfmk")
-
-[node name="Portrait" type="TextureRect" parent="PlayerHeroPanel" unique_id=205873856]
-material = SubResource("ShaderMaterial_pportrait")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("20_pheroart")
-expand_mode = 1
-
-[node name="HealthLabel" type="Label" parent="PlayerHeroPanel" unique_id=1678301298]
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("3_jnwmo")
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="EnemyHeroPanel" type="Panel" parent="." unique_id=299686984]
-clip_contents = true
-custom_minimum_size = Vector2(135, 187)
-layout_mode = 0
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -67.5
-offset_right = 67.5
-offset_bottom = 187.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_nyp61")
-script = ExtResource("4_w6b63")
-
-[node name="Portrait" type="TextureRect" parent="EnemyHeroPanel" unique_id=1709533804]
-material = SubResource("ShaderMaterial_eportrait")
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 3.0
-offset_top = 3.0
-offset_right = -3.0
-offset_bottom = -3.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("21_eheroart")
-expand_mode = 1
-
-[node name="HealthLabel" type="Label" parent="EnemyHeroPanel" unique_id=725538410]
-custom_minimum_size = Vector2(50, 50)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_fonts/font = ExtResource("3_jnwmo")
-theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="PlayerGraveyardButton" type="Button" parent="." unique_id=852514453]
 custom_minimum_size = Vector2(150, 225)
 layout_mode = 1
@@ -882,10 +733,6 @@ offset_right = 250.0
 offset_bottom = 375.0
 scale = Vector2(0.48, 0.48)
 mouse_filter = 2
-
-[node name="GraveyardView" parent="." unique_id=1579032817 instance=ExtResource("7_nyp61")]
-visible = false
-layout_mode = 1
 
 [node name="DeckButton" type="Button" parent="." unique_id=1670745458]
 custom_minimum_size = Vector2(150, 225)
@@ -973,6 +820,159 @@ mouse_filter = 2
 texture = ExtResource("9_2ckr4")
 expand_mode = 1
 
+[node name="Hand" parent="." unique_id=1979632691 groups=["player_hand"] instance=ExtResource("2_jnwmo")]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.0
+offset_top = 0.0
+grow_vertical = 2
+
+[node name="MulliganDimOverlay" type="ColorRect" parent="." unique_id=900000005]
+visible = false
+z_index = 90
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="EndTurnButton" type="Button" parent="." unique_id=1766515027]
+z_index = 91
+custom_minimum_size = Vector2(170, 48)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -104.0
+offset_right = -60.0
+offset_bottom = -56.0
+grow_horizontal = 0
+grow_vertical = 0
+action_mode = 0
+text = "Fin du tour"
+script = ExtResource("13_etbtn")
+
+[node name="ManaDisplay" type="PanelContainer" parent="." unique_id=1934083572]
+custom_minimum_size = Vector2(170, 60)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -172.0
+offset_right = -60.0
+offset_bottom = -112.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("14_manad")
+
+[node name="EnemyManaDisplay" type="PanelContainer" parent="." unique_id=243820744]
+custom_minimum_size = Vector2(170, 60)
+layout_mode = 1
+offset_left = 60.0
+offset_top = 112.0
+offset_right = 230.0
+offset_bottom = 172.0
+script = ExtResource("14_manad")
+
+[node name="PlayerHeroPanel" type="Panel" parent="." unique_id=1723469268]
+clip_contents = true
+custom_minimum_size = Vector2(135, 187)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -67.5
+offset_top = -187.0
+offset_right = 67.5
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_vbfmk")
+
+[node name="Portrait" type="TextureRect" parent="PlayerHeroPanel" unique_id=205873856]
+material = SubResource("ShaderMaterial_pportrait")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("20_pheroart")
+expand_mode = 1
+
+[node name="HealthLabel" type="Label" parent="PlayerHeroPanel" unique_id=1678301298]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_jnwmo")
+theme_override_font_sizes/font_size = 29
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnemyHeroPanel" type="Panel" parent="." unique_id=299686984]
+clip_contents = true
+custom_minimum_size = Vector2(135, 187)
+layout_mode = 0
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -67.5
+offset_right = 67.5
+offset_bottom = 187.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_nyp61")
+script = ExtResource("4_w6b63")
+
+[node name="Portrait" type="TextureRect" parent="EnemyHeroPanel" unique_id=1709533804]
+material = SubResource("ShaderMaterial_eportrait")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 3.0
+offset_right = -3.0
+offset_bottom = -3.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("21_eheroart")
+expand_mode = 1
+
+[node name="HealthLabel" type="Label" parent="EnemyHeroPanel" unique_id=725538410]
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("3_jnwmo")
+theme_override_font_sizes/font_size = 29
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GraveyardView" parent="." unique_id=1579032817 instance=ExtResource("7_nyp61")]
+visible = false
+layout_mode = 1
+
 [node name="EnemyHandDisplay" type="Control" parent="." unique_id=1474603863]
 layout_mode = 1
 anchors_preset = 1
@@ -987,18 +987,18 @@ mouse_filter = 2
 script = ExtResource("16_enhand")
 
 [node name="SettingsButton" type="Button" parent="." unique_id=1329099647]
+z_index = 91
 layout_mode = 0
 offset_right = 8.0
 offset_bottom = 8.0
-z_index = 91
 text = "S"
 
 [node name="HelpButton" type="Button" parent="." unique_id=1329099648]
+z_index = 91
 layout_mode = 0
 offset_left = 46.0
 offset_right = 54.0
 offset_bottom = 8.0
-z_index = 91
 text = "?"
 
 [node name="SettingsMenu" parent="." unique_id=1928869263 instance=ExtResource("10_q5nyf")]

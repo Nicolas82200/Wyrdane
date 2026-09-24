@@ -9,13 +9,20 @@ var selected_attackers: Array[Minion]  = []
 var selected_board_minions: Array[BoardMinion] = []
 var is_multi_selecting: bool           = false
 
+var _attack_line: AttackLineOverlay = null
+
 func init(_battle) -> void:
 	battle = _battle
+	_attack_line = AttackLineOverlay.new()
+	var canvas_layer := CanvasLayer.new()
+	canvas_layer.layer = 9
+	battle.add_child(canvas_layer)
+	canvas_layer.add_child(_attack_line)
 
 # ─── Sélection joueur ─────────────────────────────────────────────────────────
 
 func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or not minion.can_attack():
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects() or not minion.can_attack():
 		return
 	# Clic destiné au ciblage (sort/effet) ou au choix d'une victime de
 	# Sacrifice/FUSION : pas une sélection d'attaquant.
@@ -45,6 +52,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 
 		if selected_attackers.is_empty():
 			is_multi_selecting = false
+		_update_attack_line()
 	else:
 		clear_multi_selection()
 		is_multi_selecting = false
@@ -53,11 +61,12 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 		selected_attacker     = minion
 		selected_board_minion = board_minion
 		board_minion.set_selected(true, true)
+		_update_attack_line()
 
 # ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
 func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects():
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -68,17 +77,18 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 
 	if selected_attacker == null or not battle._can_attack_minion_target(selected_attacker, target):
 		return
+	_attack_line.clear()
 	if SettingsManager.confirm_before_attack \
 			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
+		_update_attack_line()
 		return
 	await battle.combat_system.resolve_combat(selected_attacker, target)
 	clear_selection()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_combat()
-	await battle.check_auto_pass_turn()
 
 func on_enemy_hero_clicked() -> void:
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects():
 		return
 
 	if is_multi_selecting and not selected_attackers.is_empty():
@@ -87,8 +97,10 @@ func on_enemy_hero_clicked() -> void:
 
 	if selected_attacker == null or not battle._can_attack_hero(selected_attacker):
 		return
+	_attack_line.clear()
 	if SettingsManager.confirm_before_attack \
 			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
+		_update_attack_line()
 		return
 	await battle.combat_system.perform_hero_attack(selected_attacker)
 	clear_selection()
@@ -96,7 +108,6 @@ func on_enemy_hero_clicked() -> void:
 	battle.board_visual_system.refresh_board()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_combat()
-	await battle.check_auto_pass_turn()
 
 # ─── Multi-attaque ────────────────────────────────────────────────────────────
 
@@ -114,7 +125,6 @@ func _resolve_multi_attack(target: Minion) -> void:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.4).timeout
-	await battle.check_auto_pass_turn()
 
 func _resolve_multi_attack_hero() -> void:
 	var attackers := _sort_attackers_left_to_right(selected_attackers)
@@ -132,7 +142,6 @@ func _resolve_multi_attack_hero() -> void:
 		await battle.get_tree().create_timer(0.2).timeout
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()
-	await battle.check_auto_pass_turn()
 
 func _sort_attackers_left_to_right(attackers: Array[Minion]) -> Array[Minion]:
 	var sorted: Array[Minion] = attackers.duplicate()
@@ -155,3 +164,20 @@ func clear_multi_selection() -> void:
 	selected_attackers.clear()
 	selected_board_minions.clear()
 	is_multi_selecting = false
+	_update_attack_line()
+
+# ─── Ligne d'attaque ──────────────────────────────────────────────────────────
+
+func _update_attack_line() -> void:
+	if _attack_line == null:
+		return
+	var origins: Array[Control] = []
+	if selected_board_minion and is_instance_valid(selected_board_minion):
+		origins.append(selected_board_minion)
+	for bm in selected_board_minions:
+		if is_instance_valid(bm):
+			origins.append(bm)
+	if origins.is_empty():
+		_attack_line.clear()
+	else:
+		_attack_line.set_origins(origins)

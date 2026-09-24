@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://boh6ewspovfr0" path="res://scenes/settings/AudioSettingsMenu.tscn" id="2_audio"]
 [ext_resource type="PackedScene" uid="uid://b5qjptm65gu8e" path="res://scenes/settings/GraphismSettingsMenu.tscn" id="3_graph"]
 [ext_resource type="PackedScene" uid="uid://bt0vohrgfxbke" path="res://scenes/settings/ControlSettingsMenu.tscn" id="4_ctrl"]
-[ext_resource type="PackedScene" path="res://scenes/settings/GameplaySettingsMenu.tscn" id="5_gameplay"]
 [ext_resource type="Script" uid="uid://c4blxcxvigghk" path="res://scripts/settings/SettingsMenu.gd" id="5_script"]
 [ext_resource type="Theme" uid="uid://lvmo3s6vb8ga" path="res://resources/themes/ui_theme.tres" id="6_theme"]
 
@@ -91,7 +90,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 29
 text = "Paramètres"
 
 [node name="CloseXButton" type="Button" parent="Panel/VBox/TitleMargin/TitleRow" unique_id=100000021]
@@ -143,13 +142,6 @@ layout_mode = 2
 toggle_mode = true
 text = "Contrôles"
 
-[node name="GameplayTabButton" type="Button" parent="Panel/VBox/BodyMargin/BodyRow/NavBar" unique_id=800000001]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
-toggle_mode = true
-text = "Gameplay"
-
 [node name="NavSep" type="VSeparator" parent="Panel/VBox/BodyMargin/BodyRow" unique_id=100000032]
 layout_mode = 2
 
@@ -193,16 +185,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="GameplaySettingsMenu" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=800000002 instance=ExtResource("5_gameplay")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
 [node name="ReportPanel" type="VBoxContainer" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=300000090]
 unique_name_in_owner = true
 visible = false
@@ -218,7 +200,7 @@ theme_override_constants/separation = 10
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Catégorie :"
 
 [node name="ReportCategorySelect" type="OptionButton" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000092]
@@ -231,7 +213,7 @@ size_flags_horizontal = 0
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Description :"
 
 [node name="ReportTextEdit" type="TextEdit" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea/ReportPanel" unique_id=300000094]
@@ -244,7 +226,7 @@ wrap_mode = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.68, 0.3, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 17
 text = ""
 autowrap_mode = 3
 
@@ -302,7 +284,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 34)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 17
 text = "Appliquer"
 
 [node name="ConfirmPanel" type="PanelContainer" parent="." unique_id=100000022]
@@ -336,7 +318,7 @@ theme_override_constants/separation = 20
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 21
 text = "Voulez-vous vraiment concéder la partie ?"
 horizontal_alignment = 1
 autowrap_mode = 3

@@ -29,7 +29,7 @@ func is_active() -> bool:
 func can_activate(card_data: CardData, is_player: bool) -> bool:
 	if card_data == null or not is_player:
 		return false
-	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target:
+	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.waiting_for_target or battle.is_resolving_effects():
 		return false
 	if _active or battle.targeting_system.is_targeting():
 		return false
@@ -68,13 +68,10 @@ func on_ally_minion_clicked(minion: Minion, visual: BoardMinion) -> void:
 	_selected.append(minion)
 	visual.set_targetable(true, HIGHLIGHT_COLOR.lightened(0.3))
 	if _selected.size() >= _pending_ritual.sacrifice_count:
-		if SettingsManager.confirm_before_sacrifice \
-				and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.sacrifice")):
-			cancel()
-			return
 		await _execute()
 
 func _execute() -> void:
+	battle.afk_guard.notify_local_action()
 	var ritual: CardData = _pending_ritual
 	var victims: Array[Minion] = _selected.duplicate()
 	_active = false
@@ -84,8 +81,9 @@ func _execute() -> void:
 	battle.card_popup_system.hide_targeting_popup()
 
 	# Capture les serviteurs créés par l'effet (ex. invocation) pour le rejeu réseau.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	var victim_ids: Array = []
 	for v in victims:
 		victim_ids.append(v.net_id)
@@ -94,7 +92,7 @@ func _execute() -> void:
 	AchievementManager.on_sacrifice(battle.player_sacrifices_this_match)
 	await battle.trigger_system.activate_sacrifice_ritual(ritual, true, victims)
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.activate_ritual(ritual, victim_ids, ids)
 
 # ─── Validité ─────────────────────────────────────────────────────────────────

@@ -25,7 +25,7 @@ const MAX_MINIONS_PER_ROW := 10
 const BOARD_MINION_SIZE  := Vector2(100, 150)
 const DROP_HIGHLIGHT_COLOR        := Color(1.0, 0.45, 0.05, 0.28)
 const DROP_HIGHLIGHT_BORDER_COLOR := Color(1.0, 0.58, 0.12, 0.9)
-const ACTION_PACE                 := 1.0
+const ACTION_PACE                 := 0.5
 # Pose visuelle des cartes-ressource dans leur zone dédiée (bande de droite) :
 # désactivée pour l'instant (feature repoussée). Le système est conservé tel
 # quel (EnchantmentSystem.add_resource, zones Player/EnemyResourceZone) pour
@@ -81,6 +81,9 @@ var targeting_system    := _TargetingSystemScript.new()
 var ai_system           := _AISystemScript.new()
 var net_session_system  := NetSessionSystem.new()
 var input_system        := InputSystem.new()
+# Garde d'inactivité de tour, solo ET réseau (voir AfkGuard) : le forfait
+# après plusieurs tours AFK d'affilée, lui, reste réseau uniquement.
+var afk_guard           := AfkGuard.new()
 # Pilote du camp adverse (IA en solo, joueur distant en réseau). Pointe sur
 # ai_system par défaut ; sera réassigné en mode multijoueur.
 var opponent: OpponentDriver
@@ -133,11 +136,6 @@ var turn_timer: TurnTimer
 # Voile de pause affiché lors d'une coupure réseau transitoire, créé en code
 # (voir ReconnectOverlay). Reste inutilisé/masqué en solo.
 var reconnect_overlay: ReconnectOverlay
-# Popup Oui/Non générique (voir ConfirmActionPopup), utilisée par SelectionSystem/
-# SacrificeSystem quand SettingsManager.confirm_before_attack/confirm_before_sacrifice
-# est actif. Créée en code (voir _init_systems), jamais nulle une fois la partie lancée.
-var confirm_popup: ConfirmActionPopup
-
 var effect_manager := EffectManager.new()
 # Tutoriel obligatoire du nouveau joueur (voir TutorialContext/TutorialManager) :
 # adversaire scripté, deck fixe, popups pédagogiques. tutorial_manager reste
@@ -163,12 +161,15 @@ var hand_cards: Array[CardData]  = []
 # Suivi des quêtes quotidiennes de race (voir README « Économie »/CLAUDE.md) :
 # deck_races est figé au chargement du deck (DeckSystem.load_deck), avant
 # tirage, pour refléter la composition du deck entier — pas seulement les
-# cartes piochées. cards_played_by_race n'incrémente que sur les cartes
-# jouées par le joueur local (voir CardSystem.gd/play_resource_card), jamais
-# celles de l'IA/adversaire. Reportés une fois au backend en fin de match par
-# MatchResultReporter.
+# cartes piochées. cards_played_by_race/cards_played_names n'incrémentent que
+# sur les cartes jouées par le joueur local (voir CardSystem.gd/play_resource_card),
+# jamais celles de l'IA/adversaire. Reportés une fois au backend en fin de
+# match par MatchResultReporter (cards_played_names uniquement pour un match
+# classé, voir docs/backend-contracts/card-stats-and-leaderboard.md — pas de
+# valeur statistique pour un match solo contre l'IA).
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
+var cards_played_names: Array[String] = []
 # Compteurs de succès Steam (voir AchievementManager) accumulés au fil du
 # match courant, consultés/déclenchés depuis Battle._show_game_over.
 var player_resource_cards_played: int = 0
@@ -192,6 +193,7 @@ var match_start_msec: int = 0
 var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
+	cards_played_names.append(card_data.card_name)
 	if Race.is_raceless(card_data.race):
 		return
 	var race_name := Race.get_race_name(card_data.race)
@@ -211,6 +213,11 @@ var enemy_turn_active: bool      = false
 # le match est mis en pause, les inputs sont bloqués, en attendant une
 # reconnexion ou l'expiration du délai de grâce.
 var reconnecting: bool           = false
+# Compteur (pas un bool) : incrémenté/décrémenté par EffectManager.execute_effect
+# et TriggerSystem.fire, qui peuvent s'imbriquer (un trigger en déclenche un
+# autre). Tant qu'il est > 0, un ou plusieurs effets sont encore en file
+# d'attente ou en cours de résolution — voir is_resolving_effects().
+var effects_resolving: int       = 0
 var _is_dragging_card: bool      = false
 # Contre-Offensive active ce tour, par camp (clé = owner_is_player) : chaque
 # Humain de ce camp qui tue un ennemi gagne une attaque supplémentaire.
@@ -234,10 +241,14 @@ var _mulligan_swapped_indices: Array[int] = []
 
 func _ready() -> void:
 	AudioManager.play_battle_music()
+	PresenceService.in_battle = true
 	_init_data()
 	_init_systems()
 	_connect_signals()
 	turn_system.start_match()
+
+func _exit_tree() -> void:
+	PresenceService.in_battle = false
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
@@ -281,6 +292,7 @@ func _init_systems() -> void:
 	ai_system.init(self)
 	input_system.init(self)
 	net_session_system.init(self)
+	afk_guard.init(self)
 	opponent = ai_system
 	if tutorial_active:
 		var tut_opponent := TutorialOpponent.new()
@@ -325,8 +337,6 @@ func _init_systems() -> void:
 	add_child(emote_wheel)
 	reconnect_overlay = ReconnectOverlay.new()
 	add_child(reconnect_overlay)
-	confirm_popup = ConfirmActionPopup.new()
-	add_child(confirm_popup)
 	turn_timer = TurnTimer.new()
 	turn_timer.timeout.connect(_on_turn_timer_timeout)
 	# Enfant du bouton lui-même (comme le halo "ready hint" de EndTurnButton) :
@@ -384,6 +394,7 @@ func _style_settings_button() -> void:
 func _process(_delta: float) -> void:
 	if targeting_system.is_targeting():
 		targeting_system.update_arrow()
+	afk_guard.update(_delta)
 
 # ─── Input ────────────────────────────────────────────────────────────────────
 
@@ -439,18 +450,37 @@ func pace_actions(delay: float = ACTION_PACE) -> void:
 # sans le retournement recto/verso de Hand._fly_ghost_card (réservé à la vraie
 # main du joueur local).
 const ENEMY_CARD_FLIGHT_DURATION := 0.35
+# Plus lente et plus ample que le simple envol de pose (voir
+# animate_enemy_card_played) : reprend le style de la pioche du joueur local
+# (Hand._fly_ghost_card) — un arc plutôt qu'une ligne droite, avec la carte qui
+# se redresse en vol depuis l'orientation du deck (EnemyDeckButton.rotation,
+# tourné à 90° comme DeckButton côté joueur).
+const ENEMY_DRAW_FLIGHT_DURATION := 0.7
+const ENEMY_DRAW_ARC_HEIGHT := 100.0
 
 func animate_enemy_draw() -> void:
 	if enemy_deck_button == null or enemy_hand_display == null \
 			or not is_instance_valid(enemy_deck_button) or not is_instance_valid(enemy_hand_display):
 		return
-	var ghost := _spawn_enemy_card_ghost(enemy_deck_button.global_position + enemy_deck_button.size * 0.5)
+	AudioManager.play(AudioManager.DRAW)
+	var origin: Vector2 = enemy_deck_button.global_position + enemy_deck_button.size * 0.5
 	var target: Vector2 = enemy_hand_display.global_position + enemy_hand_display.size * 0.5
-	var duration: float = ENEMY_CARD_FLIGHT_DURATION * SettingsManager.motion_scale()
+	var ghost := _spawn_enemy_card_ghost(origin)
+	ghost.rotation = PI / 2.0
+	var mid_pos := Vector2(
+		(origin.x + target.x) / 2.0,
+		(origin.y + target.y) / 2.0 - ENEMY_DRAW_ARC_HEIGHT
+	)
+	var duration: float = ENEMY_DRAW_FLIGHT_DURATION * SettingsManager.motion_scale()
 	var tween := create_tween()
-	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration)\
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos - ghost.size * 0.5, duration * 0.55)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration).set_delay(duration * 0.6)
+	tween.parallel().tween_property(ghost, "rotation", 0.0, duration * 0.55)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "global_position", target - ghost.size * 0.5, duration * 0.45)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(ghost, "modulate:a", 0.0, duration * 0.45).set_delay(duration * 0.45 * 0.6)
 	await tween.finished
 	if is_instance_valid(ghost):
 		ghost.queue_free()
@@ -565,11 +595,11 @@ func _normalized_row(row: String) -> String:
 
 # La logique d'insertion vit désormais dans BoardSystem._insert()
 
-func get_allowed_rows_for_card(card_data: CardData) -> Array[String]:
-	return board_system.get_allowed_rows_for_card(card_data)
+func get_allowed_rows_for_card(card_data: CardData, is_player: bool = true) -> Array[String]:
+	return board_system.get_allowed_rows_for_card(card_data, is_player)
 
-func can_play_card_on_row(card_data: CardData, row: String) -> bool:
-	return board_system.can_play_card_on_row(card_data, row)
+func can_play_card_on_row(card_data: CardData, row: String, is_player: bool = true) -> bool:
+	return board_system.can_play_card_on_row(card_data, row, is_player)
 
 func has_enemy_taunt(attacker: Minion) -> bool:
 	return board_system.has_enemy_taunt(attacker)
@@ -580,10 +610,16 @@ func get_attackable_enemy_minions(attacker: Minion) -> Array[Minion]:
 func destroy_minion(target: Minion) -> void:
 	await death_system.destroy(target)
 
+# Vrai tant qu'un ou plusieurs effets (chaîne de triggers, popups, animations)
+# sont encore en file d'attente ou en cours de résolution — voir
+# `effects_resolving` ci-dessus. Bloque toute action joueur pendant ce temps.
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
+
 # ─── Carte jouée ──────────────────────────────────────────────────────────────
 
 func _on_card_played(card_data: CardData, row: String = ROW_FRONT, insert_index: int = -1) -> void:
-	if game_over or reconnecting or enemy_turn_active or not can_afford_card(card_data):
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects() or not can_afford_card(card_data):
 		return
 	# Pas de jeu de carte pendant le choix d'une victime de Sacrifice/FUSION
 	if sacrifice_system.is_active() or fusion_system.is_active():
@@ -614,13 +650,14 @@ func reset_targeting_state() -> void:
 # ─── Tours ────────────────────────────────────────────────────────────────────
 
 func _on_end_turn_pressed() -> void:
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
 	if tutorial_manager:
 		await tutorial_manager.notify_end_turn_pressed()
+	afk_guard.notify_manual_end_turn()
 	turn_system.end_turn()
 
 # Expiration du décompte : pendant le mulligan, garde la main actuelle telle
@@ -632,7 +669,9 @@ func _on_turn_timer_timeout() -> void:
 	if _mulligan_active:
 		mulligan_confirmed.emit()
 		return
-	if enemy_turn_active:
+	if enemy_turn_active or is_resolving_effects():
+		return
+	if not await afk_guard.handle_timeout():
 		return
 	turn_system.end_turn()
 
@@ -655,19 +694,23 @@ func set_enemy_turn(active: bool) -> void:
 	# tour : la bannière ferait doublon et se superposerait à la popup.
 	if active:
 		end_turn_button.set_ready_hint(false)
+		combat_log.turn_started(false)
 		if not tutorial_active:
 			turn_banner.show_banner(SettingsManager.t("battle.turn_enemy"))
 	else:
+		combat_log.turn_started(true)
 		if not tutorial_active:
 			turn_banner.show_banner(SettingsManager.t("battle.turn_player"))
 		update_end_turn_hint()
 
 # Halo sur « Fin du tour » quand il ne reste plus aucune action possible.
 func update_end_turn_hint() -> void:
-	end_turn_button.set_ready_hint(_player_has_no_actions())
+	var no_actions := _player_has_no_actions()
+	end_turn_button.set_ready_hint(no_actions)
+	afk_guard.set_no_action_state(no_actions)
 
 func _player_has_no_actions() -> bool:
-	if game_over or reconnecting or enemy_turn_active:
+	if game_over or reconnecting or enemy_turn_active or is_resolving_effects():
 		return false
 	for card in hand_cards:
 		if can_play_card(card):
@@ -701,35 +744,6 @@ func _can_attack_hero(attacker: Minion) -> bool:
 	return board_system.can_attack_hero(attacker)
 
 # ─── Fin de partie ────────────────────────────────────────────────────────────
-
-# Réglage "Auto-passe du tour" (voir SettingsManager.auto_pass_turn) : ne
-# déclenche la fin de tour automatique QUE dans le cas sans ambiguïté où main
-# vide + aucun serviteur ne peut plus attaquer — jamais sur une simple estimation
-# d'affordabilité, pour ne jamais couper un tour où une action resterait
-# possible. Ne couvre donc pas le cas rare (mais inoffensif) d'un Rituel de
-# Sacrifice encore activable avec la main vide et plus aucune attaque.
-# Appelé après chaque carte jouée par CardSystem/Battle.play_resource_card et
-# après chaque résolution d'attaque par SelectionSystem.
-func check_auto_pass_turn() -> void:
-	if not SettingsManager.auto_pass_turn:
-		return
-	if not _can_auto_pass_now():
-		return
-	await get_tree().create_timer(0.6).timeout
-	# Re-vérifie après le délai : l'état a pu changer entre-temps (Dernier
-	# Souffle qui repioche une carte, mort différée, etc.).
-	if _can_auto_pass_now():
-		turn_system.end_turn()
-
-func _can_auto_pass_now() -> bool:
-	if game_over or enemy_turn_active or reconnecting or waiting_for_target or _mulligan_active:
-		return false
-	if not hand_cards.is_empty():
-		return false
-	for m in player_minions:
-		if not m.is_dead() and m.can_attack():
-			return false
-	return true
 
 func check_game_end() -> void:
 	if game_over:
@@ -787,7 +801,7 @@ func _show_emote_bubble(text: String, is_player: bool) -> void:
 		return
 	var bubble := Label.new()
 	bubble.text = text
-	bubble.add_theme_font_size_override("font_size", 22)
+	bubble.add_theme_font_size_override("font_size", Typography.SECTION)
 	bubble.add_theme_color_override("font_color", Color("e8d5a3"))
 	bubble.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	bubble.add_theme_constant_override("shadow_offset_x", 2)
@@ -832,8 +846,9 @@ func _show_game_over(result: String) -> void:
 			"duration_sec": (Time.get_ticks_msec() - match_start_msec) / 1000,
 		})
 		game_over_screen.show_quests()
+	var duration_sec := (Time.get_ticks_msec() - match_start_msec) / 1000
 	MatchResultReporter.report(result, network_manager, net_client_match_id, net_opponent_backend_id, game_over_screen,
-			cards_played_by_race, deck_races, net_match_session_token)
+			cards_played_by_race, deck_races, net_match_session_token, cards_played_names, is_ranked_match, duration_sec)
 
 func _on_add_friend_pressed() -> void:
 	if network_manager != null:

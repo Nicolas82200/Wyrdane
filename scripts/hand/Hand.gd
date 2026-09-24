@@ -14,6 +14,17 @@ signal discard_card_clicked(index: int, card_data: CardData)
 # _on_card_hover) — au-dessus des cartes, en dessous de la preview elle-même.
 var _preview_link: PreviewLinkOverlay = null
 
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards), instanciés à la volée à côté de la
+# preview agrandie, chacun relié par son propre PreviewLinkOverlay. Alignés
+# sur TooltipData.tooltips_expanded comme les tooltips détaillés (masqués par
+# le même clic droit).
+var _token_previews:      Array[Card]               = []
+var _token_preview_links: Array[PreviewLinkOverlay]  = []
+# Échelle des aperçus de jetons relative à celle de la preview principale
+# (25% plus petits : information secondaire, pas la carte qu'on s'apprête à jouer).
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
+
 # Doit rester au-dessus des boutons du plateau (cimetière, deck — z_index 0
 # par défaut) pour que la main ne soit jamais recouverte par eux.
 const CARD_Z_BASE := 20
@@ -42,10 +53,15 @@ const COLLAPSE_ZONE_HEIGHT := 340.0
 # Décalage vertical de la carte survolée (se soulève pour se démarquer)
 const HOVER_LIFT       := 40.0
 # Décalage horizontal maximal appliqué aux cartes voisines pour dégager la carte survolée
-const HOVER_PUSH_MAX   := 28.0
+# (valeur relevée pour laisser assez d'espace même sur un éventail serré, ex. 10 cartes en main)
+const HOVER_PUSH_MAX   := 48.0
 # Atténuation du décalage horizontal par carte d'écart supplémentaire
-const HOVER_PUSH_DECAY := 0.55
+const HOVER_PUSH_DECAY := 0.5
 const HAND_START_X     := 80.0
+# Délai avant qu'un survol ne soit réellement pris en compte (voir _on_card_hover) :
+# évite qu'un passage rapide de la souris entre deux cartes très rapprochées
+# (éventail serré) ne déclenche brièvement deux previews qui se chevauchent.
+const HOVER_DEBOUNCE_DELAY := 0.09
 # Délai avant repliement une fois la souris sortie de la zone de main (évite un
 # repli trop nerveux) — ignoré quand une carte vient d'être jouée (repli immédiat)
 const COLLAPSE_DELAY   := 1.0
@@ -54,17 +70,24 @@ const LAYOUT_TWEEN_DURATION := 0.28
 
 var _base_positions:    Dictionary     = {}
 # Ordre logique fixe des cartes en main (position/index), indépendant de
-# l'ordre des enfants du conteneur — celui-ci est réarrangé au survol (voir
-# _sync_tree_order) pour que la carte survolée passe réellement au-dessus des
-# autres, y compris pour la détection de la souris, sans décaler leur position.
+# l'ordre des enfants du conteneur — celui-ci est réaligné sur cet ordre à
+# chaque layout (voir _sync_tree_order), la carte survolée ne passant plus au
+# premier plan (retiré : sur un éventail serré, ça recouvrait la carte
+# suivante et gênait le survol séquentiel).
 var _hand_order:        Array          = []
 var _hovered_card:      Card           = null
+# Carte en attente de confirmation de survol (voir HOVER_DEBOUNCE_DELAY) :
+# distincte de _hovered_card tant que le délai n'est pas écoulé.
+var _pending_hover_card: Card          = null
 var _is_compact:        bool           = false
 var can_play_check:     Callable       = Callable()
 var create_drag_preview: Callable      = Callable()
 var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# preview agrandie — voir TooltipData.tooltips_expanded.
+var _hint_panel:        PanelContainer = null
 var _hovering:          bool           = false
 var _mulligan_mode:     bool           = false
 var _discard_mode:      bool           = false
@@ -91,7 +114,13 @@ func _ready() -> void:
 	# cette valeur avec la référence garantie correcte.
 	_battle = get_tree().current_scene
 	preview.set_non_interactive()
-	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (pas IGNORE) : la preview doit rester inerte au clic gauche (déjà
+	# garanti par drag_enabled=false, voir set_non_interactive) mais doit
+	# recevoir le clic droit qui bascule les tooltips (voir _on_card_right_click),
+	# le joueur visant naturellement la grande carte plutôt que la petite carte
+	# d'origine derrière elle.
+	preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	preview.gui_input.connect(_on_preview_right_click)
 	preview.z_index = 100
 	preview.hide()
 	_preview_link = PreviewLinkOverlay.new()
@@ -290,6 +319,51 @@ func _fly_ghost_card(card_data: CardData, deck_origin: Vector2, local_target_pos
 	if is_instance_valid(self) and is_instance_valid(target_card):
 		on_landed.call()
 
+# Trajet inverse de _fly_ghost_card : fait voler une carte fantôme (face
+# visible, celle qu'on vient d'échanger) depuis local_start_pos (dans le
+# repère de Hand) jusqu'à deck_origin (position globale du deck), en se
+# retournant (face -> dos) à mi-chemin puis en se redressant à 90° (même
+# orientation que le deck, voir _fly_ghost_card) avant de disparaître.
+func _fly_ghost_card_to_deck(card_data: CardData, local_start_pos: Vector2, start_scale: Vector2, deck_origin: Vector2) -> void:
+	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
+		return
+	var ghost: Card = CARD_SCENE.instantiate()
+	_battle.add_child(ghost)
+	ghost.set_data(card_data)
+	ghost.drag_enabled = false
+	ghost.show_back(false)
+	ghost.scale    = start_scale
+	ghost.modulate = Color.WHITE
+	ghost.z_index  = 100
+	ghost.visible  = false
+	await get_tree().process_frame
+	if not is_instance_valid(ghost):
+		return
+	if not is_instance_valid(self):
+		ghost.queue_free()
+		return
+	var start_pos: Vector2 = global_position + local_start_pos
+	ghost.pivot_offset = ghost.size / 2.0
+	ghost.rotation = 0.0
+	ghost.global_position = start_pos - ghost.pivot_offset
+	ghost.visible = true
+	var mid_pos := Vector2(
+		(start_pos.x + deck_origin.x) / 2.0,
+		(start_pos.y + deck_origin.y) / 2.0 - 100
+	)
+	var step_duration: float = 0.1 * SettingsManager.motion_scale()
+	var tween := create_tween()
+	tween.set_parallel(false)
+	tween.tween_property(ghost, "global_position", mid_pos, step_duration).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_property(ghost, "scale:x",          0.0,          step_duration).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_callback(func(): ghost.show_back(true))
+	tween.tween_property(ghost, "scale:x",          start_scale.x, step_duration).set_trans(Tween.TRANS_LINEAR)
+	tween.tween_property(ghost, "global_position",  deck_origin,   step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(ghost, "rotation", PI / 2.0, step_duration * 1.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	await tween.finished
+	if is_instance_valid(ghost):
+		ghost.queue_free()
+
 func _set_hand_animated(cards: Array[CardData], deck_origin: Vector2) -> void:
 	var new_card_data: CardData = cards.back()
 	var new_card: Card = CARD_SCENE.instantiate()
@@ -332,6 +406,14 @@ func set_mulligan_mode(active: bool) -> void:
 	if active and not _hand_expanded:
 		_hand_expanded = true
 		_update_hand_layout(true)
+	elif not active and _hand_expanded:
+		# Repli immédiat en sortie de mulligan (même logique que
+		# _relay_drag_ended) : sans ça, la main resterait centrée/agrandie
+		# jusqu'à COLLAPSE_DELAY (1s) + l'animation, alors que la popup
+		# suivante (ex. mission du tutoriel) s'affiche déjà par-dessus.
+		_collapse_elapsed = 0.0
+		_hand_expanded = false
+		_update_hand_layout(true)
 	for card in container.get_children():
 		if card is Card:
 			card.mulligan_mode = active
@@ -365,7 +447,7 @@ func _update_hand_layout_staggered(total_duration: float) -> void:
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos,             leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tween.tween_property(card, "scale",    layout["scale"], leg_duration).set_delay(delay).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 func _on_mulligan_card_clicked(card: Card) -> void:
 	var index: int = _hand_order.find(card)
@@ -398,23 +480,42 @@ func _on_discard_card_clicked(card: Card) -> void:
 	if index != -1:
 		discard_card_clicked.emit(index, card.data)
 
-func flip_replace_at(index: int, new_data: CardData) -> void:
+# Remplace la carte à index par new_data pendant le mulligan : la carte
+# échangée s'envole vers le deck (dos visible en arrivant), puis une carte
+# fantôme s'envole depuis le deck jusqu'à cette même position (voir
+# _fly_ghost_card) pour matérialiser la nouvelle carte reçue. Repli sur un
+# simple flip sur place si deck_origin est inconnue (ex. appel sans le deck
+# visible à l'écran).
+func flip_replace_at(index: int, new_data: CardData, deck_origin: Vector2 = Vector2.ZERO) -> void:
 	if index < 0 or index >= _hand_order.size():
 		return
 	var card: Card = _hand_order[index]
-	var target_scale_x: float = card.scale.x
-	var tween := create_tween()
-	tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
-	tween.tween_callback(func():
-		card.set_data(new_data)
-		if display_cost.is_valid():
-			card.set_display_cost(display_cost.call(new_data))
-	)
-	tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
+	if deck_origin == Vector2.ZERO or not is_instance_valid(_battle):
+		var target_scale_x: float = card.scale.x
+		var tween := create_tween()
+		tween.tween_property(card, "scale:x", 0.0, 0.12).set_trans(Tween.TRANS_LINEAR)
+		tween.tween_callback(func():
+			card.set_data(new_data)
+			if display_cost.is_valid():
+				card.set_display_cost(display_cost.call(new_data))
+		)
+		tween.tween_property(card, "scale:x", target_scale_x, 0.12).set_trans(Tween.TRANS_LINEAR)
+		return
+
+	var old_data: CardData = card.data
+	var local_pos: Vector2 = card.position
+	var target_scale: Vector2 = card.scale
+	card.visible = false
+	await _fly_ghost_card_to_deck(old_data, local_pos, target_scale, deck_origin)
+	if not is_instance_valid(self) or not is_instance_valid(card):
+		return
+	card.set_data(new_data)
+	if display_cost.is_valid():
+		card.set_display_cost(display_cost.call(new_data))
+	await _fly_ghost_card(new_data, deck_origin, local_pos, target_scale, card, func(): card.visible = true)
 
 
 func _on_card_hover(card: Card) -> void:
-	_hovering = true
 	if is_instance_valid(_battle) and "game_over" in _battle and _battle.game_over:
 		return
 	if is_instance_valid(_battle) and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
@@ -424,6 +525,15 @@ func _on_card_hover(card: Card) -> void:
 			return
 	if card.dragging:
 		return
+	# Attend HOVER_DEBOUNCE_DELAY avant de traiter le survol pour de bon : si la
+	# souris quitte la carte (ou en survole une autre) avant l'échéance,
+	# _on_card_unhover efface _pending_hover_card et ce survol est abandonné.
+	_pending_hover_card = card
+	await get_tree().create_timer(HOVER_DEBOUNCE_DELAY).timeout
+	if not is_instance_valid(self) or not is_instance_valid(card) \
+			or _pending_hover_card != card or card.dragging:
+		return
+	_hovering = true
 	if _hovered_card != card:
 		_hovered_card = card
 		_update_hand_layout(true)
@@ -439,7 +549,9 @@ func _on_card_hover(card: Card) -> void:
 		var card_rect := card.get_global_rect()
 		var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
 		var tooltip_y0: float = card_rect.position.y
-		await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
+		if TooltipData.tooltips_expanded:
+			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
 		return
 	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
 	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
@@ -448,8 +560,8 @@ func _on_card_hover(card: Card) -> void:
 	if display_cost.is_valid():
 		preview.set_display_cost(display_cost.call(card.data))
 	preview.scale   = Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE)
-	# Strictement au-dessus de la carte survolée (z_index 100, voir
-	# _update_hand_layout) pour ne jamais passer dessous.
+	# Strictement au-dessus de toutes les cartes de la main (z_index max
+	# CARD_Z_BASE + count, voir _update_hand_layout) pour ne jamais passer dessous.
 	preview.z_index = 150
 	# Centré horizontalement par rapport à la carte survolée : card.pivot_offset
 	# est calé sur son centre horizontal (voir _set_hand_instant), donc son point
@@ -460,7 +572,7 @@ func _on_card_hover(card: Card) -> void:
 	var pos := card.global_position
 	preview.global_position = Vector2(
 		card_center_x - preview.size.x * preview.scale.x * 0.5,
-		pos.y - preview.size.y * 1.0
+		pos.y - preview.size.y * preview.scale.y
 	)
 	preview.show()
 	# Trait reliant la carte à la preview : part de la carte, se connecte par
@@ -472,6 +584,8 @@ func _on_card_hover(card: Card) -> void:
 		preview.size.y * preview.scale.y
 	)
 	_preview_link.show_link(link_from, link_to)
+	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
+	_show_hint_panel(hint_center_x, preview.global_position.y)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
 	await get_tree().process_frame
@@ -479,25 +593,111 @@ func _on_card_hover(card: Card) -> void:
 	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
 			or not is_instance_valid(card) or card.dragging:
 		return
-	var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
-	var tooltip_y: float = preview.global_position.y
-	await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
+	# Alignés sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi ces aperçus.
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card.data)
+		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+		var tooltip_y: float = preview.global_position.y
+		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
 
 func _hide_preview() -> void:
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
+	_hide_hint_panel()
+
+## Instancie, à côté de la preview agrandie déjà positionnée, un aperçu
+## supplémentaire par jeton fixe invoqué par la carte survolée (une carte
+## comme Architecte du Pacte peut en avoir deux : effet de base + bonus de
+## Pacte). Repose sur le CardEffect.summon_card de chaque effet SummonMinion,
+## donc n'affiche rien pour SummonRandom (cible non fixe, pas de jeton précis
+## à montrer). Placés à GAUCHE de la preview s'il y a la place, sinon à DROITE
+## (ex: carte tout à gauche de la main, où la gauche de l'écran manque).
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null:
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := Vector2(Card.HOVER_ZOOM_SCALE, Card.HOVER_ZOOM_SCALE) * TOKEN_PREVIEW_SCALE_RATIO
+	const TOKEN_SPACING := 18.0
+	const SIDE_MARGIN := 40.0
+
+	var new_tokens: Array[Card] = []
+	for token_data in tokens:
+		var token_card: Card = CARD_SCENE.instantiate()
+		add_child(token_card)
+		token_card.set_non_interactive()
+		# PASS (pas IGNORE) : voir preview.mouse_filter dans _ready — même
+		# raison, le clic droit sur un jeton invoqué doit aussi basculer les
+		# tooltips.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_token_preview_right_click)
+		token_card.z_index = 150
+		token_card.set_data(token_data)
+		token_card.scale = token_scale
+		new_tokens.append(token_card)
+
+	var token_width: float = new_tokens[0].size.x * token_scale.x
+	var strip_width: float = float(new_tokens.size()) * token_width \
+		+ float(new_tokens.size() - 1) * TOKEN_SPACING
+	var preview_left: float = preview.global_position.x
+	var preview_right: float = preview_left + preview.size.x * preview.scale.x
+	var space_left: float = preview_left - SIDE_MARGIN
+	var place_left: bool = space_left >= strip_width
+
+	var base_y: float = preview.global_position.y + preview.size.y * preview.scale.y * 0.5
+	var start_x: float = preview_left - SIDE_MARGIN - strip_width if place_left \
+		else preview_right + SIDE_MARGIN
+	var link_from: Vector2 = preview.global_position + Vector2(
+		0.0 if place_left else preview.size.x * preview.scale.x,
+		preview.size.y * preview.scale.y * 0.5
+	)
+
+	for i in range(new_tokens.size()):
+		var token_card: Card = new_tokens[i]
+		var token_x: float = start_x + float(i) * (token_width + TOKEN_SPACING)
+		token_card.global_position = Vector2(token_x, base_y - token_card.size.y * token_scale.y * 0.5)
+		token_card.show()
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 99
+		add_child(link)
+		var link_to: Vector2 = token_card.global_position + Vector2(
+			token_width if place_left else 0.0,
+			token_card.size.y * token_scale.y * 0.5
+		)
+		link.show_link(link_from, link_to)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 ## `card` : mouse_entered/mouse_exited entre deux cartes de la main adjacentes
 ## n'arrivent pas toujours dans un ordre garanti par Godot — un exited périmé
 ## (celui de l'ancienne carte survolée, arrivant après l'entered de la
 ## nouvelle) doit être ignoré plutôt que d'effacer à tort le survol actif.
 func _on_card_unhover(card: Card) -> void:
+	if _pending_hover_card == card:
+		_pending_hover_card = null
 	if card != _hovered_card:
 		return
 	_hovering = false
 	preview.hide()
 	_preview_link.hide_link()
+	_clear_summon_previews()
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
 	_hovered_card = null
 	_update_hand_layout(true)
 
@@ -552,6 +752,93 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## `center_x`/`above_y` : position (globale) du point médian-haut au-dessus
+## duquel centrer la bulle — son bas s'aligne juste au-dessus de `above_y`.
+func _show_hint_panel(center_x: float, above_y: float) -> void:
+	_hide_hint_panel()
+	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
+		return
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.z_index = 160
+	_battle.add_child(_hint_panel)
+	await get_tree().process_frame
+	if not is_instance_valid(self) or not _hovering or not is_instance_valid(_hint_panel):
+		return
+	_hint_panel.global_position = Vector2(
+		center_x - _hint_panel.size.x * 0.5, above_y - _hint_panel.size.y - 6)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
+
+func _is_right_click_press(event: InputEvent) -> bool:
+	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT \
+		and event.pressed
+
+## Bascule TooltipData.tooltips_expanded pour toute la session, déclenchée
+## par un clic droit sur la petite carte d'origine (`card`, voir _connect_card).
+func _on_card_right_click(event: InputEvent, card: Card) -> void:
+	if not _is_right_click_press(event):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if card == _hovered_card:
+		_refresh_tooltip_display()
+
+## Même bascule, mais depuis un clic droit sur la grande preview elle-même —
+## le joueur visant naturellement la carte agrandie plutôt que la petite carte
+## d'origine juste en dessous (voir _ready, preview.mouse_filter = PASS).
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not _is_right_click_press(event):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	_refresh_tooltip_display()
+
+## Même bascule depuis un clic droit sur un aperçu de jeton invoqué (voir
+## _show_summon_previews) — ces cartes n'ont pas leur propre pile de tooltips,
+## seule celle de la carte survolée compte, donc même rafraîchissement.
+func _on_token_preview_right_click(event: InputEvent) -> void:
+	if not _is_right_click_press(event):
+		return
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	_refresh_tooltip_display()
+
+## Repositionne/reconstruit la bulle d'indication et, selon
+## TooltipData.tooltips_expanded, affiche ou cache les tooltips détaillés —
+## pour le survol actuellement en cours (mulligan ou normal). No-op si plus
+## aucune carte n'est survolée.
+func _refresh_tooltip_display() -> void:
+	if not _hovering:
+		return
+	var card: Card = _hovered_card
+	if card == null or not is_instance_valid(card):
+		return
+	if _mulligan_mode:
+		var card_rect := card.get_global_rect()
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
+		if TooltipData.tooltips_expanded:
+			var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
+			var tooltip_y0: float = card_rect.position.y
+			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
+		else:
+			_hide_keyword_tooltips()
+		return
+	if not preview.visible:
+		return
+	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
+	_show_hint_panel(hint_center_x, preview.global_position.y)
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card.data)
+		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+		var tooltip_y: float = preview.global_position.y
+		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
+	else:
+		_clear_summon_previews()
+		_hide_keyword_tooltips()
 
 
 # Sous-ensemble de _hand_order utilisé pour le calcul de la disposition
@@ -620,7 +907,7 @@ func set_compact(compact: bool) -> void:
 		var tween := create_tween()
 		tween.set_parallel(true)
 		tween.tween_property(card, "position", pos, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 func _update_hand_layout(animated: bool = false) -> void:
 	_prune_hand_order()
@@ -634,7 +921,15 @@ func _update_hand_layout(animated: bool = false) -> void:
 		var norm := _card_norm(i, cards.size())
 		var pos  := _card_position(i, layout, card, norm, hovered_index)
 		_base_positions[card] = pos
-		card.z_index = 100 if i == hovered_index else CARD_Z_BASE + i
+		# Plus de passage au premier plan pour la carte survolée en main normale
+		# (voir _hand_order et _sync_tree_order) : garde l'ordre z naturel de
+		# l'éventail, le soulèvement (HOVER_LIFT) et la preview agrandie
+		# suffisent à la démarquer. Pendant le mulligan en revanche (pas de
+		# preview de zoom, voir _on_card_hover), la carte survolée passe
+		# au-dessus de ses voisines pour que son texte reste lisible.
+		card.z_index = CARD_Z_BASE + i
+		if _mulligan_mode and i == hovered_index:
+			card.z_index = CARD_Z_BASE + cards.size()
 		card.scale   = layout["scale"]
 		if animated:
 			var tween := create_tween()
@@ -643,7 +938,7 @@ func _update_hand_layout(animated: bool = false) -> void:
 			tween.tween_property(card, "scale",    layout["scale"], LAYOUT_TWEEN_DURATION).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		else:
 			card.position = pos
-	_sync_tree_order(hovered_index)
+	_sync_tree_order(_hovered_card)
 
 # Une carte peut quitter la main en dehors d'un rebuild complet (ex. Card.gd
 # s'auto-détruit via queue_free() une fois glissée en jeu). Sans ce
@@ -659,19 +954,24 @@ func _prune_hand_order() -> void:
 	if _hovered_card != null and not is_instance_valid(_hovered_card):
 		_hovered_card = null
 
-# Réordonne les enfants du conteneur selon l'ordre logique de la main, carte
-# survolée en dernier (dessus). Pilote aussi bien le rendu que la détection
-# souris sur les zones qui se chevauchent : le z_index seul ne suffit pas,
-# sans ce passage le survol oscille entre cartes voisines.
-func _sync_tree_order(hovered_index: int) -> void:
+# Réaligne les enfants du conteneur sur l'ordre logique de la main. La carte
+# survolée ne passe plus en dernier (dessus) en main normale : voir
+# _hand_order pour pourquoi ce comportement a été retiré (éventail serré, ça
+# gênait le survol séquentiel). Pendant le mulligan en revanche, les cartes
+# sont peu nombreuses et très espacées (voir _mulligan_card_position) : la
+# carte survolée passe au premier plan pour que son texte ne soit jamais
+# recouvert par une voisine qui empiète dessus (pas de popup de zoom dédiée
+# pendant cette phase, voir _on_card_hover). Reçoit la carte elle-même (et non
+# un index dans `cards`, potentiellement filtré/décalé par rapport à
+# _hand_order, voir _layout_cards) pour toujours cibler la bonne carte.
+func _sync_tree_order(hovered_card: Card = null) -> void:
 	for i in range(_hand_order.size()):
 		var card = _hand_order[i]
 		if is_instance_valid(card) and card.get_parent() == container:
 			container.move_child(card, i)
-	if hovered_index != -1 and hovered_index < _hand_order.size():
-		var hovered_card = _hand_order[hovered_index]
-		if is_instance_valid(hovered_card) and hovered_card.get_parent() == container:
-			container.move_child(hovered_card, container.get_child_count() - 1)
+	if _mulligan_mode and hovered_card != null and is_instance_valid(hovered_card) \
+			and hovered_card.get_parent() == container:
+		container.move_child(hovered_card, container.get_child_count() - 1)
 
 func _card_norm(index: int, count: int) -> float:
 	var offset := float(index) - float(count - 1) / 2.0
@@ -744,6 +1044,8 @@ func _connect_card(card: Card) -> void:
 		card.mouse_entered.connect(_on_card_hover.bind(card))
 	if not card.mouse_exited.is_connected(_on_card_unhover):
 		card.mouse_exited.connect(_on_card_unhover.bind(card))
+	if not card.gui_input.is_connected(_on_card_right_click):
+		card.gui_input.connect(_on_card_right_click.bind(card))
 	if not card.mulligan_clicked.is_connected(_on_mulligan_card_clicked):
 		card.mulligan_clicked.connect(_on_mulligan_card_clicked.bind(card))
 	if not card.discard_clicked.is_connected(_on_discard_card_clicked):

@@ -66,6 +66,19 @@ var _race_tooltip:     Control        = null
 var _tooltip_layer:    CanvasLayer    = null
 var _hovering:         bool           = false
 var _hovered_wrapper:  Control        = null
+var _hovered_card_data: CardData      = null
+# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
+# preview agrandie — voir TooltipData.tooltips_expanded.
+var _hint_panel:       PanelContainer = null
+
+# Aperçus des jetons invoqués par la carte survolée (voir
+# CardData.get_summon_preview_cards), affichés au-dessus de la preview
+# agrandie si la place le permet, sinon en dessous — voir
+# Hand._show_summon_previews (même principe, mais à gauche/droite : ici
+# préview et tooltips de mots-clés se partagent déjà l'axe horizontal).
+var _token_previews:      Array[Card]              = []
+var _token_preview_links: Array[PreviewLinkOverlay] = []
+const TOKEN_PREVIEW_SCALE_RATIO := 0.75
 
 # Calque pour le tooltip « max de copies » (au-dessus de la grille)
 var _overlay_layer: CanvasLayer = null
@@ -102,7 +115,11 @@ func _ready() -> void:
 	_overlay_layer.layer = 19
 	add_child(_overlay_layer)
 	card_preview.set_non_interactive()
-	card_preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# PASS (pas IGNORE) : le joueur visant naturellement la grande carte plutôt
+	# que la petite carte d'origine derrière elle, le clic droit dessus doit
+	# aussi basculer les tooltips (voir TooltipData.tooltips_expanded).
+	card_preview.mouse_filter = Control.MOUSE_FILTER_PASS
+	card_preview.gui_input.connect(_on_preview_right_click)
 	card_preview.z_index = 100
 	card_preview.hide()
 	save_button.pressed.connect(_on_save)
@@ -282,7 +299,7 @@ func _add_stock_badge(card_data: CardData, wrapper: Control) -> void:
 
 	var badge_label := Label.new()
 	badge_label.add_theme_font_override("font", UI_FONT)
-	badge_label.add_theme_font_size_override("font_size", 13)
+	badge_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	badge_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	badge_panel.add_child(badge_label)
 	wrapper.add_child(badge_panel)
@@ -323,7 +340,7 @@ func _add_buy_button_if_locked(card_data: CardData, wrapper: Control) -> void:
 	buy_button.text = SettingsManager.t("deck.buy_button") % price
 	buy_button.custom_minimum_size = Vector2(0, 26)
 	buy_button.add_theme_font_override("font", UI_FONT)
-	buy_button.add_theme_font_size_override("font_size", 13)
+	buy_button.add_theme_font_size_override("font_size", Typography.MICRO)
 	buy_button.anchor_left   = 0.0
 	buy_button.anchor_right  = 1.0
 	buy_button.anchor_top    = 1.0
@@ -435,21 +452,52 @@ func _on_buy_missing_finished(success: bool) -> void:
 		_show_buy_error_tooltip(buy_missing_button, "deck.buy_missing_error")
 
 func _on_card_wrapper_input(event: InputEvent, card_data: CardData) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_add_card(card_data)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_add_card(card_data)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_card_wrapper_entered(card_data: CardData, card_visual: Card, wrapper: Control) -> void:
 	_hovered_wrapper = wrapper
+	_hovered_card_data = card_data
 	_hovering = true
 	card_preview.set_data(card_data)
 	card_preview.scale = PREVIEW_SCALE
 	card_preview.show()
+	_show_hint_panel()
 	_position_hover_tooltips()
 	if _is_card_maxed(card_data) or _is_card_locked(card_data):
 		_show_max_copies_tooltip(wrapper, card_data)
-	await _show_keyword_tooltips(card_data, wrapper)
+	# Aligné sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
+	# le clic droit pour "masquer les informations" cache aussi cet aperçu.
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(card_data)
+		await _show_keyword_tooltips(card_data, wrapper)
+
+## Même bascule, depuis un clic droit sur la grande preview elle-même (voir
+## _ready, card_preview.mouse_filter = PASS) — le joueur visant naturellement
+## la carte agrandie plutôt que la petite carte d'origine dans la grille.
+func _on_preview_right_click(event: InputEvent) -> void:
+	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT
+			and event.pressed):
+		return
+	_on_tooltip_right_click()
+
+## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
+## l'affichage courant si une carte est actuellement survolée.
+func _on_tooltip_right_click() -> void:
+	TooltipData.toggle_tooltips_expanded()
+	get_viewport().set_input_as_handled()
+	if not _hovering or _hovered_wrapper == null or not is_instance_valid(_hovered_wrapper):
+		return
+	_show_hint_panel()
+	if TooltipData.tooltips_expanded:
+		_show_summon_previews(_hovered_card_data)
+		await _show_keyword_tooltips(_hovered_card_data, _hovered_wrapper)
+	else:
+		_clear_summon_previews()
+		_hide_keyword_tooltips()
 
 ## `wrapper` (et non `card_visual`, inutile ici) permet d'ignorer une sortie
 ## « périmée » : mouse_entered/mouse_exited entre deux wrappers adjacents ne
@@ -461,10 +509,13 @@ func _on_card_wrapper_exited(wrapper: Control) -> void:
 	if wrapper != _hovered_wrapper:
 		return
 	_hovered_wrapper = null
+	_hovered_card_data = null
 	_hovering = false
 	card_preview.hide()
 	_clear_max_tooltip()
 	_hide_keyword_tooltips()
+	_hide_hint_panel()
+	_clear_summon_previews()
 
 # ─── Liste deck à droite ──────────────────────────────────────────────────────
 
@@ -577,7 +628,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	cost_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_color_override("font_color", Color(0.05, 0.04, 0.02, 1))
 	cost_lbl.add_theme_font_override("font", UI_FONT)
-	cost_lbl.add_theme_font_size_override("font_size", 14)
+	cost_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	cost_panel.add_child(cost_lbl)
 	row.add_child(cost_panel)
 
@@ -588,7 +639,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	# de la ligne distingue les deux, pas le nom.
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_override("font", UI_FONT)
-	name_lbl.add_theme_font_size_override("font_size", 15)
+	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -603,7 +654,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	qty_lbl.add_theme_color_override("font_color",
 		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_override("font", UI_FONT)
-	qty_lbl.add_theme_font_size_override("font_size", 14)
+	qty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	row.add_child(qty_lbl)
 
 	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les
@@ -616,7 +667,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 		buy_btn.text = SettingsManager.t("deck.buy_button") % price
 		buy_btn.custom_minimum_size = Vector2(0, 26)
 		buy_btn.add_theme_font_override("font", UI_FONT)
-		buy_btn.add_theme_font_size_override("font_size", 13)
+		buy_btn.add_theme_font_size_override("font_size", Typography.MICRO)
 		buy_btn.mouse_filter = Control.MOUSE_FILTER_STOP
 		buy_btn.pressed.connect(_on_buy_row_missing.bind(card, count, buy_btn))
 		row.add_child(buy_btn)
@@ -627,7 +678,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	del_btn.custom_minimum_size = Vector2(28, 0)
 	del_btn.add_theme_color_override("font_color",       Color(0.6, 0.3, 0.3, 1))
 	del_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.4, 0.4, 1))
-	del_btn.add_theme_font_size_override("font_size", 12)
+	del_btn.add_theme_font_size_override("font_size", Typography.MICRO)
 	del_btn.pressed.connect(_on_remove_all.bind(path))
 	row.add_child(del_btn)
 
@@ -766,10 +817,11 @@ func _on_add_card(card_data: CardData) -> void:
 		_show_max_copies_tooltip(_hovered_wrapper, card_data)
 
 func _on_deck_row_input(event: InputEvent, path: String) -> void:
-	if event is InputEventMouseButton \
-			and event.button_index == MOUSE_BUTTON_LEFT \
-			and event.pressed:
-		_on_remove_one(path)
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_on_remove_one(path)
+		elif event.button_index == MOUSE_BUTTON_RIGHT:
+			_on_tooltip_right_click()
 
 func _on_remove_one(path: String) -> void:
 	if current_deck == null:
@@ -845,7 +897,7 @@ func _show_unsaved_changes_dialog() -> void:
 	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	text_lbl.add_theme_font_size_override("font_size", 15)
+	text_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	vbox.add_child(text_lbl)
 
 	var btn_row := HBoxContainer.new()
@@ -892,7 +944,7 @@ func _show_saved_but_unplayable_popup() -> void:
 	text_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD
 	text_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
-	text_lbl.add_theme_font_size_override("font_size", 15)
+	text_lbl.add_theme_font_size_override("font_size", Typography.BODY)
 	vbox.add_child(text_lbl)
 
 	var ok_btn := Button.new()
@@ -1136,10 +1188,99 @@ func _position_hover_tooltips() -> void:
 	if _max_tooltip != null and is_instance_valid(_max_tooltip):
 		_max_tooltip.global_position = \
 			wrapper.global_position + (wrapper.size - _max_tooltip.size) / 2.0
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.global_position = Vector2(
+			card_center.x - _hint_panel.size.x / 2.0,
+			card_preview.global_position.y - _hint_panel.size.y - 6)
+
+	# Aperçus de jetons invoqués (voir _show_summon_previews) : centrés
+	# horizontalement sur la preview, au-dessus si la bulle d'indication et la
+	# place au-dessus le permettent, sinon en dessous (sous le tooltip de race
+	# si celui-ci est déjà positionné là).
+	if not _token_previews.is_empty():
+		var token_scale := PREVIEW_SCALE * TOKEN_PREVIEW_SCALE_RATIO
+		var token_size := CARD_BASE_SIZE * token_scale.x
+		const TOKEN_SPACING := 12.0
+		var strip_width: float = float(_token_previews.size()) * token_size.x \
+			+ float(_token_previews.size() - 1) * TOKEN_SPACING
+		var strip_x: float = clampf(
+			card_center.x - strip_width / 2.0, 4.0, vp.x - strip_width - 4.0)
+
+		var above_y: float = card_preview.global_position.y - token_size.y - 12.0
+		if _hint_panel != null and is_instance_valid(_hint_panel):
+			above_y = _hint_panel.global_position.y - token_size.y - 12.0
+		var place_above: bool = above_y >= panel_bounds.position.y
+
+		var below_y: float = card_preview.global_position.y + preview_size.y + 12.0
+		if _race_tooltip != null and is_instance_valid(_race_tooltip):
+			below_y = maxf(below_y,
+				_race_tooltip.global_position.y + _race_tooltip.size.y + 12.0)
+
+		var strip_y: float = above_y if place_above else below_y
+		strip_y = clampf(strip_y, 4.0, vp.y - token_size.y - 4.0)
+		var link_anchor_y: float = card_preview.global_position.y if place_above \
+			else card_preview.global_position.y + preview_size.y
+
+		for i in range(_token_previews.size()):
+			var token_card := _token_previews[i]
+			if not is_instance_valid(token_card):
+				continue
+			var tx := strip_x + float(i) * (token_size.x + TOKEN_SPACING)
+			token_card.global_position = Vector2(tx, strip_y)
+			if i < _token_preview_links.size() and is_instance_valid(_token_preview_links[i]):
+				var link_from := Vector2(card_center.x, link_anchor_y)
+				var link_to_y := strip_y + token_size.y if place_above else strip_y
+				var link_to := Vector2(tx + token_size.x / 2.0, link_to_y)
+				_token_preview_links[i].show_link(link_from, link_to)
 
 func _process(_delta: float) -> void:
 	if _hovering:
 		_position_hover_tooltips()
+
+## Aperçu supplémentaire par jeton fixe invoqué par la carte survolée (voir
+## CardData.get_summon_preview_cards) — repose sur CardEffect.summon_card,
+## donc rien pour SummonRandom (cible aléatoire, pas de jeton précis à
+## montrer). Créés ici, positionnés par _position_hover_tooltips (la grille
+## pouvant défiler pendant le survol).
+func _show_summon_previews(card_data: CardData) -> void:
+	_clear_summon_previews()
+	if card_data == null:
+		return
+	var tokens := card_data.get_summon_preview_cards()
+	if tokens.is_empty():
+		return
+	var token_scale := PREVIEW_SCALE * TOKEN_PREVIEW_SCALE_RATIO
+	for token_data in tokens:
+		var token_card: Card = CARD_SCENE.instantiate()
+		if token_card == null:
+			continue
+		add_child(token_card)
+		token_card.set_non_interactive()
+		# PASS (pas IGNORE) : voir card_preview.mouse_filter dans _ready — même
+		# raison, le clic droit sur un jeton invoqué doit aussi basculer les
+		# tooltips détaillés de la carte survolée.
+		token_card.mouse_filter = Control.MOUSE_FILTER_PASS
+		token_card.gui_input.connect(_on_preview_right_click)
+		token_card.z_index = 100
+		token_card.set_data(token_data)
+		token_card.scale = token_scale
+		token_card.show()
+		_token_previews.append(token_card)
+
+		var link := PreviewLinkOverlay.new()
+		link.z_index = 99
+		add_child(link)
+		_token_preview_links.append(link)
+
+func _clear_summon_previews() -> void:
+	for token_card in _token_previews:
+		if is_instance_valid(token_card):
+			token_card.queue_free()
+	_token_previews.clear()
+	for link in _token_preview_links:
+		if is_instance_valid(link):
+			link.queue_free()
+	_token_preview_links.clear()
 
 func _hide_keyword_tooltips() -> void:
 	for tooltip in _keyword_tooltips:
@@ -1152,4 +1293,20 @@ func _hide_keyword_tooltips() -> void:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		_tooltip_layer.queue_free()
 		_tooltip_layer = null
+
+## Recréée (plutôt que son seul texte mis à jour) pour rester cohérente avec
+## le reste de ce fichier (tous les autres tooltips sont reconstruits à chaque
+## affichage) — repositionnée à chaque frame par _position_hover_tooltips
+## tant que le survol dure.
+func _show_hint_panel() -> void:
+	_hide_hint_panel()
+	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel.position = Vector2(-9999, -9999)
+	_hint_panel.z_index = 100
+	add_child(_hint_panel)
+
+func _hide_hint_panel() -> void:
+	if _hint_panel != null and is_instance_valid(_hint_panel):
+		_hint_panel.queue_free()
+	_hint_panel = null
 		

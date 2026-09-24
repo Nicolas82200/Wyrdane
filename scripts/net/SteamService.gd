@@ -93,7 +93,10 @@ static func local_avatar_texture() -> ImageTexture:
 	var s := steam()
 	if not _initialized or s == null:
 		return null
-	var steam_id: int = s.getSteamID()
+	return _build_avatar_texture(s.getSteamID())
+
+static func _build_avatar_texture(steam_id: int) -> ImageTexture:
+	var s := steam()
 	var handle: int = s.getMediumFriendAvatar(steam_id)
 	if handle <= 0:
 		return null
@@ -106,13 +109,63 @@ static func local_avatar_texture() -> ImageTexture:
 	var image := Image.create_from_data(size["width"], size["height"], false, Image.FORMAT_RGBA8, rgba["buffer"])
 	return ImageTexture.create_from_image(image)
 
+# ── Avatar d'un joueur arbitraire (classement) ──────────────────────────────
+# Steam ne garantit l'avatar en cache local que pour les amis/joueurs déjà
+# croisés (lobby, partie...) — pour un inconnu du classement, on déclenche une
+# requête asynchrone (requestUserInformation) et on rappelle on_ready plus
+# tard via le signal persona_state_change si Steam finit par la fournir.
+# Best-effort : beaucoup de lignes du classement resteront sans avatar
+# (silhouette générique affichée côté StatsPanel dans ce cas), c'est attendu.
+static var _avatar_cache: Dictionary = {}
+static var _pending_avatar_callbacks: Dictionary = {}
+static var _persona_signal_connected := false
+
+static func request_avatar_async(steam_id_str: String, on_ready: Callable) -> void:
+	if steam_id_str == "" or not steam_id_str.is_valid_int():
+		return
+	if _avatar_cache.has(steam_id_str):
+		on_ready.call(_avatar_cache[steam_id_str])
+		return
+	if not ensure_init():
+		return
+	var id := int(steam_id_str)
+	var texture := _build_avatar_texture(id)
+	if texture != null:
+		_avatar_cache[steam_id_str] = texture
+		on_ready.call(texture)
+		return
+	var s := steam()
+	if not _persona_signal_connected:
+		s.connect("persona_state_change", _on_persona_state_change)
+		_persona_signal_connected = true
+	if not _pending_avatar_callbacks.has(steam_id_str):
+		_pending_avatar_callbacks[steam_id_str] = []
+		s.requestUserInformation(id, true)
+	_pending_avatar_callbacks[steam_id_str].append(on_ready)
+
+static func _on_persona_state_change(steam_id: int, _flags: int) -> void:
+	var key := str(steam_id)
+	if not _pending_avatar_callbacks.has(key):
+		return
+	var texture := _build_avatar_texture(steam_id)
+	if texture == null:
+		return
+	_avatar_cache[key] = texture
+	var callbacks: Array = _pending_avatar_callbacks[key]
+	_pending_avatar_callbacks.erase(key)
+	for cb in callbacks:
+		if cb.is_valid():
+			cb.call(texture)
+
 # Écoute les demandes de rejoindre un lobby via ami Steam (overlay « Rejoindre
 # la partie », invitation acceptée) — indépendamment de tout host()/join() déjà
 # en cours côté SteamTransport. À appeler dès l'arrivée sur l'écran multijoueur
 # pour capter une invitation même avant que le joueur ait cliqué un bouton :
 # initialise Steam si besoin (idempotent) et pompe les callbacks à chaque appel
 # de run_callbacks(), qu'une session de jeu soit active ou non.
-# Callback appelé avec (lobby_id: int) quand une demande arrive.
+# Callback appelé avec (lobby_id: int, friend_id: int) quand une demande arrive
+# — friend_id sert à afficher le nom de l'ami dans le popup de choix de deck
+# (voir MatchmakingOverlay._on_steam_join_requested), 0 si inconnu.
 static func watch_join_requests(on_join_requested: Callable) -> bool:
 	if not ensure_init():
 		return false
@@ -123,9 +176,49 @@ static func watch_join_requests(on_join_requested: Callable) -> bool:
 		_join_signal_connected = true
 	return true
 
-static func _on_join_requested(lobby_id: int, _friend_id: int = 0) -> void:
+static func _on_join_requested(lobby_id: int, friend_id: int = 0) -> void:
 	if _join_requested_callback.is_valid():
-		_join_requested_callback.call(lobby_id)
+		_join_requested_callback.call(lobby_id, friend_id)
+
+# Nom Steam d'un ami à partir de son SteamID64, "" si Steam indisponible ou nom
+# non résolu (même repli que SteamTransport._peer_display_name).
+static func friend_persona_name(steam_id: int) -> String:
+	var s := steam()
+	if not _initialized or s == null or steam_id == 0:
+		return ""
+	return s.getFriendPersonaName(steam_id)
+
+# Vrai si ce SteamID64 fait partie de la liste d'amis Steam locale — sert au
+# badge Steam vs Wyrdane d'un ami côté FriendsPanel.gd (un ami ajouté via
+# Wyrdane peut aussi être un ami Steam, les deux badges ne s'excluent pas).
+# FRIEND_FLAG_IMMEDIATE (4) = amis "directs" au sens Steamworks, pas les
+# connaissances/bloqués. false si Steam indisponible ou id invalide/vide.
+static func is_steam_friend(steam_id: String) -> bool:
+	var s := steam()
+	if not _initialized or s == null or steam_id == "" or not s.has_method("hasFriend"):
+		return false
+	var id := int(steam_id)
+	if id == 0:
+		return false
+	return s.hasFriend(id, 4)
+
+# Liste des SteamID64 (en String) de tous les amis Steam locaux — sert à
+# peupler la section "Amis Steam" de FriendsPanel.gd (envoyés au backend via
+# BackendClient.resolve_steam_friends pour ne garder que ceux qui ont un
+# compte Wyrdane ; jamais utilisés ailleurs). Même flag FRIEND_FLAG_IMMEDIATE
+# (4) que is_steam_friend ci-dessus, pour rester cohérent sur ce que "ami
+# Steam" veut dire dans tout le fichier. [] si Steam est indisponible.
+static func get_steam_friend_ids() -> Array:
+	var s := steam()
+	if not _initialized or s == null or not s.has_method("getFriendCount") or not s.has_method("getFriendByIndex"):
+		return []
+	var count: int = s.getFriendCount(4)
+	var ids: Array = []
+	for i in count:
+		var friend_id = s.getFriendByIndex(i, 4)
+		if friend_id:
+			ids.append(str(friend_id))
+	return ids
 
 # Ouvre l'onglet Amis de l'overlay Steam (liste d'amis, demandes, blocage —
 # tout géré nativement par Steam, aucun système d'amis dédié côté jeu). No-op

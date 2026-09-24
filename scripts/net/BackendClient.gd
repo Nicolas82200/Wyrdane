@@ -134,7 +134,16 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 		if on_complete.is_valid():
 			var parsed = null
 			if response_body.size() > 0:
-				parsed = JSON.parse_string(response_body.get_string_from_utf8())
+				var text := response_body.get_string_from_utf8()
+				# Certaines routes répondent 200 avec un corps texte brut (ex.
+				# res.sendStatus(200) -> "OK", voir POST /api/reports) plutôt
+				# que du JSON : ne tenter le parse que si ça y ressemble, pour
+				# éviter le spam d'erreur "Parse JSON failed" côté moteur —
+				# parsed reste null dans les deux cas, comportement inchangé
+				# pour les appelants (déjà tous tolérants à un null/non-Dictionary).
+				var trimmed := text.strip_edges()
+				if trimmed.begins_with("{") or trimmed.begins_with("["):
+					parsed = JSON.parse_string(text)
 			on_complete.call(response_code, parsed)
 	)
 
@@ -160,22 +169,102 @@ func get_profile(on_profile: Callable) -> void:
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
 # rapports concordent (double-report, voir rankedController côté backend).
 # match_session_token : preuve d'appariement classé émise par le backend au
-# matchmaking (voir MatchmakingOverlay._on_ranked_matched, TODO.md P9) — vide
+# matchmaking (voir MatchmakingOverlay._on_queue_matched, TODO.md P9) — vide
 # pour une Partie rapide/Contre un ami, dans quel cas le champ est simplement
 # omis du payload plutôt qu'envoyé vide.
+# is_ranked : reflète Battle.is_ranked_match — seul "ranked" fait gagner/perdre
+# des points de classement (MMR public) côté backend ; toute autre partie
+# réseau (Normal, Contre un ami) est rapportée "normal" et ne touche jamais à
+# ce MMR public (voir rankedModel.confirmMatch côté wyrdane-backend — un MMR
+# caché distinct est mis à jour pour Normal, jamais exposé au client).
 func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: int,
 		cards_played_by_race: Dictionary = {}, deck_races: Array = [], on_complete: Callable = Callable(),
-		match_session_token: String = "") -> void:
+		match_session_token: String = "", cards_played_names: Array = [], is_ranked: bool = false,
+		duration_sec: int = 0) -> void:
 	var payload := {
 		"clientMatchId": client_match_id,
 		"opponentId": opponent_id,
 		"winnerId": winner_id,
 		"cardsPlayedByRace": cards_played_by_race,
 		"deckRaces": deck_races,
+		"cardsPlayed": cards_played_names,
+		"mode": "ranked" if is_ranked else "normal",
+		"durationSec": duration_sec,
 	}
 	if match_session_token != "":
 		payload["matchSessionToken"] = match_session_token
 	request(HTTPClient.METHOD_POST, "/api/ranked/matches/report", payload, on_complete)
+
+# Historique des dernières parties réseau (ranked + partie rapide, voir
+# rankedModel.getMatchHistory côté backend) du joueur connecté — alimente
+# l'onglet "Historique" du profil (voir MatchHistoryPanel.gd). Chaque entrée :
+# {client_match_id, played_at, duration_sec, winner_id, mmr_change,
+# opponent_username, opponent_deck_races}. on_complete(success: bool, entries: Array).
+func get_match_history(limit: int, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/matches/history?limit=%d" % limit, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
+
+# ─── Classement ──────────────────────────────────────────────────────────────
+# GET /api/ranked/leaderboard?limit=&offset=&minMmr=&maxMmr= — renvoie
+# désormais une enveloppe { total, players } (players = lignes { user_id, mmr,
+# wins, losses, season, username, steam_id, rank }, rank calculé côté serveur
+# donc valide même filtré par palier). min_mmr/max_mmr optionnels (-1 = pas de
+# borne) servent à ne demander qu'un palier (voir RankTier.THRESHOLDS côté
+# client — le backend ne connaît pas les paliers, juste des bornes de MMR).
+# on_complete(success: bool, total: int, players: Array).
+func get_leaderboard(limit: int, offset: int, min_mmr: int, max_mmr: int, on_complete: Callable) -> void:
+	var path := "/api/ranked/leaderboard?limit=%d&offset=%d" % [limit, offset]
+	if min_mmr >= 0:
+		path += "&minMmr=%d" % min_mmr
+	if max_mmr >= 0:
+		path += "&maxMmr=%d" % max_mmr
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary and parsed.get("players") is Array:
+			on_complete.call(true, int(parsed.get("total", 0)), parsed["players"])
+		else:
+			on_complete.call(false, 0, [])
+	)
+
+# Position du joueur connecté dans le classement de la saison courante.
+# on_complete(success: bool, row: Dictionary) — row vide (succès faux) si le
+# joueur n'a encore aucun match classé rapporté (404 côté backend).
+func get_my_leaderboard_position(on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard/me", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, {})
+	)
+
+# Page de classement centrée sur la position du joueur connecté au sein d'un
+# palier (min_mmr/max_mmr), calculée côté serveur (voir
+# rankedModel.getLeaderboardAroundUser). on_complete(success, total, offset, players).
+func get_leaderboard_around_me(limit: int, min_mmr: int, max_mmr: int, on_complete: Callable) -> void:
+	var path := "/api/ranked/leaderboard/around-me?limit=%d" % limit
+	if min_mmr >= 0:
+		path += "&minMmr=%d" % min_mmr
+	if max_mmr >= 0:
+		path += "&maxMmr=%d" % max_mmr
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary and parsed.get("players") is Array:
+			on_complete.call(true, int(parsed.get("total", 0)), int(parsed.get("offset", 0)), parsed["players"])
+		else:
+			on_complete.call(false, 0, 0, [])
+	)
+
+# Recherche d'un joueur par pseudo (sous-chaîne, insensible à la casse) pour
+# la barre de recherche du classement. on_complete(success: bool, results: Array).
+func search_leaderboard(query: String, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/leaderboard/search?q=%s" % query.uri_encode(), {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
 
 # ─── Matchmaking classé ─────────────────────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
@@ -187,9 +276,12 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 # poll de queue_status et le rejoint directement (NetTransport.join avec
 # {"lobby_id": ...}), sans passer par la recherche de lobby publique.
 
-# Rejoint la file d'attente classée. on_complete(success, {ticket_id}).
-func queue_join(on_complete: Callable) -> void:
-	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue", {}, func(code: int, parsed: Variant):
+# Rejoint la file d'attente. mode : "ranked" (apparié sur le MMR public,
+# gagne/perd des points de classement) ou "normal" (apparié sur un MMR caché,
+# jamais affiché ni modifié par le classé — voir MatchmakingOverlay.start_normal
+# et rankedModel.confirmMatch côté wyrdane-backend). on_complete(success, {ticket_id}).
+func queue_join(mode: String, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue", {"mode": mode}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
 			on_complete.call(true, parsed)
 		else:
@@ -258,6 +350,29 @@ func claim_login_reward(on_data: Callable) -> void:
 			on_data.call(false, {})
 	)
 
+# ─── Récompenses de niveau (popup dédiée, voir LevelRewardsPopup) ──────────
+# Contrat détaillé : voir « Popup de récompenses de niveau » dans le
+# CLAUDE.md de wyrdane-backend.
+
+# on_data appelé avec (success, {level, catalog: [{level, kind, rarity?,
+# gold?}], rewards: [{level, type, gold, claimed}]}).
+func get_level_rewards(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/level/rewards", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {claimed: Array[int]}).
+func claim_level_rewards(levels: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/level/rewards/claim", {"levels": levels}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 # ─── Quêtes hebdomadaires & parrainage ──────────────────────────────────────
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
 # docs/backend-contracts/weekly-quests-and-referral.md
@@ -275,6 +390,30 @@ func get_weekly_quests(on_data: Callable) -> void:
 # on_data appelé avec (success, {free_packs, reward_pack}).
 func claim_weekly_quest(quest_id: String, on_data: Callable) -> void:
 	request(HTTPClient.METHOD_POST, "/api/quests/weekly/%s/claim" % quest_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# ─── Quêtes mensuelles ───────────────────────────────────────────────────────
+# Implémenté côté wyrdane-backend (voir monthlyQuestModel.ts) : même principe
+# que les hebdomadaires mais objectifs plus longs et récompense double
+# (or ET packs) pour une grosse récompense mensuelle.
+
+# on_data appelé avec (success, {quests: [{id, description_key, progress,
+# target, reward_currency, reward_pack, claimed}], resets_at}).
+func get_monthly_quests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/quests/monthly", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
+# on_data appelé avec (success, {balance, free_packs, reward_currency, reward_pack}).
+func claim_monthly_quest(quest_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/quests/monthly/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
 			on_data.call(true, parsed)
 		else:
@@ -351,3 +490,87 @@ func report_issue(type: String, description: String, reported_user_id: int = 0, 
 	if match_id != "":
 		body["matchId"] = match_id
 	request(HTTPClient.METHOD_POST, "/api/reports", body, on_complete)
+
+# ─── Amis Wyrdane (voir FriendsPanel.gd) ────────────────────────────────────
+# Système d'amis propre à Wyrdane, distinct de la liste d'amis Steam (overlay
+# natif, voir SteamService.open_friends_overlay) — voir CLAUDE.md « Système
+# d'amis Wyrdane + chat » côté wyrdane-backend.
+
+func search_friends(query: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends/search?q=" + query.uri_encode(), {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Résout les SteamID64 des amis Steam locaux (voir SteamService.
+# get_steam_friend_ids) vers les comptes Wyrdane correspondants — alimente la
+# section "Amis Steam" de FriendsPanel.gd. Chaque entrée : {id, username, steam_id}.
+func resolve_steam_friends(steam_ids: Array, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/resolve-steam-ids", {"steamIds": steam_ids}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Chaque entrée : {friendship_id, id, username, steam_id, presence}, presence
+# déjà résolue côté serveur ("online"/"in_game"/"offline" — voir
+# friendModel.getFriends côté backend).
+func get_friends(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+func get_incoming_friend_requests(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/friends/requests", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# on_data(success: bool, status: String) — status parmi "sent"/"already_friends"/
+# "already_pending"/"auto_accepted" (voir friendModel.sendFriendRequest côté backend).
+func send_friend_request(target_user_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/requests", {"userId": target_user_id}, func(code: int, parsed: Variant):
+		var status: String = parsed.get("status", "") if parsed is Dictionary else ""
+		on_data.call(code == 200, status)
+	)
+
+func accept_friend_request(friendship_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/friends/requests/%d/accept" % friendship_id, {}, on_complete)
+
+# Sert à la fois à refuser une demande reçue, annuler une demande envoyée, et
+# supprimer un ami existant — voir friendModel.deleteFriendship côté backend.
+func remove_friendship(friendship_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_DELETE, "/api/friends/%d" % friendship_id, {}, on_complete)
+
+# ─── Présence (voir PresenceService.gd) ─────────────────────────────────────
+func send_presence_heartbeat(in_game: bool, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/presence/heartbeat", {"inGame": in_game}, on_complete)
+
+# ─── Chat privé entre amis (voir ChatWindow.gd) ─────────────────────────────
+
+func send_message(recipient_id: int, body: String, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/messages", {"recipientId": recipient_id, "body": body}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Dictionary, parsed if parsed is Dictionary else {})
+	)
+
+# Historique le plus récent en tête (le client réaffiche dans l'ordre inverse)
+# — before_id (0 = pas de curseur) permet de remonter plus loin (infinite scroll).
+func get_conversation(friend_id: int, limit: int = 50, before_id: int = 0, on_data: Callable = Callable()) -> void:
+	var path := "/api/messages/%d?limit=%d" % [friend_id, limit]
+	if before_id > 0:
+		path += "&beforeId=%d" % before_id
+	request(HTTPClient.METHOD_GET, path, {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Conversations ayant au moins un message échangé, la plus récente en tête —
+# un ami jamais contacté n'y apparaît pas (voir ChatPanel.gd).
+func get_conversations(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/messages/conversations", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+func mark_conversation_read(friend_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/messages/%d/read" % friend_id, {}, on_complete)
+
+# on_data(total: int) — alimente le badge du bouton Chat du menu principal.
+func get_unread_message_total(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/messages/unread-total", {}, func(code: int, parsed: Variant):
+		on_data.call(int(parsed.get("total", 0)) if code == 200 and parsed is Dictionary else 0)
+	)

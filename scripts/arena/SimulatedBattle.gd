@@ -23,6 +23,10 @@ var player_graveyard := Graveyard.new()
 var enemy_graveyard := Graveyard.new()
 var net_registry := NetRegistry.new()
 var net_emitter = null
+# Sentinelle no-op : CombatSystem.resolve_combat/perform_hero_attack notifient
+# AfkGuard d'une action locale (voir Battle.afk_guard) — sans effet ici, le
+# combat Arena auto-résolu n'a pas de décompte de tour.
+var afk_guard := _NoOpAfkGuard.new()
 # Sentinelle non-nulle (jamais un vrai NetworkManager) : EffectManager
 # n'utilise `network_manager` que comme témoin booléen ("== null" => partie
 # solo locale, un humain peut être invité à choisir une cible de trigger).
@@ -36,6 +40,9 @@ var game_over: bool = false
 var reconnecting: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : EffectManager.execute_effect/TriggerSystem.fire
+# l'incrémentent/décrémentent tels quels (réutilisés sans modification ici).
+var effects_resolving: int = 0
 var counter_offensive: Dictionary = {true: false, false: false}
 # Ajoutés côté 1v1 après la divergence de cette branche (Ordre de Tenir /
 # Dernier Soupir, voir FakeBattle et Battle.gd) : DeathSystem/EffectManager
@@ -567,6 +574,10 @@ class SimNoDrawOpponent:
 		pass
 	func get_deck_count() -> int:
 		return 0
+	# Voir SimAiSystemStub plus bas : renvoi en main côté adverse inerte en
+	# combat simulé (pas de vraie main/tour adverse ici).
+	func receive_card_to_hand(_card_data: CardData) -> void:
+		pass
 
 
 class SimNoDrawDeckSystem:
@@ -667,6 +678,12 @@ class SimCombatLog:
 	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
+		pass
+
+
+class _NoOpAfkGuard:
+	extends RefCounted
+	func notify_local_action() -> void:
 		pass
 
 

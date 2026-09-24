@@ -32,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Nuée de Tourments"
 description = "TERREUR
-Arrivée : Inflige 1 point de dégât à 2 serviteurs que votre adversaire contrôle."
+Arrivée : Inflige 1 point de dégât à 2 serviteurs ennemis."
 flavour_text = "Elle ne mord pas fort. Elle mord partout, et longtemps."
 texture = ExtResource("3_texture")
 cost = 3

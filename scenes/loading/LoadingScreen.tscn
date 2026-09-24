@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://byp8qcya3aete"]
+[gd_scene format=3 uid="uid://byp8qcya3aete"]
 
 [ext_resource type="Script" uid="uid://djbhdeomaw6x1" path="res://scripts/loading/LoadingScreen.gd" id="1_scc14"]
 [ext_resource type="Texture2D" uid="uid://cfogh0knggk3b" path="res://assets/main-menu/main-menu-01.jpg" id="2_bg"]
@@ -10,7 +10,6 @@ colors = PackedColorArray(0, 0, 0, 0.75, 0, 0, 0, 0.25, 0, 0, 0, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_vignette"]
 gradient = SubResource("Gradient_vignette")
-fill_to = Vector2(1, 0)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(0.25, 0.17, 0.05, 0.95)
@@ -36,6 +35,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_scc14")
 
 [node name="Background" type="TextureRect" parent="." unique_id=1494033268]
@@ -48,7 +49,7 @@ grow_vertical = 2
 texture = ExtResource("2_bg")
 expand_mode = 1
 
-[node name="Dim" type="ColorRect" parent="."]
+[node name="Dim" type="ColorRect" parent="." unique_id=556474223]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -57,7 +58,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.35)
 
-[node name="Vignette" type="TextureRect" parent="."]
+[node name="Vignette" type="TextureRect" parent="." unique_id=568296293]
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
@@ -88,7 +89,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 29
 text = "Chargement..."
 horizontal_alignment = 1
 

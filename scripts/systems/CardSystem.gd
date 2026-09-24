@@ -7,6 +7,7 @@ func init(_battle) -> void:
 	battle = _battle
 
 func handle_card_played(card_data: CardData, row: String, insert_index: int) -> void:
+	battle.afk_guard.notify_local_action()
 	if card_data.card_type == "Resource":
 		if not battle.can_afford_card(card_data):
 			return
@@ -31,7 +32,6 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 			battle.net_emitter.play_card(card_data, "Resource", -1)
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_card_played(card_data)
-		await battle.check_auto_pass_turn()
 		return
 	if card_data.card_type == "Minion" and not battle.can_play_card_on_row(card_data, row):
 		return
@@ -102,7 +102,6 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await _resolve(card_data, row, insert_index)
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
-	await battle.check_auto_pass_turn()
 
 func resolve_with_target(card_data: CardData, row: String, insert_index: int, target) -> void:
 	battle.cost_system.pay(card_data, true)
@@ -114,18 +113,26 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 	battle.hand._update_hand_layout(true)
 
 	# Capture les ids de tous les serviteurs créés par l'action, pour les rejouer.
+	# Le jeton retourné est repassé tel quel à end_capture() : ne jamais utiliser
+	# un end_capture() sans jeton, qui pourrait retirer le niveau d'une AUTRE
+	# capture encore active si deux actions capturées se chevauchent (voir
+	# NetRegistry.gd).
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 
 	var summoned: Minion = null
 	if card_data.card_type == "Minion":
-		# La cible (si Minion) est transmise directement au déclenchement ONPLAY :
-		# EffectManager.trigger_effects s'en sert pour les effets qui en ont besoin
-		# (EnemyMinion/AllyMinion/AnyMinion), base ET bonus de Pacte compris.
-		# Un ciblage d'enchantement (CardData) n'est pas géré par ce pipeline —
-		# encore résolu manuellement ci-dessous, cas rare non concerné par PACTE.
+		# La cible (Minion ou Hero, ex: Croc de Braise/Embermaw — Pacte "EnemyAny"
+		# visant un serviteur OU le héros ennemi) est transmise directement au
+		# déclenchement ONPLAY : EffectManager.trigger_effects s'en sert pour les
+		# effets qui en ont besoin (EnemyMinion/AllyMinion/AnyMinion/EnemyAny),
+		# base ET bonus de Pacte compris. Un ciblage d'enchantement (CardData)
+		# n'est pas géré par ce pipeline — encore résolu manuellement ci-dessous,
+		# cas rare non concerné par PACTE.
 		summoned = await battle.board_system.summon_minion_return(
-			card_data, true, row, insert_index, false, target if target is Minion else null)
+			card_data, true, row, insert_index, false,
+			target if (target is Minion or target is Hero) else null)
 		if target is CardData:
 			for effect in card_data.effects:
 				if effect.pact_bonus:
@@ -139,8 +146,9 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids0: Array = battle.net_registry.end_capture()
-				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, target if target is Minion else null)
+				var cancelled_ids0: Array = battle.net_registry.end_capture(capture_token)
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, target,
+					battle.cost_system.take_pending_sync_discounts())
 			battle.reset_targeting_state()
 			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : un rituel adverse peut
@@ -150,8 +158,9 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids: Array = battle.net_registry.end_capture()
-				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids, target)
+				var cancelled_ids: Array = battle.net_registry.end_capture(capture_token)
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids, target,
+					battle.cost_system.take_pending_sync_discounts())
 			battle.reset_targeting_state()
 			return
 		battle.combat_log.card_played(card_data, true)
@@ -198,25 +207,24 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 		battle.board_visual_system.refresh_board()
 
 	# Émission réseau : le joueur local a joué cette carte sur une cible.
-	# NOTE: NetCommand ne sait sérialiser qu'un net_id de Minion ; une cible
-	# CardData (enchantement/rituel) ou Hero (effet "EnemyAny" ciblant le héros
-	# ennemi, ex: Souffle Nécrotique, Don de Chair) n'est donc PAS encore
-	# synchronisée au pair distant (nécessiterait un id stable façon NetRegistry
-	# pour les enchantements, et un flag dédié pour le héros). À faire avant
-	# d'utiliser ce ciblage en multijoueur.
+	# NOTE: NetCommand sait sérialiser un net_id de Minion ou le héros ennemi
+	# (NetCommand.TARGET_HERO, voir NetEmitter.play_card) ; une cible CardData
+	# (enchantement/rituel visé) n'est PAS encore synchronisée au pair distant
+	# (nécessiterait un id stable façon NetRegistry pour les enchantements —
+	# cas rare, aucune carte connue ne l'utilise en ciblage joueur actuellement).
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
-		battle.net_emitter.play_card(card_data, row, insert_index,
-			ids, target if target is Minion else null)
+		var ids: Array = battle.net_registry.end_capture(capture_token)
+		battle.net_emitter.play_card(card_data, row, insert_index, ids, target,
+			battle.cost_system.take_pending_sync_discounts())
 
 	battle.reset_targeting_state()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
-	await battle.check_auto_pass_turn()
 
 func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	if card_data.card_type == "Minion":
 		await battle.board_system.summon_minion_return(card_data, true, row, insert_index)
 	else:
@@ -226,8 +234,9 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.player_graveyard.add_spell(card_data)
 			battle.board_visual_system.refresh_board()
 			if battle.net_emitter != null:
-				var cancelled_ids0: Array = battle.net_registry.end_capture()
-				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, null)
+				var cancelled_ids0: Array = battle.net_registry.end_capture(capture_token)
+				battle.net_emitter.play_card(card_data, row, insert_index, cancelled_ids0, null,
+					battle.cost_system.take_pending_sync_discounts())
 			return
 		battle.combat_log.card_played(card_data, true)
 		var shows_popup: bool = card_data.card_type != "Enchantment" \
@@ -265,8 +274,9 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 
 	# Émission réseau : le joueur local a joué cette carte (sans cible).
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
-		battle.net_emitter.play_card(card_data, row, insert_index, ids, null)
+		var ids: Array = battle.net_registry.end_capture(capture_token)
+		battle.net_emitter.play_card(card_data, row, insert_index, ids, null,
+			battle.cost_system.take_pending_sync_discounts())
 
 func _remove_from_hand(card_data: CardData) -> void:
 	var idx: int = battle.hand_cards.find(card_data)

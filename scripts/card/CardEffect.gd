@@ -160,3 +160,11 @@ class_name CardEffect
 # REMPLACÉS par ce bonus au lieu de s'ajouter à eux (ex: invoque un serviteur
 # amélioré à la place du serviteur de base). Sans effet si pact_bonus est faux.
 @export var pact_replaces_base: bool = false
+
+# ─── Résurrection en jeu (Resurrect / ResurrectLast / ResurrectSelf) ──────────
+# Par défaut, un serviteur ramené en jeu depuis le cimetière revient à ses PV
+# MAX (buffs/stats actuels compris). Ne mettre à true QUE si le texte de la
+# carte précise explicitement qu'il revient avec 1 point de vie (ex: Nécromancien
+# Putride, Cimetière Vivant) — ne jamais l'activer pour "ajuster" une carte dont
+# le texte ne mentionne aucun PV particulier.
+@export var revive_with_one_hp: bool = false

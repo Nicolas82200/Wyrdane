@@ -10,6 +10,10 @@ class_name NetworkManager
 # viendront se brancher sur les signaux ci-dessous.
 
 signal peer_connected()
+# Relais de NetTransport.peer_identified — le pair distant est identifié
+# (nom disponible via remote_display_name()) avant même que `peer_connected`
+# ne soit émis (voir MatchmakingOverlay, bandeau "<ami> se prépare…").
+signal peer_identified()
 signal peer_disconnected(reason: String)
 signal command_received(command: Dictionary)
 # Relais du diagnostic de connexion du transport (affiché au lobby).
@@ -58,6 +62,7 @@ func join_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) 
 func send_command(command: Dictionary, reliable: bool = true) -> void:
 	if transport == null:
 		return
+	NetDebugLog.command_sent(command)
 	transport.send(var_to_bytes(command), reliable)
 
 func close() -> void:
@@ -95,6 +100,7 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 			connection_restored.emit()
 		else:
 			peer_connected.emit())
+	transport.peer_identified.connect(func() -> void: peer_identified.emit())
 	transport.disconnected.connect(_on_transport_disconnected)
 	transport.packet_received.connect(_on_packet_received)
 	transport.status.connect(func(message: String) -> void: status.emit(message))
@@ -126,6 +132,7 @@ func _on_packet_received(bytes: PackedByteArray) -> void:
 	var command: Variant = bytes_to_var(bytes)
 	if not (command is Dictionary):
 		return
+	NetDebugLog.command_received(command)
 	if command.get("type", "") == NetCommand.LEAVE_MATCH:
 		# Départ volontaire du pair : pas de tentative de reconnexion, la partie
 		# est terminée pour de bon, immédiatement.

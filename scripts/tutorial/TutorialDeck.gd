@@ -4,12 +4,15 @@ class_name TutorialDeck
 # Cartes fixes du tutoriel obligatoire (voir TutorialManager) : un deck
 # Mort-Vivant simple et déterministe, choisi pour que chaque mécanique de base
 # (ressource, serviteur, rangée/Rempart, attaque, sort ciblé, enchantement,
-# trigger Invocation) soit démontrée dans un ordre prévisible. Les coûts sont
-# choisis pour correspondre exactement au mana disponible au moment où le
-# script les demande (voir TutorialManager.run()) : ne pas réordonner sans
-# revérifier le budget de mana par tour. Murmure Funeste (coût 1) est joué au
-# tour 3 avec le mana restant après Souffle Nécrotique (3 max - 2 = 1) : ne
-# pas la déplacer sans un tour disposant d'au moins 1 mana libre.
+# trigger Invocation) soit démontrée dans un ordre prévisible. Le mana
+# Mort-Vivant plafonne à 3 dans ce script (3 cartes-ressource jouées au total,
+# tours 1 à 3, aucune autre ensuite) : chaque carte demandée par
+# TutorialManager.run() doit donc pouvoir être payée seule avec au plus 3 mana
+# disponible ce tour-là. Souffle Nécrotique (coût 2) est joué seul au tour 3 ;
+# Murmure Funeste (coût 3, race_cost_override inclus) est joué seul au tour 4
+# suivant, une fois le mana rechargé à son maximum (toujours 3) : ne pas les
+# regrouper sur le même tour, et revérifier le coût total de chaque carte
+# (race_cost + generic_cost, voir CostSystem.gd) avant de réordonner ce script.
 
 const RESOURCE       := "res://resources/cards/undead/soul-shard.tres"
 const ZOMBIE         := "res://resources/cards/undead/zombie.tres"

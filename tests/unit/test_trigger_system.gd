@@ -172,6 +172,34 @@ func test_permanent_enchantment_never_loses_charges() -> void:
 	assert_eq(battle.enchantment_system.turns_updates.size(), 0)
 	assert_eq(battle.enchantment_system.destroyed.size(), 0, "un enchantement permanent (turns_left = -1) ne doit jamais être détruit par l'usure")
 
+# Temple de Guerre (resources/cards/human/war-temple.tres) : un enchantement
+# a trigger OnSummon + effet Buff cible "AllyMinion" ne doit buffer QUE le
+# serviteur qui vient d'arriver (source du fire), jamais tous les allies deja
+# en jeu -- meme si effect.target resout classiquement tout le groupe pour
+# d'autres cibles ("AllAllies"), "AllyMinion" avec un fire() source-porte doit
+# rester ponctuel (voir TriggerSystem._execute_enchantment_effects_with_proxy,
+# context_target = ctx.extra.get("target", ctx.source_minion)).
+func test_on_summon_ally_minion_buff_targets_only_the_arriving_minion() -> void:
+	var existing_ally := _minion(2, 5, true, "Front", Race.Type.HUMAN)
+	var data := CardData.new()
+	data.card_name = "TEST_WAR_TEMPLE"
+	data.card_type = "Enchantment"
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnSummon"
+	data.trigger_types = [trigger]
+	var buff := _effect("Buff", "AllyMinion", 1, 1)
+	buff.race_filter = "Human"
+	data.effects = [buff]
+	trigger_system.register_enchantment(data, true)
+
+	var arriving := _minion(1, 1, true, "Front", Race.Type.HUMAN)
+	await trigger_system.fire("OnSummon", arriving, true)
+
+	assert_eq(arriving.base_attack, 2, "le serviteur qui vient d'arriver doit gagner +1/+1")
+	assert_eq(arriving.base_max_health, 2, "le serviteur qui vient d'arriver doit gagner +1/+1")
+	assert_eq(existing_ally.base_attack, 2, "un allie deja en jeu ne doit pas etre buffe par l'arrivee d'un autre")
+	assert_eq(existing_ally.base_max_health, 5, "un allie deja en jeu ne doit pas etre buffe par l'arrivee d'un autre")
+
 func test_activate_sacrifice_ritual_kills_victims_and_executes_effect() -> void:
 	var ritual := _damage_enchantment("OnSacrifice", 4)
 	trigger_system.register_enchantment(ritual, true, 1)

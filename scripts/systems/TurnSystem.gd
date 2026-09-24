@@ -28,22 +28,23 @@ func end_turn() -> void:
 	await battle.hand_discard_system.run_if_needed()
 	# Capture les ids des serviteurs créés par les déclencheurs de fin de tour
 	# (ex. Dernier Souffle), pour que le pair les rejoue avec les mêmes ids.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	await run_turn_end_triggers()
-	await battle.temp_effect_system.expire_end_of_player_turn()
+	await battle.temp_effect_system.expire_end_of_local_turn()
 	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
 	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[true] = false  # Absolution Écarlate expire
 	# Émission réseau : dernière commande du tour local (porte les ids de triggers).
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.end_turn(ids)
 	await battle.opponent.take_turn()
 	if battle.game_over:
 		_ending_turn = false
 		return
-	await battle.temp_effect_system.expire_end_of_enemy_turn()
+	await battle.temp_effect_system.expire_after_remote_turn()
 	battle.cost_system.expire_end_of_enemy_turn()  # remises "ce tour"
 	battle.counter_offensive[false] = false  # "ce tour" : la Contre-Offensive expire
 	battle.hero_system.self_damage_blocked[false] = false
@@ -73,12 +74,13 @@ func run_turn_end_triggers(is_local_turn: bool = true) -> void:
 
 func _begin_player_turn() -> void:
 	# Capture les ids des serviteurs créés par les déclencheurs de début de tour.
+	var capture_token: int = -1
 	if battle.net_emitter != null:
-		battle.net_registry.begin_capture()
+		capture_token = battle.net_registry.begin_capture()
 	await run_turn_start_triggers(true)
 	# Émission réseau : le pair rejoue la même phase pour le tour qui commence.
 	if battle.net_emitter != null:
-		var ids: Array = battle.net_registry.end_capture()
+		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.turn_start(ids)
 	_finish_turn_start()
 	battle.deck_system.draw_card()
@@ -86,7 +88,7 @@ func _begin_player_turn() -> void:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_player_turn_began()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de début de tour. is_local_turn : true si c'est le tour du joueur local.
 # OnAwaken vise le camp dont c'est le tour, OnDecline le camp adverse (dont le
@@ -210,7 +212,7 @@ func start_match() -> void:
 		TutorialContext.clear()
 		battle.tutorial_manager.start()
 	else:
-		battle.turn_timer.start()
+		battle.afk_guard.begin_turn()
 
 # Phase de mulligan précédant le tour 1 : la main de départ est déjà affichée
 # normalement ; cliquer une carte la remplace directement (voir Hand.flip_replace).
@@ -246,13 +248,23 @@ func run_mulligan() -> void:
 	battle.turn_banner.hide_banner()
 	battle.end_turn_button.disabled = true
 	battle.end_turn_button.set_ready_hint(false)
-	battle.mulligan_dim_overlay.visible = false
 	battle.hand.mulligan_card_clicked.disconnect(_on_mulligan_card_clicked)
-	battle.hand.set_mulligan_mode(false)
-	battle._mulligan_active = false
+	# IMPORTANT : _mulligan_active/hand.mulligan_mode/l'overlay d'assombrissement
+	# restent actifs pendant cette attente, même si le joueur local a déjà
+	# confirmé son propre mulligan. Sans ça, un joueur plus rapide que son
+	# adversaire se retrouvait avec une main redevenue draggable/jouable et un
+	# plateau non assombri AVANT que le vrai tour 1 ne démarre (aucun garde-fou
+	# de jeu de carte ne vérifie autre chose que enemy_turn_active) : il pouvait
+	# poser des cartes gratuitement pendant que l'adversaire finissait encore
+	# son propre mulligan, un avantage qui ne devrait jamais exister.
 	if battle.net_emitter != null:
 		battle.net_emitter.mulligan_done()
+		battle.turn_banner.show_banner_persistent(SettingsManager.t("mulligan.waiting_opponent"), "", TurnBanner.MULLIGAN_Y_RATIO)
 	await battle.opponent.await_mulligan()
+	battle.turn_banner.hide_banner()
+	battle.mulligan_dim_overlay.visible = false
+	battle.hand.set_mulligan_mode(false)
+	battle._mulligan_active = false
 	battle.end_turn_button.disabled = false
 	battle._retranslate_battle()
 	battle.update_end_turn_hint()
@@ -272,7 +284,8 @@ func _on_mulligan_card_clicked(index: int, _card_data: CardData) -> void:
 	if index not in battle._mulligan_swapped_indices:
 		battle._mulligan_swapped_indices.append(index)
 	AudioManager.play(AudioManager.DRAW)
-	battle.hand.flip_replace_at(index, new_data)
+	var deck_origin: Vector2 = battle.deck_button.global_position + battle.deck_button.size / 2.0
+	battle.hand.flip_replace_at(index, new_data, deck_origin)
 	if battle.tutorial_active:
 		battle.tutorial_manager.notify_mulligan_swap(_card_data)
 

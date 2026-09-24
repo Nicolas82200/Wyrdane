@@ -1,11 +1,33 @@
 extends RefCounted
 class_name EffectManager
 
+# Enveloppe fine autour de _execute_effect_impl : incrémente/décrémente
+# battle.effects_resolving pour bloquer toute action joueur tant qu'un effet
+# est en cours (voir Battle.is_resolving_effects). Le compteur est géré ici
+# plutôt que dans _execute_effect_impl car cette dernière a plusieurs sorties
+# anticipées (condition non remplie, cible invalide...) qui auraient chacune
+# dû décrémenter — en le faisant dans ce wrapper sans branche, c'est garanti
+# quel que soit le chemin emprunté à l'intérieur.
 func execute_effect(
 	battle,
 	source_minion: Minion,
 	effect: CardEffect,
-	selected_target = null
+	selected_target = null,
+	skip_source_popup: bool = false
+) -> void:
+	if not is_instance_valid(battle):
+		return
+	battle.effects_resolving += 1
+	await _execute_effect_impl(battle, source_minion, effect, selected_target, skip_source_popup)
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
+
+func _execute_effect_impl(
+	battle,
+	source_minion: Minion,
+	effect: CardEffect,
+	selected_target = null,
+	skip_source_popup: bool = false
 ) -> void:
 	# Garde-fou : execute_effect peut être appelé après un await potentiellement
 	# long (ex. PactChoiceSystem.ask attendant le clic Oui/Non du joueur) — si la
@@ -16,8 +38,15 @@ func execute_effect(
 	# Condition d'exécution : si non remplie, l'effet est purement et simplement
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
+		NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, false)
 		return
-	if source_minion != null and source_minion.card_data != null:
+	NetDebugLog.effect_resolved(battle, source_minion, effect, selected_target, true)
+	# skip_source_popup : l'appelant (ex. AISystem/NetworkOpponent pour un sort
+	# ciblé) a déjà affiché la popup de cette carte AVANT de jouer le son du
+	# sort — sans ce flag, ce même proxy (source_minion non nul, nécessaire pour
+	# que la résolution de cible connaisse son camp) ferait réapparaître la
+	# popup une seconde fois ici, cette fois sans le son (déjà joué avant).
+	if not skip_source_popup and source_minion != null and source_minion.card_data != null:
 		# Attend que la popup soit affichée pour que l'effet se produise en même temps
 		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
 	match effect.effect_id:
@@ -106,12 +135,17 @@ func execute_enchantment_targeted_effect(
 	effect: CardEffect,
 	target_enchantment: CardData
 ) -> void:
+	if not is_instance_valid(battle):
+		return
+	battle.effects_resolving += 1
 	if source_minion != null and source_minion.card_data != null:
 		await battle.card_popup_system.show_card_popup(source_minion.card_data, source_minion)
 	match effect.effect_id:
 		"DestroyEnchantment": _destroy_target_enchantment(battle, target_enchantment)
 		_: push_warning("Effet non implémenté pour cible enchantement : %s" % effect.effect_id)
 	battle.board_visual_system.refresh_board()
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
 
 func _destroy_target_enchantment(battle, card_data: CardData) -> void:
 	for is_player in [true, false]:
@@ -432,13 +466,13 @@ func _point_arrows_to(battle, targets: Array[Minion], source_minion: Minion = nu
 		if v != null and is_instance_valid(v):
 			positions.append(v.global_position + v.size * 0.5)
 	if not positions.is_empty():
-		await battle.card_popup_system.show_effect_arrows(positions, 0.35, source_minion == null)
+		await battle.card_popup_system.show_effect_arrows(positions, 0.35, source_minion == null, source_minion)
 
 func _point_arrow_to_hero(battle, is_enemy: bool, source_minion: Minion = null) -> Control:
 	var panel = battle.get_node_or_null("EnemyHeroPanel" if is_enemy else "PlayerHeroPanel")
 	if panel != null:
 		await battle.card_popup_system.show_effect_arrows(
-			[panel.global_position + panel.size * 0.5], 0.35, source_minion == null)
+			[panel.global_position + panel.size * 0.5], 0.35, source_minion == null, source_minion)
 	return panel
 
 # ─── Effets existants ─────────────────────────────────────────────────────────
@@ -675,7 +709,7 @@ func _return_to_hand(battle, source_minion: Minion, effect: CardEffect, selected
 			battle.hand_cards.append(target.card_data)
 			await battle.hand.set_hand(battle.hand_cards, true, origin)
 		else:
-			battle.ai_system.hand.append(target.card_data)
+			battle.opponent.receive_card_to_hand(target.card_data)
 			await battle.animate_enemy_card_returned(origin)
 
 # Ajoute effect.generated_card à la main du camp propriétaire de source_minion
@@ -1010,10 +1044,12 @@ func _summon_random(battle, source_minion: Minion, effect: CardEffect) -> void:
 			await roll_mutation(battle, summoned)
 		await battle.get_tree().create_timer(0.15).timeout
 
-# Fait entrer en jeu card_data avec 1 HP et was_resurrected=true, en rangée
-# Avant si possible sinon Arrière. Retourne false si aucune rangée disponible
+# Fait entrer en jeu card_data et was_resurrected=true, en rangée Avant si
+# possible sinon Arrière. Revient à ses PV MAX par défaut (buffs/stats actuels
+# compris) ; à 1 PV uniquement si revive_with_one_hp est vrai (le texte de la
+# carte le précise explicitement). Retourne false si aucune rangée disponible
 # (partagé par _resurrect/_resurrect_last/_resurrect_self).
-func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
+func _resurrect_card_data(battle, card_data: CardData, is_player: bool, revive_with_one_hp: bool = false) -> bool:
 	var row: String = "Front"
 	if not battle.can_summon_to_row(is_player, row):
 		row = "Back"
@@ -1026,7 +1062,10 @@ func _resurrect_card_data(battle, card_data: CardData, is_player: bool) -> bool:
 	# serviteur, laissant celui ressuscité à ses PV max).
 	var minion: Minion = await battle.summon_minion(card_data, is_player, row)
 	if minion != null and is_instance_valid(minion):
-		minion.health = 1
+		if revive_with_one_hp:
+			minion.health = 1
+		else:
+			minion.health = minion.max_health
 		minion.was_resurrected = true
 		battle.board_visual_system.refresh_board()
 	return true
@@ -1043,7 +1082,7 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var count: int = mini(effect.count, dead.size())
 	for i in range(count):
 		var card_data: CardData = dead[dead.size() - 1 - i]
-		if not await _resurrect_card_data(battle, card_data, is_player):
+		if not await _resurrect_card_data(battle, card_data, is_player, effect.revive_with_one_hp):
 			break
 		graveyard.remove_minion(card_data)
 		await battle.get_tree().create_timer(0.15).timeout
@@ -1227,7 +1266,7 @@ func _fly_from_graveyard_to_hand(battle, card_data: CardData, is_player: bool) -
 		battle.hand_cards.append(card_data)
 		await battle.hand.set_hand(battle.hand_cards, true, origin)
 	else:
-		battle.ai_system.hand.append(card_data)
+		battle.opponent.receive_card_to_hand(card_data)
 		await battle.animate_enemy_card_returned(origin)
 
 # Ramène depuis le cimetière en main une carte CHOISIE par le joueur (Communion
@@ -1253,9 +1292,10 @@ func _resurrect_chosen_from_grave(battle, source_minion: Minion, effect: CardEff
 	graveyard.remove_minion(card_data)
 	await _fly_from_graveyard_to_hand(battle, card_data, is_player)
 
-# Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, avec
-# 1 HP (Cimetière Vivant : "le premier Mort-Vivant qui meurt chaque tour revient
-# en jeu à la fin du tour"). Contrairement à _resurrect_last (qui pioche le
+# Ramène EN JEU (pas en main) le serviteur allié qui vient de mourir, à ses PV
+# max par défaut (à 1 PV si effect.revive_with_one_hp — Cimetière Vivant : "le
+# premier Mort-Vivant qui meurt chaque tour revient en jeu à la fin du tour
+# avec 1 point de vie"). Contrairement à _resurrect_last (qui pioche le
 # dernier mort du cimetière), vise précisément selected_target = le serviteur
 # mort ayant déclenché OnGrief. Aucune limite par serviteur : un même serviteur
 # peut revivre plusieurs fois au fil de la partie s'il meurt à nouveau lors
@@ -1266,10 +1306,11 @@ func _resurrect_self(battle, source_minion: Minion, effect: CardEffect, selected
 		return
 	var is_player: bool = selected_target.owner_is_player
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
-	if await _resurrect_card_data(battle, selected_target.card_data, is_player):
+	if await _resurrect_card_data(battle, selected_target.card_data, is_player, effect.revive_with_one_hp):
 		graveyard.remove_minion(selected_target.card_data)
 
-# Ressuscite le dernier mort avec 1 HP (Réveil Soudain, Nécromancien Putride)
+# Ressuscite le dernier mort, à ses PV max par défaut (à 1 PV si
+# effect.revive_with_one_hp — Nécromancien Putride, Rituel de Résurrection...).
 func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
@@ -1285,7 +1326,7 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 			break
 	if card_data == null:
 		return
-	if await _resurrect_card_data(battle, card_data, is_player):
+	if await _resurrect_card_data(battle, card_data, is_player, effect.revive_with_one_hp):
 		graveyard.remove_minion(card_data)
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
@@ -1489,11 +1530,16 @@ func _gain_mana(battle, source_minion: Minion, effect: CardEffect) -> void:
 		battle.update_enemy_mana_ui()
 
 # Pioche `value` carte(s) ; chaque carte piochée de la race `race_filter` (ou
-# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Décharné). Pioche
+# toute carte si vide) coûte `value_2` de moins ce tour (Doigt Écarlate). Pioche
 # pour le camp propriétaire de `source_minion` : le joueur dans son deck, l'IA
 # dans le sien (remise appliquée sur sa propre copie) ; côté réseau, la carte
-# réelle du pair distant est inconnue localement donc seule la pioche
-# cosmétique a lieu, sans remise (que le pair applique de son côté).
+# réelle du pair distant est inconnue localement donc cette branche ne peut
+# pas non plus appliquer de remise ici (drawn reste null) — mais ce n'est plus
+# un manque : CostSystem.add_temp_discount capture la remise sur SON client
+# (is_player=true) et la transmet via PLAY_CARD (voir
+# CostSystem.take_pending_sync_discounts / NetworkOpponent._apply_play_card),
+# qui l'applique de son côté à la vraie carte désignée par resource_path
+# avant même que cette fonction ne rejoue l'effet ici.
 func _draw_card_discount(battle, source_minion: Minion, effect: CardEffect) -> void:
 	# Mode Arena (SimulatedBattle.gd) : pas de deck/coût — sans intérêt,
 	# no-op plutôt qu'un crash sur deck_system/cost_system absents.
@@ -1876,10 +1922,16 @@ func _resolve_pact_payment(battle, minion: Minion) -> bool:
 	if not is_instance_valid(battle):
 		return false
 	if pact_paid:
-		var minion_visual: Control = battle.board_visual_system.find_visual(minion)
-		var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
-		battle.animation_system.play_pact_drain(hero_panel, minion_visual)
-		await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+		# L'animation de drain ne se joue que si le héros perd réellement des PV :
+		# Le Gardien du Pacte Brisé (blocks_self_damage) ou Absolution Écarlate
+		# peuvent annuler entièrement self_damage() malgré un Pacte "payé" — sans
+		# cette vérification après coup, l'animation laissait croire à un coût
+		# réel alors qu'aucun PV n'avait été perdu (bonus obtenu gratuitement).
+		var dealt: int = await battle.hero_system.self_damage(minion.owner_is_player, pact_value)
+		if dealt > 0:
+			var minion_visual: Control = battle.board_visual_system.find_visual(minion)
+			var hero_panel: Control = battle.get_node("PlayerHeroPanel" if minion.owner_is_player else "EnemyHeroPanel")
+			battle.animation_system.play_pact_drain(hero_panel, minion_visual)
 	return pact_paid
 
 # Vrai si `target` est un serviteur de rangée Avant protégé par Ordre de Tenir

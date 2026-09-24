@@ -21,6 +21,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 **Page Steamworks validée par Valve.** `SteamService.APP_ID` pointe sur le vrai AppID Wyrdane (5052390), accessible à tout compte Steam sans ajout manuel comme testeur. Reste :
 - Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
 - Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
+- **Résolu (2026-09-24)** : versionning (`VERSION.txt`, `AppVersion.gd`, affichage dynamique dans `MainMenu`) — voir « Versionning » dans `CLAUDE.md`. Penser à lancer `tools/bump_version.ps1` avant chaque build Steam.
 - ~~Invitations d'amis~~ **Déjà implémenté** — vérifié dans le code : `SteamTransport.invite_friends()` (overlay `activateGameOverlayInviteDialog`) câblé bout en bout via `MatchmakingOverlay.start_invite()` (héberge un lobby si besoin, puis ouvre l'overlay dès qu'il est prêt). Cette liste et la roadmap listaient ce point par erreur comme restant à faire.
 - Effort : moyen mais surtout administratif (hors code).
 
@@ -64,6 +65,140 @@ Audit de sécurité (2026-09-06) : `POST /api/rewards/solo-match` et `POST /api/
 **Volet classé résolu côté code, pas encore actif en prod.** Branche `0055-signed-match-session-token` (`wyrdane-backend`) : `matchmakingModel.pairTickets` émet désormais un jeton signé (`matchId` serveur + les deux `user_id`, TTL 30 min, `helper/matchSessionToken.ts`) au moment même de l'appariement classé, renvoyé aux deux clients via le poll de file existant. Côté `card-game` : `MatchmakingOverlay` récupère ce `match_id`/`match_session_token`, l'utilise comme `client_match_id` faisant foi (au lieu de celui dérivé localement par `NetHandshake`) et le fait transiter jusqu'à `BackendClient.report_ranked_match`. `rankedController.reportMatch` vérifie le jeton quand il est présent, mais **ne rejette pas encore** un rapport qui en est dépourvu (`ENFORCE_MATCH_SESSION_TOKEN=false` par défaut, soft mode — seulement journalisé) : la version actuellement déployée en prod n'envoie pas encore ce jeton, un rejet immédiat casserait le classé en production. À faire pour activer réellement la protection : déployer les deux branches (backend + ce commit client), confirmer que les rapports en prod portent bien le jeton, puis ne passer `ENFORCE_MATCH_SESSION_TOKEN=true` qu'à ce moment-là.
 
 Volet solo (`POST /api/rewards/solo-match`) non couvert par ce mécanisme et volontairement laissé de côté : pas d'appariement backend à faire foi contre l'IA (pas d'adversaire réseau), seul le bornage des valeurs déclarées s'applique.
+
+## P10 — Gel de partie possible en cours de tour IA
+
+**Résolu (2026-09-18).**
+
+Signalé par l'utilisateur (2026-09-17) : après un certain temps de jeu contre l'IA, la partie se fige entièrement (fenêtre "ne répond plus" sous Windows). Le log Godot de la session concernée (`godot2026-09-16T13.54.30.log`) s'arrête net sans aucune erreur ni stack trace — cohérent avec une boucle qui ne se termine jamais plutôt qu'un vrai crash (ce genre de blocage n'écrit rien dans les logs). `AISystem.take_turn()` enchaîne plusieurs phases avec des `while` dont la sortie dépend d'une condition (`_play_cards_phase`, `_attack_phase`) : un candidat plausible non confirmé est la mécanique Humain Contre-Offensive (`CombatSystem._execute_damage`, `attacker.attacks_remaining += 1` à chaque kill, net nul une fois `consume_attack()` appliqué) qui pourrait, dans un enchaînement de kills ininterrompu, ne jamais laisser `attacks_remaining` retomber à 0.
+
+**Mitigé, pas résolu.** `AISystem.take_turn()` a désormais le même filet de sécurité que `TutorialOpponent.MAX_TURN_SAFETY` (déjà en place là-bas, jamais répliqué côté IA normale) : le tour est sondé avec une limite de 30s, au-delà de laquelle la main est rendue de force (`push_warning` loggé) au lieu de bloquer la partie indéfiniment. N'élimine pas la cause racine si elle existe ailleurs qu'une boucle qui cède la main à chaque itération (un vrai verrou synchrone sans `await` ne serait pas intercepté par ce filet). À surveiller : si le warning `AISystem: le tour adverse n'a pas terminé dans le délai prévu` apparaît en jeu, il pointera vers la phase exacte en cause pour une investigation ciblée.
+
+**Diagnostic renforcé (2026-09-17).** Signalement utilisateur d'un nouveau cas (tours IA très longs + warning de sécurité déclenché, sans figer complètement grâce au filet ci-dessus). Le message ne pointait jusqu'ici vers aucune phase précise malgré ce qu'annonçait la note ci-dessus — corrigé : `AISystem._current_phase` (mis à jour à chaque étape de `_run_turn_actions`/`_play_cards_phase`/`_attack_phase`, y compris le nom de la carte posée ou du serviteur qui attaque) est désormais inclus dans le `push_warning`. Au prochain déclenchement, le log dira concrètement sur quelle carte/attaquant l'IA était bloquée. Cause racine toujours à confirmer.
+
+**Élément de réponse (2026-09-18) : pas forcément un blocage, juste de l'accumulation.** Le warning suivant loggé par l'utilisateur pointait sur la phase `'done'` — c'est-à-dire que `_run_turn_actions` avait bel et bien fini de s'exécuter, juste après l'expiration des 30s (course entre `finished = true` et la sonde `elapsed < MAX_TURN_SAFETY_SECONDS`). Autrement dit ce cas précis n'était pas une vraie boucle infinie mais un tour légitimement lent qui frôle la limite : chaque action IA (pose de carte, attaque) attend `Battle.pace_actions()` (`Battle.ACTION_PACE`, partagé avec `NetworkOpponent`/`TriggerSystem`/`TurnSystem`) en plus de ses propres animations/popups — un tour avec beaucoup de cartes/attaques additionne facilement 15-30s rien qu'en pauses de rythme. `ACTION_PACE` réduit de 1.0s à 0.5s pour alléger l'accumulation sur un gros tour (voir commit `perf: halve pacing delay between opponent/AI actions`). N'exclut pas qu'un vrai cas de blocage (boucle infinie) existe par ailleurs — à surveiller si le warning revient avec une phase autre que `'done'`/`'attack_phase'`/`'play_cards_phase'` en fin de liste jouable.
+
+**Deuxième passe (2026-09-18) : la popup d'effet dominait le total, pas seulement `ACTION_PACE`.** Signalement confirmé par l'utilisateur : ~20s entre les actions et la fin de tour même sans carte Pacte impliquée. Chaque serviteur à Arrivée posé par l'IA passe par `CardPopupSystem.show_card_popup` (`READ_HOLD` 0.4s + `DISPLAY_DURATION` 0.9s = 1.3s, volontairement allongé la semaine précédente pour la lisibilité des propres sorts du joueur) en plus de `ACTION_PACE`/l'animation de vol/le délai fixe de `BoardSystem.summon_minion_return` (0.2s) — un tour avec 5-6 serviteurs à effet plus quelques attaques additionne bien ~20s. Plutôt que de revenir sur le réglage de lisibilité récent (qui reste voulu pour les propres cartes du joueur), `CardPopupSystem` réduit désormais de moitié (`ENEMY_TURN_HOLD_SCALE = 0.5`) le temps d'affichage de ses popups (`show_card_popup`/`show_effect_arrows`) tant que `battle.enemy_turn_active` est vrai — le joueur est spectateur pendant le tour adverse, il n'a pas besoin du même temps de lecture que pour ses propres décisions.
+
+**Quatrième passe (2026-09-18) : l'utilisateur précise qu'aucun effet/popup ne s'affiche pendant cette attente — la piste Déclin ci-dessus était donc insuffisante ou fausse sur son cas.** Plutôt que de continuer à deviner, instrumentation temporaire ajoutée (`print` par étape de tour, seuil 300ms) pour localiser la vraie étape en cause au prochain rapport de log.
+
+**Cause racine trouvée et corrigée (2026-09-18), grâce au log fourni par l'utilisateur (`godot.log`).** Les logs de l'instrumentation ci-dessus ont montré que `opponent.take_turn()` prenait systématiquement 29999-30000ms — littéralement à chaque tour, pas seulement dans un cas limite — avec le warning de sécurité qui se déclenchait à chaque fois (`bloqué sur 'done'`), alors que les étapes individuelles du tour se terminaient toutes en ~1s. Bug trouvé : `AISystem.take_turn()`
+```gdscript
+var finished := false
+_run_turn_actions(func(): finished = true)
+...
+while not finished and elapsed < MAX_TURN_SAFETY_SECONDS: ...
+```
+capture `finished` **par valeur** dans la lambda (comportement des closures GDScript, PAS par référence) — `finished = true` à l'intérieur du callback ne mutait donc jamais la variable de `take_turn()`, et la boucle d'attente patientait systématiquement les 30 secondes complètes avant de rendre la main de force, quelle que soit la rapidité réelle du tour. **C'est très exactement le même bug déjà rencontré et corrigé une fois sur `PactChoiceSystem.ask`** (voir son commentaire `state["done"]`) — non repéré ici lors de l'ajout du filet de sécurité. Corrigé en remplaçant le `bool` local par un `Dictionary` partagé (`state := {"finished": false}`), type par référence en GDScript. Explique aussi bien le signalement initial de "gel" (2026-09-17) que "l'attente sans rien" (2026-09-18) : chaque tour IA perdait bêtement ~28-29s à ne rien faire après avoir réellement terminé son travail en ~1-2s. L'instrumentation temporaire de la passe précédente a été retirée une fois la cause confirmée.
+
+**Troisième passe (2026-09-18) : l'attente précise décrite par l'utilisateur (après la dernière action visible, avant que le tour ne passe vraiment) venait du Déclin ennemi — hypothèse non confirmée, voir passe suivante.** `battle.enemy_turn_active` repasse à `false` dès la fin de `AISystem.take_turn()` (dans `take_turn()` lui-même) — mais `TurnSystem._begin_player_turn()`, appelé juste après par `end_turn()`, déclenche encore le trigger Déclin (`OnDecline`) des serviteurs ennemis restés en jeu (`_trigger_minions_paced(other_minions, "OnDecline", ...)`) ET les enchantements adverses qui y réagissent. Ces popups se jouaient donc à pleine durée (le flag `enemy_turn_active` scalant `CardPopupSystem` était déjà retombé à `false`), juste après la dernière attaque visible de l'IA — exactement la fenêtre décrite comme « attente avant la fin du tour ». Corrigé : `CardPopupSystem._hold_scale()` se base désormais sur le camp propriétaire de la source (`source_minion`/proxy d'enchantement) quand elle est connue, plutôt que sur `enemy_turn_active` — un Déclin ennemi reste donc à durée réduite même une fois ce flag retombé, tandis qu'un Éveil du joueur (même fenêtre, son propre camp) garde sa pleine lisibilité.
+
+**Correctif connexe (2026-09-17), mécanique Pacte.** Repéré pendant cette investigation, sans lien de cause avec le point ci-dessus : `EffectManager._resolve_pact_payment` jouait l'animation de drain (`AnimationSystem.play_pact_drain`) dès qu'un Pacte était accepté, même quand `HeroSystem.self_damage` annulait entièrement les PV perdus (Le Gardien du Pacte Brisé en jeu côté payeur, ou Absolution Écarlate ce tour) — donnant l'impression que le bonus avait été obtenu gratuitement sans que le joueur/l'IA n'ait « payé » quoi que ce soit de visible, alors que le choix avait bien été honoré. L'animation ne se joue désormais que si `self_damage()` retourne des dégâts réellement infligés (`> 0`).
+
+**Télémétrie ajoutée.** `CrashReporter` (voir « Rapport de plantage/gel » dans `CLAUDE.md`) détecte désormais toute session qui ne s'est pas terminée proprement (plantage réel ou gel tué via le gestionnaire des tâches) et propose au joueur d'envoyer le dernier log, transmis sur le salon Discord de développement via `wyrdane-backend` (`POST /api/crash-report`). Ça ne corrige rien par soi-même, mais donne enfin une source de logs réels de joueurs pour identifier la cause exacte d'un futur gel — condition nécessaire avant de pouvoir vraiment fermer ce point.
+
+## P11 — Écran Statistiques : backend écrit mais pas encore déployé
+
+**Résolu, puis revu.** Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) mergé dans `main` et déployé (table `card_play_stats`, colonne `match_reports.cards_played`). Le classement MMR est resté en jeu (écran « Classement », `StatsPanel.gd`), mais les statistiques de cartes (taux de jeu/winrate) ont été retirées de l'écran en jeu et déplacées vers un dashboard admin sur `wyrdane-website` (`/admin/card-stats`, `GET /api/admin/card-stats`, `requireAdmin`) — donnée d'équilibrage interne, pas destinée aux joueurs. Voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`.
+
+## P12 — Classement par palier : backend écrit, pas encore mergé/déployé
+
+Refonte du panneau « Classement » côté client (`StatsPanel.gd`) : 4 onglets
+de palier (Bronze/Argent/Or/Légende) au lieu d'un top-100 plat, ouverture
+centrée sur la position du joueur local, recherche de joueur, avatars Steam,
+bannières or/argent/bronze pour le top 3 de chaque palier. Nécessite le
+backend de la branche `wyrdane-backend` `0072-ranked-leaderboard-browse`
+(**pas encore mergée dans `main`, donc pas déployée**) : enveloppe
+`{ total, players }` + `rank`/`steam_id` sur `GET /api/ranked/leaderboard`,
+et les nouvelles routes `/leaderboard/me`, `/leaderboard/around-me`,
+`/leaderboard/search`. Tant que cette branche n'est pas mergée et déployée
+sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
+format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
+section 5.
+
+## P13 — MMR caché Normal / MMR public Classé : migration prod à jouer
+
+**Code écrit des deux côtés (client + `wyrdane-backend`), pas encore actif en
+prod.** Avant cette tâche, n'importe quelle partie réseau (Normal, Contre un
+ami, Classé) modifiait le MMR public (`ranked_stats.mmr`) — aucune distinction
+côté backend. Désormais `report_ranked_match` porte un champ `mode` et seul le
+Classé touche à `ranked_stats.mmr`/`wins`/`losses` ; Normal (et tout ce qui
+n'est pas explicitement classé) met à jour un MMR **caché** séparé
+(`ranked_stats.hidden_mmr`, jamais exposé au client) utilisé uniquement pour
+apparier des Normal de niveau similaire — voir « Ranked / paliers /
+matchmaking classé » plus haut pour le détail (`_queue_mode`,
+`NORMAL_QUEUE_TIMEOUT`, repli silencieux sur l'ancien comportement direct si
+le backend est indisponible).
+
+Reste à faire avant que ce soit réellement actif :
+- **Migration DB** : `npm run db:sync` (ou l'équivalent conteneur, voir
+  « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de
+  `wyrdane-backend`) doit tourner sur le VPS pour ajouter `ranked_stats.hidden_mmr`,
+  `matchmaking_tickets.mode` et `match_reports.mode` — sans ça, le code neuf
+  échouera sur les colonnes absentes dès le déploiement.
+- **Merge + déploiement** de la branche `wyrdane-backend` correspondante dans
+  `main` (déploiement continu déjà en place, voir « Infra & déploiement »).
+- **Jamais testé en conditions Steam réelles** (comme tout ce qui touche au
+  matchmaking, nécessite deux comptes Steam) : en particulier le repli Normal
+  → recherche directe après `NORMAL_QUEUE_TIMEOUT`/échec backend, et le
+  réessai de `queue_report_lobby` (voir bug ci-dessous).
+- Le bug historique « partie classée qui ne se lance jamais entre deux amis
+  qui viennent de la lancer » n'a pas de cause confirmée en conditions
+  réelles (pas reproduit dans une session de dev) : la piste la plus probable
+  identifiée est un échec silencieux de `queue_report_lobby` côté hôte
+  (appelé jusque-là sans callback ni retry) — corrigé (réessai + message
+  d'erreur explicite si les 3 tentatives échouent, voir
+  `MatchmakingOverlay._report_queue_lobby`), mais à confirmer en vrai avant de
+  considérer le ticket clos.
+
+## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
+
+Même situation que P12/P13 ci-dessus : le client (`MatchHistoryPanel.gd`,
+onglet « Historique » du profil) consomme `GET /api/ranked/matches/history`
+et `ranked.totalPlayers` sur `GET /api/profile`, tous deux ajoutés côté
+`wyrdane-backend` branche `0077-profile-rank-and-match-history` — **pas
+encore mergée dans `main`, donc pas déployée**. `match_history` gagne aussi
+trois colonnes additives (`mmr_change_player1/2`, `duration_sec`), ajoutées
+via `db:sync` comme les autres migrations additives (voir « Appliquer un
+changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`) —
+aucune donnée existante affectée, mais sans ce `db:sync` en prod l'onglet
+Historique affichera des échecs de chargement (404) une fois le client
+déployé. Le champ `mode` ajouté par P13 ci-dessus à `POST /api/ranked/matches/report`
+est envoyé par le client dans tous les cas (`report_ranked_match` porte
+maintenant `is_ranked`/`durationSec` ensemble) mais ignoré par cette branche
+backend tant qu'elle n'a pas elle-même absorbé le changement de P13 — sans
+conséquence : le backend actuel n'exploite aucun champ de payload inconnu.
+
+## P15 — Système d'amis Wyrdane + chat : écrit des deux côtés, pas encore mergé/déployé
+
+Demande utilisateur du 2026-09-24, implémentée en session suivante (les deux
+côtés, voir CLAUDE.md « Amis et chat » côté `card-game` et « Amis, chat et
+présence » côté `wyrdane-backend`) : système d'amis propre à Wyrdane (ajout
+par pseudo, liste avec statut en ligne/en jeu/hors ligne + étiquette Steam si
+l'ami est aussi un ami Steam), panneau Amis qui prend la place des boutons de
+navigation du menu principal (clic gauche sur un ami = ouvre le chat, clic
+droit = menu contextuel Inviter/Voir le profil/Signaler/Supprimer), chat privé
+entre amis avec badge de non-lus, historique **persisté en base**, polling
+HTTP (pas de WebSocket, décision utilisateur).
+
+**Pas encore mergé/déployé** (même situation que P12/P14 ci-dessus) :
+- Backend : `wyrdane-backend` branche `0079-friends-and-chat` — tables
+  `friendships`/`messages` + colonnes `users.last_heartbeat_at`/`in_game`,
+  nécessite `db:sync` sur le VPS après déploiement.
+- Client : worktree `0614-friends-chat` (`FriendsPanel.gd`, `ChatPanel.gd`,
+  `PresenceService.gd`).
+- Tant que le backend n'est pas déployé, le panneau Amis/le chat afficheront
+  des échecs de chargement silencieux (les BackendClient.* correspondants
+  répondent `success=false`/liste vide sur toute erreur HTTP, pas de crash).
+
+**Limitation connue, pas de bonne solution actuellement** : « Inviter à
+jouer » depuis le menu contextuel ne cible pas directement l'ami — il renvoie
+vers l'écran de choix de mode (Multijoueur → Contre un ami), qui ouvre
+l'overlay natif Steam d'invitation. Le transport reste Steam P2P (voir
+« Multijoueur (1v1 réseau) »), qui n'expose aucune API pour inviter un
+SteamID précis en dehors de cet overlay — lequel ne liste que les amis
+*Steam*, pas les amis *Wyrdane* qui ne le seraient pas. Repenser cela
+demanderait de revoir le transport réseau lui-même, hors de portée ici.
 
 ## Non-problèmes vérifiés pendant cette revue
 

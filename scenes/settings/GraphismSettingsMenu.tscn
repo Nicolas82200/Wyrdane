@@ -45,14 +45,14 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Résolution"
 
 [node name="ResolutionOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ResolutionRow" unique_id=600000011]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 
 [node name="FullscreenRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000012]
 layout_mode = 2
@@ -62,7 +62,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Plein écran"
 
 [node name="FullscreenCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/FullscreenRow" unique_id=600000014]
@@ -77,7 +77,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "V-Sync"
 
 [node name="VSyncCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/VSyncRow" unique_id=600000017]
@@ -92,14 +92,14 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Qualité effets"
 
 [node name="QualityOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/QualityRow" unique_id=600000020]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 
 [node name="HighlightRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000026]
 layout_mode = 2
@@ -109,7 +109,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Surbrillance zones"
 
 [node name="HighlightCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighlightRow" unique_id=600000028]
@@ -124,14 +124,14 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Langue"
 
 [node name="LanguageOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/LanguageRow" unique_id=600000031]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 
 [node name="DifficultyRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000032]
 layout_mode = 2
@@ -141,14 +141,14 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Difficulté IA"
 
 [node name="DifficultyOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/DifficultyRow" unique_id=600000034]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 
 [node name="TextScaleRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000035]
 layout_mode = 2
@@ -158,7 +158,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Taille de l'interface"
 
 [node name="TextScaleSlider" type="HSlider" parent="VBox/RowsMargin/RowsScroll/RowsVBox/TextScaleRow" unique_id=600000037]
@@ -175,7 +175,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "100%"
 horizontal_alignment = 2
 
@@ -187,14 +187,14 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Assistance daltonisme"
 
 [node name="ColorblindOption" type="OptionButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ColorblindRow" unique_id=600000041]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 
 [node name="HighContrastRow" type="HBoxContainer" parent="VBox/RowsMargin/RowsScroll/RowsVBox" unique_id=600000043]
 layout_mode = 2
@@ -204,7 +204,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Contraste élevé"
 
 [node name="HighContrastCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/HighContrastRow" unique_id=600000045]
@@ -219,7 +219,7 @@ theme_override_constants/separation = 12
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 21
 text = "Réduire les animations"
 
 [node name="ReducedMotionCheck" type="CheckButton" parent="VBox/RowsMargin/RowsScroll/RowsVBox/ReducedMotionRow" unique_id=600000048]

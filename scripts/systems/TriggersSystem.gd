@@ -74,7 +74,15 @@ func get_active_enchantments(is_player: bool) -> Array:
 # Retourne l'état "au moins une action a eu lieu" pour chaîner le pacing.
 func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false, already_acted: bool = false) -> bool:
 	var ctx := TriggerContext.new(trigger_name, source, is_player, extra)
-	return await _fire_on_enchantments(ctx, paced, already_acted)
+	# Englobe toute la chaîne (y compris les pauses de pacing entre chaque
+	# enchantement/rituel déclenché) pour que battle.effects_resolving reste
+	# vrai en continu pendant toute la résolution, sans micro-fenêtre où
+	# l'input reviendrait entre deux effets d'une même chaîne.
+	battle.effects_resolving += 1
+	var result: bool = await _fire_on_enchantments(ctx, paced, already_acted)
+	if is_instance_valid(battle):
+		battle.effects_resolving -= 1
+	return result
 
 # ─── Enchantements ────────────────────────────────────────────────────────────
 

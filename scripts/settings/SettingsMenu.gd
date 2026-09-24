@@ -25,11 +25,9 @@ signal report_requested
 @onready var audio_menu             = %AudioSettingsMenu
 @onready var graphism_menu          = %GraphismSettingsMenu
 @onready var control_menu           = %ControlSettingsMenu
-@onready var gameplay_menu          = %GameplaySettingsMenu
 @onready var audio_tab_button       = %AudioTabButton
 @onready var graphism_tab_button    = %GraphismTabButton
 @onready var control_tab_button     = %ControlTabButton
-@onready var gameplay_tab_button    = %GameplayTabButton
 @onready var report_button          = %ReportButton
 @onready var apply_button           = %ApplyButton
 @onready var report_panel: VBoxContainer          = %ReportPanel
@@ -63,22 +61,21 @@ func _ready() -> void:
 		audio_tab_button:    audio_menu,
 		graphism_tab_button: graphism_menu,
 		control_tab_button:  control_menu,
-		gameplay_tab_button: gameplay_menu,
 	}
 
 	_style_all_buttons()
 	_style_danger_button(concede_button)
 	_style_danger_button(confirm_yes_button)
 	_style_button(close_x_button)
-	close_x_button.add_theme_font_size_override("font_size", 16)
+	close_x_button.add_theme_font_size_override("font_size", Typography.BODY)
 	# Concéder/Signaler/Appliquer : boutons secondaires, taille réduite par
 	# rapport aux onglets de la navbar (voir custom_minimum_size dans la scène).
-	concede_button.add_theme_font_size_override("font_size", 15)
-	report_button.add_theme_font_size_override("font_size", 15)
+	concede_button.add_theme_font_size_override("font_size", Typography.BODY)
+	report_button.add_theme_font_size_override("font_size", Typography.BODY)
 	_style_button(report_back_button)
 	_style_button(report_submit_button)
-	report_back_button.add_theme_font_size_override("font_size", 15)
-	report_submit_button.add_theme_font_size_override("font_size", 15)
+	report_back_button.add_theme_font_size_override("font_size", Typography.BODY)
+	report_submit_button.add_theme_font_size_override("font_size", Typography.BODY)
 	report_button.pressed.connect(func(): report_requested.emit())
 	report_back_button.pressed.connect(func(): _select_tab(audio_tab_button))
 	report_submit_button.pressed.connect(_on_report_submit_pressed)
@@ -185,7 +182,6 @@ func _retranslate() -> void:
 	audio_tab_button.text      = SettingsManager.t("settings.audio")
 	graphism_tab_button.text   = SettingsManager.t("settings.graphics")
 	control_tab_button.text    = SettingsManager.t("settings.controls")
-	gameplay_tab_button.text   = SettingsManager.t("settings.gameplay")
 	close_x_button.text        = SettingsManager.t("ui.back")
 	concede_button.text        = SettingsManager.t("settings.concede")
 	confirm_message.text       = SettingsManager.t("settings.concede_confirm_message")
@@ -200,7 +196,7 @@ func _retranslate() -> void:
 	report_submit_button.text  = SettingsManager.t("REPORT_SUBMIT")
 
 func _style_all_buttons() -> void:
-	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, gameplay_tab_button, report_button, confirm_cancel_button]:
+	for btn in [audio_tab_button, graphism_tab_button, control_tab_button, report_button, confirm_cancel_button]:
 		_style_button(btn)
 
 # Boutons dangereux (Concéder, confirmation) : même forme que les autres mais habillage rouge sang.
@@ -227,7 +223,7 @@ func _style_danger_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("pressed", pressed_style)
 	btn.add_theme_color_override("font_color",       Color("f0b0b0"))
 	btn.add_theme_color_override("font_hover_color", Color("fff0f0"))
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_font_size_override("font_size", Typography.SECTION)
 
 # Bouton Appliquer (résolution/plein écran/V-Sync/qualité, seuls réglages non
 # appliqués en direct) : sombre et inerte tant qu'aucun changement n'attend
@@ -293,4 +289,4 @@ func _style_button(btn: Button) -> void:
 	btn.add_theme_stylebox_override("pressed", pressed_style)
 	btn.add_theme_color_override("font_color",       Color("e8d5a3"))
 	btn.add_theme_color_override("font_hover_color", Color("fff5d6"))
-	btn.add_theme_font_size_override("font_size", 20)
+	btn.add_theme_font_size_override("font_size", Typography.SECTION)

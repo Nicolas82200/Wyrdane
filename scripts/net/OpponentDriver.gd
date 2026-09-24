@@ -51,3 +51,17 @@ func get_hand_count() -> int:
 # compteurs cosmétiques (le pair distant pioche la vraie carte de son côté).
 func draw_card() -> void:
 	pass
+
+# Une carte rejoint la main du camp adverse par un autre biais que la pioche
+# (renvoyée du plateau, ramenée du cimetière...). Surchargé par chaque
+# implémentation : l'IA l'ajoute réellement à sa main, le réseau incrémente
+# son compteur cosmétique (le pair distant reçoit la vraie carte de son
+# côté). Sans cette abstraction, EffectManager appelait directement
+# battle.ai_system.hand.append(...) — correct en solo (battle.ai_system ==
+# battle.opponent) mais silencieusement sans effet en réseau (battle.opponent
+# est alors un NetworkOpponent distinct, dont _hand_count n'était jamais mis
+# à jour) : le mirroir de main adverse dérivait vers le bas à chaque carte
+# ainsi reçue par le pair, jusqu'à rejeter à tort ses PLAY_CARD suivants
+# ("main distante vide") — bug confirmé par un vrai log de partie réseau.
+func receive_card_to_hand(_card_data: CardData) -> void:
+	pass

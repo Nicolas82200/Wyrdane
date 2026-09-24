@@ -20,9 +20,26 @@ func _init(network_manager: NetworkManager) -> void:
 	net = network_manager
 	net.command_received.connect(_on_command_received)
 
+# NetworkManager est une instance persistante réutilisée pour toute la
+# session (voir NetSessionSystem.gd) : sans ce déconnect, ce NetworkOpponent
+# (lié à une bataille désormais détruite) resterait abonné à command_received
+# et continuerait à recevoir/traiter les commandes des parties suivantes en
+# parallèle de l'adversaire réseau réellement actif — désynchronisation de
+# plateau observée en partie réelle après plusieurs reconnexions successives.
+func _exit_tree() -> void:
+	if net != null and net.command_received.is_connected(_on_command_received):
+		net.command_received.disconnect(_on_command_received)
+
 # ─── OpponentDriver ───────────────────────────────────────────────────────────
 
-const STARTING_HAND := 5  # cartes piochées au début (voir DeckSystem.start_game)
+# Référence directe à DeckSystem.STARTING_HAND plutôt qu'une copie littérale :
+# une constante dupliquée à la main a divergé silencieusement de la vraie
+# valeur (7) pendant un temps indéterminé, mirrorant la main adverse à 5 dès
+# le début de CHAQUE partie réseau (2 cartes manquantes des deux côtés,
+# confirmé par diff de deux vrais godot.log de la même partie) — jusqu'à faire
+# rejeter à tort les PLAY_CARD de fin de main une fois le déficit cumulé assez
+# grand ("main distante vide").
+const STARTING_HAND := DeckSystem.STARTING_HAND
 
 # Compteurs cosmétiques du camp distant (dos de deck / main), suivis via les
 # commandes reçues faute de connaître les cartes réelles de l'adversaire.
@@ -47,6 +64,14 @@ func get_deck_count() -> int:
 
 func get_hand_count() -> int:
 	return _hand_count
+
+# Carte rejoignant la main du pair par un autre biais que la pioche (renvoyée
+# du plateau, ramenée du cimetière...) — voir OpponentDriver.receive_card_to_hand.
+# Comme draw_card() : contenu réel inconnu localement, seul le compteur
+# cosmétique bouge (le pair reçoit la vraie carte de son côté).
+func receive_card_to_hand(_card_data: CardData) -> void:
+	_hand_count += 1
+	battle.update_enemy_hand_ui()
 
 # Effet local (ex. Autel des Damnés côté ennemi) déclenché en miroir sur les
 # deux clients : le pair distant pioche déjà sa vraie carte de son côté, on se
@@ -80,10 +105,18 @@ func take_turn() -> void:
 				# avec les ids imposés pour d'éventuelles invocations de triggers.
 				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 				await battle.turn_system.run_turn_end_triggers(false)
+				# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour distant
+				# (ex. Sergent de Troupe joué par le pair) : sans cet appel, ils ne
+				# seraient purgés qu'à la fin de NOTRE tour suivant (un tour de
+				# retard) puisque TurnSystem.end_turn() — seul autre appelant de
+				# TempEffectSystem — ne s'exécute jamais pour le tour du pair.
+				await battle.temp_effect_system.expire_end_of_remote_turn()
 				battle.net_registry.set_imposed_ids([])
+				NetDebugLog.action_applied(battle, "DISTANT", cmd)
 				_turn_over = true
 				break
 			await _apply(cmd)
+			NetDebugLog.action_applied(battle, "DISTANT", cmd)
 			await battle.pace_actions()
 		if not _turn_over:
 			# Rien à rejouer pour l'instant : on attend le prochain paquet.
@@ -114,6 +147,11 @@ func _on_command_received(command: Dictionary) -> void:
 			# Purement cosmétique : affiché immédiatement, quel que soit le tour
 			# en cours (pas une action de jeu à rejouer dans l'ordre).
 			battle.show_enemy_emote(int(command.get("id", -1)))
+		NetCommand.PACT_REQUEST, NetCommand.PACT_CHOICE, NetCommand.PACT_ANNOUNCE:
+			# Géré directement par PactChoiceSystem (écoute sa propre connexion
+			# à network_manager.command_received) : ni une action de tour à
+			# rejouer dans l'ordre, ni une commande à ignorer.
+			pass
 		_:
 			_queue.append(command)
 
@@ -163,18 +201,32 @@ func _apply(cmd: Dictionary) -> void:
 				push_warning("NetworkOpponent : ATTACK invalide (propriété incohérente)")
 		NetCommand.ATTACK_HERO:
 			var attacker: Minion = battle.net_registry.resolve(cmd.get("attacker", 0))
-			# Revalide la règle "Rangée Avant vide"/Rempart côté réception (battle._can_attack_hero
-			# est généralisé pour n'importe quel camp attaquant) : un pair distant désynchronisé
-			# ou modifié ne doit pas pouvoir forcer une attaque du héros local à tort, même si
-			# perform_hero_attack lui-même n'effectue aucune validation.
-			if attacker != null and not attacker.owner_is_player and battle._can_attack_hero(attacker):
-				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-				await battle.combat_system.perform_hero_attack(attacker)
-				battle.net_registry.set_imposed_ids([])
-			elif attacker != null:
-				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété ou règle non respectée)")
-			else:
+			if attacker == null:
 				push_warning("NetworkOpponent : ATTACK_HERO avec un attacker introuvable")
+				return
+			if attacker.owner_is_player:
+				# Contrôle de propriété (jamais assoupli) : sans lui, un pair distant
+				# pourrait désigner un net_id de NOTRE propre camp et nous forcer à
+				# attaquer notre propre héros.
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
+				return
+			# battle._can_attack_hero revalide la règle "Rangée Avant vide"/Rempart
+			# côté réception à partir de NOTRE mirroir du plateau distant. Cette
+			# règle a déjà été validée par l'émetteur sur SON propre plateau avant
+			# d'émettre la commande : un refus ici ne peut donc venir que d'une
+			# désynchronisation entre les deux plateaux (ex. un serviteur Avant ou
+			# un Rempart mort d'un côté mais pas encore reflété de l'autre au
+			# moment où cette commande est rejouée), jamais d'une action
+			# réellement illégale. On applique donc quand même les dégâts plutôt que
+			# de les rejeter en silence : sans ça, le héros visé ne meurt jamais de
+			# son côté alors qu'il est déjà mort chez le pair, et la partie ne se
+			# termine plus jamais pour lui (vécu en partie réelle : victoire affichée
+			# chez l'un, "joueur déconnecté" chez l'autre une fois qu'il a quitté).
+			if not battle._can_attack_hero(attacker):
+				push_warning("NetworkOpponent : ATTACK_HERO — règle locale non respectée (désync de plateau), dégâts appliqués quand même")
+			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
+			await battle.combat_system.perform_hero_attack(attacker)
+			battle.net_registry.set_imposed_ids([])
 		NetCommand.ACTIVATE_RITUAL:
 			await _apply_activate_ritual(cmd)
 		NetCommand.ACTIVATE_FUSION:
@@ -187,6 +239,16 @@ func _apply(cmd: Dictionary) -> void:
 func _load_remote_card(path: String) -> CardData:
 	return NetCardResolver.resolve(path)
 
+# Résout un target_id reçu du réseau en Minion (net_id), en héros (voir
+# NetCommand.TARGET_HERO — le héros ENNEMI du point de vue de l'émetteur est
+# NOTRE propre héros local, puisque nous sommes son adversaire), ou null.
+func _resolve_target(target_id: int):
+	if target_id == NetCommand.TARGET_HERO:
+		return battle.player_hero
+	if target_id != NetCommand.TARGET_NONE:
+		return battle.net_registry.resolve(target_id)
+	return null
+
 # Rejoue une carte jouée par le pair, côté ENNEMI. Les serviteurs créés (carte +
 # jetons d'effet) reçoivent les ids imposés capturés par l'émetteur, dans l'ordre.
 # Limité aux serviteurs pour l'instant : les sorts distants demandent un
@@ -195,6 +257,15 @@ func _apply_play_card(cmd: Dictionary) -> void:
 	var card: CardData = _load_remote_card(cmd.get("card", ""))
 	if card == null:
 		return
+	# Remises accordées par CETTE carte à une (ou plusieurs) autre(s) carte(s)
+	# de la main réelle du pair (ex. Doigt Écarlate) — voir
+	# CostSystem.take_pending_sync_discounts(). Appliquées avant toute autre
+	# vérification : sans elles, notre mirroir de son coût resterait trop haut
+	# et pourrait rejeter à tort son PLAY_CARD suivant pour la carte remisée.
+	for entry in cmd.get("discounts", []):
+		var discounted: CardData = _load_remote_card(entry.get("card", ""))
+		if discounted != null:
+			battle.cost_system.add_temp_discount(discounted, int(entry.get("amount", 0)), false)
 	# Un pair ne peut pas jouer plus de cartes qu'il n'en a en main (compteur
 	# cosmétique mais fiable : il suit exactement les PLAY_CARD/TURN_START reçus).
 	if _hand_count <= 0:
@@ -228,8 +299,16 @@ func _apply_play_card(cmd: Dictionary) -> void:
 		# résolue par net_id puis transmise directement au déclenchement ONPLAY,
 		# comme côté émetteur (voir CardSystem.resolve_with_target).
 		var target_id: int = cmd.get("target", NetCommand.TARGET_NONE)
-		var target: Minion = battle.net_registry.resolve(target_id) if target_id != NetCommand.TARGET_NONE else null
-		await battle.board_system.summon_minion_return(card, false, row, index, false, target)
+		var target = _resolve_target(target_id)
+		var summoned: Minion = await battle.board_system.summon_minion_return(card, false, row, index, false, target)
+		if summoned == null:
+			# L'émetteur a réellement posé ce serviteur (sinon il n'aurait pas
+			# émis PLAY_CARD) : un rejet local ("rangée pleine") ici signifie que
+			# notre plateau a divergé du sien. Sans ce log, ce serviteur devient
+			# fantôme côté émetteur — il existe et peut attaquer chez lui, mais
+			# n'a jamais été créé chez nous, donc jamais visible ni résolu par
+			# net_id (voir ATTACK/ATTACK_HERO : attacker introuvable -> ignoré).
+			push_warning("NetworkOpponent : PLAY_CARD '%s' rejeté localement (rangée %s pleine) alors que le pair l'a joué — désynchronisation de plateau" % [card.card_name, row])
 	else:
 		await _apply_enemy_spell(card, cmd.get("target", NetCommand.TARGET_NONE))
 	# Purge tout id imposé résiduel (ex. effet aléatoire ayant créé moins de
@@ -248,6 +327,10 @@ func _apply_activate_ritual(cmd: Dictionary) -> void:
 		var victim: Minion = battle.net_registry.resolve(victim_id)
 		if victim != null:
 			victims.append(victim)
+	# Preview de la carte activée, comme pour un sort adverse rejoué
+	# (_apply_enemy_spell) : sans elle, le joueur local ne voyait ici que ses
+	# propres serviteurs mourir sans savoir quel Rituel en était la cause.
+	await battle.card_popup_system.show_card_popup(card)
 	battle.net_registry.set_imposed_ids(cmd.get("ids", []))
 	await battle.trigger_system.activate_sacrifice_ritual(card, false, victims)
 	battle.net_registry.set_imposed_ids([])
@@ -272,16 +355,14 @@ func _apply_activate_fusion(cmd: Dictionary) -> void:
 # du bon camp (ex. « tous les ennemis » = les serviteurs du joueur local).
 func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 	battle.combat_log.card_played(card, false)
-	var early_target: Minion = null
-	if target_id != NetCommand.TARGET_NONE:
-		early_target = battle.net_registry.resolve(target_id)
+	var early_target = _resolve_target(target_id)
 	var shows_popup: bool = card.card_type != "Enchantment" \
 		and not (card.card_type == "Ritual" and card.ritual_duration != 0)
 	if shows_popup:
 		await battle.card_popup_system.show_card_popup(card)
 	if card.card_type == "Instant" or card.card_type == "Ritual":
 		AudioManager.play_spell_cast(card)
-		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target)
+		battle.vfx_manager.spawn_for_spell(battle, card, false, early_target if early_target is Minion else null)
 	if card.card_type == "Enchantment":
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
@@ -294,15 +375,17 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)
-		var target: Minion = early_target
+		var target = early_target
 		# Annulation du premier sort ennemi du tour (Bouclier de la Foi), même
 		# vérification que CardSystem côté émetteur, pour rester synchrone.
 		if await battle.trigger_system.try_cancel_first_enemy_spell(false):
 			battle.board_visual_system.refresh_board()
 			return
 		# Annulation de sort (Rituel de l'Éclipse Rouge) : même vérification que
-		# CardSystem côté émetteur, pour que les deux clients restent synchrones.
-		if target != null and await battle.trigger_system.try_cancel_spell(false, target):
+		# CardSystem côté émetteur (qui exige aussi un Minion), pour que les deux
+		# clients restent synchrones — un Rituel de ce genre ne s'applique de
+		# toute façon qu'à un serviteur, jamais au héros.
+		if target is Minion and await battle.trigger_system.try_cancel_spell(false, target):
 			battle.board_visual_system.refresh_board()
 			return
 		# Sortilège allié : les serviteurs du lanceur (côté ennemi) réagissent
@@ -312,6 +395,10 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		for ally in battle.enemy_minions.duplicate():
 			await battle.effect_manager.trigger_effects(battle, ally, "OnSpell")
 		var proxy := Minion.new(card, false, "")
+		# skip_source_popup : la popup de cette carte a déjà été affichée plus
+		# haut (show_card_popup) avant le son du sort — sans ce flag, ce même
+		# proxy (nécessaire pour que la résolution de cible connaisse son
+		# camp) la referait réapparaître ici, sans le son.
 		for effect in card.effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target, true)
 	battle.board_visual_system.refresh_board()

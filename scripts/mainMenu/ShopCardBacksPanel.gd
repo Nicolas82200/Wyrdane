@@ -18,6 +18,14 @@ const SWATCH_SIZE := Vector2(56, 84)
 static func build_into(parent: Control, on_selection_changed: Callable) -> void:
 	for child in parent.get_children():
 		if child.name == "ShopCardBacksRow":
+			# remove_child immédiat (pas seulement queue_free, qui ne détache
+			# qu'en fin de frame) : sans ça, un rebuild déclenché dans le même
+			# flux (ex. sélectionner un dos de carte -> on_selection_changed ->
+			# build_into à nouveau) trouve encore l'ancienne rangée en place, et
+			# Godot renomme la nouvelle en "ShopCardBacksRow2" pour éviter le
+			# conflit — ce nom ne matche plus jamais le filtre ci-dessus, donc
+			# la rangée fantôme reste à vie et s'accumule à chaque interaction.
+			parent.remove_child(child)
 			child.queue_free()
 
 	var row := HBoxContainer.new()
@@ -47,7 +55,7 @@ static func _make_swatch(index: int, card_back_tex: Texture2D, on_selection_chan
 
 	var name_label := Label.new()
 	name_label.text = SettingsManager.t(cb["key"])
-	name_label.add_theme_font_size_override("font_size", 11)
+	name_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
 	name_label.custom_minimum_size = Vector2(SWATCH_SIZE.x, 0)

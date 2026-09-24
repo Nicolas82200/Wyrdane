@@ -24,6 +24,10 @@ var hand: FakeHand = FakeHand.new()
 var game_over: bool = false
 var enemy_turn_active: bool = false
 var waiting_for_target: bool = false
+# Voir Battle.effects_resolving : incrémenté/décrémenté par le vrai EffectManager/
+# TriggerSystem (utilisés tels quels par ce double, voir plus bas), donc
+# nécessaire ici pour ne pas planter sur `battle.effects_resolving += 1`.
+var effects_resolving: int = 0
 var game_rng := RandomNumberGenerator.new()
 
 # ─── Ajouts pour tester DeathSystem / TriggersSystem / SacrificeSystem ────────
@@ -40,6 +44,13 @@ var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
+var afk_guard: FakeAfkGuard = FakeAfkGuard.new()
+var _mulligan_active: bool = false
+var turn_timer: FakeTurnTimer = FakeTurnTimer.new()
+var net_session_system: FakeNetSessionSystem = FakeNetSessionSystem.new()
+var show_game_over_calls: Array[String] = []
+func _show_game_over(result: String) -> void:
+	show_game_over_calls.append(result)
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
@@ -57,6 +68,7 @@ const CARD_BACK = preload("res://assets/card_back/card-back.png")
 # ─── Suivi des quêtes de race (voir Battle.gd) ─────────────────────────────────
 var deck_races: Array[String] = []
 var cards_played_by_race: Dictionary = {}
+var cards_played_names: Array[String] = []
 
 # ─── Compteurs de succès Steam (voir AchievementManager/Battle.gd) ────────────
 var player_resource_cards_played: int = 0
@@ -72,6 +84,7 @@ var deck_has_legendary: bool = false
 var is_ranked_match: bool = false
 
 func track_card_played_for_quests(card_data: CardData) -> void:
+	cards_played_names.append(card_data.card_name)
 	if Race.is_raceless(card_data.race):
 		return
 	var race_name := Race.get_race_name(card_data.race)
@@ -219,6 +232,9 @@ func get_node_or_null(_path):
 
 func check_game_end() -> void:
 	pass
+
+func is_resolving_effects() -> bool:
+	return effects_resolving > 0
 
 
 class FakeHeroSystem:
@@ -439,6 +455,8 @@ class FakeCombatLog:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
 		pass
+	func turn_started(_is_player: bool) -> void:
+		pass
 
 
 class FakeEnchantmentSystem:
@@ -514,6 +532,9 @@ class FakeOpponent:
 		return deck.size()
 	func get_hand_count() -> int:
 		return hand.size()
+	func receive_card_to_hand(card_data: CardData) -> void:
+		if card_data != null:
+			hand.append(card_data)
 
 
 class FakeHand:
@@ -548,6 +569,40 @@ class FakeTargetingSystem:
 		return targeting
 	func has_any_valid_target(_card_data: CardData) -> bool:
 		return has_valid_target
+
+
+class FakeSacrificeSystem:
+	var active: bool = false
+	func is_active() -> bool:
+		return active
+
+
+# Double minimal de TurnTimer (scripts/battle/TurnTimer.gd) pour tester AfkGuard
+# sans dépendance de scène : ne reproduit que start/stop/running/time_left.
+class FakeTurnTimer:
+	var running: bool = false
+	var duration: float = 0.0
+	var time_left: float = 0.0
+	var start_calls: Array[float] = []
+	func start(new_duration: float = -1.0) -> void:
+		start_calls.append(new_duration)
+		duration = new_duration
+		time_left = new_duration
+		running = true
+	func stop() -> void:
+		running = false
+
+
+class FakeAfkGuard:
+	var notify_calls: int = 0
+	func notify_local_action() -> void:
+		notify_calls += 1
+
+
+class FakeNetSessionSystem:
+	var close_calls: int = 0
+	func close() -> void:
+		close_calls += 1
 
 
 class FakeTimer:

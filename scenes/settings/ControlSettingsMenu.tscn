@@ -75,7 +75,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "Espace"
 
@@ -96,7 +96,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "G"
 
@@ -117,7 +117,7 @@ custom_minimum_size = Vector2(120, 36)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxFlat_key")
 text = "H"
 

@@ -55,7 +55,7 @@ func _make_title(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_font_size_override("font_size", Typography.HEADER)
 	return label
 
 # ─── Étape 1 : choix du mode ──────────────────────────────────────────────────

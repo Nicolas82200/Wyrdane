@@ -27,9 +27,18 @@ const DISCARD := "DISCARD"  # défausse de fin de tour (limite 10 cartes) — no
 const LEAVE_MATCH := "LEAVE_MATCH"  # départ volontaire (concède/menu) — ne PAS tenter de reconnexion
 const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en attente du pair avant Battle.tscn
 const EMOTE := "EMOTE"  # emote cosmétique (voir EmoteWheel) — aucun impact sur l'état de partie
+const PACT_REQUEST := "PACT_REQUEST"  # demande au pair de décider MAINTENANT pour SA carte Pacte (voir PactChoiceSystem)
+const PACT_CHOICE := "PACT_CHOICE"    # réponse (ou notification proactive) d'une décision de Pacte
+const PACT_ANNOUNCE := "PACT_ANNOUNCE"  # le propriétaire commence à décider pour SA PROPRE carte fraîchement jouée (voir PactChoiceSystem)
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
-const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
+const TARGET_NONE := 0    # aucune cible (net_id 0 = non enregistré)
+# Cible = le héros ENNEMI du point de vue de l'émetteur (ex. effet "EnemyAny"
+# ciblant le héros adverse, comme Croc de Braise/Embermaw) — jamais un net_id
+# valide (toujours positif), donc sans ambiguïté avec TARGET_NONE ou un
+# serviteur. Résolu par le récepteur comme SON PROPRE héros local (voir
+# NetworkOpponent._resolve_target) : il est l'ennemi de l'émetteur.
+const TARGET_HERO := -1
 
 # ─── Constructeurs ────────────────────────────────────────────────────────────
 
@@ -37,8 +46,12 @@ const TARGET_NONE := 0   # aucune cible (net_id 0 = non enregistré)
 # (la carte elle-même puis ses jetons d'effet), telle que capturée par l'émetteur.
 # Vide pour une carte qui ne crée aucun serviteur. Le pair impose ces ids dans le
 # même ordre (NetRegistry.set_imposed_ids) pour rester parfaitement synchronisé.
+# discounts : remises accordées par CETTE carte à une ou plusieurs autres
+# cartes de notre main réelle (ex. Doigt Écarlate) — voir
+# CostSystem.take_pending_sync_discounts(), chaque entrée {"card": resource_path,
+# "amount": int}. Vide dans l'immense majorité des cas.
 static func play_card(card_path: String, row: String, insert_index: int,
-		ids: Array = [], target_net_id: int = TARGET_NONE) -> Dictionary:
+		ids: Array = [], target_net_id: int = TARGET_NONE, discounts: Array = []) -> Dictionary:
 	return {
 		"type": PLAY_CARD,
 		"card": card_path,
@@ -46,6 +59,7 @@ static func play_card(card_path: String, row: String, insert_index: int,
 		"index": insert_index,
 		"ids": ids,
 		"target": target_net_id,
+		"discounts": discounts,
 	}
 
 # ids : net_id des serviteurs créés pendant la résolution de l'attaque (ex.
@@ -142,6 +156,32 @@ static func battle_ready() -> Dictionary:
 # de texte libre (pas de chat, pour éviter tout abus).
 static func emote(emote_id: int) -> Dictionary:
 	return {"type": EMOTE, "id": emote_id}
+
+# Envoyé par le camp qui résout EN DIRECT un déclencheur touchant une carte
+# Pacte appartenant au PAIR (ex. Blessure déclenchée par notre propre attaque
+# sur son serviteur) : lui seul peut décider, et il ne sait pas encore que ce
+# déclencheur a eu lieu (la commande de l'action elle-même n'est envoyée
+# qu'après résolution complète — voir NetEmitter) — voir PactChoiceSystem.
+static func pact_request(card_path: String, value: int) -> Dictionary:
+	return {"type": PACT_REQUEST, "card": card_path, "value": value}
+
+# Décision de Pacte : soit réponse directe à un PACT_REQUEST reçu, soit
+# notification proactive du propriétaire pour l'un de ses propres
+# déclencheurs (consommée plus tard par le pair au moment du rejeu de
+# l'action correspondante) — voir PactChoiceSystem.
+static func pact_choice(paid: bool) -> Dictionary:
+	return {"type": PACT_CHOICE, "paid": paid}
+
+# Annonce envoyée par le propriétaire AVANT même d'ouvrir sa propre popup de
+# choix (ask()), pour une carte qu'il vient tout juste de jouer (déclencheur
+# Arrivée résolu dans la foulée de PLAY_CARD, avant que cette commande ne soit
+# elle-même émise — voir NetEmitter). Sans cette annonce, le pair ne voit rien
+# tant que PLAY_CARD n'arrive pas (résolution locale entièrement terminée,
+# décision de Pacte comprise) : la popup d'attente n'aurait alors plus rien à
+# attendre, la réponse étant déjà connue, et clignoterait sans jamais donner
+# l'impression d'une vraie attente. Voir PactChoiceSystem._handle_remote_announce.
+static func pact_announce(card_path: String, value: int) -> Dictionary:
+	return {"type": PACT_ANNOUNCE, "card": card_path, "value": value}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

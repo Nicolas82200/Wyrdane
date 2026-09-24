@@ -10,7 +10,7 @@ class_name AISystem
 # SettingsManager.ai_difficulty ("easy", "normal", "hard").
 
 const DECK_SIZE       := 40  # cartes jouables (hors ressources), minimum imposé aux joueurs
-const RESOURCE_COUNT  := 12  # cartes-ressource mélangées au deck (minimum 10, voir README)
+const RESOURCE_COUNT  := 15  # cartes-ressource mélangées au deck (minimum 10, voir README)
 const MAX_COPIES      := 2
 const STARTING_HAND := 4
 
@@ -102,26 +102,90 @@ func draw_card() -> void:
 func get_hand_count() -> int:
 	return hand.size()
 
+# Carte rejoignant la main de l'IA par un autre biais que la pioche (renvoyée
+# du plateau, ramenée du cimetière...) — voir OpponentDriver.receive_card_to_hand.
+func receive_card_to_hand(card_data: CardData) -> void:
+	if card_data != null:
+		hand.append(card_data)
+
 # ─── Tour de l'IA ─────────────────────────────────────────────────────────────
+
+# Filet de sécurité, même principe que TutorialOpponent.MAX_TURN_SAFETY : si un
+# bug fait boucler indéfiniment une des phases (ex: _play_cards_phase/_attack_phase
+# qui ne consomment jamais leur condition de sortie), le tour adverse ne doit
+# JAMAIS bloquer la partie pour toujours — take_turn() ne s'exécute donc pas
+# directement mais est sondée, avec une limite haute au-delà de laquelle la main
+# est rendue de force. Bien plus généreuse qu'en tutoriel (30s) : un vrai tour
+# d'IA (beaucoup de cartes/attaques à jouer) peut légitimement prendre du temps.
+const MAX_TURN_SAFETY_SECONDS := 30.0
+
+# Dernière étape connue du tour en cours (mis à jour au fil de
+# _run_turn_actions/_play_cards_phase/_attack_phase) : sans repère, le
+# push_warning ci-dessous ne dit jamais QUELLE phase/carte/attaquant a bloqué
+# le tour, ce qui rend le bug (voir TODO.md « P10 ») impossible à localiser
+# depuis un rapport joueur. Volontairement une simple String de diagnostic,
+# jamais lue par la logique de jeu.
+var _current_phase: String = ""
+
+func _mark_phase(name: String) -> void:
+	_current_phase = name
 
 func take_turn() -> void:
 	if battle.game_over:
 		return
 	battle.set_enemy_turn(true)
+	_mark_phase("start")
+	# ATTENTION : un Dictionary, PAS un bool local. Une lambda GDScript capture
+	# les variables locales PAR VALEUR (une copie), pas par référence —
+	# `finished = true` dans le callback ci-dessous ne mutait donc RIEN dans la
+	# portée de cette fonction : la boucle d'attente plus bas ne voyait jamais
+	# `finished` passer à `true`, quelle que soit la rapidité réelle du tour.
+	# C'était LA cause du tour IA qui « attendait sans rien » ~30s à chaque fois
+	# (voir TODO.md « P10 ») : _run_turn_actions finissait en réalité en 1-2s,
+	# mais take_turn() patientait quand même jusqu'au plafond de sécurité avant
+	# de rendre la main — même classe de bug déjà rencontrée et corrigée sur
+	# PactChoiceSystem.ask (state["done"], même patron). Un Dictionary est un
+	# type par référence en GDScript, donc `state["finished"] = true` mute bien
+	# l'objet partagé.
+	var state := {"finished": false}
+	_run_turn_actions(func(): state["finished"] = true)
+	var elapsed := 0.0
+	while not state["finished"] and elapsed < MAX_TURN_SAFETY_SECONDS:
+		await battle.get_tree().process_frame
+		elapsed += battle.get_process_delta_time()
+	if not state["finished"]:
+		push_warning("AISystem: le tour adverse n'a pas terminé dans le délai prévu (bloqué sur '%s'), on rend quand même la main pour ne jamais bloquer la partie." % _current_phase)
+	battle.set_enemy_turn(false)
+
+func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent._apply, cas TURN_START) :
 	# Éveil pour le camp qui commence son tour, Déclin pour le camp adverse,
 	# OnTurnStart symétrique, reset "une fois par tour" et recalcul des auras/morts.
+	_mark_phase("turn_start_triggers")
 	await battle.turn_system.run_turn_start_triggers(false)
+	_mark_phase("start_of_turn_phase")
 	await _start_of_turn_phase()
+	_mark_phase("play_cards_phase")
 	var played_cards := await _play_cards_phase()
+	_mark_phase("sacrifice_rituals")
 	await _maybe_activate_sacrifice_rituals()
+	_mark_phase("fusion")
 	await _maybe_activate_fusion()
+	_mark_phase("attack_phase")
 	await _attack_phase(played_cards)
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
+	_mark_phase("turn_end_triggers")
 	await battle.turn_system.run_turn_end_triggers(false)
+	# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour IA (ex. l'IA
+	# joue Sergent de Troupe) : sans cet appel, ils ne seraient purgés qu'à la
+	# fin de notre tour suivant (un tour de retard) — même correctif que côté
+	# réseau, voir NetworkOpponent.take_turn().
+	await battle.temp_effect_system.expire_end_of_remote_turn()
+	_mark_phase("discard_excess_hand")
 	_discard_excess_hand()
-	battle.set_enemy_turn(false)
+	_mark_phase("done")
+	on_done.call()
 
 # Limite de 10 cartes en main (voir HandDiscardSystem, qui gère l'équivalent
 # côté joueur avec UI/timer) : l'IA n'a pas d'interface pour choisir, donc
@@ -155,6 +219,7 @@ func _play_cards_phase() -> bool:
 		var card: CardData = _pick_best_playable_card()
 		if card == null:
 			return played
+		_mark_phase("play_cards_phase: %s" % card.card_name)
 		await battle.pace_actions()
 		hand.erase(card)
 		battle.cost_system.pay(card, false)
@@ -173,6 +238,7 @@ func _attack_phase(already_acted: bool) -> void:
 	var attacked := already_acted
 	for attacker in battle.enemy_minions.duplicate():
 		while not battle.game_over and not attacker.is_dead() and attacker.can_attack():
+			_mark_phase("attack_phase: %s" % attacker.card_data.card_name)
 			var target: Minion = _pick_attack_target(attacker)
 			if target == null and not battle._can_attack_hero(attacker):
 				break
@@ -325,7 +391,7 @@ func _find_priority_removal(cards: Array[CardData]) -> CardData:
 
 # Rangée autorisée avec de la place ; les hybrides fragiles vont derrière
 func _pick_row_for(card: CardData) -> String:
-	var rows: Array[String] = battle.get_allowed_rows_for_card(card)
+	var rows: Array[String] = battle.get_allowed_rows_for_card(card, false)
 	var order: Array[String] = rows.duplicate()
 	if rows.size() > 1 and card.attack > card.health:
 		order = [battle.ROW_BACK, battle.ROW_FRONT]
@@ -383,8 +449,12 @@ func _cast_spell(card: CardData) -> void:
 		battle.vfx_manager.spawn_for_spell(battle, card, false, target)
 		battle.enemy_graveyard.add_spell(card)
 		var proxy := Minion.new(card, false, "")
+		# skip_source_popup : la popup de cette carte a déjà été affichée
+		# ci-dessus (show_card_popup) avant le son du sort — sans ce flag, ce
+		# même proxy (nécessaire pour que la résolution de cible connaisse son
+		# camp) la referait réapparaître ici, sans le son cette fois.
 		for effect in card.effects:
-			await battle.effect_manager.execute_effect(battle, proxy, effect, target)
+			await battle.effect_manager.execute_effect(battle, proxy, effect, target, true)
 	battle.board_visual_system.refresh_board()
 
 # ─── Rituels de Sacrifice ──────────────────────────────────────────────────────

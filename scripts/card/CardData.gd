@@ -44,10 +44,11 @@ class_name CardData
 # Ne peut pas être ciblé par les sorts ennemis jusqu'à sa première attaque
 # (Assassin Décharné). Lu par Minion._init ; levé par Minion.consume_attack().
 @export var spell_immune_until_attack: bool = false
-# Tant que ce serviteur est en jeu, un allié invoqué dans une rangée pleine est
-# placé dans l'autre rangée au lieu d'échouer (Stratège Royal). Lu par
-# BoardSystem.summon_minion_return.
-@export var allows_row_overflow: bool = false
+# Tant que ce serviteur est en jeu, les serviteurs alliés à rangée fixe
+# (Avant ou Arrière) peuvent être posés dans la rangée de son choix, comme
+# s'ils étaient Hybrides (Stratège Royal). Lu par
+# BoardSystem.get_allowed_rows_for_card.
+@export var allows_free_row_placement: bool = false
 
 @export var keywords: Array[KeywordChoice] = []
 @export var human_keywords: Array[KeywordChoiceHuman] = []
@@ -133,6 +134,25 @@ func get_demon_keyword_value(type: int) -> int:
 		if kw.keyword_type == type:
 			return kw.value
 	return 0
+
+# Cartes-jetons fixes invoquées par cette carte (SummonMinion à cible fixe,
+# voir CardEffect.summon_card) — sert à afficher un aperçu du jeton au survol
+# de la carte (voir Hand._on_card_hover et consorts). Dédupliqué par
+# card_name (une carte comme Architecte du Pacte a un effet de base et un
+# effet de bonus de Pacte ciblant deux jetons différents).
+func get_summon_preview_cards() -> Array[CardData]:
+	var previews: Array[CardData] = []
+	var seen_names: Array[String] = []
+	for effect in effects:
+		if effect.effect_id != "SummonMinion":
+			continue
+		if effect.summon_card == null:
+			continue
+		if effect.summon_card.card_name in seen_names:
+			continue
+		seen_names.append(effect.summon_card.card_name)
+		previews.append(effect.summon_card)
+	return previews
 
 func get_abomination_keyword_values() -> Array[int]:
 	var values: Array[int] = []

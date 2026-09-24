@@ -25,7 +25,7 @@ func setup() -> void:
 	battle.net_opponent_backend_id = setup.get("opponent_backend_id", 0)
 	battle.net_client_match_id = setup.get("client_match_id", "")
 	battle.net_match_session_token = setup.get("match_session_token", "")
-	battle.net_emitter = NetEmitter.new(net)
+	battle.net_emitter = NetEmitter.new(net, battle)
 	net.connection_lost.connect(_on_connection_lost)
 	net.connection_restored.connect(_on_connection_restored)
 	net.peer_disconnected.connect(_on_peer_disconnected)
@@ -52,7 +52,7 @@ func _on_connection_restored() -> void:
 	battle.reconnecting = false
 	battle.reconnect_overlay.hide_overlay()
 	if not battle.enemy_turn_active and not battle._mulligan_active:
-		battle.turn_timer.start()
+		battle.afk_guard.resume_turn_timer()
 
 # Pair définitivement perdu (délai de grâce de reconnexion expiré, ou coupure
 # non transitoire) : on stoppe le match et on affiche l'écran de fin en mode
@@ -69,12 +69,35 @@ func _on_peer_disconnected(_reason: String) -> void:
 
 # Ferme proprement la connexion réseau (appelé en quittant ou en rejouant un
 # match) : prévient le pair (voir NetCommand.leave_match) pour qu'il ne
-# poursuive pas inutilement le délai de grâce de reconnexion, puis libère le
-# transport reparenté sous la racine. No-op en solo.
+# poursuive pas inutilement le délai de grâce de reconnexion, puis ferme le
+# transport. battle.network_manager n'est qu'un emprunt de l'instance
+# NetworkManager vivant sous l'autoload MatchmakingOverlay (voir
+# MatchmakingOverlay._net/_on_handshake_ready) : ne jamais la queue_free()
+# ici, sous peine de laisser MatchmakingOverlay avec une référence libérée et
+# de rendre toute partie/invitation suivante impossible pour le reste de la
+# session. NetworkManager.close() suffit (ferme juste le transport, le nœud
+# reste réutilisable pour le prochain host_game_with/join_game_with). No-op
+# en solo.
 func close() -> void:
 	if battle.network_manager != null:
-		battle.network_manager.send_command(NetCommand.leave_match())
-		battle.network_manager.close()
-		battle.network_manager.queue_free()
+		var net: NetworkManager = battle.network_manager
+		net.send_command(NetCommand.leave_match())
+		net.close()
+		# NetworkManager est une instance persistante réutilisée par toute la
+		# session (voir note plus haut) : sans ces déconnexions explicites, ce
+		# NetSessionSystem (et le PactChoiceSystem de cette même bataille,
+		# maintenant terminée) restaient abonnés à ses signaux et continuaient
+		# à réagir aux parties suivantes une fois la scène Battle détruite —
+		# cause du "SCRIPT ERROR: ... on a base object of type 'previously
+		# freed'" et de désynchronisations observées en partie réelle après
+		# plusieurs reconnexions dans la même session.
+		if net.connection_lost.is_connected(_on_connection_lost):
+			net.connection_lost.disconnect(_on_connection_lost)
+		if net.connection_restored.is_connected(_on_connection_restored):
+			net.connection_restored.disconnect(_on_connection_restored)
+		if net.peer_disconnected.is_connected(_on_peer_disconnected):
+			net.peer_disconnected.disconnect(_on_peer_disconnected)
+		if is_instance_valid(battle) and battle.pact_choice_system != null:
+			battle.pact_choice_system.cleanup()
 		battle.network_manager = null
 	NetContext.clear()
