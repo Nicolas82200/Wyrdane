@@ -415,7 +415,7 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 
 Réglages persistants (`SettingsManager.gd`, menu Réglages → onglets Graphismes/Contrôles) :
 
-*   **Échelle de l'interface** (85 %–130 %) et **assistance daltonisme** (protanopie/deutéranopie/tritanopie, via overlay shader qui décale les teintes confondues).
+*   **Échelle de l'interface** (85 %–115 %, plafond volontairement réduit — au-delà, plusieurs panneaux à taille fixe débordent de leur conteneur) et **assistance daltonisme** (protanopie/deutéranopie/tritanopie, via overlay shader qui décale les teintes confondues).
 *   **Contraste élevé** — overlay shader dédié (boost contraste + saturation), cumulable avec l'assistance daltonisme.
 *   **Réduction des animations** — coupe le shake d'écran et raccourcit les tweens de déplacement les plus visibles (pose/mort de serviteur, charge d'attaque, popups d'effet, animation de pioche), sans supprimer les fondus/flashs courts.
 *   **Rebind clavier** des 3 actions ayant un raccourci (fin de tour, cimetière allié/ennemi).

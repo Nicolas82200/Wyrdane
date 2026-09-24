@@ -68,14 +68,10 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 
 	if selected_attacker == null or not battle._can_attack_minion_target(selected_attacker, target):
 		return
-	if SettingsManager.confirm_before_attack \
-			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
-		return
 	await battle.combat_system.resolve_combat(selected_attacker, target)
 	clear_selection()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_combat()
-	await battle.check_auto_pass_turn()
 
 func on_enemy_hero_clicked() -> void:
 	if battle.game_over or battle.reconnecting or battle.enemy_turn_active or battle.is_resolving_effects():
@@ -87,16 +83,12 @@ func on_enemy_hero_clicked() -> void:
 
 	if selected_attacker == null or not battle._can_attack_hero(selected_attacker):
 		return
-	if SettingsManager.confirm_before_attack \
-			and not await battle.confirm_popup.confirm(SettingsManager.t("battle.confirm.attack")):
-		return
 	await battle.combat_system.perform_hero_attack(selected_attacker)
 	clear_selection()
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_combat()
-	await battle.check_auto_pass_turn()
 
 # ─── Multi-attaque ────────────────────────────────────────────────────────────
 
@@ -114,7 +106,6 @@ func _resolve_multi_attack(target: Minion) -> void:
 		if battle.tutorial_manager:
 			await battle.tutorial_manager.notify_combat()
 		await battle.get_tree().create_timer(0.4).timeout
-	await battle.check_auto_pass_turn()
 
 func _resolve_multi_attack_hero() -> void:
 	var attackers := _sort_attackers_left_to_right(selected_attackers)
@@ -132,7 +123,6 @@ func _resolve_multi_attack_hero() -> void:
 		await battle.get_tree().create_timer(0.2).timeout
 	battle.check_game_end()
 	battle.board_visual_system.refresh_board()
-	await battle.check_auto_pass_turn()
 
 func _sort_attackers_left_to_right(attackers: Array[Minion]) -> Array[Minion]:
 	var sorted: Array[Minion] = attackers.duplicate()
