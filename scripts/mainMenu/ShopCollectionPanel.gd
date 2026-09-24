@@ -60,11 +60,17 @@ static func build_into(parent: Control, open_callback: Callable, buy_packs_callb
 
 	var image := TextureRect.new()
 	image.name = "PackInventoryImage"
+	# expand_mode/stretch_mode AVANT position/size : Control.set_size() remonte
+	# toujours au moins à la taille minimale du contrôle, et tant que
+	# expand_mode reste sur sa valeur par défaut (EXPAND_KEEP_SIZE), cette
+	# taille minimale vaut la pleine résolution de la texture — assigner size
+	# avant aurait donc silencieusement agrandi le pack à la taille native de
+	# l'image (ex. 980x1441) au lieu de PACK_IMAGE_SIZE.
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.texture = load(PACK_BACK_TEXTURE)
 	image.position = Vector2.ZERO
 	image.size = PACK_IMAGE_SIZE
-	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	image.modulate = Color(1, 1, 1, 1) if count > 0 else Color(0.5, 0.5, 0.5, 0.6)
 	image.mouse_filter = Control.MOUSE_FILTER_STOP if count > 0 else Control.MOUSE_FILTER_IGNORE
 	image.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if count > 0 else Control.CURSOR_ARROW
