@@ -7,7 +7,7 @@ class_name MatchReplayView
 ## replay (aucun rejeu animé du plateau, aucune sérialisation d'état complet)
 ## — juste le même journal textuel affiché en jeu (CombatLogPanel), consultable
 ## après coup sans limite de taille. Créée entièrement en code, même
-## convention que ConfirmActionPopup/TurnBanner.
+## convention que TurnBanner.
 
 const FONT_BOLD := preload("res://assets/fonts/MedievalSharp-Bold.ttf")
 const PANEL_SIZE := Vector2(420, 520)

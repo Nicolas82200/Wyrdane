@@ -87,6 +87,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var rank_icon: TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeRow/RankIcon
 @onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeRow/RankBadgeLabel
 @onready var account_level_label: Label = %AccountLevelLabel
+@onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
 
@@ -244,6 +245,7 @@ var _play_selected_deck_index: int = -1
 var _composition_deck_index: int = -1
 
 func _ready() -> void:
+	%VersionLabel.text = AppVersion.get_display_string()
 	AudioManager.play_menu_music()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
@@ -555,6 +557,7 @@ func _on_pack_opening_closed() -> void:
 # fin de partie (voir GameOverScreen.show_xp_reward).
 func _update_account_level_display() -> void:
 	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [LevelManager.xp, LevelManager.xp_to_next]
 	account_level_bar.value = float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
 
 # Compteur de récompenses réclamables par type de quête (quotidienne/hebdo/
@@ -671,8 +674,12 @@ func _launch_backend_syncs() -> void:
 			DeckManager.sync_from_backend()
 			CollectionManager.sync_from_backend()
 			CurrencyManager.sync_from_backend()
-			LevelManager.sync_from_backend()
 	)
+	# N'a besoin d'aucun mapping d'id carte (juste des nombres) : ne pas le
+	# faire dépendre du succès du sync catalogue, sans quoi un niveau gagné en
+	# partie (voir LevelManager.apply_match_result) peut rester affiché comme
+	# périmé si ce sync catalogue échoue ponctuellement.
+	LevelManager.sync_from_backend()
 	ProfilePanel.fetch_rank_badge(self)
 	ProfilePanel.fetch_login_reward_status(self)
 	ReferralPanel.maybe_show_first_launch_prompt(self)
@@ -744,7 +751,7 @@ func _on_profile_button_pressed() -> void:
 func _on_player_status_gui_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
 		return
-	var level_rect := account_level_label.get_global_rect().merge(account_level_bar.get_global_rect())
+	var level_rect := account_level_label.get_global_rect().merge(account_level_xp_label.get_global_rect()).merge(account_level_bar.get_global_rect())
 	if level_rect.has_point(event.global_position):
 		LevelRewardsPanel.open(self)
 	else:

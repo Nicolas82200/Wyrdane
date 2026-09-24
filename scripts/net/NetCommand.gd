@@ -29,6 +29,7 @@ const BATTLE_READY := "BATTLE_READY"  # le handshake est fini localement, en att
 const EMOTE := "EMOTE"  # emote cosmétique (voir EmoteWheel) — aucun impact sur l'état de partie
 const PACT_REQUEST := "PACT_REQUEST"  # demande au pair de décider MAINTENANT pour SA carte Pacte (voir PactChoiceSystem)
 const PACT_CHOICE := "PACT_CHOICE"    # réponse (ou notification proactive) d'une décision de Pacte
+const PACT_ANNOUNCE := "PACT_ANNOUNCE"  # le propriétaire commence à décider pour SA PROPRE carte fraîchement jouée (voir PactChoiceSystem)
 
 # ─── Marqueurs de cible ───────────────────────────────────────────────────────
 const TARGET_NONE := 0    # aucune cible (net_id 0 = non enregistré)
@@ -170,6 +171,17 @@ static func pact_request(card_path: String, value: int) -> Dictionary:
 # l'action correspondante) — voir PactChoiceSystem.
 static func pact_choice(paid: bool) -> Dictionary:
 	return {"type": PACT_CHOICE, "paid": paid}
+
+# Annonce envoyée par le propriétaire AVANT même d'ouvrir sa propre popup de
+# choix (ask()), pour une carte qu'il vient tout juste de jouer (déclencheur
+# Arrivée résolu dans la foulée de PLAY_CARD, avant que cette commande ne soit
+# elle-même émise — voir NetEmitter). Sans cette annonce, le pair ne voit rien
+# tant que PLAY_CARD n'arrive pas (résolution locale entièrement terminée,
+# décision de Pacte comprise) : la popup d'attente n'aurait alors plus rien à
+# attendre, la réponse étant déjà connue, et clignoterait sans jamais donner
+# l'impression d'une vraie attente. Voir PactChoiceSystem._handle_remote_announce.
+static func pact_announce(card_path: String, value: int) -> Dictionary:
+	return {"type": PACT_ANNOUNCE, "card": card_path, "value": value}
 
 # ─── Lecture ──────────────────────────────────────────────────────────────────
 

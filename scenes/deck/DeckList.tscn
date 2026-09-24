@@ -48,7 +48,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 41
 text = "Mes Decks"
 horizontal_alignment = 1
 
@@ -56,7 +56,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 0.6)
 theme_override_fonts/font = ExtResource("4_italic")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 17
 text = "Choisis le deck qui t'accompagnera au combat"
 horizontal_alignment = 1
 

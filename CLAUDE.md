@@ -189,6 +189,10 @@ Côté `ArenaBattle.gd` : tous les handlers d'action (`_on_shop_card_dropped`, `
 ### Panneau d'actualités (menu principal)
 Le panneau « Actualités » de `MainMenu` (`scripts/mainMenu/MainMenu.gd`, `_fetch_remote_news`) récupère les devlogs/actus créées sur le site (`wyrdane-website`) via `NEWS_FEED_URL = "https://wyrdane.com/feed.json"` — un manifeste JSON bilingue (fr/en) régénéré à chaque build/déploiement du site (`scripts/generate-feed.mjs`, appelé en `predev`/`prebuild`) à partir de `src/content/news/*.json` et `src/content/devlog/*.json`. Aucune action manuelle : ajouter un fichier JSON côté site puis déployer suffit à le faire apparaître en jeu. Si le fetch échoue (site injoignable), repli sur les ressources locales `res://resources/news/*.tres` (`NewsEntry.gd`, conservées pour ce cas).
 
+### Versionning
+
+Source unique de vérité : `VERSION.txt` à la racine du dépôt (semver `MAJOR.MINOR.PATCH`, ex. `0.1.0`) — consultable directement (ouvrir le fichier, `cat VERSION.txt`) sans lancer le jeu ni Godot. `scripts/systems/AppVersion.gd` (classe statique, même pattern que `SteamService`) le lit au runtime ; `MainMenu.gd` fixe `%VersionLabel.text` (`FooterPanel/FooterMargin/FooterRow/VersionLabel`, `unique_name_in_owner`) via `AppVersion.get_display_string()` à chaque `_ready()`, donc jamais de version codée en dur dans `MainMenu.tscn`. Avant tout nouveau build Steam : lancer `tools/bump_version.ps1` (`-Part patch/minor/major`, patch par défaut) depuis la racine du dépôt — incrémente `VERSION.txt` et synchronise `application/file_version`/`application/product_version` dans `export_presets.cfg` (métadonnées de l'exe Windows, format `MAJOR.MINOR.PATCH.0`) pour que les deux restent toujours alignés.
+
 ### Infra & déploiement (VPS)
 Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck builder web) sont hébergés ensemble sur un **VPS OVH** (`137.74.163.226`, Ubuntu, Docker) — plus sur Render. Domaines : `wyrdane.com`/`www.wyrdane.com` (site) et `api.wyrdane.com` (API). Détail complet de la stack (Docker Compose, Nginx, sécurité, CI/CD) documenté dans le `CLAUDE.md` de `wyrdane-backend`. Rien à faire côté `card-game` pour cette infra sinon garder `API_URL` dans `BackendClient.gd` synchronisé si le domaine change.
 
@@ -214,7 +218,7 @@ Le backend (`wyrdane-backend`) et le site compagnon (`wyrdane-website`, deck bui
 ### Accessibilité
 
 Réglages centralisés dans `SettingsManager.gd`, tous persistés dans `user://display_settings.cfg` et exposés dans `GraphismSettingsMenu`/`ControlSettingsMenu` (menu Réglages, onglet Graphismes/Contrôles) :
-- **Échelle de l'interface** (`text_scale`, 85%–130%) — `content_scale_factor` du viewport racine.
+- **Échelle de l'interface** (`text_scale`, 85%–115%) — `content_scale_factor` du viewport racine. Plafond volontairement réduit (130% cassait complètement plusieurs écrans à taille fixe, deck builder/menu principal en tête) : pas de mise à l'échelle réellement robuste tant que ces écrans n'ont pas été audités un par un.
 - **Assistance daltonisme** (`colorblind_mode` : aucune/protanopie/deutéranopie/tritanopie) — overlay plein écran (`resources/shaders/colorblind_filter.gdshader`) qui décale les teintes confondues plutôt que de les simuler.
 - **Contraste élevé** (`high_contrast`) — overlay plein écran séparé (`resources/shaders/high_contrast_filter.gdshader`, boost contraste + saturation), cumulable avec l'assistance daltonisme.
 - **Réduction des animations** (`reduced_motion`) — désactive le shake d'écran (`AnimationSystem._shake`, y compris le shake inline de `play_attack_lunge`) et raccourcit à 35 % (`SettingsManager.motion_scale()`/`REDUCED_MOTION_SCALE`) la durée des tweens de déplacement/rotation les plus visibles (`AnimationSystem._t()`, `Hand.gd` animation de pioche, `CardPopupSystem.gd` popups d'effet). N'affecte pas les fondus courts (flash, disparition), dont la coupure nette serait plus perturbante que le mouvement.
@@ -235,7 +239,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 - Langage : GDScript, Godot 4.6
 - Les données de carte (stats, coût, rareté, triggers, texte d'effet) doivent rester cohérentes avec le format des tableaux dans `CARDS.md` — toute nouvelle carte ajoutée en code doit avoir son entrée correspondante dans `CARDS.md`
 - Rester cohérent avec les patterns déjà en place dans `scripts/data/` (CardData, Keyword) plutôt que d'introduire de nouvelles structures
-- **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=12, `BODY`=16, `SECTION`=20, `HEADER`=28, `HERO`=40). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
+- **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=13, `BODY`=17, `SECTION`=21, `HEADER`=29, `HERO`=41). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
 
 ### Isolation des agents
 
