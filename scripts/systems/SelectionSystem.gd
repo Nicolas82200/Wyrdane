@@ -9,8 +9,15 @@ var selected_attackers: Array[Minion]  = []
 var selected_board_minions: Array[BoardMinion] = []
 var is_multi_selecting: bool           = false
 
+var _attack_line: AttackLineOverlay = null
+
 func init(_battle) -> void:
 	battle = _battle
+	_attack_line = AttackLineOverlay.new()
+	var canvas_layer := CanvasLayer.new()
+	canvas_layer.layer = 9
+	battle.add_child(canvas_layer)
+	canvas_layer.add_child(_attack_line)
 
 # ─── Sélection joueur ─────────────────────────────────────────────────────────
 
@@ -45,6 +52,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 
 		if selected_attackers.is_empty():
 			is_multi_selecting = false
+		_update_attack_line()
 	else:
 		clear_multi_selection()
 		is_multi_selecting = false
@@ -53,6 +61,7 @@ func on_player_minion_clicked(minion: Minion, board_minion: BoardMinion) -> void
 		selected_attacker     = minion
 		selected_board_minion = board_minion
 		board_minion.set_selected(true, true)
+		_update_attack_line()
 
 # ─── Attaque ennemie ──────────────────────────────────────────────────────────
 
@@ -155,3 +164,20 @@ func clear_multi_selection() -> void:
 	selected_attackers.clear()
 	selected_board_minions.clear()
 	is_multi_selecting = false
+	_update_attack_line()
+
+# ─── Ligne d'attaque ──────────────────────────────────────────────────────────
+
+func _update_attack_line() -> void:
+	if _attack_line == null:
+		return
+	var origins: Array[Control] = []
+	if selected_board_minion and is_instance_valid(selected_board_minion):
+		origins.append(selected_board_minion)
+	for bm in selected_board_minions:
+		if is_instance_valid(bm):
+			origins.append(bm)
+	if origins.is_empty():
+		_attack_line.clear()
+	else:
+		_attack_line.set_origins(origins)
