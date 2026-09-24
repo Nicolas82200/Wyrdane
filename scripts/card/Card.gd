@@ -68,6 +68,7 @@ const RACE_COLORS := {
 	Race.Type.ELF:    Color("#1f4038b0"),
 	Race.Type.DWARF:  Color("#3f280fb0"),
 	Race.Type.DEMON:  Color("#1e0308d6"),
+	Race.Type.NONE:   Color("#1a1712d6"),
 }
 
 # Fond de NameLabel/DescLabel : fraction de l'opacité de RACE_COLORS appliquée
