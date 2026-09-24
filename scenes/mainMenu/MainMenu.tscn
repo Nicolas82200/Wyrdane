@@ -1764,7 +1764,7 @@ text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ChatPopup" type="Control" parent="." unique_id=900000060]
+[node name="ChatView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=900000060]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -1772,47 +1772,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
+theme_override_constants/separation = 12
 
-[node name="ChatBackdrop" type="ColorRect" parent="ChatPopup" unique_id=900000061]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
-
-[node name="ChatPanel" type="PanelContainer" parent="ChatPopup" unique_id=900000062]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -350.0
-offset_top = -220.0
-offset_right = 350.0
-offset_bottom = 220.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
-
-[node name="ChatMargin" type="MarginContainer" parent="ChatPopup/ChatPanel" unique_id=900000063]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
-
-[node name="ChatMainVBox" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin" unique_id=900000064]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="ChatHeaderRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000065]
+[node name="ChatHeaderRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView" unique_id=900000065]
 layout_mode = 2
 
-[node name="ChatTitleLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000066]
+[node name="ChatTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow" unique_id=900000066]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
@@ -1821,72 +1786,73 @@ theme_override_font_sizes/font_size = 20
 text = "Messages"
 vertical_alignment = 1
 
-[node name="ChatCloseButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow" unique_id=900000067]
+[node name="ChatCloseButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow" unique_id=900000067]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "Fermer"
+text = "Retour"
 
-[node name="ChatSep" type="HSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000068]
+[node name="ChatSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView" unique_id=900000068]
 layout_mode = 2
 
-[node name="ChatBodyHBox" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox" unique_id=900000069]
+[node name="ChatBodyHBox" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView" unique_id=900000069]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="ChatConversationsCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000070]
+[node name="ChatConversationsCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox" unique_id=900000070]
 custom_minimum_size = Vector2(190, 0)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ChatConversationsScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol" unique_id=900000071]
+[node name="ChatConversationsScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatConversationsCol" unique_id=900000071]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ChatConversationsList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll" unique_id=900000072]
+[node name="ChatConversationsList" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll" unique_id=900000072]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="ChatVSep" type="VSeparator" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000073]
+[node name="ChatVSep" type="VSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox" unique_id=900000073]
 layout_mode = 2
 
-[node name="ChatThreadCol" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox" unique_id=900000074]
+[node name="ChatThreadCol" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox" unique_id=900000074]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="ChatThreadNameLabel" type="Label" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000075]
+[node name="ChatThreadNameLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol" unique_id=900000075]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_font_sizes/font_size = 16
 text = "-"
 
-[node name="ChatThreadScroll" type="ScrollContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000076]
+[node name="ChatThreadScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol" unique_id=900000076]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ChatThreadList" type="VBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll" unique_id=900000077]
+[node name="ChatThreadList" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadScroll" unique_id=900000077]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="ChatInputRow" type="HBoxContainer" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol" unique_id=900000078]
+[node name="ChatInputRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol" unique_id=900000078]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ChatInputLineEdit" type="LineEdit" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000079]
+[node name="ChatInputLineEdit" type="LineEdit" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000079]
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Écrire un message..."
 max_length = 500
 
-[node name="ChatSendButton" type="Button" parent="ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000080]
+[node name="ChatSendButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatInputRow" unique_id=900000080]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
+disabled = true
 text = "Envoyer"
 
 [node name="LoginRewardPopup" type="Control" parent="." unique_id=400000010]
