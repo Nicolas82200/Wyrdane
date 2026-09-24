@@ -251,6 +251,13 @@ func set_display_cost(cost_split: Dictionary) -> void:
 	var generic_cost: int = cost_split.get("generic", 0)
 	var reduced: bool = race_cost + generic_cost < data.cost
 	var color := Color(0.45, 1.0, 0.45) if reduced else Color.WHITE
+	# Race.Type.NONE (ex. Artefact) : coût entièrement générique, affiché dans
+	# le gros badge de race (voir update_display) plutôt qu'à "0".
+	if data.race == Race.Type.NONE:
+		cost_label.text = str(race_cost + generic_cost)
+		cost_label.add_theme_color_override("font_color", color)
+		generic_cost_label.visible = false
+		return
 	cost_label.text = str(race_cost)
 	cost_label.add_theme_color_override("font_color", color)
 	generic_cost_label.visible = generic_cost > 0
@@ -265,9 +272,16 @@ func update_display() -> void:
 	var base_race_cost: int = CostSystem.compute_race_cost(
 		data.cost, data.race, data.rarity, data.race_cost_override)
 	cost_label.visible = true
-	cost_label.text = "" if is_resource else str(base_race_cost)
-	generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
-	generic_cost_label.text = str(data.cost - base_race_cost)
+	# Race.Type.NONE (ex. Artefact) n'a pas de pool de race : le coût est
+	# entièrement générique. Affiché dans le badge de race (gros, premier plan)
+	# plutôt que dans le petit badge générique, sinon le gros badge reste à "0".
+	if not is_resource and data.race == Race.Type.NONE:
+		cost_label.text = str(data.cost)
+		generic_cost_label.visible = false
+	else:
+		cost_label.text = "" if is_resource else str(base_race_cost)
+		generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
+		generic_cost_label.text = str(data.cost - base_race_cost)
 	if is_resource:
 		_apply_resource_icon()
 	else:
