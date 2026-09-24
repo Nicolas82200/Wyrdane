@@ -42,6 +42,19 @@ const DESC_LABEL_DEFAULT_TOP    := 186.0
 const DESC_LABEL_DEFAULT_BOTTOM := 328.5
 const DESC_LABEL_MAX_GROWTH     := 3.0
 
+# Si le texte deborde encore une fois DESC_LABEL_MAX_GROWTH atteint, on reduit
+# la police (voir _fit_desc_label) plutot que de laisser le texte deborder de
+# la carte ou se faire rogner. Deux seules tailles utilisees (echelle unique
+# du jeu, voir Typography.gd) : Typography.BODY par defaut, Typography.MICRO
+# en dernier recours pour les descriptions les plus longues.
+const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.MICRO
+
+# Au-dela de ce nombre de caracteres, la description seule (hors flavour text)
+# remplit deja la case par defaut : le flavour text (ambiance, cosmetique) est
+# alors masque plutot que d'aggraver le debordement au detriment du texte de
+# regle, qui lui est indispensable a la lisibilite de la carte.
+const DESC_FLAVOUR_HIDE_THRESHOLD := 120
+
 # AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
 # _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
 const STATS_LABEL_DEFAULT_TOP    := 330.0
@@ -302,13 +315,14 @@ func update_display() -> void:
 		card_type_icon.modulate = RACE_ICON_COLORS.get(data.race, Color.WHITE)
 	card_type_icon_bg.visible = card_type_icon.visible
 
-	if not data.flavour_text.is_empty() and data.description.is_empty():
+	var display_description: String = data.display_description()
+	if not data.flavour_text.is_empty() and display_description.is_empty():
 		desc_label.text = "[center][i]" + data.display_flavour() + "[/i][/center]"
-	elif not data.flavour_text.is_empty():
-		desc_label.text = bold_keywords_and_triggers(data.display_description())
+	elif not data.flavour_text.is_empty() and display_description.length() < DESC_FLAVOUR_HIDE_THRESHOLD:
+		desc_label.text = bold_keywords_and_triggers(display_description)
 		desc_label.text += "\n[i]" + data.display_flavour() + "[/i]"
 	else:
-		desc_label.text = bold_keywords_and_triggers(data.display_description())
+		desc_label.text = bold_keywords_and_triggers(display_description)
 
 	if data.texture:
 		art.texture = data.texture
@@ -359,13 +373,21 @@ func _fit_name_label() -> float:
 func _fit_desc_label(name_growth: float) -> void:
 	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
+	_set_desc_font_size(Typography.BODY)
 	if attack_label:
 		attack_label.offset_top = STATS_LABEL_DEFAULT_TOP
 		attack_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
 	if health_label:
 		health_label.offset_top = STATS_LABEL_DEFAULT_TOP
 		health_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM
-	var overflow: float = desc_label.get_content_height() - (DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top)
+	var available: float = DESC_LABEL_DEFAULT_BOTTOM - desc_label.offset_top
+	var overflow: float = desc_label.get_content_height() - available
+	# Texte encore trop long une fois la case agrandie au maximum : on reduit
+	# la police plutot que de laisser deborder ou rogner (voir
+	# DESC_LABEL_SHRUNK_FONT_SIZE) et on recalcule le debordement restant.
+	if overflow > DESC_LABEL_MAX_GROWTH:
+		_set_desc_font_size(DESC_LABEL_SHRUNK_FONT_SIZE)
+		overflow = desc_label.get_content_height() - available
 	if overflow <= 0.0:
 		return
 	var growth: float = min(overflow, DESC_LABEL_MAX_GROWTH)
@@ -376,6 +398,13 @@ func _fit_desc_label(name_growth: float) -> void:
 	if health_label:
 		health_label.offset_top += growth
 		health_label.offset_bottom += growth
+
+# Applique une taille de police au DescLabel (texte normal/gras/italique -
+# effet + flavour) : voir _fit_desc_label.
+func _set_desc_font_size(size: int) -> void:
+	desc_label.add_theme_font_size_override("normal_font_size", size)
+	desc_label.add_theme_font_size_override("bold_font_size", size)
+	desc_label.add_theme_font_size_override("italics_font_size", size)
 
 # Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
 # ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,
