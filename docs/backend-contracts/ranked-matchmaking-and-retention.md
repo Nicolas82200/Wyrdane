@@ -34,17 +34,30 @@ jeu autoritaire — le backend n'a donc besoin de connaître que les deux joueur
    rejoint directement ce lobby (`SteamTransport.join({"lobby_id": ...})`),
    sans passer par la recherche de lobby publique.
 4. La partie se déroule normalement ; à la fin, `POST /api/ranked/matches/report`
-   (déjà existant) crédite le MMR comme n'importe quel match réseau — **aucun
-   changement requis sur ce point**, une victoire en classé n'est distinguée
-   d'une victoire en partie rapide par aucun champ actuellement. Si vous voulez
-   les distinguer dans les stats plus tard (ex. exclure la partie rapide du
-   MMR), c'est un changement séparé, pas couvert ici.
+   (déjà existant) crédite le MMR. **Mise à jour (2026-09-24)** : le payload
+   porte désormais un champ `mode: "ranked" | "normal"` (omis = `"ranked"`,
+   compatibilité avec un client pas encore à jour) — voir `match_reports.mode`/
+   `ranked_stats.hidden_mmr` côté backend. Une partie Normal ne fait plus
+   jamais gagner/perdre de points de classement public (`mmr`/`wins`/`losses`
+   inchangés) ; elle met à jour un MMR **caché** séparé (`hidden_mmr`, jamais
+   exposé au client, même au joueur concerné) utilisé uniquement pour apparier
+   des parties Normal entre joueurs de niveau similaire, façon MMR caché League
+   of Legends — voir `POST /api/matchmaking/queue` ci-dessous, qui porte
+   désormais lui aussi `mode` pour apparier séparément Classé (MMR public) et
+   Normal (MMR caché), jamais l'un avec l'autre.
 
 ### `POST /api/matchmaking/queue`
 
-Rejoint la file d'attente. Body vide (le joueur est identifié par le cookie de
-session ; son MMR est lu depuis `rating`, pas envoyé par le client — ne jamais
-faire confiance à un MMR fourni par le client).
+Rejoint la file d'attente. Son MMR est lu depuis `ranked_stats.mmr`/`hidden_mmr`
+selon `mode`, pas envoyé par le client — ne jamais faire confiance à un MMR
+fourni par le client.
+
+Body **(mis à jour 2026-09-24)** :
+```json
+{ "mode": "ranked" }
+```
+`mode: "ranked" | "normal"` (omis = `"ranked"`). Deux tickets ne sont jamais
+appariés entre modes différents (`matchmaking_tickets.mode`).
 
 Réponse `200` :
 ```json

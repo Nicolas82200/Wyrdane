@@ -105,6 +105,41 @@ sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
 format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
 section 5.
 
+## P13 — MMR caché Normal / MMR public Classé : migration prod à jouer
+
+**Code écrit des deux côtés (client + `wyrdane-backend`), pas encore actif en
+prod.** Avant cette tâche, n'importe quelle partie réseau (Normal, Contre un
+ami, Classé) modifiait le MMR public (`ranked_stats.mmr`) — aucune distinction
+côté backend. Désormais `report_ranked_match` porte un champ `mode` et seul le
+Classé touche à `ranked_stats.mmr`/`wins`/`losses` ; Normal (et tout ce qui
+n'est pas explicitement classé) met à jour un MMR **caché** séparé
+(`ranked_stats.hidden_mmr`, jamais exposé au client) utilisé uniquement pour
+apparier des Normal de niveau similaire — voir « Ranked / paliers /
+matchmaking classé » plus haut pour le détail (`_queue_mode`,
+`NORMAL_QUEUE_TIMEOUT`, repli silencieux sur l'ancien comportement direct si
+le backend est indisponible).
+
+Reste à faire avant que ce soit réellement actif :
+- **Migration DB** : `npm run db:sync` (ou l'équivalent conteneur, voir
+  « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de
+  `wyrdane-backend`) doit tourner sur le VPS pour ajouter `ranked_stats.hidden_mmr`,
+  `matchmaking_tickets.mode` et `match_reports.mode` — sans ça, le code neuf
+  échouera sur les colonnes absentes dès le déploiement.
+- **Merge + déploiement** de la branche `wyrdane-backend` correspondante dans
+  `main` (déploiement continu déjà en place, voir « Infra & déploiement »).
+- **Jamais testé en conditions Steam réelles** (comme tout ce qui touche au
+  matchmaking, nécessite deux comptes Steam) : en particulier le repli Normal
+  → recherche directe après `NORMAL_QUEUE_TIMEOUT`/échec backend, et le
+  réessai de `queue_report_lobby` (voir bug ci-dessous).
+- Le bug historique « partie classée qui ne se lance jamais entre deux amis
+  qui viennent de la lancer » n'a pas de cause confirmée en conditions
+  réelles (pas reproduit dans une session de dev) : la piste la plus probable
+  identifiée est un échec silencieux de `queue_report_lobby` côté hôte
+  (appelé jusque-là sans callback ni retry) — corrigé (réessai + message
+  d'erreur explicite si les 3 tentatives échouent, voir
+  `MatchmakingOverlay._report_queue_lobby`), mais à confirmer en vrai avant de
+  considérer le ticket clos.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
