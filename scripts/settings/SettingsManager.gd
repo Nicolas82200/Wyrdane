@@ -242,13 +242,15 @@ func record_high_hp_win_streak(qualifies: bool) -> int:
 	_save()
 	return high_hp_win_streak
 
-# Marque race_name comme "gagnée avec" et retourne true si les 4 races
-# implémentées (voir Race.get_implemented_races) sont désormais toutes couvertes.
+# Marque race_name comme "gagnée avec" et retourne true si toutes les races
+# pouvant apparaître dans l'identité d'un deck (voir Race.get_deck_identity_races
+# — exclut Artefact, jamais compté dans Battle.deck_races) sont désormais
+# toutes couvertes.
 func record_race_win(race_name: String) -> bool:
 	if race_name != "" and race_name not in races_won_with:
 		races_won_with.append(race_name)
 		_save()
-	return races_won_with.size() >= Race.get_implemented_races().size()
+	return races_won_with.size() >= Race.get_deck_identity_races().size()
 
 func record_front_only_win() -> int:
 	front_only_wins += 1

@@ -33,8 +33,18 @@ static func get_race_name(race: int) -> String:
 
 ## Races dotées d'au moins une carte (utilisé pour ne proposer, dans l'UI,
 ## que des races effectivement jouables — Elfe/Nain n'ont encore aucune carte).
+## Inclut ARTIFACT (filtre du deck builder, ACH_COLLECTOR).
 static func get_implemented_races() -> Array[int]:
-	return [Type.HUMAN, Type.UNDEAD, Type.DEMON, Type.ABOMINATION, Type.NONE]
+	return [Type.HUMAN, Type.UNDEAD, Type.DEMON, Type.ABOMINATION, Type.ARTIFACT]
+
+## Sous-ensemble de get_implemented_races() pouvant apparaître dans
+## Battle.deck_races (identité de race d'un deck) : exclut les races
+## "sans race" au sens is_raceless() (ARTIFACT), qui n'y figurent jamais
+## (voir DeckSystem._compute_deck_races) — utilisé par les succès dérivés de
+## deck_races (ex. ACH_FULL_ROSTER/SettingsManager.record_race_win), sinon
+## structurellement impossibles à débloquer.
+static func get_deck_identity_races() -> Array[int]:
+	return get_implemented_races().filter(func(r): return not is_raceless(r))
 
 static func from_string(s: String) -> int:
 	match s:
