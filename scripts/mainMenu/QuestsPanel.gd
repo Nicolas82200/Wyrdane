@@ -73,15 +73,15 @@ static func _render_regular(menu, daily: Array, weekly: Array, monthly: Array) -
 	menu.quests_status_label.visible = not has_any
 	if not has_any:
 		menu.quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-	for quest in daily:
+	for quest in _sort_quests(daily):
 		_add_item(menu, quest)
 	if not weekly.is_empty():
 		_add_section_header(menu, "QUESTS_WEEKLY_TITLE")
-		for quest in weekly:
+		for quest in _sort_quests(weekly):
 			_add_item(menu, quest, "weekly")
 	if not monthly.is_empty():
 		_add_section_header(menu, "QUESTS_MONTHLY_TITLE")
-		for quest in monthly:
+		for quest in _sort_quests(monthly):
 			_add_item(menu, quest, "monthly")
 
 # Toujours le catalogue entier (pas de rotation/reset côté backend, voir
@@ -91,8 +91,33 @@ static func _render_unique(menu, quests: Array) -> void:
 	menu.quests_status_label.visible = quests.is_empty()
 	if quests.is_empty():
 		menu.quests_status_label.text = SettingsManager.t("QUESTS_UNAVAILABLE")
-	for quest in quests:
+	for quest in _sort_quests(quests):
 		_add_item(menu, quest, "unique")
+
+# Réclamées tout en bas de leur section ; parmi les non-réclamées, la plus
+# avancée dans sa progression en premier — une quête complétée mais pas
+# encore réclamée (progress >= target, ratio 1.0) se retrouve donc
+# naturellement tout en haut de la liste, prête à être réclamée en un coup
+# d'oeil. Copie de la liste (sort_custom mute en place) : le cache
+# menu._quests_cache garde l'ordre renvoyé par le backend.
+static func _sort_quests(quests: Array) -> Array:
+	var sorted := quests.duplicate()
+	sorted.sort_custom(_quest_sort_less)
+	return sorted
+
+static func _quest_sort_less(a: Dictionary, b: Dictionary) -> bool:
+	var a_claimed := bool(a.get("claimed", false))
+	var b_claimed := bool(b.get("claimed", false))
+	if a_claimed != b_claimed:
+		return not a_claimed
+	return _progress_ratio(a) > _progress_ratio(b)
+
+static func _progress_ratio(quest: Dictionary) -> float:
+	var progress := _get_int(quest, "progress", 0)
+	var target := _get_int(quest, "target", 1)
+	if target <= 0:
+		return 1.0
+	return float(progress) / float(target)
 
 static func _add_section_header(menu, translation_key: String) -> void:
 	var header := Label.new()
