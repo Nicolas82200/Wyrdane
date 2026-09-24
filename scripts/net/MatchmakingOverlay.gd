@@ -644,7 +644,7 @@ func _on_queue_lobby_ready(session_id: int) -> void:
 
 func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> void:
 	BackendClient.queue_report_lobby(ticket_id, session_id, func(code: int, _parsed: Variant) -> void:
-		if code == 200:
+		if code == 200 or code ==204:
 			return
 		push_warning("[Ranked] queue_report_lobby a échoué (code %d, tentative %d/%d, ticket %s)" \
 			% [code, attempt, RANKED_REPORT_LOBBY_MAX_ATTEMPTS, ticket_id])
