@@ -264,6 +264,7 @@ func _ready() -> void:
 	# des cartes qu'à la demande, directement autour du pack cliqué dans la
 	# vue Collection (voir _open_owned_packs_flow ci-dessous).
 	pack_shop.closed.connect(_on_pack_opening_closed)
+	pack_shop.buy_packs_pressed.connect(_on_buy_packs_from_collection_pressed)
 	shop_packs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.PACKS))
 	shop_card_backs_tab_button.pressed.connect(func(): _select_shop_tab(ShopTab.CARD_BACKS))
 	_select_shop_tab(ShopTab.PACKS)
@@ -523,7 +524,7 @@ func _select_shop_tab(tab: ShopTab) -> void:
 ## depuis le dernier passage).
 func _open_collection_view() -> void:
 	shop_collection_scroll.show()
-	ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow, _on_buy_packs_from_collection_pressed)
+	ShopCollectionPanel.build_into(shop_collection_section, _open_owned_packs_flow)
 
 ## Lance l'ouverture de `quantity` packs depuis la vue Collection : la grille
 ## reste affichée (l'animation de révélation se joue directement autour du
