@@ -41,15 +41,22 @@ static func open(menu) -> void:
 		status_label.text = SettingsManager.t("MATCH_HISTORY_UNAVAILABLE")
 		return
 
-	BackendClient.get_match_history(MATCH_HISTORY_LIMIT, func(success: bool, entries: Array):
+	# Profil d'un ami (voir ProfilePanel.open_for_user) : historique de CET
+	# autre joueur (restreint aux amis acceptés côté backend), "victoire" doit
+	# alors être jugée de son point de vue à lui, pas du joueur local.
+	var target_user_id: int = menu._profile_target_user_id
+	var on_result := func(success: bool, entries: Array):
 		# La vue/l'onglet a pu changer pendant l'aller-retour réseau — la
 		# section elle-même a alors déjà été libérée par un futur render().
 		if not is_instance_valid(section):
 			return
-		_populate(section, status_label, success, entries)
-	)
+		_populate(section, status_label, success, entries, target_user_id)
+	if target_user_id >= 0:
+		BackendClient.get_friend_match_history(target_user_id, MATCH_HISTORY_LIMIT, on_result)
+	else:
+		BackendClient.get_match_history(MATCH_HISTORY_LIMIT, on_result)
 
-static func _populate(section: VBoxContainer, status_label: Label, success: bool, entries: Array) -> void:
+static func _populate(section: VBoxContainer, status_label: Label, success: bool, entries: Array, viewed_user_id: int) -> void:
 	if not success:
 		status_label.text = SettingsManager.t("MATCH_HISTORY_UNAVAILABLE")
 		return
@@ -60,10 +67,10 @@ static func _populate(section: VBoxContainer, status_label: Label, success: bool
 
 	for entry in entries:
 		if entry is Dictionary:
-			section.add_child(_make_row(entry))
+			section.add_child(_make_row(entry, viewed_user_id))
 
-static func _make_row(entry: Dictionary) -> PanelContainer:
-	var is_victory: bool = _is_local_winner(entry)
+static func _make_row(entry: Dictionary, viewed_user_id: int) -> PanelContainer:
+	var is_victory: bool = _is_winner(entry, viewed_user_id)
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
@@ -130,6 +137,8 @@ static func _make_row(entry: Dictionary) -> PanelContainer:
 	return row
 
 # winner_id est l'id backend brut (voir rankedModel.getMatchHistory) : victoire
-# du joueur local si et seulement si winner_id == son propre id backend.
-static func _is_local_winner(entry: Dictionary) -> bool:
-	return int(entry.get("winner_id", -1)) == BackendClient.local_user_id()
+# du joueur dont on affiche l'historique (le joueur local, ou l'ami consulté
+# via ProfilePanel.open_for_user) si et seulement si winner_id == son id.
+static func _is_winner(entry: Dictionary, viewed_user_id: int) -> bool:
+	var reference_id := viewed_user_id if viewed_user_id >= 0 else BackendClient.local_user_id()
+	return int(entry.get("winner_id", -1)) == reference_id
