@@ -17,8 +17,8 @@ var _preview_link: PreviewLinkOverlay = null
 # Aperçus des jetons invoqués par la carte survolée (voir
 # CardData.get_summon_preview_cards), instanciés à la volée à côté de la
 # preview agrandie, chacun relié par son propre PreviewLinkOverlay. Alignés
-# sur TooltipData.tooltips_expanded comme les tooltips détaillés (masqués par
-# le même clic droit).
+# sur TooltipData.battle_shows_info() comme les tooltips détaillés (masqués
+# tant que le cycle de clic droit n'a pas atteint ZOOM_AND_INFO).
 var _token_previews:      Array[Card]               = []
 var _token_preview_links: Array[PreviewLinkOverlay]  = []
 # Échelle des aperçus de jetons relative à celle de la preview principale
@@ -85,8 +85,8 @@ var create_drag_preview: Callable      = Callable()
 var display_cost:       Callable       = Callable()
 var _keyword_tooltips:  Array[Control] = []
 var _tooltip_layer:     CanvasLayer    = null
-# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de la
-# preview agrandie — voir TooltipData.tooltips_expanded.
+# Bulle "Clic droit pour agrandir/afficher/cacher les informations" — voir
+# TooltipData.battle_hover_mode.
 var _hint_panel:        PanelContainer = null
 var _hovering:          bool           = false
 var _mulligan_mode:     bool           = false
@@ -550,9 +550,33 @@ func _on_card_hover(card: Card) -> void:
 		var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
 		var tooltip_y0: float = card_rect.position.y
 		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
-		if TooltipData.tooltips_expanded:
+		if TooltipData.battle_shows_info():
 			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
 		return
+	# Plus d'aperçu agrandi automatique au survol (demande utilisateur
+	# 2026-09-25) : par défaut, seule la bulle d'indication apparaît, ancrée
+	# au-dessus de la petite carte — voir TooltipData.battle_hover_mode.
+	if not TooltipData.battle_shows_zoom():
+		var card_rect := card.get_global_rect()
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
+		return
+	_show_card_preview(card)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
+			or not is_instance_valid(card) or card.dragging:
+		return
+	if TooltipData.battle_shows_info():
+		_show_summon_previews(card.data)
+		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
+		var tooltip_y: float = preview.global_position.y
+		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
+
+## Affiche/positionne l'aperçu agrandi (preview) au-dessus de `card`, le
+## trait qui les relie et la bulle d'indication — sans les tooltips détaillés
+## (voir _on_card_hover/_refresh_tooltip_display, gérés séparément selon
+## TooltipData.battle_shows_info()).
+func _show_card_preview(card: Card) -> void:
 	# Aperçu agrandi de la carte, positionné juste au-dessus d'elle — en plus
 	# du léger soulèvement en place (HOVER_LIFT/_card_position), pas à sa place :
 	# lisible même quand la main est très resserrée (beaucoup de cartes).
@@ -588,18 +612,6 @@ func _on_card_hover(card: Card) -> void:
 	_show_hint_panel(hint_center_x, preview.global_position.y)
 	if not card.drag_started.is_connected(_hide_preview):
 		card.drag_started.connect(_hide_preview, CONNECT_ONE_SHOT)
-	await get_tree().process_frame
-	await get_tree().process_frame
-	if not is_instance_valid(self) or not _hovering or card != _hovered_card \
-			or not is_instance_valid(card) or card.dragging:
-		return
-	# Alignés sur TooltipData.tooltips_expanded (comme les tooltips détaillés) :
-	# le clic droit pour "masquer les informations" cache aussi ces aperçus.
-	if TooltipData.tooltips_expanded:
-		_show_summon_previews(card.data)
-		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
-		var tooltip_y: float = preview.global_position.y
-		await _show_keyword_tooltips(card, card.data, tooltip_x, tooltip_y)
 
 func _hide_preview() -> void:
 	preview.hide()
@@ -759,7 +771,7 @@ func _show_hint_panel(center_x: float, above_y: float) -> void:
 	_hide_hint_panel()
 	if not is_instance_valid(_battle) or not _battle.is_inside_tree():
 		return
-	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel = TooltipData.make_battle_hint_panel()
 	_hint_panel.z_index = 160
 	_battle.add_child(_hint_panel)
 	await get_tree().process_frame
@@ -777,12 +789,12 @@ func _is_right_click_press(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT \
 		and event.pressed
 
-## Bascule TooltipData.tooltips_expanded pour toute la session, déclenchée
-## par un clic droit sur la petite carte d'origine (`card`, voir _connect_card).
+## Fait avancer TooltipData.battle_hover_mode d'un cran, déclenché par un clic
+## droit sur la petite carte d'origine (`card`, voir _connect_card).
 func _on_card_right_click(event: InputEvent, card: Card) -> void:
 	if not _is_right_click_press(event):
 		return
-	TooltipData.toggle_tooltips_expanded()
+	TooltipData.cycle_battle_hover_mode()
 	get_viewport().set_input_as_handled()
 	if card == _hovered_card:
 		_refresh_tooltip_display()
@@ -793,7 +805,7 @@ func _on_card_right_click(event: InputEvent, card: Card) -> void:
 func _on_preview_right_click(event: InputEvent) -> void:
 	if not _is_right_click_press(event):
 		return
-	TooltipData.toggle_tooltips_expanded()
+	TooltipData.cycle_battle_hover_mode()
 	get_viewport().set_input_as_handled()
 	_refresh_tooltip_display()
 
@@ -803,14 +815,14 @@ func _on_preview_right_click(event: InputEvent) -> void:
 func _on_token_preview_right_click(event: InputEvent) -> void:
 	if not _is_right_click_press(event):
 		return
-	TooltipData.toggle_tooltips_expanded()
+	TooltipData.cycle_battle_hover_mode()
 	get_viewport().set_input_as_handled()
 	_refresh_tooltip_display()
 
 ## Repositionne/reconstruit la bulle d'indication et, selon
-## TooltipData.tooltips_expanded, affiche ou cache les tooltips détaillés —
-## pour le survol actuellement en cours (mulligan ou normal). No-op si plus
-## aucune carte n'est survolée.
+## TooltipData.battle_hover_mode, affiche ou cache l'aperçu agrandi et les
+## tooltips détaillés — pour le survol actuellement en cours (mulligan ou
+## normal). No-op si plus aucune carte n'est survolée.
 func _refresh_tooltip_display() -> void:
 	if not _hovering:
 		return
@@ -820,18 +832,29 @@ func _refresh_tooltip_display() -> void:
 	if _mulligan_mode:
 		var card_rect := card.get_global_rect()
 		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
-		if TooltipData.tooltips_expanded:
+		if TooltipData.battle_shows_info():
 			var tooltip_x0: float = card_rect.position.x + card_rect.size.x + 15
 			var tooltip_y0: float = card_rect.position.y
 			await _show_keyword_tooltips(card, card.data, tooltip_x0, tooltip_y0)
 		else:
 			_hide_keyword_tooltips()
 		return
-	if not preview.visible:
+	if not TooltipData.battle_shows_zoom():
+		preview.hide()
+		_preview_link.hide_link()
+		_clear_summon_previews()
+		_hide_keyword_tooltips()
+		var card_rect := card.get_global_rect()
+		_show_hint_panel(card_rect.position.x + card_rect.size.x * 0.5, card_rect.position.y)
 		return
-	var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
-	_show_hint_panel(hint_center_x, preview.global_position.y)
-	if TooltipData.tooltips_expanded:
+	if not preview.visible:
+		# Le zoom vient d'être activé alors qu'aucun aperçu n'était affiché
+		# (état caché) : (re)joue l'affichage comme si la souris venait d'entrer.
+		_show_card_preview(card)
+	else:
+		var hint_center_x: float = preview.global_position.x + preview.size.x * preview.scale.x * 0.5
+		_show_hint_panel(hint_center_x, preview.global_position.y)
+	if TooltipData.battle_shows_info():
 		_show_summon_previews(card.data)
 		var tooltip_x: float = preview.global_position.x + preview.size.x * 1.1 + 15
 		var tooltip_y: float = preview.global_position.y

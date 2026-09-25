@@ -22,8 +22,8 @@ var _tooltip_layer: CanvasLayer = null
 var _keyword_tooltips: Array[Control] = []
 var _mouse_is_over: bool = false
 var _battle: Node = null
-# Bulle "Clic droit pour afficher/cacher les informations" au-dessus de
-# l'aperçu agrandi — voir TooltipData.tooltips_expanded.
+# Bulle "Clic droit pour agrandir/afficher/cacher les informations" — voir
+# TooltipData.battle_hover_mode.
 var _hint_panel: PanelContainer = null
 
 # Aperçus des jetons invoqués par ce Rituel/Enchantement (ex: Cercle
@@ -79,6 +79,18 @@ func _on_mouse_entered() -> void:
 		return
 	if _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
 		return
+	# Plus d'aperçu agrandi automatique au survol (demande utilisateur
+	# 2026-09-25) : par défaut, seule la bulle d'indication apparaît, ancrée
+	# au-dessus de cette petite carte — voir TooltipData.battle_hover_mode.
+	if not TooltipData.battle_shows_zoom():
+		_show_hint_panel(global_position.x + size.x * 0.5, global_position.y)
+		return
+	await _create_and_show_zoom()
+
+## Instancie et positionne l'aperçu agrandi (voir _on_mouse_entered/
+## _toggle_and_refresh_tooltips, qui appelle aussi ceci quand le zoom vient
+## d'être activé par un clic droit pendant que la souris est déjà dessus).
+func _create_and_show_zoom() -> void:
 	if _hover_preview != null:
 		return
 	if CARD_SCENE == null or not CARD_SCENE.can_instantiate():
@@ -114,8 +126,17 @@ func _on_mouse_entered() -> void:
 		global_position.y + (size.y - _hover_preview.size.y * PREVIEW_SCALE) / 2.0
 	)
 	_hover_preview.visible = true
+	_refresh_hover_extras(show_left)
+
+## Affiche l'aperçu de jetons invoqués (comme avant, systématique dès que
+## l'aperçu agrandi est visible) et repositionne la bulle d'indication ; selon
+## TooltipData.battle_shows_info(), affiche ou cache les tooltips détaillés.
+func _refresh_hover_extras(show_left: bool) -> void:
+	if not is_instance_valid(_hover_preview) or not _hover_preview.visible:
+		return
 	_show_summon_previews(card_data)
 
+	var preview_width := _hover_preview.size.x * PREVIEW_SCALE
 	var hint_center_x := _hover_preview.global_position.x + preview_width * 0.5
 	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
 
@@ -123,8 +144,10 @@ func _on_mouse_entered() -> void:
 	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
 		else _hover_preview.global_position.x + preview_width + 15
 	var tooltip_y := _hover_preview.global_position.y
-	if TooltipData.tooltips_expanded:
+	if TooltipData.battle_shows_info():
 		await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
+	else:
+		_hide_keyword_tooltips()
 
 func _on_mouse_exited() -> void:
 	_mouse_is_over = false
@@ -138,9 +161,10 @@ func _cleanup_hover() -> void:
 		_hover_preview.queue_free()
 	_hover_preview = null
 
-## Bascule TooltipData.tooltips_expanded pour toute la session et rafraîchit
-## l'affichage courant si cette carte est actuellement survolée. Déclenchée
-## par un clic droit sur cette carte elle-même (petite carte d'origine).
+## Fait avancer TooltipData.battle_hover_mode d'un cran (HIDDEN -> ZOOM ->
+## ZOOM_AND_INFO -> HIDDEN) pour toute la session et rafraîchit l'affichage
+## courant si cette carte est actuellement survolée. Déclenchée par un clic
+## droit sur cette carte elle-même (petite carte d'origine).
 func _on_right_click() -> void:
 	_toggle_and_refresh_tooltips()
 
@@ -165,20 +189,21 @@ func _on_token_preview_right_click(event: InputEvent) -> void:
 	_toggle_and_refresh_tooltips()
 
 func _toggle_and_refresh_tooltips() -> void:
-	TooltipData.toggle_tooltips_expanded()
-	if not _mouse_is_over or not is_instance_valid(_hover_preview) or not _hover_preview.visible:
+	TooltipData.cycle_battle_hover_mode()
+	if not _mouse_is_over:
+		return
+	if not TooltipData.battle_shows_zoom():
+		_cleanup_hover()
+		_show_hint_panel(global_position.x + size.x * 0.5, global_position.y)
+		return
+	if not is_instance_valid(_hover_preview):
+		# Le zoom vient d'être activé alors qu'aucun aperçu n'existait encore
+		# (état HIDDEN) : (re)joue la création comme un survol normal.
+		await _create_and_show_zoom()
 		return
 	var preview_width := _hover_preview.size.x * PREVIEW_SCALE
 	var show_left := global_position.x - preview_width - 15 >= 0.0
-	var hint_center_x := _hover_preview.global_position.x + preview_width * 0.5
-	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
-	var tooltip_x := _hover_preview.global_position.x - 15 if show_left \
-		else _hover_preview.global_position.x + preview_width + 15
-	var tooltip_y := _hover_preview.global_position.y
-	if TooltipData.tooltips_expanded:
-		await _show_keyword_tooltips(tooltip_x, tooltip_y, show_left)
-	else:
-		_hide_keyword_tooltips()
+	_refresh_hover_extras(show_left)
 
 ## Voir Hand._show_summon_previews (même principe) : un aperçu supplémentaire
 ## par jeton fixe invoqué par ce Rituel/Enchantement, à côté de
@@ -338,7 +363,7 @@ func _show_hint_panel(center_x: float, above_y: float) -> void:
 	_hide_hint_panel()
 	if not is_instance_valid(_battle):
 		return
-	_hint_panel = TooltipData.make_hint_panel()
+	_hint_panel = TooltipData.make_battle_hint_panel()
 	_hint_panel.z_index = 1000
 	_battle.add_child(_hint_panel)
 	await get_tree().process_frame

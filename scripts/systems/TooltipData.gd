@@ -151,9 +151,55 @@ var tooltips_expanded := false
 func toggle_tooltips_expanded() -> void:
 	tooltips_expanded = not tooltips_expanded
 
+# ─── Bascule "aperçu agrandi + informations" en BATAILLE (clic droit) ─────────
+# Distincte de tooltips_expanded ci-dessus (deck builder / cimetière, où
+# l'aperçu agrandi reste systématique au survol — pas de risque de gêner une
+# décision d'attaque dans ces écrans hors combat). En bataille (main, board,
+# zones enchantement/rituel/ressource), l'aperçu agrandi au survol gênait
+# parfois la sélection d'une cible d'attaque en venant recouvrir les
+# serviteurs voisins — demande utilisateur explicite le 2026-09-25 : plus rien
+# au survol par défaut. Cycle sur 3 états pour la session (pas persisté) :
+# un premier clic droit affiche l'aperçu agrandi (ZOOM), un second y ajoute
+# les tooltips détaillés (ZOOM_AND_INFO, même contenu que tooltips_expanded
+# ci-dessus), un troisième referme tout (retour à HIDDEN).
+enum BattleHoverMode { HIDDEN, ZOOM, ZOOM_AND_INFO }
+
+var battle_hover_mode: BattleHoverMode = BattleHoverMode.HIDDEN
+
+func cycle_battle_hover_mode() -> void:
+	match battle_hover_mode:
+		BattleHoverMode.HIDDEN:
+			battle_hover_mode = BattleHoverMode.ZOOM
+		BattleHoverMode.ZOOM:
+			battle_hover_mode = BattleHoverMode.ZOOM_AND_INFO
+		_:
+			battle_hover_mode = BattleHoverMode.HIDDEN
+
+func battle_shows_zoom() -> bool:
+	return battle_hover_mode != BattleHoverMode.HIDDEN
+
+func battle_shows_info() -> bool:
+	return battle_hover_mode == BattleHoverMode.ZOOM_AND_INFO
+
 ## Petite bulle d'indication affichée au-dessus de l'aperçu agrandi d'une
 ## carte survolée ("Clic droit pour afficher/cacher les informations").
 func make_hint_panel() -> PanelContainer:
+	return _make_hint_panel_with_text(_tr("TOOLTIP_HINT_HIDE" if tooltips_expanded else "TOOLTIP_HINT_SHOW"))
+
+## Même bulle, pour le cycle à 3 états de la bataille (voir battle_hover_mode
+## ci-dessus) — le texte reflète ce que déclenchera le PROCHAIN clic droit.
+func make_battle_hint_panel() -> PanelContainer:
+	var text_key := "TOOLTIP_HINT_SHOW"
+	match battle_hover_mode:
+		BattleHoverMode.HIDDEN:
+			text_key = "TOOLTIP_HINT_ZOOM"
+		BattleHoverMode.ZOOM:
+			text_key = "TOOLTIP_HINT_SHOW"
+		BattleHoverMode.ZOOM_AND_INFO:
+			text_key = "TOOLTIP_HINT_HIDE"
+	return _make_hint_panel_with_text(_tr(text_key))
+
+func _make_hint_panel_with_text(text: String) -> PanelContainer:
 	var bg := StyleBoxFlat.new()
 	bg.bg_color                   = Color(0.10, 0.08, 0.05, 0.92)
 	bg.border_width_left          = 1
@@ -175,7 +221,7 @@ func make_hint_panel() -> PanelContainer:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var label := Label.new()
-	label.text = _tr("TOOLTIP_HINT_HIDE" if tooltips_expanded else "TOOLTIP_HINT_SHOW")
+	label.text = text
 	label.add_theme_color_override("font_color", Color(0.85, 0.80, 0.65, 1.0))
 	label.add_theme_font_size_override("font_size", Typography.MICRO)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
