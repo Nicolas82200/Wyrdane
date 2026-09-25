@@ -164,6 +164,18 @@ func get_profile(on_profile: Callable) -> void:
 			on_profile.call(false, {})
 	)
 
+# Profil d'un AUTRE joueur (GET /api/profile/:userId) : même format que
+# get_profile ci-dessus, mais restreint côté backend aux amis acceptés (403
+# sinon — voir ProfilePanel.open_for_user côté client). on_profile appelé
+# avec (success: bool, data: Dictionary).
+func get_friend_profile(user_id: int, on_profile: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/profile/%d" % user_id, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_profile.call(true, parsed)
+		else:
+			on_profile.call(false, {})
+	)
+
 # Rapporte le résultat d'un match réseau (POST /api/ranked/matches/report) —
 # voir NetHandshake pour client_match_id/opponent_id. Chaque camp rapporte
 # indépendamment ; le backend ne valide (MMR, historique) que si les deux
@@ -202,6 +214,17 @@ func report_ranked_match(client_match_id: String, opponent_id: int, winner_id: i
 # opponent_username, opponent_deck_races}. on_complete(success: bool, entries: Array).
 func get_match_history(limit: int, on_complete: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/ranked/matches/history?limit=%d" % limit, {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Array:
+			on_complete.call(true, parsed)
+		else:
+			on_complete.call(false, [])
+	)
+
+# Même chose que get_match_history mais pour un AUTRE joueur (GET
+# /api/ranked/matches/history/:userId), restreint aux amis acceptés côté
+# backend — voir MatchHistoryPanel.open_for_user.
+func get_friend_match_history(user_id: int, limit: int, on_complete: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/ranked/matches/history/%d?limit=%d" % [user_id, limit], {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Array:
 			on_complete.call(true, parsed)
 		else:

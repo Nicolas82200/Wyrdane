@@ -83,6 +83,16 @@ func remote_display_name() -> String:
 
 func _setup_transport(backend: TransportFactory.Backend) -> void:
 	if transport != null:
+		# Fermer le transport précédent QUITTE le lobby en cours côté backend
+		# (voir SteamTransport.close) : toute nouvelle tentative rend donc
+		# injoignable le lobby que le pair distant était peut-être en train de
+		# rejoindre — il reçoit alors "lobby inexistant". C'est la cause des
+		# échecs d'entrée en boucle (code 2) diagnostiqués le 2026-09-25 ; les
+		# chemins qui pouvaient déclencher ça par accident sont désormais
+		# verrouillés dans MatchmakingOverlay (voir _abandon_queue_for_invite,
+		# MAX_AUTO_JOIN_RETRIES). Tracé en clair pour repérer immédiatement, dans
+		# un log de partie, toute nouvelle occurrence.
+		print("[NetworkManager] Transport précédent fermé (lobby en cours quitté) avant une nouvelle tentative")
 		transport.close()
 		transport.queue_free()
 	transport = TransportFactory.create(backend)

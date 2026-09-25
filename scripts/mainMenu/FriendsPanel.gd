@@ -159,7 +159,14 @@ static func _make_request_row(menu, req: Dictionary) -> HBoxContainer:
 static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.09, 0.075, 0.06, 0.55)
+	# Bandeau doré/sombre transparent (demande utilisateur) : rend visible la
+	# zone cliquable (ouvre le chat) sans attendre le survol.
+	style.bg_color = Color(0.18, 0.14, 0.05, 0.5)
+	style.border_color = Color(0.55, 0.44, 0.2, 0.4)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
 	style.corner_radius_bottom_right = 4
@@ -272,9 +279,9 @@ static func _show_context_menu(menu, friendship_id: int, user_id: int, username:
 				menu._start_friend_invite_flow(user_id, username)
 			1:
 				close(menu)
-				menu._show_info_view(menu.InfoView.STATS)
-				menu.leaderboard_search_field.text = username
-				StatsPanel.search_player(menu)
+				menu._profile_pending_user_id = user_id
+				menu._profile_pending_username = username
+				menu._show_info_view(menu.InfoView.PROFILE)
 			2:
 				BackendClient.report_issue("cheating", SettingsManager.t("FRIENDS_REPORT_DEFAULT_DESCRIPTION") % username, user_id)
 			3:

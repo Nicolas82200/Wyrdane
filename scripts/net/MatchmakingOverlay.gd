@@ -170,7 +170,25 @@ const RANKED_REPORT_LOBBY_RETRY_DELAY := 1.5
 # prévient l'hôte d'une entrée en lobby refusée chez le pair (lobby_chat_update
 # ne se déclenche que si quelqu'un entre RÉELLEMENT dans le lobby). Plutôt que
 # de rester bloqué, l'hôte referme et relance une recherche automatiquement.
-const HOST_PEER_WAIT_TIMEOUT := 30.0
+#
+# 60s et non 30 : l'invité doit avoir le temps de voir le lobby apparaître à son
+# prochain poll (RANKED_POLL_INTERVAL), de le rejoindre côté Steam, PUIS
+# d'établir la connexion P2P. À 30s, un aller-retour un peu lent suffisait à ce
+# que l'hôte referme son lobby (voir NetworkManager._setup_transport : toute
+# nouvelle tentative quitte le lobby en cours) pendant que l'invité était encore
+# en train de le rejoindre — l'invité recevait alors "lobby inexistant" (code 2)
+# et les deux repartaient en boucle, chacun détruisant le lobby que l'autre
+# venait de trouver.
+const HOST_PEER_WAIT_TIMEOUT := 60.0
+
+# Nombre maximum de relances automatiques consécutives après un join refusé
+# (voir _on_peer_disconnected, "steam_lobby_join_failed"). Sans plafond, deux
+# joueurs pouvaient se relancer indéfiniment l'un après l'autre — chaque
+# relance détruisant le lobby en cours (voir HOST_PEER_WAIT_TIMEOUT) et donc
+# provoquant l'échec suivant : une boucle qui ne convergeait jamais et
+# empêchait complètement de jouer ensemble. Au-delà, on s'arrête et on le dit
+# au joueur plutôt que de boucler en silence.
+const MAX_AUTO_JOIN_RETRIES := 2
 
 # Mode de la file backend en cours ("ranked"|"normal"|"") — distinct de
 # _search_mode (qui reste "normal" même une fois basculé sur le repli Steam
@@ -201,6 +219,10 @@ var _queue_cancel_pending := false
 var _queue_matched_join_pending := false
 # Filet de sécurité côté hôte : voir HOST_PEER_WAIT_TIMEOUT.
 var _host_peer_wait_timer: Timer
+# Relances automatiques consécutives déjà consommées (voir
+# MAX_AUTO_JOIN_RETRIES) — remis à zéro dès qu'une connexion aboutit ou qu'une
+# nouvelle recherche est lancée à la main par le joueur.
+var _auto_join_retries := 0
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -463,6 +485,14 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	if not BackendClient.is_authenticated():
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 		return
+	# Une invitation est un choix explicite de jouer avec QUELQU'UN de précis :
+	# rien du matchmaking automatique ne doit pouvoir la saboter derrière. Un
+	# ticket de file encore vivant (recherche annulée dont la réponse backend
+	# n'était pas encore revenue, poll en cours...) pouvait se réveiller plus
+	# tard et rappeler host_game_with/join_game_with — ce qui quitte le lobby
+	# d'invitation en cours (voir NetworkManager._setup_transport) et faisait
+	# échouer l'entrée de l'ami avec "lobby inexistant" (code 2).
+	_abandon_queue_for_invite()
 	_pending_outgoing_recipient_name = recipient_name
 	_quick_matching = false
 	_set_search_mode("invite")
@@ -524,8 +554,17 @@ func _poll_outgoing_invite() -> void:
 				_net.close()
 				_reset_friend_invite_state()
 				_flash_banner("NET_FRIEND_INVITE_TIMEOUT")
+			"accepted":
+				# L'ami a accepté : il est en train de rejoindre le lobby Steam,
+				# _on_peer_connected prendra le relais. On coupe le poll ici sans
+				# rien fermer ni toucher au bandeau (la connexion P2P peut encore
+				# demander quelques secondes) — surtout ne pas laisser le délai
+				# d'abandon courir, il appellerait _net.close() sur une partie en
+				# train de démarrer.
+				_stop_outgoing_invite_poll()
+				_pending_outgoing_invite_id = 0
 			_:
-				pass  # "pending"/"accepted" : rien à faire, on repollera au prochain tick (ou _on_peer_connected prendra le relais)
+				pass  # "pending" : on repollera au prochain tick
 	)
 
 func _stop_outgoing_invite_poll() -> void:
@@ -638,6 +677,7 @@ func _on_banner_cancel_pressed() -> void:
 			_cancel_queue_search(false)
 			_quick_matching = false
 			_queue_matched_join_pending = false
+			_auto_join_retries = 0  # annulation joueur : la prochaine recherche repart à neuf
 			_stop_host_peer_wait_timer()
 			_net.close()
 			_show_search_banner(false)
@@ -693,10 +733,53 @@ func _reset_queue_ui() -> void:
 	_set_search_mode("")
 	_set_loading(false)
 
+# Coupe tout ce qui, dans le matchmaking automatique, pourrait se réveiller plus
+# tard et détruire le lobby d'une invitation en cours (voir invite_friend /
+# _on_invite_join_pressed). Volontairement distinct de _reset_queue_ui : ne
+# touche NI à _search_mode NI au spinner (l'appelant est en train de passer en
+# mode "invite", pas de revenir au repos) et ne ferme jamais _net — le lobby
+# éventuellement déjà hébergé est justement celui qu'il faut préserver.
+func _abandon_queue_for_invite() -> void:
+	if _queue_ticket_id != "":
+		BackendClient.queue_cancel(_queue_ticket_id)
+		_queue_ticket_id = ""
+	else:
+		# queue_join peut être en vol sans ticket connu de ce côté : son callback
+		# annulera le ticket dès son arrivée (voir _queue_join_and_poll). Un
+		# drapeau laissé à true sans ticket à venir est inoffensif — start_normal
+		# et start_ranked le remettent tous les deux à false.
+		_queue_cancel_pending = true
+	if _queue_poll_timer != null:
+		_queue_poll_timer.stop()
+		_queue_poll_timer.queue_free()
+		_queue_poll_timer = null
+	_stop_host_peer_wait_timer()
+	_queue_mode = ""
+	_queue_role = ""
+	_queue_match_id = ""
+	_queue_match_session_token = ""
+	_queue_matched_join_pending = false
+	_quick_matching = false
+	_auto_join_retries = 0
+
 func _poll_queue() -> void:
+	# Une invitation a pris la main depuis (voir _abandon_queue_for_invite) : ce
+	# tick est un résidu et ne doit surtout pas relancer quoi que ce soit, sous
+	# peine de détruire le lobby de l'invitation en cours.
+	if _search_mode == "invite":
+		return
 	_queue_elapsed += RANKED_POLL_INTERVAL
 	var is_normal := _search_mode == "normal"
 	var timeout := NORMAL_QUEUE_TIMEOUT if is_normal else RANKED_QUEUE_TIMEOUT
+	# Déjà apparié (_queue_role rempli) mais le lobby de l'hôte n'est pas encore
+	# publié : le délai COURT de la file ne s'applique plus. L'appliquer ici
+	# lâchait un adversaire qui était justement en train de créer son lobby — les
+	# deux repartaient alors chacun de leur côté sans jamais retomber en phase.
+	# On ne poll pas indéfiniment pour autant : on accorde à l'hôte le même temps
+	# que son propre filet de sécurité (voir HOST_PEER_WAIT_TIMEOUT), jamais
+	# moins que le délai nominal du mode.
+	if _queue_role != "":
+		timeout = maxf(timeout, HOST_PEER_WAIT_TIMEOUT)
 	if _queue_elapsed >= timeout:
 		if _queue_ticket_id != "":
 			BackendClient.queue_cancel(_queue_ticket_id)
@@ -728,6 +811,11 @@ func _poll_queue() -> void:
 	)
 
 func _on_queue_matched(data: Dictionary) -> void:
+	# Réponse de file arrivée après qu'une invitation a pris la main : l'ignorer,
+	# sinon le host_game_with/join_game_with ci-dessous quitterait le lobby de
+	# l'invitation (voir _abandon_queue_for_invite).
+	if _search_mode == "invite":
+		return
 	_queue_role = str(data.get("role", ""))
 	_queue_match_id = str(data.get("match_id", ""))
 	_queue_match_session_token = str(data.get("match_session_token", ""))
@@ -817,6 +905,21 @@ func _stop_host_peer_wait_timer() -> void:
 # deux se re-matcheront naturellement au prochain appariement compatible.
 func _on_host_peer_wait_timeout() -> void:
 	_stop_host_peer_wait_timer()
+	# Une invitation est passée devant : son lobby doit survivre (un ami peut
+	# accepter longtemps après l'envoi), on ne referme surtout rien ici.
+	if _search_mode == "invite":
+		return
+	# Plafond atteint : on arrête de relancer dans le vide et on le dit, plutôt
+	# que d'entretenir la boucle où chacun détruit le lobby de l'autre (voir
+	# MAX_AUTO_JOIN_RETRIES).
+	if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
+		_auto_join_retries = 0
+		_net.close()
+		_reset_queue_ui()
+		_show_search_banner(false)
+		_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
+		return
+	_auto_join_retries += 1
 	var mode_to_retry := _queue_mode
 	_net.close()
 	_reset_queue_ui()
@@ -858,6 +961,15 @@ func _on_peer_identified() -> void:
 func _on_peer_connected() -> void:
 	_stop_host_peer_wait_timer()
 	_queue_matched_join_pending = false
+	_auto_join_retries = 0  # série de relances close : la connexion a abouti
+	# L'invitation a rempli son rôle (l'ami est là) : couper son poll MAINTENANT.
+	# Sans ça, son délai d'abandon (OUTGOING_INVITE_TIMEOUT) finissait par
+	# expirer en pleine partie et appelait _net.close() — ce qui quitte le lobby
+	# et coupe la connexion d'un match déjà lancé (voir
+	# NetworkManager._setup_transport).
+	_stop_outgoing_invite_poll()
+	_pending_outgoing_invite_id = 0
+	_pending_outgoing_recipient_name = ""
 	# Le nom (mode invitation) doit être capturé AVANT de réinitialiser
 	# _search_mode ci-dessous : _run_match_ready_countdown en a besoin pour
 	# afficher "<ami> est prêt" plutôt que le générique "Partie trouvée".
@@ -924,6 +1036,17 @@ func _on_peer_disconnected(reason: String) -> void:
 			# _queue_matched_join_pending).
 			if _queue_matched_join_pending:
 				_queue_matched_join_pending = false
+				# Plafonné : sans ça, les deux joueurs se relançaient sans fin,
+				# chaque relance quittant le lobby en cours (voir
+				# NetworkManager._setup_transport) et causant l'échec suivant —
+				# ils ne se rejoignaient jamais (voir MAX_AUTO_JOIN_RETRIES).
+				if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
+					_auto_join_retries = 0
+					_reset_queue_ui()
+					_show_search_banner(false)
+					_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
+					return
+				_auto_join_retries += 1
 				var mode_to_retry := _queue_mode
 				_reset_queue_ui()
 				if mode_to_retry == "ranked":
@@ -931,11 +1054,16 @@ func _on_peer_disconnected(reason: String) -> void:
 				else:
 					start_normal()
 			else:
+				# Échec d'entrée sur une invitation explicite : "connexion
+				# interrompue" est trompeur (rien n'a jamais été connecté) et ne
+				# dit pas au joueur quoi faire. Le lobby de l'ami n'existe plus —
+				# il faut lui redemander une invitation.
+				var was_invite := _search_mode == "invite"
 				_quick_matching = false
 				_set_search_mode("")
 				_reset_queue_ui()
 				_show_search_banner(false)
-				_flash_banner("NET_STEAM_DISCONNECTED")
+				_flash_banner("NET_STEAM_INVITE_LOBBY_GONE" if was_invite else "NET_STEAM_DISCONNECTED")
 		_:
 			_quick_matching = false
 			_queue_matched_join_pending = false
@@ -1103,6 +1231,11 @@ func _on_invite_join_pressed() -> void:
 	if backend_invite_id != 0:
 		BackendClient.accept_game_invite(backend_invite_id, func(_success: bool, _lobby_id: int) -> void: pass)
 	_quick_matching = false
+	# Même précaution que côté hôte (voir invite_friend) : couper tout résidu de
+	# matchmaking automatique AVANT de rejoindre, sinon un poll/appariement
+	# encore en vol pouvait rappeler host_game_with/join_game_with et défaire la
+	# connexion à l'ami à peine établie.
+	_abandon_queue_for_invite()
 	_set_search_mode("invite")
 	_set_status("NET_STEAM_INVITE_RECEIVED")
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
