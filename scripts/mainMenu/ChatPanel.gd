@@ -39,7 +39,11 @@ static func send(menu) -> void:
 		if not success:
 			return
 		menu.chat_input_line_edit.text = ""
-		menu.chat_thread_messages.append(message)
+		# chat_thread_messages suit la convention backend (le plus récent en
+		# tête, voir _render_thread) : insérer en tête, pas append, sinon le
+		# message tout juste envoyé se retrouve traité comme le plus ancien et
+		# s'affiche en haut du fil au lieu du bas.
+		menu.chat_thread_messages.insert(0, message)
 		_render_thread(menu)
 		_refresh_conversations(menu)
 	)
@@ -184,7 +188,9 @@ static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 
 	var wrapper := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.35, 0.28, 0.14, 0.6) if is_mine else Color(0.09, 0.075, 0.06, 0.6)
+	# Bulle dorée plus sombre pour l'interlocuteur, pour rester dans la charte
+	# dorée du jeu plutôt qu'un gris/noir neutre (demande utilisateur).
+	style.bg_color = Color(0.35, 0.28, 0.14, 0.6) if is_mine else Color(0.16, 0.12, 0.04, 0.75)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_right = 8
@@ -199,7 +205,7 @@ static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 	var label := Label.new()
 	label.text = body
 	var font: Font = ThemeDB.fallback_font
-	var font_size: int = Typography.BODY
+	var font_size: int = Typography.SECTION
 	var natural_width: float = font.get_string_size(body, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	label.custom_minimum_size = Vector2(min(natural_width + 4.0, BUBBLE_MAX_WIDTH), 0)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
