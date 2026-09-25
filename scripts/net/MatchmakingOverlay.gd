@@ -629,6 +629,7 @@ func start_ranked() -> void:
 # par MMR public (Classé) ou MMR caché (Normal), identique côté serveur, voir
 # matchmakingModel.joinQueue côté wyrdane-backend.
 func _queue_join_and_poll(mode: String) -> void:
+	print("[Matchmaking] Recherche de partie : mode=%s" % mode)
 	BackendClient.queue_join(mode, func(success: bool, data: Dictionary) -> void:
 		# Annulé pendant l'aller-retour réseau (voir _cancel_queue_search) :
 		# l'UI est déjà revenue au repos, il ne reste qu'à ne pas laisser le
@@ -651,6 +652,7 @@ func _queue_join_and_poll(mode: String) -> void:
 		_queue_ticket_id = str(data.get("ticket_id", ""))
 		_queue_mode = mode
 		_queue_elapsed = 0.0
+		print("[Matchmaking] Ticket %s obtenu (mode=%s), début du polling" % [_queue_ticket_id, mode])
 		_queue_poll_timer = Timer.new()
 		_queue_poll_timer.wait_time = RANKED_POLL_INTERVAL
 		_queue_poll_timer.timeout.connect(_poll_queue)
@@ -801,13 +803,22 @@ func _poll_queue() -> void:
 			"matched":
 				_on_queue_matched(data)
 			"cancelled", "expired":
+				print("[Matchmaking] Ticket %s : %s" % [ticket_id, str(data.get("status", ""))])
 				_reset_queue_ui()
 				if is_normal:
 					_start_direct_quick_match()
 				else:
 					_flash_banner("NET_RANKED_TIMEOUT")
 			_:
-				pass  # "waiting" : rien à faire, on repollera au prochain tick
+				# "waiting" : rien à faire côté état, juste de quoi diagnostiquer
+				# le matchmaking en cours (MMR propre + fenêtre d'appariement
+				# courante, voir matchmakingModel.windowFor côté wyrdane-backend —
+				# la fenêtre s'élargit avec le temps d'attente jusqu'à ce qu'un
+				# adversaire compatible soit trouvé).
+				print("[Matchmaking] mode=%s mmr=%s fenêtre=±%s attente=%ss" % [
+					_queue_mode, str(data.get("mmr", "?")), str(data.get("window", "?")),
+					str(data.get("elapsed_seconds", "?")),
+				])
 	)
 
 func _on_queue_matched(data: Dictionary) -> void:
@@ -817,6 +828,8 @@ func _on_queue_matched(data: Dictionary) -> void:
 	if _search_mode == "invite":
 		return
 	_queue_role = str(data.get("role", ""))
+	print("[Matchmaking] Adversaire trouvé — mode=%s rôle=%s match_id=%s" \
+		% [_queue_mode, _queue_role, str(data.get("match_id", ""))])
 	_queue_match_id = str(data.get("match_id", ""))
 	_queue_match_session_token = str(data.get("match_session_token", ""))
 	if _queue_role == "host":
