@@ -65,3 +65,11 @@ func draw_card() -> void:
 # ("main distante vide") — bug confirmé par un vrai log de partie réseau.
 func receive_card_to_hand(_card_data: CardData) -> void:
 	pass
+
+# Défausse 1 carte au hasard de la main du camp adverse (Le Marchand d'Âmes,
+# sans Pacte payé). Surchargé par chaque implémentation : l'IA défausse
+# réellement une carte de sa main, le réseau se contente de décrémenter son
+# compteur cosmétique (le pair distant défausse la vraie carte de son côté —
+# contenu privé, jamais transmis, même principe que HandDiscardSystem).
+func discard_random_card() -> void:
+	pass

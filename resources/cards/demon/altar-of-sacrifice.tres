@@ -31,7 +31,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Autel des Sacrifices"
-description = "Deuil : Piochez une carte.
+description = "Deuil : Piochez une carte. (Une seule fois par tour.)
 Pacte 2 : Piochez une carte supplémentaire."
 flavour_text = "L'autel ne demande jamais deux fois. Il attend, c'est tout."
 texture = ExtResource("3_texture")
@@ -42,4 +42,5 @@ demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_acv90")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_vpfyd"), SubResource("Resource_bonus")])
 rarity = "Rare"
+trigger_once_per_turn = true
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
