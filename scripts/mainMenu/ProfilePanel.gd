@@ -45,7 +45,12 @@ static func render(menu) -> void:
 
 	match menu._profile_tab:
 		menu.ProfileTab.MAIN:
-			SupporterPackPanel.open(menu)
+			# Section "Wyrdane Supporter Pack" retirée sur demande utilisateur
+			# (2026-09-25, "pour le moment il ne m'est pas utile") — le script
+			# SupporterPackPanel.gd est conservé tel quel (le contenu du pack
+			# n'a pas changé, juste plus affiché ici) en vue d'une réactivation
+			# future, voir son commentaire d'en-tête.
+			pass
 		menu.ProfileTab.HISTORY:
 			MatchHistoryPanel.open(menu)
 		menu.ProfileTab.COMMUNITY:
