@@ -56,6 +56,7 @@ func _execute_effect_impl(
 		"Debuff":           await _debuff(battle, source_minion, effect, selected_target)
 		"Destroy":          await _destroy(battle, source_minion, effect, selected_target)
 		"DrawCard":         _draw_cards(battle, source_minion, effect.value)
+		"DrawCardDiscardRandom": _draw_cards_and_discard_random(battle, source_minion, effect)
 		"DrawCardPerAllyDeathThisTurn": _draw_card_per_ally_death_this_turn(battle, source_minion, effect)
 		"MoveRow":          await _move_row(battle, source_minion, effect, selected_target)
 		"SummonMinion":     await _summon_minion(battle, source_minion, effect)
@@ -770,6 +771,35 @@ func _draw_cards(battle, source_minion: Minion, count: int) -> void:
 			battle.deck_system.draw_card()
 		else:
 			battle.opponent.draw_card()
+
+# Pioche `effect.value` carte(s) puis défausse au hasard autant de cartes de la
+# main (Le Marchand d'Âmes, sans Pacte payé) : filtrage neutre en avantage de
+# cartes. Côté joueur, la carte défaussée est choisie via un tirage local
+# (comme HandDiscardSystem._on_timeout) — contenu privé, jamais synchronisé via
+# le RNG de jeu partagé pour ne pas désynchroniser les tirages aléatoires
+# futurs des deux clients. Côté adverse, la vraie défausse est déléguée à
+# OpponentDriver.discard_random_card (IA : défausse réelle ; réseau : compteur
+# cosmétique, le pair distant défausse réellement de son côté).
+func _draw_cards_and_discard_random(battle, source_minion: Minion, effect: CardEffect) -> void:
+	if battle.get("deck_system") == null:
+		return
+	var is_player: bool = source_minion == null or source_minion.owner_is_player
+	var count: int = maxi(1, effect.value)
+	for i in range(count):
+		if is_player:
+			battle.deck_system.draw_card()
+			if not battle.hand_cards.is_empty():
+				# Tirage local (pas battle.game_rng) : ne retire qu'un index, sans
+				# mélanger le reste de la main, pour ne pas réordonner les autres
+				# cartes visuellement à l'écran.
+				var index: int = randi() % battle.hand_cards.size()
+				var discarded: CardData = battle.hand_cards[index]
+				battle.hand_cards.remove_at(index)
+				battle.player_graveyard.add_discarded(discarded)
+				battle.hand.set_hand(battle.hand_cards)
+		else:
+			battle.opponent.draw_card()
+			battle.opponent.discard_random_card()
 
 # Pioche 1 carte par Mort-Vivant allié mort CE TOUR, plafonné à effect.count
 # (Dernier Soupir : "pioche 1 carte par Mort-Vivant allié mort ce tour, max 3").

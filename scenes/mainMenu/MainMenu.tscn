@@ -717,6 +717,7 @@ theme_override_constants/margin_bottom = 24
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+clip_contents = true
 
 [node name="NewsView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=300000042]
 layout_mode = 1

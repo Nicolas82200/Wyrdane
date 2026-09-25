@@ -29,16 +29,36 @@ static func close(menu) -> void:
 	menu.show_nav(menu.NavMode.MAIN)
 
 static func fetch(menu) -> void:
-	BackendClient.get_friends(func(success: bool, friends: Array):
-		if menu._nav_mode != menu.NavMode.FRIENDS:
-			return
-		menu.friends_cache = friends if success else []
-		BackendClient.get_incoming_friend_requests(func(req_success: bool, requests: Array):
+	# Synchronise d'abord les amis Steam (le backend les ajoute directement en
+	# amis Wyrdane "acceptés", voir BackendClient.resolve_steam_friends —
+	# demande utilisateur explicite : "je ne veux pas qu'on ait à les rajouter
+	# en jeu") AVANT de charger la liste d'amis, pour qu'ils y apparaissent
+	# déjà au premier rendu plutôt qu'un instant plus tard.
+	_sync_steam_friends(menu, func():
+		BackendClient.get_friends(func(success: bool, friends: Array):
 			if menu._nav_mode != menu.NavMode.FRIENDS:
 				return
-			menu.friend_requests_cache = requests if req_success else []
-			render(menu)
+			menu.friends_cache = friends if success else []
+			BackendClient.get_incoming_friend_requests(func(req_success: bool, requests: Array):
+				if menu._nav_mode != menu.NavMode.FRIENDS:
+					return
+				menu.friend_requests_cache = requests if req_success else []
+				render(menu)
+			)
 		)
+	)
+
+# Appel réseau évité si le joueur n'a aucun ami Steam local ou si Steam est
+# indisponible (get_steam_friend_ids() renvoie [] dans les deux cas).
+static func _sync_steam_friends(menu, on_done: Callable) -> void:
+	var steam_ids: Array = SteamService.get_steam_friend_ids()
+	if steam_ids.is_empty():
+		on_done.call()
+		return
+	BackendClient.resolve_steam_friends(steam_ids, func(_success: bool, _results: Array):
+		if menu._nav_mode != menu.NavMode.FRIENDS:
+			return
+		on_done.call()
 	)
 
 static func search(menu) -> void:
@@ -179,7 +199,12 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 
 	var name_label := Label.new()
 	name_label.text = str(friend.get("username", "?"))
-	name_label.add_theme_font_size_override("font_size", Typography.BODY)
+	name_label.clip_text = true
+	# Demande utilisateur explicite (2026-09-25) : agrandir les noms d'amis —
+	# SECTION plutôt que BODY, seule taille de l'échelle Typography au-dessus
+	# qui reste lisible sur une ligne sans écraser le reste (pastille de
+	# présence, étiquette Steam) en dessous.
+	name_label.add_theme_font_size_override("font_size", Typography.SECTION)
 	name_label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
 	name_col.add_child(name_label)
 
