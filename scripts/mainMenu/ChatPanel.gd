@@ -39,7 +39,11 @@ static func send(menu) -> void:
 		if not success:
 			return
 		menu.chat_input_line_edit.text = ""
-		menu.chat_thread_messages.append(message)
+		# chat_thread_messages suit la convention backend (le plus récent en
+		# tête, voir _render_thread) : insérer en tête, pas append, sinon le
+		# message tout juste envoyé se retrouve traité comme le plus ancien et
+		# s'affiche en haut du fil au lieu du bas.
+		menu.chat_thread_messages.insert(0, message)
 		_render_thread(menu)
 		_refresh_conversations(menu)
 	)
@@ -138,13 +142,43 @@ static func _make_conversation_row(menu, convo: Dictionary) -> Button:
 	var username := str(convo.get("username", "?"))
 	var unread := int(convo.get("unread_count", 0))
 
+	var is_selected: bool = partner_id == menu.chat_thread_friend_id
+
 	var row := Button.new()
-	row.flat = true
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	row.add_theme_font_size_override("font_size", Typography.MICRO)
+	row.add_theme_constant_override("h_separation", 0)
 	row.text = "%s  (%d)" % [username, unread] if unread > 0 else username
-	if partner_id == menu.chat_thread_friend_id:
+	if is_selected:
 		row.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+
+	# Bandeau doré/sombre transparent (demande utilisateur), même traitement
+	# que les lignes d'amis (FriendsPanel._make_friend_row) : rend visible la
+	# zone cliquable de chaque conversation sans attendre le survol. La
+	# conversation sélectionnée ressort avec un fond plus clair, en plus de la
+	# couleur de texte dorée déjà utilisée ci-dessus.
+	var normal_style := StyleBoxFlat.new()
+	normal_style.bg_color = Color(0.30, 0.24, 0.10, 0.65) if is_selected else Color(0.18, 0.14, 0.05, 0.5)
+	normal_style.border_color = Color(0.55, 0.44, 0.2, 0.4)
+	normal_style.border_width_left = 1
+	normal_style.border_width_top = 1
+	normal_style.border_width_right = 1
+	normal_style.border_width_bottom = 1
+	normal_style.corner_radius_top_left = 4
+	normal_style.corner_radius_top_right = 4
+	normal_style.corner_radius_bottom_right = 4
+	normal_style.corner_radius_bottom_left = 4
+	normal_style.content_margin_left = 8
+	normal_style.content_margin_right = 8
+	normal_style.content_margin_top = 5
+	normal_style.content_margin_bottom = 5
+	var hover_style: StyleBoxFlat = normal_style.duplicate()
+	hover_style.bg_color = Color(0.36, 0.29, 0.13, 0.7) if is_selected else Color(0.24, 0.19, 0.08, 0.6)
+	row.add_theme_stylebox_override("normal", normal_style)
+	row.add_theme_stylebox_override("hover", hover_style)
+	row.add_theme_stylebox_override("pressed", hover_style)
+	row.add_theme_stylebox_override("focus", normal_style)
+
 	row.pressed.connect(func(): _open_thread(menu, partner_id, username))
 	return row
 
@@ -184,7 +218,9 @@ static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 
 	var wrapper := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.35, 0.28, 0.14, 0.6) if is_mine else Color(0.09, 0.075, 0.06, 0.6)
+	# Bulle dorée plus sombre pour l'interlocuteur, pour rester dans la charte
+	# dorée du jeu plutôt qu'un gris/noir neutre (demande utilisateur).
+	style.bg_color = Color(0.35, 0.28, 0.14, 0.6) if is_mine else Color(0.16, 0.12, 0.04, 0.75)
 	style.corner_radius_top_left = 8
 	style.corner_radius_top_right = 8
 	style.corner_radius_bottom_right = 8
@@ -199,7 +235,7 @@ static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 	var label := Label.new()
 	label.text = body
 	var font: Font = ThemeDB.fallback_font
-	var font_size: int = Typography.BODY
+	var font_size: int = Typography.SECTION
 	var natural_width: float = font.get_string_size(body, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 	label.custom_minimum_size = Vector2(min(natural_width + 4.0, BUBBLE_MAX_WIDTH), 0)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
