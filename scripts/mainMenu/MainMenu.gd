@@ -91,9 +91,6 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
 @onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
 @onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow/CurrencyLabel
-@onready var rank_badge_row: HBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeRow
-@onready var rank_icon: TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeRow/RankIcon
-@onready var rank_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/RankBadgeRow/RankBadgeLabel
 @onready var account_level_label: Label = %AccountLevelLabel
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
@@ -806,7 +803,6 @@ func _launch_backend_syncs() -> void:
 	# partie (voir LevelManager.apply_match_result) peut rester affiché comme
 	# périmé si ce sync catalogue échoue ponctuellement.
 	LevelManager.sync_from_backend()
-	ProfilePanel.fetch_rank_badge(self)
 	ProfilePanel.fetch_login_reward_status(self)
 	ReferralPanel.maybe_show_first_launch_prompt(self)
 

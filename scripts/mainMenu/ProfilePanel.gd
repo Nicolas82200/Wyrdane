@@ -186,18 +186,6 @@ static func apply_rank_badge(label: Label, icon: TextureRect, mmr: int, with_pro
 			text += "\n" + SettingsManager.t("RANK_BADGE_MAX_TIER")
 	label.text = text
 
-static func fetch_rank_badge(menu) -> void:
-	if not BackendClient.is_authenticated():
-		return
-	BackendClient.get_profile(func(success: bool, data: Dictionary):
-		if success:
-			apply_rank_badge(menu.rank_badge_label, menu.rank_icon, int(data.get("ranked", {}).get("mmr", 0)), false)
-			# Masqué par défaut (voir MainMenu.tscn) : un "-" de remplissage restait
-			# affiché en permanence entre l'or et le niveau tant que la synchronisation
-			# backend n'avait pas encore résolu (ou échouait) le palier réel.
-			menu.rank_badge_row.visible = true
-	)
-
 # --- Récompense de connexion quotidienne ---------------------------------
 # Popup automatique au chargement du menu (une fois la sync backend faite),
 # uniquement si pas déjà réclamée aujourd'hui — voir BackendClient.get_login_reward_status.
