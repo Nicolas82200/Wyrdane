@@ -74,6 +74,15 @@ const RARITY_COLORS := {
 	"Legendary": Color("f39c12")
 }
 
+# Couleur du badge de coût des cartes Artefact (Race.Type.ARTIFACT, coût 100%
+# générique) : même bleu que RARITY_COLORS["Rare"], pour rester cohérent avec
+# la seule couleur "bleu" déjà utilisée ailleurs dans l'UI des cartes.
+const GENERIC_MANA_COLOR := Color("3498db")
+# Couleur par défaut du badge de coût (CostLabel), reprise depuis Card.tscn —
+# réappliquée explicitement pour les autres races afin qu'un badge Artefact
+# (bleu) ne reste jamais accroché à une instance de Card réutilisée.
+const COST_LABEL_DEFAULT_COLOR := Color(0.827451, 0.827451, 0.827451, 1)
+
 const RACE_COLORS := {
 	Race.Type.UNDEAD: Color("#0a0806d6"),
 	Race.Type.ABOMINATION: Color("020a00d6"),
@@ -267,10 +276,12 @@ func set_display_cost(cost_split: Dictionary) -> void:
 	var reduced: bool = race_cost + generic_cost < data.cost
 	var color := Color(0.45, 1.0, 0.45) if reduced else Color.WHITE
 	# Race.Type.ARTIFACT : coût entièrement générique, affiché dans le gros
-	# badge de race (voir update_display) plutôt qu'à "0".
+	# badge de race (voir update_display) plutôt qu'à "0", en bleu (couleur du
+	# mana générique) plutôt qu'en blanc pour bien marquer que ce n'est pas
+	# un coût de race verrouillé.
 	if data.race == Race.Type.ARTIFACT:
 		cost_label.text = str(race_cost + generic_cost)
-		cost_label.add_theme_color_override("font_color", color)
+		cost_label.add_theme_color_override("font_color", GENERIC_MANA_COLOR if not reduced else color)
 		generic_cost_label.visible = false
 		return
 	cost_label.text = str(race_cost)
@@ -289,12 +300,15 @@ func update_display() -> void:
 	cost_label.visible = true
 	# Race.Type.ARTIFACT n'a pas de pool de race : le coût est entièrement
 	# générique. Affiché dans le badge de race (gros, premier plan) plutôt
-	# que dans le petit badge générique, sinon le gros badge reste à "0".
+	# que dans le petit badge générique, sinon le gros badge reste à "0" — en
+	# bleu (couleur du mana générique) plutôt que dans la teinte par défaut.
 	if not is_resource and data.race == Race.Type.ARTIFACT:
 		cost_label.text = str(data.cost)
+		cost_label.add_theme_color_override("font_color", GENERIC_MANA_COLOR)
 		generic_cost_label.visible = false
 	else:
 		cost_label.text = "" if is_resource else str(base_race_cost)
+		cost_label.add_theme_color_override("font_color", COST_LABEL_DEFAULT_COLOR)
 		generic_cost_label.visible = not is_resource and data.cost - base_race_cost > 0
 		generic_cost_label.text = str(data.cost - base_race_cost)
 	if is_resource:
