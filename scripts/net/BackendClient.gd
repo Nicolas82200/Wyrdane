@@ -313,7 +313,11 @@ func queue_join(mode: String, on_complete: Callable) -> void:
 
 # Interroge l'état d'un ticket. on_complete(success, {status, role, opponent_id, steam_lobby_id}).
 # status : "waiting" | "matched" | "cancelled" | "expired". role ("host"/"guest")
-# et steam_lobby_id ne sont présents qu'une fois status == "matched".
+# et steam_lobby_id ne sont présents qu'une fois status == "matched". mmr/window/
+# elapsed_seconds (propre MMR du joueur, fenêtre d'appariement courante en
+# points de MMR, ancienneté du ticket) ne sont présents que tant que
+# status == "waiting" (voir MatchmakingOverlay._poll_queue, journalisés à
+# chaque poll pour le diagnostic du matchmaking).
 func queue_status(ticket_id: String, on_complete: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/matchmaking/queue/%s" % ticket_id, {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
