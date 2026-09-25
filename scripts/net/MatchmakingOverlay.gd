@@ -137,6 +137,16 @@ const NORMAL_QUEUE_TIMEOUT := 20.0
 const RANKED_REPORT_LOBBY_MAX_ATTEMPTS := 3
 const RANKED_REPORT_LOBBY_RETRY_DELAY := 1.5
 
+# Temps d'attente max d'un pair réel une fois hôte désigné par la file
+# backend et le lobby Steam créé/rapporté (voir _on_queue_matched, branche
+# hôte). Sans ce filet, un hôte dont l'invité n'arrive jamais (join Steam
+# refusé de son côté, voir _queue_matched_join_pending) restait bloqué "en
+# attente d'un adversaire" indéfiniment, sans le savoir — rien côté Steam ne
+# prévient l'hôte d'une entrée en lobby refusée chez le pair (lobby_chat_update
+# ne se déclenche que si quelqu'un entre RÉELLEMENT dans le lobby). Plutôt que
+# de rester bloqué, l'hôte referme et relance une recherche automatiquement.
+const HOST_PEER_WAIT_TIMEOUT := 30.0
+
 # Mode de la file backend en cours ("ranked"|"normal"|"") — distinct de
 # _search_mode (qui reste "normal" même une fois basculé sur le repli Steam
 # direct, voir _start_direct_quick_match) : sert uniquement à savoir si le
@@ -158,6 +168,14 @@ var _queue_match_session_token: String = ""
 # ticket sera annulé dès qu'il arrive au lieu d'être laissé actif en tâche de
 # fond pendant que l'UI se croit déjà revenue au repos.
 var _queue_cancel_pending := false
+# true entre l'envoi du join() vers le lobby rapporté par l'hôte (voir
+# _on_queue_matched, branche invité) et sa confirmation/son échec — distingue
+# un "steam_lobby_join_failed" venant de ce flux (retenté automatiquement,
+# voir _on_peer_disconnected) d'un échec de join sur une invitation Steam
+# classique (lobby_id choisi par le joueur, jamais retenté automatiquement).
+var _queue_matched_join_pending := false
+# Filet de sécurité côté hôte : voir HOST_PEER_WAIT_TIMEOUT.
+var _host_peer_wait_timer: Timer
 
 func _ready() -> void:
 	_net = NetworkManager.new()
@@ -503,6 +521,8 @@ func _on_banner_cancel_pressed() -> void:
 			# comme un bandeau vide pendant quelques secondes.
 			_cancel_queue_search(false)
 			_quick_matching = false
+			_queue_matched_join_pending = false
+			_stop_host_peer_wait_timer()
 			_net.close()
 			_lobby_hosted = false
 			_show_search_banner(false)
@@ -609,6 +629,7 @@ func _on_queue_matched(data: Dictionary) -> void:
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 		if err == OK:
 			_set_status("NET_RANKED_MATCHED")
+			_start_host_peer_wait_timer()
 		else:
 			if _net.session_ready.is_connected(_on_queue_lobby_ready):
 				_net.session_ready.disconnect(_on_queue_lobby_ready)
@@ -627,8 +648,10 @@ func _on_queue_matched(data: Dictionary) -> void:
 	_quick_matching = false
 	_queue_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")
+	_queue_matched_join_pending = true
 	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
 	if err != OK:
+		_queue_matched_join_pending = false
 		_reset_queue_ui()
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
@@ -661,6 +684,37 @@ func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> vo
 			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
 	)
 
+func _start_host_peer_wait_timer() -> void:
+	_stop_host_peer_wait_timer()
+	_host_peer_wait_timer = Timer.new()
+	_host_peer_wait_timer.one_shot = true
+	_host_peer_wait_timer.timeout.connect(_on_host_peer_wait_timeout)
+	add_child(_host_peer_wait_timer)
+	_host_peer_wait_timer.start(HOST_PEER_WAIT_TIMEOUT)
+
+func _stop_host_peer_wait_timer() -> void:
+	if _host_peer_wait_timer != null:
+		_host_peer_wait_timer.stop()
+		_host_peer_wait_timer.queue_free()
+		_host_peer_wait_timer = null
+
+# Aucun pair réel n'est arrivé dans le lobby avant HOST_PEER_WAIT_TIMEOUT (voir
+# la constante) : plutôt que de laisser l'hôte planté indéfiniment, on ferme
+# ce lobby et on relance une recherche dans le même mode ("normal"/"ranked",
+# voir _queue_mode). L'invité qui a échoué de son côté (voir
+# _queue_matched_join_pending) a de toute façon déjà relancé la sienne — les
+# deux se re-matcheront naturellement au prochain appariement compatible.
+func _on_host_peer_wait_timeout() -> void:
+	_stop_host_peer_wait_timer()
+	var mode_to_retry := _queue_mode
+	_net.close()
+	_lobby_hosted = false
+	_reset_queue_ui()
+	if mode_to_retry == "ranked":
+		start_ranked()
+	else:
+		start_normal()
+
 # ─── Connexion → handshake → bataille ─────────────────────────────────────────
 
 # Annule et libère tout handshake/synchronisation de bataille d'une tentative
@@ -692,6 +746,8 @@ func _on_peer_identified() -> void:
 		_set_status("NET_INVITE_PEER_PREPARING_UNKNOWN")
 
 func _on_peer_connected() -> void:
+	_stop_host_peer_wait_timer()
+	_queue_matched_join_pending = false
 	# Le nom (mode invitation) doit être capturé AVANT de réinitialiser
 	# _search_mode ci-dessous : _run_match_ready_countdown en a besoin pour
 	# afficher "<ami> est prêt" plutôt que le générique "Partie trouvée".
@@ -725,6 +781,7 @@ func _on_peer_disconnected(reason: String) -> void:
 	# sans ça, une invitation restée sans réponse puis coupée empêcherait
 	# d'en relancer une nouvelle.
 	_lobby_hosted = false
+	_stop_host_peer_wait_timer()
 	# Invalide un éventuel flash "adversaire trouvé" encore en attente (voir
 	# _on_peer_connected) : une coupure pendant ces 5 secondes ne doit pas
 	# quand même enchaîner sur l'écran de chargement plein écran.
@@ -750,8 +807,33 @@ func _on_peer_disconnected(reason: String) -> void:
 				_reset_queue_ui()
 				_show_search_banner(false)
 				_flash_banner("NET_STEAM_NO_LOBBY")
+		"steam_lobby_join_failed":
+			# Le lobby rapporté par l'hôte (voir _on_queue_matched, branche
+			# invité) n'existe déjà plus côté Steam au moment du join — le plus
+			# souvent un hôte qui a relancé sa propre recherche entre-temps
+			# (voir HOST_PEER_WAIT_TIMEOUT) plutôt qu'une vraie coupure. Retenté
+			# automatiquement dans le même mode au lieu de planter le joueur sur
+			# un message "adversaire déconnecté" qui l'obligerait à recliquer
+			# lui-même — mais UNIQUEMENT pour ce flux (jamais pour l'échec d'un
+			# join sur une invitation Steam explicite, voir
+			# _queue_matched_join_pending).
+			if _queue_matched_join_pending:
+				_queue_matched_join_pending = false
+				var mode_to_retry := _queue_mode
+				_reset_queue_ui()
+				if mode_to_retry == "ranked":
+					start_ranked()
+				else:
+					start_normal()
+			else:
+				_quick_matching = false
+				_set_search_mode("")
+				_reset_queue_ui()
+				_show_search_banner(false)
+				_flash_banner("NET_STEAM_DISCONNECTED")
 		_:
 			_quick_matching = false
+			_queue_matched_join_pending = false
 			_set_search_mode("")
 			_reset_queue_ui()
 			_show_search_banner(false)
