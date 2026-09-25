@@ -25,7 +25,7 @@ enum ProfileTab { MAIN, HISTORY, COMMUNITY }
 # que d'ouvrir une nouvelle vue dans InfoPanel — demande utilisateur explicite,
 # voir FriendsPanel.gd.
 enum NavMode { MAIN, FRIENDS }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION, CHAT }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -110,15 +110,15 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var friends_search_button: Button = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow/FriendsSearchButton
 @onready var friends_body:     VBoxContainer = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsScroll/FriendsBodyVBox
 
-@onready var chat_popup:       Control = $ChatPopup
-@onready var chat_close_button: Button = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow/ChatCloseButton
-@onready var chat_title_label: Label = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatHeaderRow/ChatTitleLabel
-@onready var chat_conversations_list: VBoxContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll/ChatConversationsList
-@onready var chat_thread_name_label: Label = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadNameLabel
-@onready var chat_thread_scroll: ScrollContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll
-@onready var chat_thread_list: VBoxContainer = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatThreadScroll/ChatThreadList
-@onready var chat_input_line_edit: LineEdit = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatInputLineEdit
-@onready var chat_send_button: Button = $ChatPopup/ChatPanel/ChatMargin/ChatMainVBox/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatSendButton
+@onready var chat_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView
+@onready var chat_close_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatCloseButton
+@onready var chat_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatTitleLabel
+@onready var chat_conversations_list: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll/ChatConversationsList
+@onready var chat_thread_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadNameLabel
+@onready var chat_thread_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadScroll
+@onready var chat_thread_list: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadScroll/ChatThreadList
+@onready var chat_input_line_edit: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatInputLineEdit
+@onready var chat_send_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatSendButton
 
 @onready var discord_button: TextureButton = $FooterPanel/FooterMargin/FooterRow/DiscordButton
 @onready var website_button: Button = $FooterPanel/FooterMargin/FooterRow/WebsiteButton
@@ -336,13 +336,15 @@ func _ready() -> void:
 	friends_back_button.pressed.connect(func(): FriendsPanel.close(self))
 	friends_search_button.pressed.connect(func(): FriendsPanel.search(self))
 	friends_search_line_edit.text_submitted.connect(func(_text): FriendsPanel.search(self))
-	chat_button.pressed.connect(func(): ChatPanel.open_inbox(self))
-	chat_close_button.pressed.connect(func(): ChatPanel.close(self))
+	chat_button.pressed.connect(func():
+		_show_info_view(InfoView.CHAT)
+		ChatPanel.open_inbox(self))
+	chat_close_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	chat_send_button.pressed.connect(func(): ChatPanel.send(self))
 	chat_input_line_edit.text_submitted.connect(func(_text): ChatPanel.send(self))
 	ChatPanel.refresh_unread_badge(self)
 	# Badge de non-lus tenu à jour même sans jamais ouvrir le chat (voir
-	# ChatPanel._ensure_poll_timer, qui lui ne tourne que popup ouvert).
+	# ChatPanel._ensure_poll_timer, qui lui ne tourne que la vue Chat affichée).
 	var chat_badge_timer := Timer.new()
 	chat_badge_timer.wait_time = 30.0
 	chat_badge_timer.autostart = true
@@ -528,6 +530,7 @@ func _wire_nav_active_indicators() -> void:
 		InfoView.SHOP: shop_button,
 		InfoView.STATS: stats_button,
 		InfoView.COLLECTION: collection_button,
+		InfoView.CHAT: chat_button,
 	}
 
 func _update_nav_active_indicators(view: InfoView) -> void:
@@ -789,7 +792,7 @@ func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
-		mode_select_view, deck_select_view, stats_view, collection_view]
+		mode_select_view, deck_select_view, stats_view, collection_view, chat_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
@@ -804,6 +807,7 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.DECK_SELECT: deck_select_view,
 		InfoView.STATS: stats_view,
 		InfoView.COLLECTION: collection_view,
+		InfoView.CHAT: chat_view,
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)

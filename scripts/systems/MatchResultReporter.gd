@@ -66,5 +66,14 @@ static func _report_ranked(client_match_id: String, opponent_id: int, winner_id:
 				_report_ranked(client_match_id, opponent_id, winner_id, cards_played_by_race,
 						deck_races, game_over_screen, retries_left - 1, match_session_token, cards_played_names,
 						is_ranked, duration_sec)
+		elif code == 202:
+			# Tentatives épuisées sans jamais voir le rapport du pair concorder
+			# (retries_left à 0, ou écran de fin de partie déjà fermé) : le match
+			# finira quand même par être confirmé côté serveur dès que le pair
+			# rapporte à son tour, mais ce client n'en saura rien tant qu'il ne
+			# resynchronise pas — sans ce resync, le niveau de compte affiché au
+			# menu principal peut rester périmé (Niveau/XP d'avant ce match)
+			# jusqu'au prochain lancement du jeu.
+			LevelManager.sync_from_backend()
 	BackendClient.report_ranked_match(client_match_id, opponent_id, winner_id, cards_played_by_race, deck_races,
 			on_complete, match_session_token, cards_played_names, is_ranked, duration_sec)

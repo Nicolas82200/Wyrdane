@@ -231,7 +231,9 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	var user_id := int(friend.get("id", 0))
 	var username := str(friend.get("username", "?"))
 
-	click_area.pressed.connect(func(): ChatPanel.open_for_friend(menu, user_id, username))
+	click_area.pressed.connect(func():
+		menu._show_info_view(menu.InfoView.CHAT)
+		ChatPanel.open_for_friend(menu, user_id, username))
 	click_area.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 			_show_context_menu(menu, friendship_id, user_id, username, click_area.get_global_mouse_position())
