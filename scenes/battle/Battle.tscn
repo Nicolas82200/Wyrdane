@@ -80,6 +80,8 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_deck"]
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vbfmk"]
 bg_color = Color(0.09, 0.07, 0.06, 0.95)
 border_width_left = 3
@@ -119,8 +121,6 @@ shader_parameter/radius_top_left = 0.0
 shader_parameter/radius_top_right = 0.0
 shader_parameter/radius_bottom_right = 100.0
 shader_parameter/radius_bottom_left = 100.0
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_deck"]
 
 [node name="Battle" type="Control" unique_id=2071817443]
 layout_mode = 3
