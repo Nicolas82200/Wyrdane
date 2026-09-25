@@ -183,21 +183,31 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	row.add_child(margin)
 
 	var hbox := HBoxContainer.new()
+	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hbox.add_theme_constant_override("separation", 8)
 	margin.add_child(hbox)
 
+	# Chaque Label ci-dessous doit aussi ignorer la souris : un Control
+	# (Label compris) intercepte les clics par défaut (MOUSE_FILTER_STOP), donc
+	# sans ceci, cliquer précisément SUR le pseudo (ou la pastille de présence,
+	# l'étiquette Steam...) n'atteignait jamais click_area en dessous — seule la
+	# zone "vide" de la ligne réagissait. Demande utilisateur explicite
+	# (2026-09-25) : toute la zone où se trouve le pseudo doit être cliquable.
 	var presence: String = str(friend.get("presence", "offline"))
 	var dot := Label.new()
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dot.text = "●"
 	dot.add_theme_color_override("font_color", PRESENCE_COLOR.get(presence, PRESENCE_COLOR["offline"]))
 	hbox.add_child(dot)
 
 	var name_col := VBoxContainer.new()
+	name_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_col.add_theme_constant_override("separation", 0)
 	hbox.add_child(name_col)
 
 	var name_label := Label.new()
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.text = str(friend.get("username", "?"))
 	name_label.clip_text = true
 	# Demande utilisateur explicite (2026-09-25) : agrandir les noms d'amis —
@@ -209,11 +219,13 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	name_col.add_child(name_label)
 
 	var tags_row := HBoxContainer.new()
+	tags_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tags_row.add_theme_constant_override("separation", 4)
 	name_col.add_child(tags_row)
 
 	var presence_key := "FRIENDS_PRESENCE_" + presence.to_upper()
 	var presence_label := Label.new()
+	presence_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	presence_label.text = SettingsManager.t(presence_key)
 	presence_label.add_theme_font_size_override("font_size", Typography.MICRO)
 	presence_label.add_theme_color_override("font_color", PRESENCE_COLOR.get(presence, PRESENCE_COLOR["offline"]))
@@ -222,6 +234,7 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	var steam_id: String = str(friend.get("steam_id", ""))
 	if steam_id != "" and SteamService.is_steam_friend(steam_id):
 		var steam_tag := Label.new()
+		steam_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		steam_tag.text = SettingsManager.t("FRIENDS_TAG_STEAM")
 		steam_tag.add_theme_font_size_override("font_size", Typography.MICRO)
 		steam_tag.add_theme_color_override("font_color", Color(0.35, 0.62, 0.85, 1))
