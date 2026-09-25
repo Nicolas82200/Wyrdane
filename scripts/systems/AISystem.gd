@@ -102,6 +102,18 @@ func draw_card() -> void:
 func get_hand_count() -> int:
 	return hand.size()
 
+# Défausse 1 carte au hasard de la main de l'IA (Le Marchand d'Âmes, sans Pacte
+# payé) — même principe que _discard_excess_hand : pas d'interface pour
+# choisir, défausse silencieuse.
+func discard_random_card() -> void:
+	if hand.is_empty():
+		return
+	var index: int = randi() % hand.size()
+	var card: CardData = hand[index]
+	hand.remove_at(index)
+	battle.enemy_graveyard.add_discarded(card)
+	refresh_ui()
+
 # Carte rejoignant la main de l'IA par un autre biais que la pioche (renvoyée
 # du plateau, ramenée du cimetière...) — voir OpponentDriver.receive_card_to_hand.
 func receive_card_to_hand(card_data: CardData) -> void:

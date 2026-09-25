@@ -59,6 +59,11 @@ var _prefetched_own_answers: Array[bool] = []
 # le rejeu normal de resolve_trigger (déclenché par PLAY_CARD) ne doit pas
 # réafficher une seconde popup, seulement consommer cette valeur.
 var _prefetched_remote_answers: Array[bool] = []
+# Anti-boucle : un Rituel/Enchantement dont l'effet se déclenche sur
+# OnPactPaid (ex. Communion Infernale) ne doit pas redéclencher lui-même
+# OnPactPaid s'il porte à son tour un Pacte payé — même patron que
+# HeroSystem._firing_self_damage pour OnSelfDamage.
+var _firing_pact_paid: bool = false
 
 func init(_battle) -> void:
 	battle = _battle
@@ -73,7 +78,23 @@ func init(_battle) -> void:
 	# le tout premier Pacte joué dans un match.
 	_ensure_net_listener()
 
+# Enveloppe fine autour de _resolve_trigger_impl : déclenche OnPactPaid (pour
+# le camp qui vient de payer) dès qu'un Pacte est effectivement payé, quel que
+# soit l'appelant (serviteur via EffectManager, Rituel/Enchantement/Sacrifice/
+# annulation de sort via TriggerSystem — voir les 4 sites d'appel).
 func resolve_trigger(card_data: CardData, is_player: bool) -> bool:
+	var paid: bool = await _resolve_trigger_impl(card_data, is_player)
+	# battle.get("trigger_system") : certains tests (test_pact_choice_system.gd)
+	# utilisent un BattleStub minimal sans TriggerSystem — no-op plutôt qu'un
+	# crash, même garde-fou que battle.get("deck_system") ailleurs.
+	var trigger_system = battle.get("trigger_system") if is_instance_valid(battle) else null
+	if paid and trigger_system != null and not _firing_pact_paid:
+		_firing_pact_paid = true
+		await trigger_system.fire("OnPactPaid", null, is_player)
+		_firing_pact_paid = false
+	return paid
+
+func _resolve_trigger_impl(card_data: CardData, is_player: bool) -> bool:
 	var value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 	if value <= 0:
 		return true
