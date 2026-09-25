@@ -2,11 +2,11 @@ extends RefCounted
 class_name ChatPanel
 
 # Chat privé entre amis (voir CLAUDE.md côté wyrdane-backend « Système d'amis
-# Wyrdane + chat ») — popup flottant au-dessus de n'importe quelle vue du menu
-# (voir MainMenu.tscn ChatPopup), pas une vue InfoPanel de plus : rester
-# joignable sans perdre le contexte de ce qu'on regardait. Polling HTTP
-# (décision utilisateur, pas de WebSocket) : POLL_INTERVAL_SECONDS tant que le
-# popup est ouvert, arrêté à la fermeture.
+# Wyrdane + chat ») — vue du panneau principal comme Profil/Boutique/Quêtes
+# (voir MainMenu.tscn ChatView, InfoView.CHAT), pas un popup flottant : le
+# bouton Retour repasse par _show_info_view comme les autres vues. Polling HTTP
+# (décision utilisateur, pas de WebSocket) : POLL_INTERVAL_SECONDS tant que
+# cette vue est affichée (voir _poll, qui se coupe de lui-même sinon).
 
 const POLL_INTERVAL_SECONDS := 4.0
 
@@ -16,8 +16,7 @@ static func open_inbox(menu) -> void:
 	menu.chat_thread_friend_name = ""
 	menu.chat_thread_messages = []
 	menu.chat_conversations_cache = []
-	menu.chat_popup.visible = true
-	menu._fade_in_overlay(menu.chat_popup)
+	_update_send_button(menu)
 	_refresh_conversations(menu)
 	_render_thread(menu)
 
@@ -26,17 +25,8 @@ static func open_for_friend(menu, friend_id: int, friend_username: String) -> vo
 	menu.chat_thread_friend_id = friend_id
 	menu.chat_thread_friend_name = friend_username
 	menu.chat_thread_messages = []
-	menu.chat_popup.visible = true
-	menu._fade_in_overlay(menu.chat_popup)
 	_refresh_conversations(menu)
 	_open_thread(menu, friend_id, friend_username)
-
-static func close(menu) -> void:
-	menu.chat_popup.visible = false
-	if menu.has_meta("chat_poll_timer"):
-		var timer: Timer = menu.get_meta("chat_poll_timer")
-		if is_instance_valid(timer):
-			timer.stop()
 
 static func send(menu) -> void:
 	var body: String = menu.chat_input_line_edit.text.strip_edges()
@@ -76,7 +66,7 @@ static func _ensure_poll_timer(menu) -> void:
 	menu.set_meta("chat_poll_timer", timer)
 
 static func _poll(menu) -> void:
-	if not menu.chat_popup.visible:
+	if menu._current_info_view != menu.InfoView.CHAT:
 		return
 	refresh_unread_badge(menu)
 	_refresh_conversations(menu)
@@ -98,6 +88,7 @@ static func _open_thread(menu, friend_id: int, friend_username: String) -> void:
 	menu.chat_thread_friend_id = friend_id
 	menu.chat_thread_friend_name = friend_username
 	menu.chat_thread_name_label.text = friend_username
+	_update_send_button(menu)
 	BackendClient.get_conversation(friend_id, 50, 0, func(success: bool, messages: Array):
 		if menu.chat_thread_friend_id != friend_id:
 			return
@@ -106,6 +97,13 @@ static func _open_thread(menu, friend_id: int, friend_username: String) -> void:
 		BackendClient.mark_conversation_read(friend_id)
 		refresh_unread_badge(menu)
 	)
+
+# Grisé tant qu'aucune conversation n'est sélectionnée (ouverture via le
+# bouton Chat général sans conversation existante, voir _render_conversations)
+# — send() est déjà protégé (friend_id <= 0), mais un bouton actif sans rien
+# à faire est trompeur pour le joueur.
+static func _update_send_button(menu) -> void:
+	menu.chat_send_button.disabled = menu.chat_thread_friend_id <= 0
 
 static func _refresh_conversations(menu) -> void:
 	BackendClient.get_conversations(func(success: bool, conversations: Array):

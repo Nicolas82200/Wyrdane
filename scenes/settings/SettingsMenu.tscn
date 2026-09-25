@@ -155,6 +155,7 @@ theme_override_constants/margin_left = 4
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+clip_contents = true
 
 [node name="AudioSettingsMenu" parent="Panel/VBox/BodyMargin/BodyRow/ContentMargin/ContentArea" unique_id=100000015 instance=ExtResource("2_audio")]
 unique_name_in_owner = true
