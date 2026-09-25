@@ -655,7 +655,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| D65 | Autel des Sacrifices | 3 | Rare | Deuil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *L'autel ne demande jamais deux fois. Il attend, c'est tout.* |
+| D65 | Autel des Sacrifices | 3 | Rare | Deuil : Piochez une carte. (Une seule fois par tour.) Pacte 2 : Piochez une carte supplémentaire. | *L'autel ne demande jamais deux fois. Il attend, c'est tout.* |
 | D66 | Fosse Écarlate | 4 | Rare | Renfort : Si 3 Démons alliés ou plus sont en jeu, invoque une Larve Infernale 2/1. | *Plus elle se remplit, plus elle déborde de quelque chose d'affamé.* |
 | D67 | Aura de Corruption | 3 | Rare | Quand un serviteur Démon allié attaque, il inflige Corruption supplémentaire à sa cible. (Peut se cumuler avec la Corruption déjà présente sur le Démon attaquant.) | *La corruption ne recule jamais. Elle s'accumule, discrètement.* |
 | D68 | Cœur du Gouffre | 5 | Épique | Éveil : Tous les serviteurs Démons alliés gagnent +1/+0 jusqu'à la fin du tour. Pacte 2 : +1/+0 supplémentaire. | *Il bat au rythme de ce que tu es prêt à sacrifier chaque matin.* |
