@@ -122,6 +122,7 @@ const TRIGGER_DESCRIPTIONS := {
 	"OnSelfDamage": { "title": "TRIG_ONSELFDAMAGE_NAME", "desc": "TRIG_ONSELFDAMAGE_DESC" },
 	"OnMutation":   { "title": "TRIG_ONMUTATION_NAME",   "desc": "TRIG_ONMUTATION_DESC" },
 	"OnDevoration": { "title": "TRIG_ONDEVORATION_NAME", "desc": "TRIG_ONDEVORATION_DESC" },
+	"OnPactPaid":   { "title": "TRIG_ONPACTPAID_NAME",   "desc": "TRIG_ONPACTPAID_DESC" },
 }
 
 const RACE_DESCRIPTIONS := {

@@ -83,6 +83,15 @@ func draw_card() -> void:
 	battle.update_enemy_hand_ui()
 	battle.deck_system.update_enemy_deck_ui()
 
+# Effet local (Le Marchand d'Âmes côté ennemi, sans Pacte payé) déclenché en
+# miroir sur les deux clients : le pair distant défausse déjà sa vraie carte
+# de son côté, on se contente ici de refléter le changement dans le compteur
+# cosmétique — même principe que draw_card()/receive_card_to_hand ci-dessus.
+func discard_random_card() -> void:
+	if _hand_count > 0:
+		_hand_count -= 1
+	battle.update_enemy_hand_ui()
+
 # Attend le MULLIGAN_DONE du pair distant (déjà reçu, ou à recevoir).
 func await_mulligan() -> void:
 	while not _remote_mulligan_done:

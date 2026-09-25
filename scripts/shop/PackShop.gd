@@ -33,20 +33,22 @@ const FLASH_ALPHA := {"Epic": 0.22, "Legendary": 0.42}
 # (même principe que DeckBuilder.card_preview), à la taille native x ce
 # facteur — cohérent avec DeckBuilder.PREVIEW_SCALE.
 const PREVIEW_SCALE := 1.15
-const CONTINUE_LABEL_SIZE := Vector2(320, 30)
 
 @onready var reveal_stage: Control = $RevealStage
 @onready var status_label: Label = $StatusLabel
 @onready var corner_hint_label: Label = $CornerHintLabel
 @onready var buy_packs_button: Button = $BuyPacksButton
+@onready var continue_label: Label = $ContinueLabel
 @onready var flash_rect: ColorRect = $FlashRect
 
 var _busy: bool = false
 var _revealing: bool = false
 var _skip_requested: bool = false
 var _catcher: Control = null
-var _continue_label: Label = null
 var _preview_card: Control = null
+# Hitbox invisible superposée à chaque carte révélée (voir _make_card_hoverable) :
+# libérées en même temps que les cartes elles-mêmes à la fin d'un pack.
+var _hover_hitboxes: Array = []
 
 signal _pack_request_completed(code: int, cards: Array)
 signal _continue_clicked
@@ -61,6 +63,7 @@ func _ready() -> void:
 	move_to_front()
 	_style_action_button(buy_packs_button)
 	buy_packs_button.pressed.connect(func(): buy_packs_pressed.emit())
+	continue_label.hide()
 	_build_preview_card()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
@@ -94,6 +97,11 @@ func open_owned(quantity: int, anchor: Control) -> void:
 	_busy = true
 	status_label.hide()
 	buy_packs_button.disabled = true
+	# Un Button désactivé reste STOP par défaut (il avale le clic sans rien
+	# faire) : sans ce IGNORE explicite, cliquer sur son emplacement pendant
+	# une révélation n'atteindrait jamais le catcher juste en dessous — le
+	# joueur resterait bloqué s'il cliquait précisément là plutôt qu'ailleurs.
+	buy_packs_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_show_catcher()
 
 	var opened_any := false
@@ -122,6 +130,7 @@ func open_owned(quantity: int, anchor: Control) -> void:
 
 	_hide_catcher()
 	buy_packs_button.disabled = false
+	buy_packs_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_busy = false
 	closed.emit()
 
@@ -183,16 +192,20 @@ func _reveal_pack(entries: Array, anchor: Control) -> void:
 		revealed_cards.append(card_instance)
 
 	_revealing = false
-	_show_continue_label(anchor, anchor.size)
+	continue_label.show()
 	await _continue_clicked
 	if not is_instance_valid(self):
 		return
-	_hide_continue_label()
+	continue_label.hide()
 	if is_instance_valid(_preview_card):
 		_preview_card.hide()
 	for c in revealed_cards:
 		if is_instance_valid(c):
 			c.queue_free()
+	for h in _hover_hitboxes:
+		if is_instance_valid(h):
+			h.queue_free()
+	_hover_hitboxes.clear()
 
 ## Cycle complet d'une carte : jaillit du pack et vole vers sa place en se
 ## retournant. En mode "skip" (clic pendant l'animation), apparaît
@@ -213,7 +226,7 @@ func _reveal_one(entry: Dictionary, slot_pos: Vector2, scale_factor: float, anch
 		card_instance.scale = Vector2.ONE * scale_factor
 		card_instance.show_back(false)
 		card_instance.set_data(entry["data"])
-		_make_card_hoverable(card_instance, entry["data"])
+		_make_card_hoverable(slot_pos, anchor.size, entry["data"])
 		if entry["dusted"]:
 			_add_dust_badge(card_instance, entry["gold"])
 		return card_instance
@@ -236,7 +249,7 @@ func _reveal_one(entry: Dictionary, slot_pos: Vector2, scale_factor: float, anch
 		card_instance.show_back(false)
 		card_instance.set_data(entry["data"])
 		card_instance.set_non_interactive()
-		_make_card_hoverable(card_instance, entry["data"])
+		_make_card_hoverable(slot_pos, anchor.size, entry["data"])
 		if entry["dusted"]:
 			_add_dust_badge(card_instance, entry["gold"])
 		AudioManager.play(AudioManager.DRAW)
@@ -326,35 +339,49 @@ func _add_dust_badge(card_instance: Control, gold_earned: int) -> void:
 ## Au survol d'une carte révélée (une fois face visible) : affiche la preview
 ## flottante partagée en grand à côté (même principe que le deck builder),
 ## avec toutes les infos de la carte lisibles à sa taille native x
-## PREVIEW_SCALE. set_non_interactive() reste appelé avant, seul mouse_filter
-## est réouvert au survol.
-func _make_card_hoverable(card_instance: Control, card_data: CardData) -> void:
-	card_instance.mouse_filter = Control.MOUSE_FILTER_STOP
-	card_instance.mouse_entered.connect(func():
-		if not is_instance_valid(card_instance) or not is_instance_valid(_preview_card):
+## PREVIEW_SCALE.
+##
+## Le survol n'est PAS branché directement sur la carte : Card._ready() met
+## tous ses enfants directs (Art, BorderFrame...) en MOUSE_FILTER_PASS, qui
+## reçoivent donc mouse_entered/exited à la place de la racine dès que le
+## curseur est dessus (Godot descend d'abord dans les enfants avant de tester
+## le nœud lui-même) — la carte elle-même ne recevait donc jamais l'événement
+## et le survol restait silencieusement mort. Une hitbox dédiée, sans le
+## moindre enfant, posée par-dessus la carte (même rect global) contourne le
+## problème : rien en dessous d'elle ne peut lui disputer l'événement.
+func _make_card_hoverable(slot_pos: Vector2, visual_size: Vector2, card_data: CardData) -> void:
+	var hitbox := Control.new()
+	hitbox.name = "HoverHitbox"
+	hitbox.position = slot_pos
+	hitbox.size = visual_size
+	hitbox.mouse_filter = Control.MOUSE_FILTER_STOP
+	reveal_stage.add_child(hitbox)
+	_hover_hitboxes.append(hitbox)
+
+	# La hitbox absorbe aussi le clic (mouse_filter STOP) : sans relayer vers
+	# le même handler que le catcher, cliquer précisément sur une carte
+	# révélée (plutôt qu'à côté) ne ferait jamais rien — contraire à "cliquer
+	# n'importe où dans le panneau pour continuer".
+	hitbox.gui_input.connect(_on_catcher_input)
+
+	hitbox.mouse_entered.connect(func():
+		if not is_instance_valid(hitbox) or not is_instance_valid(_preview_card):
 			return
 		_preview_card.set_data(card_data)
-		_position_preview(card_instance)
+		_position_preview(hitbox.get_global_rect())
 		_preview_card.show()
 	)
-	card_instance.mouse_exited.connect(func():
+	hitbox.mouse_exited.connect(func():
 		if is_instance_valid(_preview_card):
 			_preview_card.hide()
 	)
 
-## Rectangle VISUEL réel d'un Control mis à l'échelle avec un pivot en
-## (0,0) : get_global_rect() ignore `scale` (ne reflète que `size`), donc
-## insuffisant ici où toutes les cartes gardent leur `size` native.
-func _visual_rect(control: Control) -> Rect2:
-	return Rect2(control.global_position, control.size * control.scale)
-
 ## Positionne la preview flottante à côté de la carte survolée (à droite par
 ## défaut, repliée à gauche si ça déborderait), toujours entièrement visible
 ## à l'écran.
-func _position_preview(card_instance: Control) -> void:
+func _position_preview(card_rect: Rect2) -> void:
 	var preview_size: Vector2 = CARD_NATIVE_SIZE * PREVIEW_SCALE
 	var vp: Vector2 = get_viewport_rect().size
-	var card_rect: Rect2 = _visual_rect(card_instance)
 
 	var preview_x: float = card_rect.position.x + card_rect.size.x + 12.0
 	if preview_x + preview_size.x > vp.x - 4.0:
@@ -363,32 +390,6 @@ func _position_preview(card_instance: Control) -> void:
 	var preview_y: float = clampf(card_rect.position.y, 4.0, vp.y - preview_size.y - 4.0)
 
 	_preview_card.global_position = Vector2(preview_x, preview_y)
-
-## Texte "Cliquer pour continuer", centré sous la rangée basse des cartes
-## révélées.
-func _show_continue_label(anchor: Control, card_size: Vector2) -> void:
-	var label := Label.new()
-	label.text = SettingsManager.t("pack_shop.continue_hint")
-	label.add_theme_font_size_override("font_size", Typography.BODY)
-	label.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1))
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.size = CONTINUE_LABEL_SIZE
-	var below_row_bottom: float = anchor.global_position.y + anchor.size.y + SLOT_GAP + card_size.y
-	label.global_position = Vector2(
-		anchor.global_position.x + anchor.size.x / 2.0 - CONTINUE_LABEL_SIZE.x / 2.0,
-		below_row_bottom + SLOT_GAP
-	)
-	reveal_stage.add_child(label)
-	_continue_label = label
-	label.modulate.a = 0.0
-	var t := create_tween()
-	t.tween_property(label, "modulate:a", 1.0, 0.25)
-
-func _hide_continue_label() -> void:
-	if is_instance_valid(_continue_label):
-		_continue_label.queue_free()
-	_continue_label = null
 
 ## Catcher plein panneau, actif pendant toute la durée d'une ouverture (du
 ## premier appel réseau jusqu'au dernier clic "Continuer") : bloque le reste
@@ -452,3 +453,4 @@ func _retranslate() -> void:
 	status_label.text = SettingsManager.t("pack_shop.error")
 	corner_hint_label.text = SettingsManager.t("collection.multi_open_hint")
 	buy_packs_button.text = SettingsManager.t("collection.buy_packs_button")
+	continue_label.text = SettingsManager.t("pack_shop.continue_hint")
