@@ -44,7 +44,6 @@ const PREVIEW_SCALE := 1.15
 var _busy: bool = false
 var _revealing: bool = false
 var _skip_requested: bool = false
-var _catcher: Control = null
 var _preview_card: Control = null
 # Hitbox invisible superposée à chaque carte révélée (voir _make_card_hoverable) :
 # libérées en même temps que les cartes elles-mêmes à la fin d'un pack.
@@ -58,8 +57,7 @@ func _ready() -> void:
 	status_label.hide()
 	# Toujours au-dessus de ShopCollectionScroll (son sibling précédent dans
 	# CollectionContentRoot, voir MainMenu.tscn) : sans ça, les cartes
-	# révélées et le catcher de clic passeraient DERRIÈRE le contenu de la
-	# vue Collection au lieu de s'afficher/réagir par-dessus.
+	# révélées s'afficheraient DERRIÈRE le contenu de la vue Collection.
 	move_to_front()
 	_style_action_button(buy_packs_button)
 	buy_packs_button.pressed.connect(func(): buy_packs_pressed.emit())
@@ -67,6 +65,23 @@ func _ready() -> void:
 	_build_preview_card()
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
+
+## Capture le clic AVANT toute distribution GUI normale (contrairement à
+## gui_input sur un Control dédié, `_input` ne dépend d'aucun ordre
+## d'empilement/mouse_filter d'un autre nœud de la hiérarchie qui pourrait,
+## par accident, avaler l'événement en premier — seul moyen fiable de
+## garantir "cliquer n'importe où referme/avance" quelle que soit la vue
+## réellement affichée derrière ce panneau). Actif uniquement pendant une
+## ouverture (`_busy`), sans quoi ça intercepterait des clics du reste du jeu.
+func _input(event: InputEvent) -> void:
+	if not _busy:
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if _revealing:
+			_skip_requested = true
+		else:
+			_continue_clicked.emit()
+		get_viewport().set_input_as_handled()
 
 ## Carte agrandie flottante affichée au survol d'une carte révélée (voir
 ## _make_card_hoverable) — instance unique et partagée, positionnée à chaque
@@ -97,12 +112,10 @@ func open_owned(quantity: int, anchor: Control) -> void:
 	_busy = true
 	status_label.hide()
 	buy_packs_button.disabled = true
-	# Un Button désactivé reste STOP par défaut (il avale le clic sans rien
-	# faire) : sans ce IGNORE explicite, cliquer sur son emplacement pendant
-	# une révélation n'atteindrait jamais le catcher juste en dessous — le
-	# joueur resterait bloqué s'il cliquait précisément là plutôt qu'ailleurs.
+	# _input() (voir plus haut) intercepte déjà le clic avant qu'il n'atteigne
+	# le bouton, mais un Button désactivé reste STOP par défaut — IGNORE en
+	# plus pour ne jamais dépendre de l'ordre exact de traitement des deux.
 	buy_packs_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_show_catcher()
 
 	var opened_any := false
 	for i in count:
@@ -128,7 +141,6 @@ func open_owned(quantity: int, anchor: Control) -> void:
 		# suite dans le deckbuilder sans attendre le prochain redémarrage.
 		CollectionManager.sync_from_backend()
 
-	_hide_catcher()
 	buy_packs_button.disabled = false
 	buy_packs_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_busy = false
@@ -354,15 +366,12 @@ func _make_card_hoverable(slot_pos: Vector2, visual_size: Vector2, card_data: Ca
 	hitbox.name = "HoverHitbox"
 	hitbox.position = slot_pos
 	hitbox.size = visual_size
+	# STOP uniquement pour que mouse_entered/exited se déclenchent de façon
+	# fiable (voir commentaire ci-dessus) ; le clic lui-même est géré au
+	# niveau global par _input(), pas ici (voir son commentaire).
 	hitbox.mouse_filter = Control.MOUSE_FILTER_STOP
 	reveal_stage.add_child(hitbox)
 	_hover_hitboxes.append(hitbox)
-
-	# La hitbox absorbe aussi le clic (mouse_filter STOP) : sans relayer vers
-	# le même handler que le catcher, cliquer précisément sur une carte
-	# révélée (plutôt qu'à côté) ne ferait jamais rien — contraire à "cliquer
-	# n'importe où dans le panneau pour continuer".
-	hitbox.gui_input.connect(_on_catcher_input)
 
 	hitbox.mouse_entered.connect(func():
 		if not is_instance_valid(hitbox) or not is_instance_valid(_preview_card):
@@ -390,34 +399,6 @@ func _position_preview(card_rect: Rect2) -> void:
 	var preview_y: float = clampf(card_rect.position.y, 4.0, vp.y - preview_size.y - 4.0)
 
 	_preview_card.global_position = Vector2(preview_x, preview_y)
-
-## Catcher plein panneau, actif pendant toute la durée d'une ouverture (du
-## premier appel réseau jusqu'au dernier clic "Continuer") : bloque le reste
-## de la vue Collection (pack déjà désactivé côté ShopCollectionPanel, bouton
-## Acheter des packs déjà désactivé — voir open_owned) et sert de cible de
-## clic pour "passer l'animation" (pendant _revealing) ou "continuer" (une
-## fois les cartes affichées et hoverables).
-func _show_catcher() -> void:
-	var catcher := Control.new()
-	catcher.name = "OpenCatcher"
-	catcher.set_anchors_preset(Control.PRESET_FULL_RECT)
-	catcher.mouse_filter = Control.MOUSE_FILTER_STOP
-	catcher.gui_input.connect(_on_catcher_input)
-	reveal_stage.add_child(catcher)
-	reveal_stage.move_child(catcher, 0)
-	_catcher = catcher
-
-func _hide_catcher() -> void:
-	if is_instance_valid(_catcher):
-		_catcher.queue_free()
-	_catcher = null
-
-func _on_catcher_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if _revealing:
-			_skip_requested = true
-		else:
-			_continue_clicked.emit()
 
 ## Habille le bouton "Acheter des packs" dans le même style parchemin/or que
 ## le reste des popups custom du jeu (voir DeckBuilder._make_popup_overlay)
