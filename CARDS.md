@@ -388,7 +388,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H46 | Jugement Divin | 4 | Rare | Détruit un serviteur ciblé ennemi. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
 | H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
 | H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
-| H49 | Appel aux Armes | 4 | Rare | Invoque 2 Miliciens du Bourg 2/1. Si votre rangée Avant est vide : Invoque 3 Miliciens du Bourg à la place. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
+| H49 | Appel aux Armes | 4 | Rare | Piochez 1 carte. Si votre rangée Avant est vide : Invoque 1 Milicien du Bourg 2/1. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
 | H50 | Bénédiction de Guerre | 2 | Épique | Un Humain ciblé allié gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
 | H51 | Massacre Sacré | 4 | Épique | Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
 | H52 | Formation Défensive | 3 | Épique | Tous les serviteurs alliés en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
@@ -426,7 +426,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H70 | Forteresse Imprenable | 5 | Épique | Carnage : Chaque fois qu'un serviteur ennemi meurt, les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
 | H71 | Bouclier de la Foi | 4 | Épique | La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE. | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
 | H72 | Ordre des Anciens | 6 | Légendaire | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
-| H73 | Mémorial des Héros | 4 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
+| H73 | Mémorial des Héros | 5 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 et piochez 1 carte. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
 | H74 | Décret Royal | 7 | Légendaire | Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : Les serviteurs Humains alliés en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
 
