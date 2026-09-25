@@ -586,9 +586,6 @@ var _nav_mode: NavMode = NavMode.MAIN
 var friends_cache: Array = []
 var friend_requests_cache: Array = []
 var friends_search_results: Array = []
-# Amis Steam locaux qui ont un compte Wyrdane mais ne sont pas encore amis
-# Wyrdane (voir FriendsPanel._fetch_steam_friends).
-var steam_friends_cache: Array = []
 
 # --- Chat (voir ChatPanel.gd) -------------------------------------------
 var chat_thread_friend_id: int = 0
