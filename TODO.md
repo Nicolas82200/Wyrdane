@@ -131,14 +131,26 @@ Reste à faire avant que ce soit réellement actif :
   matchmaking, nécessite deux comptes Steam) : en particulier le repli Normal
   → recherche directe après `NORMAL_QUEUE_TIMEOUT`/échec backend, et le
   réessai de `queue_report_lobby` (voir bug ci-dessous).
-- Le bug historique « partie classée qui ne se lance jamais entre deux amis
-  qui viennent de la lancer » n'a pas de cause confirmée en conditions
-  réelles (pas reproduit dans une session de dev) : la piste la plus probable
-  identifiée est un échec silencieux de `queue_report_lobby` côté hôte
-  (appelé jusque-là sans callback ni retry) — corrigé (réessai + message
-  d'erreur explicite si les 3 tentatives échouent, voir
-  `MatchmakingOverlay._report_queue_lobby`), mais à confirmer en vrai avant de
-  considérer le ticket clos.
+- Le bug historique « partie qui ne se lance jamais entre deux amis qui
+  viennent de la lancer » a enfin une **cause confirmée** (2026-09-25,
+  diagnostiquée sur les logs réels des deux joueurs) : fermer un transport
+  quitte le lobby Steam en cours (`NetworkManager._setup_transport` →
+  `SteamTransport.close`), donc chaque nouvelle tentative rendait injoignable
+  le lobby que l'autre était en train de rejoindre → « entrée refusée
+  (code 2) » (*lobby inexistant*) des deux côtés, en boucle, y compris sur une
+  invitation explicite. Corrigé : invitation rendue intouchable par le
+  matchmaking automatique, relances plafonnées, `HOST_PEER_WAIT_TIMEOUT` 30 →
+  60s, délai court de la file plus appliqué à un ticket déjà apparié — voir
+  « Robustesse de l'entrée en partie » dans `CLAUDE.md`. La piste précédente
+  (échec silencieux de `queue_report_lobby`, corrigée par réessai + message
+  explicite dans `MatchmakingOverlay._report_queue_lobby`) reste valable mais
+  n'était pas la cause principale.
+- **À confirmer en conditions réelles** (deux comptes Steam) : que le
+  correctif ci-dessus suffit réellement à enchaîner plusieurs parties d'affilée
+  entre deux amis, en « Contre un ami » comme en « Normal ». Le log d'une
+  partie affiche désormais en clair chaque fermeture de transport
+  (`[NetworkManager] Transport précédent fermé…`) : sa présence entre la
+  création d'un lobby et l'arrivée du pair signale immédiatement une rechute.
 
 ## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
 
