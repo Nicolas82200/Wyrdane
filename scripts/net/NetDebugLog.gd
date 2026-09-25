@@ -17,11 +17,11 @@ class_name NetDebugLog
 # instantané est reformulé en "Hôte"/"Invité" (rôle IDENTIQUE des deux côtés,
 # voir NetworkManager.is_host) plutôt qu'en "joueur local"/"adverse".
 #
-# Toujours actif dès qu'une partie réseau est en cours (battle.network_manager
-# != null) — coût négligeable (quelques lignes de texte par action, jamais en
-# solo) au regard de la valeur en debug. Pour désactiver temporairement,
-# mettre ENABLED à false ci-dessous.
-const ENABLED := true
+# Désactivé par défaut (2026-09-26, demande utilisateur) : les bugs de
+# désync réseau qui ont motivé ce journal sont corrigés, le volume de lignes
+# par partie n'a plus de contrepartie. Repasser à true en cas de nouveau
+# rapport de désync réseau à investiguer.
+const ENABLED := false
 
 static func command_sent(command: Dictionary) -> void:
 	if not ENABLED:
