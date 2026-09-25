@@ -166,8 +166,21 @@ static func _render_thread(menu) -> void:
 	# appel direct, scroll_vertical est automatiquement clampé au maximum.
 	menu.chat_thread_scroll.call_deferred("set", "scroll_vertical", 999999999)
 
+# Largeur max d'une bulle — un Label en AUTOWRAP_WORD renvoie une largeur
+# minimale de 0 par conception Godot (le wrap est censé être contraint par le
+# rect reçu du parent, pas déduit du texte) : placé dans un conteneur qui se
+# resserre sur son contenu (SIZE_SHRINK_BEGIN/END, pour aligner la bulle à
+# gauche/droite selon l'expéditeur), il s'effondrait donc à une largeur quasi
+# nulle — texte replié caractère par caractère et dessiné hors des bornes du
+# panneau (Label ne s'auto-clippe pas). Fix : mesurer la largeur naturelle du
+# texte sur une seule ligne et la donner explicitement comme largeur minimale
+# du Label (chose que AUTOWRAP ne fait jamais tout seul), plafonnée à ceci
+# pour que les messages longs retombent correctement à la ligne.
+const BUBBLE_MAX_WIDTH := 260.0
+
 static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 	var is_mine: bool = int(message.get("sender_id", -1)) == BackendClient.local_user_id()
+	var body: String = str(message.get("body", ""))
 
 	var wrapper := PanelContainer.new()
 	var style := StyleBoxFlat.new()
@@ -184,10 +197,13 @@ static func _make_message_bubble(message: Dictionary) -> PanelContainer:
 	wrapper.size_flags_horizontal = Control.SIZE_SHRINK_END if is_mine else Control.SIZE_SHRINK_BEGIN
 
 	var label := Label.new()
-	label.text = str(message.get("body", ""))
+	label.text = body
+	var font: Font = ThemeDB.fallback_font
+	var font_size: int = Typography.BODY
+	var natural_width: float = font.get_string_size(body, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	label.custom_minimum_size = Vector2(min(natural_width + 4.0, BUBBLE_MAX_WIDTH), 0)
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD
-	label.custom_minimum_size = Vector2(0, 0)
-	label.add_theme_font_size_override("font_size", Typography.BODY)
+	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
 	wrapper.add_child(label)
 
