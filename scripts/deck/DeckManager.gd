@@ -288,11 +288,22 @@ func can_add_card(deck: DeckData, card_data: CardData) -> bool:
 ## Crée (POST) ou met à jour (PUT) chaque deck côté backend selon qu'il a déjà
 ## ou non un backend_id. Les cartes du deck absentes du catalogue backend
 ## (CardLibrary.backend_id_by_path) sont silencieusement exclues du payload.
+## Sauvegardés un par un, jamais en parallèle : des requêtes simultanées sur
+## plusieurs decks du même joueur provoquaient des deadlocks MySQL côté
+## backend (DELETE + INSERT concurrents sur deck_cards, voir
+## decksModel.replaceCards) qui remontaient en HTTP 500.
 func save_decks() -> void:
-	for deck in decks:
-		_push_deck(deck)
+	_push_decks_sequentially(decks.duplicate())
 
-func _push_deck(deck: DeckData) -> void:
+func _push_decks_sequentially(remaining: Array[DeckData]) -> void:
+	if remaining.is_empty():
+		return
+	var deck: DeckData = remaining.pop_front()
+	_push_deck(deck, func() -> void:
+		_push_decks_sequentially(remaining)
+	)
+
+func _push_deck(deck: DeckData, on_done: Callable = Callable()) -> void:
 	var payload := {"name": deck.name, "entries": _to_api_entries(deck)}
 	var is_new := deck.backend_id < 0
 	var method: HTTPClient.Method = HTTPClient.METHOD_POST if is_new else HTTPClient.METHOD_PUT
@@ -303,6 +314,8 @@ func _push_deck(deck: DeckData) -> void:
 			deck.backend_id = parsed.get("id", -1)
 		elif code != 200:
 			sync_failed.emit("Échec de sauvegarde du deck « %s » (HTTP %d)" % [deck.name, code])
+		if on_done.is_valid():
+			on_done.call()
 	)
 
 func _to_api_entries(deck: DeckData) -> Array:
