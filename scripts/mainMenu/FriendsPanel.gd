@@ -275,9 +275,9 @@ static func _show_context_menu(menu, friendship_id: int, user_id: int, username:
 				menu._show_info_view(menu.InfoView.MODE_SELECT)
 			1:
 				close(menu)
-				menu._show_info_view(menu.InfoView.STATS)
-				menu.leaderboard_search_field.text = username
-				StatsPanel.search_player(menu)
+				menu._profile_pending_user_id = user_id
+				menu._profile_pending_username = username
+				menu._show_info_view(menu.InfoView.PROFILE)
 			2:
 				BackendClient.report_issue("cheating", SettingsManager.t("FRIENDS_REPORT_DEFAULT_DESCRIPTION") % username, user_id)
 			3:

@@ -738,13 +738,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="DeckCompTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView" unique_id=1975869127]
+[node name="DeckCompTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DeckCompTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleRow" unique_id=1975869127]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Composition du deck"
+
+[node name="DeckCompBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="DeckCompSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView" unique_id=928353797]
 layout_mode = 2
@@ -831,13 +847,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 14
 
-[node name="ProfileTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=75549203]
+[node name="ProfileTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ProfileTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleRow" unique_id=75549203]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Profil"
+
+[node name="ProfileBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="ProfileSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/ProfileView" unique_id=1426168721]
 layout_mode = 2
@@ -1170,13 +1202,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="ShopTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000091]
+[node name="ShopTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ShopTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleRow" unique_id=300000091]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Boutique"
+
+[node name="ShopBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="ShopTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView" unique_id=300000102]
 layout_mode = 2
@@ -1248,13 +1296,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="CollectionTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
+[node name="CollectionTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CollectionTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Collection"
+
+[node name="CollectionBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="CollectionSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/CollectionView"]
 layout_mode = 2
@@ -1294,13 +1358,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="QuestsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=400000003]
+[node name="QuestsTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="QuestsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleRow" unique_id=400000003]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Quêtes"
+
+[node name="QuestsBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="QuestsTabsRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/QuestsView" unique_id=2146294701]
 layout_mode = 2
@@ -1353,13 +1433,29 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="StatsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
+[node name="StatsTitleRow" type="HBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="StatsTitleLabel" type="Label" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 29
 text = "Statistiques"
+
+[node name="StatsBackButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow"]
+custom_minimum_size = Vector2(110, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "← Retour"
 
 [node name="StatsSep" type="HSeparator" parent="InfoPanel/InfoMargin/ViewsRoot/StatsView"]
 layout_mode = 2

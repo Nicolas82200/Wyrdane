@@ -130,7 +130,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
 @onready var shop_view:            VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView
-@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleLabel
+@onready var shop_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleRow/ShopTitleLabel
+@onready var shop_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTitleRow/ShopBackButton
 @onready var shop_packs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopPacksTabButton
 @onready var shop_card_backs_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopTabsRow/ShopCardBacksTabButton
 @onready var shop_buy_packs_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll
@@ -139,7 +140,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
 @onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
 @onready var collection_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView
-@onready var collection_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleLabel
+@onready var collection_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow/CollectionTitleLabel
+@onready var collection_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow/CollectionBackButton
 @onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/PackShop
 @onready var shop_collection_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll
 @onready var shop_collection_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll/CollectionSection
@@ -149,7 +151,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var news_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsScroll/NewsListVBox
 
 @onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
-@onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleLabel
+@onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleRow/DeckCompTitleLabel
+@onready var deck_comp_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleRow/DeckCompBackButton
 @onready var deck_comp_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompLeftCol/DeckCompScroll/DeckCompListVBox
 @onready var deck_comp_preview_card: Card = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHolder/DeckCompPreviewCard
 @onready var deck_comp_preview_hint: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompBody/DeckCompRightCol/DeckCompPreviewBox/DeckCompPreviewHint
@@ -158,7 +161,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var profile_view:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView
 @onready var profile_body:    VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox
-@onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleLabel
+@onready var profile_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleRow/ProfileTitleLabel
+@onready var profile_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileTitleRow/ProfileBackButton
 @onready var profile_avatar:  TextureRect = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileAvatarFrame/ProfileAvatar
 @onready var profile_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfileNameLabel
 @onready var profile_place_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileHeaderRow/ProfileNameCol/ProfilePlaceLabel
@@ -199,7 +203,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var deck_list:       DeckList = $InfoPanel/InfoMargin/ViewsRoot/DeckList
 
 @onready var quests_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView
-@onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleLabel
+@onready var quests_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleRow/QuestsTitleLabel
+@onready var quests_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTitleRow/QuestsBackButton
 @onready var quests_regular_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow/QuestsRegularTabButton
 @onready var quests_unique_tab_button: Button = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsTabsRow/QuestsUniqueTabButton
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
@@ -207,7 +212,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var stats_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/StatsButton
 @onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
-@onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleLabel
+@onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow/StatsTitleLabel
+@onready var stats_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow/StatsBackButton
 @onready var stats_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsStatusLabel
 @onready var stats_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsScroll/StatsListVBox
 @onready var leaderboard_tiers_row: HBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView/LeaderboardTiersRow
@@ -295,7 +301,16 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	decks_button.pressed.connect(_on_decks_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
+	shop_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	collection_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
+	collection_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+	profile_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+	stats_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+	quests_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+	# Contrairement aux autres vues (accessibles depuis la navigation, retour
+	# aux actualités), la composition de deck est ouverte depuis "Mes Decks" —
+	# le retour naturel est donc cette liste, pas les actualités.
+	deck_comp_back_button.pressed.connect(func(): _show_info_view(InfoView.DECKS_MANAGE))
 	# PackShop est un overlay transparent toujours présent par-dessus
 	# CollectionContentRoot (voir son commentaire d'en-tête) : il ne révèle
 	# des cartes qu'à la demande, directement autour du pack cliqué dans la
@@ -571,6 +586,19 @@ func _update_quest_tab_tints() -> void:
 # demande, la première fois que l'onglet Historique est sélectionné.
 var _profile_tab: ProfileTab = ProfileTab.MAIN
 
+# Profil d'un AUTRE joueur consulté depuis FriendsPanel ("Voir le profil") :
+# -1 = profil du joueur local (comportement par défaut, voir ProfilePanel.open).
+# _profile_pending_user_id/_profile_pending_username sont posés juste avant
+# _show_info_view(PROFILE) (voir FriendsPanel._show_context_menu) pour que sa
+# branche PROFILE appelle ProfilePanel.open_for_user au lieu de open() —
+# évite d'ouvrir puis remplacer coup sur coup (deux requêtes réseau
+# concurrentes, la réponse "mon profil" pouvant écraser celle de l'ami si
+# elle revient en second).
+var _profile_target_user_id: int = -1
+var _profile_target_username: String = ""
+var _profile_pending_user_id: int = -1
+var _profile_pending_username: String = ""
+
 func _select_profile_tab(tab: ProfileTab) -> void:
 	_profile_tab = tab
 	_update_profile_tab_tints()
@@ -812,7 +840,14 @@ func _show_info_view(view: InfoView) -> void:
 	# flux (retour aux actualités ou navigation vers un autre onglet).
 	play_button.disabled = view == InfoView.MODE_SELECT or view == InfoView.DECK_SELECT
 	if view == InfoView.PROFILE:
-		ProfilePanel.open(self)
+		if _profile_pending_user_id >= 0:
+			var pending_id := _profile_pending_user_id
+			var pending_name := _profile_pending_username
+			_profile_pending_user_id = -1
+			_profile_pending_username = ""
+			ProfilePanel.open_for_user(self, pending_id, pending_name)
+		else:
+			ProfilePanel.open(self)
 	elif view == InfoView.SETTINGS:
 		settings_menu.open()
 	elif view == InfoView.DECKS_MANAGE:
@@ -1175,11 +1210,13 @@ func _retranslate() -> void:
 	decks_button.text   = SettingsManager.t("MENU_DECKS")
 	shop_button.text   = SettingsManager.t("MENU_SHOP_TITLE")
 	shop_title_label.text = SettingsManager.t("MENU_SHOP_TITLE")
+	shop_back_button.text = SettingsManager.t("ui.back")
 	shop_packs_tab_button.text = SettingsManager.t("pack_shop.title")
 	shop_card_backs_tab_button.text = SettingsManager.t("SHOP_TAB_CARD_BACKS")
 	shop_card_backs_hint_label.text = SettingsManager.t("SHOP_CARD_BACKS_HINT")
 	collection_button.text = SettingsManager.t("MENU_COLLECTION")
 	collection_title_label.text = SettingsManager.t("COLLECTION_TITLE")
+	collection_back_button.text = SettingsManager.t("ui.back")
 	currency_label.text = str(CurrencyManager.balance)
 	settings_button.text = SettingsManager.t("MENU_SETTINGS")
 	credits_button.text = SettingsManager.t("MENU_CREDITS")
@@ -1224,7 +1261,9 @@ func _retranslate() -> void:
 	_populate_custom_difficulty_option()
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")
 	deck_comp_preview_hint.text = SettingsManager.t("MENU_DECK_COMPOSITION_EMPTY")
+	deck_comp_back_button.text = SettingsManager.t("ui.back")
 	profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
+	profile_back_button.text = SettingsManager.t("ui.back")
 	profile_main_tab_button.text = SettingsManager.t("PROFILE_TAB_MAIN")
 	profile_history_tab_button.text = SettingsManager.t("PROFILE_TAB_HISTORY")
 	profile_community_tab_button.text = SettingsManager.t("PROFILE_TAB_COMMUNITY")
@@ -1240,10 +1279,12 @@ func _retranslate() -> void:
 	chat_input_line_edit.placeholder_text = SettingsManager.t("CHAT_INPUT_PLACEHOLDER")
 	quests_button.text = SettingsManager.t("MENU_QUESTS")
 	quests_title_label.text = SettingsManager.t("QUESTS_TITLE")
+	quests_back_button.text = SettingsManager.t("ui.back")
 	quests_regular_tab_button.text = SettingsManager.t("QUESTS_TAB_REGULAR")
 	quests_unique_tab_button.text = SettingsManager.t("QUESTS_TAB_UNIQUE")
 	stats_button.text = SettingsManager.t("MENU_STATS")
 	stats_title_label.text = SettingsManager.t("STATS_TITLE")
+	stats_back_button.text = SettingsManager.t("ui.back")
 	leaderboard_search_field.placeholder_text = SettingsManager.t("LEADERBOARD_SEARCH_PLACEHOLDER")
 	leaderboard_search_button.text = SettingsManager.t("LEADERBOARD_SEARCH_BUTTON")
 	leaderboard_jump_to_me_button.text = SettingsManager.t("LEADERBOARD_JUMP_TO_ME")
@@ -1256,4 +1297,7 @@ func _retranslate() -> void:
 	if deck_composition_view.visible and _composition_deck_index >= 0 and _composition_deck_index < DeckManager.decks.size():
 		DeckCompositionPanel.show(self, _composition_deck_index)
 	if profile_view.visible:
-		ProfilePanel.open(self)
+		if _profile_target_user_id >= 0:
+			ProfilePanel.open_for_user(self, _profile_target_user_id, _profile_target_username)
+		else:
+			ProfilePanel.open(self)
