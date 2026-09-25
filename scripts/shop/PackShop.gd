@@ -58,7 +58,11 @@ func _ready() -> void:
 	# Toujours au-dessus de ShopCollectionScroll (son sibling précédent dans
 	# CollectionContentRoot, voir MainMenu.tscn) : sans ça, les cartes
 	# révélées s'afficheraient DERRIÈRE le contenu de la vue Collection.
-	move_to_front()
+	# Différé : ce _ready() tourne pendant l'instanciation de MainMenu.tscn
+	# par LoadingScreen._swap_to_next_scene() (add_child avant même la fin de
+	# l'ajout de la scène courante), donc le parent est encore "busy" côté
+	# moteur (move_child() échoue avec une erreur C++ sinon).
+	move_to_front.call_deferred()
 	_style_action_button(buy_packs_button)
 	buy_packs_button.pressed.connect(func(): buy_packs_pressed.emit())
 	continue_label.hide()
