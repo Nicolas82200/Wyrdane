@@ -145,12 +145,37 @@ Reste à faire avant que ce soit réellement actif :
   (échec silencieux de `queue_report_lobby`, corrigée par réessai + message
   explicite dans `MatchmakingOverlay._report_queue_lobby`) reste valable mais
   n'était pas la cause principale.
-- **À confirmer en conditions réelles** (deux comptes Steam) : que le
-  correctif ci-dessus suffit réellement à enchaîner plusieurs parties d'affilée
-  entre deux amis, en « Contre un ami » comme en « Normal ». Le log d'une
-  partie affiche désormais en clair chaque fermeture de transport
-  (`[NetworkManager] Transport précédent fermé…`) : sa présence entre la
-  création d'un lobby et l'arrivée du pair signale immédiatement une rechute.
+- **Correctif de fond (2026-09-25, après le précédent)** : la cause profonde
+  n'était pas un bug isolé mais **deux systèmes de mise en relation en
+  parallèle** sur le mode Normal (file backend + recherche directe dans la liste
+  de lobbies Steam en repli), chacun avec ses minuteurs et chacun capable de
+  détruire le lobby vivant de l'autre. Le second chemin est supprimé : la file
+  backend est le seul point de rendez-vous, `SteamTransport.join()` exige un
+  `lobby_id`. Voir « File backend = seul point de rendez-vous » dans
+  `CLAUDE.md`. Conséquence assumée : **Normal exige désormais le backend**.
+- **À confirmer en conditions réelles** (deux comptes Steam) : que ces deux
+  correctifs suffisent réellement à enchaîner plusieurs parties d'affilée entre
+  deux amis, en « Contre un ami » comme en « Normal ». Le log d'une partie
+  affiche en clair chaque fermeture de transport (`[NetworkManager] Transport
+  précédent fermé…`) : sa présence entre la création d'un lobby et l'arrivée du
+  pair signale immédiatement une rechute.
+- **Suite possible, pas faite** : confier l'arbitrage des reprises au backend
+  (aujourd'hui, sur un join refusé, c'est le client qui se remet en file, voir
+  `MAX_AUTO_JOIN_RETRIES`) — une route qui invalide l'appariement et remet les
+  DEUX tickets en file éviterait que chaque client décide seul. Pas nécessaire
+  tant que le chemin unique suffit ; à reconsidérer si des échecs d'appariement
+  réapparaissent en conditions réelles.
+- **Charge** : la file backend devient le seul point de passage de toute mise en
+  relation. Le coût dominant est le poll à `RANKED_POLL_INTERVAL` (2s) ; estimé
+  à ~25-100 req/s pour 1000 joueurs simultanés (500 req/s au pire cas si tous
+  cherchent en même temps), a priori tenable sur le VPS puisque les parties
+  elles-mêmes restent en P2P. À valider par un load test (`k6`/`autocannon`)
+  avant la sortie, et vérifier côté `wyrdane-backend` : index sur
+  `matchmaking_tickets (mode, status, mmr)`, appariement en un seul
+  `UPDATE ... WHERE` plutôt qu'un SELECT puis UPDATE (point chaud de contention,
+  même famille que le `ER_LOCK_DEADLOCK` déjà rencontré sur la sauvegarde de
+  decks), et taille du pool de connexions MySQL. Un backoff du poll (2s les 10
+  premières secondes puis 4-5s) diviserait la charge par deux ou trois.
 
 ## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
 
