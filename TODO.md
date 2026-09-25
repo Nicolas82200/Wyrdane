@@ -170,12 +170,34 @@ Reste à faire avant que ce soit réellement actif :
   à ~25-100 req/s pour 1000 joueurs simultanés (500 req/s au pire cas si tous
   cherchent en même temps), a priori tenable sur le VPS puisque les parties
   elles-mêmes restent en P2P. À valider par un load test (`k6`/`autocannon`)
-  avant la sortie, et vérifier côté `wyrdane-backend` : index sur
-  `matchmaking_tickets (mode, status, mmr)`, appariement en un seul
-  `UPDATE ... WHERE` plutôt qu'un SELECT puis UPDATE (point chaud de contention,
-  même famille que le `ER_LOCK_DEADLOCK` déjà rencontré sur la sauvegarde de
-  decks), et taille du pool de connexions MySQL. Un backoff du poll (2s les 10
-  premières secondes puis 4-5s) diviserait la charge par deux ou trois.
+  avant la sortie.
+  Point chaud identifié en lisant le code (2026-09-25) : `matchmakingModel.
+  findOpponent` fait `SELECT * FROM matchmaking_tickets WHERE status='waiting'
+  AND mode=? AND user_id!=? ... FOR UPDATE`, donc il **verrouille tous les
+  tickets en attente du mode** à chaque poll de chaque joueur. L'appariement
+  lui-même est correct (transaction + lignes verrouillées, pas de course), mais
+  à 500 joueurs qui pollent toutes les 2s, tous les polls se sérialisent sur les
+  mêmes lignes. Remèdes, dans cet ordre : restreindre la plage de MMR dans le
+  `WHERE` (au lieu de filtrer en JS après coup) + index sur
+  `matchmaking_tickets (mode, status, created_at)` ; vérifier la taille du pool
+  de connexions MySQL ; et un backoff du poll côté client (2s les 10 premières
+  secondes puis 4-5s) qui diviserait la charge par deux ou trois. Indolore à
+  l'échelle actuelle — à traiter seulement si le load test le confirme.
+- **Apparier sur le palier affiché plutôt que sur le MMR brut** (façon
+  Hearthstone/MTGA : rang/division en classé, MMR caché en non-classé) —
+  volontairement **écarté pour l'instant**. L'intérêt est qu'un match paraît
+  juste au regard du ladder que le joueur voit, mais ça n'a de sens qu'avec assez
+  de monde pour remplir chaque palier ; avec la population actuelle ça ne ferait
+  qu'allonger les attentes. À reconsidérer quand il y aura de vrais paliers
+  peuplés. Les paliers sont aujourd'hui purement dérivés côté client
+  (`RankTier.gd`), le backend ne les connaît pas : ce chantier demanderait donc
+  d'abord de les faire remonter côté serveur.
+- **Régler `WAIT_BONUS_MMR_PER_SECOND`** (`matchmakingModel.ts`, 5/s plafonné à
+  300) avec de vrais joueurs : ce paramètre arbitre « MMR proche » contre
+  « attend depuis longtemps », et il est inobservable à 2-3 joueurs en file —
+  n'importe quelle valeur donne le même appariement. À revoir une fois la file
+  réellement peuplée, en regardant si des joueurs restent bloqués longtemps
+  (bonus trop faible) ou si les écarts de MMR paraissent injustes (trop fort).
 
 ## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
 
