@@ -277,6 +277,12 @@ var leaderboard_total: int = 0
 var leaderboard_loading_more: bool = false
 var _play_mode: int = PlayMode.SOLO
 var _play_selected_deck_index: int = -1
+# Cible d'une invitation directe depuis le panneau Amis (voir
+# FriendsPanel._show_context_menu → _start_friend_invite_flow) : 0 = flux
+# multijoueur normal (Normal/Classé), sinon DECK_SELECT remplace ces deux
+# cartes par un unique bouton "Inviter <ami>" (voir _show_deck_select).
+var _invite_target_id: int = 0
+var _invite_target_name: String = ""
 var _composition_deck_index: int = -1
 
 func _ready() -> void:
@@ -906,10 +912,14 @@ func _on_play() -> void:
 		TutorialContext.active = true
 		SceneTransition.change_scene(BATTLE_SCENE)
 		return
+	_invite_target_id = 0
+	_invite_target_name = ""
 	AudioManager.play(AudioManager.OPEN_MENU)
 	_show_info_view(InfoView.MODE_SELECT)
 
 func _on_mode_back_pressed() -> void:
+	_invite_target_id = 0
+	_invite_target_name = ""
 	_show_info_view(InfoView.NEWS)
 
 func _on_solo_mode_selected() -> void:
@@ -917,6 +927,17 @@ func _on_solo_mode_selected() -> void:
 	_show_deck_select()
 
 func _on_multi_mode_selected() -> void:
+	_play_mode = PlayMode.MULTI
+	_show_deck_select()
+
+# Invitation directe d'un ami précis depuis le panneau Amis (voir
+# FriendsPanel._show_context_menu) : saute l'écran MODE_SELECT (le mode est
+# déjà connu — inviter CET ami) et va droit au choix de deck, qui n'affichera
+# alors qu'un unique bouton "Inviter <ami>" (voir _show_deck_select).
+func _start_friend_invite_flow(user_id: int, username: String) -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	_invite_target_id = user_id
+	_invite_target_name = username
 	_play_mode = PlayMode.MULTI
 	_show_deck_select()
 
@@ -937,13 +958,22 @@ func _show_deck_select() -> void:
 	# "Partie personnalisée" (choix ponctuel de la difficulté IA) n'a de sens
 	# qu'en solo — en multi l'adversaire est un vrai joueur (voir CustomMatchContext).
 	# Le multi, lui, remplace le bouton générique "Lancer" par les cartes de
-	# type de partie (Normal/Classé/Ami, voir _on_match_*_pressed) : chacune
-	# lance directement la recherche avec le deck sélectionné ci-dessous, sans
-	# écran/popup intermédiaire à choisir plus tard.
+	# type de partie (Normal/Classé) : chacune lance directement la recherche
+	# avec le deck sélectionné ci-dessous, sans écran/popup intermédiaire à
+	# choisir plus tard.
 	var is_solo := _play_mode == PlayMode.SOLO
+	var is_friend_invite := _invite_target_id != 0
 	custom_difficulty_row.visible = is_solo
 	launch_button.visible = is_solo
 	match_type_row.visible = not is_solo
+	# Invitation d'un ami précis (voir _start_friend_invite_flow) : un seul
+	# bouton "Inviter <ami>" remplace les cartes Normal/Classé, qui n'ont pas de
+	# sens ici (le mode et l'adversaire sont déjà connus).
+	normal_match_button.visible = not is_friend_invite
+	ranked_match_button.visible = not is_friend_invite
+	invite_match_button.visible = is_friend_invite
+	if is_friend_invite:
+		invite_match_button.text = SettingsManager.t("NET_FRIEND_INVITE_SEND_FORMAT") % _invite_target_name
 	_show_info_view(InfoView.DECK_SELECT)
 
 func _populate_custom_difficulty_option() -> void:
@@ -957,6 +987,8 @@ func _populate_custom_difficulty_option() -> void:
 		custom_difficulty_option.selected = 0
 
 func _on_play_back_pressed() -> void:
+	_invite_target_id = 0
+	_invite_target_name = ""
 	_show_info_view(InfoView.MODE_SELECT)
 
 func _refresh_play_deck_list() -> void:
@@ -1094,10 +1126,10 @@ func _on_launch_pressed() -> void:
 
 # Multi uniquement : chaque carte de type de partie lance directement la
 # recherche avec le deck sélectionné au-dessus — pas de popup intermédiaire
-# (voir MatchmakingOverlay.start_normal/start_ranked/start_invite). Contrairement
-# au solo, ne quitte pas MainMenu : le bandeau de recherche (autoload
-# persistant) prend le relais pendant que le joueur continue de naviguer où il
-# veut (deck builder, boutique...) jusqu'à ce qu'un adversaire soit trouvé.
+# (voir MatchmakingOverlay.start_normal/start_ranked). Contrairement au solo,
+# ne quitte pas MainMenu : le bandeau de recherche (autoload persistant) prend
+# le relais pendant que le joueur continue de naviguer où il veut (deck
+# builder, boutique...) jusqu'à ce qu'un adversaire soit trouvé.
 func _start_multiplayer_search(start: Callable) -> void:
 	if _play_selected_deck_index < 0:
 		return
@@ -1112,8 +1144,19 @@ func _on_match_normal_pressed() -> void:
 func _on_match_ranked_pressed() -> void:
 	_start_multiplayer_search(MatchmakingOverlay.start_ranked)
 
+# Bouton "Inviter <ami>" (voir _start_friend_invite_flow/_show_deck_select) —
+# remplace les cartes Normal/Classé quand une cible d'invitation est posée.
 func _on_match_invite_pressed() -> void:
-	_start_multiplayer_search(MatchmakingOverlay.start_invite)
+	if _play_selected_deck_index < 0 or _invite_target_id == 0:
+		return
+	var recipient_id := _invite_target_id
+	var recipient_name := _invite_target_name
+	DeckManager.set_active_deck(_play_selected_deck_index)
+	AudioManager.play(AudioManager.OPEN_MENU)
+	_invite_target_id = 0
+	_invite_target_name = ""
+	MatchmakingOverlay.invite_friend(recipient_id, recipient_name)
+	_show_info_view(InfoView.NEWS)
 
 func _on_discord_pressed() -> void:
 	OS.shell_open(DISCORD_URL)
@@ -1223,7 +1266,11 @@ func _retranslate() -> void:
 	match_type_label.text = SettingsManager.t("MENU_MATCH_TYPE_LABEL")
 	normal_match_button.text = SettingsManager.t("NET_MODE_NORMAL")
 	ranked_match_button.text = SettingsManager.t("NET_STEAM_RANKED")
-	invite_match_button.text = SettingsManager.t("NET_MODE_FRIEND")
+	# invite_match_button : texte dynamique "Inviter <ami>" posé par
+	# _show_deck_select (pas de clé fixe ici) — réappliqué s'il est déjà visible
+	# au moment d'un changement de langue.
+	if _invite_target_id != 0:
+		invite_match_button.text = SettingsManager.t("NET_FRIEND_INVITE_SEND_FORMAT") % _invite_target_name
 	custom_difficulty_label.text = SettingsManager.t("MENU_CUSTOM_DIFFICULTY")
 	_populate_custom_difficulty_option()
 	edit_deck_button.text = SettingsManager.t("MENU_EDIT_DECK_LINK")

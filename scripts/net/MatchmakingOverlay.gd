@@ -7,13 +7,16 @@ extends CanvasLayer
 # `change_scene_to_file` — le joueur peut ouvrir le Deck Builder, la
 # boutique, etc. pendant qu'une recherche est en cours.
 #
-# Entrée : le choix du mode (Normal/Classé/Contre un ami) vit directement dans
-# MainMenu (cartes sous la liste de decks, voir MainMenu._on_match_normal_
-# pressed & co) — MainMenu appelle start_normal()/start_ranked()/start_invite()
-# une fois le deck choisi. Dès l'appel, le bandeau de recherche (haut-droite,
-# ancré à cet autoload donc visible partout) prend le relais. Le bandeau sert
-# aussi de zone de statut/erreur (voir _flash_banner) tant qu'il n'y a plus de
-# StatusPanel toujours visible comme sur l'ancien écran NetLobby.
+# Entrée : le choix du mode (Normal/Classé) vit directement dans MainMenu
+# (cartes sous la liste de decks, voir MainMenu._on_match_normal_pressed & co)
+# — MainMenu appelle start_normal()/start_ranked() une fois le deck choisi.
+# Inviter un ami précis (voir invite_friend(), appelé depuis
+# FriendsPanel._show_context_menu via MainMenu._start_friend_invite_flow) suit
+# le même principe mais saute l'écran de mode. Dès l'appel, le bandeau de
+# recherche (haut-droite, ancré à cet autoload donc visible partout) prend le
+# relais. Le bandeau sert aussi de zone de statut/erreur (voir _flash_banner)
+# tant qu'il n'y a plus de StatusPanel toujours visible comme sur l'ancien
+# écran NetLobby.
 #
 # Le bandeau affiche aussi le mode en recherche, le temps écoulé et une
 # estimation d'attente moyenne (voir _update_search_meta/_refresh_banner_text).
@@ -47,13 +50,17 @@ const BATTLE_SCENE := "res://scenes/battle/Battle.tscn"
 @onready var vs_remote_race_label:  Label   = %RemoteRaceLabel
 const VS_SCREEN_DURATION := 2.2
 
-# Popup affiché quand une invitation Steam (overlay ami / lien « Rejoindre la
-# partie ») est acceptée : contrairement au flux normal/classé/héberger, où le
-# deck est choisi dans MainMenu AVANT de lancer la recherche, un invité peut
-# accepter l'invitation depuis n'importe où (y compris juste après le lancement
-# du jeu) sans jamais être passé par DeckSelectView — ce popup est donc le seul
-# moment où on lui laisse choisir son deck avant de rejoindre le lobby de
-# l'hôte (voir _on_steam_join_requested).
+# Popup de choix de deck affiché à la réception d'une invitation, quelle que
+# soit sa source : une invitation d'ami Wyrdane (voir _poll_incoming_invites,
+# flux normal depuis le retrait de l'ancien overlay Steam natif) ou, en repli,
+# une invitation Steam classique (overlay ami / lien « Rejoindre la partie »,
+# voir _on_steam_join_requested — reste possible si un ami rejoint via son
+# propre client Steam plutôt que la popup en jeu). Contrairement au flux
+# normal/classé, où le deck est choisi dans MainMenu AVANT de lancer la
+# recherche, celui qui reçoit une invitation peut accepter depuis n'importe où
+# (y compris juste après le lancement du jeu) sans jamais être passé par
+# DeckSelectView — ce popup est donc le seul moment où on lui laisse choisir
+# son deck avant de rejoindre le lobby de l'hôte.
 @onready var invite_deck_overlay:    Control         = $InviteDeckChoiceOverlay
 @onready var invite_title_label:     Label           = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteHeaderRow/InviteTitleLabel
 @onready var invite_decline_button:  Button          = $InviteDeckChoiceOverlay/InvitePanel/InviteMargin/InviteVBox/InviteHeaderRow/InviteDeclineButton
@@ -101,7 +108,6 @@ var _net: NetworkManager
 var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
 var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
-var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
 var _status_key := ""  # clé de traduction affichée par le bandeau
 var _status_format_arg = null  # argument % substitué dans _status_key, voir _set_status
 var _loading := false  # affiche le spinner tant qu'une connexion est en cours
@@ -118,6 +124,25 @@ var _banner_flash_tween: Tween
 var _pending_invite_lobby_id := 0  # 0 = aucune invitation en attente de choix de deck
 var _pending_invite_friend_name := ""  # "" si nom non résolu (voir _retranslate, réappliqué si la langue change pendant que le popup est ouvert)
 var _pending_invite_deck_index := -1
+# id de l'invitation backend en attente de réponse (voir _poll_incoming_invites/
+# BackendClient.accept_game_invite) — 0 si le popup n'a rien à répondre côté
+# serveur (ne devrait plus arriver depuis le retrait du flux Steam natif, mais
+# _show_invite_deck_popup reste générique).
+var _pending_backend_invite_id := 0
+
+# ─── Invitation de partie entre amis (remplace l'ancien overlay Steam natif,
+# voir FriendsPanel.gd/BackendClient.send_game_invite) ─────────────────────────
+const INCOMING_INVITE_POLL_INTERVAL := 4.0  # même cadence que ChatPanel._poll
+const OUTGOING_INVITE_POLL_INTERVAL := 2.0
+# Légèrement au-dessus d'INVITE_EXPIRY_SECONDS côté backend (45s) : le serveur
+# expire déjà l'invitation de son côté, cette marge évite juste une course où
+# le client abandonnerait une fraction de seconde avant lui.
+const OUTGOING_INVITE_TIMEOUT := 50.0
+var _incoming_invite_poll_timer: Timer
+var _outgoing_invite_poll_timer: Timer
+var _pending_outgoing_invite_id := 0  # 0 = aucune invitation envoyée en attente de réponse
+var _pending_outgoing_recipient_name := ""
+var _outgoing_invite_elapsed := 0.0
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
@@ -190,11 +215,15 @@ func _ready() -> void:
 	search_banner_cancel.pressed.connect(_on_banner_cancel_pressed)
 	invite_decline_button.pressed.connect(_on_invite_decline_pressed)
 	invite_join_button.pressed.connect(_on_invite_join_pressed)
-	_net.session_ready.connect(_on_session_ready)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	if SteamService.is_available():
 		SteamService.watch_join_requests(_on_steam_join_requested)
+	_incoming_invite_poll_timer = Timer.new()
+	_incoming_invite_poll_timer.wait_time = INCOMING_INVITE_POLL_INTERVAL
+	_incoming_invite_poll_timer.timeout.connect(_poll_incoming_invites)
+	add_child(_incoming_invite_poll_timer)
+	_incoming_invite_poll_timer.start()
 
 func _process(delta: float) -> void:
 	# Pompe les callbacks Steam en continu (même hors recherche active), pour
@@ -422,19 +451,22 @@ func _start_direct_quick_match() -> void:
 		_set_search_mode("")
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
-# L'overlay Steam d'invitation exige un lobby déjà créé (voir
-# SteamTransport.invite_friends) : si aucun n'est en cours, on héberge d'abord
-# et on ouvre l'overlay dès que le lobby est prêt, plutôt que de laisser le
-# joueur presser « Héberger » lui-même avant de pouvoir inviter.
-func start_invite() -> void:
+# Invite un ami Wyrdane précis à jouer (remplace l'ancien overlay Steam natif,
+# voir FriendsPanel._show_context_menu) : on héberge d'abord un lobby Steam
+# comme avant, mais l'invitation elle-même transite par le backend au lieu de
+# activateGameOverlayInviteDialog — l'ami la découvre par polling
+# (_poll_incoming_invites côté lui) et reçoit une popup en jeu avec choix de
+# deck, qu'il soit ou non en train de regarder Steam à ce moment-là.
+func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	if _search_mode != "" or _loading:
 		return
-	if _lobby_hosted:
-		_net.invite_friends()
+	if not BackendClient.is_authenticated():
+		_flash_banner("NET_STEAM_UNAVAILABLE")
 		return
+	_pending_outgoing_recipient_name = recipient_name
 	_quick_matching = false
 	_set_search_mode("invite")
-	_net.session_ready.connect(_on_invite_lobby_ready, CONNECT_ONE_SHOT)
+	_net.session_ready.connect(_on_friend_invite_lobby_ready.bind(recipient_id, recipient_name), CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_set_loading(true)
@@ -442,15 +474,99 @@ func start_invite() -> void:
 		_set_status("NET_STEAM_HOSTING")
 	else:
 		_set_search_mode("")
-		if _net.session_ready.is_connected(_on_invite_lobby_ready):
-			_net.session_ready.disconnect(_on_invite_lobby_ready)
+		if _net.session_ready.is_connected(_on_friend_invite_lobby_ready):
+			_net.session_ready.disconnect(_on_friend_invite_lobby_ready)
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
-func _on_invite_lobby_ready(_session_id: int) -> void:
-	_net.invite_friends()
+func _on_friend_invite_lobby_ready(session_id: int, recipient_id: int, recipient_name: String) -> void:
+	BackendClient.send_game_invite(recipient_id, session_id, func(success: bool, data: Dictionary) -> void:
+		if _search_mode != "invite":
+			return  # annulé pendant l'aller-retour réseau, voir _on_banner_cancel_pressed
+		if not success:
+			_net.close()
+			_reset_friend_invite_state()
+			if str(data.get("message", "")) == "recipient_unavailable":
+				_flash_banner("NET_FRIEND_INVITE_UNAVAILABLE")
+			else:
+				_flash_banner("NET_FRIEND_INVITE_FAILED")
+			return
+		_pending_outgoing_invite_id = int(data.get("id", 0))
+		_set_status("NET_FRIEND_INVITE_WAITING_FORMAT", recipient_name)
+		_outgoing_invite_elapsed = 0.0
+		_outgoing_invite_poll_timer = Timer.new()
+		_outgoing_invite_poll_timer.wait_time = OUTGOING_INVITE_POLL_INTERVAL
+		_outgoing_invite_poll_timer.timeout.connect(_poll_outgoing_invite)
+		add_child(_outgoing_invite_poll_timer)
+		_outgoing_invite_poll_timer.start()
+	)
 
-func _on_session_ready(_session_id: int) -> void:
-	_lobby_hosted = _net.is_host
+# Pollé pendant l'attente de réponse de l'ami invité. Une acceptation ne fait
+# rien de spécial ici : l'ami va rejoindre le lobby Steam de son côté, ce qui
+# déclenche _on_peer_connected comme n'importe quelle autre connexion — seul
+# le refus/l'expiration/l'annulation doivent interrompre l'attente ici.
+func _poll_outgoing_invite() -> void:
+	_outgoing_invite_elapsed += OUTGOING_INVITE_POLL_INTERVAL
+	if _outgoing_invite_elapsed >= OUTGOING_INVITE_TIMEOUT:
+		_net.close()
+		_reset_friend_invite_state()
+		_flash_banner("NET_FRIEND_INVITE_TIMEOUT")
+		return
+	var invite_id := _pending_outgoing_invite_id
+	BackendClient.get_invite_status(invite_id, func(success: bool, status: String) -> void:
+		if invite_id != _pending_outgoing_invite_id or not success:
+			return
+		match status:
+			"declined":
+				_net.close()
+				_reset_friend_invite_state()
+				_flash_banner("NET_FRIEND_INVITE_DECLINED")
+			"expired", "cancelled":
+				_net.close()
+				_reset_friend_invite_state()
+				_flash_banner("NET_FRIEND_INVITE_TIMEOUT")
+			_:
+				pass  # "pending"/"accepted" : rien à faire, on repollera au prochain tick (ou _on_peer_connected prendra le relais)
+	)
+
+func _stop_outgoing_invite_poll() -> void:
+	if _outgoing_invite_poll_timer != null:
+		_outgoing_invite_poll_timer.stop()
+		_outgoing_invite_poll_timer.queue_free()
+		_outgoing_invite_poll_timer = null
+
+func _reset_friend_invite_state() -> void:
+	_stop_outgoing_invite_poll()
+	_pending_outgoing_invite_id = 0
+	_pending_outgoing_recipient_name = ""
+	_set_search_mode("")
+	_set_loading(false)
+	_show_search_banner(false)
+	_set_status("")
+
+# ─── Popup d'invitation reçue (voir InviteDeckChoiceOverlay dans la scène) ────
+
+# Pollé en continu tant qu'aucune recherche/connexion n'est en cours et que le
+# joueur n'est pas déjà en bataille (voir PresenceService.in_battle) — une
+# invitation reçue pendant une partie en cours ne doit jamais interrompre le
+# joueur avec une popup.
+func _poll_incoming_invites() -> void:
+	if not BackendClient.is_authenticated():
+		return
+	if PresenceService.in_battle:
+		return
+	if _pending_invite_lobby_id != 0 or _search_mode != "" or _loading:
+		return
+	BackendClient.get_incoming_invites(func(success: bool, invites: Array) -> void:
+		if not success or invites.is_empty():
+			return
+		if _pending_invite_lobby_id != 0 or _search_mode != "" or _loading:
+			return  # état changé pendant l'aller-retour réseau
+		var row: Dictionary = invites[0]
+		_pending_backend_invite_id = int(row.get("id", 0))
+		_pending_invite_lobby_id = int(row.get("steam_lobby_id", 0))
+		_pending_invite_friend_name = str(row.get("sender_username", ""))
+		_show_invite_deck_popup()
+	)
 
 # ─── Matchmaking classé ───────────────────────────────────────────────────────
 
@@ -524,21 +640,17 @@ func _on_banner_cancel_pressed() -> void:
 			_queue_matched_join_pending = false
 			_stop_host_peer_wait_timer()
 			_net.close()
-			_lobby_hosted = false
 			_show_search_banner(false)
 			_set_status("")
 		"invite":
 			_quick_matching = false
-			_set_search_mode("")
+			# L'ami invité doit être prévenu tout de suite plutôt que de laisser
+			# son popup/poll croire l'invitation encore valide jusqu'à son
+			# expiration (45s côté backend) — voir BackendClient.cancel_game_invite.
+			if _pending_outgoing_invite_id != 0:
+				BackendClient.cancel_game_invite(_pending_outgoing_invite_id)
 			_net.close()
-			# Le lobby Steam vient d'être quitté (voir SteamTransport.close) : sans
-			# ça, un prochain start_invite() le croirait toujours actif (voir son
-			# test _lobby_hosted) et appellerait invite_friends() sur un transport
-			# déjà fermé — l'overlay Steam ne s'ouvrirait plus jamais.
-			_lobby_hosted = false
-			_show_search_banner(false)
-			_set_loading(false)
-			_set_status("")
+			_reset_friend_invite_state()
 		_:
 			# Pas de recherche active : le bandeau n'affiche qu'un message
 			# (erreur/annulation) déjà en train de s'auto-fermer — on le
@@ -679,7 +791,6 @@ func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> vo
 			# héberger dans le vide jusqu'à ce que l'invité expire de son côté
 			# (jusqu'à 3 min) — on referme et on prévient tout de suite.
 			_net.close()
-			_lobby_hosted = false
 			_reset_queue_ui()
 			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
 	)
@@ -708,7 +819,6 @@ func _on_host_peer_wait_timeout() -> void:
 	_stop_host_peer_wait_timer()
 	var mode_to_retry := _queue_mode
 	_net.close()
-	_lobby_hosted = false
 	_reset_queue_ui()
 	if mode_to_retry == "ranked":
 		start_ranked()
@@ -776,11 +886,6 @@ func _on_peer_connected() -> void:
 	_handshake.start()
 
 func _on_peer_disconnected(reason: String) -> void:
-	# Le lobby/la connexion qui viennent de tomber ne doivent plus être
-	# considérés valides pour un prochain start_invite() (voir _lobby_hosted) —
-	# sans ça, une invitation restée sans réponse puis coupée empêcherait
-	# d'en relancer une nouvelle.
-	_lobby_hosted = false
 	_stop_host_peer_wait_timer()
 	# Invalide un éventuel flash "adversaire trouvé" encore en attente (voir
 	# _on_peer_connected) : une coupure pendant ces 5 secondes ne doit pas
@@ -865,6 +970,7 @@ func _start_quick_match_host() -> void:
 func _on_steam_join_requested(lobby_id: int, friend_id: int = 0) -> void:
 	_pending_invite_lobby_id = lobby_id
 	_pending_invite_friend_name = SteamService.friend_persona_name(friend_id)
+	_pending_backend_invite_id = 0  # invitation Steam native, pas d'id backend à répondre
 	_show_invite_deck_popup()
 
 func _show_invite_deck_popup() -> void:
@@ -973,19 +1079,29 @@ func _on_invite_deck_selected(index: int) -> void:
 
 # Refuse l'invitation : ferme simplement le popup sans jamais rejoindre le
 # lobby de l'hôte (celui-ci reste en attente, voir NET_STEAM_HOSTING côté hôte).
+# Prévient le backend si l'invitation vient d'un ami Wyrdane (voir
+# _poll_incoming_invites) pour que l'expéditeur soit notifié tout de suite
+# plutôt que d'attendre son propre timeout.
 func _on_invite_decline_pressed() -> void:
+	if _pending_backend_invite_id != 0:
+		BackendClient.decline_game_invite(_pending_backend_invite_id)
 	invite_deck_overlay.visible = false
 	_pending_invite_lobby_id = 0
 	_pending_invite_deck_index = -1
+	_pending_backend_invite_id = 0
 
 func _on_invite_join_pressed() -> void:
 	if _pending_invite_deck_index < 0:
 		return
 	DeckManager.set_active_deck(_pending_invite_deck_index)
 	var lobby_id := _pending_invite_lobby_id
+	var backend_invite_id := _pending_backend_invite_id
 	invite_deck_overlay.visible = false
 	_pending_invite_lobby_id = 0
 	_pending_invite_deck_index = -1
+	_pending_backend_invite_id = 0
+	if backend_invite_id != 0:
+		BackendClient.accept_game_invite(backend_invite_id, func(_success: bool, _lobby_id: int) -> void: pass)
 	_quick_matching = false
 	_set_search_mode("invite")
 	_set_status("NET_STEAM_INVITE_RECEIVED")
@@ -1028,7 +1144,7 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	# le backend à l'appariement (preuve qu'un vrai appariement a eu lieu, voir
 	# TODO.md P9) plutôt que celui dérivé localement par NetHandshake
 	# (client_match_id, toujours présent — sert de repli pour un Normal en
-	# repli direct/Contre un ami, qui n'ont pas d'appariement backend).
+	# repli direct/une invitation d'ami, qui n'ont pas d'appariement backend).
 	# _queue_match_id n'est non-vide qu'après un appariement via la file.
 	if _queue_match_id != "":
 		setup["client_match_id"] = _queue_match_id
@@ -1048,7 +1164,7 @@ func _on_battle_sync_ready() -> void:
 	# La connexion/le handshake sont terminés ici (bataille sur le point de
 	# démarrer) : sans ce reset, _loading reste bloqué à true pour le reste de
 	# la session (cet autoload survit à tout change_scene_to_file) et
-	# start_normal/start_ranked/start_invite refusent silencieusement de
+	# start_normal/start_ranked/invite_friend refusent silencieusement de
 	# relancer une recherche après cette partie (concède ou fin normale).
 	_set_loading(false)
 	await _show_vs_screen()
