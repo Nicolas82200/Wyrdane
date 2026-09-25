@@ -7,26 +7,19 @@
 [sub_resource type="Resource" id="Resource_um2mc"]
 script = ExtResource("1_cardeffect")
 effect_id = "HealHero"
-value = 3
-metadata/_custom_type_script = "uid://ddqetdlahmfmu"
-
-[sub_resource type="Resource" id="Resource_a51d0"]
-script = ExtResource("1_cardeffect")
-effect_id = "DrawCard"
-value = 1
+value = 4
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Communion Écarlate"
-description = "Votre héros regagne 3 points de vie.
-Piochez une carte."
+description = "Votre héros regagne 4 points de vie."
 flavour_text = "Le pacte n'est pas qu'une dette. Parfois, il rembourse."
 texture = ExtResource("3_texture")
 cost = 3
 race = 5
 card_type = "Instant"
-effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_um2mc"), SubResource("Resource_a51d0")])
+effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_um2mc")])
 rarity = "Common"
 race_cost_override = 2
 metadata/_custom_type_script = "uid://bru7ohxxvloht"

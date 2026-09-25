@@ -540,7 +540,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 | D02 | Suppôt des Abysses | ⚔️ | 1 | 1 | 2 | CORRUPTION | *Une simple morsure, et déjà quelque chose s'effrite en toi.* |
 | D03 | Gargouille de Cendres | 🛡️ | 2 | 1 | 3 | REMPART, CHAIR DE SOUFRE | *Elle a regardé brûler des cathédrales entières sans ciller.* |
 | D04 | Croc de Braise | ⚔️ | 2 | 3 | 1 | Pacte 2 : Inflige 2 points de dégâts à la cible (joueur ou serviteur ennemi). | *Chaque morsure lui coûte, à toi aussi.* |
-| D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Arrivée : Piochez une carte. Pacte 3 : Piochez une carte supplémentaire. | *Il murmure une vérité. Elle a toujours un prix.* |
+| D05 | Chuchoteur Malin | ↕️ | 2 | 2 | 2 | Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire. | *Il murmure une vérité. Elle n'a plus besoin d'être entendue pour faire effet.* |
 | D06 | Sangsue Infernale | ⚔️ | 2 | 2 | 2 | Arrivée : Votre héros récupère 2 points de vie. Pacte 1 : Votre héros récupère 2 points de vie supplémentaires. | *Elle ne mord jamais l'ennemi en premier. Elle commence toujours par toi, doucement.* |
 | D07 | Séducteur Écarlate | 🛡️ | 3 | 2 | 3 | Attaque : La cible perd 1 ATK de façon permanente (Corruption). | *Il ne promet rien. Il se contente de prendre, doucement.* |
 | D08 | Harpie Carmine | ⚔️ | 3 | 4 | 2 | TERREUR | *Son cri ne blesse pas. Il paralyse.* |
@@ -585,7 +585,7 @@ Les Démons paient leurs pouvoirs avec la vie de leur propre héros. Là où le 
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| D35 | Le Marchand d'Âmes | 🛡️ | 6 | 0 | 4 | Éveil : Piochez une carte. Pacte 3 : Piochez une carte supplémentaire. | *Il ne se bat pas. Il n'en a pas besoin — le contrat travaille pour lui, tour après tour.* |
+| D35 | Le Marchand d'Âmes | 🛡️ | 6 | 0 | 4 | Éveil : Piochez une carte et défaussez-en une au hasard. Pacte 2 : Vous ne défaussez pas. | *Il ne se bat pas. Il n'en a pas besoin — le contrat travaille pour lui, tour après tour.* |
 | D36 | Roi Démon Écarlate | ⚔️ | 8 | 6 | 8 | CORRUPTION. Arrivée : Inflige Corruption à tous les serviteurs ennemis. Pacte 3 : Une marque de Corruption supplémentaire. | *Son royaume ne s'étend pas par la conquête. Il s'étend par ce qu'il te fait accepter.* |
 | D37 | Apocalypse Infernale | ⚔️ | 9 | 9 | 9 | SANG NOIR, RANG INFERNAL. Arrivée : Tous les serviteurs Démons alliés gagnent +2/+2 de façon permanente. Pacte 5 : Ils acquièrent SANG NOIR. | *Ce n'était pas une invasion. C'était le prix qu'il fallait payer.* |
 | D38 | Le Gardien du Pacte Brisé | 🛡️ | 6 | 5 | 7 | Tant que ce serviteur est en jeu, les dégâts que vos propres cartes infligent à votre héros sont annulés. | *Il a lu chaque clause du contrat. Il a décidé qu'aucune ne s'appliquerait plus.* |
@@ -622,7 +622,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | D45 | Marque du Pacte | 3 | Rare | Un Démon ciblé allié acquiert SANG NOIR de façon permanente. | *La marque ne s'efface pas. Elle attend juste son heure.* |
 | D46 | Hurlement Écarlate | 3 | Rare | Vos Démons alliés gagnent +1/+0 ce tour et votre héros perd 2 points de vie. Si vous contrôlez 5 Démons ou plus, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place. | *Plus ils sont nombreux à hurler, plus le prix grimpe — pour toi.* |
 | D47 | Emprise Écarlate | 4 | Rare | Prend le contrôle d'un serviteur ennemi ayant 2 ATK ou moins jusqu'à la fin de ce tour, puis le détruit. | *Elle n'emprunte jamais rien. Elle rend, mais brisé.* |
-| D48 | Communion Écarlate | 3 | Commune | Votre héros regagne 3 points de vie. Piochez une carte. | *Le pacte n'est pas qu'une dette. Parfois, il rembourse.* |
+| D48 | Communion Écarlate | 3 | Commune | Votre héros regagne 4 points de vie. | *Le pacte n'est pas qu'une dette. Parfois, il rembourse.* |
 | D49 | Ultime Sacrifice | 3 | Épique | Sacrifice jusqu'à 3 : Piochez une carte par serviteur sacrifié. Votre héros perd 1 point de vie par serviteur sacrifié. | *Ils ne meurent pas pour rien. Ils meurent pour que tu continues — de justesse.* |
 | D50 | Absolution Écarlate | 3 | Rare | Les dégâts que vos cartes infligeraient à votre héros ce tour sont annulés. | *Pour une fois, le contrat se tait.* |
 | D51 | Souffle Corrupteur | 1 | Commune | Un serviteur ciblé ennemi perd 1 ATK de façon permanente (Corruption). | *Un murmure suffit. Le reste se fait tout seul, avec le temps.* |
@@ -639,7 +639,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | D53 | Rituel du Pacte Éternel | 5 | Épique | 3 charges | Éveil : Invoque un Suppôt des Abysses 1/2. Pacte 2 : Invoque un Chasseur des Abysses 3/2 (CORRUPTION) à la place. | *Le pacte ne se referme jamais. C'est écrit dans les clauses les plus petites.* |
 | D54 | Marché de Sang | 4 | Épique | 3 charges | Deuil : Invoque une Larve Infernale 2/1. Pacte 2 : Invoque une Larve Ascendante 1/2 avec RANG INFERNAL à la place. | *Chaque offrande en appelle une autre, encore, et encore.* |
 | D55 | Cercle de Corruption | 5 | Épique | 3 charges | Éveil : Inflige Corruption à un serviteur aléatoire ennemi. | *Le cercle ne choisit pas. Il se contente de continuer.* |
-| D56 | Communion Infernale | 3 | Rare | 4 charges | Deuil : Piochez une carte. Pacte 2 : Piochez une carte supplémentaire. | *Chaque mort te parle. Écouter a un coût, à chaque fois.* |
+| D56 | Communion Infernale | 3 | Rare | 4 charges | Quand un Pacte est payé, piochez une carte. (Une seule fois par tour.) | *Chaque prix payé nourrit le pacte, quelle que soit la main qui le tend.* |
 | D57 | Cercle de Guérison Infernale | 4 | Rare | 3 charges | Éveil : Votre héros regagne 2 points de vie. | *Même les Abysses savent qu'un pacte mort ne rapporte plus rien.* |
 | D58 | Cercle du Grand Pacte | 6 | Légendaire | 2 charges | Sacrifice 1 : Vos serviteurs restants gagnent +1/+1 jusqu'à la fin du tour. Pacte 1 : Ils le gagnent de façon permanente à la place. | *Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande.* |
 | D59 | Rituel de la Terreur | 4 | Épique | 3 charges | Deuil : Le héros ennemi ne peut pas soigner jusqu'à la fin de son prochain tour. | *La peur ne referme aucune plaie. C'est précisément le but, encore et encore.* |
