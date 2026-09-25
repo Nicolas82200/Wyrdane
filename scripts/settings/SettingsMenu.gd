@@ -268,7 +268,7 @@ func _style_apply_button(active: bool) -> void:
 # sert directement d'indicateur de sélection.
 func _style_button(btn: Button) -> void:
 	var normal := StyleBoxFlat.new()
-	normal.bg_color                   = Color("1a1a2eaa")
+	normal.bg_color                   = Color("1c1710aa")
 	normal.border_width_left          = 2
 	normal.border_width_right         = 2
 	normal.border_width_top           = 2
@@ -280,11 +280,11 @@ func _style_button(btn: Button) -> void:
 	normal.corner_radius_bottom_right = 6
 	btn.add_theme_stylebox_override("normal", normal)
 	var hover := normal.duplicate() as StyleBoxFlat
-	hover.bg_color     = Color("2a2a4ecc")
+	hover.bg_color     = Color("342918cc")
 	hover.border_color = Color("c9a227")
 	btn.add_theme_stylebox_override("hover", hover)
 	var pressed_style := normal.duplicate() as StyleBoxFlat
-	pressed_style.bg_color     = Color("0d0d1eee")
+	pressed_style.bg_color     = Color("110e09ee")
 	pressed_style.border_color = Color("f0c040")
 	btn.add_theme_stylebox_override("pressed", pressed_style)
 	btn.add_theme_color_override("font_color",       Color("e8d5a3"))

@@ -8,6 +8,9 @@ class_name ProfilePanel
 
 static func open(menu) -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
+	menu._profile_target_user_id = -1
+	menu._profile_target_username = ""
+	menu.profile_title_label.text = SettingsManager.t("PROFILE_TITLE")
 	if SteamService.ensure_init():
 		var persona := SteamService.local_persona_name()
 		if persona != "":
@@ -16,10 +19,33 @@ static func open(menu) -> void:
 		if tex:
 			menu.profile_avatar.texture = tex
 	menu.profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [SettingsManager.match_wins, SettingsManager.match_losses]
+	menu.profile_match_stats_label.visible = true
 	_show_placeholders(menu)
 	# Revient toujours sur l'onglet Principal à l'ouverture de la vue Profil —
 	# un onglet Historique/Communauté resterait sinon sélectionné (et vide,
 	# ses sections ayant été libérées en quittant la vue) au prochain retour.
+	menu._profile_tab = menu.ProfileTab.MAIN
+	menu._update_profile_tab_tints()
+	_fetch(menu)
+	render(menu)
+
+# Profil d'un AUTRE joueur (bouton "Voir le profil" sur une ligne d'ami, voir
+# FriendsPanel._show_context_menu) — même vue/mise en page que open() ci-
+# dessus, mais données via GET /api/profile/:userId (restreint aux amis
+# acceptés côté backend) et sans onglet Communauté (parrainage/adversaires
+# récents n'ont de sens que pour le joueur local). Pas d'avatar Steam
+# disponible pour un tiers arbitraire (l'API Steamworks locale ne connaît que
+# l'identité du joueur local) : le cadre reste vide plutôt que d'afficher
+# l'avatar du joueur local par erreur.
+static func open_for_user(menu, user_id: int, username: String) -> void:
+	AudioManager.play(AudioManager.OPEN_MENU)
+	menu._profile_target_user_id = user_id
+	menu._profile_target_username = username
+	menu.profile_title_label.text = username
+	menu.profile_name_label.text = username
+	menu.profile_avatar.texture = null
+	menu.profile_match_stats_label.visible = false
+	_show_placeholders(menu)
 	menu._profile_tab = menu.ProfileTab.MAIN
 	menu._update_profile_tab_tints()
 	_fetch(menu)
@@ -30,6 +56,14 @@ static func open(menu) -> void:
 # _populate_stats une fois la requête GET /api/profile terminée) ne sont
 # affichées que sur l'onglet Principal, jamais refetchées en changeant d'onglet.
 static func render(menu) -> void:
+	var viewing_friend: bool = menu._profile_target_user_id >= 0
+	# Parrainage/adversaires récents n'ont de sens que pour le joueur local —
+	# l'onglet Communauté n'existe simplement pas sur le profil d'un ami.
+	menu.profile_community_tab_button.visible = not viewing_friend
+	if viewing_friend and menu._profile_tab == menu.ProfileTab.COMMUNITY:
+		menu._profile_tab = menu.ProfileTab.MAIN
+		menu._update_profile_tab_tints()
+
 	var main_visible: bool = menu._profile_tab == menu.ProfileTab.MAIN
 	menu.profile_stats_sep.visible = main_visible
 	menu.profile_member_since_label.visible = main_visible
@@ -62,9 +96,15 @@ static func render(menu) -> void:
 # avant la fin de la connexion, is_authenticated() est encore faux. Attendre
 # login_succeeded sans jamais relancer la requête laisserait les libellés
 # bloqués sur "Chargement..." indéfiniment.
+static func _request_profile(menu) -> void:
+	if menu._profile_target_user_id >= 0:
+		BackendClient.get_friend_profile(menu._profile_target_user_id, _on_response.bind(menu))
+	else:
+		BackendClient.get_profile(_on_response.bind(menu))
+
 static func _fetch(menu) -> void:
 	if BackendClient.is_authenticated():
-		BackendClient.get_profile(_on_response.bind(menu))
+		_request_profile(menu)
 		return
 	if not BackendClient.login_succeeded.is_connected(_on_login_succeeded.bind(menu)):
 		BackendClient.login_succeeded.connect(_on_login_succeeded.bind(menu), CONNECT_ONE_SHOT)
@@ -74,7 +114,7 @@ static func _fetch(menu) -> void:
 static func _on_login_succeeded(_user: Dictionary, menu) -> void:
 	if menu._current_info_view != menu.InfoView.PROFILE:
 		return
-	BackendClient.get_profile(_on_response.bind(menu))
+	_request_profile(menu)
 
 static func _on_login_failed(_reason: String, menu) -> void:
 	if menu._current_info_view != menu.InfoView.PROFILE:
