@@ -409,7 +409,7 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 
 *   `translations/game.csv` (clé, fr, en) — compilé automatiquement par Godot en `game.fr.translation` / `game.en.translation`.
 *   `SettingsManager.t("CLE")` délègue au `TranslationServer` ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`.
-*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 317 cartes** (jetons compris ; noms, effets, flavour).
+*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 320 cartes** (jetons compris ; noms, effets, flavour).
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
@@ -952,22 +952,30 @@ Encore à faire : lancer une Incantation achetée en réseau (bloqué côté cli
 
 ### Implémenté
 *   Moteur de bataille complet (deux rangées, mots-clés, triggers, enchantements, auras, conditions et valeurs dynamiques sur les effets)
-*   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (317 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
+*   Quatre races jouables : Mort-Vivant, Humain, Démon et Abomination (320 cartes au total, jetons compris, voir `CARDS.md`) — mots-clés propres à chaque race (`KeywordUndead.gd`, `KeywordHuman.gd`, `KeywordDemon.gd`, `KeywordAbomination.gd`), mécaniques Démon (Corruption, dégâts auto-infligés `HeroSystem.self_damage`, trigger `OnSelfDamage`) et Abomination (Mutation, trigger `OnDevoration`)
 *   IA adverse (`AISystem`) — joue tous les types de cartes (serviteurs, sorts, rituels, enchantements), trois niveaux de difficulté (facile/normal/difficile)
 *   **Multijoueur 1v1 réseau** — P2P Steam (`SteamTransport`, lobby + P2P Steamworks), « Héberger », « Partie rapide » et « Inviter un ami » dans le lobby, relais de commandes, RNG déterministe partagée, reconnexion automatique sur coupure transitoire, anti-AFK avec forfait après 3 tours d'inactivité d'affilée (voir section « Multijoueur 1v1 ») ; extension GodotSteam optionnelle, AppID Wyrdane (5052390), page Steamworks validée
-*   **Internationalisation FR/EN** — toute l'UI et les 317 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
-*   **Tests automatisés** (GUT, `addons/gut`) — 521 tests couvrant `Minion`, `CardLibrary`, `CardData`, `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, la mutation Abomination, le timer de tour et le protocole réseau (`NetCommand`/`NetRegistry`) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réseau dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
+*   **Internationalisation FR/EN** — toute l'UI et les 320 cartes (jetons compris), via le système de traduction natif Godot (`translations/game.csv`)
+*   **Tests automatisés** (GUT, `addons/gut`) — 858 tests répartis sur 74 scripts, couvrant le moteur de bataille (`EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `FusionSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem`, `TurnSystem`, `PactChoiceSystem`…), l'IA, les decks, l'UI de plateau, le protocole réseau 1v1 (`NetCommand`/`NetRegistry`/`NetCardResolver`) et toute la pile Arena (solo comme réseau, via un transport simulé) ; voir « Tests automatisés » dans `CLAUDE.md`. Seule la couche réellement dépendante de Steam (`NetworkManager`/`SteamTransport`/`NetworkOpponent`) reste hors de portée d'un test unitaire (nécessite deux instances Steam réelles)
 *   Deck builder et gestion de decks (`DeckManager`) — avec filtre par type de carte
 *   Menu principal, réglages (audio, contrôles, graphismes, affichage/langue), écran de chargement ; menu réglages complet accessible en cours de partie (avec bouton quitter)
 *   UI de bataille : deck, main et mana adverses visibles, badges type/rareté/lane sur les cartes, raccourcis clavier, popups d'effets avec flèches vers les cibles
 *   **Prototype Arena / Battle Royale jouable en solo local** (8 participants : 1 joueur + 7 bots, `scenes/arena/ArenaBattle.tscn`) — boutique/pool partagé/fusion/Ghost Board/anti-répétition conformes au design ci-dessous, combat du joueur animé avec le vrai moteur 1v1, UI calquée sur le plateau 1v1 ; voir « État actuel du prototype » dans la section dédiée pour le détail des écarts avec le design (pas de réseau — tous les participants tournent en local, timers différents, pas de verrouillage de boutique)
+*   **Arena en réseau Steam** (`scenes/arena/ArenaNetLobby.tscn` : Solo/Héberger/Rejoindre) — jusqu'à 8 vrais joueurs en topologie étoile hôte-autoritaire, sièges vacants comblables par des bots ; toute la pile (transport → handshake → protocole de partie) est validée en pure logique via un transport simulé, mais **jamais testée avec un second compte Steam réel**
+*   **Backend `wyrdane-backend` déployé en production** (VPS OVH, déploiement continu sur push `main`) — auth Steam, collection, monnaie molle, packs, niveau de compte par XP, MMR/ranked + matchmaking classé par MMR (MMR caché pour les parties Normal), quêtes quotidiennes/hebdo/mensuelles/uniques, parrainage, récompense de connexion, classement, amis + chat + présence, invitations de partie ciblées
+*   **Social** — système d'amis propre à Wyrdane (ajout par pseudo, amis Steam synchronisés automatiquement, présence en ligne/en jeu), chat privé avec badge de non-lus, invitation d'un ami précis à une partie (popup en jeu avec choix de deck, remplace l'overlay Steam natif)
+*   **20 succès Steam côté client** (`AchievementManager`) — le code est prêt ; les API Names restent à créer sur le dashboard Steamworks
+*   **Tutoriel obligatoire guidé** (mulligan compris) avec récompense de decks/cartes de départ, écran de fin de partie, rapport de plantage/gel (`CrashReporter`)
 
 ### À faire
-*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe, passage `"Preview"` à `0`) — les invitations d'amis (overlay Steam) sont déjà implémentées, voir « Multijoueur 1v1 »
-*   Étendre le prototype Arena au réseau à 8 joueurs (voir section dédiée, « Réseau & Visibilité » et « État actuel du prototype »)
-*   Nouvelles races : Elfe, Nain
+*   **Valider le multijoueur en conditions Steam réelles** (deux comptes Steam distincts, cf. « Multijoueur 1v1 ») — tout le matchmaking 1v1, l'invitation d'ami et l'Arena réseau n'ont jamais été éprouvés autrement qu'en logique simulée ; c'est le principal risque restant avant une sortie
+*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe encore vides, passage `"Preview"` à `0`)
+*   Créer les 20 succès sur le dashboard Steamworks (API Names + textes FR/EN + icônes ; le code client est prêt)
+*   Arena réseau : lancer une Incantation achetée depuis un client (bloqué aujourd'hui), quorum de passage de phase, cas de l'hôte éliminé avant la fin de la partie
+*   Nouvelles races : Elfe, Nain (proposition de design à valider, voir « 🧝 Elfe & 🪓 Nain »)
 *   Animations shaders
-*   Mise en prod côté `wyrdane-backend` des routes de matchmaking classé et des quêtes hebdomadaires/parrainage (client déjà prêt, voir sections dédiées ci-dessous)
+*   Saisons ranked avec récompenses de fin de saison
+*   Anti-triche : activer `ENFORCE_MATCH_SESSION_TOKEN` côté backend une fois le client porteur du jeton confirmé en production
 ---
 
 ## 💠 Système de Ressources par Race

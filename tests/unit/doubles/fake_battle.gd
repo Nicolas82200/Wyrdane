@@ -42,6 +42,10 @@ var enemy_graveyard := Graveyard.new()
 var combat_log: FakeCombatLog = FakeCombatLog.new()
 var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
+# Lu par FusionSystem.can_activate/SelectionSystem/InputSystem : un double
+# suffit (le vrai SacrificeSystem extends Node, doublé ici pour ne pas avoir à
+# le libérer dans chaque after_each()).
+var sacrifice_system: FakeSacrificeSystem = FakeSacrificeSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
 var afk_guard: FakeAfkGuard = FakeAfkGuard.new()

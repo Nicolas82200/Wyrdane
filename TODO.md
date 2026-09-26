@@ -4,7 +4,7 @@ Liste priorisée issue d'une revue transversale du projet (voir aussi la section
 
 ## P1 — Couverture de tests quasi nulle en dehors des cartes
 
-**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_apply_infection_damage`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (732 tests, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
+**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_apply_infection_damage`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (858 tests répartis sur 74 scripts, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
 
 Restent non couverts, jugés hors de portée d'un test unitaire raisonnable (couplage à la scène réelle/Steam plutôt qu'un manque d'effort) :
 - `NetworkManager`/`SteamTransport`/`NetworkOpponent` (`scripts/net/`) — dépendent de GodotSteam (P2P réel), d'un `SceneTree` réseau, et rejouent des commandes sur un `Battle` complet ; testable uniquement via un test d'intégration à deux instances Steam, pas un test unitaire.
@@ -27,7 +27,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 ## P4 — Incohérence mineure de comptage de cartes
 
-**Re-résolu (revue du 2026-09-14).** Le compte réel des `.tres` dans `resources/cards/` (hors Arena, `arena_only = true`) est 320 : 80 Mort-Vivant dont 4 jetons, 81 Humain dont 5 jetons, **80** Démon dont **4** jetons, 79 Abomination dont 3 jetons. `CLAUDE.md`/`CARDS.md` annonçaient encore 77/1 pour Démon et 317/13 au total (régression depuis la précédente correction de ce point — 3 jetons Démon ajoutés depuis sans mise à jour des comptages). Corrigé dans `CLAUDE.md`/`CARDS.md`. À revérifier lors de la prochaine carte ajoutée/retirée.
+**Re-résolu (revue du 2026-09-14).** Le compte réel des `.tres` dans `resources/cards/` (hors Arena, `arena_only = true`) est 320 : 80 Mort-Vivant dont 4 jetons, 81 Humain dont 5 jetons, **80** Démon dont **4** jetons, 79 Abomination dont 3 jetons. `CLAUDE.md`/`CARDS.md` annonçaient encore 77/1 pour Démon et 317/13 au total (régression depuis la précédente correction de ce point — 3 jetons Démon ajoutés depuis sans mise à jour des comptages). Corrigé dans `CLAUDE.md`/`CARDS.md`. À revérifier lors de la prochaine carte ajoutée/retirée. **Recompté le 2026-09-26** : 332 `.tres` dans `resources/cards/` moins 12 `arena_only` = **320 cartes**, dont 16 jetons — conforme à ce qu'annoncent `CLAUDE.md` et `CARDS.md` (`README.md`, qui affichait encore 317, a été corrigé).
 
 ## P5 — Elfe / Nain : scaffolding minimal
 
@@ -86,11 +86,18 @@ capture `finished` **par valeur** dans la lambda (comportement des closures GDSc
 
 **Télémétrie ajoutée.** `CrashReporter` (voir « Rapport de plantage/gel » dans `CLAUDE.md`) détecte désormais toute session qui ne s'est pas terminée proprement (plantage réel ou gel tué via le gestionnaire des tâches) et propose au joueur d'envoyer le dernier log, transmis sur le salon Discord de développement via `wyrdane-backend` (`POST /api/crash-report`). Ça ne corrige rien par soi-même, mais donne enfin une source de logs réels de joueurs pour identifier la cause exacte d'un futur gel — condition nécessaire avant de pouvoir vraiment fermer ce point.
 
-## P11 — Écran Statistiques : backend écrit mais pas encore déployé
+## P11 — Écran Statistiques / Classement
 
 **Résolu, puis revu.** Backend (`wyrdane-backend`, branche `0065-card-stats-and-leaderboard`) mergé dans `main` et déployé (table `card_play_stats`, colonne `match_reports.cards_played`). Le classement MMR est resté en jeu (écran « Classement », `StatsPanel.gd`), mais les statistiques de cartes (taux de jeu/winrate) ont été retirées de l'écran en jeu et déplacées vers un dashboard admin sur `wyrdane-website` (`/admin/card-stats`, `GET /api/admin/card-stats`, `requireAdmin`) — donnée d'équilibrage interne, pas destinée aux joueurs. Voir « 📊 Statistiques & classement » dans `README.md` et `docs/backend-contracts/card-stats-and-leaderboard.md`.
 
-## P12 — Classement par palier : backend écrit, pas encore mergé/déployé
+## P12 — Classement par palier
+
+**Résolu (vérifié le 2026-09-26).** La branche `wyrdane-backend`
+`0072-ranked-leaderboard-browse` est mergée dans `main` et déployée
+(`GET /api/ranked/leaderboard` répond en prod, tout comme `/leaderboard/me`,
+`/around-me` et `/search`). L'historique ci-dessous est conservé pour mémoire.
+
+### Historique
 
 Refonte du panneau « Classement » côté client (`StatsPanel.gd`) : 4 onglets
 de palier (Bronze/Argent/Or/Légende) au lieu d'un top-100 plat, ouverture
@@ -105,10 +112,18 @@ sur le VPS, l'écran en jeu affichera des échecs de chargement (404/ancien
 format de réponse) en prod. Voir `docs/backend-contracts/card-stats-and-leaderboard.md`
 section 5.
 
-## P13 — MMR caché Normal / MMR public Classé : migration prod à jouer
+## P13 — MMR caché Normal / MMR public Classé + validation Steam réelle
 
-**Code écrit des deux côtés (client + `wyrdane-backend`), pas encore actif en
-prod.** Avant cette tâche, n'importe quelle partie réseau (Normal, Contre un
+**Code déployé des deux côtés (vérifié le 2026-09-26)** : la branche backend
+`0078-ranked-normal-hidden-mmr` est mergée dans `main` et déployée, et
+`GET /api/matchmaking/queue/status` répond en prod. **Il reste un point ouvert,
+et c'est le plus important du projet** : rien de tout cela n'a jamais été
+éprouvé avec deux comptes Steam réels (voir la fin de cette section). Si un
+doute subsiste sur le schéma de prod, vérifier la présence de
+`ranked_stats.hidden_mmr`, `matchmaking_tickets.mode` et `match_reports.mode`
+avant de chercher un bug côté client (voir « Incident sync DB chat/amis »).
+
+**Contexte d'origine.** Avant cette tâche, n'importe quelle partie réseau (Normal, Contre un
 ami, Classé) modifiait le MMR public (`ranked_stats.mmr`) — aucune distinction
 côté backend. Désormais `report_ranked_match` porte un champ `mode` et seul le
 Classé touche à `ranked_stats.mmr`/`wins`/`losses` ; Normal (et tout ce qui
@@ -119,14 +134,10 @@ matchmaking classé » plus haut pour le détail (`_queue_mode`,
 `NORMAL_QUEUE_TIMEOUT`, repli silencieux sur l'ancien comportement direct si
 le backend est indisponible).
 
-Reste à faire avant que ce soit réellement actif :
-- **Migration DB** : `npm run db:sync` (ou l'équivalent conteneur, voir
-  « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de
-  `wyrdane-backend`) doit tourner sur le VPS pour ajouter `ranked_stats.hidden_mmr`,
-  `matchmaking_tickets.mode` et `match_reports.mode` — sans ça, le code neuf
-  échouera sur les colonnes absentes dès le déploiement.
-- **Merge + déploiement** de la branche `wyrdane-backend` correspondante dans
-  `main` (déploiement continu déjà en place, voir « Infra & déploiement »).
+Reste à faire :
+- ~~Migration DB~~ / ~~Merge + déploiement~~ : **faits** (voir l'encadré en tête
+  de section). Si un symptôme évoque une colonne absente, vérifier le schéma de
+  prod avant de suspecter le client.
 - **Jamais testé en conditions Steam réelles** (comme tout ce qui touche au
   matchmaking, nécessite deux comptes Steam) : en particulier le repli Normal
   → recherche directe après `NORMAL_QUEUE_TIMEOUT`/échec backend, et le
@@ -152,7 +163,13 @@ Reste à faire avant que ce soit réellement actif :
   (`[NetworkManager] Transport précédent fermé…`) : sa présence entre la
   création d'un lobby et l'arrivée du pair signale immédiatement une rechute.
 
-## P14 — Historique de parties + place au classement : backend écrit, pas encore mergé/déployé
+## P14 — Historique de parties + place au classement
+
+**Résolu (vérifié le 2026-09-26).** `0077-profile-rank-and-match-history` est
+mergée dans `main` et déployée : `GET /api/ranked/matches/history` répond en
+prod. L'historique ci-dessous est conservé pour mémoire.
+
+### Historique
 
 Même situation que P12/P13 ci-dessus : le client (`MatchHistoryPanel.gd`,
 onglet « Historique » du profil) consomme `GET /api/ranked/matches/history`
@@ -170,7 +187,14 @@ maintenant `is_ranked`/`durationSec` ensemble) mais ignoré par cette branche
 backend tant qu'elle n'a pas elle-même absorbé le changement de P13 — sans
 conséquence : le backend actuel n'exploite aucun champ de payload inconnu.
 
-## P15 — Système d'amis Wyrdane + chat : écrit des deux côtés, pas encore mergé/déployé
+## P15 — Système d'amis Wyrdane + chat
+
+**Résolu (vérifié le 2026-09-26).** Les branches backend
+`0079-friends-and-chat` et `0084-game-invites` sont mergées dans `main` et
+déployées : `GET /api/friends` et `GET /api/invites/incoming` répondent en
+prod. L'historique ci-dessous est conservé pour mémoire.
+
+### Historique
 
 Demande utilisateur du 2026-09-24, implémentée en session suivante (les deux
 côtés, voir CLAUDE.md « Amis et chat » côté `card-game` et « Amis, chat et
@@ -200,6 +224,47 @@ jeu par le destinataire, sans passer par l'overlay natif Steam. Le transport
 reste Steam P2P, seule l'invitation elle-même transite désormais par le
 backend. Voir « Multijoueur (1v1 réseau) » → « Invitation d'un ami précis »
 dans `CLAUDE.md`.
+
+## P16 — Race Artefact : branche complète jamais intégrée
+
+`0426-artifact-race` (dernier commit 2026-09-25) porte une **race Artefact
+complète et fonctionnelle mais dormante** : 75 ressources de carte, 290
+fichiers touchés, +7711/-1622 lignes, son propre `Race.Type.ARTIFACT`, l'onglet
+de filtre du deck builder, le badge de coût générique et ses tests. C'est de
+loin la plus grosse valeur non livrée du dépôt.
+
+Décision produit attendue : **finir et merger, ou assumer l'abandon**. Chaque
+semaine de dérive supplémentaire avec `dev` en augmente le coût de
+réintégration (la branche touche `Card.gd`, le deck builder et `game.csv`,
+trois fichiers très actifs). Aucune raison technique connue de ne pas la
+merger — elle a été laissée en attente, pas rejetée.
+
+## P17 — Refactor matchmaking écrit mais non intégré
+
+Trois branches finies et non mergées, toutes du 2026-09-25/26, sur la zone la
+plus fragile du projet :
+- `worktree-0638-single-rendezvous-matchmaking` — la file backend devient le
+  **seul** point de rendez-vous du matchmaking (supprime le chemin direct de
+  recherche de lobby Steam, source du bug de lobby détruit corrigé la veille).
+- `worktree-0639-matchmaking-queue-debug-info` — journalise mode/MMR/fenêtre/
+  attente sur le poll de file, et désactive `NetDebugLog` par défaut.
+- côté backend, `0086-matchmaking-queue-status-debug-info` (expose `mmr`,
+  `window`, `wait` sur le statut de file).
+
+À intégrer **avant** la session de test à deux comptes Steam (P13) : les tester
+séparément ferait passer deux fois par la même manipulation à deux machines.
+
+## P18 — Ménage du dépôt
+
+- **~40 worktrees encore montés** sous `.claude/worktrees/` (jusqu'à `0081`,
+  `0392`, `0430`…), tous sur des branches déjà mergées dans `dev`. À élaguer
+  (`git worktree remove` puis suppression des branches locales correspondantes).
+- `devlogs/2026-09-21-draft.md` traîne à côté de son devlog publié
+  (`2026-09-21-devlog-8.md`) : à archiver dans `devlogs/archive/`.
+- La suite de tests laisse ~6900 nœuds orphelins par run : la convention
+  `free()` en `after_each()` (voir P1) n'est pas appliquée partout. Sans
+  conséquence sur les résultats, mais ça noie le signal si une vraie fuite
+  apparaît.
 
 ## Non-problèmes vérifiés pendant cette revue
 
