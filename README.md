@@ -297,7 +297,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 #### Couche transport
 
 *   `NetTransport` — interface abstraite (host/join/send/close/try_reconnect).
-*   `SteamTransport` — seule implémentation : lobby Steam public tagué Wyrdane pour la mise en relation, API P2P Steamworks pour les octets de jeu. « Partie rapide » rejoint le premier lobby Wyrdane disponible.
+*   `SteamTransport` — seule implémentation : lobby Steam pour la mise en relation, API P2P Steamworks pour les octets de jeu. `join()` exige un `lobby_id` précis : un client ne rejoint jamais « le premier lobby trouvé », l'id vient toujours de la file d'attente backend ou d'une invitation Steam acceptée (voir « File backend = seul point de rendez-vous » dans `CLAUDE.md`).
 *   `SteamService` — accès centralisé au singleton GodotSteam. L'extension **GodotSteam n'est pas une dépendance obligatoire** : elle est détectée à l'exécution (`Engine.has_singleton("Steam")`), le jeu compile et tourne sans elle (les boutons Steam du lobby restent affichés mais échouent proprement avec un message). AppID Wyrdane (5052390), page validée par Valve — instructions d'installation dans l'en-tête du fichier.
 *   `TransportFactory` — crée le transport (Steam ; l'énum `Backend` reste en place pour un futur backend sans changer la signature des appelants).
 *   `NetworkManager` — chef d'orchestre : connexion, sérialisation des commandes (`var_to_bytes`, types de base uniquement — jamais de désérialisation d'objets arbitraires, par sécurité), routage via les signaux `peer_connected` / `peer_disconnected` / `command_received`, et reconnexion automatique en cas de coupure P2P transitoire (délai de grâce, voir « Déterminisme et synchronisation » ci-dessous).

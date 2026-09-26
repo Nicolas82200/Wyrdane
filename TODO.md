@@ -171,12 +171,59 @@ Reste à faire :
   (échec silencieux de `queue_report_lobby`, corrigée par réessai + message
   explicite dans `MatchmakingOverlay._report_queue_lobby`) reste valable mais
   n'était pas la cause principale.
-- **À confirmer en conditions réelles** (deux comptes Steam) : que le
-  correctif ci-dessus suffit réellement à enchaîner plusieurs parties d'affilée
-  entre deux amis, sur invitation depuis la liste d'amis comme en « Normal ».
-  Le log d'une partie affiche désormais en clair chaque fermeture de transport
-  (`[NetworkManager] Transport précédent fermé…`) : sa présence entre la
-  création d'un lobby et l'arrivée du pair signale immédiatement une rechute.
+- **Correctif de fond (2026-09-25, après le précédent)** : la cause profonde
+  n'était pas un bug isolé mais **deux systèmes de mise en relation en
+  parallèle** sur le mode Normal (file backend + recherche directe dans la liste
+  de lobbies Steam en repli), chacun avec ses minuteurs et chacun capable de
+  détruire le lobby vivant de l'autre. Le second chemin est supprimé : la file
+  backend est le seul point de rendez-vous, `SteamTransport.join()` exige un
+  `lobby_id`. Voir « File backend = seul point de rendez-vous » dans
+  `CLAUDE.md`. Conséquence assumée : **Normal exige désormais le backend**.
+- **À confirmer en conditions réelles** (deux comptes Steam) : que ces deux
+  correctifs suffisent réellement à enchaîner plusieurs parties d'affilée entre
+  deux amis, sur invitation depuis la liste d'amis comme en « Normal ». Le log d'une partie
+  affiche en clair chaque fermeture de transport (`[NetworkManager] Transport
+  précédent fermé…`) : sa présence entre la création d'un lobby et l'arrivée du
+  pair signale immédiatement une rechute.
+- **Suite possible, pas faite** : confier l'arbitrage des reprises au backend
+  (aujourd'hui, sur un join refusé, c'est le client qui se remet en file, voir
+  `MAX_AUTO_JOIN_RETRIES`) — une route qui invalide l'appariement et remet les
+  DEUX tickets en file éviterait que chaque client décide seul. Pas nécessaire
+  tant que le chemin unique suffit ; à reconsidérer si des échecs d'appariement
+  réapparaissent en conditions réelles.
+- **Charge** : la file backend devient le seul point de passage de toute mise en
+  relation. Le coût dominant est le poll à `RANKED_POLL_INTERVAL` (2s) ; estimé
+  à ~25-100 req/s pour 1000 joueurs simultanés (500 req/s au pire cas si tous
+  cherchent en même temps), a priori tenable sur le VPS puisque les parties
+  elles-mêmes restent en P2P. À valider par un load test (`k6`/`autocannon`)
+  avant la sortie.
+  Point chaud identifié en lisant le code (2026-09-25) : `matchmakingModel.
+  findOpponent` fait `SELECT * FROM matchmaking_tickets WHERE status='waiting'
+  AND mode=? AND user_id!=? ... FOR UPDATE`, donc il **verrouille tous les
+  tickets en attente du mode** à chaque poll de chaque joueur. L'appariement
+  lui-même est correct (transaction + lignes verrouillées, pas de course), mais
+  à 500 joueurs qui pollent toutes les 2s, tous les polls se sérialisent sur les
+  mêmes lignes. Remèdes, dans cet ordre : restreindre la plage de MMR dans le
+  `WHERE` (au lieu de filtrer en JS après coup) + index sur
+  `matchmaking_tickets (mode, status, created_at)` ; vérifier la taille du pool
+  de connexions MySQL ; et un backoff du poll côté client (2s les 10 premières
+  secondes puis 4-5s) qui diviserait la charge par deux ou trois. Indolore à
+  l'échelle actuelle — à traiter seulement si le load test le confirme.
+- **Apparier sur le palier affiché plutôt que sur le MMR brut** (façon
+  Hearthstone/MTGA : rang/division en classé, MMR caché en non-classé) —
+  volontairement **écarté pour l'instant**. L'intérêt est qu'un match paraît
+  juste au regard du ladder que le joueur voit, mais ça n'a de sens qu'avec assez
+  de monde pour remplir chaque palier ; avec la population actuelle ça ne ferait
+  qu'allonger les attentes. À reconsidérer quand il y aura de vrais paliers
+  peuplés. Les paliers sont aujourd'hui purement dérivés côté client
+  (`RankTier.gd`), le backend ne les connaît pas : ce chantier demanderait donc
+  d'abord de les faire remonter côté serveur.
+- **Régler `WAIT_BONUS_MMR_PER_SECOND`** (`matchmakingModel.ts`, 5/s plafonné à
+  300) avec de vrais joueurs : ce paramètre arbitre « MMR proche » contre
+  « attend depuis longtemps », et il est inobservable à 2-3 joueurs en file —
+  n'importe quelle valeur donne le même appariement. À revoir une fois la file
+  réellement peuplée, en regardant si des joueurs restent bloqués longtemps
+  (bonus trop faible) ou si les écarts de MMR paraissent injustes (trop fort).
 
 ## P14 — Historique de parties + place au classement
 

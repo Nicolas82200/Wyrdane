@@ -40,19 +40,37 @@ const RECONNECT_GRACE_SECONDS := 20.0
 const RECONNECT_RETRY_INTERVAL := 2.0
 
 var _last_join_params: Dictionary = {}
+# Pair réellement connecté (partie en cours) — voir _refuse_if_peer_connected.
+var _peer_connected := false
 var _reconnecting := false
 var _reconnect_elapsed := 0.0
 var _reconnect_retry_elapsed := 0.0
 var _pending_disconnect_reason := ""
 
-# params opaque interprété par le backend (Steam : lobby_id optionnel, sinon
-# partie rapide).
+# Refuse de remplacer un transport dont le pair est DÉJÀ connecté : ouvrir une
+# nouvelle session écraserait une partie en cours (voir _setup_transport, qui
+# ferme le transport précédent et quitte donc son lobby). Ça ne devrait jamais
+# arriver — tous les chemins de matchmaking passent par un close() ou une
+# déconnexion avant de relancer — donc si ça arrive c'est un bug d'appelant, et
+# le refuser bruyamment vaut infiniment mieux que de casser la partie du joueur.
+func _refuse_if_peer_connected(what: String) -> bool:
+	if not _peer_connected:
+		return false
+	push_error("NetworkManager : %s refusé, une partie est déjà connectée (appelant à corriger)" % what)
+	return true
+
+# params opaque interprété par le backend (Steam : lobby_id obligatoire pour
+# join, voir SteamTransport.join).
 func host_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
+	if _refuse_if_peer_connected("host_game_with"):
+		return ERR_ALREADY_IN_USE
 	_setup_transport(backend)
 	is_host = true
 	return transport.host(params)
 
 func join_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
+	if _refuse_if_peer_connected("join_game_with"):
+		return ERR_ALREADY_IN_USE
 	_setup_transport(backend)
 	is_host = false
 	_last_join_params = params
@@ -66,6 +84,7 @@ func send_command(command: Dictionary, reliable: bool = true) -> void:
 	transport.send(var_to_bytes(command), reliable)
 
 func close() -> void:
+	_peer_connected = false
 	if transport != null:
 		transport.close()
 
@@ -98,7 +117,9 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 	transport = TransportFactory.create(backend)
 	add_child(transport)
 	_reconnecting = false
+	_peer_connected = false
 	transport.connected.connect(func() -> void:
+		_peer_connected = true
 		if _reconnecting:
 			_reconnecting = false
 			connection_restored.emit()
@@ -114,6 +135,9 @@ func _on_transport_disconnected(reason: String) -> void:
 	if _reconnecting:
 		return
 	if not (reason in RECONNECTABLE_REASONS):
+		# La session est morte pour de bon : un nouveau host/join redevient
+		# légitime (voir _refuse_if_peer_connected).
+		_peer_connected = false
 		peer_disconnected.emit(reason)
 		return
 	_reconnecting = true
@@ -141,6 +165,7 @@ func _on_packet_received(bytes: PackedByteArray) -> void:
 		# Départ volontaire du pair : pas de tentative de reconnexion, la partie
 		# est terminée pour de bon, immédiatement.
 		_reconnecting = false
+		_peer_connected = false
 		peer_disconnected.emit("peer_left_match")
 		return
 	command_received.emit(command)
@@ -153,6 +178,7 @@ func _process(delta: float) -> void:
 	_reconnect_elapsed += delta
 	if _reconnect_elapsed >= RECONNECT_GRACE_SECONDS:
 		_reconnecting = false
+		_peer_connected = false  # abandon définitif, voir _refuse_if_peer_connected
 		peer_disconnected.emit(_pending_disconnect_reason)
 		return
 	# Seul le rejoignant retente activement : l'hôte reste passif, son socket
