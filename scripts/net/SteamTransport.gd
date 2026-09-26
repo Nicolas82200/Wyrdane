@@ -19,9 +19,10 @@ class_name SteamTransport
 # - host() : crée un lobby public tagué "wyrdane" ET un socket d'écoute P2P.
 #   La partie démarre quand un second membre entre dans le lobby ET que sa
 #   connexion P2P entrante est acceptée.
-# - join() : rejoint un lobby précis ({"lobby_id": int}) ou, sans id, cherche
-#   le premier lobby Wyrdane ouvert (partie rapide), puis ouvre la connexion
-#   P2P vers l'hôte.
+# - join() : rejoint un lobby PRÉCIS ({"lobby_id": int}) puis ouvre la connexion
+#   P2P vers l'hôte. Il n'existe plus de variante « cherche un lobby ouvert » :
+#   le lobby_id vient toujours de la file backend ou d'une invitation Steam
+#   acceptée (voir join pour le détail de ce retrait).
 #
 # Aucun identifiant Steam (SteamID64, lobby id) ne fuit hors de cette classe :
 # le reste du jeu ne voit que l'interface NetTransport.
@@ -36,7 +37,6 @@ const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 const LOBBY_TYPE_PUBLIC := 2
 const LOBBY_OK := 1                    # CHAT_ROOM_ENTER_RESPONSE_SUCCESS
 const CHAT_ENTERED := 1                # CHAT_MEMBER_STATE_CHANGE_ENTERED
-const LOBBY_DISTANCE_WORLDWIDE := 3    # LOBBY_DISTANCE_FILTER_WORLDWIDE
 
 # ESteamNetworkingConnectionState (isteamnetworkingtypes.h).
 const CONN_STATE_CONNECTING := 1
@@ -65,29 +65,41 @@ func host(_params: Dictionary) -> int:
 	status.emit("Steam : création du lobby demandée…")
 	return OK
 
+# Rejoint un lobby PRÉCIS, jamais « celui qu'on trouve » : le lobby_id vient
+# toujours d'une source qui sait avec qui on joue — la file backend (voir
+# MatchmakingOverlay._on_queue_matched) ou une invitation Steam acceptée
+# (_on_steam_join_requested).
+#
+# Il existait une variante sans lobby_id qui prenait le premier lobby Wyrdane de
+# la liste Steam (portée mondiale). Supprimée le 2026-09-25 : cette liste est
+# éventuellement cohérente et renvoyait des lobbies DÉJÀ FERMÉS, dont l'entrée
+# échouait avec CHAT_ROOM_ENTER_RESPONSE_DOESNT_EXIST — et comme les deux
+# clients cherchaient et hébergeaient chacun de leur côté, ils détruisaient
+# tour à tour le lobby que l'autre venait de trouver sans jamais tomber en
+# phase. La file backend est désormais le seul point de rendez-vous.
 func join(params: Dictionary) -> int:
 	if not _init_steam():
 		return ERR_UNAVAILABLE
 	_is_host = false
 	var lobby_id: int = params.get("lobby_id", 0)
-	if lobby_id != 0:
-		_steam.joinLobby(lobby_id)
-		status.emit("Steam : rejoint le lobby %d…" % lobby_id)
-	else:
-		# Partie rapide : premier lobby Wyrdane disponible. Sans filtre de
-		# distance, Steam ne renvoie que les lobbies « proches » — deux joueurs
-		# éloignés ne se trouvaient pas. On force la portée mondiale.
-		_steam.addRequestLobbyListStringFilter(LOBBY_GAME_KEY, LOBBY_GAME_VALUE, 0)  # 0 = égalité
-		_steam.addRequestLobbyListDistanceFilter(LOBBY_DISTANCE_WORLDWIDE)
-		_steam.requestLobbyList()
-		status.emit("Steam : recherche d'un lobby Wyrdane (portée mondiale)…")
+	if lobby_id == 0:
+		push_error("SteamTransport.join : lobby_id manquant — un lobby ne se cherche plus, il est fourni par la file backend ou une invitation")
+		return ERR_INVALID_PARAMETER
+	_steam.joinLobby(lobby_id)
+	status.emit("Steam : rejoint le lobby %d…" % lobby_id)
 	return OK
 
 # Reconnexion directe au pair déjà connu (lobby/SteamID conservés après une
-# coupure P2P transitoire) : évite de relancer une recherche/entrée de lobby.
-# Sans contexte de lobby connu (ex. lobby lui-même quitté), retombe sur join().
+# coupure P2P transitoire) : évite de repasser par une entrée en lobby.
+# Sans contexte de lobby connu (lobby lui-même quitté), on ne peut re-rejoindre
+# que si l'appelant sait QUEL lobby viser (un invité garde son lobby_id ; un
+# hôte, lui, n'a plus rien à rejoindre) — l'appelant réessaie de toute façon
+# jusqu'à l'expiration du délai de grâce, voir
+# NetworkManager.RECONNECT_GRACE_SECONDS.
 func try_reconnect(params: Dictionary) -> int:
 	if _steam == null or _lobby_id == 0 or _remote_id == 0:
+		if int(params.get("lobby_id", 0)) == 0:
+			return ERR_UNAVAILABLE
 		return join(params)
 	status.emit("Steam : nouvelle tentative de connexion P2P…")
 	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
@@ -154,7 +166,6 @@ func _init_steam() -> bool:
 func _connect_steam_signals() -> void:
 	_steam.connect("lobby_created", _on_lobby_created)
 	_steam.connect("lobby_joined", _on_lobby_joined)
-	_steam.connect("lobby_match_list", _on_lobby_match_list)
 	_steam.connect("lobby_chat_update", _on_lobby_chat_update)
 	_steam.connect("network_connection_status_changed", _on_network_connection_status_changed)
 
@@ -162,7 +173,6 @@ func _disconnect_steam_signals() -> void:
 	if _steam.is_connected("lobby_created", _on_lobby_created):
 		_steam.disconnect("lobby_created", _on_lobby_created)
 		_steam.disconnect("lobby_joined", _on_lobby_joined)
-		_steam.disconnect("lobby_match_list", _on_lobby_match_list)
 		_steam.disconnect("lobby_chat_update", _on_lobby_chat_update)
 		_steam.disconnect("network_connection_status_changed", _on_network_connection_status_changed)
 
@@ -177,12 +187,11 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 		return
 	_lobby_id = lobby_id
 	status.emit("Steam : lobby %d créé — en attente d'un adversaire…" % lobby_id)
-	# Tag le lobby pour que la recherche « partie rapide » le trouve.
+	# Identifie le lobby comme étant du Wyrdane 1v1. Purement informatif depuis
+	# que plus rien ne découvre un lobby par recherche (voir join) : conservé
+	# parce que ça reste ce qui distingue un lobby de partie en inspection, et
+	# que le coût est nul.
 	_steam.setLobbyData(lobby_id, LOBBY_GAME_KEY, LOBBY_GAME_VALUE)
-	# Publie le SteamID de l'hôte dans les données du lobby : contrairement à
-	# getLobbyOwner (fiable seulement une fois membre), cette donnée est lisible
-	# depuis les résultats de recherche et permet au client d'écarter ses
-	# propres lobbies (cas « même compte », voir _on_lobby_match_list).
 	_steam.setLobbyData(lobby_id, LOBBY_OWNER_KEY, str(_steam.getSteamID()))
 	_steam.setLobbyJoinable(lobby_id, true)
 	session_ready.emit(lobby_id)
@@ -207,19 +216,6 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 		disconnected.emit("peer_left_lobby")
 
 # ── Côté client ──
-
-func _on_lobby_match_list(lobbies: Array) -> void:
-	if _is_host:
-		return
-	status.emit("Steam : %d lobby(s) Wyrdane trouvé(s)" % lobbies.size())
-	# Écarte les lobbies créés par notre propre compte (test à deux instances
-	# locales : le « rejoindre » retomberait sur le lobby de l'autre instance).
-	var own_id := str(_steam.getSteamID())
-	for lobby_id in lobbies:
-		if _steam.getLobbyData(lobby_id, LOBBY_OWNER_KEY) != own_id:
-			_steam.joinLobby(lobby_id)
-			return
-	disconnected.emit("steam_same_account" if not lobbies.is_empty() else "steam_no_lobby_found")
 
 func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	if _is_host:

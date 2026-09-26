@@ -107,7 +107,6 @@ const TIP_INTERVAL := 6.0
 var _net: NetworkManager
 var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
-var _quick_matching := false  # bascule join→host en cours ; voir _on_peer_disconnected
 var _status_key := ""  # clé de traduction affichée par le bandeau
 var _status_format_arg = null  # argument % substitué dans _status_key, voir _set_status
 var _loading := false  # affiche le spinner tant qu'une connexion est en cours
@@ -148,12 +147,15 @@ var _outgoing_invite_elapsed := 0.0
 # Contrat backend : docs/backend-contracts/ranked-matchmaking-and-retention.md
 const RANKED_POLL_INTERVAL := 2.0
 const RANKED_QUEUE_TIMEOUT := 180.0  # abandon après 3 min sans adversaire
-# "Normal" tente désormais lui aussi l'appariement par MMR (caché, voir
-# start_normal) sur cette même file backend — mais avec un délai d'abandon
-# bien plus court : contrairement au Classé, il existe un repli (recherche de
-# lobby Steam directe, ancien comportement) si personne n'est trouvé à temps,
-# pas de raison de faire attendre le joueur aussi longtemps qu'en Classé.
-const NORMAL_QUEUE_TIMEOUT := 20.0
+# "Normal" s'apparie sur cette même file backend, par MMR caché (voir
+# start_normal). Ce délai valait 20s tant qu'un repli existait derrière
+# (recherche de lobby Steam directe) : l'abandon était alors invisible pour le
+# joueur, qui basculait silencieusement sur l'autre chemin. Ce repli supprimé,
+# expirer au bout de 20s signifierait annoncer « aucun adversaire trouvé » à un
+# joueur qui vient à peine de lancer sa recherche — intenable avec une petite
+# base de joueurs. Aligné sur le Classé ; constante gardée séparée pour pouvoir
+# les régler indépendamment plus tard.
+const NORMAL_QUEUE_TIMEOUT := 180.0
 # queue_report_lobby (voir _on_queue_lobby_ready) était appelée sans callback :
 # un échec réseau ponctuel restait totalement silencieux, l'invité restant
 # bloqué à repoller un lobby qui n'arrivait jamais jusqu'au timeout de 3 min
@@ -190,12 +192,11 @@ const HOST_PEER_WAIT_TIMEOUT := 60.0
 # au joueur plutôt que de boucler en silence.
 const MAX_AUTO_JOIN_RETRIES := 2
 
-# Mode de la file backend en cours ("ranked"|"normal"|"") — distinct de
-# _search_mode (qui reste "normal" même une fois basculé sur le repli Steam
-# direct, voir _start_direct_quick_match) : sert uniquement à savoir si le
+# Mode de la file backend en cours ("ranked"|"normal"|"") — sert à savoir si le
 # match en cours de connexion vient réellement d'un appariement CLASSÉ (voir
-# _on_handshake_ready, setup["is_ranked"]) — _queue_role, lui, est désormais
-# partagé par les deux modes depuis que Normal passe aussi par cette file.
+# _on_handshake_ready, setup["is_ranked"]) : Normal passe par la même file, avec
+# le même _queue_role, seul ce champ distingue les deux. Reste distinct de
+# _search_mode, qui vaut aussi "invite" (mode sans file du tout).
 var _queue_mode: String = ""
 var _queue_ticket_id: String = ""
 var _queue_role: String = ""  # "host" | "guest", connu une fois apparié
@@ -267,10 +268,9 @@ func _process(delta: float) -> void:
 
 # Change de mode de recherche (voir _search_mode) en centralisant les effets
 # de bord : réinitialise le compteur de temps écoulé seulement sur une
-# véritable transition repos → recherche (jamais sur un changement interne,
-# ex. bascule join→host de "Normal" quand aucun lobby n'est trouvé — voir
-# _start_quick_match_host, qui réaffecte "normal" alors qu'une recherche est
-# déjà en cours), et tient les libellés mode/moyenne à jour dans le bandeau.
+# véritable transition repos → recherche (jamais sur une réaffectation du même
+# mode alors qu'une recherche est déjà en cours), et tient les libellés
+# mode/moyenne à jour dans le bandeau.
 func _set_search_mode(mode: String) -> void:
 	if mode != "" and _search_mode == "":
 		_search_elapsed = 0.0
@@ -429,23 +429,32 @@ func _retranslate() -> void:
 # Ignorées si une recherche/connexion est déjà en cours : le bandeau + son
 # bouton Annuler donnent déjà tout le contrôle nécessaire.
 
-# « Normal » : matchmaking automatique, sans choix héberger/rejoindre. Tente
-# d'abord un appariement par MMR CACHÉ via la file backend (même mécanisme que
-# le Classé, voir _queue_join_and_poll) — façon MMR caché League of Legends :
-# apparie des adversaires de niveau similaire sans jamais afficher ce MMR ni
-# lui faire gagner/perdre de points de classement (voir
-# BackendClient.report_ranked_match, mode="normal"). Si le backend est
-# indisponible, si la requête échoue, ou si personne n'est trouvé sous
-# NORMAL_QUEUE_TIMEOUT, repli silencieux sur l'ancien comportement (recherche
-# d'un lobby Steam existant puis hébergement, voir _start_direct_quick_match)
-# — jamais d'erreur affichée pour ce repli, un joueur ne doit pas voir Normal
-# devenir indisponible juste parce que l'appariement par niveau l'est.
+# « Normal » : matchmaking automatique par MMR CACHÉ via la file backend — façon
+# MMR caché League of Legends : apparie des adversaires de niveau similaire sans
+# jamais afficher ce MMR ni lui faire gagner/perdre de points de classement (voir
+# BackendClient.report_ranked_match, mode="normal"). Exactement le même chemin que
+# le Classé (_queue_join_and_poll) : depuis le 2026-09-25, la file backend est le
+# SEUL point de rendez-vous du jeu, un client ne rejoint jamais qu'un lobby_id
+# qu'elle lui a donné.
+#
+# Il existait jusque-là un repli « recherche directe d'un lobby Steam public puis
+# hébergement en secours », pour que Normal reste jouable sans le backend.
+# Supprimé volontairement : ce second chemin tournait EN PARALLÈLE du premier,
+# avec ses propres minuteurs, et pouvait à tout moment appeler host_game_with/
+# join_game_with — donc quitter le lobby en cours (voir
+# NetworkManager._setup_transport) et rendre injoignable celui que le pair était
+# justement en train de rejoindre. Deux joueurs oscillaient ainsi indéfiniment
+# entre héberger et chercher sans jamais tomber en phase. La liste de lobbies
+# Steam renvoyait de surcroît des entrées périmées (lobbies déjà fermés), d'où
+# les « entrée refusée (code 2) » en boucle. Le repli n'achetait presque rien en
+# pratique : sans backend, le joueur n'a de toute façon ni collection, ni decks,
+# ni monnaie — il ne peut pas constituer de deck jouable.
 func start_normal() -> void:
 	if _search_mode != "" or _loading:
 		return
 	_queue_mode = ""  # jamais un résidu d'une précédente recherche classée
 	if not BackendClient.is_authenticated():
-		_start_direct_quick_match()
+		_flash_banner("NET_MATCHMAKING_OFFLINE")
 		return
 	_queue_cancel_pending = false
 	_set_search_mode("normal")
@@ -453,25 +462,6 @@ func start_normal() -> void:
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
 	_queue_join_and_poll("normal")
-
-# Ancien comportement de start_normal() avant l'ajout du MMR caché ci-dessus :
-# recherche directe d'un lobby Steam public existant, hébergement en secours
-# si aucun n'est trouvé (voir _on_peer_disconnected/_start_quick_match_host).
-# Sert désormais de repli quand la file backend est indisponible/infructueuse.
-func _start_direct_quick_match() -> void:
-	if _search_mode != "" and _search_mode != "normal":
-		return
-	_quick_matching = true
-	_set_search_mode("normal")
-	var err := _net.join_game_with(TransportFactory.Backend.STEAM)
-	if err == OK:
-		_set_loading(true)
-		_show_search_banner(true)
-		_set_status("NET_STEAM_SEARCHING")
-	else:
-		_quick_matching = false
-		_set_search_mode("")
-		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Invite un ami Wyrdane précis à jouer (remplace l'ancien overlay Steam natif,
 # voir FriendsPanel._show_context_menu) : on héberge d'abord un lobby Steam
@@ -494,7 +484,6 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	# échouer l'entrée de l'ami avec "lobby inexistant" (code 2).
 	_abandon_queue_for_invite()
 	_pending_outgoing_recipient_name = recipient_name
-	_quick_matching = false
 	_set_search_mode("invite")
 	_net.session_ready.connect(_on_friend_invite_lobby_ready.bind(recipient_id, recipient_name), CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
@@ -640,14 +629,12 @@ func _queue_join_and_poll(mode: String) -> void:
 				BackendClient.queue_cancel(str(data.get("ticket_id", "")))
 			return
 		if not success or str(data.get("ticket_id", "")) == "":
-			if mode == "normal":
-				# Repli silencieux (voir start_normal) : le backend n'a pas pu
-				# être joint, mais Normal doit rester jouable sans lui.
-				_reset_queue_ui()
-				_start_direct_quick_match()
-			else:
-				_flash_banner("NET_RANKED_UNAVAILABLE")
-				_reset_queue_ui()
+			# Plus de repli silencieux sur une recherche Steam directe (voir
+			# start_normal) : la file backend étant le seul point de rendez-vous,
+			# son indisponibilité se dit franchement au joueur au lieu de le
+			# laisser dans un second système qui ne convergeait jamais.
+			_reset_queue_ui()
+			_flash_banner("NET_MATCHMAKING_OFFLINE" if mode == "normal" else "NET_RANKED_UNAVAILABLE")
 			return
 		_queue_ticket_id = str(data.get("ticket_id", ""))
 		_queue_mode = mode
@@ -662,11 +649,10 @@ func _queue_join_and_poll(mode: String) -> void:
 
 # Annulation générique de la recherche en cours, quel que soit le mode
 # (Normal/Classé/Ami) — bouton "✕" du bandeau (voir _search_mode). "normal" et
-# "ranked" partagent le même chemin depuis que Normal tente aussi la file
-# backend (MMR caché, voir start_normal) : _cancel_queue_search annule le
-# ticket s'il y en a un, _net.close() est de toute façon nécessaire dans les
-# deux cas pour couper une éventuelle session Steam déjà ouverte (Normal a pu
-# retomber sur _start_direct_quick_match avant que le joueur n'annule).
+# "ranked" partagent le même chemin, Normal passant par la même file backend
+# (MMR caché, voir start_normal) : _cancel_queue_search annule le ticket s'il y
+# en a un, et _net.close() coupe la session Steam éventuellement déjà ouverte
+# (l'appariement a pu aboutir et le lobby être créé avant le clic sur Annuler).
 func _on_banner_cancel_pressed() -> void:
 	match _search_mode:
 		"ranked", "normal":
@@ -677,7 +663,6 @@ func _on_banner_cancel_pressed() -> void:
 			# affiché (mode/minuteur déjà masqués à cet instant) — ça se voyait
 			# comme un bandeau vide pendant quelques secondes.
 			_cancel_queue_search(false)
-			_quick_matching = false
 			_queue_matched_join_pending = false
 			_auto_join_retries = 0  # annulation joueur : la prochaine recherche repart à neuf
 			_stop_host_peer_wait_timer()
@@ -685,7 +670,6 @@ func _on_banner_cancel_pressed() -> void:
 			_show_search_banner(false)
 			_set_status("")
 		"invite":
-			_quick_matching = false
 			# L'ami invité doit être prévenu tout de suite plutôt que de laisser
 			# son popup/poll croire l'invitation encore valide jusqu'à son
 			# expiration (45s côté backend) — voir BackendClient.cancel_game_invite.
@@ -761,7 +745,6 @@ func _abandon_queue_for_invite() -> void:
 	_queue_match_id = ""
 	_queue_match_session_token = ""
 	_queue_matched_join_pending = false
-	_quick_matching = false
 	_auto_join_retries = 0
 
 func _poll_queue() -> void:
@@ -786,13 +769,10 @@ func _poll_queue() -> void:
 		if _queue_ticket_id != "":
 			BackendClient.queue_cancel(_queue_ticket_id)
 		_reset_queue_ui()
-		if is_normal:
-			# Repli silencieux (voir start_normal) plutôt qu'un abandon avec
-			# message d'erreur : Normal reste jouable même sans appariement
-			# par niveau.
-			_start_direct_quick_match()
-		else:
-			_flash_banner("NET_RANKED_TIMEOUT")
+		# Même message dans les deux modes : personne n'a été trouvé à temps. Plus
+		# de bascule silencieuse de Normal vers une recherche Steam directe (voir
+		# start_normal), qui laissait le joueur dans un second système concurrent.
+		_flash_banner("NET_RANKED_TIMEOUT")
 		return
 	var ticket_id := _queue_ticket_id
 	BackendClient.queue_status(ticket_id, func(success: bool, data: Dictionary) -> void:
@@ -803,12 +783,12 @@ func _poll_queue() -> void:
 			"matched":
 				_on_queue_matched(data)
 			"cancelled", "expired":
+				# Ticket invalidé côté backend (expiré, ou annulé ailleurs) : même
+				# traitement dans les deux modes, voir la branche de timeout plus
+				# haut — plus de bascule silencieuse vers une recherche directe.
 				print("[Matchmaking] Ticket %s : %s" % [ticket_id, str(data.get("status", ""))])
 				_reset_queue_ui()
-				if is_normal:
-					_start_direct_quick_match()
-				else:
-					_flash_banner("NET_RANKED_TIMEOUT")
+				_flash_banner("NET_RANKED_TIMEOUT")
 			_:
 				# "waiting" : rien à faire côté état, juste de quoi diagnostiquer
 				# le matchmaking en cours (MMR propre + fenêtre d'appariement
@@ -837,7 +817,6 @@ func _on_queue_matched(data: Dictionary) -> void:
 			_queue_poll_timer.stop()
 			_queue_poll_timer.queue_free()
 			_queue_poll_timer = null
-		_quick_matching = false
 		_net.session_ready.connect(_on_queue_lobby_ready, CONNECT_ONE_SHOT)
 		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 		if err == OK:
@@ -858,7 +837,6 @@ func _on_queue_matched(data: Dictionary) -> void:
 		_queue_poll_timer.stop()
 		_queue_poll_timer.queue_free()
 		_queue_poll_timer = null
-	_quick_matching = false
 	_queue_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")
 	_queue_matched_join_pending = true
@@ -987,7 +965,6 @@ func _on_peer_connected() -> void:
 	# _search_mode ci-dessous : _run_match_ready_countdown en a besoin pour
 	# afficher "<ami> est prêt" plutôt que le générique "Partie trouvée".
 	var ready_peer_name := _net.remote_display_name() if _search_mode == "invite" else ""
-	_quick_matching = false
 	_set_search_mode("")
 	# La recherche est finie mais la partie ne démarre pas tout de suite : le
 	# bandeau clignote et décompte (5/4/3/2/1) quelques secondes avant de
@@ -1024,19 +1001,9 @@ func _on_peer_disconnected(reason: String) -> void:
 	_show_match_found_overlay(false)
 	match reason:
 		"steam_same_account":
-			_quick_matching = false
 			_reset_queue_ui()
 			_show_search_banner(false)
 			_flash_banner("NET_STEAM_SAME_ACCOUNT")
-		"steam_no_lobby_found":
-			if _quick_matching:
-				_set_status("NET_STEAM_NO_LOBBY_HOSTING")
-				_start_quick_match_host()
-			else:
-				_set_search_mode("")
-				_reset_queue_ui()
-				_show_search_banner(false)
-				_flash_banner("NET_STEAM_NO_LOBBY")
 		"steam_lobby_join_failed":
 			# Le lobby rapporté par l'hôte (voir _on_queue_matched, branche
 			# invité) n'existe déjà plus côté Steam au moment du join — le plus
@@ -1072,34 +1039,17 @@ func _on_peer_disconnected(reason: String) -> void:
 				# dit pas au joueur quoi faire. Le lobby de l'ami n'existe plus —
 				# il faut lui redemander une invitation.
 				var was_invite := _search_mode == "invite"
-				_quick_matching = false
 				_set_search_mode("")
 				_reset_queue_ui()
 				_show_search_banner(false)
 				_flash_banner("NET_STEAM_INVITE_LOBBY_GONE" if was_invite else "NET_STEAM_DISCONNECTED")
 		_:
-			_quick_matching = false
 			_queue_matched_join_pending = false
 			_set_search_mode("")
 			_reset_queue_ui()
 			_show_search_banner(false)
 			print("[MatchmakingOverlay] Pair déconnecté (%s)" % [reason])
 			_flash_banner("NET_STEAM_DISCONNECTED")
-
-# Partie rapide sans adversaire trouvé : on héberge à la place plutôt que de
-# laisser le joueur relancer manuellement (voir start_normal).
-func _start_quick_match_host() -> void:
-	_quick_matching = false
-	_set_search_mode("normal")
-	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
-	if err == OK:
-		_set_loading(true)
-		_show_search_banner(true)
-		_set_status("NET_STEAM_HOSTING")
-	else:
-		_set_search_mode("")
-		_show_search_banner(false)
-		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 # Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») —
 # peu importe l'écran sur lequel le joueur se trouve, y compris s'il n'est
@@ -1243,7 +1193,6 @@ func _on_invite_join_pressed() -> void:
 	_pending_backend_invite_id = 0
 	if backend_invite_id != 0:
 		BackendClient.accept_game_invite(backend_invite_id, func(_success: bool, _lobby_id: int) -> void: pass)
-	_quick_matching = false
 	# Même précaution que côté hôte (voir invite_friend) : couper tout résidu de
 	# matchmaking automatique AVANT de rejoindre, sinon un poll/appariement
 	# encore en vol pouvait rappeler host_game_with/join_game_with et défaire la
