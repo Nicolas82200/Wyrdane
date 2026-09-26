@@ -240,13 +240,32 @@ HTTP (pas de WebSocket, décision utilisateur).
   répondent `success=false`/liste vide sur toute erreur HTTP, pas de crash).
 
 **Résolu (2026-09-25)** : « Inviter à jouer » cible désormais directement
-l'ami (table `game_invites` côté `wyrdane-backend`, branche
-`0084-game-invites` — pas encore mergée/déployée, mêmes conséquences que la
-note ci-dessus pour `0079-friends-and-chat`), popup de choix de deck reçue en
-jeu par le destinataire, sans passer par l'overlay natif Steam. Le transport
-reste Steam P2P, seule l'invitation elle-même transite désormais par le
-backend. Voir « Multijoueur (1v1 réseau) » → « Invitation d'un ami précis »
+l'ami (table `game_invites` côté `wyrdane-backend`), popup de choix de deck
+reçue en jeu par le destinataire, sans passer par l'overlay natif Steam. Le
+transport reste Steam P2P, seule l'invitation elle-même transite désormais par
+le backend. Voir « Multijoueur (1v1 réseau) » → « Invitation d'un ami précis »
 dans `CLAUDE.md`.
+
+**Vérification de bout en bout (2026-09-26)** — tout le code est en place des
+deux côtés :
+- Backend : mergé dans `main` et déployé. La branche `0084-game-invites` n'a
+  aucun commit propre (simple ancêtre de `main`), il n'y avait donc rien à
+  merger. Vérifié en prod : `GET /api/invites/incoming` répond **401** et non
+  404, la route est bien montée.
+- Client : les 6 méthodes de `BackendClient` correspondent exactement aux 6
+  routes (chemins et payloads vérifiés un par un) ; polling destinataire
+  démarré dès `_ready()` de l'autoload et correctement bridé (authentifié, pas
+  en bataille, pas de recherche locale en cours, re-vérification de l'état
+  après l'aller-retour réseau) ; tous les chemins d'échec affichent un message
+  dédié plutôt que de rester muets ; les 37 clés de traduction utilisées par
+  `MatchmakingOverlay` existent toutes en FR+EN.
+- ⚠ **SEUL POINT RESTANT, non faisable depuis le dépôt** : créer la table
+  `game_invites` en base de **prod**. Le déploiement continu ne joue PAS les
+  migrations. Commande à lancer sur le VPS :
+  `docker compose exec backend node dist/database/sync.js`. Tant que la table
+  manque, les routes renvoient **500** (pas 404) et l'expéditeur voit
+  « invitation échouée » — troisième occurrence du même piège après le
+  matchmaking classé et le chat/amis.
 
 ## Non-problèmes vérifiés pendant cette revue
 
