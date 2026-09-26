@@ -145,12 +145,18 @@ static func open(menu) -> void:
 				confirm_button.disabled = false
 				status_label.text = SettingsManager.t("ACCOUNT_DATA_DELETE_FAILED")
 				return
-			# La session locale ne vaut plus rien (voir
-			# BackendClient.delete_my_account) : on retourne à l'écran de
-			# chargement, qui relancera une authentification propre — et créera
-			# donc un compte neuf, le SteamID ayant été libéré côté serveur.
+			# Fermeture du jeu, et non retour à l'écran de chargement : celui-ci
+			# rappelle BackendClient.login_with_steam(), ce qui recréerait
+			# aussitôt un compte neuf (le SteamID vient d'être libéré côté
+			# serveur) — le joueur venant de tout supprimer se retrouverait
+			# devant un compte vierge et le tutoriel à refaire, sans explication.
+			# Quitter est le seul état non ambigu ; au prochain lancement, il
+			# repartira de zéro en le sachant.
 			confirm_row.visible = false
 			status_label.text = SettingsManager.t("ACCOUNT_DATA_DELETE_DONE")
-			SceneTransition.change_scene("res://scenes/loading/LoadingScreen.tscn")
+			delete_button.disabled = true
+			export_button.disabled = true
+			await menu.get_tree().create_timer(2.5).timeout
+			CrashReporter.mark_clean_exit_and_quit()
 		)
 	)

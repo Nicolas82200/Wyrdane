@@ -154,7 +154,7 @@ ACCOUNT_DATA_DELETE_WARNING,"Cette action est définitive : collection, decks, p
 ACCOUNT_DATA_DELETE_CONFIRM,"Confirmer la suppression","Confirm deletion"
 ACCOUNT_DATA_DELETE_CANCEL,"Annuler","Cancel"
 ACCOUNT_DATA_DELETING,"Suppression en cours…","Deleting…"
-ACCOUNT_DATA_DELETE_DONE,"Compte supprimé.","Account deleted."
+ACCOUNT_DATA_DELETE_DONE,"Compte supprimé. Le jeu va se fermer.","Account deleted. The game will now close."
 ACCOUNT_DATA_DELETE_FAILED,"Suppression impossible pour le moment. Réessaie plus tard.","Deletion failed for now. Please try again later."
 REFERRAL_TITLE,"Parrainage","Referral"
 REFERRAL_UNAVAILABLE,"Parrainage indisponible (connexion au serveur requise).","Referral unavailable (server connection required)."
