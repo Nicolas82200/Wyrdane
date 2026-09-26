@@ -313,7 +313,11 @@ func queue_join(mode: String, on_complete: Callable) -> void:
 
 # Interroge l'état d'un ticket. on_complete(success, {status, role, opponent_id, steam_lobby_id}).
 # status : "waiting" | "matched" | "cancelled" | "expired". role ("host"/"guest")
-# et steam_lobby_id ne sont présents qu'une fois status == "matched".
+# et steam_lobby_id ne sont présents qu'une fois status == "matched". mmr/window/
+# elapsed_seconds (propre MMR du joueur, fenêtre d'appariement courante en
+# points de MMR, ancienneté du ticket) ne sont présents que tant que
+# status == "waiting" (voir MatchmakingOverlay._poll_queue, journalisés à
+# chaque poll pour le diagnostic du matchmaking).
 func queue_status(ticket_id: String, on_complete: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/matchmaking/queue/%s" % ticket_id, {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
@@ -563,6 +567,51 @@ func accept_friend_request(friendship_id: int, on_complete: Callable = Callable(
 # supprimer un ami existant — voir friendModel.deleteFriendship côté backend.
 func remove_friendship(friendship_id: int, on_complete: Callable = Callable()) -> void:
 	request(HTTPClient.METHOD_DELETE, "/api/friends/%d" % friendship_id, {}, on_complete)
+
+# ─── Invitation de partie entre amis (voir MatchmakingOverlay.gd) ──────────
+# Remplace l'ancien flux "Contre un ami" par overlay Steam natif
+# (SteamTransport.invite_friends, retiré). L'expéditeur a déjà hébergé son
+# lobby Steam (steam_lobby_id = session_id de NetworkManager.session_ready)
+# avant d'appeler ceci — ce endpoint ne fait que relayer l'invitation au
+# destinataire via le backend, celui-ci la découvrant par polling.
+
+# on_data(success: bool, data: Dictionary) — data = {message: "not_friends"|
+# "recipient_unavailable"} sur échec (409), {id, status} sur succès.
+func send_game_invite(recipient_id: int, steam_lobby_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/invites", {"recipientId": recipient_id, "steamLobbyId": steam_lobby_id}, func(code: int, parsed: Variant):
+		var data: Dictionary = parsed if parsed is Dictionary else {}
+		on_data.call(code == 200, data)
+	)
+
+# Invitations pending reçues par le joueur connecté (pollé par
+# MatchmakingOverlay pour afficher la popup de choix de deck). Chaque entrée :
+# {id, sender_id, sender_username, steam_lobby_id, created_at}.
+func get_incoming_invites(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/invites/incoming", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Array, parsed if parsed is Array else [])
+	)
+
+# Pollé côté expéditeur pendant l'attente. on_data(success: bool, status: String)
+# — "pending"/"accepted"/"declined"/"cancelled"/"expired".
+func get_invite_status(invite_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/invites/%d/status" % invite_id, {}, func(code: int, parsed: Variant):
+		var status: String = parsed.get("status", "") if parsed is Dictionary else ""
+		on_data.call(code == 200, status)
+	)
+
+# on_data(success: bool, steam_lobby_id: int) — lobby à rejoindre côté destinataire.
+func accept_game_invite(invite_id: int, on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/invites/%d/accept" % invite_id, {}, func(code: int, parsed: Variant):
+		var lobby_id: int = int(parsed.get("steamLobbyId", 0)) if parsed is Dictionary else 0
+		on_data.call(code == 200, lobby_id)
+	)
+
+func decline_game_invite(invite_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/invites/%d/decline" % invite_id, {}, on_complete)
+
+# Bouton "Annuler" côté expéditeur, ou timeout local sans réponse.
+func cancel_game_invite(invite_id: int, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/invites/%d/cancel" % invite_id, {}, on_complete)
 
 # ─── Présence (voir PresenceService.gd) ─────────────────────────────────────
 func send_presence_heartbeat(in_game: bool, on_complete: Callable = Callable()) -> void:

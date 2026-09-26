@@ -304,7 +304,7 @@ Le mode multijoueur 1v1 est implémenté dans `scripts/net/`, sur un modèle **r
 
 #### Entrée en partie
 
-1.  Depuis le menu principal (aucune scène séparée) : popup de choix de mode — Normal (matchmaking automatique), Classé (file d'attente backend) ou Contre un ami (backend Steam uniquement), orchestré par l'autoload `MatchmakingOverlay`.
+1.  Depuis le menu principal (aucune scène séparée) : popup de choix de mode — Normal (matchmaking automatique) ou Classé (file d'attente backend), orchestré par l'autoload `MatchmakingOverlay`. Inviter un ami précis se fait séparément depuis le panneau Amis (« Inviter à jouer »), sans passer par cet écran.
 2.  `NetHandshake` — échange d'ouverture : decks, graine RNG partagée, premier joueur.
 3.  Les deux clients basculent sur `Battle.tscn` en mode réseau ; `NetContext` (statique) transporte le `NetworkManager` et le résultat du handshake à travers le changement de scène.
 

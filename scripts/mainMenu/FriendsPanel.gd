@@ -256,15 +256,19 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 		ChatPanel.open_for_friend(menu, user_id, username))
 	click_area.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-			_show_context_menu(menu, friendship_id, user_id, username, click_area.get_global_mouse_position())
+			_show_context_menu(menu, friendship_id, user_id, username, presence, click_area.get_global_mouse_position())
 	)
 
 	return row
 
-static func _show_context_menu(menu, friendship_id: int, user_id: int, username: String, global_pos: Vector2) -> void:
+# presence : voir _make_friend_row — "Inviter" est désactivé (grisé, pas juste
+# ignoré au clic) si l'ami est déjà en jeu, demande utilisateur explicite
+# (2026-09-25) : "qu'on puisse pas l'inviter" s'il est déjà en partie.
+static func _show_context_menu(menu, friendship_id: int, user_id: int, username: String, presence: String, global_pos: Vector2) -> void:
 	var popup := PopupMenu.new()
 	menu.add_child(popup)
 	popup.add_item(SettingsManager.t("FRIENDS_MENU_INVITE"), 0)
+	popup.set_item_disabled(0, presence == "in_game")
 	popup.add_item(SettingsManager.t("FRIENDS_MENU_PROFILE"), 1)
 	popup.add_item(SettingsManager.t("FRIENDS_MENU_REPORT"), 2)
 	popup.add_item(SettingsManager.t("FRIENDS_MENU_REMOVE"), 3)
@@ -272,7 +276,7 @@ static func _show_context_menu(menu, friendship_id: int, user_id: int, username:
 		match id:
 			0:
 				close(menu)
-				menu._show_info_view(menu.InfoView.MODE_SELECT)
+				menu._start_friend_invite_flow(user_id, username)
 			1:
 				close(menu)
 				menu._profile_pending_user_id = user_id

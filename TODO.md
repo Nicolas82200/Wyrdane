@@ -22,7 +22,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 - Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
 - Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
 - **Résolu (2026-09-24)** : versionning (`VERSION.txt`, `AppVersion.gd`, affichage dynamique dans `MainMenu`) — voir « Versionning » dans `CLAUDE.md`. Penser à lancer `tools/bump_version.ps1` avant chaque build Steam.
-- ~~Invitations d'amis~~ **Déjà implémenté** — vérifié dans le code : `SteamTransport.invite_friends()` (overlay `activateGameOverlayInviteDialog`) câblé bout en bout via `MatchmakingOverlay.start_invite()` (héberge un lobby si besoin, puis ouvre l'overlay dès qu'il est prêt). Cette liste et la roadmap listaient ce point par erreur comme restant à faire.
+- ~~Invitations d'amis~~ **Déjà implémenté** — invitation ciblée d'un ami Wyrdane via le panneau Amis (`MatchmakingOverlay.invite_friend`, table `game_invites` côté `wyrdane-backend`), remplace depuis le 2026-09-25 l'ancien overlay Steam natif (`activateGameOverlayInviteDialog`, retiré). Voir « Multijoueur (1v1 réseau) » dans `CLAUDE.md`.
 - Effort : moyen mais surtout administratif (hors code).
 
 ## P4 — Incohérence mineure de comptage de cartes
@@ -155,7 +155,7 @@ Reste à faire avant que ce soit réellement actif :
   `CLAUDE.md`. Conséquence assumée : **Normal exige désormais le backend**.
 - **À confirmer en conditions réelles** (deux comptes Steam) : que ces deux
   correctifs suffisent réellement à enchaîner plusieurs parties d'affilée entre
-  deux amis, en « Contre un ami » comme en « Normal ». Le log d'une partie
+  deux amis, sur invitation depuis la liste d'amis comme en « Normal ». Le log d'une partie
   affiche en clair chaque fermeture de transport (`[NetworkManager] Transport
   précédent fermé…`) : sa présence entre la création d'un lobby et l'arrivée du
   pair signale immédiatement une rechute.
@@ -239,14 +239,14 @@ HTTP (pas de WebSocket, décision utilisateur).
   des échecs de chargement silencieux (les BackendClient.* correspondants
   répondent `success=false`/liste vide sur toute erreur HTTP, pas de crash).
 
-**Limitation connue, pas de bonne solution actuellement** : « Inviter à
-jouer » depuis le menu contextuel ne cible pas directement l'ami — il renvoie
-vers l'écran de choix de mode (Multijoueur → Contre un ami), qui ouvre
-l'overlay natif Steam d'invitation. Le transport reste Steam P2P (voir
-« Multijoueur (1v1 réseau) »), qui n'expose aucune API pour inviter un
-SteamID précis en dehors de cet overlay — lequel ne liste que les amis
-*Steam*, pas les amis *Wyrdane* qui ne le seraient pas. Repenser cela
-demanderait de revoir le transport réseau lui-même, hors de portée ici.
+**Résolu (2026-09-25)** : « Inviter à jouer » cible désormais directement
+l'ami (table `game_invites` côté `wyrdane-backend`, branche
+`0084-game-invites` — pas encore mergée/déployée, mêmes conséquences que la
+note ci-dessus pour `0079-friends-and-chat`), popup de choix de deck reçue en
+jeu par le destinataire, sans passer par l'overlay natif Steam. Le transport
+reste Steam P2P, seule l'invitation elle-même transite désormais par le
+backend. Voir « Multijoueur (1v1 réseau) » → « Invitation d'un ami précis »
+dans `CLAUDE.md`.
 
 ## Non-problèmes vérifiés pendant cette revue
 
