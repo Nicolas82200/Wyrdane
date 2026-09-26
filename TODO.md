@@ -332,22 +332,27 @@ son worktree, puis annulé — la branche est intacte, rien n'a été commité) 
 Autrement dit : le risque n'est pas dans la dérive de `dev` (le merge reste
 propre), mais dans ces 3 tests de ciblage. À décider en connaissance de cause.
 
-## P17 — Refactor matchmaking écrit mais non intégré
+## P17 — Refactor matchmaking
 
-Branches finies du 2026-09-25/26 sur la zone la plus fragile du projet :
-- `worktree-0638-single-rendezvous-matchmaking` — **toujours pas mergée** : la
+**Côté client : intégré** (les deux branches du 2026-09-25/26 sont mergées dans
+`dev`).
+- ~~`worktree-0638-single-rendezvous-matchmaking`~~ — **mergée** (PR #657) : la
   file backend devient le **seul** point de rendez-vous du matchmaking (supprime
   le chemin direct de recherche de lobby Steam, source du bug de lobby détruit
   corrigé la veille).
 - ~~`worktree-0639-matchmaking-queue-debug-info`~~ — **mergée** (PR #655) :
   journalise mode/MMR/fenêtre/attente sur le poll de file, et désactive
   `NetDebugLog` par défaut.
-- côté backend, `0086-matchmaking-queue-status-debug-info` (expose `mmr`,
-  `window`, `wait` sur le statut de file) — **pas encore mergée dans `main`**,
-  donc les diagnostics côté client resteront vides jusque-là.
 
-À intégrer **avant** la session de test à deux comptes Steam (P13) : les tester
-séparément ferait passer deux fois par la même manipulation à deux machines.
+**Reste côté backend** : `0086-matchmaking-queue-status-debug-info` (expose
+`mmr`, `window`, `wait` sur le statut de file) n'est **pas mergée dans `main`**,
+donc les diagnostics ajoutés côté client resteront vides jusque-là. C'est un
+seul commit additif (+28/−3, tests compris) ; le merger déclenche un
+déploiement en production, d'où l'attente d'une décision explicite.
+
+Rien ne bloque donc plus la session de test à deux comptes Steam (P13) — au
+contraire, elle exercera précisément ce refactor, jamais éprouvé en conditions
+réelles.
 
 ## P18 — Ménage du dépôt
 
