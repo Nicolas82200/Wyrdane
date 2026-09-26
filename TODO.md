@@ -344,11 +344,11 @@ propre), mais dans ces 3 tests de ciblage. À décider en connaissance de cause.
   journalise mode/MMR/fenêtre/attente sur le poll de file, et désactive
   `NetDebugLog` par défaut.
 
-**Reste côté backend** : `0086-matchmaking-queue-status-debug-info` (expose
-`mmr`, `window`, `wait` sur le statut de file) n'est **pas mergée dans `main`**,
-donc les diagnostics ajoutés côté client resteront vides jusque-là. C'est un
-seul commit additif (+28/−3, tests compris) ; le merger déclenche un
-déploiement en production, d'où l'attente d'une décision explicite.
+**Côté backend : intégré aussi.**
+`0086-matchmaking-queue-status-debug-info` (expose `mmr`, `window`, `wait` sur
+le statut de file) est **mergée dans `main`** et déployée (PR #105 côté
+`wyrdane-backend`), donc les diagnostics ajoutés côté client remontent bien de
+vraies valeurs et non des champs vides.
 
 Rien ne bloque donc plus la session de test à deux comptes Steam (P13) — au
 contraire, elle exercera précisément ce refactor, jamais éprouvé en conditions
