@@ -72,7 +72,7 @@ static func render(menu) -> void:
 	menu.profile_ranked_stats_label.visible = main_visible
 	menu.profile_rank_badge_row.visible = main_visible
 
-	for section_name in ["MatchHistorySection", "SocialSection", "ReferralSection", "SupporterPackSection"]:
+	for section_name in ["MatchHistorySection", "SocialSection", "ReferralSection", "SupporterPackSection", "AccountDataSection"]:
 		var existing: Node = menu.profile_body.get_node_or_null(section_name)
 		if existing:
 			existing.queue_free()
@@ -90,6 +90,10 @@ static func render(menu) -> void:
 		menu.ProfileTab.COMMUNITY:
 			RecentOpponentsPanel.open(menu)
 			ReferralPanel.open(menu)
+			# Droits RGPD du joueur sur ses propres données : l'onglet Communauté
+			# n'existe pas sur le profil d'un ami (voir plus haut), donc cette
+			# section ne peut jamais s'afficher pour un compte tiers.
+			AccountDataPanel.open(menu)
 
 # BackendClient.login_with_steam() est lancé de façon asynchrone au démarrage
 # du menu (voir MainMenu._start_backend_sync) : si le joueur ouvre cette vue

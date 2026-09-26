@@ -649,3 +649,30 @@ func get_unread_message_total(on_data: Callable) -> void:
 	request(HTTPClient.METHOD_GET, "/api/messages/unread-total", {}, func(code: int, parsed: Variant):
 		on_data.call(int(parsed.get("total", 0)) if code == 200 and parsed is Dictionary else 0)
 	)
+
+# ─── Données personnelles (RGPD, voir AccountDataPanel.gd) ───────────────────
+# Le joueur doit pouvoir récupérer et faire effacer ses données depuis le jeu
+# lui-même : une route backend que rien n'atteint ne lui donne aucun droit réel.
+# Détail de ce que chaque appel touche : « Données personnelles & RGPD » dans le
+# CLAUDE.md de wyrdane-backend.
+
+# on_data(success, data) — data est l'export complet (Dictionary) ou {}.
+func export_my_data(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_GET, "/api/users/me/export", {}, func(code: int, parsed: Variant):
+		on_data.call(code == 200 and parsed is Dictionary, parsed if parsed is Dictionary else {})
+	)
+
+# Suppression IRRÉVERSIBLE du compte (anonymisation côté serveur). Le backend
+# exige un mot de confirmation littéral ("SUPPRIMER" ou "DELETE" selon la langue
+# du joueur) : il est transmis tel quel, mais c'est à l'appelant de s'assurer que
+# le joueur l'a réellement saisi (voir AccountDataPanel).
+func delete_my_account(confirm_word: String, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_DELETE, "/api/users/me", {"confirm": confirm_word}, func(code: int, _parsed: Variant):
+		# Toute session locale devient caduque : le cookie est effacé côté serveur,
+		# et l'état en mémoire ne correspond plus à rien.
+		if code == 200:
+			_session_cookie = ""
+			_user_id = 0
+		if on_complete.is_valid():
+			on_complete.call(code == 200)
+	)
