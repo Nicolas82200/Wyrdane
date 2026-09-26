@@ -964,13 +964,13 @@ Encore à faire : lancer une Incantation achetée en réseau (bloqué côté cli
 *   **Arena en réseau Steam** (`scenes/arena/ArenaNetLobby.tscn` : Solo/Héberger/Rejoindre) — jusqu'à 8 vrais joueurs en topologie étoile hôte-autoritaire, sièges vacants comblables par des bots ; toute la pile (transport → handshake → protocole de partie) est validée en pure logique via un transport simulé, mais **jamais testée avec un second compte Steam réel**
 *   **Backend `wyrdane-backend` déployé en production** (VPS OVH, déploiement continu sur push `main`) — auth Steam, collection, monnaie molle, packs, niveau de compte par XP, MMR/ranked + matchmaking classé par MMR (MMR caché pour les parties Normal), quêtes quotidiennes/hebdo/mensuelles/uniques, parrainage, récompense de connexion, classement, amis + chat + présence, invitations de partie ciblées
 *   **Social** — système d'amis propre à Wyrdane (ajout par pseudo, amis Steam synchronisés automatiquement, présence en ligne/en jeu), chat privé avec badge de non-lus, invitation d'un ami précis à une partie (popup en jeu avec choix de deck, remplace l'overlay Steam natif)
-*   **20 succès Steam côté client** (`AchievementManager`) — le code est prêt ; les API Names restent à créer sur le dashboard Steamworks
+*   **21 succès Steam côté client** (`AchievementManager`) — le code est prêt, et leurs textes FR/EN sont rédigés dans `docs/steam-achievements.md` ; seule la saisie sur le dashboard Steamworks (et les icônes) reste à faire
 *   **Tutoriel obligatoire guidé** (mulligan compris) avec récompense de decks/cartes de départ, écran de fin de partie, rapport de plantage/gel (`CrashReporter`)
 
 ### À faire
 *   **Valider le multijoueur en conditions Steam réelles** (deux comptes Steam distincts, cf. « Multijoueur 1v1 ») — tout le matchmaking 1v1, l'invitation d'ami et l'Arena réseau n'ont jamais été éprouvés autrement qu'en logique simulée ; c'est le principal risque restant avant une sortie
-*   Steam : build/dépôt Steam (AppID 5052390 validé par Valve, pipeline de build préparé hors dépôt — reste surtout administratif : identifiants du compte partenaire, métadonnées de l'exe encore vides, passage `"Preview"` à `0`)
-*   Créer les 20 succès sur le dashboard Steamworks (API Names + textes FR/EN + icônes ; le code client est prêt)
+*   Steam : build/dépôt (AppID 5052390 validé par Valve, pipeline prêt hors dépôt dans `sdk/tools/ContentBuilder/`) — restent deux gestes de publication : renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et passer `Preview` de `1` à `0` dans les `.vdf`. Les métadonnées de l'exe (`company_name`/`copyright`) sont déjà renseignées (`Nertari Studio`)
+*   Créer les 21 succès sur le dashboard Steamworks — textes FR/EN prêts à coller dans `docs/steam-achievements.md`, restent les icônes (64×64, débloquée + verrouillée) et la saisie
 *   Arena réseau : lancer une Incantation achetée depuis un client (bloqué aujourd'hui), quorum de passage de phase, cas de l'hôte éliminé avant la fin de la partie
 *   Nouvelles races : Elfe, Nain (proposition de design à valider, voir « 🧝 Elfe & 🪓 Nain »)
 *   Animations shaders

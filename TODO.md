@@ -20,7 +20,22 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
 
 **Page Steamworks validée par Valve.** `SteamService.APP_ID` pointe sur le vrai AppID Wyrdane (5052390), accessible à tout compte Steam sans ajout manuel comme testeur. Reste :
 - Pipeline de build/dépôt Steam préparé (hors dépôt `card-game`, dans `sdk/tools/ContentBuilder/` sur le Bureau) : AppID 5052390 / DepotID 5052391 renseignés dans les scripts `.vdf`, `export_presets.cfg` exporte maintenant vers `/build/windows/Wyrdane.exe` (gitignoré) à copier ensuite dans `sdk/tools/ContentBuilder/content/` avant de lancer `run_build.bat`. Reste à renseigner les identifiants du compte partenaire dans `run_build.bat` (non commité) et à passer `"Preview"` de `1` à `0` dans les `.vdf` une fois un premier essai validé
-- Métadonnées de l'exe (`application/company_name`, `application/copyright` dans `export_presets.cfg`) encore vides — nom légal du studio à trancher avant une vraie publication
+- ~~Métadonnées de l'exe~~ **déjà renseignées** (vérifié le 2026-09-26) :
+  `application/company_name` = `Nertari Studio` et `application/copyright` =
+  `© 2026 Nertari Studio` dans `export_presets.cfg`. Cette entrée affirmait
+  l'inverse depuis longtemps, à tort.
+  **Point à trancher malgré tout** : l'éditeur annoncé au joueur n'est pas le
+  même des deux côtés — `MENU_LEGAL_BODY` (mentions légales en jeu, via
+  `translations/game.csv`) dit « Éditeur : Amnertaris », là où les métadonnées de
+  l'exe disent `Nertari Studio`. Si c'est délibéré (pseudonyme d'auteur d'un
+  côté, raison sociale de l'autre), rien à faire ; sinon, aligner les deux avant
+  publication.
+- **Textes des succès prêts** : `docs/steam-achievements.md` contient les 21
+  API Names avec leurs libellés FR/EN et la condition exacte de déclenchement de
+  chacun, directement collables dans le dashboard. Restent les icônes et la
+  saisie. À noter : le projet annonçait « 20 succès » un peu partout, alors que
+  `AchievementManager.gd` en définit **21** (`ACH_FULL_ROSTER` avait été ajouté
+  sans mettre les comptages à jour) — corrigé dans `CLAUDE.md`/`README.md`.
 - **Résolu (2026-09-24)** : versionning (`VERSION.txt`, `AppVersion.gd`, affichage dynamique dans `MainMenu`) — voir « Versionning » dans `CLAUDE.md`. Penser à lancer `tools/bump_version.ps1` avant chaque build Steam.
 - ~~Invitations d'amis~~ **Déjà implémenté** — invitation ciblée d'un ami Wyrdane via le panneau Amis (`MatchmakingOverlay.invite_friend`, table `game_invites` côté `wyrdane-backend`), remplace depuis le 2026-09-25 l'ancien overlay Steam natif (`activateGameOverlayInviteDialog`, retiré). Voir « Multijoueur (1v1 réseau) » dans `CLAUDE.md`.
 - Effort : moyen mais surtout administratif (hors code).
