@@ -72,6 +72,16 @@ Comportement serveur attendu :
   d'attente indéfinis avec peu de joueurs simultanés : ±100 MMR au départ,
   +50 toutes les 15s, jusqu'à un plafond raisonnable (ex. ±500) au-delà
   duquel on apparie sans plus attendre.
+- **Choix parmi les candidats éligibles (ajout 2026-09-25)** : la fenêtre dit
+  seulement qui est *acceptable*, pas qui est *le meilleur*. Parmi les tickets
+  dans la fenêtre, retenir celui qui minimise
+  `|Δmmr| − BONUS × attente_du_candidat` (implémenté côté `wyrdane-backend` avec
+  BONUS = 5 points de MMR par seconde, plafonné à 300) : le MMR le plus proche
+  gagne normalement, mais un ticket qui patiente depuis longtemps finit toujours
+  par passer devant, sans qu'on ait à élargir la fenêtre. Sans cette règle, le
+  serveur retenait le premier candidat dans l'ordre d'arrivée — donc le plus
+  ancien, jamais le plus proche en MMR. La fenêtre reste une contrainte dure : un
+  adversaire hors fenêtre n'est jamais rattrapé par son ancienneté.
 - Un ticket sans appariement après un délai serveur (ex. 5 min) passe en
   `expired` : le client abandonne de son côté après 3 min (`RANKED_QUEUE_TIMEOUT`
   dans `MatchmakingOverlay.gd`), donc la valeur exacte côté serveur importe peu tant
