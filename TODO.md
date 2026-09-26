@@ -241,30 +241,38 @@ merger — elle a été laissée en attente, pas rejetée.
 
 ## P17 — Refactor matchmaking écrit mais non intégré
 
-Trois branches finies et non mergées, toutes du 2026-09-25/26, sur la zone la
-plus fragile du projet :
-- `worktree-0638-single-rendezvous-matchmaking` — la file backend devient le
-  **seul** point de rendez-vous du matchmaking (supprime le chemin direct de
-  recherche de lobby Steam, source du bug de lobby détruit corrigé la veille).
-- `worktree-0639-matchmaking-queue-debug-info` — journalise mode/MMR/fenêtre/
-  attente sur le poll de file, et désactive `NetDebugLog` par défaut.
+Branches finies du 2026-09-25/26 sur la zone la plus fragile du projet :
+- `worktree-0638-single-rendezvous-matchmaking` — **toujours pas mergée** : la
+  file backend devient le **seul** point de rendez-vous du matchmaking (supprime
+  le chemin direct de recherche de lobby Steam, source du bug de lobby détruit
+  corrigé la veille).
+- ~~`worktree-0639-matchmaking-queue-debug-info`~~ — **mergée** (PR #655) :
+  journalise mode/MMR/fenêtre/attente sur le poll de file, et désactive
+  `NetDebugLog` par défaut.
 - côté backend, `0086-matchmaking-queue-status-debug-info` (expose `mmr`,
-  `window`, `wait` sur le statut de file).
+  `window`, `wait` sur le statut de file) — **pas encore mergée dans `main`**,
+  donc les diagnostics côté client resteront vides jusque-là.
 
 À intégrer **avant** la session de test à deux comptes Steam (P13) : les tester
 séparément ferait passer deux fois par la même manipulation à deux machines.
 
 ## P18 — Ménage du dépôt
 
-- **~40 worktrees encore montés** sous `.claude/worktrees/` (jusqu'à `0081`,
-  `0392`, `0430`…), tous sur des branches déjà mergées dans `dev`. À élaguer
-  (`git worktree remove` puis suppression des branches locales correspondantes).
-- `devlogs/2026-09-21-draft.md` traîne à côté de son devlog publié
-  (`2026-09-21-devlog-8.md`) : à archiver dans `devlogs/archive/`.
-- La suite de tests laisse ~6900 nœuds orphelins par run : la convention
-  `free()` en `after_each()` (voir P1) n'est pas appliquée partout. Sans
-  conséquence sur les résultats, mais ça noie le signal si une vraie fuite
-  apparaît.
+**Fait le 2026-09-26**, sauf le dernier point :
+- ~~worktrees~~ : **73 worktrees montés → 4** (ne restent que `dev` et les
+  branches réellement actives). Aucun n'a été forcé tant que Git signalait du
+  travail dedans : les 18 qu'il refusait d'abord ne contenaient que des `.uid`
+  générés par Godot, vérifié un par un avant de passer `--force`.
+- ~~branches locales~~ : **80 branches déjà mergées dans `dev` supprimées**
+  (87 → 7). Seule `worktree-0633-hover-zoom-toggle` a résisté : son contenu est
+  bien dans `dev`, mais elle porte un commit absent de sa branche distante, donc
+  la suppression douce est refusée — sans conséquence, l'effacer demanderait
+  l'option forcée.
+- ~~`devlogs/2026-09-21-draft.md`~~ : archivé dans `devlogs/archive/`.
+- **Reste à faire** : la suite de tests laisse ~6900 nœuds orphelins par run
+  (la convention `free()` en `after_each()`, voir P1, n'est pas appliquée
+  partout). Sans conséquence sur les résultats, mais ça noie le signal si une
+  vraie fuite apparaît un jour.
 
 ## P19 — Cartes non traduites en anglais
 
