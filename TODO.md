@@ -269,10 +269,20 @@ séparément ferait passer deux fois par la même manipulation à deux machines.
   la suppression douce est refusée — sans conséquence, l'effacer demanderait
   l'option forcée.
 - ~~`devlogs/2026-09-21-draft.md`~~ : archivé dans `devlogs/archive/`.
-- **Reste à faire** : la suite de tests laisse ~6900 nœuds orphelins par run
-  (la convention `free()` en `after_each()`, voir P1, n'est pas appliquée
-  partout). Sans conséquence sur les résultats, mais ça noie le signal si une
-  vraie fuite apparaît un jour.
+- **Orphelins de tests : deux vraies fuites corrigées, le compteur reste
+  élevé et c'est normal.** `FakeHand` héritait de `Node` sans raison (un signal
+  n'en demande pas un) et n'était jamais libéré : passé en `RefCounted`, −465
+  orphelins. `FakeBattle` porte par ailleurs une douzaine de vrais
+  `Control`/`Button`/`Label` pour simuler l'UI, eux aussi jamais libérés : il les
+  libère désormais seul via `NOTIFICATION_PREDELETE` (il est `RefCounted`), sans
+  devoir ajouter un `after_each()` dans les ~40 fichiers concernés.
+  Le total affiché par GUT ne bouge quasiment pas pour autant (6937 → 6426) :
+  **GUT compte les orphelins à la fin de chaque test, alors que le script de test
+  détient encore son `FakeBattle` dans une variable membre** — la libération
+  n'arrive qu'au `before_each()` suivant, après le comptage. Descendre ce
+  compteur demanderait de relâcher explicitement le double dans chaque
+  `after_each()`, pour un gain purement cosmétique : délibérément non fait. Les
+  deux fuites réelles, elles, sont bien fermées.
 
 ## P19 — Cartes non traduites en anglais
 
