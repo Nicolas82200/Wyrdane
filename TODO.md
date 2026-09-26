@@ -266,8 +266,33 @@ séparément ferait passer deux fois par la même manipulation à deux machines.
   conséquence sur les résultats, mais ça noie le signal si une vraie fuite
   apparaît.
 
+## P19 — Cartes non traduites en anglais
+
+**Résolu (2026-09-26).** `CLAUDE.md` affirmait que les 320 cartes avaient
+toutes leurs clés dans `translations/game.csv` : c'était faux pour 25 textes —
+les 12 noms des cartes exclusives à l'Arena (`*-arena.tres`) et 13
+descriptions. Une clé absente ne provoque aucune erreur : le texte s'affiche
+tel quel, donc **en français dans la version anglaise**, sans que rien ne le
+signale. Les 25 lignes FR + EN ont été ajoutées, en suivant les conventions de
+traduction déjà en place (REMPART→TAUNT, ASSAUT→CHARGE, COMMANDEMENT→COMMAND,
+VENIN MORTEL→DEADLY POISON, ÉGIDE→AEGIS, Mort-rage→Death Rage, Amas
+Informe→Formless Mass…).
+
+Trouvé au passage et corrigé : la traduction anglaise de `MENU_LEGAL_BODY`
+était **tronquée en jeu** depuis son ajout. Son texte contenait
+`provided \"as is\"` — un guillemet échappé par backslash, ce qui n'existe pas
+en CSV (un guillemet s'y **double**) : le champ se fermait sur le premier `"`,
+la fin de la phrase partait dans une 4e colonne fantôme et n'était jamais
+affichée. Remplacé par des guillemets typographiques, comme la version française
+qui utilisait déjà « ».
+
+`tests/unit/test_card_translation_coverage.gd` couvre désormais les deux cas
+(clé présente pour chaque nom/description de carte, et exactement 3 colonnes par
+ligne de CSV), pour que ce genre d'oubli ne puisse plus passer inaperçu.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.
-- i18n : échantillonnage de `Battle.gd`, `GameOverScreen.gd`, `Card.gd` — tout passe par `SettingsManager.t()` ou `display_*()`, pas de chaîne FR en dur trouvée.
+- i18n côté UI : échantillonnage de `Battle.gd`, `GameOverScreen.gd`, `Card.gd` — tout passe par `SettingsManager.t()` ou `display_*()`, pas de chaîne FR en dur trouvée. Contrôle exhaustif ajouté le 2026-09-26 : toutes les clés passées à `SettingsManager.t()` dans `scripts/`/`scenes/` existent bien dans `game.csv` (la seule « absente » est `RACE_`, une concaténation dynamique).
+- i18n côté cartes : **était un vrai trou, corrigé le 2026-09-26** (voir P19).
 - `README.md` et `CLAUDE.md` sont globalement alignés (roadmap, limites IA, statut Steam identiques des deux côtés) en dehors du point P4 corrigé ci-dessus.

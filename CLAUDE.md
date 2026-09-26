@@ -234,7 +234,7 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 - Tout texte UI passe par `SettingsManager.t("CLE")` (délègue au `TranslationServer`) ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`
 - Les cartes (noms, effets, flavour) sont également traduites — les 320 cartes (jetons compris) ont leurs clés dans le CSV
 - **Tout nouveau texte visible par le joueur doit avoir sa ligne FR + EN dans `translations/game.csv`** — ne jamais mettre de chaîne en dur dans l'UI
-- Une clé absente du CSV est affichée telle quelle en jeu (utile pour repérer les oublis)
+- Une clé absente du CSV est affichée telle quelle en jeu (utile pour repérer les oublis en français, mais **invisible** : la carte reste alors en français dans la version anglaise sans que rien ne le signale). `tests/unit/test_card_translation_coverage.gd` garde désormais ce trou fermé : il échoue si un nom/une description de carte n'a pas sa clé, ou si une ligne du CSV n'a pas exactement 3 colonnes (un guillemet **se double** en CSV, il ne s'échappe jamais par backslash — sinon le champ se ferme trop tôt et la traduction est tronquée en silence, cas réel rencontré sur `MENU_LEGAL_BODY`)
 - Sélecteur de langue dans les réglages d'affichage
 
 ## Conventions de code

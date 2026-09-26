@@ -409,7 +409,7 @@ Le jeu est traduit **FR/EN** via le système de traduction natif de Godot :
 
 *   `translations/game.csv` (clé, fr, en) — compilé automatiquement par Godot en `game.fr.translation` / `game.en.translation`.
 *   `SettingsManager.t("CLE")` délègue au `TranslationServer` ; les nœuds UI se rafraîchissent via `_retranslate()` sur le signal `language_changed`.
-*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 320 cartes** (jetons compris ; noms, effets, flavour).
+*   **Toute l'UI est traduite** (menus, deck builder, bataille, cimetière, chargement) ainsi que **les 320 cartes** (jetons compris ; noms, effets, flavour) — couverture vérifiée automatiquement par `tests/unit/test_card_translation_coverage.gd`.
 *   Une clé absente du CSV est affichée telle quelle en jeu — utile pour repérer les oublis.
 *   Sélecteur de langue dans les réglages d'affichage (avec toggle du highlight des zones).
 
