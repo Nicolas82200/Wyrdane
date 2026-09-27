@@ -27,7 +27,7 @@ extends Node
 # Discord > New Application, nommée exactement "Wyrdane" : c'est ce nom que
 # Discord affiche en « Joue à ... »). Distinct de l'application du bot
 # communautaire. Laisser vide désactive proprement la fonctionnalité.
-const CLIENT_ID := ""
+const CLIENT_ID := "1553836342503284887"
 
 # Discord expose jusqu'à 10 pipes (un par client Discord lancé : stable, PTB,
 # Canary...). On prend le premier qui répond.
