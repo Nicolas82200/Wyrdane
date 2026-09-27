@@ -37,7 +37,7 @@ Convention établie (voir `tests/unit/doubles/fake_battle.gd`) : charger le scri
   `AchievementManager.gd` en définit **21** (`ACH_FULL_ROSTER` avait été ajouté
   sans mettre les comptages à jour) — corrigé dans `CLAUDE.md`/`README.md`.
 - **Résolu (2026-09-24)** : versionning (`VERSION.txt`, `AppVersion.gd`, affichage dynamique dans `MainMenu`) — voir « Versionning » dans `CLAUDE.md`. Penser à lancer `tools/bump_version.ps1` avant chaque build Steam.
-- ~~Invitations d'amis~~ **Déjà implémenté** — invitation ciblée d'un ami Wyrdane via le panneau Amis (`MatchmakingOverlay.invite_friend`, table `game_invites` côté `wyrdane-backend`), remplace depuis le 2026-09-25 l'ancien overlay Steam natif (`activateGameOverlayInviteDialog`, retiré). Voir « Multijoueur (1v1 réseau) » dans `CLAUDE.md`.
+- ~~Invitations d'amis~~ **Déjà implémenté** — mode « Contre un ami » (`MatchmakingOverlay.start_invite`) : hébergement d'un lobby Steam puis overlay Steam natif d'invitation (`activateGameOverlayInviteDialog`). L'invitation relayée par le backend (table `game_invites`, 2026-09-25) a été **annulée le 2026-09-28**, voir « Retour au rendez-vous Steam direct » dans `CLAUDE.md`.
 - Effort : moyen mais surtout administratif (hors code).
 
 ## P4 — Incohérence mineure de comptage de cartes
@@ -177,8 +177,8 @@ Reste à faire :
   de lobbies Steam en repli), chacun avec ses minuteurs et chacun capable de
   détruire le lobby vivant de l'autre. Le second chemin est supprimé : la file
   backend est le seul point de rendez-vous, `SteamTransport.join()` exige un
-  `lobby_id`. Voir « File backend = seul point de rendez-vous » dans
-  `CLAUDE.md`. Conséquence assumée : **Normal exige désormais le backend**.
+  `lobby_id`. **Annulé le 2026-09-28** (voir la dernière puce) : en pratique
+  plus rien ne fonctionnait, ni le matchmaking ni les invitations.
 - **Cause réelle trouvée et corrigée (2026-09-28), sur logs horodatés des deux
   joueurs** : les correctifs du 2026-09-25 ne traitaient que des symptômes. Le
   `code 2` venait d'un **`steam_lobby_id` hérité du match précédent** —
@@ -205,6 +205,19 @@ Reste à faire :
   affiche en clair chaque fermeture de transport (`[NetworkManager] Transport
   précédent fermé…`) : sa présence entre la création d'un lobby et l'arrivée du
   pair signale immédiatement une rechute.
+- **Retour arrière assumé (2026-09-28, décision utilisateur)** : malgré les
+  deux correctifs ci-dessus, le matchmaking et les invitations restaient
+  inutilisables (« code 2 » à répétition) alors qu'ils fonctionnaient avant le
+  2026-09-25. Les deux changements de ce jour-là sont donc annulés : la
+  recherche directe dans la liste de lobbies Steam redevient le repli du mode
+  Normal (`NORMAL_QUEUE_TIMEOUT` 180s → 20s, puis bascule) et l'invitation
+  repasse par l'overlay Steam natif. Les diagnostics, `close(reason)`,
+  `queue_abandon` et le retry code 2 sont conservés — ce dernier scindé selon
+  l'origine du lobby (retry sur place pour un `lobby_id` fourni, nouvelle
+  recherche pour un lobby issu de la liste Steam). Voir « Retour au rendez-vous
+  Steam direct » dans `CLAUDE.md`. **À valider en conditions réelles avec deux
+  comptes Steam** : c'est la seule vérification qui manque, et le risque connu
+  de l'ancien schéma (deux chemins de rendez-vous concurrents) reste entier.
 - **Suite possible, pas faite** : confier l'arbitrage des reprises au backend
   (aujourd'hui, sur un join refusé, c'est le client qui se remet en file, voir
   `MAX_AUTO_JOIN_RETRIES`) — une route qui invalide l'appariement et remet les

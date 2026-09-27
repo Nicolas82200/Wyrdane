@@ -93,6 +93,12 @@ func close(reason: String = "non précisée") -> void:
 	if transport != null:
 		transport.close()
 
+# Ouvre l'UI d'invitation d'amis du backend actif (no-op si aucun transport
+# ou si le backend ne le supporte pas — voir NetTransport.invite_friends).
+func invite_friends() -> void:
+	if transport != null:
+		transport.invite_friends()
+
 # Voir NetTransport.open_add_friend_overlay.
 func open_add_friend_overlay() -> void:
 	if transport != null:
