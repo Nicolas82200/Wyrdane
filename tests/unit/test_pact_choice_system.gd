@@ -44,6 +44,11 @@ func before_each() -> void:
 	pact_choice_system = PactChoiceSystem.new()
 	pact_choice_system.init(battle)
 
+# Cherche TOUJOURS depuis `battle` (le calque de popup en est enfant), jamais
+# depuis get_tree().root : le blocker d'un test précédent est queue_free() mais
+# encore présent dans l'arbre au début du test suivant, et une recherche depuis
+# la racine y trouvait son bouton Oui/Non — dont le callback mute l'ancien state,
+# laissant _result bloqué sur PENDING (faux échec du test « cliquer Non »).
 func _find_button(node: Node, text: String) -> Button:
 	if node is Button and (node as Button).text == text:
 		return node
@@ -65,7 +70,7 @@ func test_clicking_yes_resolves_ask_with_true() -> void:
 	_run_ask(data)
 	await get_tree().create_timer(0.6).timeout
 
-	var yes_button := _find_button(get_tree().root, SettingsManager.t("PACT_CONFIRM_YES"))
+	var yes_button := _find_button(battle, SettingsManager.t("PACT_CONFIRM_YES"))
 	assert_not_null(yes_button, "le bouton Oui doit exister dans l'arbre")
 	yes_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -80,7 +85,7 @@ func test_clicking_no_resolves_ask_with_false() -> void:
 	_run_ask(data)
 	await get_tree().create_timer(0.6).timeout
 
-	var no_button := _find_button(get_tree().root, SettingsManager.t("PACT_CONFIRM_NO"))
+	var no_button := _find_button(battle, SettingsManager.t("PACT_CONFIRM_NO"))
 	assert_not_null(no_button, "le bouton Non doit exister dans l'arbre")
 	no_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -185,7 +190,7 @@ func test_on_net_command_received_pact_request_asks_local_player_and_replies() -
 	net.command_received.emit(NetCommand.pact_request("res://resources/cards/demon/hellspawn-larva.tres", 1))
 	await get_tree().create_timer(0.6).timeout
 
-	var yes_button := _find_button(get_tree().root, SettingsManager.t("PACT_CONFIRM_YES"))
+	var yes_button := _find_button(battle, SettingsManager.t("PACT_CONFIRM_YES"))
 	assert_not_null(yes_button, "une requête distante doit afficher la popup au joueur local, même hors de son tour")
 	yes_button.emit_signal("pressed")
 	await get_tree().process_frame
@@ -219,7 +224,7 @@ func test_resolve_trigger_own_card_sends_announce_before_asking() -> void:
 	assert_eq(int(net.sent[0].get("value", -1)), 3)
 
 	await get_tree().create_timer(0.6).timeout
-	var yes_button := _find_button(get_tree().root, SettingsManager.t("PACT_CONFIRM_YES"))
+	var yes_button := _find_button(battle, SettingsManager.t("PACT_CONFIRM_YES"))
 	assert_not_null(yes_button, "la popup de choix du joueur local doit s'afficher après l'annonce")
 	yes_button.emit_signal("pressed")
 	await get_tree().process_frame

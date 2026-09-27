@@ -42,6 +42,10 @@ var enemy_graveyard := Graveyard.new()
 var combat_log: FakeCombatLog = FakeCombatLog.new()
 var enchantment_system: FakeEnchantmentSystem = FakeEnchantmentSystem.new()
 var targeting_system: FakeTargetingSystem = FakeTargetingSystem.new()
+# Lu par FusionSystem.can_activate/SelectionSystem/InputSystem : un double
+# suffit (le vrai SacrificeSystem extends Node, doublé ici pour ne pas avoir à
+# le libérer dans chaque after_each()).
+var sacrifice_system: FakeSacrificeSystem = FakeSacrificeSystem.new()
 var reconnecting: bool = false
 var net_emitter = null
 var afk_guard: FakeAfkGuard = FakeAfkGuard.new()
@@ -51,6 +55,27 @@ var net_session_system: FakeNetSessionSystem = FakeNetSessionSystem.new()
 var show_game_over_calls: Array[String] = []
 func _show_game_over(result: String) -> void:
 	show_game_over_calls.append(result)
+
+# Ce double porte une douzaine de vrais Control/Button/Label pour simuler l'UI de
+# Battle (conteneurs de rangée, panneaux de héros, bouton de deck…). Jamais
+# ajoutes a l'arbre de scene, ils n'etaient donc jamais liberes : GUT les
+# comptait en noeuds orphelins dans CHAQUE test instanciant un FakeBattle, soit
+# plusieurs milliers sur une run complete.
+#
+# FakeBattle etant un RefCounted, il recoit NOTIFICATION_PREDELETE des que le
+# test qui le detient le relache — le nettoyage se fait donc tout seul, sans
+# devoir ajouter un after_each() dans les ~40 fichiers de test concernes.
+# Le parcours est generique (get_property_list) plutot qu'une liste manuelle,
+# pour qu'un futur noeud ajoute a ce double soit couvert sans y penser ; un
+# noeud qu'un test aurait parente a l'arbre (donc deja gere par autofree) est
+# ignore, pour ne jamais le liberer deux fois.
+func _notification(what: int) -> void:
+	if what != NOTIFICATION_PREDELETE:
+		return
+	for property in get_property_list():
+		var value: Variant = get(property["name"])
+		if value is Node and is_instance_valid(value) and (value as Node).get_parent() == null:
+			(value as Node).free()
 var counter_offensive: Dictionary = {true: false, false: false}
 var front_line_protected: Dictionary = {true: false, false: false}
 var undead_ally_deaths_this_turn: Dictionary = {true: 0, false: 0}
@@ -538,7 +563,12 @@ class FakeOpponent:
 
 
 class FakeHand:
-	extends Node
+	# RefCounted et NON Node : un Node cree ici ne serait jamais ajoute a l'arbre,
+	# donc jamais libere automatiquement — GUT le comptait en noeud orphelin dans
+	# chaque test instanciant un FakeBattle. Un signal ne demande pas un Node
+	# (RefCounted en declare tout aussi bien), et aucun code de production
+	# n'appelle add_child/get_tree/queue_free sur battle.hand.
+	extends RefCounted
 	signal discard_card_clicked(index: int, card_data: CardData)
 	var last_set: Array[CardData] = []
 	var discard_mode: bool = false

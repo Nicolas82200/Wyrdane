@@ -26,6 +26,20 @@ const LOG_MAX_CHARS := 5_000_000
 # GodotSteam ("Caching Steam ID: ..."). Masqué avant tout envoi, le log
 # n'ayant sinon aucune raison de contenir un identifiant joueur.
 const _STEAM_ID_REGEX := "\\b\\d{17}\\b"
+# Chemins personnels. Un log Godot est truffé de chemins absolus (dossier
+# utilisateur, `user://` résolu, chemins d'installation) et sous Windows le nom
+# du compte est très souvent le prénom/nom réel du joueur : sans ce masquage,
+# chaque rapport envoyé sur Discord divulgue une identité que le joueur n'a
+# jamais accepté de partager. Seul le segment de nom de compte est remplacé (le
+# préfixe capturé est réinjecté), pour que le log reste lisible en diagnostic.
+#   Windows : C:\Users\prenom.nom\... ou C:/Users/prenom.nom/...
+#   macOS   : /Users/prenom/...
+#   Linux   : /home/prenom/...
+const _USER_PATH_REGEXES := [
+	"(?i)([A-Z]:[\\\\/]+Users[\\\\/]+)[^\\\\/\\s\"']+",
+	"(?i)(/Users/)[^/\\s\"']+",
+	"(?i)(/home/)[^/\\s\"']+",
+]
 
 var _pending_report: bool = false
 var _pending_timestamp: float = 0.0
@@ -104,9 +118,18 @@ func _find_previous_log_path() -> String:
 	return best_path
 
 func _redact_sensitive(text: String) -> String:
+	var result := text
 	var regex := RegEx.new()
 	regex.compile(_STEAM_ID_REGEX)
-	return regex.sub(text, "[SteamID masqué]", true)
+	result = regex.sub(result, "[SteamID masqué]", true)
+	for pattern in _USER_PATH_REGEXES:
+		var path_regex := RegEx.new()
+		if path_regex.compile(pattern) != OK:
+			continue
+		# $1 conserve le préfixe capturé (« C:\Users\ », « /home/ »…) : seul le
+		# nom de compte, qui suit, est remplacé.
+		result = path_regex.sub(result, "$1[utilisateur]", true)
+	return result
 
 func get_previous_log_full() -> String:
 	var path := _find_previous_log_path()
