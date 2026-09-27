@@ -354,6 +354,16 @@ func queue_report_lobby(ticket_id: String, steam_lobby_id: int, on_complete: Cal
 		"steamLobbyId": str(steam_lobby_id),
 	}, on_complete)
 
+# Abandonne un appariement qui n'a pas abouti (entrée en lobby Steam refusée,
+# hôte jamais rejoint) : le backend remet les DEUX tickets en file d'un coup.
+# Indispensable pour que les deux joueurs se retrouvent : celui qui échouait se
+# remettait en file tout seul, alors que son adversaire restait "matched" côté
+# backend pendant tout son HOST_PEER_WAIT_TIMEOUT — et un ticket "matched" n'est
+# jamais ré-apparié (findOpponent ne regarde que les "waiting"), donc ils ne
+# pouvaient plus tomber en phase.
+func queue_abandon(ticket_id: String, on_complete: Callable = Callable()) -> void:
+	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue/%s/abandon" % ticket_id, {}, on_complete)
+
 # Quitte la file d'attente (bouton Annuler, ou changement de scène).
 func queue_cancel(ticket_id: String, on_complete: Callable = Callable()) -> void:
 	request(HTTPClient.METHOD_DELETE, "/api/matchmaking/queue/%s" % ticket_id, {}, on_complete)

@@ -54,8 +54,10 @@ static func ensure_init() -> bool:
 	var result: Dictionary = s.steamInitEx(APP_ID, false)
 	if result.get("status", 1) != 0:
 		push_warning("SteamService : init Steam échouée — %s" % [result.get("verbal", "raison inconnue")])
+		print("[SteamDiag %s] init ÉCHOUÉE : %s" % [ts(), str(result)])
 		return false
 	_initialized = true
+	_log_init_diagnostics(s, result)
 	# Autorise explicitement le relais Steam (TURN-like) en secours quand la
 	# connexion P2P directe échoue (NAT strict, pare-feu). Normalement activé
 	# par défaut, mais on le force pour ne laisser aucun doute.
@@ -67,6 +69,55 @@ static func ensure_init() -> bool:
 	if s.has_method("initRelayNetworkAccess"):
 		s.initRelayNetworkAccess()
 	return true
+
+# Horodatage UTC à la milliseconde, identique sur toutes les machines (à
+# l'horloge système près) : permet d'aligner les logs de l'hôte et de l'invité
+# pour savoir QUI a fait QUOI en premier (création, join, leaveLobby).
+static func ts() -> String:
+	var t := Time.get_unix_time_from_system()
+	return "%s.%03dZ" % [Time.get_datetime_string_from_unix_time(int(t)), int(fmod(t, 1.0) * 1000.0)]
+
+# Journalise, une fois, tout ce qui conditionne la visibilité d'un lobby entre
+# deux clients : un lobby n'existe que pour les clients du MÊME AppID, et
+# joinLobby échoue (code 2, DoesntExist) si le client n'est pas réellement
+# connecté aux serveurs Steam (mode hors ligne) même quand steamInitEx a réussi.
+static func _log_init_diagnostics(s: Object, result: Dictionary) -> void:
+	var app_id: int = s.getAppID() if s.has_method("getAppID") else -1
+	var logged_on = s.loggedOn() if s.has_method("loggedOn") else "?"
+	var subscribed = s.isSubscribed() if s.has_method("isSubscribed") else "?"
+	var build_id = s.getAppBuildId() if s.has_method("getAppBuildId") else "?"
+	var beta = s.getCurrentBetaName() if s.has_method("getCurrentBetaName") else "?"
+	var country = s.getIPCountry() if s.has_method("getIPCountry") else "?"
+	print("[SteamDiag %s] init OK : %s" % [ts(), str(result)])
+	print("[SteamDiag %s] app_id effectif=%d (attendu %d) steam_id=%s persona=%s" % [
+		ts(), app_id, APP_ID, str(s.getSteamID()), s.getPersonaName()])
+	print("[SteamDiag %s] logged_on=%s subscribed=%s build=%s beta=%s pays=%s env SteamAppId=%s" % [
+		ts(), str(logged_on), str(subscribed), str(build_id), str(beta), str(country),
+		OS.get_environment("SteamAppId")])
+	if app_id != APP_ID:
+		push_warning("SteamService : AppID effectif %d ≠ %d — les lobbies de l'autre joueur seront invisibles (code 2)" % [app_id, APP_ID])
+	# Coupures/reprises de la connexion aux serveurs Steam : un joueur
+	# déconnecté du backend Steam voit tout joinLobby échouer en code 2.
+	if s.has_signal("steam_server_connected") and not s.is_connected("steam_server_connected", _on_steam_server_connected):
+		s.connect("steam_server_connected", _on_steam_server_connected)
+	if s.has_signal("steam_server_disconnected") and not s.is_connected("steam_server_disconnected", _on_steam_server_disconnected):
+		s.connect("steam_server_disconnected", _on_steam_server_disconnected)
+
+static func _on_steam_server_connected() -> void:
+	print("[SteamDiag %s] connecté aux serveurs Steam" % ts())
+
+static func _on_steam_server_disconnected(reason: Variant = null) -> void:
+	print("[SteamDiag %s] DÉCONNECTÉ des serveurs Steam (%s)" % [ts(), str(reason)])
+
+# Résumé d'état à insérer au moment critique (création / join de lobby).
+static func state_summary() -> String:
+	var s := steam()
+	if not _initialized or s == null:
+		return "steam non initialisé"
+	return "app=%d logged_on=%s me=%s" % [
+		s.getAppID() if s.has_method("getAppID") else -1,
+		str(s.loggedOn()) if s.has_method("loggedOn") else "?",
+		str(s.getSteamID())]
 
 # À appeler chaque frame tant qu'une session Steam est active : fait avancer
 # les callbacks Steamworks (lobby, P2P...).

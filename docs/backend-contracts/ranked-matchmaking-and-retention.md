@@ -122,6 +122,16 @@ en string : le laisser tel quel). Côté client il est relu par
 `report-lobby` — le client invité continue de repoller dans ce cas
 (`_on_queue_matched`, branche invité).
 
+**Obligation côté serveur : `steam_lobby_id` doit être purgé AU MOMENT DE
+L'APPARIEMENT.** Si la table ne garde qu'un ticket par joueur (ligne réutilisée),
+un ticket ré-apparié conserve sinon le lobby du match PRÉCÉDENT, déjà quitté par
+son hôte. Comme ce champ est renvoyé dès que `status` vaut `matched`, l'invité le
+lisait dans la toute première réponse d'appariement et rejoignait un lobby mort —
+avant même que le nouvel hôte ait créé le sien. Steam refusait alors l'entrée avec
+le code 2 (`k_EChatRoomEnterResponseDoesntExist`) et les deux joueurs bouclaient
+sans jamais se connecter. Ne jamais renvoyer un `steam_lobby_id` qui
+n'appartiendrait pas au `match_id` courant.
+
 Réponse `200`, ticket introuvable/expiré/annulé :
 ```json
 { "status": "expired" }
@@ -144,6 +154,33 @@ Validation attendue : vérifier que l'appelant est bien le `role: "host"` de ce
 ticket (comparer au cookie de session), rejeter sinon. `steamLobbyId` doit être
 une chaîne de chiffres (`/^[1-9][0-9]{0,19}$/`) : refuser un nombre par un `400`
 plutôt que d'enregistrer un id déjà corrompu par l'arrondi (voir ci-dessus).
+
+### `POST /api/matchmaking/queue/:ticket_id/abandon`
+
+Appelé par l'un OU l'autre des deux joueurs quand un appariement n'a pas pu se
+concrétiser : entrée dans le lobby Steam refusée côté invité, ou hôte qui n'a
+jamais vu arriver son pair (`HOST_PEER_WAIT_TIMEOUT`).
+
+Pas de body. Réponse `204`, y compris quand il n'y avait rien à abandonner
+(ticket déjà relancé, inconnu, ou pas apparié) : le client n'a pas d'action
+différente à mener dans ce cas, il se remet en file.
+
+Effet attendu : remettre **les deux** tickets du match en `waiting`, en purgeant
+`steam_lobby_id`, `opponent_id`, `role`, `match_id` et `match_session_token`, et
+en réinitialisant `created_at`. Les deux tickets sont désignés par leur
+`match_id` commun, ce qui rend l'appel idempotent et sans effet de bord sur un
+adversaire qui aurait déjà relancé une recherche de son côté (son `match_id`
+aurait changé).
+
+**Pourquoi cette route existe.** Sans elle, le joueur dont l'entrée échouait se
+remettait en file tout seul, alors que son adversaire restait `matched` pendant
+tout son délai d'attente (60 s côté client) — et un ticket `matched` n'est jamais
+ré-apparié (l'appariement ne considère que les `waiting`). Les deux joueurs
+étaient donc structurellement incapables de se retrouver, et le client
+abandonnait bien avant (`MAX_AUTO_JOIN_RETRIES`). C'était l'une des deux causes
+du symptôme « partie entre amis qui ne se lance jamais » ; l'autre était un
+`steam_lobby_id` hérité du match précédent et jamais purgé à l'appariement (voir
+§ Architecture).
 
 ### `DELETE /api/matchmaking/queue/:ticket_id`
 

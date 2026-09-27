@@ -83,7 +83,12 @@ func send_command(command: Dictionary, reliable: bool = true) -> void:
 	NetDebugLog.command_sent(command)
 	transport.send(var_to_bytes(command), reliable)
 
-func close() -> void:
+# reason : pourquoi on ferme — journalisé, car fermer QUITTE le lobby Steam en
+# cours (voir SteamTransport.close) et un lobby quitté est exactement ce que
+# l'autre joueur voit ensuite comme « inexistant » (code 2).
+func close(reason: String = "non précisée") -> void:
+	if transport != null:
+		print("[NetworkManager %s] close() — raison : %s" % [SteamService.ts(), reason])
 	_peer_connected = false
 	if transport != null:
 		transport.close()
@@ -111,7 +116,7 @@ func _setup_transport(backend: TransportFactory.Backend) -> void:
 		# verrouillés dans MatchmakingOverlay (voir _abandon_queue_for_invite,
 		# MAX_AUTO_JOIN_RETRIES). Tracé en clair pour repérer immédiatement, dans
 		# un log de partie, toute nouvelle occurrence.
-		print("[NetworkManager] Transport précédent fermé (lobby en cours quitté) avant une nouvelle tentative")
+		print("[NetworkManager %s] Transport précédent fermé (lobby en cours quitté) avant une nouvelle tentative" % SteamService.ts())
 		transport.close()
 		transport.queue_free()
 	transport = TransportFactory.create(backend)

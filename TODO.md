@@ -179,6 +179,26 @@ Reste à faire :
   backend est le seul point de rendez-vous, `SteamTransport.join()` exige un
   `lobby_id`. Voir « File backend = seul point de rendez-vous » dans
   `CLAUDE.md`. Conséquence assumée : **Normal exige désormais le backend**.
+- **Cause réelle trouvée et corrigée (2026-09-28), sur logs horodatés des deux
+  joueurs** : les correctifs du 2026-09-25 ne traitaient que des symptômes. Le
+  `code 2` venait d'un **`steam_lobby_id` hérité du match précédent** —
+  `matchmaking_tickets` ne garde qu'une ligne par joueur et `pairTickets` ne
+  purgeait pas ce champ, donc l'invité recevait, dans sa toute première réponse
+  d'appariement, le lobby déjà quitté du cycle d'avant et le rejoignait **avant
+  même que le nouvel hôte ait créé le sien**. S'y ajoutait l'absence de tout
+  moyen de rendre un appariement mort : l'invité se remettait en file seul
+  pendant que l'hôte restait `matched` 60s, et `findOpponent` n'apparie que des
+  `waiting` — ils ne pouvaient plus se retrouver. Corrigé des deux côtés :
+  purge à l'appariement, nouvelle route `POST /queue/:id/abandon` qui remet les
+  DEUX tickets en file, borne d'expiration dans `findOpponent`, gardes
+  `status`/`match_id` sur `reportLobby`, fenêtre de relance de l'invité portée
+  de 3,4s à ~7,5s et `MAX_AUTO_JOIN_RETRIES` de 2 à 4. Voir « Lobby hérité et
+  appariement à rendre » dans `CLAUDE.md`. **Reste à valider en conditions
+  réelles avec deux comptes Steam** — c'est la seule chose qui manque.
+  Diagnostic utile si ça recommence : la ligne `[SteamDiag] lobby_joined
+  ... response=2` donne l'id visé, à comparer au `lobby_created` de l'hôte ;
+  attention, les horodatages viennent de l'horloge LOCALE de chaque machine et
+  ne sont donc pas comparables entre les deux logs.
 - **À confirmer en conditions réelles** (deux comptes Steam) : que ces deux
   correctifs suffisent réellement à enchaîner plusieurs parties d'affilée entre
   deux amis, sur invitation depuis la liste d'amis comme en « Normal ». Le log d'une partie
