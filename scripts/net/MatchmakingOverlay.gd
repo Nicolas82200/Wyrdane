@@ -458,6 +458,7 @@ func start_normal() -> void:
 		return
 	_queue_cancel_pending = false
 	_set_search_mode("normal")
+	DiscordPresence.set_state(DiscordActivity.STATE_QUEUE, {"ranked": false})
 	_show_search_banner(true)
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
@@ -485,6 +486,9 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	_abandon_queue_for_invite()
 	_pending_outgoing_recipient_name = recipient_name
 	_set_search_mode("invite")
+	# Attendre un ami invité, c'est aussi "chercher une partie" côté présence
+	# Discord (aucun pseudo n'y est exposé, voir DiscordActivity).
+	DiscordPresence.set_state(DiscordActivity.STATE_QUEUE, {"ranked": false})
 	_net.session_ready.connect(_on_friend_invite_lobby_ready.bind(recipient_id, recipient_name), CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
@@ -607,6 +611,7 @@ func start_ranked() -> void:
 	_queue_mode = ""  # posé à "ranked" une fois le ticket obtenu, voir _queue_join_and_poll
 	_queue_cancel_pending = false
 	_set_search_mode("ranked")
+	DiscordPresence.set_state(DiscordActivity.STATE_QUEUE, {"ranked": true})
 	_show_search_banner(true)
 	_set_loading(true)
 	_set_status("NET_RANKED_QUEUEING")
@@ -708,6 +713,10 @@ func _cancel_queue_search(manual: bool) -> void:
 		_flash_banner("NET_RANKED_CANCELLED")
 
 func _reset_queue_ui() -> void:
+	# Garde-fou : un callback réseau tardif ne doit jamais écraser la présence
+	# d'une partie déjà lancée.
+	if not PresenceService.in_battle:
+		DiscordPresence.set_state(DiscordActivity.STATE_MENU)
 	if _queue_poll_timer != null:
 		_queue_poll_timer.stop()
 		_queue_poll_timer.queue_free()

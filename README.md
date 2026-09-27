@@ -965,6 +965,7 @@ Encore à faire : lancer une Incantation achetée en réseau (bloqué côté cli
 *   **Backend `wyrdane-backend` déployé en production** (VPS OVH, déploiement continu sur push `main`) — auth Steam, collection, monnaie molle, packs, niveau de compte par XP, MMR/ranked + matchmaking classé par MMR (MMR caché pour les parties Normal), quêtes quotidiennes/hebdo/mensuelles/uniques, parrainage, récompense de connexion, classement, amis + chat + présence, invitations de partie ciblées
 *   **Social** — système d'amis propre à Wyrdane (ajout par pseudo, amis Steam synchronisés automatiquement, présence en ligne/en jeu), chat privé avec badge de non-lus, invitation d'un ami précis à une partie (popup en jeu avec choix de deck, remplace l'overlay Steam natif)
 *   **21 succès Steam côté client** (`AchievementManager`) — le code est prêt, et leurs textes FR/EN sont rédigés dans `docs/steam-achievements.md` ; seule la saisie sur le dashboard Steamworks (et les icônes) reste à faire
+*   **Rich Presence Discord** (`DiscordPresence`, Windows) — le profil Discord du joueur affiche son état (menu principal, deck builder, recherche de partie, partie en cours/classée/Arène) avec le chrono de la partie ; application Discord du jeu créée et branchée, reste à téléverser le logo comme asset `logo` pour la vignette
 *   **Tutoriel obligatoire guidé** (mulligan compris) avec récompense de decks/cartes de départ, écran de fin de partie, rapport de plantage/gel (`CrashReporter`)
 
 ### À faire

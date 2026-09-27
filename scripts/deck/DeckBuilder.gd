@@ -111,6 +111,7 @@ const RARITY_ORDER := ["Common", "Rare", "Epic", "Legendary"]
 const CARD_SCENE = preload("res://scenes/card/Card.tscn")
 
 func _ready() -> void:
+	DiscordPresence.set_state(DiscordActivity.STATE_DECKBUILDER)
 	_overlay_layer = CanvasLayer.new()
 	_overlay_layer.layer = 19
 	add_child(_overlay_layer)

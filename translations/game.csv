@@ -2028,3 +2028,13 @@ If your Front row is empty: Summon a 2/1 Town Militia."
 Mort-rage : peut attaquer à nouveau.","ASSAUT, REVENANT
 Mort-rage : peut attaquer à nouveau.","CHARGE, REVENANT
 Death Rage: may attack again."
+DISCORD_PRESENCE_MENU,"Dans le menu principal","In the main menu"
+DISCORD_PRESENCE_DECKBUILDER,"Construit un deck","Building a deck"
+DISCORD_PRESENCE_QUEUE,"Recherche une partie","Looking for a match"
+DISCORD_PRESENCE_QUEUE_RANKED,"Recherche une partie classée","Looking for a ranked match"
+DISCORD_PRESENCE_BATTLE,"En partie","In a match"
+DISCORD_PRESENCE_BATTLE_RANKED,"En partie classée","In a ranked match"
+DISCORD_PRESENCE_BATTLE_AI,"En partie contre l'IA","In a match against the AI"
+DISCORD_PRESENCE_TUTORIAL,"Dans le tutoriel","In the tutorial"
+DISCORD_PRESENCE_ARENA,"En Arène","In the Arena"
+DISCORD_PRESENCE_PLAYING,"En jeu","In game"

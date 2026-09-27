@@ -245,6 +245,11 @@ func _ready() -> void:
 	_init_data()
 	_init_systems()
 	_connect_signals()
+	DiscordPresence.set_state(DiscordActivity.STATE_BATTLE, {
+		"ranked": is_ranked_match,
+		"vs_ai": not NetContext.active,
+		"tutorial": tutorial_active,
+	})
 	turn_system.start_match()
 
 func _exit_tree() -> void:

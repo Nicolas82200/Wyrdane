@@ -175,6 +175,7 @@ const MAIN_MENU_SCENE := "res://scenes/mainMenu/MainMenu.tscn"
 
 func _ready() -> void:
 	ArenaUIBuilder.build(self)
+	DiscordPresence.set_state(DiscordActivity.STATE_ARENA)
 	if ArenaNetContext.active:
 		_start_network_match()
 	else:
