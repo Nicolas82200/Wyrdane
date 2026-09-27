@@ -239,8 +239,17 @@ func _ready() -> void:
 	_fusion_button.pressed.connect(func(): fusion_requested.emit(minion))
 	add_child(_fusion_button)
 
+# get_tree() vaut null tant que ce nœud n'est pas DANS l'arbre : c'est le cas
+# normal d'un serviteur instancié puis configuré avant d'être ajouté, et celui de
+# toute la suite de tests (aucune scène courante en headless). Sans cette garde,
+# _process/_ready criait « Invalid access to property or key 'current_scene' on a
+# base object of type 'null instance' » à chaque frame — de très loin la première
+# source de bruit d'un run de tests, et de quoi masquer une vraie erreur.
+# Laisser _battle à null est sans danger : tous ses usages sont déjà gardés
+# (voir _is_ui_blocked, _is_game_over, _refresh_fusion_button...).
 func _resolve_battle_reference() -> void:
-	_battle = get_tree().current_scene
+	var tree := get_tree()
+	_battle = tree.current_scene if tree != null else null
 
 func _process(delta: float) -> void:
 	# Repose sur un sondage plutôt que sur mouse_entered/exited : la ligne de

@@ -13,6 +13,11 @@ var _attack_line: AttackLineOverlay = null
 
 func init(_battle) -> void:
 	battle = _battle
+	# L'overlay de ligne d'attaque est purement visuel et suppose une vraie scène.
+	# Hors scène (double de test RefCounted, système instancié à part), add_child()
+	# n'existe pas : on s'en passe plutôt que de lever une erreur à chaque init.
+	if not (battle is Node):
+		return
 	_attack_line = AttackLineOverlay.new()
 	var canvas_layer := CanvasLayer.new()
 	canvas_layer.layer = 9
@@ -77,7 +82,7 @@ func on_enemy_minion_clicked(target: Minion, _board_minion: BoardMinion) -> void
 
 	if selected_attacker == null or not battle._can_attack_minion_target(selected_attacker, target):
 		return
-	_attack_line.clear()
+	_clear_attack_line()
 	await battle.combat_system.resolve_combat(selected_attacker, target)
 	clear_selection()
 	if battle.tutorial_manager:
@@ -93,7 +98,7 @@ func on_enemy_hero_clicked() -> void:
 
 	if selected_attacker == null or not battle._can_attack_hero(selected_attacker):
 		return
-	_attack_line.clear()
+	_clear_attack_line()
 	await battle.combat_system.perform_hero_attack(selected_attacker)
 	clear_selection()
 	battle.check_game_end()
@@ -159,6 +164,13 @@ func clear_multi_selection() -> void:
 	_update_attack_line()
 
 # ─── Ligne d'attaque ──────────────────────────────────────────────────────────
+
+# _attack_line est null quand SelectionSystem a été initialisé hors scène (voir
+# init) : ces deux appels-ci n'étaient pas gardés, contrairement à
+# _update_attack_line juste en dessous.
+func _clear_attack_line() -> void:
+	if _attack_line != null:
+		_attack_line.clear()
 
 func _update_attack_line() -> void:
 	if _attack_line == null:

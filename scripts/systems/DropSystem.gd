@@ -113,7 +113,10 @@ func get_player_drop_row_at(mouse: Vector2, card_data: CardData = null) -> Strin
 	return ""
 
 func _is_over_hand(mouse: Vector2) -> bool:
-	var hand: Node = battle.get("hand")
+	# Typé Object et non Node : cette fonction n'a besoin que d'un objet exposant
+	# get_hand_zone_rect(), pas d'un nœud de scène — et le double de test (FakeHand,
+	# un RefCounted) provoquait sinon une erreur d'assignation à chaque survol.
+	var hand: Object = battle.get("hand")
 	if hand == null or not hand.has_method("get_hand_zone_rect"):
 		return false
 	return hand.get_hand_zone_rect().has_point(mouse)
