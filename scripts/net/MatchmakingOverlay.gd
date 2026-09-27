@@ -595,7 +595,9 @@ func _poll_incoming_invites() -> void:
 			return  # état changé pendant l'aller-retour réseau
 		var row: Dictionary = invites[0]
 		_pending_backend_invite_id = int(row.get("id", 0))
-		_pending_invite_lobby_id = int(row.get("steam_lobby_id", 0))
+		# parse_lobby_id et non int() : l'id arrive en chaîne, un CSteamID 64 bits
+		# ne survit pas à un double (voir BackendClient.parse_lobby_id).
+		_pending_invite_lobby_id = BackendClient.parse_lobby_id(row.get("steam_lobby_id"))
 		_pending_invite_friend_name = str(row.get("sender_username", ""))
 		_show_invite_deck_popup()
 	)
@@ -839,7 +841,10 @@ func _on_queue_matched(data: Dictionary) -> void:
 		return
 	# Invité : le lobby n'est disponible qu'une fois l'hôte l'ayant rapporté
 	# (queue_report_lobby) — on continue de repoller jusqu'à ce qu'il apparaisse.
-	var lobby_id := int(data.get("steam_lobby_id", 0))
+	# parse_lobby_id et non int() : l'id arrive en chaîne de chiffres, un CSteamID
+	# 64 bits ne survit pas à un double (voir BackendClient.parse_lobby_id) — c'est
+	# ce qui faisait rejoindre un lobby inexistant et échouer en code 2.
+	var lobby_id := BackendClient.parse_lobby_id(data.get("steam_lobby_id"))
 	if lobby_id == 0:
 		return
 	if _queue_poll_timer != null:

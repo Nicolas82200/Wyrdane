@@ -326,11 +326,32 @@ func queue_status(ticket_id: String, on_complete: Callable) -> void:
 			on_complete.call(false, {})
 	)
 
+# Les ids de lobby Steam sont des CSteamID 64 bits (57 bits significatifs, ex.
+# 109775243137628014) et ne survivent PAS à un passage en float/double : une
+# mantisse de 53 bits arrondit à ±8 près. C'est ce qui cassait le matchmaking —
+# l'id passait par un Number JavaScript côté backend, l'invité rejoignait un
+# lobby voisin inexistant, Steam refusait l'entrée avec le code 2
+# (k_EChatRoomEnterResponseDoesntExist) et les deux joueurs repartaient en
+# boucle. L'id transite donc désormais en chaîne de chiffres dans les deux sens
+# (voir matchmakingModel.ts/inviteController.ts côté wyrdane-backend) : str()
+# d'un int Godot est exact sur 64 bits, String.to_int aussi au retour.
+static func parse_lobby_id(raw: Variant) -> int:
+	if raw is String:
+		return (raw as String).to_int()
+	if raw is int:
+		return raw
+	if raw is float:
+		# Backend pas encore déployé : l'id est déjà corrompu, on le signale
+		# plutôt que de tenter une entrée en lobby vouée à échouer en code 2.
+		push_warning("[BackendClient] steam_lobby_id reçu en nombre (%s) : précision 64 bits perdue, backend à mettre à jour" % raw)
+		return int(raw)
+	return 0
+
 # Hôte uniquement : transmet le lobby Steam qu'il vient de créer, pour que
 # l'invité puisse le rejoindre directement au prochain queue_status.
 func queue_report_lobby(ticket_id: String, steam_lobby_id: int, on_complete: Callable = Callable()) -> void:
 	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue/%s/report-lobby" % ticket_id, {
-		"steamLobbyId": steam_lobby_id,
+		"steamLobbyId": str(steam_lobby_id),
 	}, on_complete)
 
 # Quitte la file d'attente (bouton Annuler, ou changement de scène).
@@ -578,7 +599,7 @@ func remove_friendship(friendship_id: int, on_complete: Callable = Callable()) -
 # on_data(success: bool, data: Dictionary) — data = {message: "not_friends"|
 # "recipient_unavailable"} sur échec (409), {id, status} sur succès.
 func send_game_invite(recipient_id: int, steam_lobby_id: int, on_data: Callable) -> void:
-	request(HTTPClient.METHOD_POST, "/api/invites", {"recipientId": recipient_id, "steamLobbyId": steam_lobby_id}, func(code: int, parsed: Variant):
+	request(HTTPClient.METHOD_POST, "/api/invites", {"recipientId": recipient_id, "steamLobbyId": str(steam_lobby_id)}, func(code: int, parsed: Variant):
 		var data: Dictionary = parsed if parsed is Dictionary else {}
 		on_data.call(code == 200, data)
 	)
@@ -602,7 +623,7 @@ func get_invite_status(invite_id: int, on_data: Callable) -> void:
 # on_data(success: bool, steam_lobby_id: int) — lobby à rejoindre côté destinataire.
 func accept_game_invite(invite_id: int, on_data: Callable) -> void:
 	request(HTTPClient.METHOD_POST, "/api/invites/%d/accept" % invite_id, {}, func(code: int, parsed: Variant):
-		var lobby_id: int = int(parsed.get("steamLobbyId", 0)) if parsed is Dictionary else 0
+		var lobby_id: int = parse_lobby_id(parsed.get("steamLobbyId")) if parsed is Dictionary else 0
 		on_data.call(code == 200, lobby_id)
 	)
 

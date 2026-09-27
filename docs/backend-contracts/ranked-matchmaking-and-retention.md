@@ -104,14 +104,23 @@ Réponse `200`, une fois apparié (encore sans lobby, ou pour l'hôte) :
 
 Réponse `200`, invité une fois l'hôte ayant rapporté son lobby :
 ```json
-{ "status": "matched", "role": "guest", "opponent_id": 17, "steam_lobby_id": 109775241000123456 }
+{ "status": "matched", "role": "guest", "opponent_id": 17, "steam_lobby_id": "109775241000123456" }
 ```
 
-`steam_lobby_id` est un entier 64 bits (SteamID de lobby) — le stocker/renvoyer
-en `int`/`bigint` selon votre ORM, pas en `string`, pour rester cohérent avec ce
-que `BackendClient.queue_status` attend côté client (`int(data.get("steam_lobby_id", 0))`).
-Absent ou `0` tant que l'hôte n'a pas encore appelé `report-lobby` — le client
-invité continue de repoller dans ce cas (`_on_ranked_matched`, branche invité).
+`steam_lobby_id` est un `CSteamID` de lobby 64 bits, transporté en **chaîne de
+chiffres — jamais en nombre JSON**. 57 bits significatifs ne tiennent pas dans un
+double (53 bits de mantisse) : sérialisé en nombre, l'id est arrondi au multiple
+de 16 le plus proche, soit jusqu'à ±8 d'écart. C'est exactement ce qui cassait le
+matchmaking — l'hôte créait le lobby `109775243137628014`, l'invité tentait de
+rejoindre `109775243137628016`, Steam refusait l'entrée avec le code 2
+(`k_EChatRoomEnterResponseDoesntExist`) et les deux joueurs repartaient en boucle
+sans jamais se connecter. Le stocker en `BIGINT` côté base, mais ne jamais le
+repasser par un `number`/`Number()` avant de le renvoyer (mysql2 le renvoie déjà
+en string : le laisser tel quel). Côté client il est relu par
+`BackendClient.parse_lobby_id` (`String.to_int`, exact sur 64 bits), pas par
+`int()` sur un Variant. Absent tant que l'hôte n'a pas encore appelé
+`report-lobby` — le client invité continue de repoller dans ce cas
+(`_on_queue_matched`, branche invité).
 
 Réponse `200`, ticket introuvable/expiré/annulé :
 ```json
@@ -126,13 +135,15 @@ Hôte uniquement, appelé juste après la création réussie du lobby Steam.
 
 Body :
 ```json
-{ "steamLobbyId": 109775241000123456 }
+{ "steamLobbyId": "109775241000123456" }
 ```
 
 Réponse `200` (ou `204`), aucun contenu attendu par le client.
 
 Validation attendue : vérifier que l'appelant est bien le `role: "host"` de ce
-ticket (comparer au cookie de session), rejeter sinon.
+ticket (comparer au cookie de session), rejeter sinon. `steamLobbyId` doit être
+une chaîne de chiffres (`/^[1-9][0-9]{0,19}$/`) : refuser un nombre par un `400`
+plutôt que d'enregistrer un id déjà corrompu par l'arrondi (voir ci-dessus).
 
 ### `DELETE /api/matchmaking/queue/:ticket_id`
 
