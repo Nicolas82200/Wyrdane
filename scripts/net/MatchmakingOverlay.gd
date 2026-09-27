@@ -506,7 +506,7 @@ func _on_friend_invite_lobby_ready(session_id: int, recipient_id: int, recipient
 		if _search_mode != "invite":
 			return  # annulé pendant l'aller-retour réseau, voir _on_banner_cancel_pressed
 		if not success:
-			_net.close()
+			_net.close("invitation d'ami : envoi au backend échoué")
 			_reset_friend_invite_state()
 			if str(data.get("message", "")) == "recipient_unavailable":
 				_flash_banner("NET_FRIEND_INVITE_UNAVAILABLE")
@@ -530,7 +530,7 @@ func _on_friend_invite_lobby_ready(session_id: int, recipient_id: int, recipient
 func _poll_outgoing_invite() -> void:
 	_outgoing_invite_elapsed += OUTGOING_INVITE_POLL_INTERVAL
 	if _outgoing_invite_elapsed >= OUTGOING_INVITE_TIMEOUT:
-		_net.close()
+		_net.close("invitation d'ami : délai d'attente expiré")
 		_reset_friend_invite_state()
 		_flash_banner("NET_FRIEND_INVITE_TIMEOUT")
 		return
@@ -540,11 +540,11 @@ func _poll_outgoing_invite() -> void:
 			return
 		match status:
 			"declined":
-				_net.close()
+				_net.close("invitation d'ami : refusée")
 				_reset_friend_invite_state()
 				_flash_banner("NET_FRIEND_INVITE_DECLINED")
 			"expired", "cancelled":
-				_net.close()
+				_net.close("invitation d'ami : expirée ou annulée")
 				_reset_friend_invite_state()
 				_flash_banner("NET_FRIEND_INVITE_TIMEOUT")
 			"accepted":
@@ -673,7 +673,7 @@ func _on_banner_cancel_pressed() -> void:
 			_queue_matched_join_pending = false
 			_auto_join_retries = 0  # annulation joueur : la prochaine recherche repart à neuf
 			_stop_host_peer_wait_timer()
-			_net.close()
+			_net.close("annulation par le joueur (recherche file)")
 			_show_search_banner(false)
 			_set_status("")
 		"invite":
@@ -682,7 +682,7 @@ func _on_banner_cancel_pressed() -> void:
 			# expiration (45s côté backend) — voir BackendClient.cancel_game_invite.
 			if _pending_outgoing_invite_id != 0:
 				BackendClient.cancel_game_invite(_pending_outgoing_invite_id)
-			_net.close()
+			_net.close("annulation par le joueur (invitation)")
 			_reset_friend_invite_state()
 		_:
 			# Pas de recherche active : le bandeau n'affiche qu'un message
@@ -883,7 +883,7 @@ func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> vo
 			# L'invité ne recevra jamais ce lobby : inutile de laisser l'hôte
 			# héberger dans le vide jusqu'à ce que l'invité expire de son côté
 			# (jusqu'à 3 min) — on referme et on prévient tout de suite.
-			_net.close()
+			_net.close("report-lobby échoué après toutes les tentatives")
 			_reset_queue_ui()
 			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
 	)
@@ -919,14 +919,14 @@ func _on_host_peer_wait_timeout() -> void:
 	# MAX_AUTO_JOIN_RETRIES).
 	if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
 		_auto_join_retries = 0
-		_net.close()
+		_net.close("hôte : aucun pair, plafond de relances atteint")
 		_reset_queue_ui()
 		_show_search_banner(false)
 		_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
 		return
 	_auto_join_retries += 1
 	var mode_to_retry := _queue_mode
-	_net.close()
+	_net.close("hôte : aucun pair après HOST_PEER_WAIT_TIMEOUT, relance auto")
 	_reset_queue_ui()
 	if mode_to_retry == "ranked":
 		start_ranked()

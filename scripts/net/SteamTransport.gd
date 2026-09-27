@@ -56,11 +56,26 @@ var _listen_socket: int = 0    # hôte seulement : socket d'écoute P2P
 var _connection_handle: int = 0
 var _is_host := false
 
+# Relance d'un joinLobby refusé en code 2 (DoesntExist), DANS le même transport
+# (sans repasser par la file ni recréer de lobby). Sert autant de correctif que
+# de diagnostic : si une relance 1–3 s plus tard réussit, le code 2 venait d'une
+# course de propagation côté Steam juste après la création ; si toutes
+# échouent, le lobby est réellement invisible pour ce client (AppID différent,
+# client hors ligne...) — voir les lignes [SteamDiag] de SteamService.
+const LOBBY_DOESNT_EXIST := 2
+const JOIN_MAX_ATTEMPTS := 4
+const JOIN_RETRY_DELAY := 1.0
+var _join_target: int = 0
+var _join_attempt := 0
+var _lobby_since_ms := 0  # instant d'entrée/création du lobby courant (log de close)
+
 func host(_params: Dictionary) -> int:
 	if not _init_steam():
 		return ERR_UNAVAILABLE
 	_is_host = true
 	_listen_socket = _steam.createListenSocketP2P(VIRTUAL_PORT, {})
+	print("[SteamDiag %s] createLobby demandé (%s, listen_socket=%d)" % [
+		SteamService.ts(), SteamService.state_summary(), _listen_socket])
 	_steam.createLobby(LOBBY_TYPE_PUBLIC, 2)  # 2 membres : c'est du 1v1
 	status.emit("Steam : création du lobby demandée…")
 	return OK
@@ -85,6 +100,10 @@ func join(params: Dictionary) -> int:
 	if lobby_id == 0:
 		push_error("SteamTransport.join : lobby_id manquant — un lobby ne se cherche plus, il est fourni par la file backend ou une invitation")
 		return ERR_INVALID_PARAMETER
+	_join_target = lobby_id
+	_join_attempt = 1
+	print("[SteamDiag %s] joinLobby %d, tentative 1/%d (%s)" % [
+		SteamService.ts(), lobby_id, JOIN_MAX_ATTEMPTS, SteamService.state_summary()])
 	_steam.joinLobby(lobby_id)
 	status.emit("Steam : rejoint le lobby %d…" % lobby_id)
 	return OK
@@ -145,13 +164,21 @@ func close() -> void:
 	if _listen_socket != 0:
 		_steam.closeListenSocket(_listen_socket)
 	if _lobby_id != 0:
+		print("[SteamDiag %s] leaveLobby %d (%s, dans le lobby depuis %.1fs)" % [
+			SteamService.ts(), _lobby_id, "hôte" if _is_host else "invité",
+			(Time.get_ticks_msec() - _lobby_since_ms) / 1000.0])
 		_steam.leaveLobby(_lobby_id)
+	elif _join_target != 0:
+		print("[SteamDiag %s] close() pendant un join non abouti vers %d (tentative %d)" % [
+			SteamService.ts(), _join_target, _join_attempt])
 	_disconnect_steam_signals()
 	_steam = null
 	_lobby_id = 0
 	_remote_id = 0
 	_listen_socket = 0
 	_connection_handle = 0
+	_join_target = 0
+	_join_attempt = 0
 
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
@@ -181,12 +208,17 @@ func _disconnect_steam_signals() -> void:
 func _on_lobby_created(result: int, lobby_id: int) -> void:
 	if not _is_host:
 		return
+	print("[SteamDiag %s] lobby_created result=%d lobby=%d" % [SteamService.ts(), result, lobby_id])
 	if result != LOBBY_OK:
 		status.emit("Steam : échec de création du lobby (code %d)" % result)
 		disconnected.emit("steam_lobby_create_failed")
 		return
 	_lobby_id = lobby_id
+	_lobby_since_ms = Time.get_ticks_msec()
 	status.emit("Steam : lobby %d créé — en attente d'un adversaire…" % lobby_id)
+	print("[SteamDiag %s] lobby %d : owner=%s membres=%d (%s)" % [
+		SteamService.ts(), lobby_id, str(_steam.getLobbyOwner(lobby_id)),
+		_steam.getNumLobbyMembers(lobby_id), SteamService.state_summary()])
 	# Identifie le lobby comme étant du Wyrdane 1v1. Purement informatif depuis
 	# que plus rien ne découvre un lobby par recherche (voir join) : conservé
 	# parce que ça reste ce qui distingue un lobby de partie en inspection, et
@@ -203,6 +235,8 @@ func _on_lobby_created(result: int, lobby_id: int) -> void:
 func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: int, chat_state: int) -> void:
 	if lobby_id != _lobby_id:
 		return
+	print("[SteamDiag %s] lobby_chat_update lobby=%d changed=%d state=%d" % [
+		SteamService.ts(), lobby_id, changed_id, chat_state])
 	# L'hôte reçoit aussi ce callback pour sa propre entrée dans le lobby
 	# qu'il vient de créer : il faut l'ignorer.
 	if changed_id == _steam.getSteamID():
@@ -220,11 +254,29 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
 	if _is_host:
 		return
+	print("[SteamDiag %s] lobby_joined lobby=%d response=%d tentative=%d/%d (%s)" % [
+		SteamService.ts(), lobby_id, response, _join_attempt, JOIN_MAX_ATTEMPTS,
+		SteamService.state_summary()])
 	if response != LOBBY_OK:
+		if response == LOBBY_DOESNT_EXIST and _join_target != 0 and _join_attempt < JOIN_MAX_ATTEMPTS:
+			var target := _join_target
+			status.emit("Steam : lobby %d introuvable (code 2), nouvel essai dans %.0fs…" % [target, JOIN_RETRY_DELAY])
+			await get_tree().create_timer(JOIN_RETRY_DELAY).timeout
+			# Transport fermé ou autre join lancé pendant l'attente : abandon.
+			if _steam == null or _join_target != target:
+				return
+			_join_attempt += 1
+			print("[SteamDiag %s] joinLobby %d, tentative %d/%d (%s)" % [
+				SteamService.ts(), target, _join_attempt, JOIN_MAX_ATTEMPTS, SteamService.state_summary()])
+			_steam.joinLobby(target)
+			return
 		status.emit("Steam : entrée dans le lobby refusée (code %d)" % response)
+		_join_target = 0
 		disconnected.emit("steam_lobby_join_failed")
 		return
+	_join_target = 0
 	_lobby_id = lobby_id
+	_lobby_since_ms = Time.get_ticks_msec()
 	_remote_id = _steam.getLobbyOwner(lobby_id)
 	status.emit("Steam : lobby %d rejoint, hôte = « %s »" % [lobby_id, _persona(_remote_id)])
 	# Même compte Steam des deux côtés (deux instances locales sur un seul
