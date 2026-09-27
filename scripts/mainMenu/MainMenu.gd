@@ -111,7 +111,6 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var chat_close_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatCloseButton
 @onready var chat_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatTitleLabel
 @onready var chat_conversations_list: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatConversationsCol/ChatConversationsScroll/ChatConversationsList
-@onready var chat_thread_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadNameLabel
 @onready var chat_thread_scroll: ScrollContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadScroll
 @onready var chat_thread_list: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatThreadScroll/ChatThreadList
 @onready var chat_input_line_edit: LineEdit = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatBodyHBox/ChatThreadCol/ChatInputRow/ChatInputLineEdit
