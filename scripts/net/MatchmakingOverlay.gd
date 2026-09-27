@@ -190,7 +190,13 @@ const HOST_PEER_WAIT_TIMEOUT := 60.0
 # provoquant l'échec suivant : une boucle qui ne convergeait jamais et
 # empêchait complètement de jouer ensemble. Au-delà, on s'arrête et on le dit
 # au joueur plutôt que de boucler en silence.
-const MAX_AUTO_JOIN_RETRIES := 2
+#
+# Relevé de 2 à 4 : chaque cycle est désormais PROPRE (l'appariement mort est
+# rendu au backend par _abandon_matched_ticket, qui remet les deux joueurs en
+# file avec un steam_lobby_id vierge), donc une relance a une vraie chance
+# d'aboutir au lieu de rejouer le même échec. À 2, l'invité renonçait souvent
+# avant que l'hôte n'ait fini d'expirer.
+const MAX_AUTO_JOIN_RETRIES := 4
 
 # Mode de la file backend en cours ("ranked"|"normal"|"") — sert à savoir si le
 # match en cours de connexion vient réellement d'un appariement CLASSÉ (voir
@@ -199,6 +205,12 @@ const MAX_AUTO_JOIN_RETRIES := 2
 # _search_mode, qui vaut aussi "invite" (mode sans file du tout).
 var _queue_mode: String = ""
 var _queue_ticket_id: String = ""
+# Ticket CONSERVÉ après l'appariement, uniquement pour pouvoir l'abandonner
+# (BackendClient.queue_abandon). _queue_ticket_id est vidé dès qu'on est apparié
+# — plus rien à repoller — mais on perdait du même coup le seul moyen de dire au
+# backend que l'appariement a échoué : l'adversaire restait alors "matched",
+# donc non ré-appariable, jusqu'à ce qu'il relance lui-même une recherche.
+var _queue_matched_ticket_id: String = ""
 var _queue_role: String = ""  # "host" | "guest", connu une fois apparié
 var _queue_elapsed := 0.0
 var _queue_poll_timer: Timer
@@ -489,7 +501,13 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	# Attendre un ami invité, c'est aussi "chercher une partie" côté présence
 	# Discord (aucun pseudo n'y est exposé, voir DiscordActivity).
 	DiscordPresence.set_state(DiscordActivity.STATE_QUEUE, {"ranked": false})
-	_net.session_ready.connect(_on_friend_invite_lobby_ready.bind(recipient_id, recipient_name), CONNECT_ONE_SHOT)
+	# Le Callable BINDÉ est conservé tel quel : un Callable.bind() n'est pas égal au
+	# Callable nu, donc is_connected/disconnect appelés sur la version non bindée ne
+	# trouvaient jamais rien. La connexion CONNECT_ONE_SHOT survivait donc au chemin
+	# d'erreur ci-dessous et se déclenchait au session_ready SUIVANT — envoyant une
+	# invitation d'ami parasite portant le lobby d'une partie Normal/Classée.
+	var on_lobby_ready := _on_friend_invite_lobby_ready.bind(recipient_id, recipient_name)
+	_net.session_ready.connect(on_lobby_ready, CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_set_loading(true)
@@ -497,8 +515,8 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 		_set_status("NET_STEAM_HOSTING")
 	else:
 		_set_search_mode("")
-		if _net.session_ready.is_connected(_on_friend_invite_lobby_ready):
-			_net.session_ready.disconnect(_on_friend_invite_lobby_ready)
+		if _net.session_ready.is_connected(on_lobby_ready):
+			_net.session_ready.disconnect(on_lobby_ready)
 		_flash_banner("NET_STEAM_UNAVAILABLE")
 
 func _on_friend_invite_lobby_ready(session_id: int, recipient_id: int, recipient_name: String) -> void:
@@ -672,6 +690,7 @@ func _on_banner_cancel_pressed() -> void:
 			_cancel_queue_search(false)
 			_queue_matched_join_pending = false
 			_auto_join_retries = 0  # annulation joueur : la prochaine recherche repart à neuf
+			_abandon_matched_ticket()  # ne pas laisser un adversaire apparié attendre dans le vide
 			_stop_host_peer_wait_timer()
 			_net.close("annulation par le joueur (recherche file)")
 			_show_search_banner(false)
@@ -713,6 +732,19 @@ func _cancel_queue_search(manual: bool) -> void:
 	_reset_queue_ui()
 	if manual and was_ranked:
 		_flash_banner("NET_RANKED_CANCELLED")
+
+# Prévient le backend qu'un appariement n'a pas abouti : il remet les DEUX
+# tickets en file, avec un steam_lobby_id vierge. À appeler AVANT de relancer une
+# recherche, et sans attendre la réponse — la relance écrase de toute façon notre
+# propre ticket, et ce qui compte est de libérer l'adversaire tout de suite.
+# Sans ça, celui qui échouait repartait seul pendant que l'autre restait bloqué
+# "matched" jusqu'à l'expiration de son HOST_PEER_WAIT_TIMEOUT (60s), et aucun
+# des deux ne pouvait être ré-apparié à l'autre entre-temps.
+func _abandon_matched_ticket() -> void:
+	if _queue_matched_ticket_id == "":
+		return
+	BackendClient.queue_abandon(_queue_matched_ticket_id)
+	_queue_matched_ticket_id = ""
 
 func _reset_queue_ui() -> void:
 	# Garde-fou : un callback réseau tardif ne doit jamais écraser la présence
@@ -851,6 +883,7 @@ func _on_queue_matched(data: Dictionary) -> void:
 		_queue_poll_timer.stop()
 		_queue_poll_timer.queue_free()
 		_queue_poll_timer = null
+	_queue_matched_ticket_id = _queue_ticket_id
 	_queue_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
 	_set_status("NET_RANKED_MATCHED")
 	_queue_matched_join_pending = true
@@ -867,6 +900,7 @@ func _on_queue_lobby_ready(session_id: int) -> void:
 	if _queue_ticket_id == "":
 		return
 	var ticket_id := _queue_ticket_id
+	_queue_matched_ticket_id = ticket_id
 	_queue_ticket_id = ""  # le rôle d'hôte n'a plus besoin de repoller/annuler
 	_report_queue_lobby(ticket_id, session_id, 1)
 
@@ -883,6 +917,7 @@ func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> vo
 			# L'invité ne recevra jamais ce lobby : inutile de laisser l'hôte
 			# héberger dans le vide jusqu'à ce que l'invité expire de son côté
 			# (jusqu'à 3 min) — on referme et on prévient tout de suite.
+			_abandon_matched_ticket()  # l'invité n'aura jamais ce lobby : qu'il reparte en file
 			_net.close("report-lobby échoué après toutes les tentatives")
 			_reset_queue_ui()
 			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
@@ -917,6 +952,10 @@ func _on_host_peer_wait_timeout() -> void:
 	# Plafond atteint : on arrête de relancer dans le vide et on le dit, plutôt
 	# que d'entretenir la boucle où chacun détruit le lobby de l'autre (voir
 	# MAX_AUTO_JOIN_RETRIES).
+	# Dans les deux cas l'appariement est mort : on le dit au backend pour que
+	# l'invité soit lui aussi remis en file, au lieu de le laisser "matched" sur un
+	# lobby qu'on vient de quitter.
+	_abandon_matched_ticket()
 	if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
 		_auto_join_retries = 0
 		_net.close("hôte : aucun pair, plafond de relances atteint")
@@ -967,6 +1006,10 @@ func _on_peer_connected() -> void:
 	_stop_host_peer_wait_timer()
 	_queue_matched_join_pending = false
 	_auto_join_retries = 0  # série de relances close : la connexion a abouti
+	# L'appariement a tenu : plus rien à abandonner. Sans cet oubli volontaire, une
+	# déconnexion plus tard dans la partie pourrait remettre en file deux joueurs
+	# qui étaient bel et bien en train de jouer.
+	_queue_matched_ticket_id = ""
 	# L'invitation a rempli son rôle (l'ami est là) : couper son poll MAINTENANT.
 	# Sans ça, son délai d'abandon (OUTGOING_INVITE_TIMEOUT) finissait par
 	# expirer en pleine partie et appelait _net.close() — ce qui quitte le lobby
@@ -1030,6 +1073,9 @@ func _on_peer_disconnected(reason: String) -> void:
 			# _queue_matched_join_pending).
 			if _queue_matched_join_pending:
 				_queue_matched_join_pending = false
+				# Libère AUSSI l'hôte, qui sinon resterait "matched" à héberger dans
+				# le vide pendant tout son HOST_PEER_WAIT_TIMEOUT.
+				_abandon_matched_ticket()
 				# Plafonné : sans ça, les deux joueurs se relançaient sans fin,
 				# chaque relance quittant le lobby en cours (voir
 				# NetworkManager._setup_transport) et causant l'échec suivant —

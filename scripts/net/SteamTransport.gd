@@ -63,8 +63,16 @@ var _is_host := false
 # échouent, le lobby est réellement invisible pour ce client (AppID différent,
 # client hors ligne...) — voir les lignes [SteamDiag] de SteamService.
 const LOBBY_DOESNT_EXIST := 2
-const JOIN_MAX_ATTEMPTS := 4
-const JOIN_RETRY_DELAY := 1.0
+# 6 tentatives à 1,5 s = ~7,5 s de fenêtre. L'ancien réglage (4 × 1 s = 3,4 s)
+# était sans rapport avec le temps que l'HÔTE accorde de son côté
+# (HOST_PEER_WAIT_TIMEOUT = 60 s, voir MatchmakingOverlay) : l'invité renonçait
+# 56 s avant que l'hôte ne renonce, repartait en file seul, et le décalage se
+# rejouait à chaque cycle sans jamais converger. Rester tout de même très en
+# dessous des 60 s de l'hôte : au-delà, insister n'apporte rien — si le lobby
+# n'est pas apparu en quelques secondes, il est réellement mort et mieux vaut
+# rendre l'appariement au backend (_abandon_matched_ticket) pour repartir propre.
+const JOIN_MAX_ATTEMPTS := 6
+const JOIN_RETRY_DELAY := 1.5
 var _join_target: int = 0
 var _join_attempt := 0
 var _lobby_since_ms := 0  # instant d'entrée/création du lobby courant (log de close)
@@ -157,7 +165,12 @@ func remote_display_name() -> String:
 	return _steam.getFriendPersonaName(_remote_id)
 
 func close() -> void:
+	# Un transport jamais initialisé (host()/join() pas appelés, ou Steam
+	# indisponible) n'a rien à fermer côté Steam, mais son état local doit quand
+	# même repartir à zéro : l'ancienne sortie sèche laissait _lobby_id/_join_target
+	# peuplés, qu'un appel ultérieur pouvait relire comme un lobby encore vivant.
 	if _steam == null:
+		_reset_state()
 		return
 	if _connection_handle != 0:
 		_steam.closeConnection(_connection_handle, 0, "", false)
@@ -172,6 +185,9 @@ func close() -> void:
 		print("[SteamDiag %s] close() pendant un join non abouti vers %d (tentative %d)" % [
 			SteamService.ts(), _join_target, _join_attempt])
 	_disconnect_steam_signals()
+	_reset_state()
+
+func _reset_state() -> void:
 	_steam = null
 	_lobby_id = 0
 	_remote_id = 0
@@ -179,6 +195,7 @@ func close() -> void:
 	_connection_handle = 0
 	_join_target = 0
 	_join_attempt = 0
+	_lobby_since_ms = 0
 
 # ─── Interne ──────────────────────────────────────────────────────────────────
 
@@ -190,13 +207,22 @@ func _init_steam() -> bool:
 	_connect_steam_signals()
 	return true
 
+# Les signaux vivent sur le singleton Steam GLOBAL, partagé par tous les
+# transports (SteamTransport 1v1 et ArenaSteamTransport) : reconnecter un
+# handler déjà branché est une erreur Godot. Ça arrive réellement, via
+# try_reconnect() qui repasse par join() donc par _init_steam() sur un transport
+# déjà initialisé — d'où la garde.
 func _connect_steam_signals() -> void:
+	if _steam.is_connected("lobby_created", _on_lobby_created):
+		return
 	_steam.connect("lobby_created", _on_lobby_created)
 	_steam.connect("lobby_joined", _on_lobby_joined)
 	_steam.connect("lobby_chat_update", _on_lobby_chat_update)
 	_steam.connect("network_connection_status_changed", _on_network_connection_status_changed)
 
 func _disconnect_steam_signals() -> void:
+	if _steam == null:
+		return
 	if _steam.is_connected("lobby_created", _on_lobby_created):
 		_steam.disconnect("lobby_created", _on_lobby_created)
 		_steam.disconnect("lobby_joined", _on_lobby_joined)
