@@ -295,6 +295,7 @@ func _ready() -> void:
 	# ne doit jamais laisser un joueur affiché "en jeu" indéfiniment aux yeux
 	# de ses amis une fois revenu au menu.
 	PresenceService.in_battle = false
+	DiscordPresence.set_state(DiscordActivity.STATE_MENU)
 	SettingsManager.language_changed.connect(func(_l): _retranslate())
 	_retranslate()
 	_apply_tutorial_lock()
