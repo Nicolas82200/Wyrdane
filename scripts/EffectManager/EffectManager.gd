@@ -1791,6 +1791,13 @@ func _resolve_pact_payment(battle, minion: Minion) -> bool:
 	var pact_value: int = minion.card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 	if pact_value <= 0:
 		return false
+	# Une bataille SIMULÉE (SimulatedBattle, combat Arena résolu sans joueur) n'a
+	# pas de PactChoiceSystem : personne n'est là pour accepter de payer, donc le
+	# Pacte ne l'est pas. Avant cette garde, l'accès à la propriété inexistante
+	# levait une erreur et laissait `pact_paid` à null — le résultat était déjà
+	# « non payé », mais en criant à chaque résolution.
+	if not PactChoiceSystem.available_on(battle):
+		return false
 	var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(minion.card_data, minion.owner_is_player)
 	# Garde-fou : resolve_trigger() attend potentiellement plusieurs secondes
 	# le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la scène de

@@ -151,7 +151,8 @@ func activate_sacrifice_ritual(card_data: CardData, is_player: bool, victims: Ar
 	var pact_paid: bool = false
 	if not bonus_effects.is_empty():
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-		if pact_value > 0:
+		# Pas de PactChoiceSystem sur une bataille simulée : Pacte non payé.
+		if pact_value > 0 and PactChoiceSystem.available_on(battle):
 			pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
 			# Garde-fou : resolve_trigger() attend potentiellement plusieurs
 			# secondes le clic Oui/Non du joueur (PactChoiceSystem.ask) ; si la
@@ -238,7 +239,8 @@ func _execute_enchantment_effects_with_proxy(proxy: Minion, card_data: CardData,
 	var pact_paid: bool = false
 	if not bonus_effects.is_empty():
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
-		if pact_value > 0:
+		# Pas de PactChoiceSystem sur une bataille simulée : Pacte non payé.
+		if pact_value > 0 and PactChoiceSystem.available_on(battle):
 			pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, is_player)
 			# Garde-fou : voir activate_sacrifice_ritual ci-dessus.
 			if not is_instance_valid(battle):
@@ -307,10 +309,16 @@ func try_cancel_spell(caster_is_player: bool, target: Minion) -> bool:
 		var proxy := _make_proxy(card_data, owner_is_player)
 		var pact_value: int = card_data.get_demon_keyword_value(KeywordDemon.Type.PACTE)
 		if pact_value > 0:
-			var pact_paid: bool = await battle.pact_choice_system.resolve_trigger(card_data, owner_is_player)
-			# Garde-fou : voir activate_sacrifice_ritual plus haut.
-			if not is_instance_valid(battle):
-				return false
+			# Sans PactChoiceSystem (bataille simulée : personne pour accepter de
+			# payer), le Pacte est traité comme REFUSÉ, pas comme absent — sauter le
+			# bloc entier annulerait le sort gratuitement, alors qu'ici le paiement
+			# conditionne justement l'annulation.
+			var pact_paid: bool = false
+			if PactChoiceSystem.available_on(battle):
+				pact_paid = await battle.pact_choice_system.resolve_trigger(card_data, owner_is_player)
+				# Garde-fou : voir activate_sacrifice_ritual plus haut.
+				if not is_instance_valid(battle):
+					return false
 			if not pact_paid:
 				for effect in card_data.effects:
 					if effect.effect_id == "CancelSpellOnRaceTarget" or effect.pact_bonus:

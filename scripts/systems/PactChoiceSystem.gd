@@ -65,6 +65,17 @@ var _prefetched_remote_answers: Array[bool] = []
 # HeroSystem._firing_self_damage pour OnSelfDamage.
 var _firing_pact_paid: bool = false
 
+# Une bataille peut ne PAS avoir de PactChoiceSystem : c'est le cas de
+# SimulatedBattle (combat Arena résolu sans joueur, un RefCounted qui n'expose
+# pas cette propriété). Personne n'est alors là pour accepter de payer, donc le
+# Pacte ne l'est pas. Sans cette vérification, l'accès direct à
+# `battle.pact_choice_system` levait une erreur et laissait le résultat à null —
+# soit déjà « non payé », mais en criant à chaque résolution (première source de
+# bruit dans les logs de l'Arena). Appelée par EffectManager et TriggersSystem
+# avant toute résolution de Pacte.
+static func available_on(battle) -> bool:
+	return battle != null and ("pact_choice_system" in battle) and battle.pact_choice_system != null
+
 func init(_battle) -> void:
 	battle = _battle
 	# Connexion immédiate (pas d'attente du premier resolve_trigger) : en
