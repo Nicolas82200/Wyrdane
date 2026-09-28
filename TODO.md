@@ -215,9 +215,24 @@ Reste à faire :
   `queue_abandon` et le retry code 2 sont conservés — ce dernier scindé selon
   l'origine du lobby (retry sur place pour un `lobby_id` fourni, nouvelle
   recherche pour un lobby issu de la liste Steam). Voir « Retour au rendez-vous
-  Steam direct » dans `CLAUDE.md`. **À valider en conditions réelles avec deux
-  comptes Steam** : c'est la seule vérification qui manque, et le risque connu
-  de l'ancien schéma (deux chemins de rendez-vous concurrents) reste entier.
+  Steam direct » dans `CLAUDE.md`.
+- **Un seul rendez-vous par mode (2026-09-28, même passe)** : le risque de
+  l'ancien schéma — deux chemins de rendez-vous concurrents pouvant chacun
+  quitter le lobby de l'autre — est levé plutôt que subi. Le Normal ne passe
+  plus du tout par la file backend (Steam seul) ; le Classé la garde, elle lui
+  est indispensable. En prime, l'hébergement d'une partie rapide n'est plus un
+  cul-de-sac : il est borné dans le temps et repart en recherche, avec une
+  borne tirée au hasard pour que deux clients lancés ensemble ne restent pas
+  en phase. Sans ça, deux joueurs qui cliquent « Normal » au même moment
+  hébergent tous les deux et s'attendent indéfiniment. **À valider en
+  conditions réelles avec deux comptes Steam** — la seule vérification qui
+  manque encore.
+- **Toujours pas déployé côté backend** : le correctif `91ee1e1` (purge du
+  `steam_lobby_id` hérité + route `POST /queue/:id/abandon`) ne vit que sur la
+  branche `0090-fix-matchmaking-rendezvous` de `wyrdane-backend` ; `main` est
+  resté à `32950f7`. Tant qu'il n'est pas en prod, le **Classé** reste exposé
+  au lobby hérité (le Normal, lui, n'en dépend plus), et l'appel client
+  `queue_abandon` frappe une route inexistante.
 - **Suite possible, pas faite** : confier l'arbitrage des reprises au backend
   (aujourd'hui, sur un join refusé, c'est le client qui se remet en file, voir
   `MAX_AUTO_JOIN_RETRIES`) — une route qui invalide l'appariement et remet les

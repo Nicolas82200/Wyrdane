@@ -101,6 +101,16 @@ var _net: NetworkManager
 var _handshake: NetHandshake
 var _battle_sync: NetBattleSync
 var _quick_matching := false  # partie rapide Steam en cours (bascule join→host) ; voir _on_peer_disconnected
+# Minuteur de l'alternance ci-dessus, actif uniquement pendant qu'on héberge
+# une partie rapide (jamais en Classé ni en invitation : là, quelqu'un de précis
+# est attendu, quitter le lobby serait exactement le bug « code 2 »).
+var _quick_host_timer: Timer
+# Un pair est entré dans le lobby Steam qu'on héberge. Verrou de sûreté pour
+# l'alternance : à partir de cet instant, relancer une recherche quitterait le
+# lobby que ce pair est en train de rejoindre et lui renverrait un code 2 —
+# c'est précisément la boucle qu'on cherche à éviter. On laisse alors
+# HOST_PEER_WAIT_TIMEOUT arbitrer.
+var _quick_peer_seen := false
 var _lobby_hosted := false  # lobby Steam actif côté hôte ; condition réelle d'invite_friends()
 var _status_key := ""  # clé de traduction affichée par le bandeau
 var _status_format_arg = null  # argument % substitué dans _status_key, voir _set_status
@@ -128,7 +138,20 @@ const RANKED_QUEUE_TIMEOUT := 180.0  # abandon après 3 min sans adversaire
 # bien plus court : contrairement au Classé, il existe un repli (recherche de
 # lobby Steam directe, ancien comportement) si personne n'est trouvé à temps,
 # pas de raison de faire attendre le joueur aussi longtemps qu'en Classé.
-const NORMAL_QUEUE_TIMEOUT := 20.0
+# Partie rapide Steam : temps passé à héberger sans personne avant de relancer
+# une recherche. Sans cette alternance, deux joueurs qui lancent « Normal » au
+# même instant (le cas le plus courant à deux : « on lance ? ») trouvent tous
+# les deux une liste vide, hébergent tous les deux, et s'attendent
+# indéfiniment sans que personne ne cherche plus — l'ancien code s'arrêtait à
+# « j'héberge » et ne repartait jamais en recherche.
+#
+# La borne est TIRÉE AU HASARD dans un intervalle à chaque cycle, et c'est le
+# point essentiel : deux clients lancés simultanément avec un délai fixe
+# resteraient parfaitement en phase (ils alterneraient héberger/chercher
+# ensemble, sans jamais se croiser). Le tirage casse cette symétrie, comme un
+# backoff aléatoire.
+const QUICK_HOST_WAIT_MIN := 4.0
+const QUICK_HOST_WAIT_MAX := 8.0
 # queue_report_lobby (voir _on_queue_lobby_ready) était appelée sans callback :
 # un échec réseau ponctuel restait totalement silencieux, l'invité restant
 # bloqué à repoller un lobby qui n'arrivait jamais jusqu'au timeout de 3 min
@@ -412,31 +435,29 @@ func _retranslate() -> void:
 # Ignorées si une recherche/connexion est déjà en cours : le bandeau + son
 # bouton Annuler donnent déjà tout le contrôle nécessaire.
 
-# « Normal » : matchmaking automatique, sans choix héberger/rejoindre. Tente
-# d'abord un appariement par MMR CACHÉ via la file backend (même mécanisme que
-# le Classé, voir _queue_join_and_poll) — façon MMR caché League of Legends :
-# apparie des adversaires de niveau similaire sans jamais afficher ce MMR ni
-# lui faire gagner/perdre de points de classement (voir
-# BackendClient.report_ranked_match, mode="normal"). Si le backend est
-# indisponible, si la requête échoue, ou si personne n'est trouvé sous
-# NORMAL_QUEUE_TIMEOUT, repli silencieux sur l'ancien comportement (recherche
-# d'un lobby Steam existant puis hébergement, voir _start_direct_quick_match)
-# — jamais d'erreur affichée pour ce repli, un joueur ne doit pas voir Normal
-# devenir indisponible juste parce que l'appariement par niveau l'est.
+# « Normal » : matchmaking automatique par lobby Steam, sans choix
+# héberger/rejoindre et SANS passer par la file backend (décision utilisateur
+# 2026-09-28).
+#
+# Le Normal a tenté la file backend du 2026-09-24 au 2026-09-28, pour un
+# appariement par MMR caché. Deux raisons de l'avoir retirée. La première est
+# qu'avoir deux systèmes de rendez-vous pour un même mode est structurellement
+# générateur de courses : chacun avec ses minuteurs, chacun capable d'appeler
+# host/join, donc chacun capable de quitter le lobby que le pair distant était
+# en train de rejoindre (code 2). La seconde est que le repli au bout de 20s
+# n'achetait rien tout en coûtant 20s d'attente à chaque partie, et pire :
+# deux joueurs entrés en file à quelques secondes d'écart basculaient sur Steam
+# à des instants différents et se cherchaient dans deux systèmes distincts.
+#
+# Le Classé, lui, GARDE la file backend : elle lui est indispensable (MMR
+# public, jeton de session signé, rapport de match). Un seul rendez-vous par
+# mode, jamais deux.
 func start_normal() -> void:
 	if _search_mode != "" or _loading:
 		return
 	_queue_mode = ""  # jamais un résidu d'une précédente recherche classée
-	if not BackendClient.is_authenticated():
-		_start_direct_quick_match()
-		return
-	_queue_cancel_pending = false
-	_set_search_mode("normal")
 	DiscordPresence.set_state(DiscordActivity.STATE_QUEUE, {"ranked": false})
-	_show_search_banner(true)
-	_set_loading(true)
-	_set_status("NET_RANKED_QUEUEING")
-	_queue_join_and_poll("normal")
+	_start_direct_quick_match()
 
 # Ancien comportement de start_normal() avant l'ajout du MMR caché ci-dessus :
 # recherche directe d'un lobby Steam public existant, hébergement en secours si
@@ -533,14 +554,8 @@ func _queue_join_and_poll(mode: String) -> void:
 				BackendClient.queue_cancel(str(data.get("ticket_id", "")))
 			return
 		if not success or str(data.get("ticket_id", "")) == "":
-			if mode == "normal":
-				# Repli silencieux (voir start_normal) : le backend n'a pas pu
-				# être joint, mais Normal doit rester jouable sans lui.
-				_reset_queue_ui()
-				_start_direct_quick_match()
-			else:
-				_flash_banner("NET_RANKED_UNAVAILABLE")
-				_reset_queue_ui()
+			_flash_banner("NET_RANKED_UNAVAILABLE")
+			_reset_queue_ui()
 			return
 		_queue_ticket_id = str(data.get("ticket_id", ""))
 		_queue_mode = mode
@@ -575,6 +590,7 @@ func _on_banner_cancel_pressed() -> void:
 			_auto_join_retries = 0  # annulation joueur : la prochaine recherche repart à neuf
 			_abandon_matched_ticket()  # ne pas laisser un adversaire apparié attendre dans le vide
 			_stop_host_peer_wait_timer()
+			_stop_quick_host_timer()
 			_net.close("annulation par le joueur (recherche file)")
 			_lobby_hosted = false
 			_show_search_banner(false)
@@ -643,6 +659,7 @@ func _reset_queue_ui() -> void:
 		_queue_poll_timer.stop()
 		_queue_poll_timer.queue_free()
 		_queue_poll_timer = null
+	_stop_quick_host_timer()
 	_queue_ticket_id = ""
 	_queue_role = ""
 	_queue_match_id = ""
@@ -686,8 +703,8 @@ func _poll_queue() -> void:
 	if _search_mode == "invite":
 		return
 	_queue_elapsed += RANKED_POLL_INTERVAL
-	var is_normal := _search_mode == "normal"
-	var timeout := NORMAL_QUEUE_TIMEOUT if is_normal else RANKED_QUEUE_TIMEOUT
+	# Seul le Classé passe encore par la file (voir start_normal) : un seul délai.
+	var timeout := RANKED_QUEUE_TIMEOUT
 	# Déjà apparié (_queue_role rempli) mais le lobby de l'hôte n'est pas encore
 	# publié : le délai COURT de la file ne s'applique plus. L'appliquer ici
 	# lâchait un adversaire qui était justement en train de créer son lobby — les
@@ -701,13 +718,7 @@ func _poll_queue() -> void:
 		if _queue_ticket_id != "":
 			BackendClient.queue_cancel(_queue_ticket_id)
 		_reset_queue_ui()
-		if is_normal:
-			# Repli silencieux (voir start_normal) plutôt qu'un abandon avec
-			# message d'erreur : Normal reste jouable même sans appariement
-			# par niveau.
-			_start_direct_quick_match()
-		else:
-			_flash_banner("NET_RANKED_TIMEOUT")
+		_flash_banner("NET_RANKED_TIMEOUT")
 		return
 	var ticket_id := _queue_ticket_id
 	BackendClient.queue_status(ticket_id, func(success: bool, data: Dictionary) -> void:
@@ -718,15 +729,10 @@ func _poll_queue() -> void:
 			"matched":
 				_on_queue_matched(data)
 			"cancelled", "expired":
-				# Ticket invalidé côté backend (expiré, ou annulé ailleurs) : en
-				# Normal on repart sur la recherche directe Steam plutôt que de
-				# laisser le joueur sans partie (voir _start_direct_quick_match).
+				# Ticket invalidé côté backend (expiré, ou annulé ailleurs).
 				print("[Matchmaking] Ticket %s : %s" % [ticket_id, str(data.get("status", ""))])
 				_reset_queue_ui()
-				if is_normal:
-					_start_direct_quick_match()
-				else:
-					_flash_banner("NET_RANKED_TIMEOUT")
+				_flash_banner("NET_RANKED_TIMEOUT")
 			_:
 				# "waiting" : rien à faire côté état, juste de quoi diagnostiquer
 				# le matchmaking en cours (MMR propre + fenêtre d'appariement
@@ -892,6 +898,9 @@ func _cleanup_connection_flow() -> void:
 # uniquement, où le nom de l'ami a un sens : pour Normal/Classé l'adversaire
 # est un inconnu apparié au hasard, afficher son nom n'apporterait rien.
 func _on_peer_identified() -> void:
+	# Quel que soit le mode : quelqu'un est entré dans le lobby, l'alternance
+	# de la partie rapide ne doit plus le fermer (voir _on_quick_host_timeout).
+	_quick_peer_seen = true
 	if _search_mode != "invite":
 		return
 	var peer_name := _net.remote_display_name()
@@ -902,6 +911,7 @@ func _on_peer_identified() -> void:
 
 func _on_peer_connected() -> void:
 	_stop_host_peer_wait_timer()
+	_stop_quick_host_timer()  # l'adversaire est là : ne plus jamais quitter ce lobby
 	_queue_matched_join_pending = false
 	_auto_join_retries = 0  # série de relances close : la connexion a abouti
 	# L'appariement a tenu : plus rien à abandonner. Sans cet oubli volontaire, une
@@ -1029,10 +1039,45 @@ func _start_quick_match_host() -> void:
 		_set_loading(true)
 		_show_search_banner(true)
 		_set_status("NET_STEAM_HOSTING")
+		_start_quick_host_timer()
 	else:
 		_set_search_mode("")
 		_show_search_banner(false)
 		_flash_banner("NET_STEAM_UNAVAILABLE")
+
+# Voir QUICK_HOST_WAIT_MIN/MAX : on n'héberge jamais indéfiniment sans repartir
+# en recherche, sinon deux joueurs simultanés s'attendent chacun de leur côté.
+func _start_quick_host_timer() -> void:
+	_stop_quick_host_timer()
+	_quick_peer_seen = false
+	_quick_host_timer = Timer.new()
+	_quick_host_timer.one_shot = true
+	_quick_host_timer.wait_time = randf_range(QUICK_HOST_WAIT_MIN, QUICK_HOST_WAIT_MAX)
+	_quick_host_timer.timeout.connect(_on_quick_host_timeout)
+	add_child(_quick_host_timer)
+	_quick_host_timer.start()
+
+func _stop_quick_host_timer() -> void:
+	if _quick_host_timer != null and is_instance_valid(_quick_host_timer):
+		_quick_host_timer.stop()
+		_quick_host_timer.queue_free()
+	_quick_host_timer = null
+
+func _on_quick_host_timeout() -> void:
+	_stop_quick_host_timer()
+	# Le mode a changé entre-temps (annulation, invitation acceptée, partie
+	# lancée) : plus rien à arbitrer ici.
+	if _search_mode != "normal":
+		return
+	# Quelqu'un est DÉJÀ dans notre lobby : ne pas le lui retirer sous les pieds
+	# (voir _quick_peer_seen). HOST_PEER_WAIT_TIMEOUT prend le relais.
+	if _quick_peer_seen:
+		return
+	print("[Matchmaking] Partie rapide : personne n'est venu, nouvelle recherche")
+	_net.close("partie rapide : alternance héberger → chercher")
+	_lobby_hosted = false
+	_set_search_mode("")  # _start_direct_quick_match repose le mode lui-même
+	_start_direct_quick_match()
 
 # Invitation Steam acceptée (overlay ami / lien « Rejoindre la partie ») —
 # peu importe l'écran sur lequel le joueur se trouve, y compris s'il n'est
