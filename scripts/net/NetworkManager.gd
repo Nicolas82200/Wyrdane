@@ -59,8 +59,10 @@ func _refuse_if_peer_connected(what: String) -> bool:
 	push_error("NetworkManager : %s refusé, une partie est déjà connectée (appelant à corriger)" % what)
 	return true
 
-# params opaque interprété par le backend (Steam : lobby_id obligatoire pour
-# join, voir SteamTransport.join).
+# params opaque interprété par le backend : côté Steam il désigne le pair, soit
+# par son SteamID64 (file backend : expected_peer_id pour héberger, peer_id pour
+# rejoindre), soit par un lobby à rejoindre (invitation d'ami). Voir
+# SteamTransport.host/join.
 func host_game_with(backend: TransportFactory.Backend, params: Dictionary = {}) -> int:
 	if _refuse_if_peer_connected("host_game_with"):
 		return ERR_ALREADY_IN_USE

@@ -26,13 +26,14 @@ Le multijoueur reste un relais de commandes P2P (Steam), **pas** un serveur de
 jeu autoritaire — le backend n'a donc besoin de connaître que les deux joueurs
 à apparier, pas l'état de la partie. Une fois deux tickets appariés :
 
-1. Le backend désigne un **hôte** de façon déterministe (ex. le plus petit
-   `user_id` des deux) et le communique aux deux clients via `role`.
-2. Le client hôte crée un lobby Steam (code déjà existant, `SteamTransport.host`)
-   et rapporte son `steam_lobby_id` via `POST /queue/:id/report-lobby`.
-3. Le client invité reçoit ce `steam_lobby_id` au prochain `GET /queue/:id` et
-   rejoint directement ce lobby (`SteamTransport.join({"lobby_id": ...})`),
-   sans passer par la recherche de lobby publique.
+1. Le backend tire un **hôte** au hasard entre les deux et le communique aux
+   deux clients via `role`, en même temps que `opponent_steam_id` — le
+   SteamID64 de l'adversaire, lu dans `linked_accounts`.
+2. Le client hôte ouvre un socket d'écoute P2P (`SteamTransport.host`,
+   `createListenSocketP2P`) et n'accepte que cette identité précise.
+3. Le client invité s'y connecte directement (`SteamTransport.join`,
+   `connectP2P` sur ce SteamID64), en réessayant quelques secondes le temps que
+   l'hôte ait vu son propre appariement.
 4. La partie se déroule normalement ; à la fin, `POST /api/ranked/matches/report`
    (déjà existant) crédite le MMR. **Mise à jour (2026-09-24)** : le payload
    porte désormais un champ `mode: "ranked" | "normal"` (omis = `"ranked"`,
@@ -45,6 +46,18 @@ jeu autoritaire — le backend n'a donc besoin de connaître que les deux joueur
    of Legends — voir `POST /api/matchmaking/queue` ci-dessous, qui porte
    désormais lui aussi `mode` pour apparier séparément Classé (MMR public) et
    Normal (MMR caché), jamais l'un avec l'autre.
+
+> **Réécrit le 2026-09-28.** Les étapes 2 et 3 passaient auparavant par un
+> lobby Steam : l'hôte en créait un et publiait son `steam_lobby_id` via
+> `POST /queue/:id/report-lobby`, que l'invité découvrait à son poll suivant.
+> Ce détour n'apportait qu'un annuaire — `ConnectP2P` n'exige ni amitié ni
+> lobby commun (doc Steamworks `ISteamNetworkingSockets`) — au prix d'un
+> aller-retour HTTP de plus et de toute une classe d'échecs : fermer un
+> transport quitte son lobby, et un lobby quitté par son dernier membre est
+> détruit, donc la moindre relance rendait injoignable le lobby que le pair
+> était en train de rejoindre (« entrée refusée, code 2 »). Le lobby Steam ne
+> sert plus qu'aux invitations d'ami, où il rend possible le « Rejoindre la
+> partie » natif de l'overlay Steam.
 
 ### `POST /api/matchmaking/queue`
 
@@ -97,40 +110,33 @@ Réponse `200`, avant appariement :
 { "status": "waiting" }
 ```
 
-Réponse `200`, une fois apparié (encore sans lobby, ou pour l'hôte) :
+Réponse `200`, une fois apparié (identique pour les deux camps, au `role` près) :
 ```json
-{ "status": "matched", "role": "host", "opponent_id": 42 }
+{
+  "status": "matched",
+  "role": "host",
+  "opponent_id": 42,
+  "opponent_steam_id": "76561198012345678",
+  "match_id": "…",
+  "match_session_token": "…"
+}
 ```
 
-Réponse `200`, invité une fois l'hôte ayant rapporté son lobby :
-```json
-{ "status": "matched", "role": "guest", "opponent_id": 17, "steam_lobby_id": "109775241000123456" }
-```
+`opponent_steam_id` est **l'adresse de rendez-vous** : l'hôte n'accepte que
+cette identité sur son socket d'écoute, l'invité s'y connecte. Comme tout
+identifiant Steam 64 bits, il voyage en **chaîne de chiffres — jamais en nombre
+JSON** : 57 bits significatifs ne tiennent pas dans un double (53 bits de
+mantisse), et un id arrondi ne désigne pas « rien », il désigne quelqu'un
+d'autre. Il est lu depuis `linked_accounts.external_id` (déjà un `VARCHAR`,
+donc jamais arrondi par le driver) et relu côté client par
+`SteamTransport._parse_steam_id`. Le champ est **absent** si le compte adverse
+n'a pas de SteamID lié : le client rend alors l'appariement
+(`POST /queue/:id/abandon`) plutôt que de tenter une connexion impossible.
 
-`steam_lobby_id` est un `CSteamID` de lobby 64 bits, transporté en **chaîne de
-chiffres — jamais en nombre JSON**. 57 bits significatifs ne tiennent pas dans un
-double (53 bits de mantisse) : sérialisé en nombre, l'id est arrondi au multiple
-de 16 le plus proche, soit jusqu'à ±8 d'écart. C'est exactement ce qui cassait le
-matchmaking — l'hôte créait le lobby `109775243137628014`, l'invité tentait de
-rejoindre `109775243137628016`, Steam refusait l'entrée avec le code 2
-(`k_EChatRoomEnterResponseDoesntExist`) et les deux joueurs repartaient en boucle
-sans jamais se connecter. Le stocker en `BIGINT` côté base, mais ne jamais le
-repasser par un `number`/`Number()` avant de le renvoyer (mysql2 le renvoie déjà
-en string : le laisser tel quel). Côté client il est relu par
-`BackendClient.parse_lobby_id` (`String.to_int`, exact sur 64 bits), pas par
-`int()` sur un Variant. Absent tant que l'hôte n'a pas encore appelé
-`report-lobby` — le client invité continue de repoller dans ce cas
-(`_on_queue_matched`, branche invité).
-
-**Obligation côté serveur : `steam_lobby_id` doit être purgé AU MOMENT DE
-L'APPARIEMENT.** Si la table ne garde qu'un ticket par joueur (ligne réutilisée),
-un ticket ré-apparié conserve sinon le lobby du match PRÉCÉDENT, déjà quitté par
-son hôte. Comme ce champ est renvoyé dès que `status` vaut `matched`, l'invité le
-lisait dans la toute première réponse d'appariement et rejoignait un lobby mort —
-avant même que le nouvel hôte ait créé le sien. Steam refusait alors l'entrée avec
-le code 2 (`k_EChatRoomEnterResponseDoesntExist`) et les deux joueurs bouclaient
-sans jamais se connecter. Ne jamais renvoyer un `steam_lobby_id` qui
-n'appartiendrait pas au `match_id` courant.
+`steam_lobby_id` peut encore apparaître dans cette réponse : le champ est
+conservé pour les clients d'une version antérieure au 2026-09-28, qui
+attendaient que l'hôte publie un lobby Steam. Le client actuel l'ignore et
+n'appelle plus jamais `report-lobby`.
 
 Réponse `200`, ticket introuvable/expiré/annulé :
 ```json
@@ -140,6 +146,10 @@ ou `{ "status": "cancelled" }` — le client traite les deux de façon identique
 (abandon silencieux, réactive les boutons).
 
 ### `POST /api/matchmaking/queue/:ticket_id/report-lobby`
+
+> **Obsolète depuis le 2026-09-28** — plus aucun client ne l'appelle : la file
+> ne passe plus par un lobby Steam (voir § Architecture). La route reste en
+> place le temps que les builds antérieures disparaissent de la circulation.
 
 Hôte uniquement, appelé juste après la création réussie du lobby Steam.
 
@@ -158,8 +168,9 @@ plutôt que d'enregistrer un id déjà corrompu par l'arrondi (voir ci-dessus).
 ### `POST /api/matchmaking/queue/:ticket_id/abandon`
 
 Appelé par l'un OU l'autre des deux joueurs quand un appariement n'a pas pu se
-concrétiser : entrée dans le lobby Steam refusée côté invité, ou hôte qui n'a
-jamais vu arriver son pair (`HOST_PEER_WAIT_TIMEOUT`).
+concrétiser : adversaire jamais joignable en P2P côté invité (essais épuisés,
+`SteamTransport.DIRECT_CONNECT_MAX_ATTEMPTS`), ou hôte qui n'a jamais vu arriver
+son pair (`HOST_PEER_WAIT_TIMEOUT`).
 
 Pas de body. Réponse `204`, y compris quand il n'y avait rien à abandonner
 (ticket déjà relancé, inconnu, ou pas apparié) : le client n'a pas d'action
@@ -171,6 +182,14 @@ en réinitialisant `created_at`. Les deux tickets sont désignés par leur
 `match_id` commun, ce qui rend l'appel idempotent et sans effet de bord sur un
 adversaire qui aurait déjà relancé une recherche de son côté (son `match_id`
 aurait changé).
+
+**Le serveur ne doit pas en dépendre.** Cette route et le `joinQueue` qui suit
+sont deux requêtes HTTP indépendantes : rien ne garantit leur ordre d'arrivée, et
+si le `joinQueue` passe le premier, le ticket n'est plus `matched` et l'abandon
+ne trouve plus rien à libérer. `joinQueue` doit donc, de lui-même, remettre en
+file l'adversaire du ticket qu'il remplace quand celui-ci était apparié
+(`releaseStaleMatch`). `/abandon` reste utile pour le cas où le joueur ne
+relance PAS de recherche derrière (il quitte l'écran, ferme le jeu).
 
 **Pourquoi cette route existe.** Sans elle, le joueur dont l'entrée échouait se
 remettait en file tout seul, alors que son adversaire restait `matched` pendant

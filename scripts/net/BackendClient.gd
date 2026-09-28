@@ -293,11 +293,17 @@ func search_leaderboard(query: String, on_complete: Callable) -> void:
 # Contrat détaillé (à implémenter côté wyrdane-backend) :
 # docs/backend-contracts/ranked-matchmaking-and-retention.md
 # Appariement par MMR, fenêtre élargie progressivement. Une fois deux tickets
-# appariés, le backend désigne un hôte (déterministe, ex. plus petit user id)
-# ; l'hôte crée un lobby Steam (voir MatchmakingOverlay._on_ranked_matched) et rapporte
-# son lobby_id via queue_report_lobby — le camp invité le récupère au prochain
-# poll de queue_status et le rejoint directement (NetTransport.join avec
-# {"lobby_id": ...}), sans passer par la recherche de lobby publique.
+# appariés, le backend tire un hôte au hasard et renvoie aux DEUX camps le
+# SteamID64 de l'adversaire (opponent_steam_id) : l'hôte ouvre un socket
+# d'écoute P2P, l'invité s'y connecte directement (voir
+# MatchmakingOverlay._on_queue_matched et l'en-tête de SteamTransport).
+#
+# Il n'y a plus de lobby Steam sur ce chemin : l'hôte publiait autrefois son
+# lobby_id via un aller-retour HTTP supplémentaire (report-lobby) que l'invité
+# découvrait à son poll suivant — étape supprimée le 2026-09-28 avec toute la
+# classe d'échecs « entrée en lobby refusée (code 2) » qu'elle traînait. Le
+# lobby ne sert plus qu'aux invitations d'ami (voir send_game_invite), où il
+# rend possible le « Rejoindre la partie » natif de l'overlay Steam.
 
 # Rejoint la file d'attente. mode : "ranked" (apparié sur le MMR public,
 # gagne/perd des points de classement) ou "normal" (apparié sur un MMR caché,
@@ -311,9 +317,11 @@ func queue_join(mode: String, on_complete: Callable) -> void:
 			on_complete.call(false, {})
 	)
 
-# Interroge l'état d'un ticket. on_complete(success, {status, role, opponent_id, steam_lobby_id}).
+# Interroge l'état d'un ticket. on_complete(success, {status, role, opponent_id,
+# opponent_steam_id, match_id, match_session_token}).
 # status : "waiting" | "matched" | "cancelled" | "expired". role ("host"/"guest")
-# et steam_lobby_id ne sont présents qu'une fois status == "matched". mmr/window/
+# et opponent_steam_id (SteamID64 en chaîne de chiffres, l'adresse à laquelle se
+# connecter en P2P) ne sont présents qu'une fois status == "matched". mmr/window/
 # elapsed_seconds (propre MMR du joueur, fenêtre d'appariement courante en
 # points de MMR, ancienneté du ticket) ne sont présents que tant que
 # status == "waiting" (voir MatchmakingOverlay._poll_queue, journalisés à
@@ -347,15 +355,13 @@ static func parse_lobby_id(raw: Variant) -> int:
 		return int(raw)
 	return 0
 
-# Hôte uniquement : transmet le lobby Steam qu'il vient de créer, pour que
-# l'invité puisse le rejoindre directement au prochain queue_status.
-func queue_report_lobby(ticket_id: String, steam_lobby_id: int, on_complete: Callable = Callable()) -> void:
-	request(HTTPClient.METHOD_POST, "/api/matchmaking/queue/%s/report-lobby" % ticket_id, {
-		"steamLobbyId": str(steam_lobby_id),
-	}, on_complete)
+# (queue_report_lobby a été retirée le 2026-09-28 : la file n'utilise plus de
+# lobby Steam, donc l'hôte n'a plus rien à publier — voir l'en-tête de cette
+# section. La route POST .../report-lobby reste en place côté backend pour les
+# clients d'une version antérieure encore en circulation.)
 
-# Abandonne un appariement qui n'a pas abouti (entrée en lobby Steam refusée,
-# hôte jamais rejoint) : le backend remet les DEUX tickets en file d'un coup.
+# Abandonne un appariement qui n'a pas abouti (adversaire jamais joignable en
+# P2P) : le backend remet les DEUX tickets en file d'un coup.
 # Indispensable pour que les deux joueurs se retrouvent : celui qui échouait se
 # remettait en file tout seul, alors que son adversaire restait "matched" côté
 # backend pendant tout son HOST_PEER_WAIT_TIMEOUT — et un ticket "matched" n'est

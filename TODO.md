@@ -199,18 +199,44 @@ Reste à faire :
   ... response=2` donne l'id visé, à comparer au `lobby_created` de l'hôte ;
   attention, les horodatages viennent de l'horloge LOCALE de chaque machine et
   ne sont donc pas comparables entre les deux logs.
+- **Correctif structurel (2026-09-28, après les précédents) : le lobby Steam est
+  RETIRÉ du chemin de la file.** Les trois correctifs ci-dessus traitaient chacun
+  un symptôme d'un même problème : la mise en relation passait par un objet
+  Steam, le lobby, dont la durée de vie ne nous appartenait pas (il est détruit
+  dès que son dernier membre le quitte, et fermer un transport le quitte). Or
+  `ConnectP2P` n'exige **ni amitié ni lobby commun** (doc Steamworks
+  `ISteamNetworkingSockets`) : le backend, qui vient d'apparier deux comptes,
+  connaît leurs deux SteamID64 — il suffit de les leur donner. L'hôte ouvre un
+  socket d'écoute et n'accepte que cette identité, l'invité s'y connecte. Plus de
+  `report-lobby`, plus d'attente d'un `steam_lobby_id`, plus de « code 2 »
+  possible : tout l'état intermédiaire a disparu, il n'y a plus rien à publier ni
+  à détruire. Voir « Rendez-vous P2P direct » dans `CLAUDE.md` et
+  `docs/backend-contracts/ranked-matchmaking-and-retention.md` § Architecture.
+  Le lobby ne sert plus qu'aux invitations d'ami, où il rend possible le
+  « Rejoindre la partie » natif de l'overlay Steam.
+  Ajouts côté backend dans la même passe : `matchmaking_tickets.last_seen_at`
+  (un ticket n'est appariable que si son propriétaire poll encore — un joueur qui
+  ferme le jeu n'est plus apparié à personne) et `releaseStaleMatch` dans
+  `joinQueue` (libère l'adversaire du ticket remplacé, sans dépendre de l'ordre
+  d'arrivée de l'appel `/abandon` du client). **`npm run db:sync` requis en prod**
+  pour la nouvelle colonne.
+  Reste le seul cas de course possible, traité localement : les deux clients
+  n'apprennent pas l'appariement au même instant, donc l'invité peut se connecter
+  avant que l'hôte n'écoute — il réessaie ~24s en silence
+  (`DIRECT_CONNECT_MAX_ATTEMPTS`), et tout échec antérieur à la première
+  connexion réussie est absorbé par cette boucle plutôt que remonté comme une
+  déconnexion.
 - **À confirmer en conditions réelles** (deux comptes Steam) : que ces deux
   correctifs suffisent réellement à enchaîner plusieurs parties d'affilée entre
   deux amis, sur invitation depuis la liste d'amis comme en « Normal ». Le log d'une partie
   affiche en clair chaque fermeture de transport (`[NetworkManager] Transport
   précédent fermé…`) : sa présence entre la création d'un lobby et l'arrivée du
   pair signale immédiatement une rechute.
-- **Suite possible, pas faite** : confier l'arbitrage des reprises au backend
-  (aujourd'hui, sur un join refusé, c'est le client qui se remet en file, voir
-  `MAX_AUTO_JOIN_RETRIES`) — une route qui invalide l'appariement et remet les
-  DEUX tickets en file éviterait que chaque client décide seul. Pas nécessaire
-  tant que le chemin unique suffit ; à reconsidérer si des échecs d'appariement
-  réapparaissent en conditions réelles.
+- ~~**Suite possible, pas faite** : confier l'arbitrage des reprises au
+  backend~~ — **fait** (2026-09-28) : `POST /queue/:id/abandon` remet les deux
+  tickets en file, et `joinQueue` le fait aussi de lui-même sur le ticket qu'il
+  remplace, ce qui rend l'ordre des deux requêtes indifférent. Le client garde
+  `MAX_AUTO_JOIN_RETRIES` comme plafond de politesse, plus comme béquille.
 - **Charge** : la file backend devient le seul point de passage de toute mise en
   relation. Le coût dominant est le poll à `RANKED_POLL_INTERVAL` (2s) ; estimé
   à ~25-100 req/s pour 1000 joueurs simultanés (500 req/s au pire cas si tous

@@ -254,6 +254,16 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	PresenceService.in_battle = false
+	# Filet de sécurité : tous les chemins NORMAUX de sortie de bataille passent
+	# déjà par net_session_system.close() (concéder, retour au menu, rejouer), qui
+	# met network_manager à null — cet appel est donc un no-op dans ces cas. Il ne
+	# sert qu'aux sorties imprévues (rechargement de scène, fermeture du jeu) :
+	# sans lui, le transport resterait ouvert avec un pair encore « connecté », et
+	# NetworkManager refuserait alors tout host_game_with/join_game_with ultérieur
+	# (voir _refuse_if_peer_connected) — le multijoueur serait mort pour le reste
+	# de la session, sans rien afficher au joueur.
+	if network_manager != null:
+		net_session_system.close()
 
 func _init_data() -> void:
 	tutorial_active = TutorialContext.active
