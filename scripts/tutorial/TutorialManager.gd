@@ -31,6 +31,11 @@ const POPUP_GAP := 24.0
 const SCREEN_MARGIN := 20.0
 const FADE_IN_TIME := 0.18
 const FADE_OUT_TIME := 0.15
+# Attente maximale de la réponse à claim-tutorial-reward avant de renoncer à
+# l'annoncer (voir _show_tutorial_reward) : la réclamation part au début de
+# notify_victory, ce délai ne court donc qu'à partir de la fermeture de la
+# popup de félicitations — en pratique la réponse est déjà là.
+const TUTORIAL_REWARD_WAIT_MSEC := 4000
 
 var battle: Node
 var _dim_rects: Array[ColorRect] = []
@@ -334,8 +339,12 @@ func _fade(target_alpha: float, duration: float) -> void:
 # sur la vraie action visée (drag&drop d'une carte, fin de tour, attaque...)
 # et laissent la zone surlignée réellement interactive : aucune pause, aucun
 # blocage d'input (mouse_filter = IGNORE) tant qu'une action reste possible.
-func _show_popup(text_key: String, targets: Array, pause: bool = true, dismiss_on_click: bool = true, hint_key: String = "", clearance: Rect2 = Rect2(), dim_screen: bool = true) -> void:
-	_popup_label.text = SettingsManager.t(text_key)
+func _show_popup(text_key: String, targets: Array, pause: bool = true, dismiss_on_click: bool = true, hint_key: String = "", clearance: Rect2 = Rect2(), dim_screen: bool = true, format_args: Array = []) -> void:
+	# Le formatage est appliqué ici, avant toute mesure : la mise en page de la
+	# popup (_position_popup) dépend de la hauteur réelle du texte, écrire dans
+	# le label après coup donnerait une popup dimensionnée pour le gabarit brut.
+	var text := SettingsManager.t(text_key)
+	_popup_label.text = text % format_args if not format_args.is_empty() else text
 	if hint_key == "":
 		hint_key = "tutorial.click_to_continue" if dismiss_on_click else "tutorial.action_hint"
 	_hint_label.text = SettingsManager.t(hint_key)
@@ -382,8 +391,8 @@ func _dismiss_popup() -> void:
 	_dismissed.emit()
 
 # Popup de narration pure (pas d'action associée) : se ferme au clic.
-func _popup(text_key: String, targets: Array) -> void:
-	_show_popup(text_key, targets)
+func _popup(text_key: String, targets: Array, format_args: Array = []) -> void:
+	_show_popup(text_key, targets, true, true, "", Rect2(), true, format_args)
 	await _dismissed
 
 # Popup d'action générique : reste affichée (jeu non mis en pause) jusqu'à ce
@@ -566,10 +575,54 @@ func notify_player_turn_began() -> void:
 # (voir LoadingScreen._sync_backend, appel idempotent à
 # POST /api/collection/claim-starter) — plus besoin d'attendre ici.
 func notify_victory() -> void:
+	# Réclamation lancée AVANT la popup de félicitations (et pas après) : la
+	# requête voyage pendant que le joueur lit, la popup de récompense qui suit
+	# n'attend donc en pratique jamais le réseau.
+	var reward := {"done": false, "cards": []}
+	BackendClient.claim_tutorial_reward(func(ok: bool, data: Dictionary):
+		reward.done = true
+		if ok and data.get("claimed", false):
+			reward.cards = data.get("cards", [])
+	)
 	await _popup("tutorial.complete", [])
 	SettingsManager.set_tutorial_completed()
 	AchievementManager.unlock(AchievementManager.ACH_GRADUATE)
+	await _show_tutorial_reward(reward)
 	SceneTransition.change_scene(battle.MAIN_MENU_SCENE)
+
+# Annonce le lot de 25 cartes octroyé par le backend en sortie de tutoriel
+# (voir wyrdane-backend, POST /api/collection/claim-tutorial-reward) : les 4
+# decks de départ ne contiennent aucun Rituel ni Enchantement, ce lot est le
+# premier contact du joueur avec ces types de cartes.
+# Silencieux si la réclamation a échoué (backend injoignable) ou si elle avait
+# déjà été faite — rien à annoncer. L'attente est bornée : un joueur qui vient
+# de finir le tutoriel ne doit jamais rester coincé sur une requête muette.
+func _show_tutorial_reward(reward: Dictionary) -> void:
+	var deadline := Time.get_ticks_msec() + TUTORIAL_REWARD_WAIT_MSEC
+	while not reward.done and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	var cards: Array = reward.cards
+	if cards.is_empty():
+		return
+	# La collection vient de changer côté serveur : resynchronisée ici pour que
+	# le deck builder voie les nouvelles cartes sans attendre le prochain
+	# lancement du jeu.
+	CollectionManager.sync_from_backend()
+	CurrencyManager.sync_from_backend()
+	await _popup("tutorial.reward_cards", [], [
+		cards.size(),
+		_count_rarity(cards, "Commune"),
+		_count_rarity(cards, "Rare"),
+		_count_rarity(cards, "Épique"),
+		_count_rarity(cards, "Légendaire"),
+	])
+
+static func _count_rarity(cards: Array, rarity: String) -> int:
+	var count := 0
+	for card in cards:
+		if card is Dictionary and card.get("rarity", "") == rarity:
+			count += 1
+	return count
 
 # ─── Attentes ─────────────────────────────────────────────────────────────────
 
