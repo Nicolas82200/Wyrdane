@@ -629,18 +629,25 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	cost_lbl.vertical_alignment   = VERTICAL_ALIGNMENT_CENTER
 	cost_lbl.add_theme_color_override("font_color", Color(0.05, 0.04, 0.02, 1))
 	cost_lbl.add_theme_font_override("font", UI_FONT)
-	cost_lbl.add_theme_font_size_override("font_size", Typography.BODY)
+	cost_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	cost_panel.add_child(cost_lbl)
 	row.add_child(cost_panel)
 
 	var name_lbl := Label.new()
 	name_lbl.text                  = card.display_name()
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# clip_text ramène la largeur minimale du Label à 0 : sans lui, un nom long
+	# impose sa largeur à la ligne entière et pousse la quantité + la croix
+	# rouge hors du cadre de la liste. Le nom est alors tronqué par des « … ».
+	name_lbl.clip_text             = true
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	# Pas de tooltip_text ici : le nom complet reste lisible via la preview
+	# agrandie affichée au survol de la ligne (_on_card_wrapper_entered).
 	# Même couleur possédée/manquante (voir _make_deck_row) : seul le bandeau
 	# de la ligne distingue les deux, pas le nom.
 	name_lbl.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
 	name_lbl.add_theme_font_override("font", UI_FONT)
-	name_lbl.add_theme_font_size_override("font_size", Typography.BODY)
+	name_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	var name_margin := MarginContainer.new()
 	name_margin.add_theme_constant_override("margin_left", 8)
 	name_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -655,7 +662,7 @@ func _make_deck_row(card: CardData, path: String, count: int, is_missing: bool) 
 	qty_lbl.add_theme_color_override("font_color",
 		Color(0.91, 0.835, 0.639, 0.4) if is_missing else Color(0.91, 0.835, 0.639, 0.8))
 	qty_lbl.add_theme_font_override("font", UI_FONT)
-	qty_lbl.add_theme_font_size_override("font_size", Typography.BODY)
+	qty_lbl.add_theme_font_size_override("font_size", Typography.MICRO)
 	row.add_child(qty_lbl)
 
 	# Ligne "non possédée" : bouton d'achat dédié (achète uniquement les

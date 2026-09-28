@@ -183,6 +183,7 @@ layout_mode = 2
 [node name="ScrollDeck" type="ScrollContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox" unique_id=100000011]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
 [node name="DeckList" type="VBoxContainer" parent="MainVBox/HBox/RightPanel/RightMargin/RightVBox/ScrollDeck" unique_id=100000012]
 unique_name_in_owner = true
