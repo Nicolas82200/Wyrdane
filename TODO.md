@@ -494,7 +494,7 @@ Suites possibles une fois en place : boutons « Rejoindre » / invitations depui
 **Fait côté code, reste un `db:sync` en prod.** Refonte demandée par l'utilisateur, répartie entre `wyrdane-backend` (branche `1001-progression-rework`) et `card-game` (branche `1004-progression-rewards`) :
 
 - Récompense de connexion : 50/75/100/125/150/175/200 or sur 7 jours, puis **plateau à 200/jour** au lieu de reboucler au jour 1 (un joueur fidèle retombait à la plus petite récompense juste après avoir tenu une semaine).
-- Récompense unique de fin de tutoriel : 25 cartes tirées dans tout le catalogue, pondération 40/30/20/10 — comble l'absence totale de Rituels/Enchantements dans les 4 decks de départ.
+- Récompense unique de fin de tutoriel : 20 cartes tirées dans tout le catalogue, pondération 40/30/20/10 — comble l'absence totale de Rituels/Enchantements dans les 4 decks de départ.
 - Quêtes uniques : paliers « jouez X parties » tous les 50 jusqu'à 250, paliers de rang étendus à Argent/Platine/Diamant/Maître (il n'y avait qu'Or et Légende), barèmes réhaussés.
 - Affichage des récompenses de quête : plus de « 400 or, 0 pack(s) ».
 

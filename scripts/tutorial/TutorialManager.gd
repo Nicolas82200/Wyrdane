@@ -590,7 +590,7 @@ func notify_victory() -> void:
 	await _show_tutorial_reward(reward)
 	SceneTransition.change_scene(battle.MAIN_MENU_SCENE)
 
-# Annonce le lot de 25 cartes octroyé par le backend en sortie de tutoriel
+# Annonce le lot de 20 cartes octroyé par le backend en sortie de tutoriel
 # (voir wyrdane-backend, POST /api/collection/claim-tutorial-reward) : les 4
 # decks de départ ne contiennent aucun Rituel ni Enchantement, ce lot est le
 # premier contact du joueur avec ces types de cartes.
