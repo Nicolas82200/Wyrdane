@@ -493,12 +493,17 @@ Suites possibles une fois en place : boutons « Rejoindre » / invitations depui
 
 **Fait côté code, reste un `db:sync` en prod.** Refonte demandée par l'utilisateur, répartie entre `wyrdane-backend` (branche `1001-progression-rework`) et `card-game` (branche `1004-progression-rewards`) :
 
-- Récompense de connexion : 50/75/100/125/150/175/200 or sur 7 jours, puis **plateau à 200/jour** au lieu de reboucler au jour 1 (un joueur fidèle retombait à la plus petite récompense juste après avoir tenu une semaine).
+- Récompense de connexion : 20/40/60/80/100 or sur 5 jours, puis **plateau à 100/jour** au lieu de reboucler au jour 1 (un joueur fidèle retombait à la plus petite récompense juste après avoir tenu une semaine).
 - Récompense unique de fin de tutoriel : 20 cartes tirées dans tout le catalogue, pondération 40/30/20/10 — comble l'absence totale de Rituels/Enchantements dans les 4 decks de départ.
-- Quêtes uniques : paliers « jouez X parties » tous les 50 jusqu'à 250, paliers de rang étendus à Argent/Platine/Diamant/Maître (il n'y avait qu'Or et Légende), barèmes réhaussés.
+- Quêtes uniques : paliers « jouez X parties » tous les 50 jusqu'à 250, paliers de rang étendus à Argent/Platine/Diamant/Maître (il n'y avait qu'Or et Légende). Catalogue recalibré à **10 000 or + 25 packs** au total (contre 11 800 + 33).
+- Quêtes quotidiennes recalées sur une échelle unique de 25/50/75/100 or ; mensuelles ramenées à 500/750 or ; quêtes de niveau 5/10/15/20/25 à 100/150/200/250/300 or et 0/0/1/1/2 packs ; parrainage passé à 4 packs sans or.
 - Affichage des récompenses de quête : plus de « 400 or, 0 pack(s) ».
 
-**Bug corrigé au passage** : `RANK_TIER_MMR_THRESHOLDS` (backend) avait silencieusement divergé de `RankTier.THRESHOLDS` (client) — Or exigeait 1300 de MMR côté quête contre 400 côté badge. Les deux valeurs restent dupliquées (le backend n'a aucune notion de palier), mais un test backend fige désormais la correspondance.
+**Bugs corrigés au passage** :
+- `RANK_TIER_MMR_THRESHOLDS` (backend) avait silencieusement divergé de `RankTier.THRESHOLDS` (client) — Or exigeait 1300 de MMR côté quête contre 400 côté badge. Les deux valeurs restent dupliquées (le backend n'a aucune notion de palier), mais un test backend fige désormais la correspondance.
+- Les **quêtes de niveau** (`onboarding_quests`) souffraient du même défaut que les quêtes uniques : récompenses figées dans la ligne à l'assignation, sur une piste jamais reset — un rééquilibrage n'aurait donc touché que les comptes neufs. `reconcileWithTemplates` ajouté là aussi.
+- Les textes joueur du parrainage (`REFERRAL_STATUS_NONE`, `REFERRAL_FIRST_LAUNCH_DESC`) annonçaient « 3 packs + 500 or » en dur dans `game.csv` — désormais alignés sur le vrai barème. À surveiller : ces deux clés ne sont liées à aucune valeur du backend, elles redeviendront fausses au prochain changement de `REFERRAL_REWARD_*`.
+- `CLAUDE.md` client annonçait 2 quêtes quotidiennes par jour ; `QUESTS_PER_DAY` vaut **3** côté backend depuis le 2026-09-15.
 
 **Reste à faire** : `docker compose exec backend node dist/database/sync.js` sur le VPS après le déploiement, pour créer `users.tutorial_reward_claimed_at`. Tant que la colonne manque, `POST /api/collection/claim-tutorial-reward` répond 500 — même classe de panne que les trois incidents précédents (matchmaking classé, chat/amis, invitations de partie), voir « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`.
 

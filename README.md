@@ -374,36 +374,32 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 **Autres gains**
 | Source | Montant | Limite |
 |---|---|---|
-| Récompense de connexion quotidienne (montée sur 7 jours, puis plateau) | 50 → 75 → 100 → 125 → 150 → 175 → 200 or, puis 200 or par jour consécutif supplémentaire | 1×/jour, réinitialisée au premier palier si un jour est manqué |
-| Quête « Jouer 3 parties » | 30 or | — |
-| Quête « Jouer 5 parties » | 60 or | — |
+| Récompense de connexion quotidienne (montée sur 5 jours, puis plateau) | 20 → 40 → 60 → 80 → 100 or, puis 100 or par jour consécutif supplémentaire | 1×/jour, réinitialisée au premier palier si un jour est manqué |
+| Quête « Jouer 3 parties » | 25 or | — |
+| Quête « Jouer 5 parties » | 50 or | — |
 | Quête « Gagner 2 parties » | 50 or | — |
-| Quête « Gagner 3 parties » | 70 or | — |
-| Quête « Gagner 1 partie classée » | 80 or | — |
-| Quête « Jouer 10 cartes Mort-Vivant » | 40 or | — |
-| Quête « Jouer 10 cartes Humain » | 40 or | — |
-| Quête « Jouer 10 cartes Démon » | 40 or | — |
-| Quête « Jouer 10 cartes Abomination » | 40 or | — |
-| Quête « Gagner 2 parties avec un deck Mort-Vivant » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Humain » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Démon » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Abomination » | 60 or | — |
+| Quête « Gagner 3 parties » | 75 or | — |
+| Quête « Gagner 1 partie classée » | 100 or | — |
+| Quête « Jouer 10 cartes [Race] » (une par race) | 50 or | — |
+| Quête « Gagner 2 parties avec un deck [Race] » (une par race) | 75 or | — |
 
-3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+Toutes les récompenses quotidiennes suivent une échelle unique de 25/50/75/100 or, calée sur la difficulté réelle. 3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
 
 **Récompense de fin de tutoriel** : à la toute fin du tutoriel, 20 cartes tirées dans l'ensemble du catalogue (hors cartes-ressource) rejoignent la collection, avec une pondération **Commune 40 / Rare 30 / Épique 20 / Légendaire 10** — nettement plus généreuse que celle d'un pack, puisqu'il s'agit d'une récompense unique. Elle comble un trou du démarrage : les 4 decks de départ ne contiennent que des serviteurs et quelques éphémères, un nouveau joueur n'avait donc jamais eu un Rituel ni un Enchantement en main avant d'ouvrir des packs. Un exemplaire au-delà des 4 copies est converti en or, comme dans un pack.
 
 **Quêtes uniques (jalons de carrière)** : une seule occurrence par compte, jamais réinitialisée.
 | Quête | Récompense |
 |---|---|
-| Première partie avec un deck contenant une race donnée (×4) | 200 or |
-| Première victoire avec un deck d'au moins 2 races | 250 or |
-| Une victoire avec chacune des 4 races | 500 or + 1 pack |
-| Jouez 50 / 100 / 150 / 200 / 250 parties | 500 / 700 / 850 / 1000 or + 1 pack / 1200 or + 2 packs |
-| Gagnez 10 / 25 / 100 parties | 100 or + 1 pack / 250 or + 2 packs / 1000 or + 2 packs |
-| Gagnez 10 / 50 parties classées | 500 or / 1000 or + 3 packs |
-| Atteignez le palier Argent / Or / Platine / Diamant / Maître / Légende | 100 or + 1 pack / 250 or + 1 pack / 400 or + 2 packs / 600 or + 3 packs / 800 or + 4 packs / 1000 or + 5 packs |
+| Première partie avec un deck contenant une race donnée (×4) | 150 or |
+| Première victoire avec un deck d'au moins 2 races | 200 or |
+| Une victoire avec chacune des 4 races | 400 or + 1 pack |
+| Jouez 50 / 100 / 150 / 200 / 250 parties | 400 / 600 / 700 or, puis 850 or + 1 pack / 1000 or + 1 pack |
+| Gagnez 10 / 25 / 100 parties | 100 or + 1 pack / 200 or + 2 packs / 900 or + 1 pack |
+| Gagnez 10 / 50 parties classées | 400 or / 900 or + 3 packs |
+| Atteignez le palier Argent / Or / Platine / Diamant / Maître / Légende | 100 or / 200 or + 1 pack / 350 or + 1 pack / 500 or + 1 pack / 700 or + 2 packs / 900 or + 5 packs |
 | Ouvrez 20 packs | 5 packs |
+
+Total du catalogue de quêtes uniques : **10 000 or + 25 packs**.
 
 **Dépenses**
 | Achat | Coût | Détail |
