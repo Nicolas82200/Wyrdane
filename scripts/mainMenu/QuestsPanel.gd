@@ -176,9 +176,14 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	var claimed := bool(quest.get("claimed", false))
 	var completed := progress >= target
 
+	# Réclamation déjà partie mais réponse pas encore arrivée : la ligne doit se
+	# reconstruire inerte, sinon une reconstruction entre-temps (une autre
+	# réponse de open()) la rendrait de nouveau cliquable.
+	var claiming: bool = menu._quests_claiming.has(_claim_key(kind, _get_int(quest, "id", 0)))
+
 	var row := PanelContainer.new()
 	var quest_accent := ACCENT_DIM
-	if completed and not claimed:
+	if completed and not claimed and not claiming:
 		quest_accent = ACCENT_GOLD
 	elif not completed:
 		quest_accent = ACCENT_EMBER
@@ -236,6 +241,9 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	if claimed:
 		action_button.text = SettingsManager.t("QUESTS_CLAIMED")
 		action_button.disabled = true
+	elif completed and claiming:
+		action_button.text = SettingsManager.t("QUESTS_CLAIM")
+		action_button.disabled = true
 	elif completed:
 		action_button.text = SettingsManager.t("QUESTS_CLAIM")
 		var quest_id := _get_int(quest, "id", 0)
@@ -270,18 +278,51 @@ static func _mark_claimed_in_cache(menu, kind: String, quest_id) -> void:
 # lambda qui appelle explicitement la bonne fonction BackendClient — on évite
 # de faire transiter une référence de méthode nue en paramètre, peu fiable
 # ici) — voir _on_claim_weekly/monthly/unique/_pressed.
+# L'état de réclamation ne touche jamais le nœud Button : il vit dans
+# menu._quests_claiming/_quests_cache, puis render() reconstruit la ligne. Le
+# bouton cliqué est en effet régulièrement détruit avant l'arrivée de la
+# réponse — QuestsPanel.open lance quatre requêtes (quotidienne/hebdo/
+# mensuelle/unique) et chaque réponse appelle render(), qui libère TOUTES les
+# lignes. Écrire dans `button` depuis la réponse visait donc une instance
+# libérée : l'erreur interrompait le callback avant _mark_claimed_in_cache, et
+# la ligne reconstruite depuis un cache resté "non réclamé" réaffichait un
+# bouton Réclamer actif jusqu'à ce que le joueur quitte et revienne.
 static func _handle_claim_pressed(menu, button: Button, kind: String, quest_id, requester: Callable) -> void:
-	button.disabled = true
-	requester.call(func(success: bool, data: Dictionary):
-		if not success:
-			button.disabled = false
-			return
-		AudioManager.play(AudioManager.CONFIRM)
-		CurrencyManager.sync_from_backend()
-		button.text = SettingsManager.t("QUESTS_CLAIMED")
-		_mark_claimed_in_cache(menu, kind, quest_id)
-		menu._fetch_quests_badge()
+	var key := _claim_key(kind, quest_id)
+	if menu._quests_claiming.has(key):
+		return
+	menu._quests_claiming[key] = true
+	if _button_alive(button):
+		button.disabled = true
+	requester.call(func(success: bool, _data: Dictionary):
+		menu._quests_claiming.erase(key)
+		if success:
+			AudioManager.play(AudioManager.CONFIRM)
+			CurrencyManager.sync_from_backend()
+			_mark_claimed_in_cache(menu, kind, quest_id)
+			menu._fetch_quests_badge()
+		# Le bouton d'origine a survécu : mise à jour sur place, pour ne pas
+		# faire sauter la ligne au bas de sa section (les réclamées y sont
+		# reléguées par _sort_quests) juste sous le curseur du joueur. S'il a
+		# été détruit entre-temps, la liste est reconstruite depuis le cache,
+		# désormais à jour.
+		if _button_alive(button):
+			if success:
+				button.text = SettingsManager.t("QUESTS_CLAIMED")
+			else:
+				button.disabled = false
+		elif menu._current_info_view == menu.InfoView.QUESTS:
+			render(menu)
 	)
+
+# is_instance_valid() reste vrai pour un nœud déjà queue_free()é dans la frame
+# courante (la libération n'a lieu qu'en fin de frame) : sa ligne est pourtant
+# condamnée, donc y écrire ne se verrait jamais.
+static func _button_alive(button: Button) -> bool:
+	return is_instance_valid(button) and not button.is_queued_for_deletion()
+
+static func _claim_key(kind: String, quest_id) -> String:
+	return "%s:%s" % [kind, quest_id]
 
 static func _on_claim_weekly_pressed(menu, quest_id: String, button: Button) -> void:
 	_handle_claim_pressed(menu, button, "weekly", quest_id, func(on_data: Callable): BackendClient.claim_weekly_quest(quest_id, on_data))

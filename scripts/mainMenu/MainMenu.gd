@@ -574,6 +574,12 @@ var _shop_tab: ShopTab = ShopTab.PACKS
 # jamais de refetch.
 var _quest_tab: QuestTab = QuestTab.REGULAR
 var _quests_cache: Dictionary = {}
+# Réclamations en vol, clé "<kind>:<id>" (voir QuestsPanel._claim_key) : l'état
+# d'un bouton Réclamer ne peut pas vivre sur le nœud Button lui-même, que le
+# moindre render() détruit — or render() est rappelé à chaque réponse backend
+# de QuestsPanel.open (quatre catégories), donc potentiellement juste après le
+# clic et avant la réponse de la réclamation.
+var _quests_claiming: Dictionary = {}
 
 func _select_quest_tab(tab: QuestTab) -> void:
 	_quest_tab = tab
