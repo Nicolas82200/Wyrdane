@@ -140,6 +140,12 @@ const OUTGOING_INVITE_TIMEOUT := 50.0
 var _incoming_invite_poll_timer: Timer
 var _outgoing_invite_poll_timer: Timer
 var _pending_outgoing_invite_id := 0  # 0 = aucune invitation envoyée en attente de réponse
+# Handler one-shot branché sur NetworkManager.session_ready le temps qu'un lobby
+# d'invitation soit créé (voir invite_friend/_clear_pending_session_ready). Gardé
+# en champ parce qu'un Callable.bind() n'est PAS égal au Callable nu : sans
+# conserver exactement l'instance connectée, is_connected/disconnect ne trouvent
+# jamais rien et la connexion survit au chemin d'erreur.
+var _pending_session_ready_cb := Callable()
 var _pending_outgoing_recipient_name := ""
 var _outgoing_invite_elapsed := 0.0
 
@@ -156,46 +162,33 @@ const RANKED_QUEUE_TIMEOUT := 180.0  # abandon après 3 min sans adversaire
 # base de joueurs. Aligné sur le Classé ; constante gardée séparée pour pouvoir
 # les régler indépendamment plus tard.
 const NORMAL_QUEUE_TIMEOUT := 180.0
-# queue_report_lobby (voir _on_queue_lobby_ready) était appelée sans callback :
-# un échec réseau ponctuel restait totalement silencieux, l'invité restant
-# bloqué à repoller un lobby qui n'arrivait jamais jusqu'au timeout de 3 min
-# (bug rapporté : partie classée qui ne se lance jamais). Réessai avec un
-# court délai avant d'abandonner et de prévenir explicitement l'hôte.
-const RANKED_REPORT_LOBBY_MAX_ATTEMPTS := 3
-const RANKED_REPORT_LOBBY_RETRY_DELAY := 1.5
-
-# Temps d'attente max d'un pair réel une fois hôte désigné par la file
-# backend et le lobby Steam créé/rapporté (voir _on_queue_matched, branche
-# hôte). Sans ce filet, un hôte dont l'invité n'arrive jamais (join Steam
-# refusé de son côté, voir _queue_matched_join_pending) restait bloqué "en
-# attente d'un adversaire" indéfiniment, sans le savoir — rien côté Steam ne
-# prévient l'hôte d'une entrée en lobby refusée chez le pair (lobby_chat_update
-# ne se déclenche que si quelqu'un entre RÉELLEMENT dans le lobby). Plutôt que
-# de rester bloqué, l'hôte referme et relance une recherche automatiquement.
+# Temps d'attente max d'un pair réel une fois hôte désigné par la file backend
+# (voir _on_queue_matched). Sans ce filet, un hôte dont l'adversaire ne se
+# connecte jamais (jeu fermé entre-temps, P2P impossible de son côté) resterait
+# bloqué "en attente d'un adversaire" indéfiniment, sans le savoir : rien côté
+# Steam ne prévient un socket d'écoute qu'un pair a renoncé. Plutôt que de
+# rester planté, l'hôte referme et relance une recherche automatiquement.
 #
-# 60s et non 30 : l'invité doit avoir le temps de voir le lobby apparaître à son
-# prochain poll (RANKED_POLL_INTERVAL), de le rejoindre côté Steam, PUIS
-# d'établir la connexion P2P. À 30s, un aller-retour un peu lent suffisait à ce
-# que l'hôte referme son lobby (voir NetworkManager._setup_transport : toute
-# nouvelle tentative quitte le lobby en cours) pendant que l'invité était encore
-# en train de le rejoindre — l'invité recevait alors "lobby inexistant" (code 2)
-# et les deux repartaient en boucle, chacun détruisant le lobby que l'autre
-# venait de trouver.
-const HOST_PEER_WAIT_TIMEOUT := 60.0
+# Calé un peu AU-DESSUS de la fenêtre de relances de l'invité
+# (SteamTransport.DIRECT_CONNECT_MAX_ATTEMPTS × DIRECT_CONNECT_RETRY_DELAY,
+# ≈ 24 s) : l'invité renonce donc le premier et rend l'appariement au backend,
+# l'hôte n'a plus qu'à constater. L'ancienne valeur (60 s) était calibrée sur
+# le rendez-vous par lobby, où l'invité devait d'abord ATTENDRE de découvrir un
+# lobby publié par HTTP avant même de pouvoir tenter quoi que ce soit — cette
+# étape n'existe plus (voir l'en-tête de SteamTransport).
+const HOST_PEER_WAIT_TIMEOUT := 35.0
 
-# Nombre maximum de relances automatiques consécutives après un join refusé
-# (voir _on_peer_disconnected, "steam_lobby_join_failed"). Sans plafond, deux
-# joueurs pouvaient se relancer indéfiniment l'un après l'autre — chaque
-# relance détruisant le lobby en cours (voir HOST_PEER_WAIT_TIMEOUT) et donc
-# provoquant l'échec suivant : une boucle qui ne convergeait jamais et
-# empêchait complètement de jouer ensemble. Au-delà, on s'arrête et on le dit
-# au joueur plutôt que de boucler en silence.
+# Nombre maximum de relances automatiques consécutives après un appariement qui
+# n'a pas abouti (adversaire jamais joignable en P2P — voir
+# _retry_queue_search_or_give_up). Au-delà, on s'arrête et on le dit au joueur
+# plutôt que de boucler en silence.
 #
-# Relevé de 2 à 4 : chaque cycle est désormais PROPRE (l'appariement mort est
-# rendu au backend par _abandon_matched_ticket, qui remet les deux joueurs en
-# file avec un steam_lobby_id vierge), donc une relance a une vraie chance
-# d'aboutir au lieu de rejouer le même échec. À 2, l'invité renonçait souvent
-# avant que l'hôte n'ait fini d'expirer.
+# Un plafond bas était indispensable à l'époque du rendez-vous par lobby, où
+# chaque relance détruisait le lobby en cours et provoquait mécaniquement
+# l'échec suivant : la boucle ne convergeait jamais. Ce couplage n'existe plus
+# (plus de lobby sur ce chemin, voir _on_queue_matched), et chaque cycle rend
+# l'appariement mort au backend avant de repartir — une relance a donc une vraie
+# chance d'aboutir sur un autre adversaire.
 const MAX_AUTO_JOIN_RETRIES := 4
 
 # Mode de la file backend en cours ("ranked"|"normal"|"") — sert à savoir si le
@@ -224,11 +217,11 @@ var _queue_match_session_token: String = ""
 # ticket sera annulé dès qu'il arrive au lieu d'être laissé actif en tâche de
 # fond pendant que l'UI se croit déjà revenue au repos.
 var _queue_cancel_pending := false
-# true entre l'envoi du join() vers le lobby rapporté par l'hôte (voir
-# _on_queue_matched, branche invité) et sa confirmation/son échec — distingue
-# un "steam_lobby_join_failed" venant de ce flux (retenté automatiquement,
-# voir _on_peer_disconnected) d'un échec de join sur une invitation Steam
-# classique (lobby_id choisi par le joueur, jamais retenté automatiquement).
+# true entre l'ouverture de la connexion P2P vers l'adversaire apparié par la
+# file (voir _on_queue_matched, branche invité) et sa réussite/son échec
+# définitif — distingue un "steam_peer_unreachable" venant de ce flux (relancé
+# automatiquement dans le même mode, voir _on_peer_disconnected) d'une
+# connexion échouée dans tout autre contexte.
 var _queue_matched_join_pending := false
 # Filet de sécurité côté hôte : voir HOST_PEER_WAIT_TIMEOUT.
 var _host_peer_wait_timer: Timer
@@ -506,8 +499,8 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 	# trouvaient jamais rien. La connexion CONNECT_ONE_SHOT survivait donc au chemin
 	# d'erreur ci-dessous et se déclenchait au session_ready SUIVANT — envoyant une
 	# invitation d'ami parasite portant le lobby d'une partie Normal/Classée.
-	var on_lobby_ready := _on_friend_invite_lobby_ready.bind(recipient_id, recipient_name)
-	_net.session_ready.connect(on_lobby_ready, CONNECT_ONE_SHOT)
+	_pending_session_ready_cb = _on_friend_invite_lobby_ready.bind(recipient_id, recipient_name)
+	_net.session_ready.connect(_pending_session_ready_cb, CONNECT_ONE_SHOT)
 	var err := _net.host_game_with(TransportFactory.Backend.STEAM)
 	if err == OK:
 		_set_loading(true)
@@ -515,9 +508,20 @@ func invite_friend(recipient_id: int, recipient_name: String) -> void:
 		_set_status("NET_STEAM_HOSTING")
 	else:
 		_set_search_mode("")
-		if _net.session_ready.is_connected(on_lobby_ready):
-			_net.session_ready.disconnect(on_lobby_ready)
+		_clear_pending_session_ready()
 		_flash_banner("NET_STEAM_UNAVAILABLE")
+
+# Une connexion CONNECT_ONE_SHOT qui ne se déclenche jamais ne se défait pas
+# toute seule : si la création du lobby échoue APRÈS un host_game_with réussi
+# (voir SteamTransport, signal disconnected "steam_lobby_create_failed"), le
+# handler reste branché et se réveille au session_ready SUIVANT — c'est-à-dire
+# sur le lobby d'une TOUTE AUTRE partie, à qui il enverrait l'invitation de
+# l'ami précédent. D'où ce nettoyage systématique sur tous les chemins de sortie
+# (erreur, déconnexion, connexion établie).
+func _clear_pending_session_ready() -> void:
+	if _pending_session_ready_cb.is_valid() and _net.session_ready.is_connected(_pending_session_ready_cb):
+		_net.session_ready.disconnect(_pending_session_ready_cb)
+	_pending_session_ready_cb = Callable()
 
 func _on_friend_invite_lobby_ready(session_id: int, recipient_id: int, recipient_name: String) -> void:
 	BackendClient.send_game_invite(recipient_id, session_id, func(success: bool, data: Dictionary) -> void:
@@ -585,6 +589,7 @@ func _stop_outgoing_invite_poll() -> void:
 		_outgoing_invite_poll_timer = null
 
 func _reset_friend_invite_state() -> void:
+	_clear_pending_session_ready()
 	_stop_outgoing_invite_poll()
 	_pending_outgoing_invite_id = 0
 	_pending_outgoing_recipient_name = ""
@@ -799,15 +804,10 @@ func _poll_queue() -> void:
 	_queue_elapsed += RANKED_POLL_INTERVAL
 	var is_normal := _search_mode == "normal"
 	var timeout := NORMAL_QUEUE_TIMEOUT if is_normal else RANKED_QUEUE_TIMEOUT
-	# Déjà apparié (_queue_role rempli) mais le lobby de l'hôte n'est pas encore
-	# publié : le délai COURT de la file ne s'applique plus. L'appliquer ici
-	# lâchait un adversaire qui était justement en train de créer son lobby — les
-	# deux repartaient alors chacun de leur côté sans jamais retomber en phase.
-	# On ne poll pas indéfiniment pour autant : on accorde à l'hôte le même temps
-	# que son propre filet de sécurité (voir HOST_PEER_WAIT_TIMEOUT), jamais
-	# moins que le délai nominal du mode.
-	if _queue_role != "":
-		timeout = maxf(timeout, HOST_PEER_WAIT_TIMEOUT)
+	# Plus de cas « apparié mais on continue de poller » : les deux rôles
+	# arrêtent le poll dès l'appariement, l'identité du pair suffisant à se
+	# connecter (voir _on_queue_matched). Ce minuteur ne couvre donc plus que
+	# l'attente d'un adversaire.
 	if _queue_elapsed >= timeout:
 		if _queue_ticket_id != "":
 			BackendClient.queue_cancel(_queue_ticket_id)
@@ -844,84 +844,65 @@ func _poll_queue() -> void:
 				])
 	)
 
+# Le backend vient d'apparier deux joueurs : il renvoie le rôle (hôte/invité)
+# ET le SteamID64 de l'adversaire. Il n'y a donc plus rien à découvrir côté
+# Steam — l'hôte ouvre un socket d'écoute P2P, l'invité s'y connecte
+# directement. Voir l'en-tête de SteamTransport pour pourquoi le rendez-vous
+# par lobby Steam a été retiré de ce chemin (il ne servait que d'annuaire, au
+# prix d'un aller-retour HTTP de plus et de toute la classe d'échecs « code 2 »).
 func _on_queue_matched(data: Dictionary) -> void:
 	# Réponse de file arrivée après qu'une invitation a pris la main : l'ignorer,
-	# sinon le host_game_with/join_game_with ci-dessous quitterait le lobby de
+	# sinon le host_game_with/join_game_with ci-dessous couperait la session de
 	# l'invitation (voir _abandon_queue_for_invite).
 	if _search_mode == "invite":
 		return
 	_queue_role = str(data.get("role", ""))
-	print("[Matchmaking] Adversaire trouvé — mode=%s rôle=%s match_id=%s" \
-		% [_queue_mode, _queue_role, str(data.get("match_id", ""))])
+	# SteamID64 en CHAÎNE de chiffres, jamais en nombre : 57 bits significatifs
+	# ne survivent pas à un double JSON (même piège que les ids de lobby, voir
+	# BackendClient.parse_lobby_id). On le garde tel quel et c'est SteamTransport
+	# qui le convertit.
+	var opponent_steam_id := str(data.get("opponent_steam_id", ""))
+	print("[Matchmaking] Adversaire trouvé — mode=%s rôle=%s match_id=%s pair_steam=%s" \
+		% [_queue_mode, _queue_role, str(data.get("match_id", "")), opponent_steam_id])
+	if not opponent_steam_id.is_valid_int() or opponent_steam_id == "":
+		# Sans l'identité de l'adversaire, aucune connexion n'est possible : le
+		# compte adverse n'a pas de SteamID lié en base (compte créé côté site ?).
+		# On rend l'appariement au backend pour que les deux repartent en file
+		# plutôt que de laisser l'autre attendre un pair qui ne viendra jamais.
+		push_warning("[Matchmaking] Appariement sans opponent_steam_id exploitable — abandonné")
+		_queue_matched_ticket_id = _queue_ticket_id
+		_abandon_matched_ticket()
+		_reset_queue_ui()
+		_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
+		return
 	_queue_match_id = str(data.get("match_id", ""))
 	_queue_match_session_token = str(data.get("match_session_token", ""))
-	if _queue_role == "host":
-		if _queue_poll_timer != null:
-			_queue_poll_timer.stop()
-			_queue_poll_timer.queue_free()
-			_queue_poll_timer = null
-		_net.session_ready.connect(_on_queue_lobby_ready, CONNECT_ONE_SHOT)
-		var err := _net.host_game_with(TransportFactory.Backend.STEAM)
-		if err == OK:
-			_set_status("NET_RANKED_MATCHED")
-			_start_host_peer_wait_timer()
-		else:
-			if _net.session_ready.is_connected(_on_queue_lobby_ready):
-				_net.session_ready.disconnect(_on_queue_lobby_ready)
-			_cancel_queue_search(false)
-			_flash_banner("NET_STEAM_UNAVAILABLE")
-		return
-	# Invité : le lobby n'est disponible qu'une fois l'hôte l'ayant rapporté
-	# (queue_report_lobby) — on continue de repoller jusqu'à ce qu'il apparaisse.
-	# parse_lobby_id et non int() : l'id arrive en chaîne de chiffres, un CSteamID
-	# 64 bits ne survit pas à un double (voir BackendClient.parse_lobby_id) — c'est
-	# ce qui faisait rejoindre un lobby inexistant et échouer en code 2.
-	var lobby_id := BackendClient.parse_lobby_id(data.get("steam_lobby_id"))
-	if lobby_id == 0:
-		return
+	# Apparié : ce ticket n'a plus à être repollé. Il est conservé sous
+	# _queue_matched_ticket_id pour pouvoir RENDRE l'appariement au backend s'il
+	# n'aboutit pas (voir _abandon_matched_ticket) — c'est vrai des deux rôles
+	# désormais, l'hôte n'a plus d'étape « publier mon lobby » où le faire.
 	if _queue_poll_timer != null:
 		_queue_poll_timer.stop()
 		_queue_poll_timer.queue_free()
 		_queue_poll_timer = null
 	_queue_matched_ticket_id = _queue_ticket_id
-	_queue_ticket_id = ""  # déjà apparié, plus de sens à repoller/annuler ce ticket
+	_queue_ticket_id = ""
 	_set_status("NET_RANKED_MATCHED")
-	_queue_matched_join_pending = true
-	var err := _net.join_game_with(TransportFactory.Backend.STEAM, {"lobby_id": lobby_id})
+	var err: int
+	if _queue_role == "host":
+		err = _net.host_game_with(TransportFactory.Backend.STEAM,
+			{"expected_peer_id": opponent_steam_id})
+		if err == OK:
+			_start_host_peer_wait_timer()
+	else:
+		_queue_matched_join_pending = true
+		err = _net.join_game_with(TransportFactory.Backend.STEAM,
+			{"peer_id": opponent_steam_id})
 	if err != OK:
 		_queue_matched_join_pending = false
+		_abandon_matched_ticket()
 		_reset_queue_ui()
 		_flash_banner("NET_STEAM_UNAVAILABLE")
-
-# Hôte classé uniquement : le lobby vient d'être créé, on transmet son id au
-# backend pour que l'invité puisse le rejoindre directement (voir
-# _on_queue_matched, branche invité).
-func _on_queue_lobby_ready(session_id: int) -> void:
-	if _queue_ticket_id == "":
-		return
-	var ticket_id := _queue_ticket_id
-	_queue_matched_ticket_id = ticket_id
-	_queue_ticket_id = ""  # le rôle d'hôte n'a plus besoin de repoller/annuler
-	_report_queue_lobby(ticket_id, session_id, 1)
-
-func _report_queue_lobby(ticket_id: String, session_id: int, attempt: int) -> void:
-	BackendClient.queue_report_lobby(ticket_id, session_id, func(code: int, _parsed: Variant) -> void:
-		if code == 200 or code ==204:
-			return
-		push_warning("[Ranked] queue_report_lobby a échoué (code %d, tentative %d/%d, ticket %s)" \
-			% [code, attempt, RANKED_REPORT_LOBBY_MAX_ATTEMPTS, ticket_id])
-		if attempt < RANKED_REPORT_LOBBY_MAX_ATTEMPTS:
-			await get_tree().create_timer(RANKED_REPORT_LOBBY_RETRY_DELAY).timeout
-			_report_queue_lobby(ticket_id, session_id, attempt + 1)
-		else:
-			# L'invité ne recevra jamais ce lobby : inutile de laisser l'hôte
-			# héberger dans le vide jusqu'à ce que l'invité expire de son côté
-			# (jusqu'à 3 min) — on referme et on prévient tout de suite.
-			_abandon_matched_ticket()  # l'invité n'aura jamais ce lobby : qu'il reparte en file
-			_net.close("report-lobby échoué après toutes les tentatives")
-			_reset_queue_ui()
-			_flash_banner("NET_RANKED_LOBBY_REPORT_FAILED")
-	)
 
 func _start_host_peer_wait_timer() -> void:
 	_stop_host_peer_wait_timer()
@@ -937,35 +918,40 @@ func _stop_host_peer_wait_timer() -> void:
 		_host_peer_wait_timer.queue_free()
 		_host_peer_wait_timer = null
 
-# Aucun pair réel n'est arrivé dans le lobby avant HOST_PEER_WAIT_TIMEOUT (voir
-# la constante) : plutôt que de laisser l'hôte planté indéfiniment, on ferme
-# ce lobby et on relance une recherche dans le même mode ("normal"/"ranked",
-# voir _queue_mode). L'invité qui a échoué de son côté (voir
-# _queue_matched_join_pending) a de toute façon déjà relancé la sienne — les
-# deux se re-matcheront naturellement au prochain appariement compatible.
+# L'adversaire apparié ne s'est jamais connecté avant HOST_PEER_WAIT_TIMEOUT
+# (voir la constante) : plutôt que de laisser l'hôte planté indéfiniment sur un
+# socket d'écoute que personne ne vient chercher, on ferme et on relance une
+# recherche dans le même mode ("normal"/"ranked", voir _queue_mode). L'invité
+# qui a renoncé de son côté (voir _queue_matched_join_pending) a de toute façon
+# déjà relancé la sienne — les deux se re-matcheront naturellement au prochain
+# appariement compatible.
 func _on_host_peer_wait_timeout() -> void:
 	_stop_host_peer_wait_timer()
 	# Une invitation est passée devant : son lobby doit survivre (un ami peut
 	# accepter longtemps après l'envoi), on ne referme surtout rien ici.
 	if _search_mode == "invite":
 		return
-	# Plafond atteint : on arrête de relancer dans le vide et on le dit, plutôt
-	# que d'entretenir la boucle où chacun détruit le lobby de l'autre (voir
-	# MAX_AUTO_JOIN_RETRIES).
-	# Dans les deux cas l'appariement est mort : on le dit au backend pour que
-	# l'invité soit lui aussi remis en file, au lieu de le laisser "matched" sur un
-	# lobby qu'on vient de quitter.
+	# L'appariement est mort : on le dit au backend pour que l'adversaire soit lui
+	# aussi remis en file, au lieu de le laisser "matched" (donc non
+	# ré-appariable) jusqu'à ce qu'il relance lui-même une recherche.
 	_abandon_matched_ticket()
+	_net.close("hôte : aucun pair après HOST_PEER_WAIT_TIMEOUT")
+	_retry_queue_search_or_give_up()
+
+# Relance une recherche dans le MÊME mode après un appariement qui n'a pas
+# abouti, en plafonnant les relances (voir MAX_AUTO_JOIN_RETRIES) : au-delà on
+# s'arrête et on le dit au joueur plutôt que de boucler en silence. L'appelant a
+# déjà rendu l'appariement au backend (_abandon_matched_ticket) et fermé la
+# session Steam s'il y en avait une.
+func _retry_queue_search_or_give_up() -> void:
 	if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
 		_auto_join_retries = 0
-		_net.close("hôte : aucun pair, plafond de relances atteint")
 		_reset_queue_ui()
 		_show_search_banner(false)
 		_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
 		return
 	_auto_join_retries += 1
 	var mode_to_retry := _queue_mode
-	_net.close("hôte : aucun pair après HOST_PEER_WAIT_TIMEOUT, relance auto")
 	_reset_queue_ui()
 	if mode_to_retry == "ranked":
 		start_ranked()
@@ -979,7 +965,45 @@ func _on_host_peer_wait_timeout() -> void:
 # ça, l'ancienne instance reste abonnée à _net.command_received et peut réagir
 # à un paquet reçu lors d'une tentative suivante (setup — seed RNG, parité
 # d'ids — périmé écrasant le bon).
+# Délai au-delà duquel un handshake/une synchronisation qui n'aboutit pas est
+# considéré perdu. NetHandshake et NetBattleSync renvoient leur message tant que
+# le pair n'a pas confirmé, indéfiniment : si celui-ci se tait sans que Steam ne
+# signale de coupure (processus gelé, machine en veille), l'écran de chargement
+# tournait pour toujours. Pire, cet autoload survit au changement de scène :
+# _loading restait bloqué à true pour TOUTE la session, et start_normal /
+# start_ranked / invite_friend refusaient ensuite silencieusement de relancer la
+# moindre recherche. Large : 45 s est plusieurs dizaines de renvois, on n'abrège
+# jamais une connexion seulement lente.
+const CONNECTION_FLOW_TIMEOUT := 45.0
+var _connection_flow_timer: Timer
+
+func _start_connection_flow_timeout() -> void:
+	_stop_connection_flow_timeout()
+	_connection_flow_timer = Timer.new()
+	_connection_flow_timer.one_shot = true
+	_connection_flow_timer.timeout.connect(_on_connection_flow_timeout)
+	add_child(_connection_flow_timer)
+	_connection_flow_timer.start(CONNECTION_FLOW_TIMEOUT)
+
+func _stop_connection_flow_timeout() -> void:
+	if _connection_flow_timer != null:
+		_connection_flow_timer.stop()
+		_connection_flow_timer.queue_free()
+		_connection_flow_timer = null
+
+func _on_connection_flow_timeout() -> void:
+	_stop_connection_flow_timeout()
+	print("[MatchmakingOverlay] Handshake/synchronisation sans réponse du pair après %ds — abandon" % int(CONNECTION_FLOW_TIMEOUT))
+	_cleanup_connection_flow()
+	_connect_token += 1
+	_net.close("handshake sans réponse du pair")
+	_show_match_found_overlay(false)
+	_reset_queue_ui()
+	_show_search_banner(false)
+	_flash_banner("NET_STEAM_DISCONNECTED")
+
 func _cleanup_connection_flow() -> void:
+	_stop_connection_flow_timeout()
 	if _handshake != null and is_instance_valid(_handshake):
 		_handshake.cancel()
 		_handshake.queue_free()
@@ -1004,6 +1028,7 @@ func _on_peer_identified() -> void:
 
 func _on_peer_connected() -> void:
 	_stop_host_peer_wait_timer()
+	_clear_pending_session_ready()
 	_queue_matched_join_pending = false
 	_auto_join_retries = 0  # série de relances close : la connexion a abouti
 	# L'appariement a tenu : plus rien à abandonner. Sans cet oubli volontaire, une
@@ -1043,9 +1068,13 @@ func _on_peer_connected() -> void:
 	_handshake.completed.connect(_on_handshake_ready)
 	_handshake.progress.connect(func(text: String) -> void: print("[MatchmakingOverlay] " + text))
 	_handshake.start()
+	# Filet de sécurité pour toute la phase handshake + synchronisation (voir
+	# CONNECTION_FLOW_TIMEOUT) : elle n'a aucune limite propre.
+	_start_connection_flow_timeout()
 
 func _on_peer_disconnected(reason: String) -> void:
 	_stop_host_peer_wait_timer()
+	_clear_pending_session_ready()
 	# Invalide un éventuel flash "adversaire trouvé" encore en attente (voir
 	# _on_peer_connected) : une coupure pendant ces 5 secondes ne doit pas
 	# quand même enchaîner sur l'écran de chargement plein écran.
@@ -1061,48 +1090,34 @@ func _on_peer_disconnected(reason: String) -> void:
 			_reset_queue_ui()
 			_show_search_banner(false)
 			_flash_banner("NET_STEAM_SAME_ACCOUNT")
-		"steam_lobby_join_failed":
-			# Le lobby rapporté par l'hôte (voir _on_queue_matched, branche
-			# invité) n'existe déjà plus côté Steam au moment du join — le plus
-			# souvent un hôte qui a relancé sa propre recherche entre-temps
-			# (voir HOST_PEER_WAIT_TIMEOUT) plutôt qu'une vraie coupure. Retenté
-			# automatiquement dans le même mode au lieu de planter le joueur sur
-			# un message "adversaire déconnecté" qui l'obligerait à recliquer
-			# lui-même — mais UNIQUEMENT pour ce flux (jamais pour l'échec d'un
-			# join sur une invitation Steam explicite, voir
-			# _queue_matched_join_pending).
-			if _queue_matched_join_pending:
-				_queue_matched_join_pending = false
-				# Libère AUSSI l'hôte, qui sinon resterait "matched" à héberger dans
-				# le vide pendant tout son HOST_PEER_WAIT_TIMEOUT.
-				_abandon_matched_ticket()
-				# Plafonné : sans ça, les deux joueurs se relançaient sans fin,
-				# chaque relance quittant le lobby en cours (voir
-				# NetworkManager._setup_transport) et causant l'échec suivant —
-				# ils ne se rejoignaient jamais (voir MAX_AUTO_JOIN_RETRIES).
-				if _auto_join_retries >= MAX_AUTO_JOIN_RETRIES:
-					_auto_join_retries = 0
-					_reset_queue_ui()
-					_show_search_banner(false)
-					_flash_banner("NET_STEAM_JOIN_RETRY_FAILED")
-					return
-				_auto_join_retries += 1
-				var mode_to_retry := _queue_mode
-				_reset_queue_ui()
-				if mode_to_retry == "ranked":
-					start_ranked()
-				else:
-					start_normal()
+		"steam_peer_unreachable":
+			# Invité apparié par la file : l'adversaire n'a jamais ouvert sa
+			# connexion P2P (jeu fermé entre-temps, P2P impossible de son côté).
+			# On rend l'appariement au backend — sinon l'autre resterait "matched",
+			# donc non ré-appariable, pendant tout son HOST_PEER_WAIT_TIMEOUT — puis
+			# on relance une recherche dans le même mode plutôt que de planter le
+			# joueur sur un message qui l'obligerait à recliquer lui-même.
+			_queue_matched_join_pending = false
+			_abandon_matched_ticket()
+			_net.close("invité : l'adversaire apparié ne répond pas en P2P")
+			_retry_queue_search_or_give_up()
+		"steam_lobby_join_failed", "steam_lobby_full", "steam_lobby_rate_limited":
+			# Ces trois échecs ne concernent plus QUE les invitations d'ami : la
+			# file ne passe plus par un lobby Steam (voir _on_queue_matched).
+			# "Connexion interrompue" serait trompeur (rien n'a jamais été
+			# connecté) et ne dirait pas au joueur quoi faire.
+			var was_invite := _search_mode == "invite"
+			_set_search_mode("")
+			_reset_queue_ui()
+			_show_search_banner(false)
+			if not was_invite:
+				_flash_banner("NET_STEAM_DISCONNECTED")
+			elif reason == "steam_lobby_rate_limited":
+				_flash_banner("NET_STEAM_LOBBY_RATE_LIMITED")
+			elif reason == "steam_lobby_full":
+				_flash_banner("NET_STEAM_LOBBY_FULL")
 			else:
-				# Échec d'entrée sur une invitation explicite : "connexion
-				# interrompue" est trompeur (rien n'a jamais été connecté) et ne
-				# dit pas au joueur quoi faire. Le lobby de l'ami n'existe plus —
-				# il faut lui redemander une invitation.
-				var was_invite := _search_mode == "invite"
-				_set_search_mode("")
-				_reset_queue_ui()
-				_show_search_banner(false)
-				_flash_banner("NET_STEAM_INVITE_LOBBY_GONE" if was_invite else "NET_STEAM_DISCONNECTED")
+				_flash_banner("NET_STEAM_INVITE_LOBBY_GONE")
 		_:
 			_queue_matched_join_pending = false
 			_set_search_mode("")
@@ -1316,6 +1331,7 @@ func _on_handshake_ready(setup: Dictionary) -> void:
 	_battle_sync.start()
 
 func _on_battle_sync_ready() -> void:
+	_stop_connection_flow_timeout()
 	# La connexion/le handshake sont terminés ici (bataille sur le point de
 	# démarrer) : sans ce reset, _loading reste bloqué à true pour le reste de
 	# la session (cet autoload survit à tout change_scene_to_file) et

@@ -1,28 +1,50 @@
 extends NetTransport
 class_name SteamTransport
 
-# Implémentation Steam du transport : lobby Steam pour la mise en relation,
-# API Steam Networking Sockets (createListenSocketP2P / connectP2P /
-# sendMessageToConnection / receiveMessagesOnConnection) pour les octets de
-# jeu.
+# Implémentation Steam du transport : API Steam Networking Sockets
+# (createListenSocketP2P / connectP2P / sendMessageToConnection /
+# receiveMessagesOnConnection) pour les octets de jeu, avec DEUX modes de
+# rendez-vous — c'est-à-dire deux façons de savoir À QUI se connecter.
 #
-# On utilisait auparavant l'ancienne API P2P (sendP2PPacket), dépréciée par
-# Valve : sa traversée NAT est moins fiable et elle ne bascule pas toujours
-# proprement sur le relais Steam (SDR) quand la connexion directe échoue —
-# symptôme observé : deux joueurs sur des réseaux différents restaient
-# bloqués indéfiniment au handshake bien que le lobby les considère connectés.
-# Networking Sockets gère ce basculement automatiquement et expose un vrai
-# état de connexion (network_connection_status_changed), donc `connected`
-# n'est émis qu'une fois la connexion P2P RÉELLEMENT établie — plus une
-# simple présomption basée sur la présence dans le lobby.
+# ── Mode DIRECT (file d'attente backend : Normal/Classé) ─────────────────────
+# Le backend connaît déjà les deux joueurs qu'il vient d'apparier, donc il
+# connaît leurs deux SteamID64 (linked_accounts.external_id) : il les renvoie
+# dans la réponse « matched » du poll de file. Il n'y a alors plus rien à
+# découvrir côté Steam — l'hôte ouvre un socket d'écoute, l'invité appelle
+# connectP2P sur le SteamID de l'hôte, terminé.
 #
-# - host() : crée un lobby public tagué "wyrdane" ET un socket d'écoute P2P.
-#   La partie démarre quand un second membre entre dans le lobby ET que sa
-#   connexion P2P entrante est acceptée.
-# - join() : rejoint un lobby PRÉCIS ({"lobby_id": int}) puis ouvre la connexion
-#   P2P vers l'hôte. Il n'existe plus de variante « cherche un lobby ouvert » :
-#   le lobby_id vient toujours de la file backend ou d'une invitation Steam
-#   acceptée (voir join pour le détail de ce retrait).
+# C'est le mode par défaut depuis le 2026-09-28, et il remplace le rendez-vous
+# par lobby Steam pour tout ce qui vient de la file. Raison : ConnectP2P
+# n'exige NI amitié NI appartenance à un lobby (doc Steamworks
+# ISteamNetworkingSockets — seul InitRelayNetworkAccess est recommandé, fait
+# dans SteamService), donc le lobby n'apportait qu'un annuaire intermédiaire…
+# et toute une classe d'échecs qui a coûté plusieurs sessions de debug :
+#   - un transport qu'on ferme QUITTE son lobby, et un lobby quitté par son
+#     dernier membre est détruit côté Steam : toute relance de recherche
+#     rendait injoignable le lobby que le pair était en train de rejoindre,
+#     qui recevait alors « entrée refusée (code 2) » (voir l'historique dans
+#     CLAUDE.md / devlogs des 2026-09-25 et 2026-09-28) ;
+#   - il fallait un aller-retour HTTP de plus (l'hôte publie son lobby_id, que
+#     l'invité découvre à son poll suivant), avec son propre lot de réessais,
+#     de délais et d'états intermédiaires ;
+#   - un CSteamID 64 bits transporté en JSON se fait arrondir dès qu'un maillon
+#     le lit comme un nombre (corrigé deux fois, côté driver MySQL puis côté
+#     sérialisation) — un id de lobby ne traverse plus rien du tout ici.
+# En mode direct, l'identité attendue vient d'une autorité de confiance (le
+# backend) : la vérification de sécurité côté hôte est donc PLUS stricte
+# qu'avec un lobby public (comparaison exacte au SteamID annoncé, au lieu
+# d'une appartenance à un lobby que n'importe qui pouvait lister).
+#
+# ── Mode LOBBY (invitation d'un ami) ────────────────────────────────────────
+# Conservé uniquement pour les invitations : un lobby Steam est ce qui rend le
+# « Rejoindre la partie » natif de l'overlay Steam possible (un ami peut
+# rejoindre depuis son propre client Steam, sans passer par la popup en jeu).
+# L'hôte crée un lobby public tagué "wyrdane", l'invité le rejoint par son id
+# puis ouvre la connexion P2P vers le propriétaire.
+#
+# Dans les deux modes, `connected` n'est émis qu'une fois la connexion P2P
+# RÉELLEMENT établie (network_connection_status_changed), jamais sur une
+# présomption d'appartenance à un lobby.
 #
 # Aucun identifiant Steam (SteamID64, lobby id) ne fuit hors de cette classe :
 # le reste du jeu ne voit que l'interface NetTransport.
@@ -33,9 +55,17 @@ const LOBBY_GAME_VALUE := "wyrdane"
 const LOBBY_OWNER_KEY := "owner_id"
 const VIRTUAL_PORT := 0  # une seule connexion P2P possible par pair : 1v1
 
+# Comment ce transport apprend l'identité du pair (voir l'en-tête).
+enum Rendezvous { DIRECT, LOBBY }
+
 # Constantes Steamworks recopiées (le singleton n'existe pas à la compilation).
 const LOBBY_TYPE_PUBLIC := 2
-const LOBBY_OK := 1                    # CHAT_ROOM_ENTER_RESPONSE_SUCCESS
+
+# EChatRoomEnterResponse (steam_api.h) — réponse de joinLobby.
+const LOBBY_OK := 1                    # Success
+const LOBBY_DOESNT_EXIST := 2          # « n'existe pas (probablement fermé) »
+const LOBBY_FULL := 4                  # taille maximale atteinte
+const LOBBY_RATE_LIMITED := 15         # trop de tentatives en peu de temps
 const CHAT_ENTERED := 1                # CHAT_MEMBER_STATE_CHANGE_ENTERED
 
 # ESteamNetworkingConnectionState (isteamnetworkingtypes.h).
@@ -50,64 +80,116 @@ const SEND_UNRELIABLE := 0
 const SEND_RELIABLE := 8
 
 var _steam: Object = null
+var _mode: Rendezvous = Rendezvous.DIRECT
 var _lobby_id: int = 0
-var _remote_id: int = 0        # SteamID64 du pair distant, connu dès le lobby
+var _remote_id: int = 0        # SteamID64 du pair distant
+# Mode direct, hôte : seule identité autorisée à se connecter (donnée par le
+# backend). Toute connexion entrante d'un autre SteamID est refermée.
+var _expected_peer_id: int = 0
 var _listen_socket: int = 0    # hôte seulement : socket d'écoute P2P
 var _connection_handle: int = 0
 var _is_host := false
+# Vrai dès qu'une connexion P2P a abouti au moins une fois. Sert à distinguer
+# « la connexion initiale n'est pas encore passée » (on réessaie en silence, le
+# pair n'a peut-être pas encore ouvert son socket d'écoute) de « la connexion
+# établie est tombée » (coupure réelle, à signaler).
+var _ever_connected := false
 
-# Relance d'un joinLobby refusé en code 2 (DoesntExist), DANS le même transport
-# (sans repasser par la file ni recréer de lobby). Sert autant de correctif que
-# de diagnostic : si une relance 1–3 s plus tard réussit, le code 2 venait d'une
-# course de propagation côté Steam juste après la création ; si toutes
-# échouent, le lobby est réellement invisible pour ce client (AppID différent,
-# client hors ligne...) — voir les lignes [SteamDiag] de SteamService.
-const LOBBY_DOESNT_EXIST := 2
-# 6 tentatives à 1,5 s = ~7,5 s de fenêtre. L'ancien réglage (4 × 1 s = 3,4 s)
-# était sans rapport avec le temps que l'HÔTE accorde de son côté
-# (HOST_PEER_WAIT_TIMEOUT = 60 s, voir MatchmakingOverlay) : l'invité renonçait
-# 56 s avant que l'hôte ne renonce, repartait en file seul, et le décalage se
-# rejouait à chaque cycle sans jamais converger. Rester tout de même très en
-# dessous des 60 s de l'hôte : au-delà, insister n'apporte rien — si le lobby
-# n'est pas apparu en quelques secondes, il est réellement mort et mieux vaut
-# rendre l'appariement au backend (_abandon_matched_ticket) pour repartir propre.
-const JOIN_MAX_ATTEMPTS := 6
-const JOIN_RETRY_DELAY := 1.5
+# ── Relances de la connexion P2P sortante (mode direct, invité) ──────────────
+# Les deux clients n'apprennent pas l'appariement au même instant : chacun le
+# découvre à son propre poll de file (2 s de cadence), donc l'invité peut très
+# bien appeler connectP2P AVANT que l'hôte n'ait ouvert son socket d'écoute.
+# Steam refuse alors la connexion, ce qui est normal et attendu : on réessaie
+# tranquillement jusqu'à ce que l'hôte soit prêt. Fenêtre volontairement plus
+# courte que celle que l'hôte accorde de son côté
+# (MatchmakingOverlay.HOST_PEER_WAIT_TIMEOUT), pour que l'invité renonce le
+# premier et rende l'appariement au backend plutôt que les deux en même temps.
+const DIRECT_CONNECT_RETRY_DELAY := 2.0
+const DIRECT_CONNECT_MAX_ATTEMPTS := 12  # ≈ 24 s
+var _connect_attempt := 0
+var _connect_clock := 0.0
+
+# ── Relance d'un joinLobby refusé en code 2 (mode lobby / invitation) ────────
+# Un « code 2 » juste après la création du lobby peut venir d'une course de
+# propagation côté Steam : une relance 2 s plus tard suffit alors. Si toutes
+# échouent, le lobby est réellement mort (l'hôte l'a quitté) et il faut
+# redemander une invitation. Cadence volontairement peu agressive :
+# EChatRoomEnterResponse a une valeur dédiée aux abus (15, RatelimitExceeded),
+# insister vite ferait empirer la situation au lieu de l'améliorer.
+const JOIN_MAX_ATTEMPTS := 4
+const JOIN_RETRY_DELAY := 2.0
 var _join_target: int = 0
 var _join_attempt := 0
 var _lobby_since_ms := 0  # instant d'entrée/création du lobby courant (log de close)
 
-func host(_params: Dictionary) -> int:
+# Héberge une session.
+#   {"expected_peer_id": "<SteamID64>"} → mode DIRECT : aucun lobby, on ouvre
+#     seulement un socket d'écoute et on n'accepte QUE ce SteamID.
+#   {} (aucun paramètre)                → mode LOBBY : crée un lobby public
+#     joignable par un ami (invitation), voir l'en-tête du fichier.
+func host(params: Dictionary) -> int:
 	if not _init_steam():
 		return ERR_UNAVAILABLE
 	_is_host = true
 	_listen_socket = _steam.createListenSocketP2P(VIRTUAL_PORT, {})
+	if _listen_socket == 0:
+		push_error("SteamTransport.host : createListenSocketP2P a échoué")
+		return ERR_CANT_CREATE
+	_expected_peer_id = _parse_steam_id(params.get("expected_peer_id", ""))
+	if _expected_peer_id != 0:
+		_mode = Rendezvous.DIRECT
+		# L'identité du pair est connue AVANT toute connexion (elle vient du
+		# backend) : on peut donc déjà afficher son pseudo Steam, sans attendre
+		# le P2P — voir NetTransport.peer_identified.
+		_remote_id = _expected_peer_id
+		peer_identified.emit()
+		print("[SteamDiag %s] hôte direct : écoute P2P sur le port %d, pair attendu %d (%s)" % [
+			SteamService.ts(), VIRTUAL_PORT, _expected_peer_id, SteamService.state_summary()])
+		status.emit("Steam : en attente de la connexion de l'adversaire…")
+		# Rien à publier ni à attendre côté Steam : la session est immédiatement
+		# prête. session_ready reste émis pour les appelants qui veulent le
+		# savoir, avec 0 (aucun identifiant de session à transmettre à un tiers).
+		session_ready.emit(0)
+		return OK
+	_mode = Rendezvous.LOBBY
 	print("[SteamDiag %s] createLobby demandé (%s, listen_socket=%d)" % [
 		SteamService.ts(), SteamService.state_summary(), _listen_socket])
 	_steam.createLobby(LOBBY_TYPE_PUBLIC, 2)  # 2 membres : c'est du 1v1
 	status.emit("Steam : création du lobby demandée…")
 	return OK
 
-# Rejoint un lobby PRÉCIS, jamais « celui qu'on trouve » : le lobby_id vient
-# toujours d'une source qui sait avec qui on joue — la file backend (voir
-# MatchmakingOverlay._on_queue_matched) ou une invitation Steam acceptée
-# (_on_steam_join_requested).
+# Rejoint une session.
+#   {"peer_id": "<SteamID64>"}  → mode DIRECT : connexion P2P immédiate vers ce
+#     SteamID (identité fournie par la file backend), relancée jusqu'à ce que
+#     l'hôte écoute (voir DIRECT_CONNECT_MAX_ATTEMPTS).
+#   {"lobby_id": int}           → mode LOBBY : entre dans ce lobby précis puis
+#     ouvre la connexion P2P vers son propriétaire (invitation d'ami).
 #
-# Il existait une variante sans lobby_id qui prenait le premier lobby Wyrdane de
-# la liste Steam (portée mondiale). Supprimée le 2026-09-25 : cette liste est
-# éventuellement cohérente et renvoyait des lobbies DÉJÀ FERMÉS, dont l'entrée
-# échouait avec CHAT_ROOM_ENTER_RESPONSE_DOESNT_EXIST — et comme les deux
-# clients cherchaient et hébergeaient chacun de leur côté, ils détruisaient
-# tour à tour le lobby que l'autre venait de trouver sans jamais tomber en
-# phase. La file backend est désormais le seul point de rendez-vous.
+# Il n'existe pas de variante « cherche un lobby ouvert » : elle a été retirée
+# le 2026-09-25 (la liste de lobbies Steam est éventuellement cohérente et
+# renvoyait des lobbies déjà fermés, et les deux clients se détruisaient
+# mutuellement leur lobby sans jamais tomber en phase).
 func join(params: Dictionary) -> int:
 	if not _init_steam():
 		return ERR_UNAVAILABLE
 	_is_host = false
-	var lobby_id: int = params.get("lobby_id", 0)
+	var peer_id := _parse_steam_id(params.get("peer_id", ""))
+	if peer_id != 0:
+		_mode = Rendezvous.DIRECT
+		if peer_id == _steam.getSteamID():
+			# Deux instances sur le même compte Steam : la connexion P2P
+			# bouclerait sur soi-même. Même refus explicite que côté lobby.
+			disconnected.emit("steam_same_account")
+			return OK
+		_remote_id = peer_id
+		peer_identified.emit()
+		_start_direct_connect()
+		return OK
+	var lobby_id: int = int(params.get("lobby_id", 0))
 	if lobby_id == 0:
-		push_error("SteamTransport.join : lobby_id manquant — un lobby ne se cherche plus, il est fourni par la file backend ou une invitation")
+		push_error("SteamTransport.join : ni peer_id (file backend) ni lobby_id (invitation) — un pair ne se cherche pas, il est fourni")
 		return ERR_INVALID_PARAMETER
+	_mode = Rendezvous.LOBBY
 	_join_target = lobby_id
 	_join_attempt = 1
 	print("[SteamDiag %s] joinLobby %d, tentative 1/%d (%s)" % [
@@ -116,21 +198,24 @@ func join(params: Dictionary) -> int:
 	status.emit("Steam : rejoint le lobby %d…" % lobby_id)
 	return OK
 
-# Reconnexion directe au pair déjà connu (lobby/SteamID conservés après une
-# coupure P2P transitoire) : évite de repasser par une entrée en lobby.
-# Sans contexte de lobby connu (lobby lui-même quitté), on ne peut re-rejoindre
-# que si l'appelant sait QUEL lobby viser (un invité garde son lobby_id ; un
-# hôte, lui, n'a plus rien à rejoindre) — l'appelant réessaie de toute façon
-# jusqu'à l'expiration du délai de grâce, voir
-# NetworkManager.RECONNECT_GRACE_SECONDS.
+# Reconnexion au pair déjà connu après une coupure P2P transitoire — appelée
+# uniquement côté rejoignant (l'hôte reste passif, son socket d'écoute accepte
+# déjà une connexion entrante sans action de sa part).
+#
+# En mode direct, le SteamID du pair suffit : aucun lobby à re-rejoindre, donc
+# la reconnexion est toujours possible tant qu'on connaît le pair. En mode
+# lobby, on retente d'abord le P2P direct si le contexte est intact, sinon on
+# re-rejoint le lobby quand l'appelant sait lequel viser.
 func try_reconnect(params: Dictionary) -> int:
-	if _steam == null or _lobby_id == 0 or _remote_id == 0:
-		if int(params.get("lobby_id", 0)) == 0:
-			return ERR_UNAVAILABLE
+	if _steam == null:
+		return ERR_UNAVAILABLE
+	if _remote_id != 0:
+		status.emit("Steam : nouvelle tentative de connexion P2P…")
+		_start_direct_connect()
+		return OK
+	if int(params.get("lobby_id", 0)) != 0 or str(params.get("peer_id", "")) != "":
 		return join(params)
-	status.emit("Steam : nouvelle tentative de connexion P2P…")
-	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
-	return OK
+	return ERR_UNAVAILABLE
 
 func send(bytes: PackedByteArray, reliable: bool = true) -> void:
 	if _steam == null or _connection_handle == 0:
@@ -142,6 +227,7 @@ func poll() -> void:
 	if _steam == null:
 		return
 	SteamService.run_callbacks()
+	_tick_direct_connect(get_process_delta_time())
 	if _connection_handle == 0:
 		return
 	var messages: Array = _steam.receiveMessagesOnConnection(_connection_handle, 32)
@@ -189,15 +275,37 @@ func close() -> void:
 
 func _reset_state() -> void:
 	_steam = null
+	_mode = Rendezvous.DIRECT
 	_lobby_id = 0
 	_remote_id = 0
+	_expected_peer_id = 0
 	_listen_socket = 0
 	_connection_handle = 0
+	_ever_connected = false
+	_connect_attempt = 0
+	_connect_clock = 0.0
 	_join_target = 0
 	_join_attempt = 0
 	_lobby_since_ms = 0
 
 # ─── Interne ──────────────────────────────────────────────────────────────────
+
+# Un SteamID64 arrive toujours en CHAÎNE de chiffres (jamais en nombre) : il
+# occupe 57 bits significatifs, or un float n'en garde que 53 — un id lu comme
+# nombre quelque part sur le chemin est arrondi, silencieusement, et désigne
+# alors quelqu'un d'autre. Même règle que pour les ids de lobby (voir
+# BackendClient.parse_lobby_id et helper/steamLobbyId.ts côté backend).
+# Retourne 0 si la valeur est absente ou n'est pas une chaîne de chiffres.
+static func _parse_steam_id(raw: Variant) -> int:
+	if raw is String:
+		var text: String = raw
+		return int(text) if text.is_valid_int() else 0
+	if raw is int:
+		# Toléré pour un appelant interne (test, reconnexion) mais jamais pour
+		# une valeur venue du réseau : un entier Godot est bien 64 bits, le
+		# risque n'existe que côté JSON.
+		return raw
+	return 0
 
 func _init_steam() -> bool:
 	if not SteamService.ensure_init():
@@ -229,10 +337,55 @@ func _disconnect_steam_signals() -> void:
 		_steam.disconnect("lobby_chat_update", _on_lobby_chat_update)
 		_steam.disconnect("network_connection_status_changed", _on_network_connection_status_changed)
 
-# ── Côté hôte ──
+# ── Mode direct : connexion sortante vers le SteamID donné par le backend ──
+
+func _start_direct_connect() -> void:
+	_connect_attempt = 1
+	_connect_clock = 0.0
+	_open_direct_connection()
+
+func _open_direct_connection() -> void:
+	if _connection_handle != 0:
+		# Une tentative précédente n'a pas encore été refermée par Steam : on la
+		# ferme nous-mêmes, sinon deux connexions concurrentes vers le même pair
+		# peuvent aboutir et seule l'une des deux serait lue.
+		_steam.closeConnection(_connection_handle, 0, "retry", false)
+		_connection_handle = 0
+	print("[SteamDiag %s] connectP2P vers %d, tentative %d/%d (%s)" % [
+		SteamService.ts(), _remote_id, _connect_attempt, DIRECT_CONNECT_MAX_ATTEMPTS,
+		SteamService.state_summary()])
+	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
+	status.emit("Steam : connexion à l'adversaire (essai %d/%d)…" % [
+		_connect_attempt, DIRECT_CONNECT_MAX_ATTEMPTS])
+
+# Relance périodique tant que la connexion initiale n'a pas abouti (voir
+# DIRECT_CONNECT_RETRY_DELAY). Volontairement piloté depuis poll() plutôt que
+# par un Timer : poll() est déjà appelé chaque frame par NetworkManager, et un
+# Timer de plus serait un état supplémentaire à démonter dans close().
+func _tick_direct_connect(delta: float) -> void:
+	# Vaut pour les DEUX modes : côté invité, la connexion sortante est la même
+	# opération, qu'on ait appris l'identité de l'hôte par la file backend ou en
+	# entrant dans son lobby.
+	if _is_host or _ever_connected or _connect_attempt == 0:
+		return
+	_connect_clock += delta
+	if _connect_clock < DIRECT_CONNECT_RETRY_DELAY:
+		return
+	_connect_clock = 0.0
+	if _connect_attempt >= DIRECT_CONNECT_MAX_ATTEMPTS:
+		_connect_attempt = 0
+		status.emit("Steam : l'adversaire n'a pas répondu à la connexion P2P")
+		print("[SteamDiag %s] abandon : %d tentatives de connectP2P vers %d sans réponse" % [
+			SteamService.ts(), DIRECT_CONNECT_MAX_ATTEMPTS, _remote_id])
+		disconnected.emit("steam_peer_unreachable")
+		return
+	_connect_attempt += 1
+	_open_direct_connection()
+
+# ── Côté hôte (mode lobby) ──
 
 func _on_lobby_created(result: int, lobby_id: int) -> void:
-	if not _is_host:
+	if not _is_host or _mode != Rendezvous.LOBBY:
 		return
 	print("[SteamDiag %s] lobby_created result=%d lobby=%d" % [SteamService.ts(), result, lobby_id])
 	if result != LOBBY_OK:
@@ -275,10 +428,10 @@ func _on_lobby_chat_update(lobby_id: int, changed_id: int, _making_change_id: in
 		_remote_id = 0
 		disconnected.emit("peer_left_lobby")
 
-# ── Côté client ──
+# ── Côté client (mode lobby) ──
 
 func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response: int) -> void:
-	if _is_host:
+	if _is_host or _mode != Rendezvous.LOBBY:
 		return
 	print("[SteamDiag %s] lobby_joined lobby=%d response=%d tentative=%d/%d (%s)" % [
 		SteamService.ts(), lobby_id, response, _join_attempt, JOIN_MAX_ATTEMPTS,
@@ -298,7 +451,17 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 			return
 		status.emit("Steam : entrée dans le lobby refusée (code %d)" % response)
 		_join_target = 0
-		disconnected.emit("steam_lobby_join_failed")
+		# Chaque refus mène à un message différent côté joueur : un lobby plein
+		# (un tiers est passé devant, ou le lobby appartient à un match déjà
+		# commencé) n'a pas la même réponse qu'une limitation de débit Steam,
+		# qu'insister ne ferait qu'aggraver (EChatRoomEnterResponse 15).
+		match response:
+			LOBBY_FULL:
+				disconnected.emit("steam_lobby_full")
+			LOBBY_RATE_LIMITED:
+				disconnected.emit("steam_lobby_rate_limited")
+			_:
+				disconnected.emit("steam_lobby_join_failed")
 		return
 	_join_target = 0
 	_lobby_id = lobby_id
@@ -318,7 +481,10 @@ func _on_lobby_joined(lobby_id: int, _permissions: int, _locked: bool, response:
 		return
 	peer_identified.emit()
 	status.emit("Steam : ouverture de la connexion P2P vers l'hôte…")
-	_connection_handle = _steam.connectP2P(_remote_id, VIRTUAL_PORT, {})
+	# Mêmes relances qu'en mode direct : l'hôte d'une invitation a créé son
+	# socket d'écoute avant le lobby, mais une première tentative peut tout de
+	# même échouer sur un réseau lent à établir le relais Steam.
+	_start_direct_connect()
 
 # ── Commun : suivi de la connexion P2P réelle ──
 
@@ -328,25 +494,13 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 	match state:
 		CONN_STATE_CONNECTING:
 			# Connexion entrante sur notre socket d'écoute : uniquement pertinent
-			# côté hôte. On n'accepte que le pair déjà identifié via le lobby
-			# (1v1 : premier arrivé = notre pair).
+			# côté hôte.
 			if not _is_host or connection.get("listen_socket", 0) != _listen_socket:
 				return
-			# Le lobby est PUBLIC et son LOBBY_OWNER_KEY lisible par quiconque liste
-			# les lobbies "wyrdane" sans jamais le rejoindre : un tiers non invité
-			# peut appeler connectP2P directement contre notre SteamID. Ne JAMAIS se
-			# fier uniquement à `_remote_id` : il n'est peuplé que par
-			# _on_lobby_chat_update (flux Steam indépendant, sans garantie d'ordre
-			# avec cet évènement P2P) — tant qu'il vaut encore 0, l'ancienne garde
-			# laissait passer n'importe quelle connexion entrante. On vérifie ici
-			# l'appartenance RÉELLE au lobby au moment de la connexion, indépendamment
-			# de l'état (peut-être en retard) de `_remote_id`.
-			if remote_id == 0 or not SteamP2PGuard.is_lobby_member(_steam, _lobby_id, remote_id):
-				status.emit("Steam : connexion P2P refusée (pair non membre du lobby)")
-				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
-				return
-			if _remote_id != 0 and remote_id != _remote_id:
-				status.emit("Steam : connexion P2P refusée (pair inattendu)")
+			if remote_id == 0 or not _is_peer_authorized(remote_id):
+				status.emit("Steam : connexion P2P refusée (pair non autorisé)")
+				print("[SteamDiag %s] connexion entrante refusée : %d n'est pas le pair attendu" % [
+					SteamService.ts(), remote_id])
 				_steam.closeConnection(connect_handle, 0, "unexpected peer", false)
 				return
 			_remote_id = remote_id
@@ -354,6 +508,8 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 			status.emit("Steam : connexion P2P entrante acceptée, en attente de confirmation…")
 		CONN_STATE_CONNECTED:
 			_connection_handle = connect_handle
+			_ever_connected = true
+			_connect_attempt = 0
 			if remote_id != 0:
 				_remote_id = remote_id
 			status.emit("Steam : connexion P2P établie avec « %s » ✓" % _persona(_remote_id))
@@ -363,9 +519,41 @@ func _on_network_connection_status_changed(connect_handle: int, connection: Dict
 				return
 			var end_reason: int = connection.get("end_reason", 0)
 			var end_debug: String = connection.get("end_debug", "")
-			status.emit("Steam : connexion P2P perdue (code %d — %s)" % [end_reason, end_debug])
+			print("[SteamDiag %s] connexion P2P fermée (état=%d code=%d — %s)" % [
+				SteamService.ts(), state, end_reason, end_debug])
+			_steam.closeConnection(connect_handle, 0, "", false)
 			_connection_handle = 0
+			# Échec AVANT toute connexion réussie : ce n'est pas une coupure, c'est
+			# une tentative d'établissement qui n'a pas abouti — le plus souvent
+			# parce que le pair n'a pas encore ouvert son socket d'écoute (il n'a
+			# pas encore vu l'appariement de son côté, chacun le découvrant à son
+			# propre poll de file). Cette phase appartient entièrement à la boucle
+			# de relances : côté invité c'est _tick_direct_connect qui tranchera
+			# (steam_peer_unreachable une fois les essais épuisés), côté hôte il
+			# n'y a rien à faire sinon laisser l'invité réessayer. Émettre une
+			# déconnexion ici ferait renoncer l'hôte au PREMIER essai manqué de
+			# l'invité, alors que le suivant est à deux secondes.
+			if not _ever_connected:
+				status.emit("Steam : connexion P2P pas encore établie (code %d), nouvelle tentative…" % end_reason)
+				return
+			status.emit("Steam : connexion P2P perdue (code %d — %s)" % [end_reason, end_debug])
 			disconnected.emit("steam_p2p_failed")
+
+# Le pair a-t-il le droit de se connecter à notre socket d'écoute ?
+#   - mode direct : une seule identité est acceptable, celle que le backend a
+#     annoncée à l'appariement. C'est plus strict qu'un lobby (que n'importe qui
+#     pouvait lister pour y lire notre SteamID).
+#   - mode lobby : appartenance RÉELLE au lobby au moment de la connexion,
+#     jamais seulement `_remote_id` — celui-ci n'est peuplé que par
+#     _on_lobby_chat_update, un flux Steam indépendant sans garantie d'ordre
+#     avec cet évènement P2P (tant qu'il vaut 0, une garde qui s'y fierait
+#     laisserait passer n'importe qui).
+func _is_peer_authorized(remote_id: int) -> bool:
+	if _mode == Rendezvous.DIRECT:
+		return remote_id == _expected_peer_id
+	if not SteamP2PGuard.is_lobby_member(_steam, _lobby_id, remote_id):
+		return false
+	return _remote_id == 0 or remote_id == _remote_id
 
 # (Vérification d'appartenance au lobby et extraction d'identité : voir
 # SteamP2PGuard, partagé avec ArenaSteamTransport.)

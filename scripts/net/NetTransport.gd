@@ -31,13 +31,19 @@ signal status(message: String)
 # sont appariés par le backend). No-op côté rejoignant.
 signal session_ready(session_id: int)
 
-# Héberge une session. params opaque selon le backend (ex. Steam : rien).
+# Héberge une session. params opaque selon le backend — côté Steam, il choisit
+# le mode de rendez-vous : {"expected_peer_id": "<SteamID64>"} pour un
+# adversaire déjà connu (file backend, aucun lobby créé), rien du tout pour
+# ouvrir un lobby Steam joignable par un ami invité (voir SteamTransport).
 # Retourne OK ou un code d'erreur.
 func host(_params: Dictionary) -> int:
 	push_error("NetTransport.host() non implémenté")
 	return ERR_UNCONFIGURED
 
-# Rejoint une session. params opaque (ex. Steam : {"lobby_id": int} optionnel).
+# Rejoint une session. params opaque — côté Steam : {"peer_id": "<SteamID64>"}
+# pour se connecter directement à un adversaire donné par la file backend, ou
+# {"lobby_id": int} pour entrer dans le lobby d'un ami qui nous a invité. Un
+# pair ne se CHERCHE jamais : il est toujours fourni par l'appelant.
 func join(_params: Dictionary) -> int:
 	push_error("NetTransport.join() non implémenté")
 	return ERR_UNCONFIGURED
