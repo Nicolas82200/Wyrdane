@@ -115,7 +115,12 @@ static func _make_search_result_row(menu, result: Dictionary) -> HBoxContainer:
 
 	var name_label := Label.new()
 	name_label.text = str(result.get("username", "?"))
+	name_label.tooltip_text = name_label.text
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Sans clip_text, un pseudo long impose sa largeur au HBox et pousse les
+	# boutons hors du panneau (FriendsScroll n'a pas de défilement horizontal).
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_label.add_theme_font_size_override("font_size", Typography.BODY)
 	name_label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
 	row.add_child(name_label)
@@ -129,12 +134,19 @@ static func _make_search_result_row(menu, result: Dictionary) -> HBoxContainer:
 
 	return row
 
-static func _make_request_row(menu, req: Dictionary) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
+# Le rail de navigation ne fait qu'environ 210 px utiles : un pseudo et les
+# deux boutons Accepter/Refuser sur une seule ligne débordaient du panneau
+# (FriendsScroll n'a pas de défilement horizontal, le contenu trop large sort
+# simplement du cadre). La ligne est donc empilée sur deux niveaux — pseudo
+# au-dessus (replié sur plusieurs lignes si besoin), boutons en dessous.
+static func _make_request_row(menu, req: Dictionary) -> VBoxContainer:
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
 
 	var name_label := Label.new()
 	name_label.text = str(req.get("username", "?"))
+	name_label.tooltip_text = name_label.text
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.add_theme_font_size_override("font_size", Typography.BODY)
 	name_label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
@@ -142,17 +154,22 @@ static func _make_request_row(menu, req: Dictionary) -> HBoxContainer:
 
 	var friendship_id := int(req.get("friendship_id", 0))
 
+	var buttons_row := HBoxContainer.new()
+	buttons_row.add_theme_constant_override("separation", 6)
+	buttons_row.alignment = BoxContainer.ALIGNMENT_END
+	row.add_child(buttons_row)
+
 	var accept_button := Button.new()
 	accept_button.text = SettingsManager.t("FRIENDS_ACCEPT_BUTTON")
 	accept_button.add_theme_font_size_override("font_size", Typography.MICRO)
 	accept_button.pressed.connect(func(): _accept_request(menu, friendship_id))
-	row.add_child(accept_button)
+	buttons_row.add_child(accept_button)
 
 	var decline_button := Button.new()
 	decline_button.text = SettingsManager.t("FRIENDS_DECLINE_BUTTON")
 	decline_button.add_theme_font_size_override("font_size", Typography.MICRO)
 	decline_button.pressed.connect(func(): _remove_friendship(menu, friendship_id))
-	row.add_child(decline_button)
+	buttons_row.add_child(decline_button)
 
 	return row
 
@@ -216,7 +233,9 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	var name_label := Label.new()
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_label.text = str(friend.get("username", "?"))
+	name_label.tooltip_text = name_label.text
 	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	# Demande utilisateur explicite (2026-09-25) : agrandir les noms d'amis —
 	# SECTION plutôt que BODY, seule taille de l'échelle Typography au-dessus
 	# qui reste lisible sur une ligne sans écraser le reste (pastille de
