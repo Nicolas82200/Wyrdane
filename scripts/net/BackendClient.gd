@@ -12,6 +12,10 @@ const API_URL = "https://api.wyrdane.com"
 # jamais se déclencher : l'appelant (ex. QuestsPanel, GameOverScreen) reste
 # bloqué indéfiniment et le HTTPRequest orphelin n'est jamais libéré.
 const REQUEST_TIMEOUT_SECONDS := 15.0
+# Une lecture (GET) qui n'a reçu AUCUNE réponse est rejouée une fois : voir
+# _handle_transport_failure.
+const TRANSPORT_MAX_ATTEMPTS := 2
+const TRANSPORT_RETRY_DELAY_SECONDS := 1.5
 
 # Bypass dev uniquement (voir DEV_SKIP_STEAM_VERIFY côté backend) : envoie le
 # steamid local directement au lieu d'un vrai ticket. Utile pour tester en
@@ -93,8 +97,17 @@ func _send_ticket_to_backend(ticket_hex: String) -> void:
 		http.queue_free()
 		login_failed.emit("Impossible de contacter le backend (%d)" % err)
 
-func _on_login_response(_result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest) -> void:
+func _on_login_response(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray, http: HTTPRequest) -> void:
 	http.queue_free()
+
+	# Même distinction que dans _handle_transport_failure : un code 0 n'est pas
+	# un refus du serveur mais une absence de réponse, et seul `result` dit
+	# laquelle. Voir aussi IP.clear_cache() là-bas pour le cas DNS.
+	if response_code == 0:
+		if result == HTTPRequest.RESULT_CANT_RESOLVE:
+			IP.clear_cache()
+		login_failed.emit("Serveur injoignable (%s)" % _result_label(result))
+		return
 
 	if response_code != 200:
 		login_failed.emit("Échec de connexion (HTTP %d)" % response_code)
@@ -115,6 +128,10 @@ func _extract_cookie(headers: PackedStringArray) -> String:
 # Appel générique vers l'API, cookie de session attaché automatiquement.
 # on_complete est appelé avec (response_code: int, parsed_body: Variant).
 func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_complete: Callable = Callable()) -> void:
+	_request_attempt(method, path, body, on_complete, 1)
+
+func _request_attempt(method: HTTPClient.Method, path: String, body: Dictionary,
+		on_complete: Callable, attempt: int) -> void:
 	var http := HTTPRequest.new()
 	add_child(http)
 	http.timeout = REQUEST_TIMEOUT_SECONDS
@@ -129,8 +146,15 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 
 	var body_str := "" if body.is_empty() else JSON.stringify(body)
 
-	http.request_completed.connect(func(_result: int, response_code: int, _headers: PackedStringArray, response_body: PackedByteArray) -> void:
+	http.request_completed.connect(func(result: int, response_code: int, _headers: PackedStringArray, response_body: PackedByteArray) -> void:
 		http.queue_free()
+		# response_code 0 ne vient pas du serveur : il signale qu'aucune réponse
+		# HTTP n'est arrivée (délai dépassé, connexion refusée, DNS, TLS). Seul
+		# `result` en nomme la cause — sans lui, l'appelant ne voit qu'un
+		# « HTTP 0 » muet, indiagnostiquable dans un log de joueur.
+		if response_code == 0:
+			_handle_transport_failure(result, method, path, body, on_complete, attempt)
+			return
 		if on_complete.is_valid():
 			var parsed = null
 			if response_body.size() > 0:
@@ -150,8 +174,61 @@ func request(method: HTTPClient.Method, path: String, body: Dictionary = {}, on_
 	var err := http.request(API_URL + path, headers, method, body_str)
 	if err != OK:
 		http.queue_free()
+		push_warning("BackendClient : %s %s n'a pas pu être émise (erreur %d)" % [_method_label(method), path, err])
 		if on_complete.is_valid():
 			on_complete.call(-1, null)
+
+# Échec avant toute réponse HTTP. Un GET est rejoué une fois : c'est idempotent,
+# et le creux réseau le plus courant (fin de partie réseau, VPS momentanément
+# lent) est plus bref que le délai de relance. Une écriture (POST/PUT/PATCH/
+# DELETE) n'est jamais rejouée : sans réponse, on ne sait pas si le serveur l'a
+# déjà appliquée.
+func _handle_transport_failure(result: int, method: HTTPClient.Method, path: String,
+		body: Dictionary, on_complete: Callable, attempt: int) -> void:
+	var label := _result_label(result)
+	# Godot met en cache les résolutions DNS, échecs compris : sans purge, tout
+	# appel suivant vers le même hôte échoue de la même façon jusqu'à la fin du
+	# processus — le joueur devrait relancer le jeu pour retrouver le backend.
+	if result == HTTPRequest.RESULT_CANT_RESOLVE:
+		IP.clear_cache()
+
+	if method == HTTPClient.METHOD_GET and attempt < TRANSPORT_MAX_ATTEMPTS:
+		push_warning("BackendClient : GET %s sans réponse (%s) — nouvelle tentative %d/%d" % [
+			path, label, attempt + 1, TRANSPORT_MAX_ATTEMPTS])
+		await get_tree().create_timer(TRANSPORT_RETRY_DELAY_SECONDS).timeout
+		_request_attempt(method, path, body, on_complete, attempt + 1)
+		return
+
+	push_warning("BackendClient : %s %s a échoué avant toute réponse HTTP (%s, %d tentative(s))" % [
+		_method_label(method), path, label, attempt])
+	if on_complete.is_valid():
+		on_complete.call(0, null)
+
+# Nom lisible d'un HTTPRequest.Result, référencé par constante du moteur plutôt
+# que par valeur entière pour ne pas dériver si l'énumération évolue.
+static func _result_label(result: int) -> String:
+	return {
+		HTTPRequest.RESULT_CHUNKED_BODY_SIZE_MISMATCH: "corps tronqué",
+		HTTPRequest.RESULT_CANT_CONNECT: "connexion impossible",
+		HTTPRequest.RESULT_CANT_RESOLVE: "DNS non résolu",
+		HTTPRequest.RESULT_CONNECTION_ERROR: "connexion interrompue",
+		HTTPRequest.RESULT_TLS_HANDSHAKE_ERROR: "échec TLS",
+		HTTPRequest.RESULT_NO_RESPONSE: "aucune réponse",
+		HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED: "corps trop volumineux",
+		HTTPRequest.RESULT_BODY_DECOMPRESS_FAILED: "décompression échouée",
+		HTTPRequest.RESULT_REQUEST_FAILED: "requête refusée",
+		HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED: "trop de redirections",
+		HTTPRequest.RESULT_TIMEOUT: "délai dépassé (%ds)" % int(REQUEST_TIMEOUT_SECONDS),
+	}.get(result, "result=%d" % result)
+
+static func _method_label(method: HTTPClient.Method) -> String:
+	return {
+		HTTPClient.METHOD_GET: "GET",
+		HTTPClient.METHOD_POST: "POST",
+		HTTPClient.METHOD_PUT: "PUT",
+		HTTPClient.METHOD_PATCH: "PATCH",
+		HTTPClient.METHOD_DELETE: "DELETE",
+	}.get(method, "method=%d" % method)
 
 # Profil agrégé du joueur connecté (GET /api/profile) : date de création de
 # compte, nombre de cartes en collection, stats solo/ranked — voir
