@@ -374,30 +374,51 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 **Autres gains**
 | Source | Montant | Limite |
 |---|---|---|
-| Récompense de connexion quotidienne (streak 7 jours, cycle) | 10 → 15 → 20 → 25 → 30 → 40 → 60 or | 1×/jour, réinitialisée si un jour est manqué |
-| Quête « Jouer 3 parties » | 30 or | — |
-| Quête « Jouer 5 parties » | 60 or | — |
+| Récompense de connexion quotidienne (montée sur 5 jours, puis plateau) | 20 → 40 → 60 → 80 → 100 or, puis 100 or par jour consécutif supplémentaire | 1×/jour, réinitialisée au premier palier si un jour est manqué |
+| Quête « Jouer 3 parties » | 25 or | — |
+| Quête « Jouer 5 parties » | 50 or | — |
 | Quête « Gagner 2 parties » | 50 or | — |
-| Quête « Gagner 3 parties » | 70 or | — |
-| Quête « Gagner 1 partie classée » | 80 or | — |
-| Quête « Jouer 10 cartes Mort-Vivant » | 40 or | — |
-| Quête « Jouer 10 cartes Humain » | 40 or | — |
-| Quête « Jouer 10 cartes Démon » | 40 or | — |
-| Quête « Jouer 10 cartes Abomination » | 40 or | — |
-| Quête « Gagner 2 parties avec un deck Mort-Vivant » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Humain » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Démon » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Abomination » | 60 or | — |
+| Quête « Gagner 3 parties » | 75 or | — |
+| Quête « Gagner 1 partie classée » | 100 or | — |
+| Quête « Jouer 10 cartes [Race] » (une par race) | 50 or | — |
+| Quête « Gagner 2 parties avec un deck [Race] » (une par race) | 75 or | — |
 
-3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+Toutes les récompenses quotidiennes suivent une échelle unique de 25/50/75/100 or, calée sur la difficulté réelle. 3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+
+**Récompense de fin de tutoriel** : à la toute fin du tutoriel, 20 cartes tirées dans l'ensemble du catalogue (hors cartes-ressource) rejoignent la collection, avec une pondération **Commune 40 / Rare 30 / Épique 20 / Légendaire 10** — nettement plus généreuse que celle d'un pack, puisqu'il s'agit d'une récompense unique. Elle comble un trou du démarrage : les 4 decks de départ ne contiennent que des serviteurs et quelques éphémères, un nouveau joueur n'avait donc jamais eu un Rituel ni un Enchantement en main avant d'ouvrir des packs. Un exemplaire au-delà des 4 copies est converti en or, comme dans un pack.
+
+**Quêtes uniques (jalons de carrière)** : une seule occurrence par compte, jamais réinitialisée.
+| Quête | Récompense |
+|---|---|
+| Première partie avec un deck contenant une race donnée (×4) | 150 or |
+| Première victoire avec un deck d'au moins 2 races | 200 or |
+| Une victoire avec chacune des 4 races | 400 or + 1 pack |
+| Jouez 50 / 100 / 150 / 200 / 250 parties | 400 / 600 / 700 or, puis 850 or + 1 pack / 1000 or + 1 pack |
+| Gagnez 10 / 25 / 100 parties | 100 or + 1 pack / 200 or + 2 packs / 900 or + 1 pack |
+| Gagnez 10 / 50 parties classées | 400 or / 900 or + 3 packs |
+| Atteignez le palier Argent / Or / Platine / Diamant / Maître / Légende | 100 or / 200 or + 1 pack / 350 or + 1 pack / 500 or + 1 pack / 700 or + 2 packs / 900 or + 5 packs |
+| Ouvrez 20 packs | 5 packs |
+
+Total du catalogue de quêtes uniques : **10 000 or + 25 packs**.
 
 **Dépenses**
 | Achat | Coût | Détail |
 |---|---|---|
-| Pack de cartes | 500 or | 5 cartes par pack, pondération par rareté Commune 58 / Rare 25 / Épique 12 / Légendaire 5 (ratio, somme non normalisée à 100) |
+| Pack de cartes | 500 or | 5 cartes par pack, pondération par rareté Commune 58 / Rare 25 / Épique 12 / Légendaire 5 (ratio, somme non normalisée à 100), corrigée par la protection anti-doublon ci-dessous |
 | Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
 
 **Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
+
+**Protection anti-doublon des packs** : une carte dont le joueur possède déjà au moins un exemplaire est **moins probable** qu'une carte qui lui manque, et l'écart grandit avec l'avancement de sa collection. Concrètement, son poids de tirage est multiplié par `1 - 0,9 × complétion` (complétion = part du catalogue dont il possède au moins un exemplaire) :
+
+| Collection du joueur | Poids d'une carte déjà possédée |
+|---|---|
+| 10 % (débutant) | 91 % du poids normal — les doublons restent fréquents, et c'est voulu : 4 exemplaires sont nécessaires pour jouer une carte à fond |
+| 50 % | 55 % |
+| 90 % | 19 % — les packs penchent nettement vers ce qui manque |
+| 100 % | 10 %, appliqué à **toutes** les cartes : les probabilités relatives redeviennent celles du tableau ci-dessus |
+
+Un doublon reste toujours possible (le poids ne tombe jamais à zéro), et les cartes déjà tirées dans le même pack comptent comme possédées pour les tirages suivants de ce pack. Sans ce mécanisme, posséder un exemplaire des 300 cartes en n'ouvrant que des packs demandait ~24 mois à raison de 5 parties par jour, contre ~5 mois avec — une carte légendaire précise ne sortant que dans 0,8 % des tirages en fin de collection.
 
 **Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. La vue « Collection » (menu principal, distincte de la Boutique) affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) sous forme d'une pastille dorée à côté du pack, et permet de l'ouvrir directement en cliquant dessus (1 pack), Ctrl+clic (5) ou Maj+clic (10, uniquement si le stock couvre la quantité demandée) — `POST /api/packs/open-owned`, une requête par pack, la révélation les enchaîne. Un bouton « Acheter des packs » en bas de la vue renvoie vers l'onglet Packs de la Boutique. Les cartes révélées apparaissent directement autour du pack cliqué (pas d'écran séparé) : 1ère à gauche, 2e à droite, 3e sous la 1ère, 4e sous la 2e, 5e sous le pack — agrandies x1,5 au survol une fois révélées, un clic sur « Cliquer pour continuer » referme la révélation (ou enchaîne le pack suivant pour un lot).
 

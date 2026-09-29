@@ -489,6 +489,26 @@ Le code client est en place, branché sur l'application Discord du jeu (`CLIENT_
 
 Suites possibles une fois en place : boutons « Rejoindre » / invitations depuis Discord (nécessite `SET_ACTIVITY` avec `party`/`secrets` + l'autorisation `rpc` côté application), et support Linux/macOS (socket de domaine Unix, hors de portée de `FileAccess` — demanderait une extension).
 
+## P22 — Rééquilibrage de la progression (2026-09-28)
+
+**Fait côté code, reste un `db:sync` en prod.** Refonte demandée par l'utilisateur, répartie entre `wyrdane-backend` (branche `1001-progression-rework`) et `card-game` (branche `1004-progression-rewards`) :
+
+- Récompense de connexion : 20/40/60/80/100 or sur 5 jours, puis **plateau à 100/jour** au lieu de reboucler au jour 1 (un joueur fidèle retombait à la plus petite récompense juste après avoir tenu une semaine).
+- Récompense unique de fin de tutoriel : 20 cartes tirées dans tout le catalogue, pondération 40/30/20/10 — comble l'absence totale de Rituels/Enchantements dans les 4 decks de départ.
+- Quêtes uniques : paliers « jouez X parties » tous les 50 jusqu'à 250, paliers de rang étendus à Argent/Platine/Diamant/Maître (il n'y avait qu'Or et Légende). Catalogue recalibré à **10 000 or + 25 packs** au total (contre 11 800 + 33).
+- Quêtes quotidiennes recalées sur une échelle unique de 25/50/75/100 or ; mensuelles ramenées à 500/750 or ; quêtes de niveau 5/10/15/20/25 à 100/150/200/250/300 or et 0/0/1/1/2 packs ; parrainage passé à 4 packs sans or.
+- Affichage des récompenses de quête : plus de « 400 or, 0 pack(s) ».
+
+**Bugs corrigés au passage** :
+- `RANK_TIER_MMR_THRESHOLDS` (backend) avait silencieusement divergé de `RankTier.THRESHOLDS` (client) — Or exigeait 1300 de MMR côté quête contre 400 côté badge. Les deux valeurs restent dupliquées (le backend n'a aucune notion de palier), mais un test backend fige désormais la correspondance.
+- Les **quêtes de niveau** (`onboarding_quests`) souffraient du même défaut que les quêtes uniques : récompenses figées dans la ligne à l'assignation, sur une piste jamais reset — un rééquilibrage n'aurait donc touché que les comptes neufs. `reconcileWithTemplates` ajouté là aussi.
+- Les textes joueur du parrainage (`REFERRAL_STATUS_NONE`, `REFERRAL_FIRST_LAUNCH_DESC`) annonçaient « 3 packs + 500 or » en dur dans `game.csv` — désormais alignés sur le vrai barème. À surveiller : ces deux clés ne sont liées à aucune valeur du backend, elles redeviendront fausses au prochain changement de `REFERRAL_REWARD_*`.
+- `CLAUDE.md` client annonçait 2 quêtes quotidiennes par jour ; `QUESTS_PER_DAY` vaut **3** côté backend depuis le 2026-09-15.
+
+**Protection anti-doublon des packs (ajoutée le 2026-09-28, backend)** : le poids de tirage d'une carte déjà possédée est multiplié par `1 - 0,9 × complétion` (voir « Protection anti-doublon des packs » dans le `CLAUDE.md` de `wyrdane-backend`). Corrige le déséquilibre relevé en simulation le même jour : compléter la collection en n'ouvrant que des packs demandait ~24 mois contre ~2 mois en achetant les cartes à l'unité, parce qu'une légendaire précise ne représente que 0,8 % des tirages en fin de collection. Ramené à ~5 mois, sans ralentir la collecte des exemplaires 2/3/4. Volontairement **pas** appliqué aux cartes de récompense de niveau (`levelModel.fetchRandomCardByRarity`) ni au lot de fin de tutoriel — à envisager si le besoin se confirme, les deux tirent encore uniformément dans leur rareté.
+
+**Reste à faire** : `docker compose exec backend node dist/database/sync.js` sur le VPS après le déploiement, pour créer `users.tutorial_reward_claimed_at`. Tant que la colonne manque, `POST /api/collection/claim-tutorial-reward` répond 500 — même classe de panne que les trois incidents précédents (matchmaking classé, chat/amis, invitations de partie), voir « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.

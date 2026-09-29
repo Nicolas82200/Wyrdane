@@ -465,6 +465,17 @@ func get_daily_quests(on_data: Callable) -> void:
 	)
 
 # on_data appelé avec (success, {balance, reward_currency}).
+# Récompense unique de fin de tutoriel (25 cartes aléatoires, voir
+# wyrdane-backend tutorialRewardModel) : idempotente côté serveur, un second
+# appel renvoie simplement claimed = false sans rien octroyer.
+func claim_tutorial_reward(on_data: Callable) -> void:
+	request(HTTPClient.METHOD_POST, "/api/collection/claim-tutorial-reward", {}, func(code: int, parsed: Variant):
+		if code == 200 and parsed is Dictionary:
+			on_data.call(true, parsed)
+		else:
+			on_data.call(false, {})
+	)
+
 func claim_quest(quest_id: int, on_data: Callable) -> void:
 	request(HTTPClient.METHOD_POST, "/api/quests/%d/claim" % quest_id, {}, func(code: int, parsed: Variant):
 		if code == 200 and parsed is Dictionary:
