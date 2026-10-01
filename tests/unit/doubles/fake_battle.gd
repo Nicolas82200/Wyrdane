@@ -595,10 +595,17 @@ class FakeNetEmitter:
 class FakeTargetingSystem:
 	var targeting: bool = false
 	var has_valid_target: bool = true
+	# Cible que prompt_trigger_target renvoie, et trace des appels (un effet à
+	# prompt_target doit demander SA propre cible — voir CardEffect).
+	var next_prompt_target: Minion = null
+	var prompt_calls: Array[CardData] = []
 	func is_targeting() -> bool:
 		return targeting
 	func has_any_valid_target(_card_data: CardData) -> bool:
 		return has_valid_target
+	func prompt_trigger_target(card_data: CardData) -> Minion:
+		prompt_calls.append(card_data)
+		return next_prompt_target
 
 
 class FakeSacrificeSystem:

@@ -688,7 +688,7 @@ Death Rage: +3/+0."
 "La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE.","La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE.","The first time each turn an allied Human attacks, it gains AEGIS."
 "La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.","La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.","Faith does not understand magic. It does not need to understand it to slow it down."
 "Brise-Mort","Brise-Mort","Death-Breaker"
-"Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière.","Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière.","Arrival: Destroy target enemy minion resurrected or reanimated from the graveyard."
+"Arrivée : Détruit un serviteur ennemi ciblé.","Arrivée : Détruit un serviteur ennemi ciblé.","Arrival: Destroy target enemy minion."
 "Briseur de Horde","Briseur de Horde","Horde Breaker"
 "Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires.","Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires.","Attack: If the target is not Human, deal 2 extra damage."
 "Il a perdu son village à la première vague. Il n'a pas perdu la rage.","Il a perdu son village à la première vague. Il n'a pas perdu la rage.","He lost his village to the first wave. He did not lose his rage."
@@ -714,7 +714,7 @@ Arrivée : Attaque immédiatement le serviteur ennemi le plus faible en points d
 Arrival: Immediately attack the enemy minion with the lowest HP."
 "Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte.","Le cheval est mort avant lui. Ni l'un ni l'autre ne s'en est rendu compte.","The horse died before him. Neither of them noticed."
 "Cercle de Commandement","Cercle de Commandement","Circle of Command"
-"Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Awakening: If you have a Commander in play (a card with COMMAND), all allied Humans gain +1/+0 this turn."
+"Présence : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0.","Présence : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0.","Presence: If you have a Commander in play (a card with COMMAND), all allied Humans gain +1/+0."
 "Un commandant suffit. Le cercle fait le reste.","Un commandant suffit. Le cercle fait le reste.","One commander is enough. The circle does the rest."
 "Cercle de Convocation","Cercle de Convocation","Circle of Summoning"
 "Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2.","Éveil : Invoque un Mort-Vivant aléatoire de coût ≤2.","Awakening: Summon a random Undead of cost ≤2."
@@ -1566,9 +1566,9 @@ Allied Abominations hit mutate instead of losing HP."
 "Même tes alliés changent, un peu, à chaque respiration.","Même tes alliés changent, un peu, à chaque respiration.","Even your allies change, a little, with every breath."
 "Rituel du Ventre Qui Prend Tout","Rituel du Ventre Qui Prend Tout","All-Devouring Ritual"
 "Sacrifice 1 : Piochez 1 carte.
-Votre héros regagne des points de vie.","Sacrifice 1 : Piochez 1 carte.
-Votre héros regagne des points de vie.","Sacrifice 1: Draw 1 card.
-Your hero regains HP."
+Votre héros regagne 3 points de vie.","Sacrifice 1 : Piochez 1 carte.
+Votre héros regagne 3 points de vie.","Sacrifice 1: Draw 1 card.
+Your hero regains 3 HP."
 "Rien ne se perd vraiment. Tout se redistribue, même à toi.","Rien ne se perd vraiment. Tout se redistribue, même à toi.","Nothing is ever truly lost. It all gets redistributed, even to you."
 "Puits Qui Avale Tout","Puits Qui Avale Tout","The All-Swallowing Well"
 "Dévoration : Gagne 1 mana temporaire ce tour (une seule fois par tour).","Dévoration : Gagne 1 mana temporaire ce tour (une seule fois par tour).","Devour: Gain 1 temporary mana this turn (once per turn)."
@@ -1656,7 +1656,7 @@ It mutates twice."
 "Nœud de Chair","Nœud de Chair","Flesh Knot"
 "Chaque coup reçu le noue un peu plus serré.","Chaque coup reçu le noue un peu plus serré.","Every blow it takes ties it a little tighter."
 "Ce-Qui-Se-Souvient-Par-le-Corps","Ce-Qui-Se-Souvient-Par-le-Corps","That-Which-Remembers-Through-Flesh"
-"Arrivée : Gagne +3/+3 de façon permanente.","Arrivée : Gagne +3/+3 de façon permanente.","Arrival: Permanently gains +3/+3."
+"Arrivée : Mute 5 fois.","Arrivée : Mute 5 fois.","Arrival: Mutates 5 times."
 "Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.","Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.","It has no memory. It has flesh that remembers in its place."
 "Le Trieur de Chairs","Le Trieur de Chairs","The Flesh Sorter"
 "Arrivée : Détruit un serviteur ennemi ayant 3 points de vie ou moins, puis mute.","Arrivée : Détruit un serviteur ennemi ayant 3 points de vie ou moins, puis mute.","Arrival: Destroy an enemy minion with 3 HP or less, then mutate."
@@ -1741,7 +1741,7 @@ Survivors have -1 ATK until end of turn."
 "Deuil : Ramène en main l'Abomination alliée la plus récemment morte.","Deuil : Ramène en main l'Abomination alliée la plus récemment morte.","Mourning: Returns the most recently died allied Abomination minion to your hand."
 """Je ne les rappelle pas. Je les laisse simplement finir de devenir autre chose.""","""Je ne les rappelle pas. Je les laisse simplement finir de devenir autre chose.""","""I don't call them back. I simply let them finish becoming something else."""
 "Rituel de la Chair Qui Recoud","Rituel de la Chair Qui Recoud","Flesh-Mending Ritual"
-"Éveil : Une Abomination aléatoire alliée restaure 2 points de vie.","Éveil : Une Abomination aléatoire alliée restaure 2 points de vie.","Awakening: A random allied Abomination minion restores 2 HP."
+"Éveil : Une Abomination alliée aléatoire mute avec Renforcement (+0/+2).","Éveil : Une Abomination alliée aléatoire mute avec Renforcement (+0/+2).","Awakening: A random allied Abomination mutates with Reinforcement (+0/+2)."
 "La chair se répare mal. Elle se répare quand même.","La chair se répare mal. Elle se répare quand même.","Flesh heals poorly. It heals anyway."
 "Rituel de la Forme Jamais Fixée","Rituel de la Forme Jamais Fixée","Ever-Shifting Ritual"
 "Éveil : Une Abomination aléatoire alliée mute immédiatement.","Éveil : Une Abomination aléatoire alliée mute immédiatement.","Awakening: A random allied Abomination minion immediately mutates."
@@ -1812,7 +1812,7 @@ It immediately mutates."
 "Locataire Sans Bail","Locataire Sans Bail","Uninvited Tenant"
 "Il ne demande jamais la permission de s'installer dans un autre corps.","Il ne demande jamais la permission de s'installer dans un autre corps.","It never asks permission before settling into another body."
 "La Terre Qui Refuse de Garder","La Terre Qui Refuse de Garder","The Earth That Refuses to Keep"
-"Deuil : Ressuscitez le dernier serviteur à avoir rejoint votre cimetière avec 1 point de vie.","Deuil : Ressuscitez le dernier serviteur à avoir rejoint votre cimetière avec 1 point de vie.","Mourning: The dead allied minion immediately returns to play."
+"Déclin : Ressuscitez la dernière Abomination à avoir rejoint votre cimetière avec 1 point de vie.","Déclin : Ressuscitez la dernière Abomination à avoir rejoint votre cimetière avec 1 point de vie.","Decline: Resurrect the last Abomination to have joined your graveyard with 1 HP."
 "Le sol ici ne garde rien. Il rend, mais jamais tel quel.","Le sol ici ne garde rien. Il rend, mais jamais tel quel.","The ground here keeps nothing. It gives back, but never as it was."
 "Autel Qui Ne Reconnaît Rien","Autel Qui Ne Reconnaît Rien","Altar That Recognizes Nothing"
 "Deuil : Une Abomination aléatoire alliée mute.","Deuil : Une Abomination aléatoire alliée mute.","Mourning: A random allied Abomination minion mutates."
@@ -1867,10 +1867,10 @@ tutorial.trigger_intro,"Joue le Servant Décharné. Il a un déclencheur d'Arriv
 tutorial.finish_intro,"Tu connais l'essentiel ! Continue à jouer des cartes et à attaquer jusqu'à réduire le héros ennemi à 0 HP pour terminer ce tutoriel.","You know the basics now! Keep playing cards and attacking until the enemy hero's HP reaches 0 to finish this tutorial."
 tutorial.complete,"Tutoriel terminé, bravo ! Le multijoueur et le deckbuilder sont maintenant débloqués. Retour au menu…","Tutorial complete, well done! Multiplayer and the deckbuilder are now unlocked. Returning to the menu…"
 tutorial.reward_cards,"Récompense de fin de tutoriel : %d cartes rejoignent votre collection ! (%d commune(s), %d rare(s), %d épique(s), %d légendaire(s))","Tutorial completion reward: %d cards added to your collection! (%d common, %d rare, %d epic, %d legendary)"
-"Arrivée : Détruit tous les serviteurs ennemis ayant 2 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs ennemis ayant 4 points de vie ou moins à la place.","Arrivée : Détruit tous les serviteurs ennemis ayant 2 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs ennemis ayant 4 points de vie ou moins à la place.","Arrival: Destroy all enemy minions with 3 HP or less.
-Pact 2: Destroy all enemy minions with 5 HP or less instead."
+"Arrivée : Détruit un serviteur ennemi ciblé.
+Pacte 6 : Détruit un second serviteur ennemi ciblé.","Arrivée : Détruit un serviteur ennemi ciblé.
+Pacte 6 : Détruit un second serviteur ennemi ciblé.","Arrival: Destroy target enemy minion.
+Pact 6: Destroy a second target enemy minion."
 "Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente.","Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente.","All allied Humans in the Front row permanently gain +1 ATK."
 "Attaque : Les serviteurs adjacents gagnent +0/+1.","Attaque : Les serviteurs adjacents gagnent +0/+1.","Attack: Adjacent allied minions gain +0/+1."
 "Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Two allied Human minions immediately attack a target enemy minion."
@@ -1879,9 +1879,9 @@ Pact 2: Destroy all enemy minions with 5 HP or less instead."
 "Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrivée : tous les serviteurs ennemis en rangée Arrière ne peuvent pas être ciblés par des sorts ennemis ce tour.","Arrival: all enemy minions in the Back row cannot be targeted by enemy spells this turn."
 "Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Whenever an allied Human attacks, all your allied minions permanently gain +1 ATK."
 "COMMANDEMENT
-Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMANDEMENT
-Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMAND
-Deathrattle: Resurrect up to 5 dead allied Human minions with 1 HP in the Front row."
+Dernier Souffle : Ressuscitez jusqu'à 3 autres serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMANDEMENT
+Dernier Souffle : Ressuscitez jusqu'à 3 autres serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMAND
+Deathrattle: Resurrect up to 3 other dead allied Human minions with 1 HP in the Front row."
 "COMMANDEMENT","COMMANDEMENT","COMMAND"
 "Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur ciblé allié.","Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur ciblé allié.","Removes all racial harmful effects (Infection, Corruption) from a target allied minion."
 "Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides.","Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides.","Presence: While in play, your minions can be placed in the row of your choice, as if they were Hybrid."
