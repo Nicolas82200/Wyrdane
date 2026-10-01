@@ -372,6 +372,8 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 
 **Popup de récompenses de niveau** : cliquer sur le niveau de compte (« Niveau N », sous le pseudo dans `PlayerStatusPanel`) ouvre une popup dédiée (`LevelRewardsPanel.gd`) listant, avec défilement, la récompense de chaque niveau — y compris les niveaux pas encore atteints (catalogue calculé côté backend jusqu'à `max(60, niveau actuel + 10)`, toujours un peu au-delà du niveau réel). L'octroi (crédit d'or/carte/pack) reste immédiat et automatique au franchissement du niveau, comme ci-dessus : la popup ne fait que lister ce qui a déjà été journalisé et laisser le joueur marquer chaque ligne comme « vue » (bouton, se grise une fois cliqué) — un simple accusé de réception, aucun nouveau crédit. Un bouton « Tout récupérer » marque en un seul appel réseau toutes les lignes réclamables ; un bouton « Niveau actuel » recentre le défilement sur le niveau du joueur. Un niveau franchi avant l'introduction de cette popup (2026-09) n'a pas de ligne journalisée côté backend : affiché comme déjà acquis, rien à réclamer.
 
+> Référence complète et chiffrée de toute l'économie (toutes les sources de gain, tous les coûts, temps de complétion mesuré) : **[docs/economy.md](docs/economy.md)**.
+
 **Autres gains**
 | Source | Montant | Limite |
 |---|---|---|
