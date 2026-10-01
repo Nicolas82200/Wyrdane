@@ -518,7 +518,7 @@ func flip_replace_at(index: int, new_data: CardData, deck_origin: Vector2 = Vect
 func _on_card_hover(card: Card) -> void:
 	if is_instance_valid(_battle) and "game_over" in _battle and _battle.game_over:
 		return
-	if is_instance_valid(_battle) and _battle.has_method("is_dragging_card") and _battle.call("is_dragging_card"):
+	if _is_dragging_card():
 		return
 	for c in container.get_children():
 		if c is Card and c.dragging:
@@ -785,9 +785,16 @@ func _hide_hint_panel() -> void:
 		_hint_panel.queue_free()
 	_hint_panel = null
 
+func _is_dragging_card() -> bool:
+	return is_instance_valid(_battle) and _battle.has_method("is_dragging_card") \
+		and _battle.call("is_dragging_card")
+
+## Clic droit ignoré pendant un drag : il ferait apparaître l'aperçu agrandi
+## d'une carte alors que le curseur en porte déjà une (voir
+## _refresh_tooltip_display, qui positionne l'aperçu par rapport au survol).
 func _is_right_click_press(event: InputEvent) -> bool:
 	return event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT \
-		and event.pressed
+		and event.pressed and not _is_dragging_card()
 
 ## Fait avancer TooltipData.battle_hover_mode d'un cran, déclenché par un clic
 ## droit sur la petite carte d'origine (`card`, voir _connect_card).
