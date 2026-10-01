@@ -18,7 +18,15 @@ func execute_effect(
 	if not is_instance_valid(battle):
 		return
 	battle.effects_resolving += 1
+	# Fenêtre de regroupement : les évènements d'enchantement/rituel émis
+	# pendant cet effet sont mis en file et rejoués d'un bloc à la fin, plutôt
+	# qu'intercalés entre chaque cible touchée (voir TriggerSystem.begin_batch).
+	var triggers = battle.get("trigger_system")
+	if triggers != null:
+		triggers.begin_batch()
 	await _execute_effect_impl(battle, source_minion, effect, selected_target, skip_source_popup)
+	if is_instance_valid(battle) and triggers != null:
+		await triggers.end_batch()
 	if is_instance_valid(battle):
 		battle.effects_resolving -= 1
 
