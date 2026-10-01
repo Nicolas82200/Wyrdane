@@ -13,7 +13,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Communion Écarlate"
-description = "Votre héros regagne 4 points de vie."
+description = "Votre héros récupère 4 points de vie."
 flavour_text = "Le pacte n'est pas qu'une dette. Parfois, il rembourse."
 texture = ExtResource("3_texture")
 cost = 3

@@ -9,7 +9,7 @@
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Stratège Royal"
-description = "Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides."
+description = "Présence : Vos serviteurs peuvent être posés dans la rangée de votre choix, comme s'ils étaient Hybrides."
 flavour_text = "Il ne voit pas un champ de bataille. Il voit un problème à résoudre."
 texture = ExtResource("3_texture")
 cost = 4

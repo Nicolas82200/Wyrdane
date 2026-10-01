@@ -18,7 +18,7 @@ type = "OnSpell"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Rituel de l'Éclipse"
-description = "Sortilège ennemi : Annulé s'il cible un de vos serviteurs."
+description = "Sortilège ennemi : Annulé s'il cible un serviteur allié."
 flavour_text = "Sous l'éclipse, la magie adverse perd ses repères. Les morts, eux, n'en ont plus besoin."
 texture = ExtResource("3_texture")
 cost = 6

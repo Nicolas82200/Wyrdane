@@ -56,8 +56,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Hurlement Écarlate"
-description = "Vos Démons alliés gagnent +1/+0 ce tour et votre héros perd 2 points de vie.
-Si vous contrôlez 5 Démons ou plus, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place."
+description = "Les serviteurs Démons alliés gagnent +1/+0 jusqu'à la fin du tour et votre héros perd 2 points de vie.
+Si vous avez 5 serviteurs Démons alliés ou plus en jeu, ils gagnent +1/+1 et votre héros récupère 2 points de vie à la place."
 flavour_text = "Plus ils sont nombreux à hurler, plus le prix grimpe, pour toi."
 texture = ExtResource("3_texture")
 cost = 3
