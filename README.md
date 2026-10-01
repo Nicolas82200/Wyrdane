@@ -256,6 +256,8 @@ Capacités du moteur d'effets :
 *   **Valeurs dynamiques** — les montants d'un effet peuvent être calculés à l'exécution (ex: en fonction d'un décompte d'unités) plutôt que fixes.
 *   **Rituels** — chaque charge n'est consommée que lorsque le trigger du rituel se déclenche réellement (`TriggerSystem._consume_ritual_charge`), pas passivement à chaque tour.
 *   **Auras de rangée** (`OnAura`) — buffs appliqués à toute une rangée, recalculés par `AuraSystem`.
+*   **Présence à la pose** (`OnAura`) — un effet **ponctuel** porté par un trigger Présence (ex. Aegis de l'Empire : octroi de DISCIPLINE) s'applique dès que l'Enchantement/Rituel arrive sur le plateau (`TriggerSystem.apply_presence_effects`). Les effets `AuraXxx`, eux, restent continus et du seul ressort d'`AuraSystem`.
+*   **Dégâts aux serviteurs adjacents à la cible** (`SplashDamage`) — qu'ils viennent du serviteur attaquant lui-même (Attaque, ex. Mâcheur d'Os) ou d'un Enchantement en Résonance (Idole de l'Apocalypse, Idole du Grand Pacte, Effigie Née d'Elle-Même), ces dégâts tombent **au moment où la cible subit elle-même les dégâts de l'attaque**, jamais avant le contact — les triggers d'attaque sont résolus en amont de l'animation d'assaut, donc `CombatSystem` met ces dégâts-là en attente et les applique juste après ceux de l'attaque (voir `CombatSystem.defer_splash`).
 *   **Feedback visuel** — popup de la carte à l'origine de l'effet + courbes/flèches dessinées vers les cibles (`CardPopupSystem`, `ArrowOverlay`).
 
 ### 🧠 Gestion des lanes

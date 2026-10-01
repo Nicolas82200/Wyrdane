@@ -39,6 +39,20 @@ func register_enchantment(card_data: CardData, is_player: bool, duration: int = 
 	if battle.hand != null:
 		battle.hand.refresh_costs()
 
+# Présence (OnAura) : à appeler juste après register_enchantment, à la pose.
+# Les effets continus (`AuraXxx`) sont recalculés en permanence par AuraSystem,
+# mais un effet ponctuel porté par un OnAura (Aegis de l'Empire : GrantKeyword)
+# n'était exécuté par personne — l'enchantement restait inerte. Il s'applique
+# donc une fois, dès que la carte arrive sur le plateau.
+func apply_presence_effects(card_data: CardData, is_player: bool) -> void:
+	if not card_data.get_trigger_names().has("OnAura"):
+		return
+	var proxy := _make_proxy(card_data, is_player)
+	for effect in card_data.effects:
+		if effect.effect_id.begins_with("Aura"):
+			continue
+		await battle.effect_manager.execute_effect(battle, proxy, effect)
+
 # Réinitialise les enchantements/rituels "une fois par tour" du camp dont le
 # tour commence (appelé depuis TurnSystem.run_turn_start_triggers).
 func reset_once_per_turn(is_player: bool) -> void:

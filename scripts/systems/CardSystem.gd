@@ -181,6 +181,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+			await battle.trigger_system.apply_presence_effects(card_data, true)
 			await battle.death_system.process_deaths()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
@@ -190,6 +191,7 @@ func resolve_with_target(card_data: CardData, row: String, insert_index: int, ta
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
+			await battle.trigger_system.apply_presence_effects(card_data, true)
 			await battle.death_system.process_deaths()
 		else:
 			# Son/VFX joués juste avant la résolution effective de l'effet (et
@@ -252,6 +254,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.trigger_system.register_enchantment(card_data, true, -1)
 			battle.enchantment_system.add_enchantment(card_data, true)
 			battle.aura_system.recompute_all()
+			await battle.trigger_system.apply_presence_effects(card_data, true)
 			await battle.death_system.process_deaths()
 		elif card_data.card_type == "Ritual" and card_data.ritual_duration != 0:
 			# Rituel à durée : reste dans sa zone, effets via triggers ; chaque
@@ -261,6 +264,7 @@ func _resolve(card_data: CardData, row: String, insert_index: int) -> void:
 			battle.trigger_system.register_enchantment(card_data, true, card_data.ritual_duration)
 			battle.enchantment_system.add_ritual(card_data, true, card_data.ritual_duration)
 			battle.aura_system.recompute_all()
+			await battle.trigger_system.apply_presence_effects(card_data, true)
 			await battle.death_system.process_deaths()
 		else:
 			# Son/VFX joués juste avant la résolution effective de l'effet (et

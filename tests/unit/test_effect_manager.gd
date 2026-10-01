@@ -509,6 +509,22 @@ func test_splash_damage_hits_neighbors_of_selected_target() -> void:
 	assert_eq(e2.health, 2, "voisin droit touché")
 	assert_eq(target.health, 4, "la cible principale elle-même n'est pas splashée")
 
+# Pendant les triggers d'attaque (OnAttack/OnResonance, résolus avant le
+# contact), les dégâts aux adjacents sont mis en file au lieu d'être appliqués :
+# ils doivent tomber quand la cible subit elle-même les dégâts de l'attaque.
+func test_splash_damage_is_deferred_during_attack_triggers() -> void:
+	var source := _minion(2, 4, true)
+	var left := _minion(1, 4, false)
+	var target := _minion(1, 4, false)
+	var effect := _effect("SplashDamage", "EnemyMinion", 2)
+	battle.combat_system.defer_splash = true
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(left.health, 4, "aucun dégât avant le contact")
+	assert_eq(battle.combat_system.splash_queue.size(), 1, "effet mis en file")
+	battle.combat_system.defer_splash = false
+	await effect_manager.apply_splash_damage(battle, source, effect, target, false)
+	assert_eq(left.health, 2, "dégâts appliqués au moment du contact")
+
 # ─── DebuffATK ───────────────────────────────────────────────────────────────
 
 func test_debuff_atk_reduces_attack_without_touching_health() -> void:

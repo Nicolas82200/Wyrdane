@@ -1086,13 +1086,27 @@ func _buff_adjacent(battle, source_minion, effect, selected_target: Minion = nul
 func _splash_damage(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	if selected_target == null:
 		return
+	# Les triggers d'attaque sont résolus avant le contact : ces dégâts-là
+	# attendent que la cible subisse les siens (voir CombatSystem.defer_splash).
+	# `combat_system` absent/nul : bataille simulée ou double de test.
+	var combat = battle.combat_system if "combat_system" in battle else null
+	if combat != null and combat.defer_splash:
+		combat.splash_queue.append([source_minion, effect, selected_target])
+		return
+	await apply_splash_damage(battle, source_minion, effect, selected_target)
+
+# `process_deaths` à false quand l'appelant ramasse les morts lui-même juste
+# après (CombatSystem._flush_splash_queue).
+func apply_splash_damage(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion,
+		process_deaths: bool = true) -> void:
 	var adjacents: Array[Minion] = _get_adjacent_enemies(battle, selected_target)
 	await _point_arrows_to(battle, adjacents, source_minion)
 	for adjacent in adjacents:
 		var dealt: int = adjacent.take_damage(effect.value)
 		if dealt > 0:
 			if adjacent.is_dead():
-				await battle.death_system.process_deaths()
+				if process_deaths:
+					await battle.death_system.process_deaths()
 				continue
 			await notify_damaged(battle, adjacent)
 

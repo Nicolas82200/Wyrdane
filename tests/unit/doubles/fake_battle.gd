@@ -541,6 +541,11 @@ class FakeBoardSystem:
 # / GroupAttackImmediate ciblent et déclenchent bien un combat.
 class FakeCombatSystem:
 	var resolved: Array = []
+	# Report des dégâts aux adjacents pendant les triggers d'attaque, voir
+	# CombatSystem.defer_splash (false par défaut : hors attaque en cours,
+	# EffectManager applique les dégâts immédiatement).
+	var defer_splash: bool = false
+	var splash_queue: Array = []
 	func resolve_combat(attacker: Minion, defender: Minion) -> void:
 		resolved.append({"attacker": attacker, "defender": defender})
 		defender.take_damage(attacker.attack)
