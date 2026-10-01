@@ -1708,10 +1708,18 @@ func _copy_adjacent_keyword_effect(battle, source_minion: Minion, effect: CardEf
 # Triggers/effets réellement actifs pour ce serviteur : ceux mimés (L'Innommable)
 # s'il en a, sinon ceux de sa propre CardData. Ne jamais lire card_data.trigger_types
 # / card_data.effects directement pour un serviteur qui peut mimer une autre carte.
+# Un serviteur réduit au silence n'a plus AUCUN trigger ni effet : le silence ne
+# retirait que les mots-clés, ses effets déclenchés continuaient de se résoudre.
+# La garde est ici, le seul goulot par lequel passent has_trigger/trigger_effects/
+# TurnSystem/Mort-rage, plutôt que dans chaque appelant.
 func _active_trigger_types(minion: Minion) -> Array:
+	if minion.silenced:
+		return []
 	return minion.mimicked_trigger_types if minion.is_mimicking else minion.card_data.trigger_types
 
 func _active_effects(minion: Minion) -> Array:
+	if minion.silenced:
+		return []
 	return minion.mimicked_effects if minion.is_mimicking else minion.card_data.effects
 
 func has_trigger(minion: Minion, trigger_name: String) -> bool:
