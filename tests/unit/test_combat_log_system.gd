@@ -86,9 +86,10 @@ func test_minion_died_appends_death_icon() -> void:
 	assert_eq(combat_log.entries[0]["icon"], "death")
 	assert_eq(combat_log.entries[0]["actor_is_player"], true)
 
-func test_infection_tick_appends_entry() -> void:
-	combat_log.infection_tick(_minion(true))
+func test_infection_conversion_appends_entry_for_the_infector() -> void:
+	combat_log.infection_conversion(_minion(false), true)
 	assert_eq(combat_log.entries[0]["icon"], "infection")
+	assert_eq(combat_log.entries[0]["actor_is_player"], true, "la ligne va au camp qui récupère le Zombie")
 
 func test_self_damage_skips_when_zero() -> void:
 	combat_log.self_damage(true, 0)

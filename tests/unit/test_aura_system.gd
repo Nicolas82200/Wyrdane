@@ -3,7 +3,8 @@ extends GutTest
 # Couvre AuraSystem (scripts/systems/AuraSystem.gd) : recalcul complet des
 # bonus d'aura (FORMATION, HORDE, RANG INFERNAL) et des auras posées par
 # Enchantements/Rituels (AuraBuffRow, AuraDamageReduction,
-# AuraInfectionImmunity, AuraSelfDamageReduction, AuraDebuffEnemiesExceptRace).
+# AuraInfectionImmunity, AuraInfectionDuration, AuraSelfDamageReduction,
+# AuraDebuffEnemiesExceptRace).
 # Utilise FakeBattle (tests/unit/doubles/fake_battle.gd), conformément à la
 # convention GUT du projet (voir CLAUDE.md).
 
@@ -160,3 +161,20 @@ func test_aura_debuff_enemies_except_race_spares_excluded_race() -> void:
 	assert_eq(undead_enemy.aura_attack_bonus, 0, "les Morts-Vivants ennemis sont exclus du débuff")
 	assert_eq(human_enemy.aura_attack_bonus, -1)
 	assert_eq(human_enemy.aura_health_bonus, -1)
+
+# ─── AuraInfectionDuration (Brouillard Pestilentiel) ─────────────────────────
+
+func test_aura_infection_duration_multiplies_only_the_owning_camp() -> void:
+	var enchant := _enchantment("AuraInfectionDuration", "", 2, 0)
+	battle.trigger_system.active_enchantments[true] = [{"card_data": enchant}]
+	aura_system.recompute_all()
+	assert_eq(aura_system.infection_duration_multiplier[true], 2, "le camp qui contrôle l'enchantement double ses durées")
+	assert_eq(aura_system.infection_duration_multiplier[false], 1, "le camp adverse n'est pas affecté")
+
+func test_aura_infection_duration_resets_when_the_enchantment_leaves() -> void:
+	var enchant := _enchantment("AuraInfectionDuration", "", 2, 0)
+	battle.trigger_system.active_enchantments[true] = [{"card_data": enchant}]
+	aura_system.recompute_all()
+	battle.trigger_system.active_enchantments[true] = []
+	aura_system.recompute_all()
+	assert_eq(aura_system.infection_duration_multiplier[true], 1, "le multiplicateur est recalculé à zéro à chaque passe")

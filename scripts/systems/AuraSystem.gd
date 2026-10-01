@@ -3,6 +3,12 @@ class_name AuraSystem
 
 var battle
 
+# Multiplicateur de durée appliqué à chaque Infection posée PAR ce camp
+# (Brouillard Pestilentiel : « la durée de chaque Infection que vous appliquez
+# est doublée »). Recalculé entièrement à chaque recompute_all, comme les
+# bonus d'aura portés par les serviteurs. Lu par EffectManager.apply_infection.
+var infection_duration_multiplier := {true: 1, false: 1}
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -14,6 +20,8 @@ func recompute_all() -> void:
 		minion.infection_immune_aura = false
 	battle.hero_system.self_damage_reduction[true] = 0
 	battle.hero_system.self_damage_reduction[false] = 0
+	infection_duration_multiplier[true] = 1
+	infection_duration_multiplier[false] = 1
 	_apply_formation()
 	_apply_horde()
 	_apply_infernal_rank()
@@ -72,6 +80,8 @@ func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> voi
 				_aura_damage_reduction(effect, is_player)
 			"AuraInfectionImmunity":
 				_aura_infection_immunity(effect, is_player)
+			"AuraInfectionDuration":
+				infection_duration_multiplier[is_player] *= max(1, effect.value)
 			"AuraSelfDamageReduction":
 				_aura_self_damage_reduction(effect, is_player)
 			"AuraDebuffEnemiesExceptRace":

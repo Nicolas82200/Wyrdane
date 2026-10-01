@@ -218,13 +218,13 @@ func can_summon_to_row(is_player: bool, row: String) -> bool:
 # README « Triggers en combat simulé » : ONPLAY se déclenche uniquement à la
 # pose réelle depuis la main, jamais pendant la simulation). `skip_onplay`
 # n'a donc pas besoin d'être un paramètre : c'est le comportement systématique.
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, _skip_onplay := false) -> void:
-	await _summon_minion_return(card_data, is_player, row, insert_index)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, _skip_onplay := false, skip_onsummon := false) -> void:
+	await _summon_minion_return(card_data, is_player, row, insert_index, skip_onsummon)
 
 # Utilisé par `board_system.summon_minion_return` (ex: SummonRandom — voir
 # CLAUDE.md « Jetons » : SummonRandom pioche légitimement dans le pool de
 # vraies cartes, comportement voulu, pas un cas à convertir en jeton).
-func _summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> Minion:
+func _summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onsummon := false) -> Minion:
 	if not can_summon_to_row(is_player, row):
 		var alt_row: String = "Back" if row == "Front" else "Front"
 		if can_summon_to_row(is_player, alt_row):
@@ -238,7 +238,7 @@ func _summon_minion_return(card_data: CardData, is_player: bool, row := "Front",
 	_apply_commandement_bonus(minion, is_player)
 	_apply_chair_adaptative(minion)
 
-	if not _firing_on_summon:
+	if not _firing_on_summon and not skip_onsummon:
 		_firing_on_summon = true
 		var allies: Array[Minion] = (player_minions if is_player else enemy_minions).duplicate()
 		for ally in allies:
@@ -548,8 +548,6 @@ class SimAnimationSystem:
 		pass
 	func play_generic_debuff(_visual, _attack_loss: int, _health_loss: int) -> void:
 		pass
-	func play_infection_tick(_visual, _amount: int) -> void:
-		pass
 	func play_commandement_buff(_visual) -> void:
 		pass
 	func play_sang_noir_buff(_visual) -> void:
@@ -644,8 +642,8 @@ class SimBoardSystemProxy:
 	var battle: SimulatedBattle
 	func _init(_battle: SimulatedBattle) -> void:
 		battle = _battle
-	func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1) -> Minion:
-		return await battle._summon_minion_return(card_data, is_player, row, insert_index)
+	func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, _skip_onplay := false, _onplay_target = null, skip_onsummon := false) -> Minion:
+		return await battle._summon_minion_return(card_data, is_player, row, insert_index, skip_onsummon)
 
 
 class SimTriggerSystem:
@@ -675,7 +673,7 @@ class SimCombatLog:
 		])
 	func minion_died(minion: Minion) -> void:
 		lines.append("%s meurt" % minion.card_data.card_name)
-	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
+	func infection_conversion(_minion: Minion, _infector_is_player: bool) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
 		pass

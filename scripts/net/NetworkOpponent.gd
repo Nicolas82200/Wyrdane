@@ -113,7 +113,7 @@ func take_turn() -> void:
 				# Rejoue la phase de fin de tour distante (OnTurnEnd + Infection)
 				# avec les ids imposés pour d'éventuelles invocations de triggers.
 				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-				await battle.turn_system.run_turn_end_triggers(false)
+				battle.turn_system.run_turn_end_triggers(false)
 				# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour distant
 				# (ex. Sergent de Troupe joué par le pair) : sans cet appel, ils ne
 				# seraient purgés qu'à la fin de NOTRE tour suivant (un tour de

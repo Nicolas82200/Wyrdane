@@ -15,7 +15,9 @@ func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_
 # onplay_target : Minion, Hero, ou null — cible choisie transmise au trigger
 # ONPLAY (ex. Croc de Braise/Embermaw, Pacte "EnemyAny" visant un serviteur ou
 # le héros ennemi). Volontairement non typé Minion pour accepter aussi Hero.
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target = null) -> Minion:
+# skip_onsummon : l'arrivée ne déclenche NI Arrivée NI Renfort (Zombie de
+# conversion d'Infection, voir DeathSystem._convert_infected).
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target = null, skip_onsummon := false) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return null
@@ -51,7 +53,7 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		if not is_instance_valid(battle):
 			return minion
 
-	if not _firing_on_summon:
+	if not _firing_on_summon and not skip_onsummon:
 		_firing_on_summon = true
 		var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).duplicate()
 		for ally in allies:

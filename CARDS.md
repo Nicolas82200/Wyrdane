@@ -28,11 +28,11 @@ Positionnement (Lane Types)
 
 | Mot-clé | Effet |
 |---|---|
-| `PESTIFÉRÉ` | Les attaques de ce serviteur infligent **Infection** en plus des dégâts. |
+| `MORSURE X` | Les attaques de ce serviteur infligent **Infection (X tours)** en plus des dégâts. |
 | `NÉCROPHAGE` | Quand un serviteur allié meurt, ce serviteur gagne +1/+1 de façon permanente. |
 | `HORDE` | Tant que tu contrôles 3 Morts-Vivants ou plus, ce serviteur gagne +1/+0. |
-| `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par pose sur le plateau — s'il repasse par la main ou est renvoyé en jeu, le mot-clé refonctionne). Ne se déclenche pas en cas de Sacrifice. |
-| `CHAIR MORTE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur). Pas immunisé aux débuffs de stats ni au Gel. |
+| `REVENANT` | La première fois que ce serviteur devrait mourir, il se relève avec 1 HP à la place (une seule fois par pose sur le plateau — s'il repasse par la main ou est renvoyé en jeu, le mot-clé refonctionne). Se déclenche aussi en cas de Sacrifice et de FUSION : le sacrifice est considéré payé (l'effet s'exécute, la charge du rituel est consommée) mais le serviteur reste en jeu à 1 PV. |
+| `CHAIR MORTE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur). Pas immunisé aux débuffs de stats ni au Gel. Empêche donc aussi la conversion en Zombie. |
 
 ---
 
@@ -83,7 +83,7 @@ Positionnement (Lane Types)
 | 02 | Goule Affamée | ⚔️ | 1 | 2 | 1 | NÉCROPHAGE. | La faim ne disparaît pas avec la mort. Elle empire. |
 | 03 | Cadavre Errant | ↕️ | 2 | 1 | 3 | REMPART, CHAIR MORTE | Personne ne se souvient de son nom. Lui non plus. |
 | 04 | Zombie Mineur | ⚔️ | 2 | 2 | 2 | HORDE. | Il était enfant. C'était avant. |
-| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Inflige Infection à un serviteur ciblé ennemi. | Même en tombant, il répand ce qui l'a tué. |
+| 05 | Charognard Putride | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Inflige Infection (2 tours) à un serviteur ciblé ennemi. | Même en tombant, il répand ce qui l'a tué. |
 | 06 | Infecté Récent | ⚔️ | 2 | 2 | 2 | Mort-rage : +1/+1 par ennemi infecté en jeu. | La morsure date d'hier. Il a encore ses yeux d'avantmais plus rien derrière. |
 | 07 | Servant Décharné | 🛡️ | 3 | 2 | 4 | Attaque : Les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | Il ne commande pas. Il pousse. Et ça suffit. |
 | 08 | Mâcheur d'Os | ⚔️ | 3 | 4 | 2 | ASSAUT Attaque : Inflige 1 point de dégât aux serviteurs adjacents à la cible. | Le craquement des os est le seul son qu'il comprend encore. |
@@ -95,13 +95,13 @@ Positionnement (Lane Types)
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 12 | Pestilent | ↕️ | 2 | 1 | 2 | PESTIFÉRÉ. | Son souffle est une condamnation à retardement. |
+| 12 | Pestilent | ↕️ | 2 | 1 | 2 | MORSURE 2. | Son souffle est une condamnation à retardement. |
 | 13 | Zombie Bouclier | ⚔️ | 2 | 1 | 5 | REMPART Blessure : Réduit de 1 les dégâts reçus (minimum 1). | Les lames s'enfoncent dans la chair morte et s'y perdent. |
 | 14 | Hurleur Nécrotique | ↕️ | 3 | 3 | 2 | Arrivée : Tous les serviteurs Mort-Vivants alliés gagnent +1/+0 jusqu'à la fin du tour. | Son cri ne terrorise plus. Il réveille. |
 | 15 | Rongeur de Chair | ⚔️ | 4 | 5 | 3 | Exécution : Peut attaquer à nouveau une fois par tour. | Il ne s'arrête pas quand la proie tombe. Il s'arrête quand il ne reste plus rien. |
 | 16 | Cultiste Zombifié | ↕️ | 2 | 1 | 2 | Dernier Souffle : Invoque un Cadavre Errant. | Il a prié pour la mort éternelle. Il a été exaucéà moitié. |
 | 17 | Géant Boursouflé | ⚔️ | 4 | 4 | 6 | Dernier Souffle : Inflige 2 points de dégâts à tous les serviteurs ennemis en rangée Avant. | Sa mort est plus dangereuse que sa vie.Rapport de bataille, campagne de la Vallée Grise |
-| 18 | Émissaire de la Peste | ↕️ | 4 | 3 | 4 | PESTIFÉRÉ. | Il ne vient pas combattre. Il vient annoncer. |
+| 18 | Émissaire de la Peste | ↕️ | 4 | 3 | 4 | MORSURE 3. | Il ne vient pas combattre. Il vient annoncer. |
 | 19 | Soldat Réanimé | ⚔️ | 3 | 4 | 3 | REVENANT. | La mort lui a appris ce que la guerre ne lui avait pas enseigné : la patience. |
 | 20 | Banshee Zombie | 🛡️ | 4 | 2 | 5 | Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire. | Elle hurle sans voix. Ceux qu'elle regarde oublient comment parler. |
 | 21 | Possédé Hurlant | ⚔️ | 3 | 1 | 5 | ASSAUT, VENIN MORTEL | Même les morts refusent de le reprendre. |
@@ -112,7 +112,7 @@ Positionnement (Lane Types)
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 24 | Le Patient Zéro | ↕️ | 4 | 3 | 3 | Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
+| 24 | Le Patient Zéro | ↕️ | 5 | 3 | 3 | Arrivée : Inflige Infection (2 tours) à tous les serviteurs ennemis en jeu. | On n'a jamais su d'où il venait. On a fini par ne plus chercher. |
 | 25 | Ravageur Putréfié | ⚔️ | 5 | 6 | 4 | RAVAGE Mort-rage : Mort-Vivants alliés +2/+2. | Chaque mort nourrit sa rage. Et il y a toujours de nouveaux morts. |
 | 26 | Architecte de la Horde | 🛡️ | 3 | 2 | 3 | Renfort : Invoque un Rampant 1/1. | Il ne construit pas d'armée. Il la sécrète. |
 | 27 | Colosse Décomposé | ⚔️ | 6 | 7 | 7 | REMPART, CHAIR MORTE, REVENANT | Les lames disparaissent dans sa masse. Il continue d'avancer. |
@@ -161,7 +161,7 @@ Positionnement (Lane Types)
 | 41 | Réveil Soudain | 1 | Commune | Ressuscitez le dernier serviteur à avoir rejoint votre cimetière dans votre main. | Il n'y a pas de repos pour ceux qu'on rappelle. |
 | 42 | Vague de Putréfaction | 3 | Commune | Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. | La peste ne choisit pas. Elle couvre. |
 | 43 | Don de Chair | 1 | Rare | Sacrifie votre serviteur le plus faible : Inflige 3 points de dégâts à la cible (joueur ou serviteur ennemi). | Il a donné son corps. Il n'avait plus besoin de consentir. |
-| 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ciblé ennemi un tour. (L'Infection continue.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
+| 44 | Étreinte Glaciale | 2 | Commune | Gèle un serviteur ciblé ennemi un tour. (L'Infection continue : son compteur n'est pas suspendu.) | Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur. |
 | 45 | Morsure Infectieuse | 4 | Rare | Transforme un serviteur non-Légendaire ennemi en Zombie 1/1 sous votre contrôle. | Une seule morsure suffit. Le reste, c'est une question de temps. |
 | 46 | Cri des Damnés | 3 | Rare | Mort-Vivants alliés +1/+0 ce tour. Si 5 ou plus en jeu : +2/+0 à la place. | Plus ils sont nombreux à hurler, moins le cri ressemble à quelque chose d'humain. |
 | 47 | Poigne du Cimetière | 2 | Rare | Renvoie un serviteur (allié ou ennemi) dans la main de son propriétaire. | Les morts n'oublient pas ceux qui les ont enterrés. |
@@ -200,7 +200,7 @@ Positionnement (Lane Types)
 | 66 | Fosse Commune | 4 | Rare | Renfort : Si 3 Mort-Vivants alliés ou plus sont en jeu, invoque un Rampant 1/1. (Une seule fois par tour.) | Plus elle se remplit, plus elle déborde. |
 | 67 | Aura de Décrépitude | 3 | Rare | Quand un serviteur Mort-Vivant allié attaque, il gagne +1/+0 de façon permanente. | La décrépitude n'est pas une faiblesse. C'est une accumulation. |
 | 68 | Cimetière Vivant | 5 | Épique | À chaque tour, le premier Mort-Vivant allié qui meurt revient en jeu à la fin du tour avec 1 point de vie. | Le sol ici ne garde rien. Il régurgite. |
-| 69 | Brouillard Pestilentiel | 3 | Rare | Présence : À chaque début du tour adverse, les serviteurs infectés ennemis perdent 1 point de vie supplémentaire. | On ne le voit pas. On ne le sent même plus, après un moment. |
+| 69 | Brouillard Pestilentiel | 4 | Épique | Présence : La durée de chaque Infection que vous appliquez est doublée. | On ne le voit pas. On ne le sent même plus, après un moment. |
 | 70 | Symbiose Cadavérique | 5 | Épique | Présence : Les serviteurs alliés en rangée Arrière gagnent +0/+1 par serviteur allié en rangée Avant. | Les morts de devant protègent les morts de derrière. C'est le seul lien qui reste. |
 | 71 | Idole de l'Apocalypse | 6 | Légendaire | Quand un serviteur Mort-Vivant allié attaque, il inflige 1 point de dégât aux serviteurs adjacents à sa cible. | On ne l'a pas sculpté. On l'a trouvé ainsi, debout, au milieu des ruines. |
 | 72 | Sanctuaire Nécrotique | 4 | Épique | Présence : Les incantations que vous lancez coûtent 1 ressource générique de moins (minimum 1). | Dans ses murs, la magie de mort coule comme de l'eau froidenaturellement. |
@@ -212,7 +212,7 @@ Positionnement (Lane Types)
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie). | Ni vivant, ni mort. Juste debout. |
+| 76 | Zombie | ⚔️ | 1 | 1 | 1 | — (jeton vanille, obtenu par transformation : Morsure Infectieuse, Apocalypse Zombie, ou par conversion d'un serviteur infecté qui meurt). | Ni vivant, ni mort. Juste debout. |
 | 78 | Rampant | ⚔️ | — | 1 | 1 | — (jeton vanille, invoqué par : Éclat de Putréfaction, Architecte de la Horde, Fosse Commune, Tombeau Ambulant, Horde Mineure). | Encore un, sans nom cette fois. |
 | 79 | Zombie Mineur (jeton) | ⚔️ | — | 2 | 2 | HORDE. (jeton, invoqué par : Pacte Sanglant). | Il était enfant. C'était avant. |
 | 80 | Cadavre Errant (jeton) | ↕️ | — | 1 | 3 | REMPART, CHAIR MORTE (jeton, invoqué par : Cultiste Zombifié). | Personne ne se souvient de son nom. Lui non plus. |
@@ -251,7 +251,7 @@ Liste complète des cartes de la race **Humain**.
 
 | Mot-clé | Effet |
 |---|---|
-| `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats ni au Gel. |
+| `DISCIPLINE` | Immunisé aux effets néfastes raciaux (Infection, Corruption, Terreur), au silence et au contrôle mental. Pas immunisé aux débuffs de stats ni au Gel. Empêche donc aussi la conversion en Zombie. |
 | `FORMATION` | Tant qu'un serviteur allié est adjacent, ce serviteur gagne +1/+1. |
 | `CONTRE-ATTAQUE` | Si ce serviteur survit après avoir attaqué ou défendu, inflige à nouveau son ATK au serviteur qui lui a infligé des dégâts. |
 | `COMMANDEMENT` | Les serviteurs Humains alliés invoqués après lui gagnent +1/+0 de façon permanente. |

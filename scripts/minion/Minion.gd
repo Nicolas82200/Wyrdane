@@ -56,24 +56,29 @@ var corruption_stacks: int = 0
 # sont appliqués directement sur base_attack/base_max_health par roll_mutation.
 var mutation_stacks: int = 0
 var mutations: Array[String] = []
-# Infection cumulable : chaque pose ajoute une marque, chacune infligeant 1
-# dégât au début du tour adverse (voir TurnSystem._apply_infection_damage) —
-# un serviteur touché 5 fois perd 5 PV/tour, pas 1. CHAIR MORTE ou une
-# immunité d'aura (Aegis de l'Empire) bloque toute nouvelle marque.
-var infection_stacks: int = 0
-# Compat/lisibilité : `infected = true` ajoute une marque (bloqué par
-# l'immunité), `infected = false` retire toutes les marques (guérison
-# complète, voir CureInfection/Aegis de l'Empire) ; `infected` se lit comme un
-# simple booléen partout ailleurs dans le code (combat, ciblage, VFX...).
+# Infection à durée : marque de conversion temporaire (plus de dégâts par
+# tour). Tant qu'elle court, la mort du serviteur le convertit en Zombie 1/1
+# sous le contrôle de l'infecteur (voir DeathSystem._convert_infected). Le
+# compteur baisse de 1 à la fin du tour du CONTRÔLEUR du serviteur infecté
+# (TurnSystem._tick_infection) ; à 0, la marque s'efface sans conversion.
+# CHAIR MORTE / DISCIPLINE ou une immunité d'aura (Aegis de l'Empire) bloquent
+# toute nouvelle marque.
+var infection_turns: int = 0
+# Camp qui a posé la marque : c'est lui qui récupère le Zombie de conversion.
+var infection_infector_is_player: bool = false
+# Compat/lisibilité : `infected` se lit comme un simple booléen partout
+# ailleurs (combat, ciblage, VFX...). `infected = false` guérit (CureInfection,
+# Aegis de l'Empire, transformation, changement de contrôleur) ;
+# `infected = true` pose 1 tour depuis le camp opposé — raccourci réservé aux
+# tests et au code historique, toute vraie source passe par
+# EffectManager.apply_infection (qui applique le multiplicateur d'aura).
 var infected: bool:
-	get: return infection_stacks > 0
+	get: return infection_turns > 0
 	set(value):
 		if value:
-			if is_infection_immune():
-				return
-			infection_stacks += 1
+			apply_infection(1, not owner_is_player)
 		else:
-			infection_stacks = 0
+			infection_turns = 0
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
 var revenant_triggered: bool = false    # REVENANT : une seule fois par pose (nouvelle instance Minion à chaque redéploiement, donc réinitialisé de fait)
 var awakened: bool = false
@@ -202,6 +207,15 @@ func add_human_keyword(keyword: int) -> void:
 
 func remove_human_keyword(keyword: int) -> void:
 	human_keywords.erase(keyword)
+
+# Pose/prolonge l'Infection. Jamais additive : la durée restante est portée au
+# maximum des deux (règle de réapplication), et l'infecteur devient celui de la
+# dernière application.
+func apply_infection(turns: int, infector_is_player: bool) -> void:
+	if turns <= 0 or is_infection_immune():
+		return
+	infection_turns = max(infection_turns, turns)
+	infection_infector_is_player = infector_is_player
 
 func is_infection_immune() -> bool:
 	return has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE) \

@@ -4,6 +4,9 @@ class_name DeathSystem
 var battle
 var processing_deaths := false
 
+# Jeton invoqué par la conversion d'un serviteur infecté qui meurt (§ Infection).
+const INFECTION_ZOMBIE: CardData = preload("res://resources/cards/undead/zombie.tres")
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -61,6 +64,7 @@ func process_deaths(silent: Array = []) -> void:
 	_send_to_graveyards(dead_player, dead_enemy)
 	await _trigger_deathrattle(dead_player)
 	await _trigger_deathrattle(dead_enemy)
+	await _convert_infected(dead_all)
 	for adjacent in virulent_adjacent:
 		if not adjacent.is_dead():
 			await battle.effect_manager.roll_mutation(battle, adjacent)
@@ -74,15 +78,18 @@ func process_deaths(silent: Array = []) -> void:
 	battle.board_visual_system.refresh_board()
 	await process_deaths()
 
-# REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par pose.
-# Un Sacrifice volontaire consomme le serviteur normalement (pas de relève).
+# REVENANT : au lieu de mourir, se relève avec 1 HP — une seule fois par pose,
+# y compris sur un Sacrifice volontaire ou une FUSION (le sacrifice est
+# considéré payé : l'effet s'exécute et la charge du rituel est consommée, les
+# stats de la victime ayant déjà été capturées avant le relèvement).
+# Un serviteur relevé ne meurt pas : son Infection reste, sans conversion.
 # Retourne true si au moins un serviteur a été relevé.
 func _apply_revenant(minions: Array[Minion]) -> bool:
 	var revived := false
 	for minion in minions:
 		if not minion.is_dead():
 			continue
-		if minion.sacrificed or minion.revenant_triggered:
+		if minion.revenant_triggered:
 			continue
 		if not minion.has_undead_keyword(KeywordUndead.Type.REVENANT):
 			continue
@@ -93,6 +100,29 @@ func _apply_revenant(minions: Array[Minion]) -> bool:
 		if visual:
 			battle.animation_system.play_revenant(visual)
 	return revived
+
+# Infection : un serviteur qui meurt alors qu'il porte encore la marque se
+# convertit en Zombie 1/1 sous le contrôle de l'infecteur. Il meurt quand même
+# normalement (cimetière, Dernier Souffle, Deuil/Carnage) : le Zombie arrive EN
+# PLUS, une fois les Derniers Souffles résolus. Le Zombie n'est pas une arrivée
+# "normale" (ni Arrivée ni Renfort) — sinon chaque balayage sur un plateau
+# infecté donnerait deux corps par mort. Un serviteur retiré du jeu
+# (exile_on_death) ne se convertit pas ; un jeton, si (la conversion dépend de
+# la mort, pas du cimetière).
+func _convert_infected(dead_minions: Array[Minion]) -> void:
+	for dead in dead_minions:
+		if not dead.infected or dead.card_data.exile_on_death:
+			continue
+		var to_player: bool = dead.infection_infector_is_player
+		var row: String = "Front"
+		if not battle.can_summon_to_row(to_player, row):
+			row = "Back"
+		if not battle.can_summon_to_row(to_player, row):
+			continue
+		battle.combat_log.infection_conversion(dead, to_player)
+		await battle.summon_minion(INFECTION_ZOMBIE, to_player, row, -1, true, true)
+		if to_player and "player_infection_conversions" in battle:
+			battle.player_infection_conversions += 1
 
 func _animate_deaths(dead_minions: Array[Minion], silent: Array = []) -> void:
 	for minion in dead_minions:

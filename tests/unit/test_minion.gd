@@ -92,28 +92,42 @@ func test_infected_blocked_by_chair_morte() -> void:
 	minion.infected = true
 	assert_false(minion.infected, "CHAIR MORTE doit bloquer l'Infection")
 
-func test_infection_stacks_accumulate_on_repeated_exposure() -> void:
-	var minion := Minion.new(_make_data(2, 40))
-	minion.infected = true
-	minion.infected = true
-	minion.infected = true
-	minion.infected = true
-	minion.infected = true
-	assert_eq(minion.infection_stacks, 5, "5 expositions doivent donner 5 marques cumulées")
+func test_apply_infection_sets_duration_and_infector() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(3, true)
+	assert_eq(minion.infection_turns, 3, "la durée posée doit être conservée telle quelle")
+	assert_true(minion.infection_infector_is_player, "l'infecteur doit être mémorisé")
 	assert_true(minion.infected)
 
-func test_infected_false_cures_all_stacks_at_once() -> void:
-	var minion := Minion.new(_make_data(2, 40))
-	minion.infected = true
-	minion.infected = true
+func test_reapplying_infection_takes_the_longest_duration_never_adds() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(3, true)
+	minion.apply_infection(2, true)
+	assert_eq(minion.infection_turns, 3, "une durée plus courte ne doit pas raccourcir la marque en place")
+	minion.apply_infection(5, true)
+	assert_eq(minion.infection_turns, 5, "une durée plus longue remplace la durée restante (jamais additive)")
+
+func test_reapplying_infection_changes_the_infector() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(2, true)
+	minion.apply_infection(4, false)
+	assert_false(minion.infection_infector_is_player, "l'infecteur devient celui de la dernière application")
+
+func test_infected_false_clears_the_whole_mark() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(4, true)
 	minion.infected = false
-	assert_eq(minion.infection_stacks, 0, "infected = false doit guérir toutes les marques d'un coup")
+	assert_eq(minion.infection_turns, 0, "la guérison efface tout le compteur d'un coup")
 	assert_false(minion.infected)
 
-func test_chair_morte_blocks_additional_stacks_but_not_existing_ones() -> void:
-	var minion := Minion.new(_make_data(2, 40))
-	minion.infected = true
-	minion.infected = true
+func test_chair_morte_blocks_new_infection_but_not_an_existing_one() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(2, true)
 	minion.undead_keywords.append(KeywordUndead.Type.CHAIR_MORTE)
-	minion.infected = true
-	assert_eq(minion.infection_stacks, 2, "CHAIR MORTE ne doit bloquer que les NOUVELLES marques")
+	minion.apply_infection(5, true)
+	assert_eq(minion.infection_turns, 2, "CHAIR MORTE ne doit bloquer que les NOUVELLES marques")
+
+func test_apply_infection_ignores_a_zero_or_negative_duration() -> void:
+	var minion := Minion.new(_make_data(2, 40), false)
+	minion.apply_infection(0, true)
+	assert_false(minion.infected, "une durée nulle ne pose aucune marque")

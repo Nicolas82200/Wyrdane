@@ -559,16 +559,9 @@ func play_hit_mark(attacker_visual: BoardMinion, target: Control) -> void:
 
 # ─── États (indépendants des mots-clés) : Infection, Gel, Silence, Mort-rage ──
 
-## INFECTION : marque toxique verte à la pose (Pestiféré, Infecter, Infecter Adjacent...).
+## INFECTION : marque toxique verte à la pose (MORSURE, Infecter, Infecter Adjacent...).
 func play_infection(target_visual: Control) -> void:
 	_flash(target_visual, Color(0.4, 0.9, 0.55), 0.3)
-
-## Tic d'Infection en début de tour : petite pulsation verte + dégât affiché.
-func play_infection_tick(visual: Control, amount: int) -> void:
-	if amount <= 0:
-		return
-	_flash(visual, Color(0.35, 0.75, 0.45), 0.25)
-	_floating_text(visual, "-%d" % amount, Color(0.45, 0.9, 0.55))
 
 ## GEL : le serviteur se fige d'un coup, saisi par le givre.
 func play_freeze(visual: Control) -> void:

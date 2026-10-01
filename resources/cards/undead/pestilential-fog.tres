@@ -8,25 +8,23 @@
 
 [sub_resource type="Resource" id="Resource_umzhr"]
 script = ExtResource("1_cardeffect")
-effect_id = "Damage"
-target = "AllEnemies"
-value = 1
-requires_infected_target = true
+effect_id = "AuraInfectionDuration"
+value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_3n6at"]
 script = ExtResource("5_trig")
-type = "OnDecline"
+type = "OnAura"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Brouillard Pestilentiel"
-description = "Présence : À chaque début du tour adverse, les serviteurs infectés ennemis perdent 1 point de vie supplémentaire."
+description = "Présence : La durée de chaque Infection que vous appliquez est doublée."
 flavour_text = "On ne le voit pas. On ne le sent même plus, après un moment."
 texture = ExtResource("3_texture")
-cost = 3
+cost = 4
 card_type = "Enchantment"
 trigger_types = Array[ExtResource("5_trig")]([SubResource("Resource_3n6at")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_umzhr")])
-rarity = "Rare"
+rarity = "Epic"
 metadata/_custom_type_script = "uid://bru7ohxxvloht"
