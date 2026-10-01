@@ -1283,13 +1283,6 @@ func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target =
 				continue
 			target.add_keyword(kw)
 			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
-			# ASSAUT (Keyword.CHARGE) accordé après l'initialisation du serviteur
-			# (ex. Pacte du Berserker) : attacks_remaining a déjà été figé à 0
-			# par le mal de l'invocation dans Minion._init, il faut le débloquer
-			# manuellement pour que le mot-clé nouvellement acquis soit utilisable.
-			if kw == Keyword.Type.CHARGE and target.attacks_remaining == 0 \
-					and target.frozen_turns == 0 and target.terror_turns == 0:
-				target.attacks_remaining = 1
 
 # ─── Agression ────────────────────────────────────────────────────────────────
 
