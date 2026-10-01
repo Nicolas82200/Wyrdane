@@ -509,6 +509,7 @@ EFF_TRANSFORM_DESC,"Transforme un serviteur en une autre créature.","Transforms
 ACTIVE_MODIFIERS_TITLE,"Modificateurs actifs","Active modifiers"
 EFF_SILENCE_NAME,"Silence","Silence"
 EFF_SILENCE_DESC,"Retire les mots-clés et effets.","Removes keywords and effects."
+MINION_SILENCED_DESC,"Réduit au silence : aucun mot-clé ni effet ne s'applique plus.","Silenced: no keyword or effect applies any more."
 EFF_STEAL_NAME,"Vol de serviteur","Mind Control"
 EFF_STEAL_DESC,"Prend le contrôle d'un serviteur ennemi.","Takes control of an enemy minion."
 EFF_CORRUPT_NAME,"Corruption","Corruption"

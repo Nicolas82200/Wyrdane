@@ -535,6 +535,10 @@ func _create_and_show_zoom() -> void:
 	# l'art/nom/description de la carte copiée, mais toujours les VRAIES stats
 	# du serviteur (jamais celles, potentiellement différentes, de la copie).
 	_hover_preview.set_data(minion.get_display_card())
+	# Réduit au silence : la carte n'a plus ni mot-clé ni effet (voir
+	# EffectManager._active_trigger_types), donc son texte d'origine mentirait.
+	if minion.silenced:
+		_hover_preview.desc_label.text = "[i]" + TranslationServer.translate("MINION_SILENCED_DESC") + "[/i]"
 	if minion.display_card_override != null:
 		_hover_preview.attack_label.text = str(minion.card_data.attack)
 		_hover_preview.health_label.text = str(minion.card_data.health)
@@ -563,7 +567,9 @@ func _refresh_hover_extras() -> void:
 	var hint_center_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE * 0.5
 	_show_hint_panel(hint_center_x, _hover_preview.global_position.y)
 	if TooltipData.battle_shows_info():
-		_show_summon_previews(minion.get_display_card())
+		# Silence : plus aucun effet, donc plus aucun jeton à annoncer (null
+		# nettoie aussi ceux d'un survol précédent).
+		_show_summon_previews(null if minion.silenced else minion.get_display_card())
 		var tooltip_x := _hover_preview.global_position.x + _hover_preview.size.x * Card.HOVER_ZOOM_SCALE + 15
 		var tooltip_y := _hover_preview.global_position.y
 		await _show_keyword_tooltips(tooltip_x, tooltip_y)
