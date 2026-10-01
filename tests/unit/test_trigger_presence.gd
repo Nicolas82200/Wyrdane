@@ -67,3 +67,41 @@ func test_presence_ignores_enchantment_without_on_aura() -> void:
 	var card := _presence_enchantment(_grant_discipline(), "OnSummon")
 	await trigger_system.apply_presence_effects(card, true)
 	assert_false(ally.has_human_keyword(KeywordHuman.Type.DISCIPLINE))
+
+# ─── Présence continue (un serviteur posé après l'enchantement en profite) ────
+# BoardSystem.summon_minion_return rejoue TOUS les Présence du camp à chaque
+# arrivée : reapply_all_presence_effects() simule ce rejeu sans dépendre de la
+# vraie BoardSystem (qui a besoin d'une scène).
+
+func test_reapply_all_presence_effects_covers_both_camps() -> void:
+	var ally := _ally()
+	var enemy_data := CardData.new()
+	enemy_data.card_name = "ENEMY_CARD"
+	enemy_data.race = Race.Type.HUMAN
+	var enemy := Minion.new(enemy_data, false, "Front")
+	battle.enemy_minions.append(enemy)
+	trigger_system.register_enchantment(_presence_enchantment(_grant_discipline()), true)
+	trigger_system.register_enchantment(_presence_enchantment(_grant_discipline()), false)
+	await trigger_system.reapply_all_presence_effects()
+	assert_true(ally.has_human_keyword(KeywordHuman.Type.DISCIPLINE), "camp joueur couvert")
+	assert_true(enemy.has_human_keyword(KeywordHuman.Type.DISCIPLINE), "camp ennemi couvert")
+
+func test_reapply_all_presence_effects_is_idempotent_on_already_granted_keyword() -> void:
+	var ally := _ally()
+	trigger_system.register_enchantment(_presence_enchantment(_grant_discipline()), true)
+	await trigger_system.reapply_all_presence_effects()
+	# Un deuxième rejeu (ex: un second serviteur qui arrive juste après) ne doit
+	# ni planter ni retirer/réappliquer le mot-clé en boucle.
+	await trigger_system.reapply_all_presence_effects()
+	assert_true(ally.has_human_keyword(KeywordHuman.Type.DISCIPLINE))
+	assert_eq(ally.human_keywords.count(KeywordHuman.Type.DISCIPLINE), 1, "pas de doublon")
+
+func test_grant_keyword_skips_already_granted_target_silently() -> void:
+	# _grant_keyword doit écarter une cible déjà pourvue AVANT de dessiner ses
+	# flèches : appeler deux fois le même octroi ne doit pas planter.
+	var ally := _ally()
+	ally.add_human_keyword(KeywordHuman.Type.DISCIPLINE)
+	var effect := _grant_discipline()
+	await battle.effect_manager.execute_effect(battle, null, effect)
+	assert_true(ally.has_human_keyword(KeywordHuman.Type.DISCIPLINE))
+	assert_eq(ally.human_keywords.count(KeywordHuman.Type.DISCIPLINE), 1)

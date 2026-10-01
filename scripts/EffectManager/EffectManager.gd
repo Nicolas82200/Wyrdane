@@ -1252,58 +1252,66 @@ func _resurrect_last(battle, source_minion: Minion, effect: CardEffect) -> void:
 		graveyard.remove_minion(card_data)
 
 # Octroie un mot-clé (Bouclier de Foi : ÉGIDE, Formation Défensive : REMPART...)
-# Si le serviteur possède déjà le mot-clé, on ne l'enregistre pas en temporaire
-# pour ne pas lui retirer un mot-clé permanent à l'expiration.
+# Une cible qui le possède déjà est écartée : rien à accorder, et surtout rien à
+# enregistrer en temporaire (sinon l'expiration lui retirerait un mot-clé
+# permanent). Elle est écartée AVANT les flèches, pour qu'un octroi qui n'accorde
+# rien reste entièrement silencieux : la Présence de l'Aegis de l'Empire est
+# rejouée à chaque arrivée de serviteur sur le plateau (voir
+# TriggerSystem.reapply_all_presence_effects), elle ne doit pas lancer une flèche
+# par Humain déjà pourvu à chaque invocation.
 func _grant_keyword(battle, source_minion, effect: CardEffect, selected_target = null) -> void:
 	if effect.granted_keyword.is_empty():
 		return
-	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
+	# La famille et le mot-clé ne dépendent pas de la cible : résolus une seule fois.
+	var family := "generic"
+	var kw: int = Keyword.from_name(effect.granted_keyword)
+	if effect.granted_keyword_is_abomination:
+		family = "abomination"
+		kw = KeywordAbomination.from_name(effect.granted_keyword)
+	elif effect.granted_keyword_is_human:
+		family = "human"
+		kw = KeywordHuman.from_name(effect.granted_keyword)
+	elif effect.granted_keyword_is_demon:
+		family = "demon"
+		kw = KeywordDemon.from_name(effect.granted_keyword)
+	if kw == -1:
+		push_warning("GrantKeyword : mot-clé %s inconnu '%s'" % [family, effect.granted_keyword])
+		return
+	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target) 		.filter(func(m: Minion) -> bool: return not _has_keyword_of_family(m, family, kw))
+	if targets.is_empty():
+		return
 	await _point_arrows_to(battle, targets, source_minion)
 	for target in targets:
-		if effect.granted_keyword_is_abomination:
-			var kw: int = KeywordAbomination.from_name(effect.granted_keyword)
-			if kw == -1:
-				push_warning("GrantKeyword : mot-clé Abomination inconnu '%s'" % effect.granted_keyword)
-				continue
-			if target.has_abomination_keyword(kw):
-				continue
-			target.add_abomination_keyword(kw)
-			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
-		elif effect.granted_keyword_is_human:
-			var kw: int = KeywordHuman.from_name(effect.granted_keyword)
-			if kw == -1:
-				push_warning("GrantKeyword : mot-clé Humain inconnu '%s'" % effect.granted_keyword)
-				continue
-			if target.has_human_keyword(kw):
-				continue
-			target.add_human_keyword(kw)
-			battle.temp_effect_system.add_temp_keyword(target, kw, true, effect.duration)
-		elif effect.granted_keyword_is_demon:
-			var kw: int = KeywordDemon.from_name(effect.granted_keyword)
-			if kw == -1:
-				push_warning("GrantKeyword : mot-clé Démon inconnu '%s'" % effect.granted_keyword)
-				continue
-			if target.has_demon_keyword(kw):
-				continue
-			target.add_demon_keyword(kw)
-			battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
-			battle.aura_system.recompute_all()
-		else:
-			var kw: int = Keyword.from_name(effect.granted_keyword)
-			if kw == -1:
-				push_warning("GrantKeyword : mot-clé inconnu '%s'" % effect.granted_keyword)
-				continue
-			if target.has_keyword(kw):
-				continue
-			target.add_keyword(kw)
-			battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
-			# ASSAUT (Keyword.CHARGE) accordé après l'initialisation du serviteur
-			# (ex. Pacte du Berserker) : attacks_remaining a déjà été figé à 0
-			# par le mal de l'invocation dans Minion._init, il faut le débloquer
-			# manuellement pour que le mot-clé nouvellement acquis soit utilisable.
-			if kw == Keyword.Type.CHARGE and target.attacks_remaining == 0 \
-					and target.frozen_turns == 0 and target.terror_turns == 0:
-				target.attacks_remaining = 1
+		match family:
+			"abomination":
+				target.add_abomination_keyword(kw)
+				battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
+			"human":
+				target.add_human_keyword(kw)
+				battle.temp_effect_system.add_temp_keyword(target, kw, true, effect.duration)
+			"demon":
+				target.add_demon_keyword(kw)
+				battle.temp_effect_system.add_temp_demon_keyword(target, kw, effect.duration)
+			_:
+				target.add_keyword(kw)
+				battle.temp_effect_system.add_temp_keyword(target, kw, false, effect.duration)
+				# ASSAUT (Keyword.CHARGE) accordé après l'initialisation du serviteur
+				# (ex. Pacte du Berserker) : attacks_remaining a déjà été figé à 0
+				# par le mal de l'invocation dans Minion._init, il faut le débloquer
+				# manuellement pour que le mot-clé nouvellement acquis soit utilisable.
+				if kw == Keyword.Type.CHARGE and target.attacks_remaining == 0 						and target.frozen_turns == 0 and target.terror_turns == 0:
+					target.attacks_remaining = 1
+	# Les mots-clés Démon sont lus par AuraSystem (RANG INFERNAL) : un seul
+	# recalcul après la boucle, au lieu d'un par cible comme avant.
+	if family == "demon":
+		battle.aura_system.recompute_all()
+
+func _has_keyword_of_family(minion: Minion, family: String, kw: int) -> bool:
+	match family:
+		"abomination": return minion.has_abomination_keyword(kw)
+		"human":       return minion.has_human_keyword(kw)
+		"demon":       return minion.has_demon_keyword(kw)
+		_:             return minion.has_keyword(kw)
 
 # ─── Agression ────────────────────────────────────────────────────────────────
 

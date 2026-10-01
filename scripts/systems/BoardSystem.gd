@@ -61,6 +61,12 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 		await battle.trigger_system.fire("OnSummon", minion, is_player)
 		_firing_on_summon = false
 	battle.aura_system.recompute_all()
+	# Présence (OnAura) : ce serviteur-ci vient d'arriver, il doit profiter des
+	# enchantements/rituels déjà en jeu — AuraSystem couvre les effets continus
+	# `AuraXxx`, pas les ponctuels (octroi de mot-clé), rejoués ici.
+	await battle.trigger_system.reapply_all_presence_effects()
+	if not is_instance_valid(battle):
+		return minion
 	await battle.death_system.process_deaths()
 	battle.board_visual_system.refresh_board()
 	return minion

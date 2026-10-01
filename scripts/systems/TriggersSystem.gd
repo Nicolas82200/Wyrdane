@@ -21,6 +21,9 @@ var _enchantments: Dictionary = {
 	false: []
 }
 
+# Voir reapply_all_presence_effects : verrou de réentrance.
+var _reapplying_presence: bool = false
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -52,6 +55,27 @@ func apply_presence_effects(card_data: CardData, is_player: bool) -> void:
 		if effect.effect_id.begins_with("Aura"):
 			continue
 		await battle.effect_manager.execute_effect(battle, proxy, effect)
+
+# Rejoue les effets ponctuels de Présence de TOUS les enchantements/rituels
+# encore en jeu, des deux camps. Appelé à chaque arrivée de serviteur sur le
+# plateau (BoardSystem.summon_minion_return) : un serviteur posé APRÈS
+# l'enchantement doit en profiter aussi, tant que la carte est là — c'est le
+# « effet passif continu » de Présence. Ces effets sont idempotents par
+# construction (un octroi de mot-clé écarte les cibles déjà pourvues, et reste
+# alors entièrement silencieux), donc les rejouer ne cumule ni ne reflashe rien.
+func reapply_all_presence_effects() -> void:
+	# Un effet de Présence qui invoquerait un serviteur rentrerait ici en
+	# boucle : un seul passage à la fois (même principe que
+	# BoardSystem._firing_on_summon).
+	if _reapplying_presence:
+		return
+	_reapplying_presence = true
+	for is_player in [true, false]:
+		for entry in _enchantments[is_player].duplicate():
+			await apply_presence_effects(entry["card_data"], is_player)
+			if not is_instance_valid(battle):
+				return
+	_reapplying_presence = false
 
 # Réinitialise les enchantements/rituels "une fois par tour" du camp dont le
 # tour commence (appelé depuis TurnSystem.run_turn_start_triggers).

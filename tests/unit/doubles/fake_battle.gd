@@ -355,6 +355,12 @@ class FakeTriggerSystem:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
 	func reset_once_per_turn(_is_local_turn: bool) -> void:
 		pass
+	# Compté plutôt qu'ignoré : BoardSystem doit rejouer les effets ponctuels de
+	# Présence à chaque arrivée de serviteur (voir
+	# TriggerSystem.reapply_all_presence_effects).
+	var reapply_presence_calls: int = 0
+	func reapply_all_presence_effects() -> void:
+		reapply_presence_calls += 1
 
 
 class FakeFusionSystem:
