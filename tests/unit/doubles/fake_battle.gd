@@ -355,6 +355,10 @@ class FakeTriggerSystem:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
 	func reset_once_per_turn(_is_local_turn: bool) -> void:
 		pass
+	func begin_batch() -> void:
+		pass
+	func end_batch() -> void:
+		pass
 
 
 class FakeFusionSystem:

@@ -21,6 +21,24 @@ var _enchantments: Dictionary = {
 	false: []
 }
 
+# ─── Regroupement des déclenchements ──────────────────────────────────────────
+# Une action qui touche N serviteurs (dix mutations d'un coup, dix attaques
+# d'une Frappe Coordonnée, dix morts simultanées) émettait jusqu'ici N
+# évènements résolus un par un, intercalés entre les N actions : le joueur
+# voyait muter un serviteur, puis la popup de l'enchantement qui y réagit, puis
+# le serviteur suivant, et ainsi de suite — dix popups de ~2s pour un seul coup.
+# `begin_batch`/`end_batch` (ouverts par EffectManager.execute_effect, donc pour
+# tout effet de carte sans exception) mettent ces évènements en file : les N
+# actions se jouent d'abord, les N évènements ensuite, d'un bloc. La popup de la
+# carte qui y réagit est alors coalescée en une seule par
+# CardPopupSystem.show_card_popup, et toutes les cibles tiennent dans un seul
+# faisceau de flèches.
+# Seuls les évènements d'enchantement/rituel (fire) sont différés : les effets
+# propres du serviteur concerné (EffectManager.trigger_effects) restent résolus
+# sur place, leur ordre pouvant conditionner la suite de l'action en cours.
+var _batch_depth: int = 0
+var _deferred: Array = []
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -73,6 +91,9 @@ func get_active_enchantments(is_player: bool) -> Array:
 # la pause est insérée AVANT chaque déclenchement suivant, jamais avant le premier.
 # Retourne l'état "au moins une action a eu lieu" pour chaîner le pacing.
 func fire(trigger_name: String, source: Minion = null, is_player: bool = true, extra: Dictionary = {}, paced: bool = false, already_acted: bool = false) -> bool:
+	if _batch_depth > 0:
+		_deferred.append([trigger_name, source, is_player, extra])
+		return already_acted
 	var ctx := TriggerContext.new(trigger_name, source, is_player, extra)
 	# Englobe toute la chaîne (y compris les pauses de pacing entre chaque
 	# enchantement/rituel déclenché) pour que battle.effects_resolving reste
@@ -83,6 +104,26 @@ func fire(trigger_name: String, source: Minion = null, is_player: bool = true, e
 	if is_instance_valid(battle):
 		battle.effects_resolving -= 1
 	return result
+
+func begin_batch() -> void:
+	_batch_depth += 1
+
+# Rejoue d'un bloc tous les évènements mis en file depuis l'ouverture. Les
+# évènements émis pendant ce rejeu repartent dans la file du `begin_batch`
+# ouvert par l'effet qui les émet (execute_effect), jamais dans celle-ci : la
+# boucle ne tourne donc que sur ce qui aurait été émis hors de tout effet.
+func end_batch() -> void:
+	_batch_depth = maxi(0, _batch_depth - 1)
+	if _batch_depth > 0:
+		return
+	while not _deferred.is_empty():
+		var queued: Array = _deferred
+		_deferred = []
+		for d in queued:
+			if not is_instance_valid(battle):
+				_deferred.clear()
+				return
+			await fire(d[0], d[1], d[2], d[3])
 
 # ─── Enchantements ────────────────────────────────────────────────────────────
 
