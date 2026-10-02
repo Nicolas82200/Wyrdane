@@ -355,6 +355,12 @@ class FakeTriggerSystem:
 		activated_rituals.append({"card_data": card_data, "is_player": is_player, "victims": victims})
 	func reset_once_per_turn(_is_local_turn: bool) -> void:
 		pass
+	# Compté plutôt qu'ignoré : BoardSystem doit rejouer les effets ponctuels de
+	# Présence à chaque arrivée de serviteur (voir
+	# TriggerSystem.reapply_all_presence_effects).
+	var reapply_presence_calls: int = 0
+	func reapply_all_presence_effects() -> void:
+		reapply_presence_calls += 1
 	func begin_batch() -> void:
 		pass
 	func end_batch() -> void:
@@ -545,6 +551,11 @@ class FakeBoardSystem:
 # / GroupAttackImmediate ciblent et déclenchent bien un combat.
 class FakeCombatSystem:
 	var resolved: Array = []
+	# Report des dégâts aux adjacents pendant les triggers d'attaque, voir
+	# CombatSystem.defer_splash (false par défaut : hors attaque en cours,
+	# EffectManager applique les dégâts immédiatement).
+	var defer_splash: bool = false
+	var splash_queue: Array = []
 	func resolve_combat(attacker: Minion, defender: Minion) -> void:
 		resolved.append({"attacker": attacker, "defender": defender})
 		defender.take_damage(attacker.attack)

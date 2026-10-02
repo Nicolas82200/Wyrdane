@@ -44,6 +44,14 @@ func test_summon_minion_return_adds_minion_to_player_minions() -> void:
 	var minion := await board_system.summon_minion_return(_card(), true)
 	assert_true(minion in battle.player_minions)
 
+# Présence (OnAura) : chaque arrivée de serviteur doit rejouer les effets
+# ponctuels des enchantements/rituels déjà en jeu (TriggerSystem.
+# reapply_all_presence_effects), pour qu'un serviteur posé APRÈS l'enchantement
+# en profite aussi. Voir test_trigger_presence.gd pour la logique elle-même.
+func test_summon_minion_return_reapplies_presence_effects() -> void:
+	await board_system.summon_minion_return(_card(), true)
+	assert_eq(battle.trigger_system.reapply_presence_calls, 1)
+
 func test_summon_minion_return_adds_minion_to_enemy_minions() -> void:
 	var minion := await board_system.summon_minion_return(_card(), false)
 	assert_true(minion in battle.enemy_minions)
