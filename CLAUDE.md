@@ -279,6 +279,23 @@ Le jeu est traduit **FR/EN** via le système natif Godot : `translations/game.cs
 - Rester cohérent avec les patterns déjà en place dans `scripts/data/` (CardData, Keyword) plutôt que d'introduire de nouvelles structures
 - **Typographie** : le jeu n'utilise que 5 tailles de police, centralisées dans `scripts/ui/Typography.gd` (`MICRO`=15, `BODY`=19, `SECTION`=23, `HEADER`=29, `HERO`=41 — `MICRO`/`BODY`/`SECTION` augmentées de 2px le 2026-09-25 sur demande utilisateur, jugées trop petites ; `HEADER` volontairement pas touchée, ce sont les titres de panneaux/vues). Toute nouvelle taille de police dans un script doit utiliser une de ces constantes (`Typography.BODY`...), jamais un littéral numérique en dur ; dans un `.tscn`, utiliser directement une des 5 valeurs numériques (Godot ne permet pas d'y référencer une constante GDScript). Seul le logo du menu principal (`MainMenu.tscn`, 80px) reste un cas à part, hors de cette échelle.
 
+### Syntaxe des descriptions de cartes
+
+Harmonisée sur les 331 cartes le 2026-10-01 (147 descriptions réécrites — la même mécanique s'écrivait jusque-là de plusieurs façons : « Mort-Vivants alliés +2/+2 » à côté de « Tous les serviteurs Mort-Vivants alliés gagnent +1/+0… », « +1 ATK » à côté de « +1/+0 »). Toute nouvelle carte, et toute modification de `CardData.description`, doit tenir ces règles — elles valent pour le `.tres`, pour les deux colonnes de `translations/game.csv` et pour `CARDS.md` :
+
+- **Race** — toujours portée par le mot « serviteur » : `les serviteurs <Race> alliés/ennemis`, `un serviteur <Race> ciblé allié`. Jamais « Humains alliés », « vos Démons », « Chaque fois qu'un Humain allié… ». Négation collée : `non-Humains`, `non-Démons`.
+- **Qualificatifs** — ordre `serviteur [Race] [ciblé|aléatoire] [allié|ennemi]` (forme déjà majoritaire avant l'harmonisation).
+- **Stats** — toujours `+X/+Y` / `-X/-Y`, jamais « +1 ATK », « perd 1 ATK » ni « Réduit l'ATK de 1 ». (`2 ATK ou moins` reste valide : c'est une condition, pas un gain.)
+- **Durée** — un effet permanent se termine par « de façon permanente » (jamais « permanent », jamais implicite : par défaut `CardEffect.duration` vaut `Permanent`, donc un buff sans mention est permanent et le texte doit le dire). Un buff temporaire dit « jusqu'à la fin du tour », jamais « ce tour » — « ce tour » ne subsiste que pour un coût ou du mana.
+- **Mots-clés** — « gagne REMPART » (jamais « acquiert ») ; un jeton invoqué avec un mot-clé s'écrit « doté de ».
+- **Soin / pioche** — « Votre héros récupère N points de vie » (jamais « regagne », « soigne de ») ; « Piochez 1 carte » (numéraux en chiffres, jamais « une carte »).
+- **Jetons invoqués** — nommer le jeton et donner ses stats : « Invoque un Zombie Mineur 2/2 », jamais « Invoque un Mort-Vivant 2/2 ».
+- **Limites** — « (Une seule fois par tour.) », en phrase complète après le point, jamais « (une seule fois par tour) » accolé.
+- **Minimums** — « (minimum 1) », jamais « (min 1) ».
+- Côté EN, règles en miroir : `allied <Race> minions`, `permanently gain(s)`, `Draw 1 card.`, `Your hero regains N HP.`, ` (Once per turn.)`, et le trigger Éveil se traduit **`Awakening:`** (jamais `Awaken:`).
+
+`CARDS.md` porte volontairement, pour une quinzaine de cartes, un texte de *design* plus riche que l'implémentation (voir « Plusieurs cartes ont un texte simplifié » plus haut) : ces cellules suivent les mêmes règles de syntaxe, mais leur contenu n'a pas à être aligné sur le `.tres`.
+
 ### Isolation des agents
 
 Dès qu'une modification de fichier est réellement nécessaire pour une nouvelle feature ou tâche indépendante, crée **obligatoirement** un worktree avec une nouvelle branche (format NNNN-slug) via l'outil `EnterWorktree` (name: `NNNN-slug`) — ne modifie jamais de fichiers directement sur `dev` dans le dossier principal. S'il n'y a aucune modification à faire (question, lecture seule, exploration), pas besoin de worktree. Un hook `PreToolUse` bloque toute édition tant que tu es encore sur `dev` dans le dossier principal, pour te le rappeler.

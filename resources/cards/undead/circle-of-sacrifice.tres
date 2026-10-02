@@ -23,7 +23,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Cercle de Sacrifice"
-description = "Sacrifice 1 : Vos Mort-Vivants gagnent +1/+1 de façon permanente."
+description = "Sacrifice 1 : Les serviteurs Mort-Vivants alliés gagnent +1/+1 de façon permanente."
 flavour_text = "Le cercle ne se lasse pas de demander. Il attend juste la prochaine offrande."
 texture = ExtResource("3_texture")
 cost = 6
