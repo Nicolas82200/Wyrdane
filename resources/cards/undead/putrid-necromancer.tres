@@ -20,7 +20,7 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Nécromancien Putride"
-description = "Arrivée : Ressuscite le dernier Mort-Vivant allié mort avec 1 point de vie en rangée Avant."
+description = "Arrivée : Ressuscite le dernier serviteur Mort-Vivant allié mort avec 1 point de vie en rangée Avant."
 texture = ExtResource("3_texture")
 cost = 4
 unit_style = 1

@@ -23,7 +23,7 @@ type = "OnAura"
 [resource]
 script = ExtResource("3_446uk")
 card_name = "Cercle de Commandement"
-description = "Présence : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0."
+description = "Présence : Si vous avez un serviteur doté de COMMANDEMENT en jeu, les serviteurs Humains alliés gagnent +1/+0."
 flavour_text = "Un commandant suffit. Le cercle fait le reste."
 texture = ExtResource("4_hlf4a")
 cost = 4
