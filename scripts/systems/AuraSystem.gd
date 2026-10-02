@@ -62,7 +62,13 @@ func _apply_enchantment_auras() -> void:
 				_apply_single_enchantment_aura(card_data, is_player)
 
 func _apply_single_enchantment_aura(card_data: CardData, is_player: bool) -> void:
+	# Un enchantement n'a pas d'instance sur le plateau : un proxy porte juste
+	# son camp, dont dépendent les conditions (« si vous avez un Commandant en
+	# jeu » — Cercle de Commandement).
+	var proxy := Minion.new(card_data, is_player, "")
 	for effect in card_data.effects:
+		if not battle.effect_manager._condition_met(battle, proxy, effect):
+			continue
 		match effect.effect_id:
 			"AuraBuffRow":
 				_aura_buff_row(effect, is_player)
@@ -84,6 +90,7 @@ func _aura_buff_row(effect: CardEffect, is_player: bool) -> void:
 	match effect.target:
 		"AllAlliesFront": targets = battle.get_front_minions(is_player)
 		"AllAlliesBack":  targets = battle.get_back_minions(is_player)
+		"AllAllies":      targets = (battle.player_minions if is_player else battle.enemy_minions).duplicate()
 	# race_filter optionnel (Citadelle des Hommes : seulement les Humains alliés).
 	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
 	if race != -1:

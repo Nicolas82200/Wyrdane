@@ -10,8 +10,8 @@
 script = ExtResource("1_cardeffect")
 effect_id = "GroupAttackImmediate"
 target = "EnemyMinion"
-race_filter = "Human"
 count = 2
+count_race = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
