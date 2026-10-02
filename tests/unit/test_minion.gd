@@ -117,3 +117,29 @@ func test_chair_morte_blocks_additional_stacks_but_not_existing_ones() -> void:
 	minion.undead_keywords.append(KeywordUndead.Type.CHAIR_MORTE)
 	minion.infected = true
 	assert_eq(minion.infection_stacks, 2, "CHAIR MORTE ne doit bloquer que les NOUVELLES marques")
+
+func test_granted_charge_unlocks_attack_on_summon_turn() -> void:
+	var minion := Minion.new(_make_data(2, 3))
+	assert_false(minion.can_attack(), "mal de l'invocation : pas d'attaque au tour de la pose")
+	minion.add_keyword(Keyword.Type.CHARGE)
+	assert_true(minion.can_attack(), "ASSAUT acquis apres la pose doit debloquer l'attaque")
+
+func test_granted_charge_does_not_refund_a_spent_attack() -> void:
+	var minion := Minion.new(_make_data(2, 3))
+	minion.refresh_attacks()
+	minion.consume_attack()
+	minion.add_keyword(Keyword.Type.CHARGE)
+	assert_false(minion.can_attack(), "ASSAUT ne doit pas rendre une attaque deja consommee")
+
+func test_granted_charge_does_not_unlock_a_frozen_minion() -> void:
+	var minion := Minion.new(_make_data(2, 3))
+	minion.frozen_turns = 1
+	minion.add_keyword(Keyword.Type.CHARGE)
+	assert_false(minion.can_attack(), "un serviteur gele reste bloque malgre ASSAUT")
+
+func test_granted_charge_with_fury_gives_two_attacks() -> void:
+	var minion := Minion.new(_make_data(2, 3))
+	minion.add_keyword(Keyword.Type.FURY)
+	assert_false(minion.can_attack(), "FRENESIE seule ne leve pas le mal de l'invocation")
+	minion.add_keyword(Keyword.Type.CHARGE)
+	assert_eq(minion.attacks_remaining, 2, "ASSAUT + FRENESIE : deux attaques des la pose")

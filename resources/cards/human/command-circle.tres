@@ -8,9 +8,8 @@
 
 [sub_resource type="Resource" id="Resource_v4ple"]
 script = ExtResource("1_v0glf")
-effect_id = "Buff"
+effect_id = "AuraBuffRow"
 target = "AllAllies"
-duration = "UntilEndOfTurn"
 race_filter = "Human"
 condition_type = "KeywordHumanInPlay"
 granted_keyword = "COMMANDEMENT"
@@ -19,12 +18,12 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_nvthd"]
 script = ExtResource("5_cxdnx")
-type = "OnAwaken"
+type = "OnAura"
 
 [resource]
 script = ExtResource("3_446uk")
 card_name = "Cercle de Commandement"
-description = "Éveil : Si vous avez un serviteur doté de COMMANDEMENT en jeu, les serviteurs Humains alliés gagnent +1/+0 jusqu'à la fin du tour."
+description = "Présence : Si vous avez un serviteur doté de COMMANDEMENT en jeu, les serviteurs Humains alliés gagnent +1/+0."
 flavour_text = "Un commandant suffit. Le cercle fait le reste."
 texture = ExtResource("4_hlf4a")
 cost = 4
