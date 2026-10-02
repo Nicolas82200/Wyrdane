@@ -80,6 +80,10 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	# (et non après, comme un effet secondaire retardé de l'impact).
 	defer_splash = true
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
+	# Enchantements/rituels à trigger Attaque (Bouclier de la Foi) : la cible
+	# contextuelle est l'ATTAQUANT, pas le défenseur — c'est lui que « il gagne
+	# ÉGIDE » désigne, et il doit l'avoir avant de prendre les dégâts.
+	await battle.trigger_system.fire("OnAttack", attacker, attacker.owner_is_player)
 	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
 	defer_splash = false
 	if attacker_visual and defender_visual:
@@ -233,6 +237,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 		await battle.animation_system.play_attack_lunge(visual, hero_panel, speed_scale)
 	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
+	await battle.trigger_system.fire("OnAttack", attacker, attacker.owner_is_player)
 	# Résonance — enchantements réagissent aussi quand un allié attaque le héros
 	# directement (voir _execute_damage pour l'attaque d'un serviteur). Pas de
 	# serviteur ciblé ici (target: null explicite) : les effets qui visent une

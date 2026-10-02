@@ -11,17 +11,15 @@ type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_a075"]
 script = ExtResource("1_cardeffect")
-effect_id = "Buff"
+effect_id = "ApplyMutation"
 target = "Self"
-value = 3
-value_2 = 3
-duration = "Permanent"
+count = 5
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("3_carddata")
 card_name = "Ce-Qui-Se-Souvient-Par-le-Corps"
-description = "Arrivée : Gagne +3/+3 de façon permanente."
+description = "Arrivée : Mute 5 fois."
 flavour_text = "Il n'a pas de mémoire. Il a une chair qui se souvient à sa place."
 texture = ExtResource("2_texture")
 cost = 7

@@ -48,12 +48,14 @@ func handle_card_played(card_data: CardData, row: String, insert_index: int) -> 
 		return
 
 	if card_data.requires_target:
-		# Serviteur à effet ciblé sans cible valide : on le pose quand même,
-		# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
-		# en amont par conditions_met)
-		if card_data.card_type == "Minion" \
-				and not battle.targeting_system.has_any_valid_target(card_data):
-			await play_card(card_data, row, insert_index)
+		if card_data.card_type == "Minion":
+			# Serviteur à effet ciblé sans cible valide : on le pose quand même,
+			# l'effet d'Invocation est simplement perdu (le sort, lui, est bloqué
+			# en amont par conditions_met)
+			if not battle.targeting_system.has_any_valid_target(card_data):
+				await play_card(card_data, row, insert_index)
+			else:
+				await _play_minion_then_target(card_data, row, insert_index)
 			return
 		battle.pending_card         = card_data
 		battle.pending_row          = row
@@ -100,6 +102,37 @@ func play_card(card_data: CardData, row := "Front", insert_index := -1) -> void:
 	await battle.get_tree().process_frame
 	battle.hand._update_hand_layout(true)
 	await _resolve(card_data, row, insert_index)
+	if battle.tutorial_manager:
+		await battle.tutorial_manager.notify_card_played(card_data)
+
+# Serviteur à Arrivée ciblée (Banshee des Abysses, Croc de Braise...) : posé
+# d'abord, ciblé ensuite — c'est BoardSystem.summon_minion_return qui demande la
+# cible, juste avant de déclencher ONPLAY (voir prompt_onplay_target).
+func _play_minion_then_target(card_data: CardData, row: String, insert_index: int) -> void:
+	await battle.card_popup_system.show_targeting_popup(card_data)
+	await battle.get_tree().create_timer(0.4).timeout
+	battle.card_popup_system.hide_targeting_popup()
+	battle.cost_system.pay(card_data, true)
+	battle.update_mana_ui()
+	await battle.cost_system.on_card_played(card_data, true)
+	battle.track_card_played_for_quests(card_data)
+	_remove_from_hand(card_data)
+	await battle.get_tree().process_frame
+	battle.hand._update_hand_layout(true)
+
+	# Capture des ids réseau : voir resolve_with_target pour le détail du jeton.
+	var capture_token: int = -1
+	if battle.net_emitter != null:
+		capture_token = battle.net_registry.begin_capture()
+	battle.board_system.last_prompted_onplay_target = null
+	await battle.board_system.summon_minion_return(
+		card_data, true, row, insert_index, false, null, true)
+	if battle.net_emitter != null:
+		var ids: Array = battle.net_registry.end_capture(capture_token)
+		battle.net_emitter.play_card(card_data, row, insert_index, ids,
+			battle.board_system.last_prompted_onplay_target,
+			battle.cost_system.take_pending_sync_discounts())
+	battle.reset_targeting_state()
 	if battle.tutorial_manager:
 		await battle.tutorial_manager.notify_card_played(card_data)
 

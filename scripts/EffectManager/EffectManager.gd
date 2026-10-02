@@ -18,7 +18,15 @@ func execute_effect(
 	if not is_instance_valid(battle):
 		return
 	battle.effects_resolving += 1
+	# Fenêtre de regroupement : les évènements d'enchantement/rituel émis
+	# pendant cet effet sont mis en file et rejoués d'un bloc à la fin, plutôt
+	# qu'intercalés entre chaque cible touchée (voir TriggerSystem.begin_batch).
+	var triggers = battle.get("trigger_system")
+	if triggers != null:
+		triggers.begin_batch()
 	await _execute_effect_impl(battle, source_minion, effect, selected_target, skip_source_popup)
+	if is_instance_valid(battle) and triggers != null:
+		await triggers.end_batch()
 	if is_instance_valid(battle):
 		battle.effects_resolving -= 1
 
@@ -35,6 +43,12 @@ func _execute_effect_impl(
 	# libérée et tout le reste de la fonction planterait dessus.
 	if not is_instance_valid(battle):
 		return
+	# L'effet réclame sa propre cible (ex. 2e destruction du Faucheur des
+	# Abysses) : celle déjà choisie pour la carte est ignorée.
+	if effect.prompt_target and source_minion != null:
+		selected_target = await _choose_trigger_target(battle, source_minion, effect)
+		if selected_target == null:
+			return
 	# Condition d'exécution : si non remplie, l'effet est purement et simplement
 	# ignoré (pas de popup, pas d'invocation, pas de pioche...).
 	if not _condition_met(battle, source_minion, effect, selected_target):
@@ -382,8 +396,16 @@ func any_condition_met(battle, source_minion: Minion, card_data: CardData, selec
 # même logique par défaut que TargetingSystem.has_any_valid_target.
 func _effect_can_apply(battle, source_minion: Minion, effect: CardEffect, selected_target = null) -> bool:
 	match effect.target:
-		"EnemyMinion", "AllyMinion", "AnyMinion", "TriggerSource":
+		"EnemyMinion", "AllyMinion", "AnyMinion":
 			return selected_target != null
+		"TriggerSource":
+			# Les filtres de l'effet (race...) décident aussi : sans ça un
+			# enchantement à déclenchement unique par tour (Bouclier de la Foi)
+			# brûlerait sa charge sur une source hors filtre.
+			if selected_target == null:
+				return false
+			var one: Array[Minion] = [selected_target]
+			return not _filter_targets(one, effect).is_empty()
 		"AllEnemies":
 			return not battle.get_enemy_minions(source_minion).is_empty()
 		"AllAllies":
@@ -1009,8 +1031,12 @@ func _resurrect(battle, source_minion: Minion, effect: CardEffect) -> void:
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
 	var graveyard: Graveyard = battle.player_graveyard if is_player else battle.enemy_graveyard
 	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	# La source est déjà au cimetière quand son Dernier Souffle se déclenche
+	# (DeathSystem._send_to_graveyards précède _trigger_deathrattle) : s'auto-
+	# ressusciter créerait une boucle (le Commandant revient, remeurt, revient...).
+	var self_card: CardData = source_minion.card_data if source_minion else null
 	var dead: Array[CardData] = graveyard.get_minions().filter(
-		func(c: CardData): return race == -1 or c.race == race
+		func(c: CardData): return (race == -1 or c.race == race) and c != self_card
 	)
 	if dead.is_empty():
 		return
@@ -1348,7 +1374,9 @@ func _group_attack_immediate(battle, source_minion: Minion, effect: CardEffect, 
 	if selected_target == null:
 		return
 	var is_player: bool = source_minion.owner_is_player if source_minion else true
-	var race: int = Race.from_string(effect.race_filter) if not effect.race_filter.is_empty() else -1
+	# count_race, pas race_filter : race_filter sert au CIBLAGE (il restreindrait
+	# ici le serviteur ennemi visé, rendant la carte injouable hors miroir).
+	var race: int = Race.from_string(effect.count_race) if not effect.count_race.is_empty() else -1
 	var allies: Array[Minion] = (battle.player_minions if is_player else battle.enemy_minions).filter(
 		func(m: Minion): return race == -1 or m.card_data.race == race
 	)
@@ -1623,12 +1651,22 @@ func notify_damaged(battle, minion: Minion) -> void:
 # Table de Mutation : 40% Croissance (+2/+0), 40% Renforcement (+0/+2),
 # 20% Dégénérescence (-1/-1, cumulable, peut tuer). Tirage via le RNG de jeu
 # partagé (déterministe/synchronisé en réseau). Effets permanents et cumulables.
-func roll_mutation(battle, minion: Minion) -> void:
+func roll_mutation(battle, minion: Minion, forced_outcome: String = "") -> void:
 	if minion == null or minion.is_dead():
 		return
 	var roll: int = battle.game_rng.randi() % 100
 	var outcome: String
-	if roll < 40:
+	if forced_outcome == "Croissance":
+		minion.base_attack += 2
+		outcome = forced_outcome
+	elif forced_outcome == "Renforcement":
+		minion.base_max_health += 2
+		outcome = forced_outcome
+	elif forced_outcome == "Dégénérescence":
+		minion.base_attack = max(0, minion.base_attack - 1)
+		minion.base_max_health -= 1
+		outcome = forced_outcome
+	elif roll < 40:
 		minion.base_attack += 2
 		outcome = "Croissance"
 	elif roll < 80:
@@ -1659,7 +1697,7 @@ func _apply_mutation(battle, source_minion: Minion, effect: CardEffect, selected
 		for i in range(rolls):
 			if target.is_dead():
 				break
-			await roll_mutation(battle, target)
+			await roll_mutation(battle, target, effect.mutation_outcome)
 
 # Octroie effect.granted_keyword au serviteur allié adjacent à la source, de
 # façon permanente ou temporaire selon effect.duration (Voix-Sous-la-Peau).
@@ -1730,10 +1768,18 @@ func _copy_adjacent_keyword_effect(battle, source_minion: Minion, effect: CardEf
 # Triggers/effets réellement actifs pour ce serviteur : ceux mimés (L'Innommable)
 # s'il en a, sinon ceux de sa propre CardData. Ne jamais lire card_data.trigger_types
 # / card_data.effects directement pour un serviteur qui peut mimer une autre carte.
+# Un serviteur réduit au silence n'a plus AUCUN trigger ni effet : le silence ne
+# retirait que les mots-clés, ses effets déclenchés continuaient de se résoudre.
+# La garde est ici, le seul goulot par lequel passent has_trigger/trigger_effects/
+# TurnSystem/Mort-rage, plutôt que dans chaque appelant.
 func _active_trigger_types(minion: Minion) -> Array:
+	if minion.silenced:
+		return []
 	return minion.mimicked_trigger_types if minion.is_mimicking else minion.card_data.trigger_types
 
 func _active_effects(minion: Minion) -> Array:
+	if minion.silenced:
+		return []
 	return minion.mimicked_effects if minion.is_mimicking else minion.card_data.effects
 
 func has_trigger(minion: Minion, trigger_name: String) -> bool:
