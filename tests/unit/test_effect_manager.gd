@@ -467,6 +467,19 @@ func test_silence_clears_keywords_and_sets_flag() -> void:
 	assert_true(target.silenced)
 	assert_true(target.keywords.is_empty())
 
+func test_silenced_minion_has_no_trigger_and_fires_nothing() -> void:
+	var data := CardData.new()
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnAwaken"
+	data.trigger_types = [trigger]
+	data.effects = [_effect("DrawCard", "Self", 1)]
+	var minion := Minion.new(data)
+	assert_true(effect_manager.has_trigger(minion, "OnAwaken"))
+	minion.silenced = true
+	assert_false(effect_manager.has_trigger(minion, "OnAwaken"), "silence retire les triggers")
+	var fired: bool = await effect_manager.trigger_effects(battle, minion, "OnAwaken")
+	assert_false(fired, "silence empêche l'effet de se résoudre")
+
 # ─── Transform ───────────────────────────────────────────────────────────────
 
 func test_transform_replaces_card_data_and_stats() -> void:

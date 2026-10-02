@@ -43,6 +43,14 @@ var _active_card: Card = null
 # Carte de la popup d'effet actuellement affichée (origine de la courbe d'effet)
 var _effect_card: Card = null
 var _effect_arrow: ArrowOverlay = null
+# Popup à laquelle appartient le faisceau de flèches en cours, et les cibles
+# déjà pointées depuis elle : plusieurs effets résolus pendant la même popup
+# (dix mutations déclenchant dix fois le même enchantement) accumulent leurs
+# cibles dans un seul faisceau au lieu d'en afficher dix l'un après l'autre.
+var _arrow_source: Card = null
+var _arrow_points: Array[Vector2] = []
+# Entrée de la popup en cours de résolution (voir _find_coalescable)
+var _active_entry: Dictionary = {}
 
 func init(_battle) -> void:
 	battle = _battle
@@ -83,6 +91,32 @@ func get_targeting_popup_tip() -> Vector2:
 		screen_pos.y + _persistent_card.size.y / 2.0
 	)
 
+# Popup déjà affichée ou en file pour la MÊME carte et le MÊME camp, à laquelle
+# un nouveau déclenchement peut se rattacher au lieu d'en ouvrir une seconde.
+# Le camp compte : les deux joueurs peuvent avoir le même enchantement en jeu,
+# et leurs déclenchements respectifs ne se confondent pas (halo de source,
+# temps de lecture — voir _hold_scale).
+func _find_coalescable(card_data: CardData, source_minion: Minion) -> Dictionary:
+	var candidates: Array = []
+	if not _active_entry.is_empty():
+		candidates.append(_active_entry)
+	candidates.append_array(_pending)
+	for entry in candidates:
+		if entry.get("card_data") != card_data:
+			continue
+		var first: Minion = entry.get("source_minion")
+		if first == null or first.owner_is_player != source_minion.owner_is_player:
+			continue
+		return entry
+	return {}
+
+func _highlight_minion(minion: Minion, active: bool) -> void:
+	if minion == null:
+		return
+	var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
+	if visual != null and is_instance_valid(visual):
+		visual.set_effect_preview_highlight(active, minion.owner_is_player)
+
 # Awaitable : rend la main dès que la popup de CETTE carte se joue à
 # l'emplacement principal, pour que l'appelant déclenche son effet au même
 # moment. En attendant son tour, la popup patiente dans la pile visible.
@@ -98,6 +132,25 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 		if visual != null and is_instance_valid(visual):
 			origin = visual.get_screen_position() + visual.size / 2.0
 			has_origin = true
+
+	# Coalescence : une même carte déclenchée en rafale (un enchantement qui
+	# réagit à chacun des dix serviteurs qui viennent de muter, un serviteur
+	# dont deux effets partagent le même trigger) n'affiche qu'UNE popup, qui
+	# couvre tous les serviteurs concernés — sinon le joueur enchaîne dix
+	# popups identiques de ~2s chacune. Réservé aux popups déclenchées (source
+	# non nulle) : une carte jouée à la main garde toujours sa propre popup,
+	# même si le joueur en joue deux exemplaires d'affilée.
+	if source_minion != null:
+		var joined: Dictionary = _find_coalescable(card_data, source_minion)
+		if not joined.is_empty():
+			joined["sources"].append(source_minion)
+			if joined["shown"]:
+				# Popup déjà en place : son halo doit s'étendre à cette source-ci
+				_highlight_minion(source_minion, true)
+				return
+			while not joined["shown"]:
+				await battle.get_tree().process_frame
+			return
 
 	var card: Card = CARD_SCENE.instantiate()
 	_popup_layer.add_child(card)
@@ -122,6 +175,8 @@ func show_card_popup(card_data: CardData, source_minion: Minion = null) -> void:
 
 	var entry := {
 		"card": card, "shown": false, "source_minion": source_minion,
+		"sources": [source_minion] if source_minion != null else [],
+		"card_data": card_data,
 		"origin": origin, "has_origin": has_origin,
 	}
 	# Un nouvel effet déclenché passe DEVANT la file : il se jouera en premier
@@ -207,6 +262,10 @@ func _play_popup(entry: Dictionary) -> void:
 		return
 	var is_resource: bool = entry.get("kind", "") == "resource"
 	_active_card = card
+	# Repère de coalescence : tant que cette popup est à l'emplacement
+	# principal, un nouveau déclenchement de la même carte s'y rattache
+	# plutôt que d'ouvrir une seconde popup (voir _find_coalescable).
+	_active_entry = entry
 	if not is_resource:
 		# Cette carte devient l'origine des courbes d'effet tracées vers les cibles
 		_effect_card = card
@@ -251,6 +310,7 @@ func _play_popup(entry: Dictionary) -> void:
 	if is_resource:
 		await battle.get_tree().create_timer(RESOURCE_HOLD * hold_scale).timeout
 		_active_card = null
+		_active_entry = {}
 		_set_source_highlight(entry, false)
 		_absorb_resource_popup(card, entry["card_data"])
 		return
@@ -261,6 +321,7 @@ func _play_popup(entry: Dictionary) -> void:
 		_effect_card = null
 		clear_effect_arrows()
 	_active_card = null
+	_active_entry = {}
 	_set_source_highlight(entry, false)
 	# Sans await : la popup suivante se joue pendant le fondu de celle-ci
 	_fade_out_popup(card, link)
@@ -269,12 +330,10 @@ func _play_popup(entry: Dictionary) -> void:
 # (absent pour les cartes-ressource, ou si le serviteur a quitté le plateau
 # entre-temps — ex: il meurt pendant que sa propre popup est encore affichée).
 func _set_source_highlight(entry: Dictionary, active: bool) -> void:
-	var source_minion: Minion = entry.get("source_minion")
-	if source_minion == null:
-		return
-	var visual: BoardMinion = battle.board_visual_system.get_visual(source_minion)
-	if visual != null and is_instance_valid(visual):
-		visual.set_effect_preview_highlight(active, source_minion.owner_is_player)
+	# Plusieurs sources quand la popup a été coalescée (voir show_card_popup) :
+	# le halo couvre alors tous les serviteurs qui l'ont déclenchée.
+	for minion in entry.get("sources", []):
+		_highlight_minion(minion, active)
 
 # Remplace le fondu habituel par la dissolution de AnimationSystem, depuis la
 # position de la popup — la même animation que Card.gd utilisait auparavant
@@ -329,17 +388,34 @@ func show_effect_arrows(target_positions: Array, hold: float = 0.35, skip_missil
 	var from: Vector2 = get_effect_popup_tip()
 	if from == Vector2.ZERO or target_positions.is_empty():
 		return
+	# Un seul faisceau par popup : les cibles des effets suivants résolus sous
+	# la MÊME popup s'ajoutent au faisceau déjà affiché au lieu de le remplacer,
+	# et seul le premier marque une pause de lecture. Sans ça, dix mutations
+	# déclenchant dix fois le même enchantement affichaient dix faisceaux d'une
+	# cible chacun, espacés de `hold` — au lieu d'une seule prévisualisation
+	# montrant d'un coup tous les serviteurs touchés.
+	var first_fan: bool = _arrow_source != _effect_card
+	if first_fan:
+		_arrow_source = _effect_card
+		_arrow_points.clear()
 	var pts: Array[Vector2] = []
 	for p in target_positions:
-		pts.append(p)
-	_effect_arrow.show_arrows(from, pts)
+		if not _arrow_points.has(p):
+			_arrow_points.append(p)
+			pts.append(p)
+	if pts.is_empty():
+		return
+	_effect_arrow.show_arrows(from, _arrow_points)
 	if not skip_missile and battle.get("animation_system") and _effect_card != null \
 			and is_instance_valid(_effect_card) and _effect_card.data != null:
 		var color: Color = ManaDisplay.RACE_MANA_COLORS.get(_effect_card.data.race, Color.WHITE)
 		battle.animation_system.play_spell_missile(from, pts, color)
-	await battle.get_tree().create_timer(hold * _hold_scale(source_minion)).timeout
+	if first_fan:
+		await battle.get_tree().create_timer(hold * _hold_scale(source_minion)).timeout
 
 func clear_effect_arrows() -> void:
+	_arrow_source = null
+	_arrow_points.clear()
 	if _effect_arrow != null and is_instance_valid(_effect_arrow):
 		_effect_arrow.hide_arrow()
 

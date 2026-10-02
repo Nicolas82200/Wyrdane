@@ -6,6 +6,11 @@ var battle
 
 var _firing_on_summon: bool = false
 
+# Cible retenue par le dernier appel passant prompt_onplay_target : lue par
+# CardSystem pour l'émission réseau, summon_minion_return rendant le serviteur
+# et non la cible.
+var last_prompted_onplay_target: Minion = null
+
 func init(_battle) -> void:
 	battle = _battle
 
@@ -17,7 +22,7 @@ func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_
 # le héros ennemi). Volontairement non typé Minion pour accepter aussi Hero.
 # skip_onsummon : l'arrivée ne déclenche NI Arrivée NI Renfort (Zombie de
 # conversion d'Infection, voir DeathSystem._convert_infected).
-func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target = null, skip_onsummon := false) -> Minion:
+func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, onplay_target = null, skip_onsummon := false, prompt_onplay_target := false) -> Minion:
 	if not battle.can_summon_to_row(is_player, row):
 		push_warning("Rangée %s pleine, impossible d'invoquer %s" % [row, card_data.card_name])
 		return null
@@ -44,6 +49,13 @@ func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", 
 
 
 	if not skip_onplay:
+		# Serviteur à Arrivée ciblée joué par le joueur local : la cible est
+		# demandée MAINTENANT, une fois le serviteur réellement en jeu (et non
+		# depuis la main avant la pose, qui donnait l'impression que l'effet se
+		# résolvait avant l'arrivée).
+		if prompt_onplay_target:
+			onplay_target = await battle.targeting_system.prompt_trigger_target(card_data)
+			last_prompted_onplay_target = onplay_target
 		await battle.effect_manager.trigger_effects(battle, minion, "ONPLAY", onplay_target)
 		# Garde-fou : le trigger ONPLAY peut avoir attendu plusieurs secondes un
 		# choix de Pacte (PactChoiceSystem.ask) ; si la scène de bataille a été

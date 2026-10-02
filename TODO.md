@@ -520,6 +520,19 @@ Suites possibles une fois en place : boutons « Rejoindre » / invitations depui
 - **Points d'équilibrage à surveiller en playtest** : Patient Zéro + Brouillard (tout le plateau marqué 4 tours pour 9⬡ au total), balayages de masse sur plateau infecté (un Zombie par mort, pas de plafond de conversions par tour), et REVENANT × FUSION (la victime rend ses stats puis revient à 1 PV).
 - **Site compagnon** (`wyrdane-website`) : `gameCards.json`/`keywords.ts` sont une copie des données du jeu, à régénérer pour que le deck builder web affiche `MORSURE X` et les nouveaux textes.
 
+## P24 — Passe de corrections de cartes (2026-10-01)
+
+**Fait**, sur rapport de test de jeu (14 cartes + 7 correctifs de moteur — voir `devlogs/2026-10-05-draft.md` pour la liste complète). Les points de moteur à retenir :
+
+- Un serviteur à Arrivée ciblée est désormais **posé avant** le choix de la cible (`BoardSystem.summon_minion_return(..., prompt_onplay_target)` + `CardSystem._play_minion_then_target`), et non plus ciblé depuis la main.
+- `CardEffect.prompt_target` : un effet réclame sa propre cible à la résolution (Pacte du Faucheur des Abysses, qui détruit un **second** serviteur). Hors joueur local, tirage au sort via `_choose_trigger_target` — même limite que les Derniers Souffles ciblés.
+- `CardEffect.mutation_outcome` : mutation forcée sur un résultat précis. Les cartes « mutation forcée : Dégénérescence » déjà simplifiées en `Debuff` -1/-1 (A44, A58, A71 — voir `CARDS.md`) pourraient repasser par là, elles ne comptent pas comme mutations aujourd'hui.
+- `CombatSystem` ne prévenait **jamais** les enchantements d'une attaque (`trigger_system.fire("OnAttack", ...)` manquait) : Bouclier de la Foi était totalement inopérant. Vérifier qu'aucun autre trigger d'enchantement n'est dans ce cas.
+
+**Deux points laissés en suspens, à trancher avec l'utilisateur** :
+- **Banshee des Abysses (D20)** : le rapport demande un Silence sur serviteur ciblé, `CARDS.md` et la carte disent Corruption. Le ciblage lui-même fonctionne (corrigé par la pose-avant-ciblage ci-dessus) — reste à confirmer si l'effet doit changer.
+- **Champion du Peuple (H25)** : le trigger Exécution ne se déclenche que si le serviteur **tue lui-même** en combat (`CombatSystem._execute_damage`), alors que `README.md` le définit comme « une unité ennemie meurt ». L'élargir à `DeathSystem` toucherait les 6 cartes à Exécution (Champion du Peuple, Mur de Lances, Lame-Jurée, Bourreau Mineur, Main-Qui-Choisit, Rongeur de Chair) et casserait le calage « avant `consume_attack` » dont dépend Rongeur de Chair.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.

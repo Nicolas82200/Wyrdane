@@ -652,6 +652,12 @@ class SimTriggerSystem:
 		return active_enchantments.get(is_player, [])
 	func fire(_trigger_name: String, _source: Minion = null, _is_player: bool = true, _extra: Dictionary = {}, _paced: bool = false, _already_acted: bool = false) -> bool:
 		return false
+	# Pas d'enchantement réactif en combat simulé : rien à regrouper, mais
+	# EffectManager.execute_effect ouvre la fenêtre pour toute bataille.
+	func begin_batch() -> void:
+		pass
+	func end_batch() -> void:
+		pass
 	func activate_sacrifice_ritual(_card_data: CardData, _is_player: bool, _victims: Array) -> void:
 		pass
 

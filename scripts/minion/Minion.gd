@@ -24,6 +24,11 @@ var aura_damage_reduction: int = 0
 var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
+# Mal de l'invocation : vrai tant que ce serviteur n'a jamais pu agir depuis sa
+# pose (donc attacks_remaining == 0 parce qu'il vient d'arriver, et non parce
+# qu'il a déjà attaqué ou qu'il est gelé). Permet à add_keyword de débloquer un
+# ASSAUT acquis APRÈS la pose sans rendre une attaque à un serviteur épuisé.
+var summon_sick: bool = false
 # Verrou de ré-entrance : posé pendant la résolution d'une attaque (CombatSystem)
 # pour empêcher qu'un effet déclenché en chaîne (ex. OnAttack, attaque immédiate)
 # ne relance une attaque avec ce serviteur avant que la précédente soit terminée.
@@ -134,6 +139,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	demon_keywords    = data.get_demon_keyword_values()
 	abomination_keywords = data.get_abomination_keyword_values()
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
+	summon_sick = attacks_remaining == 0
 	spell_immune = data.spell_immune_until_attack
 
 # ─── Stats calculées (lecture seule — passe par base_* pour modifier) ─────────
@@ -153,6 +159,7 @@ func can_attack() -> bool:
 	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0 and not is_attacking
 
 func refresh_attacks() -> void:
+	summon_sick = false
 	extra_attack_used_this_turn = false
 	triggers_used_this_turn.clear()
 	if frozen_turns > 0 or terror_turns > 0:
@@ -163,6 +170,7 @@ func refresh_attacks() -> void:
 	attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
 
 func consume_attack() -> void:
+	summon_sick = false
 	attacks_remaining = max(attacks_remaining - 1, 0)
 	if card_data.spell_immune_until_attack:
 		spell_immune = false
@@ -193,8 +201,17 @@ func is_dead() -> bool:
 func has_keyword(keyword: int) -> bool:
 	return keyword in keywords
 func add_keyword(keyword: int) -> void:
-	if keyword not in keywords:
-		keywords.append(keyword)
+	if keyword in keywords:
+		return
+	keywords.append(keyword)
+	# ASSAUT (ou FRÉNÉSIE) acquis APRÈS la pose : attacks_remaining a déjà été
+	# figé par le mal de l'invocation dans _init, il faut le débloquer ici pour
+	# que le mot-clé soit utilisable dès ce tour — sinon seul le chemin qui
+	# pense à le faire lui-même en profite (GrantKeyword), et pas les autres
+	# (CHAIR ADAPTATIVE, FUSION, Emprunt Instantané, Partage de Chair).
+	if summon_sick and has_keyword(Keyword.Type.CHARGE) and frozen_turns == 0 and terror_turns == 0:
+		summon_sick = false
+		attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
 func remove_keyword(keyword: int) -> void:
 	keywords.erase(keyword)
 
