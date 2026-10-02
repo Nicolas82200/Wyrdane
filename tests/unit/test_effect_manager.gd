@@ -349,6 +349,35 @@ func test_infect_adjacent_does_not_hit_out_of_range_enemy() -> void:
 	assert_true(e1.infected, "idx=0 : touche aussi la position 1 (idx+1)")
 	assert_false(e2.infected, "position 2 hors fenêtre idx-1/idx/idx+1")
 
+func test_infect_enemy_uses_the_effect_value_as_duration() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(2, 4, false)
+	var effect := _effect("InfectEnemy", "EnemyMinion", 3)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.infection_turns, 3)
+	assert_true(target.infection_infector_is_player, "l'infecteur est le camp de la source")
+
+func test_infect_enemy_without_value_falls_back_to_one_turn() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(2, 4, false)
+	var effect := _effect("InfectEnemy", "EnemyMinion")
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.infection_turns, 1)
+
+# Brouillard Pestilentiel : le multiplicateur d'aura du camp infecteur est
+# appliqué au point d'entrée unique, donc pour les effets comme pour MORSURE.
+func test_apply_infection_applies_the_aura_duration_multiplier() -> void:
+	battle.aura_system.infection_duration_multiplier[true] = 2
+	var target := _minion(2, 4, false)
+	effect_manager.apply_infection(battle, target, 3, true)
+	assert_eq(target.infection_turns, 6)
+
+func test_apply_infection_ignores_the_multiplier_of_the_other_camp() -> void:
+	battle.aura_system.infection_duration_multiplier[false] = 2
+	var target := _minion(2, 4, false)
+	effect_manager.apply_infection(battle, target, 3, true)
+	assert_eq(target.infection_turns, 3)
+
 # ─── Freeze ──────────────────────────────────────────────────────────────────
 
 func test_freeze_sets_frozen_turns() -> void:

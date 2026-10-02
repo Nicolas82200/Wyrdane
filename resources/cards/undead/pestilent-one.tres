@@ -10,12 +10,13 @@
 [sub_resource type="Resource" id="Resource_kwu1"]
 script = ExtResource("6_kwu")
 keyword_type = 0
+value = 2
 metadata/_custom_type_script = "uid://fly4qfjek3e6"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Pestilent"
-description = "PESTIFÉRÉ"
+description = "MORSURE 2"
 flavour_text = "Son souffle est une condamnation à retardement."
 texture = ExtResource("3_texture")
 cost = 2

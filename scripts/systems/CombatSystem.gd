@@ -152,12 +152,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 			battle.animation_system.play_deadly_poison(attacker_visual)
 		attacker.health = 0
 
-	# PESTIFÉRÉ : l'attaque inflige Infection en plus des dégâts
-	# (pas d'infection si les dégâts ont été annulés, ex: ÉGIDE ; le setter
-	# de infected gère l'immunité CHAIR MORTE)
-	if attacker.has_undead_keyword(KeywordUndead.Type.PESTIFERE) and dealt_to_defender > 0 and not defender.is_dead():
-		defender.infected = true
-		battle.animation_system.play_infection(defender_visual)
+	# MORSURE X : l'attaque inflige Infection (X tours) en plus des dégâts
+	# (pas d'infection si les dégâts ont été annulés, ex: ÉGIDE ;
+	# apply_infection gère l'immunité CHAIR MORTE et le multiplicateur d'aura).
+	# Mot-clé copié sans valeur (CHAIR ADAPTATIVE, FUSION) : retombe sur 1 tour.
+	if attacker.has_undead_keyword(KeywordUndead.Type.MORSURE) and dealt_to_defender > 0 and not defender.is_dead():
+		var bite_turns: int = attacker.card_data.get_undead_keyword_value(KeywordUndead.Type.MORSURE)
+		battle.effect_manager.apply_infection(battle, defender, bite_turns, attacker.owner_is_player)
 
 	# CORRUPTION : l'attaque inflige Corruption en plus des dégâts (-1 ATK
 	# permanent, cumulable ; apply_corruption gère l'immunité CHAIR DE SOUFRE)

@@ -4,7 +4,7 @@ Liste priorisée issue d'une revue transversale du projet (voir aussi la section
 
 ## P1 — Couverture de tests quasi nulle en dehors des cartes
 
-**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_apply_infection_damage`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (887 tests répartis sur 78 scripts, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
+**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_tick_infection`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (922 tests répartis sur 82 scripts, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
 
 Restent non couverts, jugés hors de portée d'un test unitaire raisonnable (couplage à la scène réelle/Steam plutôt qu'un manque d'effort) :
 - `NetworkManager`/`SteamTransport`/`NetworkOpponent` (`scripts/net/`) — dépendent de GodotSteam (P2P réel), d'un `SceneTree` réseau, et rejouent des commandes sur un `Battle` complet ; testable uniquement via un test d'intégration à deux instances Steam, pas un test unitaire.
@@ -509,7 +509,18 @@ Suites possibles une fois en place : boutons « Rejoindre » / invitations depui
 
 **Reste à faire** : `docker compose exec backend node dist/database/sync.js` sur le VPS après le déploiement, pour créer `users.tutorial_reward_claimed_at`. Tant que la colonne manque, `POST /api/collection/claim-tutorial-reward` répond 500 — même classe de panne que les trois incidents précédents (matchmaking classé, chat/amis, invitations de partie), voir « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`.
 
-## P23 — Passe de corrections de cartes (2026-10-01)
+## P23 — Infection à durée : suites (2026-10-01)
+
+**Mécanique implémentée et couverte par les tests** (voir « Mécaniques Mort-Vivant » dans `README.md`). Ce qui a été volontairement laissé de côté, repris du brouillon de design `REVISION_MORTVIVANT_INFECTION.md` :
+
+- **Rareté du Brouillard Pestilentiel en base de prod** : la carte passe Rare → Épique côté `.tres`, mais la rareté stockée côté `wyrdane-backend` (pondération des packs) est une **copie indépendante** — le client ne lit que l'`id` du catalogue backend (`CardLibrary.sync_backend_catalog`). Tant qu'elle n'est pas mise à jour en base, la carte est tirée dans les packs avec le poids d'une Rare. Son nom FR n'a pas changé, donc le lien client↔backend reste intact.
+- **Pas de compteur numérique d'Infection sur le serviteur** : la durée restante n'apparaît que dans l'infobulle (`STATUS_INFECTED_DESC`), comme pour le Gel (`frozen_turns`, qui n'a jamais eu de badge non plus). À faire en même temps que le badge de Gel si le besoin se confirme.
+- **`AISystem` ne tient pas compte de l'Infection** dans son ciblage : elle ne privilégie pas un ennemi infecté (pour forcer la conversion) ni un allié infecté comme victime de sacrifice. Elle joue correctement sans, mais rate une ligne de jeu.
+- **Arena (autobattler)** : un combat simulé n'a pas de « fin de tour », donc le compteur d'Infection ne descend jamais pendant un combat ; les conversions produisent de vrais Zombies sur le plateau simulé, jetés avec lui à la fin du combat. Conforme à l'intention (« l'Infection expire à la fin du combat, les Zombies sont temporaires »), mais jamais vérifié en jeu.
+- **Points d'équilibrage à surveiller en playtest** : Patient Zéro + Brouillard (tout le plateau marqué 4 tours pour 9⬡ au total), balayages de masse sur plateau infecté (un Zombie par mort, pas de plafond de conversions par tour), et REVENANT × FUSION (la victime rend ses stats puis revient à 1 PV).
+- **Site compagnon** (`wyrdane-website`) : `gameCards.json`/`keywords.ts` sont une copie des données du jeu, à régénérer pour que le deck builder web affiche `MORSURE X` et les nouveaux textes.
+
+## P24 — Passe de corrections de cartes (2026-10-01)
 
 **Fait**, sur rapport de test de jeu (14 cartes + 7 correctifs de moteur — voir `devlogs/2026-10-05-draft.md` pour la liste complète). Les points de moteur à retenir :
 

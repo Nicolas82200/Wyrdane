@@ -100,7 +100,7 @@ var player_resource_cards_played: int = 0
 var player_min_hp_this_match: int = 30
 var player_was_low_hp_this_match: bool = false
 var player_kills_this_turn: int = 0
-var player_infection_damage_dealt: int = 0
+var player_infection_conversions: int = 0
 var player_used_back_row_this_match: bool = false
 var player_commandement_triggers_this_match: int = 0
 var player_black_blood_triggers_this_match: int = 0
@@ -170,8 +170,8 @@ func race_mana_pool(is_player: bool) -> Dictionary:
 func update_mana_ui() -> void:
 	pass
 
-func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> Minion:
-	return await board_system.summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
+func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, skip_onsummon := false) -> Minion:
+	return await board_system.summon_minion_return(card_data, is_player, row, insert_index, skip_onplay, null, skip_onsummon)
 
 func _init() -> void:
 	deck_system.battle = self
@@ -338,6 +338,9 @@ class FakeDeathSystem:
 
 
 class FakeAuraSystem:
+	# Multiplicateur de durée d'Infection par camp (Brouillard Pestilentiel),
+	# lu par EffectManager.apply_infection — 1 = aucun enchantement en jeu.
+	var infection_duration_multiplier := {true: 1, false: 1}
 	func recompute_all() -> void:
 		pass
 
@@ -438,8 +441,6 @@ class FakeAnimationSystem:
 		pass
 	func play_infection(_target_visual) -> void:
 		pass
-	func play_infection_tick(_visual, _amount: int) -> void:
-		pass
 	func play_freeze(_visual) -> void:
 		pass
 	func play_silence(_visual) -> void:
@@ -486,7 +487,7 @@ class FakeCombatLog:
 		pass
 	func minion_died(_minion: Minion) -> void:
 		pass
-	func infection_tick(_minion: Minion, _dealt: int = 1) -> void:
+	func infection_conversion(_minion: Minion, _infector_is_player: bool) -> void:
 		pass
 	func self_damage(_is_player: bool, _dmg: int) -> void:
 		pass
@@ -532,7 +533,7 @@ class FakeBoardSystem:
 	var battle: FakeBattle
 	func _init(_battle: FakeBattle) -> void:
 		battle = _battle
-	func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", _insert_index := -1, _skip_onplay := false) -> Minion:
+	func summon_minion_return(card_data: CardData, is_player: bool, row := "Front", _insert_index := -1, _skip_onplay := false, _onplay_target = null, _skip_onsummon := false) -> Minion:
 		if not battle.can_summon_to_row(is_player, row):
 			return null
 		var minion := Minion.new(card_data, is_player, row)
@@ -541,8 +542,8 @@ class FakeBoardSystem:
 		else:
 			battle.enemy_minions.append(minion)
 		return minion
-	func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false) -> void:
-		await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay)
+	func summon_minion(card_data: CardData, is_player: bool, row := "Front", insert_index := -1, skip_onplay := false, skip_onsummon := false) -> void:
+		await summon_minion_return(card_data, is_player, row, insert_index, skip_onplay, null, skip_onsummon)
 
 
 # Échange de dégâts symétrique minimal (attaquant <-> défenseur), sans le

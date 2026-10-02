@@ -16,7 +16,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Étreinte Glaciale"
-description = "Inflige Gel à un serviteur ciblé ennemi jusqu'au début de votre prochain tour. (L'Infection continue.)"
+description = "Inflige Gel à un serviteur ciblé ennemi jusqu'au début de votre prochain tour. (L'Infection continue : son compteur n'est pas suspendu.)"
 flavour_text = "Le froid stoppe les gestes. Pas le mal qui ronge de l'intérieur."
 texture = ExtResource("3_texture")
 cost = 2

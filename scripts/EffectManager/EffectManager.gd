@@ -652,14 +652,27 @@ func _freeze(battle, source_minion: Minion, effect: CardEffect, selected_target:
 		if visual:
 			battle.animation_system.play_freeze(visual)
 
+# Point d'entrée unique de la pose d'Infection (effets de carte ET MORSURE au
+# combat) : applique le multiplicateur de durée d'aura du camp infecteur
+# (Brouillard Pestilentiel) puis pose la marque. `turns <= 0` retombe sur 1,
+# pour qu'une ressource de carte sans valeur explicite reste jouable.
+func apply_infection(battle, target: Minion, turns: int, infector_is_player: bool) -> void:
+	if target == null:
+		return
+	var multiplier: int = 1
+	if battle.aura_system != null:
+		multiplier = int(battle.aura_system.infection_duration_multiplier.get(infector_is_player, 1))
+	target.apply_infection(max(1, turns) * multiplier, infector_is_player)
+	var visual: BoardMinion = battle.board_visual_system.get_visual(target)
+	if visual:
+		battle.animation_system.play_infection(visual)
+
 func _infect(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
 	await _point_arrows_to(battle, targets, source_minion)
+	var infector: bool = source_minion.owner_is_player if source_minion else true
 	for target in targets:
-		target.infected = true
-		var visual: BoardMinion = battle.board_visual_system.get_visual(target)
-		if visual:
-			battle.animation_system.play_infection(visual)
+		apply_infection(battle, target, effect.value, infector)
 
 func _steal_health(battle, source_minion: Minion, effect: CardEffect, selected_target: Minion = null) -> void:
 	var targets: Array[Minion] = _resolve_targets(battle, source_minion, effect, selected_target)
@@ -735,6 +748,9 @@ func _transform(battle, source_minion, effect, selected_target = null) -> void:
 		target.demon_keywords   = effect.transform_card.get_demon_keyword_values()
 		target.abomination_keywords = effect.transform_card.get_abomination_keyword_values()
 		target.silenced         = false
+		# L'Infection s'efface à la transformation : le serviteur marqué n'existe
+		# plus, il n'y a plus rien à convertir à sa mort.
+		target.infected         = false
 		var from_player: bool = target.owner_is_player
 		var to_player: bool = not from_player
 		if not battle.can_summon_to_row(to_player, target.board_row):
@@ -857,6 +873,10 @@ func _steal_minion(battle, source_minion: Minion, effect: CardEffect, selected_t
 			continue
 		var from_player: bool = target.owner_is_player
 		var to_player: bool = not from_player
+		# Changement de contrôleur : l'Infection s'efface (règle de l'Infection),
+		# sinon elle rendrait un Zombie à l'infecteur sur un serviteur qui n'est
+		# plus le sien.
+		target.infected = false
 		# Si la rangée d'origine est pleine côté nouveau propriétaire, bascule
 		# dans l'autre rangée plutôt que de dépasser MAX_MINIONS_PER_ROW
 		if not battle.can_summon_to_row(to_player, target.board_row):
@@ -1065,7 +1085,7 @@ func _summon_self(battle, source_minion: Minion, effect: CardEffect) -> void:
 # ─── Nouveaux effets ──────────────────────────────────────────────────────────
 
 # Infecte les serviteurs adjacents à la source (Dernier Souffle du Charognard Putride)
-func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> void:
+func _infect_adjacent(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if source_minion == null:
 		return
 	# La position "en face" se lit dans le camp DE LA SOURCE (source_minion
@@ -1085,10 +1105,7 @@ func _infect_adjacent(battle, source_minion: Minion, _effect: CardEffect) -> voi
 			hit.append(same_row[i])
 	await _point_arrows_to(battle, hit, source_minion)
 	for m in hit:
-		m.infected = true
-		var visual: BoardMinion = battle.board_visual_system.get_visual(m)
-		if visual:
-			battle.animation_system.play_infection(visual)
+		apply_infection(battle, m, effect.value, source_minion.owner_is_player)
 
 # Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...).
 # Cas Deuil (Serment du Sang) : selected_target est le serviteur qui vient de

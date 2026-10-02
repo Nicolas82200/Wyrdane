@@ -188,7 +188,7 @@ func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
 	_mark_phase("turn_end_triggers")
-	await battle.turn_system.run_turn_end_triggers(false)
+	battle.turn_system.run_turn_end_triggers(false)
 	# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour IA (ex. l'IA
 	# joue Sergent de Troupe) : sans cet appel, ils ne seraient purgés qu'à la
 	# fin de notre tour suivant (un tour de retard) — même correctif que côté

@@ -126,7 +126,7 @@ func _play_minion_then_target(card_data: CardData, row: String, insert_index: in
 		capture_token = battle.net_registry.begin_capture()
 	battle.board_system.last_prompted_onplay_target = null
 	await battle.board_system.summon_minion_return(
-		card_data, true, row, insert_index, false, null, true)
+		card_data, true, row, insert_index, false, null, false, true)
 	if battle.net_emitter != null:
 		var ids: Array = battle.net_registry.end_capture(capture_token)
 		battle.net_emitter.play_card(card_data, row, insert_index, ids,
