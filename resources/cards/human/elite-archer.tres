@@ -13,9 +13,9 @@ name_fr = "Infiltration"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Archer d'Élite"
+card_name = "Archer Ostranien d'Élite"
 description = "INFILTRATION"
-flavour_text = "La rangée Avant n'est pas un obstacle. C'est un couloir."
+flavour_text = "À Ostrane, on apprend que la rangée avant n'est pas un obstacle. C'est un couloir."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

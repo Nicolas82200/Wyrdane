@@ -22,9 +22,9 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Porte-Étendard"
-description = "Arrivée : Invoque un Éclaireur Rapide 1/1 pour chaque Humain déjà en jeu (max 3)."
-flavour_text = "L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi."
+card_name = "Porte-Étendard Aldrénien"
+description = "Arrivée : Invoque un Éclaireur Ostranien Rapide 1/1 pour chaque Humain déjà en jeu (max 3)."
+flavour_text = "L'étendard porte les armes d'un royaume qui existait avant Wyrdane. Il refuse de le laisser mourir une seconde fois."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

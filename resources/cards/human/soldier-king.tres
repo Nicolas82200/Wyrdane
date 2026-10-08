@@ -31,10 +31,10 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_lxph1")
-card_name = "Le Roi Soldat"
+card_name = "Le Roi Soldat d'Aldrenia"
 description = "COMMANDEMENT, ÉGIDE
 Arrivée : Tous les Humains alliés gagnent +2/+2 de façon permanente."
-flavour_text = "Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts."
+flavour_text = "La couronne d'Aldrenia n'a pas de trône. Elle a un champ de bataille. On la lui a posée là, entre deux assauts."
 texture = ExtResource("4_xhwd2")
 cost = 7
 race = 1

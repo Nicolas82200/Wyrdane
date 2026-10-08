@@ -27,8 +27,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("4_carddata")
 card_name = "Appel aux Armes"
 description = "Piochez 1 carte.
-Si votre rangée Avant est vide : Invoque 1 Milicien du Bourg 2/1."
-flavour_text = "Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent."
+Si votre rangée Avant est vide : Invoque 1 Milicien Eorthalien du Bourg 2/1."
+flavour_text = "Quand la ligne d'Eorthal est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

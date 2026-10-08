@@ -17,9 +17,9 @@ metadata/_custom_type_script = "uid://ibfjbfqajwqd"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Sentinelle des Remparts"
+card_name = "Sentinelle des Remparts d'Aldrenia"
 description = "REMPART, FORTIFICATION"
-flavour_text = "On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné."
+flavour_text = "On a essayé de la faire reculer. On a essayé de la relever de son poste. Aldrenia a renoncé avant elle."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

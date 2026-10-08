@@ -231,6 +231,8 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 Liste complète des cartes de la race **Humain**.
 
+Les cartes Humain sont rattachées à l'un des quatre royaumes de Mydaria encore actifs en 1 AW, époque de cette première version du jeu (voir `lore/LORE.md`, section 7) : **Aldrenia** (le royaume ancien, commandement et légitimité), **Skeldara** (le royaume guerrier, front contre les Démons), **Dreamar** (augures et visions, ordre inquisitorial) et **Ostrane** (l'Est, éclaireurs et archers de frontière). Une partie des cartes vient aussi d'**Eorthal**, le cœur fertile de Mydaria devenu le Royaume des Morts : ce sont les réfugiés et miliciens qui en ont fui avant la chute. Le rattachement d'une carte à un royaume n'est pas une mécanique de jeu (pas de synergie liée) : c'est un ancrage narratif porté par le nom et le flavour text.
+
 ---
 
 ## Légende
@@ -301,60 +303,60 @@ Liste complète des cartes de la race **Humain**.
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H01 | Conscrit | ⚔️ | 1 | 1 | 2 | — | *Il n'a pas choisi de venir. Il est venu quand même.* |
-| H02 | Milicien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
-| H03 | Porteur de Bouclier | ⚔️ | 2 | 1 | 4 | REMPART | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
-| H04 | Fantassin Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION. | *Seul, il tient. Ensemble, ils avancent.* |
-| H05 | Archer de Guet | 🛡️ | 2 | 2 | 1 | Éveil : Inflige 1 point de dégât à un serviteur aléatoire ennemi en rangée Avant. | *Il ne rate pas. Il attend juste le bon moment.* |
-| H06 | Éclaireur Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT Arrivée : Piochez 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
-| H07 | Vétéran des Marches | ⚔️ | 3 | 1 | 6 | Blessure : Gagne +1/+0 de façon permanente. | *Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris.* |
-| H08 | Frère d'Armes | ⚔️ | 3 | 3 | 2 | Attaque : Les serviteurs adjacents gagnent +0/+1. | *Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui.* |
-| H09 | Lancier en Ligne | ⚔️ | 2 | 3 | 1 | FORMATION. | *La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
-| H10 | Guérisseur de Camp | 🛡️ | 3 | 0 | 3 | Éveil : Donne +0/+1 à un Humain aléatoire allié. | *Il n'a jamais tenu d'épée. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
-| H11 | Sergent de Troupe | ⚔️ | 3 | 2 | 3 | Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+2 jusqu'à la fin du tour. | *Sa voix porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
+| H01 | Conscrit Eorthalien | ⚔️ | 1 | 1 | 2 | — | *Il n'a pas choisi de quitter les champs d'Eorthal. Il est venu quand même.* |
+| H02 | Milicien Eorthalien du Bourg | ⚔️ | 1 | 2 | 1 | Dernier Souffle : Invoque un Éclaireur Ostranien Rapide 1/1. | *Il est tombé en gardant ouverte la route qui menait hors d'Eorthal. C'est tout ce qu'il avait demandé.* |
+| H03 | Porteur de Bouclier Eorthalien | ⚔️ | 2 | 1 | 4 | REMPART | *Le bouclier a des marques de griffes gagnées à défendre les dernières fermes d'Eorthal. Il ne les compte plus.* |
+| H04 | Fantassin Eorthalien Aguerri | ⚔️ | 2 | 2 | 2 | FORMATION. | *Seul, un fils d'Eorthal tient. Ensemble, ils avancent.* |
+| H05 | Archer Ostranien de Guet | 🛡️ | 2 | 2 | 1 | Éveil : Inflige 1 point de dégât à un serviteur aléatoire ennemi en rangée Avant. | *Sur les tours de guet d'Ostrane, il ne rate pas. Il attend juste le bon moment.* |
+| H06 | Éclaireur Ostranien Rapide | ⚔️ | 1 | 1 | 1 | ASSAUT Arrivée : Piochez 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus. | *Il revient toujours des confins d'Ostrane avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
+| H07 | Vétéran Skeldarien des Marches | ⚔️ | 3 | 1 | 6 | Blessure : Gagne +1/+0 de façon permanente. | *Chaque cicatrice gagnée sur les marches de Skeldara lui a appris quelque chose sur les Démons. Il en a beaucoup appris.* |
+| H08 | Frère d'Armes Eorthalien | ⚔️ | 3 | 3 | 2 | Attaque : Les serviteurs adjacents gagnent +0/+1. | *Il ne combat pas pour reprendre Eorthal. Il combat pour que l'homme à sa gauche rentre quelque part.* |
+| H09 | Lancier Skeldarien | ⚔️ | 2 | 3 | 1 | FORMATION. | *La ligne de Skeldara tient ou la ligne tombe. Il n'y a pas d'entre-deux.* |
+| H10 | Guérisseur Ostranien de Camp | 🛡️ | 3 | 0 | 3 | Éveil : Donne +0/+1 à un Humain aléatoire allié. | *Il n'a jamais tenu d'épée aux confins d'Ostrane. Ses mains ont pourtant sauvé plus de vies que n'importe quelle lame.* |
+| H11 | Sergent de Troupe Eorthalienne | ⚔️ | 3 | 2 | 3 | Arrivée : Les serviteurs Humains alliés en rangée Avant gagnent +0/+2 jusqu'à la fin du tour. | *Sa voix, née dans les champs d'Eorthal, porte plus loin que le bruit du combat. C'est pour ça qu'il est encore en vie.* |
 
 ### Rares
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H12 | Chevalier du Mur | ⚔️ | 3 | 2 | 5 | REMPART, CONTRE-ATTAQUE | *Il a juré de ne pas reculer. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
-| H13 | Inquisiteur de Fer | ↕️ | 3 | 3 | 2 | Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire. | *Il ne cherche pas la vérité. Il coupe ce qui parle à la place d'elle.* |
-| H14 | Capitaine de Milice | ↕️ | 4 | 3 | 3 | COMMANDEMENT Arrivée : Invoque un Milicien du Bourg 2/1. | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
-| H15 | Briseur de Horde | ⚔️ | 4 | 4 | 3 | **Attaque** : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires. | *Il a perdu son village à la première vague. Il n'a pas perdu la rage.* |
-| H16 | Sentinelle des Remparts | ⚔️ | 2 | 1 | 5 | REMPART, FORTIFICATION | *On a essayé de le faire reculer. On a essayé de le renvoyer. On a abandonné.* |
-| H17 | Archer d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION. | *La rangée Avant n'est pas un obstacle. C'est un couloir.* |
-| H18 | Prêtre de Guerre | 🛡️ | 4 | 1 | 4 | Éveil : Donne +0/+2 à un Humain aléatoire allié. Dernier Souffle : Invoque un Éclaireur Rapide 1/1. | *Il priait pour les vivants. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
-| H19 | Lame-Jurée | ⚔️ | 3 | 3 | 4 | DISCIPLINE. Exécution : Gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame. La lame, elle, a juré de le mériter.* |
-| H20 | Défenseur Juré | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : Les dégâts reçus sont réduits de 1 (minimum 1). | *Il n'esquive pas. Il absorbe. Ce n'est pas pareil.* |
-| H21 | Éclaireur Infiltré | ⚔️ | 4 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant.* |
-| H22 | Fantassin de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : Gagne ÉGIDE. | *Chaque coup reçu lui rappelle pourquoi il tient encore debout.* |
-| H23 | Soldat de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : Invoque un Milicien du Bourg 2/1. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
+| H12 | Chevalier Skeldarien du Mur | ⚔️ | 3 | 2 | 5 | REMPART, CONTRE-ATTAQUE | *Il a juré de ne pas reculer devant le Mur de Skeldara. Il a tenu sa parole à un prix qu'il ne mentionne jamais.* |
+| H13 | Inquisiteur Dreamarien de Fer | ↕️ | 3 | 3 | 2 | Arrivée : Silence un serviteur ciblé ennemi jusqu'à la fin du prochain tour de votre adversaire. | *Il ne cherche pas la vérité dans les augures de Dreamar. Il coupe ce qui parle à leur place.* |
+| H14 | Capitaine de Milice Eorthalienne | ↕️ | 4 | 3 | 3 | COMMANDEMENT Arrivée : Invoque un Milicien Eorthalien du Bourg 2/1. | *Il n'avait pas prévu de commander les réfugiés d'Eorthal. Mais quelqu'un devait le faire.* |
+| H15 | Briseur de Horde Skeldarien | ⚔️ | 4 | 4 | 3 | **Attaque** : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires. | *Il a perdu son village à la première vague démoniaque sur Skeldara. Il n'a pas perdu la rage.* |
+| H16 | Sentinelle des Remparts d'Aldrenia | ⚔️ | 2 | 1 | 5 | REMPART, FORTIFICATION | *On a essayé de la faire reculer. On a essayé de la relever de son poste. Aldrenia a renoncé avant elle.* |
+| H17 | Archer Ostranien d'Élite | 🛡️ | 3 | 3 | 2 | INFILTRATION. | *À Ostrane, on apprend que la rangée avant n'est pas un obstacle. C'est un couloir.* |
+| H18 | Prêtre de Guerre Dreamarien | 🛡️ | 4 | 1 | 4 | Éveil : Donne +0/+2 à un Humain aléatoire allié. Dernier Souffle : Invoque un Éclaireur Ostranien Rapide 1/1. | *Il priait pour les vivants dans les sanctuaires de Dreamar. À la fin, il a prié pour quelque chose de plus modeste : du temps.* |
+| H19 | Lame-Jurée de Skeldara | ⚔️ | 3 | 3 | 4 | DISCIPLINE. Exécution : Gagne +1/+1 de façon permanente. | *Elle a juré sur sa lame devant les remparts de Skeldara. La lame, elle, a juré de le mériter.* |
+| H20 | Défenseur Juré de Skeldara | ⚔️ | 2 | 1 | 4 | REMPART. Blessure : Les dégâts reçus sont réduits de 1 (minimum 1). | *Skeldara ne demande pas d'éviter les coups. Elle demande de les absorber. Ce n'est pas pareil.* |
+| H21 | Éclaireur Ostranien Infiltré | ⚔️ | 4 | 3 | 2 | Arrivée : **la rangée Arrière ennemie peut être ciblée directement par tes effets et attaques ce tour.** | *Depuis Ostrane, il est allé voir ce qu'il y avait derrière les lignes ennemies. Il est revenu. Pas tout le monde n'en peut dire autant.* |
+| H22 | Fantassin Skeldarien de Contre-Choc | ⚔️ | 4 | 3 | 4 | CONTRE-ATTAQUE. Blessure : Gagne ÉGIDE. | *Chaque coup reçu sur le front de Skeldara lui rappelle pourquoi il tient encore debout.* |
+| H23 | Soldat Dreamarien de la Foi | ⚔️ | 3 | 2 | 3 | ÉGIDE. Dernier Souffle : Invoque un Milicien Eorthalien du Bourg 2/1. | *Il croyait en quelque chose. Ce quelque chose l'a protégé — une fois.* |
 
 ### Épiques
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H24 | Maréchal de Campagne | 🛡️ | 5 | 2 | 5 | COMMANDEMENT. Éveil : Tous les Humains alliés gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour. | *Il ne crie pas les ordres. Il les dit une fois, calmement. Ça suffit.* |
-| H25 | Champion du Peuple | ⚔️ | 4 | 5 | 4 | Exécution : Soigne le héros allié de 2 points de vie. | *Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
-| H26 | Paladin de l'Aube | ⚔️ | 6 | 4 | 5 | ÉGIDE, MOISSON, DISCIPLINE, FORTIFICATION. Arrivée : Un serviteur ciblé allié gagne ÉGIDE. | *Il arrive à l'aube. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
-| H27 | Brise-Mort | ⚔️ | 4 | 4 | 3 | Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière. | *"Tu es déjà mort une fois. Je vais m'assurer que tu ne l'oublies pas."* |
-| H28 | Mur de Lances | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Exécution : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. | *Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser.* |
-| H29 | Stratège Royal | 🛡️ | 4 | 2 | 4 | Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides. | *Il ne voit pas un champ de bataille. Il voit un problème à résoudre.* |
-| H30 | Exécuteur de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL, DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Il a des instructions. C'est pire.* |
-| H31 | Porte-Étendard | 🛡️ | 4 | 1 | 4 | Arrivée : Invoque un Éclaireur Rapide 1/1 pour chaque Humain déjà en jeu (max 3). | *L'étendard ne se rend pas. Tant qu'il tient, les autres tiennent aussi.* |
-| H32 | Chevalier de la Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE, ASSAUT Blessure : Gagne +2/+0 jusqu'à la fin du tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
-| H33 | Inquisiteur Suprême | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs. | *La corruption s'arrête là où il pose le regard.* |
-| H34 | Général de Brigade | 🛡️ | 5 | 3 | 4 | COMMANDEMENT Éveil : Invoque un Fantassin Aguerri 2/2 si vous avez 4 Humains ou plus en jeu. | *Une armée n'est pas un nombre. C'est une volonté. La sienne.* |
+| H24 | Maréchal de Campagne Aldrénien | 🛡️ | 5 | 2 | 5 | COMMANDEMENT. Éveil : Tous les Humains alliés gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour. | *Il a servi trois rois et enterré les trois. La couronne change de tête. L'ordre, lui, ne change pas.* |
+| H25 | Champion du Peuple Eorthalien | ⚔️ | 4 | 5 | 4 | Exécution : Soigne le héros allié de 2 points de vie. | *Il se bat pour des réfugiés d'Eorthal qu'il ne connaît pas. C'est pour ça qu'il gagne.* |
+| H26 | Paladin Dreamarien de l'Aube | ⚔️ | 6 | 4 | 5 | ÉGIDE, MOISSON, DISCIPLINE, FORTIFICATION. Arrivée : Un serviteur ciblé allié gagne ÉGIDE. | *Il arrive à l'aube, comme l'avaient annoncé les augures de Dreamar. Les morts reculent à la lumière. Lui aussi en a été surpris, la première fois.* |
+| H27 | Brise-Mort de Skeldara | ⚔️ | 4 | 4 | 3 | Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière. | *Sur le front de Skeldara, même les morts reviennent se battre deux fois. Lui s'assure qu'ils ne reviennent pas une troisième.* |
+| H28 | Mur de Lances Skeldarien | ⚔️ | 4 | 1 | 6 | REMPART, FORMATION. Exécution : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. | *Sur le front de Skeldara, une lance plie. Un mur de lances ne recule plus.* |
+| H29 | Stratège Royal d'Aldrenia | 🛡️ | 4 | 2 | 4 | Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides. | *Il n'a jamais levé une épée. Il a redessiné trois fois la carte de Mydaria avant le petit-déjeuner.* |
+| H30 | Exécuteur Dreamarien de l'Ordre | ⚔️ | 5 | 5 | 4 | VENIN MORTEL, DISCIPLINE. Ne peut attaquer que les serviteurs (jamais le héros directement). | *Il n'a pas de haine. Dreamar lui a donné des instructions. C'est pire.* |
+| H31 | Porte-Étendard Aldrénien | 🛡️ | 4 | 1 | 4 | Arrivée : Invoque un Éclaireur Ostranien Rapide 1/1 pour chaque Humain déjà en jeu (max 3). | *L'étendard porte les armes d'un royaume qui existait avant Wyrdane. Il refuse de le laisser mourir une seconde fois.* |
+| H32 | Chevalier Skeldarien de Contre-Marche | ⚔️ | 5 | 4 | 5 | CONTRE-ATTAQUE, ASSAUT Blessure : Gagne +2/+0 jusqu'à la fin du tour. | *Il charge. Il encaisse. Il charge encore. C'est tout ce qu'il sait faire — et c'est suffisant.* |
+| H33 | Inquisiteur Suprême de Dreamar | ↕️ | 5 | 3 | 5 | DISCIPLINE. Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs. | *Les visionnaires de Dreamar voient la corruption arriver des jours à l'avance. Lui, il l'attend déjà sur place.* |
+| H34 | Général de Brigade Aldrénien | 🛡️ | 5 | 3 | 4 | COMMANDEMENT Éveil : Invoque un Fantassin Eorthalien Aguerri 2/2 si vous avez 4 Humains ou plus en jeu. | *Aldrenia n'envoie plus de rois au combat. Elle envoie des généraux qui se souviennent encore pourquoi la couronne existait.* |
 
 ### Légendaires
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H35 | Le Roi Soldat | ⚔️ | 7 | 6 | 8 | COMMANDEMENT, ÉGIDE. Arrivée : Tous les Humains alliés gagnent +2/+2 de façon permanente. | *Il n'a pas pris la couronne. On la lui a posée sur le champ de bataille, entre deux assauts.* |
-| H36 | La Grande Inquisitrice | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire. | *Elle ne combat pas la magie ennemie. Elle la refuse.* |
-| H37 | Le Rempart Vivant | ⚔️ | 6 | 4 | 10 | REMPART, FORTIFICATION, CONTRE-ATTAQUE. Blessure (une fois par tour) : Invoque un Porteur de Bouclier 1/4 REMPART | *On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore.* |
-| H38 | Commandant des Derniers | 🛡️ | 8 | 5 | 6 | COMMANDEMENT. Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant. | *Sa mort n'est pas une fin. C'est un dernier ordre.* |
-| H39 | L'Éternel Gardien | ⚔️ | 8 | 7 | 9 | REMPART, ÉGIDE, DISCIPLINE. Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire. | *Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend.* |
+| H35 | Le Roi Soldat d'Aldrenia | ⚔️ | 7 | 6 | 8 | COMMANDEMENT, ÉGIDE. Arrivée : Tous les Humains alliés gagnent +2/+2 de façon permanente. | *La couronne d'Aldrenia n'a pas de trône. Elle a un champ de bataille. On la lui a posée là, entre deux assauts.* |
+| H36 | La Grande Inquisitrice de Dreamar | 🛡️ | 6 | 3 | 6 | DISCIPLINE. Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire. | *À Dreamar, on ne combat pas la magie ennemie. On la voit venir, longtemps avant qu'elle n'arrive. Elle la refuse.* |
+| H37 | Le Rempart Vivant de Skeldara | ⚔️ | 6 | 4 | 10 | REMPART, FORTIFICATION, CONTRE-ATTAQUE. Blessure (une fois par tour) : Invoque un Porteur de Bouclier Eorthalien 1/4 REMPART | *On lui a demandé combien de temps Skeldara pouvait tenir. Il n'a pas répondu. Il tient encore.* |
+| H38 | Commandant des Derniers d'Aldrenia | 🛡️ | 8 | 5 | 6 | COMMANDEMENT. Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant. | *Aldrenia a vu tomber cinq royaumes. Elle a juré de ne pas être le sixième. Lui, c'est le prix de ce serment.* |
+| H39 | L'Éternel Gardien d'Aldrenia | ⚔️ | 8 | 7 | 9 | REMPART, ÉGIDE, DISCIPLINE. Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire. | *Les cinq autres royaumes sont tombés, disparus ou maudits. Aldrenia tient encore. Lui aussi.* |
 
 ---
 
@@ -379,19 +381,19 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H40 | Cri de Ralliement | 1 | Commune | Humains alliés +0/+1 jusqu'à la fin du tour. | *Un seul cri. Toute la ligne se souvient pourquoi elle est là.* |
-| H41 | Frappe Coordonnée | 2 | Commune | Deux Humains ciblés alliés attaquent immédiatement le même serviteur ciblé ennemi. | *Deux hommes, un seul endroit. L'ennemi n'a pas le temps de choisir lequel regarder.* |
-| H42 | Purification | 2 | Commune | Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur ciblé allié. | *Le mal recule. Pas loin. Mais pour l'instant, ça suffit.* |
-| H43 | Repli Tactique | 1 | Commune | Déplace un serviteur allié de la rangée Avant vers la rangée Arrière (ou inversement). Il conserve ses effets. | *Reculer n'est pas fuir. C'est choisir où mourir.* |
-| H44 | Volée de Flèches | 3 | Commune | Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 points de dégâts à la place. | *Plus ils sont nombreux, plus ça fait de cibles.* |
-| H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un Humain ciblé allié jusqu'à la fin du prochain tour de votre adversaire. | *La foi ne rend pas invulnérable. Elle donne juste le temps d'encaisser le premier coup.* |
-| H46 | Jugement Divin | 4 | Rare | Détruit un serviteur ciblé ennemi. | *Le verdict est rendu avant même que l'accusé comprenne qu'il était jugé.* |
-| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente. | *L'ordre est arrivé. Il n'y avait pas de question à poser.* |
-| H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
-| H49 | Appel aux Armes | 4 | Rare | Piochez 1 carte. Si votre rangée Avant est vide : Invoque 1 Milicien du Bourg 2/1. | *Quand la ligne est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
-| H50 | Bénédiction de Guerre | 2 | Épique | Un Humain ciblé allié gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction que quelqu'un a mis dans ses mains.* |
-| H51 | Massacre Sacré | 4 | Épique | Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu. | *La lumière ne guérit pas les morts. Elle les brûle. C'est mieux.* |
-| H52 | Formation Défensive | 3 | Épique | Tous les serviteurs alliés en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse. | *Ils se serrent. La ligne devient un mur. Le mur ne bouge pas.* |
+| H40 | Cri de Ralliement | 1 | Commune | Humains alliés +0/+1 jusqu'à la fin du tour. | *Un seul cri, dans l'accent d'Eorthal. Toute la ligne se souvient pourquoi elle est là.* |
+| H41 | Frappe Coordonnée | 2 | Commune | Deux Humains ciblés alliés attaquent immédiatement le même serviteur ciblé ennemi. | *Deux lames de Skeldara, un seul endroit. L'ennemi n'a pas le temps de choisir laquelle regarder.* |
+| H42 | Purification | 2 | Commune | Annule tous les effets néfastes raciaux (Infection, Corruption) sur un serviteur ciblé allié. | *À Dreamar, le mal recule devant la lumière des augures. Pas loin. Mais pour l'instant, ça suffit.* |
+| H43 | Repli Tactique | 1 | Commune | Déplace un serviteur allié de la rangée Avant vers la rangée Arrière (ou inversement). Il conserve ses effets. | *À Skeldara, reculer n'est pas fuir. C'est choisir où mourir.* |
+| H44 | Volée de Flèches | 3 | Commune | Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. Si 4 ou plus en rangée Avant : 2 points de dégâts à la place. | *Les archers d'Ostrane ne visent pas un homme. Ils visent une ligne entière. Plus ils sont nombreux, plus ça fait de cibles.* |
+| H45 | Bouclier de Foi | 1 | Rare | Donne ÉGIDE à un Humain ciblé allié jusqu'à la fin du prochain tour de votre adversaire. | *Les visions de Dreamar ne rendent pas invulnérable. Elles donnent juste le temps d'encaisser le premier coup.* |
+| H46 | Jugement Divin | 4 | Rare | Détruit un serviteur ciblé ennemi. | *Les augures de Dreamar avaient vu venir le verdict. L'accusé, lui, ne l'a compris qu'après coup.* |
+| H47 | Ordre d'Avancer | 2 | Rare | Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente. | *L'ordre de Skeldara est arrivé jusqu'au front. Il n'y avait pas de question à poser.* |
+| H48 | Contre-Offensive | 3 | Rare | Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement. | *Sur le front de Skeldara, la victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter.* |
+| H49 | Appel aux Armes | 4 | Rare | Piochez 1 carte. Si votre rangée Avant est vide : Invoque 1 Milicien Eorthalien du Bourg 2/1. | *Quand la ligne d'Eorthal est vide, ceux qui restent n'ont plus à réfléchir. Ils avancent.* |
+| H50 | Bénédiction de Guerre | 2 | Épique | Un Humain ciblé allié gagne +2/+2 et DISCIPLINE jusqu'à fin de tour. | *Ce n'est pas de la magie. C'est la conviction qu'un prêtre de Dreamar a mise dans ses mains.* |
+| H51 | Massacre Sacré | 4 | Épique | Inflige 3 points de dégâts à tous les serviteurs non-Humains en jeu. | *La lumière de Dreamar ne guérit pas les morts. Elle les brûle. C'est mieux.* |
+| H52 | Formation Défensive | 3 | Épique | Tous les serviteurs alliés en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse. | *Ils se serrent, épaule contre épaule, comme on le leur a appris à Skeldara. La ligne devient un mur. Le mur ne bouge pas.* |
 
 ---
 
@@ -399,16 +401,16 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Charges | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|---|---|
-| H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre est simple. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
-| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
-| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse. | *Cinq hommes côte à côte. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
-| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1. | *Le serment survit à celui qui l'a fait. C'est l'idée.* |
-| H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Rapide 1/1. | *Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir.* |
-| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Chaque coup reçu est une réponse en attente.* |
-| H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente. | *L'honneur ne protège pas. Mais il donne un tranchant supplémentaire.* |
-| H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : Annulé s'il cible un Humain allié. | *La magie s'arrête là où la volonté commence.* |
-| H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Aguerri 2/2. | *Sous cette bannière, on ne compte plus les morts. On compte ceux qui restent debout.* |
-| H62 | Résistance Acharnée | 4 | Épique | 3 charges | Carnage : Quand un serviteur ennemi meurt, votre héros récupère 2 points de vie. | *Chaque mort laisse quelque chose aux vivants. Quelque chose de dur, de têtu, de précieux.* |
+| H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre de Skeldara est simple : tenir. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
+| H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant appris à Dreamar ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
+| H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse. | *Cinq hommes de Skeldara, côte à côte sur la ligne. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
+| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1. | *À Skeldara, le serment survit à celui qui l'a fait. C'est tout l'intérêt.* |
+| H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Ostranien Rapide 1/1. | *Pas de repos sur les routes de Skeldara. La colonne avance parce que s'arrêter, c'est mourir.* |
+| H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Sur le front de Skeldara, chaque coup reçu est une réponse en attente.* |
+| H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente. | *Le code des chevaliers de Skeldara ne protège pas du coup suivant. Mais il donne un tranchant de plus pour le rendre.* |
+| H60 | Mur Infranchissable | 6 | Épique | 2 charges | Sortilège ennemi : Annulé s'il cible un Humain allié. | *La magie démoniaque s'arrête là où commence la volonté de Skeldara.* |
+| H61 | Bannière du Roi | 5 | Épique | 2 charges | Éveil : Si vous avez un Humain Légendaire en jeu, invoque un Fantassin Eorthalien Aguerri 2/2. | *Sous cette bannière frappée du blason d'Aldrenia, on ne compte plus les morts. On compte ceux qui restent debout.* |
+| H62 | Résistance Acharnée | 4 | Épique | 3 charges | Carnage : Quand un serviteur ennemi meurt, votre héros récupère 2 points de vie. | *Chaque mort laisse quelque chose aux réfugiés d'Eorthal. Quelque chose de dur, de têtu, de précieux.* |
 | H63 | Purge Sainte | 6 | Légendaire | 2 charges | Éveil : Détruit 2 serviteurs aléatoires non-Humains ennemis. | *Ce n'est pas une prière. C'est une déclaration — répétée, chaque matin.* |
 | H64 | Grande Mobilisation | 8 | Légendaire | 3 charges | Éveil : Invoque un Humain aléatoire de coût ≤4. | *Quand tout le reste a échoué, il reste les hommes. Il en arrive d'autres, à chaque aube.* |
 
@@ -418,16 +420,16 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H65 | Citadelle des Hommes | 4 | Rare | Présence : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 de façon permanente. | *Ces murs n'ont pas été construits pour durer. Ils ont duré quand même.* |
-| H66 | Lignée des Braves | 3 | Rare | Deuil : Quand un de vos serviteurs Humains meurt, piochez 1 carte. (Une seule fois par tour.) | *Chaque nom gravé est aussi une leçon. Il suffit de savoir la lire.* |
-| H67 | Pacte de Résistance | 3 | Rare | Présence : Les Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1). | *Ils ont signé ensemble. Aucun d'eux ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
-| H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque Humain invoqué allié gagne +1/+1 de façon permanente. | *On ne vient pas y prier. On vient y apprendre à tenir sa place dans la ligne.* |
-| H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *Un commandant suffit. Le cercle fait le reste.* |
-| H70 | Forteresse Imprenable | 5 | Épique | Carnage : Chaque fois qu'un serviteur ennemi meurt, les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque ennemi abattu consolide ce qui reste debout.* |
-| H71 | Bouclier de la Foi | 4 | Épique | La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE. | *La foi ne comprend pas la magie. Elle n'a pas besoin de la comprendre pour la freiner.* |
-| H72 | Ordre des Anciens | 6 | Légendaire | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice 3/3. | *Les anciens ne reviennent pas par magie. Ils reviennent parce qu'on a encore besoin d'eux.* |
-| H73 | Mémorial des Héros | 5 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 et piochez 1 carte. | *On grave les noms pour ne pas oublier. On continue pour la même raison.* |
-| H74 | Décret Royal | 7 | Légendaire | Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.) | *Le décret n'a pas de date d'expiration. La guerre non plus.* |
+| H65 | Citadelle des Hommes | 4 | Rare | Présence : Les serviteurs Humains alliés en rangée Avant gagnent +0/+1 de façon permanente. | *Les murs de Skeldara n'ont pas été construits pour durer cent ans de guerre démoniaque. Ils ont duré quand même.* |
+| H66 | Lignée des Braves | 3 | Rare | Deuil : Quand un de vos serviteurs Humains meurt, piochez 1 carte. (Une seule fois par tour.) | *Aldrenia ne garde pas ses morts dans un cimetière. Elle les garde dans une lignée, nom après nom, jusqu'au sien.* |
+| H67 | Pacte de Résistance | 3 | Rare | Présence : Les Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1). | *Les survivants d'Eorthal ont signé ensemble. Aucun ne s'en souvient exactement. Tous s'en souviennent suffisamment.* |
+| H68 | Temple de Guerre | 5 | Épique | Renfort : Chaque Humain invoqué allié gagne +1/+1 de façon permanente. | *On ne vient pas prier dans les temples de guerre de Dreamar. On vient y apprendre à tenir sa place dans la ligne.* |
+| H69 | Cercle de Commandement | 4 | Épique | Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour. | *À Aldrenia, un ordre ne meurt jamais seul. Il se répète d'officier en officier jusqu'à devenir une loi.* |
+| H70 | Forteresse Imprenable | 5 | Épique | Carnage : Chaque fois qu'un serviteur ennemi meurt, les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour. | *Chaque démon abattu sous les murs de Skeldara consolide un peu plus ce qui reste debout.* |
+| H71 | Bouclier de la Foi | 4 | Épique | La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE. | *La foi de Dreamar ne comprend pas la magie ennemie. Elle n'a pas besoin de la comprendre pour la freiner.* |
+| H72 | Ordre des Anciens | 6 | Légendaire | Éveil : Si vous avez 5 Humains ou plus en jeu, invoque un Capitaine de Milice Eorthalienne 3/3. | *Les Anciens d'Aldrenia ne reviennent pas par magie. Ils reviennent parce que le royaume a encore besoin d'eux.* |
+| H73 | Mémorial des Héros | 5 | Épique | Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Eorthalien Aguerri 2/2 et piochez 1 carte. | *Le grand hall d'Aldrenia grave un nom de plus à chaque génération. Il n'y a plus assez de murs.* |
+| H74 | Décret Royal | 7 | Légendaire | Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.) | *Le dernier roi d'Aldrenia est mort à la Première Vague. Ses décrets, eux, n'ont pas de date d'expiration.* |
 | H75 | Aegis de l'Empire | 8 | Légendaire | Présence : Les serviteurs Humains alliés en rangée Avant gagnent DISCIPLINE. Les effets néfastes raciaux déjà présents sur eux sont annulés à la fin de chaque tour. | *L'Empire ne cède à rien de ce que l'ennemi lui inflige. Ce n'est pas de l'orgueil. C'est de l'obstination.* |
 
 ---
@@ -438,7 +440,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à ta réserve Humaine. Une seule carte-ressource par tour et par camp. | *Frappé au nom du roi, il lie chaque soldat à son serment.* |
+| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à ta réserve Humaine. Une seule carte-ressource par tour et par camp. | *Frappé au nom d'un royaume qui n'existe peut-être plus, il lie quand même chaque soldat à son serment.* |
 
 ---
 
@@ -446,11 +448,11 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-| H77 | Fantassin Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade). | *Seul, il tient. Ensemble, ils avancent.* |
-| H78 | Éclaireur Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT (jeton, invoqué par : Marche Forcée, Prêtre de Guerre, Porte-Étendard, Milicien du Bourg). | *Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
-| H79 | Porteur de Bouclier (jeton) | ⚔️ | — | 1 | 4 | REMPART (jeton, invoqué par : Le Rempart Vivant). | *Le bouclier a des marques de griffes. Il ne les compte plus.* |
-| H80 | Milicien du Bourg (jeton) | ⚔️ | — | 2 | 1 | — (jeton vanille, invoqué par : Appel aux Armes, Capitaine de Milice, Soldat de la Foi). | *Il est tombé en gardant la route ouverte. C'est tout ce qu'il avait demandé.* |
-| H81 | Capitaine de Milice (jeton) | ↕️ | — | 3 | 3 | COMMANDEMENT (jeton, invoqué par : Ordre des Anciens). | *Il n'avait pas prévu de commander. Mais quelqu'un devait le faire.* |
+| H77 | Fantassin Eorthalien Aguerri (jeton) | ⚔️ | — | 2 | 2 | FORMATION. (jeton, invoqué par : Mémorial des Héros, Bannière du Roi, Général de Brigade Aldrénien). | *Seul, un fils d'Eorthal tient. Ensemble, ils avancent.* |
+| H78 | Éclaireur Ostranien Rapide (jeton) | ⚔️ | — | 1 | 1 | ASSAUT (jeton, invoqué par : Marche Forcée, Prêtre de Guerre Dreamarien, Porte-Étendard Aldrénien, Milicien Eorthalien du Bourg). | *Il revient toujours des confins d'Ostrane avec de mauvaises nouvelles. Il revient, c'est ce qui compte.* |
+| H79 | Porteur de Bouclier Eorthalien (jeton) | ⚔️ | — | 1 | 4 | REMPART (jeton, invoqué par : Le Rempart Vivant de Skeldara). | *Le bouclier a des marques de griffes gagnées à défendre les dernières fermes d'Eorthal. Il ne les compte plus.* |
+| H80 | Milicien Eorthalien du Bourg (jeton) | ⚔️ | — | 2 | 1 | — (jeton vanille, invoqué par : Appel aux Armes, Capitaine de Milice Eorthalienne, Soldat Dreamarien de la Foi). | *Il est tombé en gardant ouverte la route qui menait hors d'Eorthal. C'est tout ce qu'il avait demandé.* |
+| H81 | Capitaine de Milice Eorthalienne (jeton) | ↕️ | — | 3 | 3 | COMMANDEMENT (jeton, invoqué par : Ordre des Anciens). | *Il n'avait pas prévu de commander les réfugiés d'Eorthal. Mais quelqu'un devait le faire.* |
 
 ---
 
