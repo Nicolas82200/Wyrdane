@@ -24,6 +24,11 @@ var aura_damage_reduction: int = 0
 var infection_immune_aura: bool = false
 
 var attacks_remaining: int = 0
+# Mal de l'invocation : vrai tant que ce serviteur n'a jamais pu agir depuis sa
+# pose (donc attacks_remaining == 0 parce qu'il vient d'arriver, et non parce
+# qu'il a déjà attaqué ou qu'il est gelé). Permet à add_keyword de débloquer un
+# ASSAUT acquis APRÈS la pose sans rendre une attaque à un serviteur épuisé.
+var summon_sick: bool = false
 # Verrou de ré-entrance : posé pendant la résolution d'une attaque (CombatSystem)
 # pour empêcher qu'un effet déclenché en chaîne (ex. OnAttack, attaque immédiate)
 # ne relance une attaque avec ce serviteur avant que la précédente soit terminée.
@@ -56,24 +61,29 @@ var corruption_stacks: int = 0
 # sont appliqués directement sur base_attack/base_max_health par roll_mutation.
 var mutation_stacks: int = 0
 var mutations: Array[String] = []
-# Infection cumulable : chaque pose ajoute une marque, chacune infligeant 1
-# dégât au début du tour adverse (voir TurnSystem._apply_infection_damage) —
-# un serviteur touché 5 fois perd 5 PV/tour, pas 1. CHAIR MORTE ou une
-# immunité d'aura (Aegis de l'Empire) bloque toute nouvelle marque.
-var infection_stacks: int = 0
-# Compat/lisibilité : `infected = true` ajoute une marque (bloqué par
-# l'immunité), `infected = false` retire toutes les marques (guérison
-# complète, voir CureInfection/Aegis de l'Empire) ; `infected` se lit comme un
-# simple booléen partout ailleurs dans le code (combat, ciblage, VFX...).
+# Infection à durée : marque de conversion temporaire (plus de dégâts par
+# tour). Tant qu'elle court, la mort du serviteur le convertit en Zombie 1/1
+# sous le contrôle de l'infecteur (voir DeathSystem._convert_infected). Le
+# compteur baisse de 1 à la fin du tour du CONTRÔLEUR du serviteur infecté
+# (TurnSystem._tick_infection) ; à 0, la marque s'efface sans conversion.
+# CHAIR MORTE / DISCIPLINE ou une immunité d'aura (Aegis de l'Empire) bloquent
+# toute nouvelle marque.
+var infection_turns: int = 0
+# Camp qui a posé la marque : c'est lui qui récupère le Zombie de conversion.
+var infection_infector_is_player: bool = false
+# Compat/lisibilité : `infected` se lit comme un simple booléen partout
+# ailleurs (combat, ciblage, VFX...). `infected = false` guérit (CureInfection,
+# Aegis de l'Empire, transformation, changement de contrôleur) ;
+# `infected = true` pose 1 tour depuis le camp opposé — raccourci réservé aux
+# tests et au code historique, toute vraie source passe par
+# EffectManager.apply_infection (qui applique le multiplicateur d'aura).
 var infected: bool:
-	get: return infection_stacks > 0
+	get: return infection_turns > 0
 	set(value):
 		if value:
-			if is_infection_immune():
-				return
-			infection_stacks += 1
+			apply_infection(1, not owner_is_player)
 		else:
-			infection_stacks = 0
+			infection_turns = 0
 var death_rage_triggered: bool = false  # Mort-rage : une seule fois par serviteur
 var revenant_triggered: bool = false    # REVENANT : une seule fois par pose (nouvelle instance Minion à chaque redéploiement, donc réinitialisé de fait)
 var awakened: bool = false
@@ -129,6 +139,7 @@ func _init(data: CardData, is_player: bool = true, row: String = "Front") -> voi
 	demon_keywords    = data.get_demon_keyword_values()
 	abomination_keywords = data.get_abomination_keyword_values()
 	attacks_remaining = 1 if has_keyword(Keyword.Type.CHARGE) else 0
+	summon_sick = attacks_remaining == 0
 	spell_immune = data.spell_immune_until_attack
 
 # ─── Stats calculées (lecture seule — passe par base_* pour modifier) ─────────
@@ -148,6 +159,7 @@ func can_attack() -> bool:
 	return attacks_remaining > 0 and frozen_turns == 0 and terror_turns == 0 and not is_attacking
 
 func refresh_attacks() -> void:
+	summon_sick = false
 	extra_attack_used_this_turn = false
 	triggers_used_this_turn.clear()
 	if frozen_turns > 0 or terror_turns > 0:
@@ -158,6 +170,7 @@ func refresh_attacks() -> void:
 	attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
 
 func consume_attack() -> void:
+	summon_sick = false
 	attacks_remaining = max(attacks_remaining - 1, 0)
 	if card_data.spell_immune_until_attack:
 		spell_immune = false
@@ -188,8 +201,17 @@ func is_dead() -> bool:
 func has_keyword(keyword: int) -> bool:
 	return keyword in keywords
 func add_keyword(keyword: int) -> void:
-	if keyword not in keywords:
-		keywords.append(keyword)
+	if keyword in keywords:
+		return
+	keywords.append(keyword)
+	# ASSAUT (ou FRÉNÉSIE) acquis APRÈS la pose : attacks_remaining a déjà été
+	# figé par le mal de l'invocation dans _init, il faut le débloquer ici pour
+	# que le mot-clé soit utilisable dès ce tour — sinon seul le chemin qui
+	# pense à le faire lui-même en profite (GrantKeyword), et pas les autres
+	# (CHAIR ADAPTATIVE, FUSION, Emprunt Instantané, Partage de Chair).
+	if summon_sick and has_keyword(Keyword.Type.CHARGE) and frozen_turns == 0 and terror_turns == 0:
+		summon_sick = false
+		attacks_remaining = 2 if has_keyword(Keyword.Type.FURY) else 1
 func remove_keyword(keyword: int) -> void:
 	keywords.erase(keyword)
 
@@ -202,6 +224,15 @@ func add_human_keyword(keyword: int) -> void:
 
 func remove_human_keyword(keyword: int) -> void:
 	human_keywords.erase(keyword)
+
+# Pose/prolonge l'Infection. Jamais additive : la durée restante est portée au
+# maximum des deux (règle de réapplication), et l'infecteur devient celui de la
+# dernière application.
+func apply_infection(turns: int, infector_is_player: bool) -> void:
+	if turns <= 0 or is_infection_immune():
+		return
+	infection_turns = max(infection_turns, turns)
+	infection_infector_is_player = infector_is_player
 
 func is_infection_immune() -> bool:
 	return has_undead_keyword(KeywordUndead.Type.CHAIR_MORTE) \

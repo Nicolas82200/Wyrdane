@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Communion Infernale"
-description = "Quand un Pacte est payé, piochez une carte. (Une seule fois par tour.)"
+description = "Quand un Pacte est payé, piochez 1 carte. (Une seule fois par tour.)"
 flavour_text = "Chaque prix payé nourrit le pacte, quelle que soit la main qui le tend."
 texture = ExtResource("3_texture")
 cost = 3

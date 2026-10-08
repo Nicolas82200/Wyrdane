@@ -12,7 +12,7 @@ class_name CardEffect
 	"DebuffATK", "DestroyLowHP", "BuffIfCondition",
 	"DamageAllMinions", "ReturnFromGrave",
 	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
-	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
+	"CureInfection", "AuraInfectionImmunity", "AuraInfectionDuration", "AuraDamageReduction",
 	"SacrificeAlly", "GrantCounterOffensive", "ProtectFrontLine",
 	"GainMana", "DrawCardDiscount",
 	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",
@@ -123,6 +123,10 @@ class_name CardEffect
 # serviteur invoqué (0 = aucune). Ex. L'Éternel Recommencement (1), Éclosion
 # Sans Fin (2).
 @export var mutate_on_summon_count: int = 0
+# ApplyMutation : force le résultat de la mutation au lieu de le tirer au sort
+# ("Croissance" +2/+0, "Renforcement" +0/+2, "Dégénérescence" -1/-1).
+# Vide = tirage normal sur la Table de Mutation.
+@export var mutation_outcome: String = ""
 
 # ─── Octroi de mot-clé temporaire ou permanent (GrantKeyword) ────────────────
 @export var granted_keyword: String = ""          # "TAUNT", "AEGIS", "CHARGE", "DISCIPLINE"...
@@ -153,6 +157,12 @@ class_name CardEffect
 # REMPLACÉS par ce bonus au lieu de s'ajouter à eux (ex: invoque un serviteur
 # amélioré à la place du serviteur de base). Sans effet si pact_bonus est faux.
 @export var pact_replaces_base: bool = false
+# L'effet demande SA PROPRE cible au moment où il se résout, au lieu de
+# réutiliser celle déjà choisie pour la carte (ex. Faucheur des Abysses : le
+# bonus de Pacte détruit un SECOND serviteur, pas le même). Hors joueur local
+# (IA, pair distant), une cible valide est tirée au sort — voir
+# EffectManager._choose_trigger_target.
+@export var prompt_target: bool = false
 
 # ─── Résurrection en jeu (Resurrect / ResurrectLast / ResurrectSelf) ──────────
 # Par défaut, un serviteur ramené en jeu depuis le cimetière revient à ses PV

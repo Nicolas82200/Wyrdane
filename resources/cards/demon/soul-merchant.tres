@@ -32,7 +32,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Le Marchand d'Âmes"
-description = "Éveil : Piochez une carte et défaussez-en une au hasard.
+description = "Éveil : Piochez 1 carte et défaussez-en 1 au hasard.
 Pacte 2 : Vous ne défaussez pas."
 flavour_text = "Il ne se bat pas. Il n'en a pas besoin, le contrat travaille pour lui, tour après tour."
 texture = ExtResource("3_texture")

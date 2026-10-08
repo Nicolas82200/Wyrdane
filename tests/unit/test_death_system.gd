@@ -1,7 +1,8 @@
 extends GutTest
 
 # Couvre DeathSystem (scripts/systems/DeathSystem.gd) : retrait du plateau,
-# routage au cimetière (avec exile_on_death), REVENANT, NÉCROPHAGE,
+# routage au cimetière (avec exile_on_death), REVENANT, conversion d'un
+# serviteur infecté en Zombie, NÉCROPHAGE,
 # ASSIMILATION (une fois par vague de morts, pas par mort individuelle) et
 # les hooks Deuil (OnGrief) / Sacrifice (OnSacrifice). Utilise FakeBattle
 # (tests/unit/doubles/fake_battle.gd), conformément à la convention GUT du
@@ -104,12 +105,13 @@ func test_revenant_alone_still_refreshes_board() -> void:
 	await death_system.process_deaths()
 	assert_gt(battle.board_visual_system.refresh_count, 0, "le plateau doit être rafraîchi après une relève REVENANT sans autre mort")
 
-func test_revenant_does_not_apply_when_sacrificed() -> void:
+func test_revenant_also_applies_when_sacrificed() -> void:
 	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
 	minion.sacrificed = true
 	minion.health = 0
 	await death_system.process_deaths()
-	assert_false(minion in battle.player_minions, "un Sacrifice volontaire n'est pas relevé par REVENANT")
+	assert_true(minion in battle.player_minions, "REVENANT se déclenche aussi sur un Sacrifice (ou une FUSION)")
+	assert_eq(minion.health, 1)
 
 func test_revenant_only_once_per_game() -> void:
 	var minion := _minion(2, 4, true, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
@@ -236,3 +238,61 @@ func test_on_devoration_fires_for_survivors_in_both_camps() -> void:
 	await death_system.process_deaths()
 	assert_eq(player_survivor.base_attack, 3, "Dévoration réagit quel que soit le camp du survivant")
 	assert_eq(enemy_survivor.base_attack, 3)
+
+# ─── Infection : conversion en Zombie à la mort ──────────────────────────────
+
+func test_infected_dead_minion_converts_into_a_zombie_for_the_infector() -> void:
+	var victim := _minion(2, 4, false)
+	victim.apply_infection(2, true)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_false(victim in battle.enemy_minions, "la victime meurt normalement")
+	assert_eq(battle.player_minions.size(), 1, "un Zombie arrive côté infecteur")
+	assert_eq(battle.player_minions[0].card_data.card_name, "Zombie")
+	assert_eq(battle.player_minions[0].attack, 1)
+	assert_eq(battle.player_minions[0].health, 1)
+
+func test_infected_dead_minion_still_reaches_the_graveyard() -> void:
+	var victim := _minion(2, 4, false)
+	victim.apply_infection(2, true)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.enemy_graveyard.get_minions().size(), 1, "la conversion n'empêche pas la mort normale")
+
+func test_uninfected_dead_minion_converts_nothing() -> void:
+	var victim := _minion(2, 4, false)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_minions.size(), 0)
+
+func test_exiled_minion_does_not_convert() -> void:
+	var victim := _minion(2, 4, false)
+	victim.card_data.exile_on_death = true
+	victim.apply_infection(2, true)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_minions.size(), 0, "un serviteur retiré du jeu ne laisse pas de Zombie")
+
+func test_revenant_blocks_the_conversion_and_keeps_the_mark() -> void:
+	var victim := _minion(2, 4, false, Race.Type.UNDEAD, KeywordUndead.Type.REVENANT)
+	victim.apply_infection(2, true)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_true(victim in battle.enemy_minions, "REVENANT relève la victime : elle ne meurt pas")
+	assert_eq(battle.player_minions.size(), 0, "pas de conversion sans mort réelle")
+	assert_eq(victim.infection_turns, 2, "la marque reste, la conversion aura lieu à sa vraie mort")
+
+func test_conversion_counts_toward_the_plague_achievement() -> void:
+	var victim := _minion(2, 4, false)
+	victim.apply_infection(2, true)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.player_infection_conversions, 1)
+
+func test_conversion_for_the_enemy_does_not_count_for_the_player() -> void:
+	var victim := _minion(2, 4, true)
+	victim.apply_infection(2, false)
+	victim.health = 0
+	await death_system.process_deaths()
+	assert_eq(battle.enemy_minions.size(), 1, "le Zombie va à l'infecteur, ici l'adversaire")
+	assert_eq(battle.player_infection_conversions, 0)

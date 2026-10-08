@@ -17,7 +17,7 @@ const ACH_COMEBACK := "ACH_COMEBACK"                     # Victoire après être
 const ACH_GUARDIAN_STREAK := "ACH_GUARDIAN_STREAK"       # 2 victoires d'affilée sans jamais passer sous 20 PV
 const ACH_EXECUTIONER := "ACH_EXECUTIONER"               # 5 serviteurs ennemis tués en un seul tour
 const ACH_FRONT_ONLY := "ACH_FRONT_ONLY"                 # 3 victoires cumulées sans jamais poser en Arrière
-const ACH_PLAGUE := "ACH_PLAGUE"                         # Victoire avec 15+ dégâts d'Infection cumulés infligés
+const ACH_PLAGUE := "ACH_PLAGUE"                         # Victoire avec 5+ serviteurs convertis en Zombie par l'Infection
 const ACH_BLACK_BLOOD := "ACH_BLACK_BLOOD"               # Réaction Sang Noir déclenchée 10 fois dans une partie
 const ACH_COMMANDEMENT := "ACH_COMMANDEMENT"             # Victoire deck 100% Humain, Commandement activé 5 fois
 const ACH_MUTATION_MAX := "ACH_MUTATION_MAX"             # Un serviteur atteint 5 mutations ou plus
@@ -38,7 +38,7 @@ const COMEBACK_HP_THRESHOLD := 5
 const GUARDIAN_STREAK_HP_FLOOR := 20
 const GUARDIAN_STREAK_TARGET := 2
 const EXECUTIONER_KILLS := 5
-const PLAGUE_DAMAGE_THRESHOLD := 15
+const PLAGUE_CONVERSIONS_THRESHOLD := 5
 const BLACK_BLOOD_TRIGGERS := 10
 const COMMANDEMENT_TRIGGERS := 5
 const MUTATION_MAX_STACKS := 5
@@ -75,7 +75,7 @@ static func on_victory(battle) -> void:
 		unlock(ACH_COMEBACK)
 	if not battle.player_used_back_row_this_match:
 		_check_cumulative(SettingsManager.record_front_only_win(), FRONT_ONLY_WINS_TARGET, ACH_FRONT_ONLY)
-	if battle.player_infection_damage_dealt >= PLAGUE_DAMAGE_THRESHOLD:
+	if battle.player_infection_conversions >= PLAGUE_CONVERSIONS_THRESHOLD:
 		unlock(ACH_PLAGUE)
 	if battle.deck_races.size() == 1:
 		_check_cumulative(SettingsManager.record_mono_race_win(), MONO_RACE_WINS_TARGET, ACH_MONO_RACE)

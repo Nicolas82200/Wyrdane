@@ -349,6 +349,35 @@ func test_infect_adjacent_does_not_hit_out_of_range_enemy() -> void:
 	assert_true(e1.infected, "idx=0 : touche aussi la position 1 (idx+1)")
 	assert_false(e2.infected, "position 2 hors fenêtre idx-1/idx/idx+1")
 
+func test_infect_enemy_uses_the_effect_value_as_duration() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(2, 4, false)
+	var effect := _effect("InfectEnemy", "EnemyMinion", 3)
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.infection_turns, 3)
+	assert_true(target.infection_infector_is_player, "l'infecteur est le camp de la source")
+
+func test_infect_enemy_without_value_falls_back_to_one_turn() -> void:
+	var source := _minion(2, 4, true)
+	var target := _minion(2, 4, false)
+	var effect := _effect("InfectEnemy", "EnemyMinion")
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(target.infection_turns, 1)
+
+# Brouillard Pestilentiel : le multiplicateur d'aura du camp infecteur est
+# appliqué au point d'entrée unique, donc pour les effets comme pour MORSURE.
+func test_apply_infection_applies_the_aura_duration_multiplier() -> void:
+	battle.aura_system.infection_duration_multiplier[true] = 2
+	var target := _minion(2, 4, false)
+	effect_manager.apply_infection(battle, target, 3, true)
+	assert_eq(target.infection_turns, 6)
+
+func test_apply_infection_ignores_the_multiplier_of_the_other_camp() -> void:
+	battle.aura_system.infection_duration_multiplier[false] = 2
+	var target := _minion(2, 4, false)
+	effect_manager.apply_infection(battle, target, 3, true)
+	assert_eq(target.infection_turns, 3)
+
 # ─── Freeze ──────────────────────────────────────────────────────────────────
 
 func test_freeze_sets_frozen_turns() -> void:
@@ -438,6 +467,19 @@ func test_silence_clears_keywords_and_sets_flag() -> void:
 	assert_true(target.silenced)
 	assert_true(target.keywords.is_empty())
 
+func test_silenced_minion_has_no_trigger_and_fires_nothing() -> void:
+	var data := CardData.new()
+	var trigger := TriggerTypeChoice.new()
+	trigger.type = "OnAwaken"
+	data.trigger_types = [trigger]
+	data.effects = [_effect("DrawCard", "Self", 1)]
+	var minion := Minion.new(data)
+	assert_true(effect_manager.has_trigger(minion, "OnAwaken"))
+	minion.silenced = true
+	assert_false(effect_manager.has_trigger(minion, "OnAwaken"), "silence retire les triggers")
+	var fired: bool = await effect_manager.trigger_effects(battle, minion, "OnAwaken")
+	assert_false(fired, "silence empêche l'effet de se résoudre")
+
 # ─── Transform ───────────────────────────────────────────────────────────────
 
 func test_transform_replaces_card_data_and_stats() -> void:
@@ -508,6 +550,22 @@ func test_splash_damage_hits_neighbors_of_selected_target() -> void:
 	assert_eq(e0.health, 2, "voisin gauche touché")
 	assert_eq(e2.health, 2, "voisin droit touché")
 	assert_eq(target.health, 4, "la cible principale elle-même n'est pas splashée")
+
+# Pendant les triggers d'attaque (OnAttack/OnResonance, résolus avant le
+# contact), les dégâts aux adjacents sont mis en file au lieu d'être appliqués :
+# ils doivent tomber quand la cible subit elle-même les dégâts de l'attaque.
+func test_splash_damage_is_deferred_during_attack_triggers() -> void:
+	var source := _minion(2, 4, true)
+	var left := _minion(1, 4, false)
+	var target := _minion(1, 4, false)
+	var effect := _effect("SplashDamage", "EnemyMinion", 2)
+	battle.combat_system.defer_splash = true
+	await effect_manager.execute_effect(battle, source, effect, target)
+	assert_eq(left.health, 4, "aucun dégât avant le contact")
+	assert_eq(battle.combat_system.splash_queue.size(), 1, "effet mis en file")
+	battle.combat_system.defer_splash = false
+	await effect_manager.apply_splash_damage(battle, source, effect, target, false)
+	assert_eq(left.health, 2, "dégâts appliqués au moment du contact")
 
 # ─── DebuffATK ───────────────────────────────────────────────────────────────
 
