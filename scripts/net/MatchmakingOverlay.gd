@@ -131,7 +131,7 @@ var _pending_backend_invite_id := 0
 
 # ─── Invitation de partie entre amis (remplace l'ancien overlay Steam natif,
 # voir FriendsPanel.gd/BackendClient.send_game_invite) ─────────────────────────
-const INCOMING_INVITE_POLL_INTERVAL := 4.0  # même cadence que ChatPanel._poll
+const INCOMING_INVITE_POLL_INTERVAL := 6.0  # allégé par rapport à ChatPanel._poll (4.0) pour réduire la charge de fond backend
 const OUTGOING_INVITE_POLL_INTERVAL := 2.0
 # Légèrement au-dessus d'INVITE_EXPIRY_SECONDS côté backend (45s) : le serveur
 # expire déjà l'invitation de son côté, cette marge évite juste une course où
