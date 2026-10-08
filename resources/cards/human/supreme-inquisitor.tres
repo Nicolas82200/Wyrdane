@@ -30,10 +30,10 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Inquisiteur Suprême"
+card_name = "Inquisiteur Suprême de Dreamar"
 description = "DISCIPLINE
-Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur les serviteurs alliés."
-flavour_text = "La corruption s'arrête là où il pose le regard."
+Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs."
+flavour_text = "Les visionnaires de Dreamar voient la corruption arriver des jours à l'avance. Lui, il l'attend déjà sur place."
 texture = ExtResource("3_texture")
 cost = 5
 race = 1

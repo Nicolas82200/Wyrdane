@@ -19,8 +19,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mur Infranchissable"
-description = "Sortilège ennemi : Annulé s'il cible un serviteur Humain allié."
-flavour_text = "La magie s'arrête là où la volonté commence."
+description = "Sortilège ennemi : Annulé s'il cible un Humain allié."
+flavour_text = "La magie démoniaque s'arrête là où commence la volonté de Skeldara."
 texture = ExtResource("3_texture")
 cost = 6
 race = 1

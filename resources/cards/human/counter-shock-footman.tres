@@ -26,10 +26,10 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Fantassin de Contre-Choc"
+card_name = "Fantassin Skeldarien de Contre-Choc"
 description = "CONTRE-ATTAQUE
 Blessure : Gagne ÉGIDE."
-flavour_text = "Chaque coup reçu lui rappelle pourquoi il tient encore debout."
+flavour_text = "Chaque coup reçu sur le front de Skeldara lui rappelle pourquoi il tient encore debout."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

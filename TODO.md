@@ -376,21 +376,21 @@ son worktree, puis annulé — la branche est intacte, rien n'a été commité) 
 - **Mais 4 tests de la branche cassent au contact de `dev`** (939 tests, 6 échecs
   dont 2 déjà corrigés par ailleurs — voir le haut de ce fichier) :
   - 1 test simplement **obsolète** : il attend qu'un serviteur ressuscité entre
-    en jeu à 1 PV, alors que `dev` a délibérément changé ça (PR #541, « revive
-    minions at max health by default instead of 1 HP »). Correction : mettre le
-    test à jour, rien d'autre.
+	en jeu à 1 PV, alors que `dev` a délibérément changé ça (PR #541, « revive
+	minions at max health by default instead of 1 HP »). Correction : mettre le
+	test à jour, rien d'autre.
   - 3 tests pointent le **mécanisme de ciblage propre à la branche**
     (`EffectManager.resolve_trigger_target` +
     `TriggersSystem._execute_enchantment_effects_with_proxy`, le « ciblage joueur
-    généralisé sur un trigger de Rituel/Enchantement » qu'introduit la race
-    Artefact) : `test_ritual_with_no_context_target_resolves_it_via_resolve_trigger_target`,
-    `test_ritual_with_no_valid_target_pool_does_not_crash_and_does_nothing` et le
-    test d'application automatique de `-1/-0`. Le code de la branche a bien
-    survécu au merge (vérifié : les deux fonctions sont intactes), donc c'est
-    l'interaction avec les évolutions de `TriggersSystem` dans `dev` qui est à
-    reprendre. **C'est le seul vrai travail d'intégration**, et il demande de
-    connaître l'intention de conception de la branche — à faire par qui la
-    reprendra, pas à l'aveugle.
+	généralisé sur un trigger de Rituel/Enchantement » qu'introduit la race
+	Artefact) : `test_ritual_with_no_context_target_resolves_it_via_resolve_trigger_target`,
+	`test_ritual_with_no_valid_target_pool_does_not_crash_and_does_nothing` et le
+	test d'application automatique de `-1/-0`. Le code de la branche a bien
+	survécu au merge (vérifié : les deux fonctions sont intactes), donc c'est
+	l'interaction avec les évolutions de `TriggersSystem` dans `dev` qui est à
+	reprendre. **C'est le seul vrai travail d'intégration**, et il demande de
+	connaître l'intention de conception de la branche — à faire par qui la
+	reprendra, pas à l'aveugle.
 - Comptage réel des cartes sur la branche : 395 hors Arena (dont 19 jetons), les
   75 cartes Artefact comprises.
 

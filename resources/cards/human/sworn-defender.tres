@@ -15,10 +15,10 @@ type = "OnDamaged"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Défenseur Juré"
+card_name = "Défenseur Juré de Skeldara"
 description = "REMPART
-Blessure : Réduit de 1 les dégâts reçus (minimum 1)."
-flavour_text = "Il n'esquive pas. Il absorbe. Ce n'est pas pareil."
+Blessure : Les dégâts reçus sont réduits de 1 (minimum 1)."
+flavour_text = "Skeldara ne demande pas d'éviter les coups. Elle demande de les absorber. Ce n'est pas pareil."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

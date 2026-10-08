@@ -1,0 +1,40 @@
+[gd_resource type="VisualShader" format=3 uid="uid://c547t4y85qdfe"]
+
+[ext_resource type="Texture2D" uid="uid://qlu6lh18cnrj" path="res://vfx/textures/T_VFX_Noi55.png" id="1_bov7y"]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_hsuq1"]
+expanded_output_ports = [0]
+parameter_name = "headerColor"
+
+[sub_resource type="VisualShaderNodeTexture" id="VisualShaderNodeTexture_cf3qc"]
+texture = ExtResource("1_bov7y")
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_vghw6"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeUVFunc" id="VisualShaderNodeUVFunc_20bfn"]
+
+[sub_resource type="VisualShaderNodeVectorOp" id="VisualShaderNodeVectorOp_dts51"]
+default_input_values = [0, Vector2(0, 0), 1, Vector2(0, 2)]
+op_type = 0
+operator = 2
+
+[sub_resource type="VisualShaderNodeVec2Parameter" id="VisualShaderNodeVec2Parameter_yu02x"]
+expanded_output_ports = [0]
+parameter_name = "Speed"
+
+[resource]
+nodes/fragment/0/position = Vector2(400, 160)
+nodes/fragment/2/node = SubResource("VisualShaderNodeColorParameter_hsuq1")
+nodes/fragment/2/position = Vector2(-140, 180)
+nodes/fragment/3/node = SubResource("VisualShaderNodeTexture_cf3qc")
+nodes/fragment/3/position = Vector2(-180, 640)
+nodes/fragment/6/node = SubResource("VisualShaderNodeInput_vghw6")
+nodes/fragment/6/position = Vector2(-1360, 620)
+nodes/fragment/7/node = SubResource("VisualShaderNodeUVFunc_20bfn")
+nodes/fragment/7/position = Vector2(-520, 740)
+nodes/fragment/8/node = SubResource("VisualShaderNodeVectorOp_dts51")
+nodes/fragment/8/position = Vector2(-860, 720)
+nodes/fragment/9/node = SubResource("VisualShaderNodeVec2Parameter_yu02x")
+nodes/fragment/9/position = Vector2(-1340, 820)
+nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0, 3, 0, 0, 1, 6, 0, 8, 0, 8, 0, 7, 2, 7, 0, 3, 0, 9, 0, 8, 1)

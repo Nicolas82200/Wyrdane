@@ -20,8 +20,8 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Marche Forcée"
-description = "Éveil : Invoque un Éclaireur Rapide 1/1."
-flavour_text = "Pas de repos. Pas d'arrêt. La ligne avance parce que s'arrêter, c'est mourir."
+description = "Éveil : Invoque un Éclaireur Ostranien Rapide 1/1."
+flavour_text = "Pas de repos sur les routes de Skeldara. La colonne avance parce que s'arrêter, c'est mourir."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

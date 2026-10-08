@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://bnmhn6eevv8yr"]
+
+[ext_resource type="ArrayMesh" uid="uid://cstd48v54d35m" path="res://vfx/mesh/projectile_spell.obj" id="1_w6t1w"]
+[ext_resource type="Shader" uid="uid://cuv615qgqbi75" path="res://vfx/projectile/basic-projectile.tres" id="2_1b3ha"]
+[ext_resource type="Shader" uid="uid://dmtx6dos7dt68" path="res://vfx/projectile/basic-projectile2.tres" id="3_df86m"]
+[ext_resource type="Shader" uid="uid://c547t4y85qdfe" path="res://vfx/projectile/basic-projectile-header.tres" id="4_t1xai"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uh641"]
+render_priority = 1
+shader = ExtResource("2_1b3ha")
+shader_parameter/Fire_Color = Color(2.055, 0, 0, 1)
+shader_parameter/Speed = Vector2(0, 2)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mvbom"]
+render_priority = 1
+shader = ExtResource("3_df86m")
+shader_parameter/Fire_Color = Color(4.0048027, 2.5061395, 0, 1)
+shader_parameter/Speed = Vector2(0, 2)
+
+[sub_resource type="SphereMesh" id="SphereMesh_r2s12"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yx3ca"]
+render_priority = 3
+shader = ExtResource("4_t1xai")
+shader_parameter/headerColor = Color(4.8672786, 1.403804, 0, 1)
+shader_parameter/Speed = Vector2(1, 0)
+
+[node name="BasicProjectile" type="Node3D" unique_id=1880981538]
+
+[node name="header1" type="MeshInstance3D" parent="." unique_id=1556966776]
+mesh = ExtResource("1_w6t1w")
+surface_material_override/0 = SubResource("ShaderMaterial_uh641")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1177899922]
+mesh = ExtResource("1_w6t1w")
+surface_material_override/0 = SubResource("ShaderMaterial_mvbom")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=553947698]
+transform = Transform3D(-4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, 0, 1, 0, 0, 0.44667804)
+mesh = SubResource("SphereMesh_r2s12")
+surface_material_override/0 = SubResource("ShaderMaterial_yx3ca")

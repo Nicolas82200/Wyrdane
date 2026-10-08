@@ -44,10 +44,12 @@ const DESC_LABEL_MAX_GROWTH     := 3.0
 
 # Si le texte deborde encore une fois DESC_LABEL_MAX_GROWTH atteint, on reduit
 # la police (voir _fit_desc_label) plutot que de laisser le texte deborder de
-# la carte ou se faire rogner. Deux seules tailles utilisees (echelle unique
-# du jeu, voir Typography.gd) : Typography.BODY par defaut, Typography.MICRO
-# en dernier recours pour les descriptions les plus longues.
-const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.MICRO
+# la carte ou se faire rogner. Deux seules tailles utilisees, 1px en dessous
+# de l'echelle unique du jeu (voir Typography.gd) : la description de carte a
+# besoin d'un cran de plus que le reste de l'UI pour eviter les debordements
+# sur les cartes au texte long (demande utilisateur 2026-10-02).
+const DESC_LABEL_DEFAULT_FONT_SIZE := Typography.BODY - 1
+const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.MICRO - 1
 
 # Au-dela de ce nombre de caracteres, la description seule (hors flavour text)
 # remplit deja la case par defaut : le flavour text (ambiance, cosmetique) est
@@ -373,7 +375,7 @@ func _fit_name_label() -> float:
 func _fit_desc_label(name_growth: float) -> void:
 	desc_label.offset_top = DESC_LABEL_DEFAULT_TOP + name_growth
 	desc_label.offset_bottom = DESC_LABEL_DEFAULT_BOTTOM
-	_set_desc_font_size(Typography.BODY)
+	_set_desc_font_size(DESC_LABEL_DEFAULT_FONT_SIZE)
 	if attack_label:
 		attack_label.offset_top = STATS_LABEL_DEFAULT_TOP
 		attack_label.offset_bottom = STATS_LABEL_DEFAULT_BOTTOM

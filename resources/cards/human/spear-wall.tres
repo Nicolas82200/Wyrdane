@@ -28,10 +28,10 @@ type = "OnExecution"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Mur de Lances"
+card_name = "Mur de Lances Skeldarien"
 description = "REMPART, FORMATION
 Exécution : Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant."
-flavour_text = "Ils ne bougent pas. La ligne tient. Les lances, elles, trouvent toujours quelque chose à traverser."
+flavour_text = "Sur le front de Skeldara, une lance plie. Un mur de lances ne recule plus."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

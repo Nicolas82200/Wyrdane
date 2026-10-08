@@ -17,10 +17,10 @@ name_fr = "Venin mortel"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Exécuteur de l'Ordre"
+card_name = "Exécuteur Dreamarien de l'Ordre"
 description = "VENIN MORTEL, DISCIPLINE
 Ne peut attaquer que les serviteurs (jamais le héros directement)."
-flavour_text = "Il n'a pas de haine. Il a des instructions. C'est pire."
+flavour_text = "Il n'a pas de haine. Dreamar lui a donné des instructions. C'est pire."
 texture = ExtResource("3_texture")
 cost = 5
 race = 1

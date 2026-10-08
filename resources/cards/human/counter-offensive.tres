@@ -15,8 +15,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Contre-Offensive"
-description = "Exécution ce tour : Chaque serviteur Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement."
-flavour_text = "La victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter."
+description = "Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement."
+flavour_text = "Sur le front de Skeldara, la victoire s'enchaîne quand on ne lui laisse pas le temps de s'arrêter."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

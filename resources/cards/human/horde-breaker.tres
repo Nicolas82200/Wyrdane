@@ -22,9 +22,9 @@ type = "OnAttack"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Briseur de Horde"
-description = "Attaque : Si la cible n'est pas un serviteur Humain, inflige 2 points de dégâts supplémentaires."
-flavour_text = "Il a perdu son village à la première vague. Il n'a pas perdu la rage."
+card_name = "Briseur de Horde Skeldarien"
+description = "Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires."
+flavour_text = "Il a perdu son village à la première vague démoniaque sur Skeldara. Il n'a pas perdu la rage."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

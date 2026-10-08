@@ -25,10 +25,10 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Éclaireur Rapide"
+card_name = "Éclaireur Ostranien Rapide"
 description = "ASSAUT
 Arrivée : Piochez 1 carte si la rangée Avant ennemie a 3 serviteurs ou plus."
-flavour_text = "Il revient toujours avec de mauvaises nouvelles. Il revient, c'est ce qui compte."
+flavour_text = "Il revient toujours des confins d'Ostrane avec de mauvaises nouvelles. Il revient, c'est ce qui compte."
 texture = ExtResource("3_texture")
 race = 1
 unit_style = 6

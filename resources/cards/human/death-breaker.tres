@@ -10,6 +10,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "Destroy"
 target = "EnemyMinion"
+requires_resurrected_target = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_dbjo8"]
@@ -18,8 +19,9 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Brise-Mort"
-description = "Arrivée : Détruit un serviteur ciblé ennemi."
+card_name = "Brise-Mort de Skeldara"
+description = "Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière."
+flavour_text = "Sur le front de Skeldara, même les morts reviennent se battre deux fois. Lui s'assure qu'ils ne reviennent pas une troisième."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

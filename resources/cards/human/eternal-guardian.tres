@@ -32,10 +32,10 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("3_k2ytj")
-card_name = "L'Éternel Gardien"
+card_name = "L'Éternel Gardien d'Aldrenia"
 description = "REMPART, ÉGIDE, DISCIPLINE
-Arrivée : Les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire."
-flavour_text = "Il n'a pas survécu à toutes ces guerres par chance. Il a survécu parce que rien de ce que l'ennemi fait ne le surprend."
+Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire."
+flavour_text = "Les cinq autres royaumes sont tombés, disparus ou maudits. Aldrenia tient encore. Lui aussi."
 texture = ExtResource("4_aiwu0")
 cost = 8
 race = 1
