@@ -225,7 +225,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 77 | Chair | 0 | Commune | Ajoute 1 Chair à ta réserve de Mort-Vivant. Une seule carte-ressource par tour et par camp. | Ce qui reste d'une vie, cristallisé par la nécromancie. |
+| 77 | Chair | 0 | Commune | Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Mort-Vivant. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 # Wyrdane — CARDS_HUMAIN.md
 
@@ -440,7 +440,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à ta réserve Humaine. Une seule carte-ressource par tour et par camp. | *Frappé au nom d'un royaume qui n'existe peut-être plus, il lie quand même chaque soldat à son serment.* |
+| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau (mana Humain) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Humain. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ---
 
@@ -677,7 +677,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| D76 | Âme | 0 | Commune | Ajoute 1 Âme à ta réserve Démoniaque. Une seule carte-ressource par tour et par camp. | *Une clause parmi tant d'autres. Elle aussi se paiera.* |
+| D76 | Âme | 0 | Commune | Ajoute 1 Âme (mana Démon) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Démon. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ---
 
@@ -903,7 +903,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Éclat à ta réserve Abomination. Une seule carte-ressource par tour et par camp. | *Ça ne devrait pas exister. Ça existe quand même.* |
+| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Éclat (mana Abomination) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Abomination. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ### Jetons
 

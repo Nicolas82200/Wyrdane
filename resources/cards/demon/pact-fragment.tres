@@ -13,9 +13,9 @@
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Âme"
-description = "Ajoute 1 Âme à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour."
-flavour_text = "Une clause parmi tant d'autres. Elle aussi se paiera."
+description = "Ajoute 1 Âme (mana Démon) à votre réserve, actuel et maximum.
+Sert à payer le coût des cartes Démon."
+flavour_text = "Vous ne pouvez jouer qu'une ressource par tour."
 texture = ExtResource("2_texture")
 cost = 0
 race = 5

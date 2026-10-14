@@ -13,9 +13,9 @@
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Chair"
-description = "Ajoute 1 Chair à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour."
-flavour_text = "Ce qui reste d'une vie, cristallisé par la nécromancie."
+description = "Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum.
+Sert à payer le coût des cartes Mort-Vivant."
+flavour_text = "Vous ne pouvez jouer qu'une ressource par tour."
 texture = ExtResource("2_texture")
 cost = 0
 card_type = "Resource"

@@ -6,9 +6,9 @@
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Éclat d'Anomalie"
-description = "Ajoute 1 Éclat à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour."
-flavour_text = "Ça continue de battre, même détaché de tout le reste."
+description = "Ajoute 1 Éclat (mana Abomination) à votre réserve, actuel et maximum.
+Sert à payer le coût des cartes Abomination."
+flavour_text = "Vous ne pouvez jouer qu'une ressource par tour."
 texture = ExtResource("2_texture")
 cost = 0
 race = 6
