@@ -225,7 +225,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| 77 | Chair | 0 | Commune | Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Mort-Vivant. | Vous ne pouvez jouer qu'une ressource par tour. |
+| 77 | Chair | 0 | Commune | Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 # Wyrdane — CARDS_HUMAIN.md
 
@@ -440,7 +440,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau (mana Humain) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Humain. | Vous ne pouvez jouer qu'une ressource par tour. |
+| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ---
 
@@ -677,7 +677,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| D76 | Âme | 0 | Commune | Ajoute 1 Âme (mana Démon) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Démon. | Vous ne pouvez jouer qu'une ressource par tour. |
+| D76 | Âme | 0 | Commune | Ajoute 1 Âme à votre réserve, ressource pour jouer les cartes Démon. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ---
 
@@ -903,7 +903,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Éclat (mana Abomination) à votre réserve, actuel et maximum. Sert à payer le coût des cartes Abomination. | Vous ne pouvez jouer qu'une ressource par tour. |
+| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ### Jetons
 

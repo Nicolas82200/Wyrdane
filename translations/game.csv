@@ -1534,22 +1534,13 @@ Ne peut attaquer que les serviteurs (jamais le héros directement).","DEADLY POI
 Can only attack minions (never the hero directly)."
 "Il n'a pas de haine. Il a des instructions. C'est pire.","Il n'a pas de haine. Il a des instructions. C'est pire.","He feels no hatred. He has orders. That is worse."
 "Chair","Chair","Flesh"
-"Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Mort-Vivant.","Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Mort-Vivant.","Adds 1 Flesh (Undead mana) to your pool, current and max.
-Used to pay the cost of Undead cards."
+"Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Adds 1 Flesh to your pool, the resource for playing Undead cards."
 "Vous ne pouvez jouer qu'une ressource par tour.","Vous ne pouvez jouer qu'une ressource par tour.","You can only play one resource per turn."
 "Sceau du Royaume","Sceau du Royaume","Royal Seal"
-"Ajoute 1 Sceau (mana Humain) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Humain.","Ajoute 1 Sceau (mana Humain) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Humain.","Adds 1 Seal (Human mana) to your pool, current and max.
-Used to pay the cost of Human cards."
+"Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Adds 1 Seal to your pool, the resource for playing Human cards."
 "Frappé au nom du roi, il lie chaque soldat à son serment.","Frappé au nom du roi, il lie chaque soldat à son serment.","Struck in the king's name, it binds every soldier to his oath."
 "Âme","Âme","Soul"
-"Ajoute 1 Âme (mana Démon) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Démon.","Ajoute 1 Âme (mana Démon) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Démon.","Adds 1 Soul (Demon mana) to your pool, current and max.
-Used to pay the cost of Demon cards."
+"Ajoute 1 Âme à votre réserve, ressource pour jouer les cartes Démon.","Ajoute 1 Âme à votre réserve, ressource pour jouer les cartes Démon.","Adds 1 Soul to your pool, the resource for playing Demon cards."
 "Morsure de l'Air","Morsure de l'Air","Air Bite"
 "Inflige 2 points de dégâts à un serviteur ciblé ennemi.
 S'il survit, il subit -1/-0 de façon permanente.","Inflige 2 points de dégâts à un serviteur ciblé ennemi.
@@ -1578,10 +1569,7 @@ Ils mutent immédiatement.","Mourning: Summon 2 random Abomination minions of co
 They immediately mutate."
 "On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","It was built to remember the lost. It prefers to replace them."
 "Éclat d'Anomalie","Éclat d'Anomalie","Anomaly Shard"
-"Ajoute 1 Éclat (mana Abomination) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Abomination.","Ajoute 1 Éclat (mana Abomination) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Abomination.","Adds 1 Shard (Abomination mana) to your pool, current and max.
-Used to pay the cost of Abomination cards."
+"Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination.","Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination.","Adds 1 Shard to your pool, the resource for playing Abomination cards."
 "Signe Qui Répond","Signe Qui Répond","The Answering Sign"
 "Piochez 1 carte.
 Si c'est une carte Abomination, elle coûte 1 de moins ce tour.","Piochez 1 carte.

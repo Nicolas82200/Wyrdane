@@ -13,8 +13,7 @@
 [resource]
 script = ExtResource("1_carddata")
 card_name = "Chair"
-description = "Ajoute 1 Chair (mana Mort-Vivant) à votre réserve, actuel et maximum.
-Sert à payer le coût des cartes Mort-Vivant."
+description = "Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant."
 flavour_text = "Vous ne pouvez jouer qu'une ressource par tour."
 texture = ExtResource("2_texture")
 cost = 0
