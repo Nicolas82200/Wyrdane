@@ -6,7 +6,7 @@ Liste complète des cartes des races **Mort-Vivant**, **Humain**, **Démon** et 
 > - Le type de carte "Éphémère" est renommé **Incantation** (sort à effet immédiat, jeté après usage), pour les trois races.
 > - Les Rituels Mort-Vivant/Humain avec une durée "Instantané" ou "Ce tour" ont été retravaillés en effets vraiment récurrents (voir IDs 54, 56, 57, 58, 60, 62, 63, 64 côté Mort-Vivant ; H55, H61, H63, H64 côté Humain). Les Rituels Démon utilisent directement le système de **charges** décrit dans `CLAUDE.md`.
 > - La race **Démon** est une addition récente : voir sa section dédiée en fin de fichier. Le support moteur est en place (voir « Points d'intégration tranchés » en fin de fichier) ; les 75 ressources `.tres` des cartes sont créées dans `resources/cards/demon/`.
-> - **Système de Ressources par Race** (voir `README.md`) : chaque race a désormais sa propre carte-ressource (type `Resource`, coût 0, posée dans une zone dédiée du plateau — une seule par tour et par camp) : Chair (Mort-Vivant), Sceau du Royaume (Humain), Âme (Démon), Éclat d'Anomalie (Abomination). Voir la section « Ressource » de chaque race ci-dessous.
+> - **Système de Ressources par Race** (voir `README.md`) : chaque race a désormais sa propre carte-ressource (type `Resource`, coût 0, posée dans une zone dédiée du plateau — une seule par tour et par camp) : Chair (Mort-Vivant), Sceau (Humain), Âme (Démon), Anomalie (Abomination). Voir la section « Ressource » de chaque race ci-dessous.
 
 ---
 
@@ -440,7 +440,7 @@ Carte-ressource de la race, posée dans sa propre zone (hors rangées/Rituels/En
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| H76 | Sceau du Royaume | 0 | Commune | Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain. | Vous ne pouvez jouer qu'une ressource par tour. |
+| H76 | Sceau | 0 | Commune | Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ---
 
@@ -903,7 +903,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 
 | ID | Nom | ⬡ | Rareté | Effet | Flavour |
 |:---:|---|:---:|:---:|---|---|
-| A76 | Éclat d'Anomalie | 0 | Commune | Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination. | Vous ne pouvez jouer qu'une ressource par tour. |
+| A76 | Anomalie | 0 | Commune | Ajoute 1 Anomalie à votre réserve, ressource pour jouer les cartes Abomination. | Vous ne pouvez jouer qu'une ressource par tour. |
 
 ### Jetons
 

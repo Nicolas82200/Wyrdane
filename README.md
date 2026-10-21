@@ -1026,9 +1026,9 @@ Remplace l'ancien mana générique unique (choix Mana/Pioche en début de tour) 
 | Race | Ressource | Carte |
 |---|---|---|
 | Mort-Vivant | **Chair** | Chair (`resources/cards/undead/soul-shard.tres`) |
-| Humain | **Sceau** | Sceau du Royaume (`resources/cards/human/royal-seal.tres`) |
+| Humain | **Sceau** | Sceau (`resources/cards/human/royal-seal.tres`) |
 | Démon | **Âme** | Âme (`resources/cards/demon/pact-fragment.tres`) |
-| Abomination | **Anomalie** | Éclat d'Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
+| Abomination | **Anomalie** | Anomalie (`resources/cards/abomination/anomaly-shard.tres`) |
 
 ### 🃏 Zone de ressource et pose
 

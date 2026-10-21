@@ -1536,7 +1536,7 @@ Can only attack minions (never the hero directly)."
 "Chair","Chair","Flesh"
 "Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Adds 1 Flesh to your pool, the resource for playing Undead cards."
 "Vous ne pouvez jouer qu'une ressource par tour.","Vous ne pouvez jouer qu'une ressource par tour.","You can only play one resource per turn."
-"Sceau du Royaume","Sceau du Royaume","Royal Seal"
+"Sceau","Sceau","Seal"
 "Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Adds 1 Seal to your pool, the resource for playing Human cards."
 "Frappé au nom du roi, il lie chaque soldat à son serment.","Frappé au nom du roi, il lie chaque soldat à son serment.","Struck in the king's name, it binds every soldier to his oath."
 "Âme","Âme","Soul"
@@ -1568,8 +1568,8 @@ Ils mutent immédiatement.","Deuil : Invoque 2 serviteurs Abominations aléatoir
 Ils mutent immédiatement.","Mourning: Summon 2 random Abomination minions of cost ≤3.
 They immediately mutate."
 "On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","It was built to remember the lost. It prefers to replace them."
-"Éclat d'Anomalie","Éclat d'Anomalie","Anomaly Shard"
-"Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination.","Ajoute 1 Éclat à votre réserve, ressource pour jouer les cartes Abomination.","Adds 1 Shard to your pool, the resource for playing Abomination cards."
+"Anomalie","Anomalie","Anomaly"
+"Ajoute 1 Anomalie à votre réserve, ressource pour jouer les cartes Abomination.","Ajoute 1 Anomalie à votre réserve, ressource pour jouer les cartes Abomination.","Adds 1 Anomaly to your pool, the resource for playing Abomination cards."
 "Signe Qui Répond","Signe Qui Répond","The Answering Sign"
 "Piochez 1 carte.
 Si c'est une carte Abomination, elle coûte 1 de moins ce tour.","Piochez 1 carte.
