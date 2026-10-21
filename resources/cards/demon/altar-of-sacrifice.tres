@@ -31,8 +31,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Autel des Sacrifices"
-description = "Deuil : Piochez une carte. (Une seule fois par tour.)
-Pacte 2 : Piochez une carte supplémentaire."
+description = "Deuil : Piochez 1 carte. (Une seule fois par tour.)
+Pacte 2 : Piochez 1 carte supplémentaire."
 flavour_text = "L'autel ne demande jamais deux fois. Il attend, c'est tout."
 texture = ExtResource("3_texture")
 cost = 3

@@ -31,8 +31,8 @@ type = "OnGrief"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Mémorial des Héros"
-description = "Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Aguerri 2/2 et piochez 1 carte."
-flavour_text = "On grave les noms pour ne pas oublier. On continue pour la même raison."
+description = "Quand un de vos serviteurs Humains Légendaires meurt, invoque immédiatement un Fantassin Eorthalien Aguerri 2/2 et piochez 1 carte."
+flavour_text = "Le grand hall d'Aldrenia grave un nom de plus à chaque génération. Il n'y a plus assez de murs."
 texture = ExtResource("3_texture")
 cost = 5
 race = 1

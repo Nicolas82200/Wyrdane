@@ -33,10 +33,10 @@ type = "OnDamaged"
 
 [resource]
 script = ExtResource("3_385w7")
-card_name = "Le Rempart Vivant"
+card_name = "Le Rempart Vivant de Skeldara"
 description = "REMPART, FORTIFICATION, CONTRE-ATTAQUE
-Blessure (une fois par tour) : Invoque un Porteur de Bouclier 1/4 REMPART."
-flavour_text = "On lui a demandé combien de temps il pouvait tenir. Il n'a pas répondu. Il tient encore."
+Blessure (une fois par tour) : Invoque un Porteur de Bouclier Eorthalien 1/4 REMPART."
+flavour_text = "On lui a demandé combien de temps Skeldara pouvait tenir. Il n'a pas répondu. Il tient encore."
 texture = ExtResource("4_lsemj")
 cost = 6
 race = 1

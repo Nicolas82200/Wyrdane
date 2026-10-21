@@ -34,8 +34,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Invasion Écarlate"
-description = "Éveil : Invoque un Démon aléatoire de coût 2 ou moins.
-Pacte 3 : Invoque à la place un Démon aléatoire de coût 4 ou moins."
+description = "Éveil : Invoque un serviteur Démon aléatoire de coût ≤2.
+Pacte 3 : Invoque un serviteur Démon aléatoire de coût ≤4 à la place."
 flavour_text = "Ils ne demandent pas la permission d'entrer. Ils reviennent, simplement, tour après tour."
 texture = ExtResource("3_texture")
 cost = 7

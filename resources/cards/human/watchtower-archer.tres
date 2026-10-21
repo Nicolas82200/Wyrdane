@@ -20,9 +20,9 @@ type = "OnAwaken"
 
 [resource]
 script = ExtResource("3_k6lv7")
-card_name = "Archer de Guet"
+card_name = "Archer Ostranien de Guet"
 description = "Éveil : Inflige 1 point de dégât à un serviteur aléatoire ennemi en rangée Avant."
-flavour_text = "Il ne rate pas. Il attend juste le bon moment."
+flavour_text = "Sur les tours de guet d'Ostrane, il ne rate pas. Il attend juste le bon moment."
 texture = ExtResource("4_xbky5")
 cost = 2
 race = 1

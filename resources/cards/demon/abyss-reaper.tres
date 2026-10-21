@@ -12,28 +12,28 @@ type = "ONPLAY"
 
 [sub_resource type="Resource" id="Resource_0rmbf"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyLowHP"
-value = 2
+effect_id = "Destroy"
+target = "EnemyMinion"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_kwpacte"]
 script = ExtResource("5_kwd")
 keyword_type = 0
-value = 2
+value = 6
 
 [sub_resource type="Resource" id="Resource_bonus"]
 script = ExtResource("1_cardeffect")
-effect_id = "DestroyLowHP"
-value = 4
+effect_id = "Destroy"
+target = "EnemyMinion"
 pact_bonus = true
-pact_replaces_base = true
+prompt_target = true
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Faucheur des Abysses"
-description = "Arrivée : Détruit tous les serviteurs ennemis ayant 2 points de vie ou moins.
-Pacte 2 : Détruit tous les serviteurs ennemis ayant 4 points de vie ou moins à la place."
+description = "Arrivée : Détruit un serviteur ennemi ciblé.
+Pacte 6 : Détruit un second serviteur ennemi ciblé."
 flavour_text = "Il choisit les plus faibles. Toi, tu paies pour son jugement."
 texture = ExtResource("3_texture")
 cost = 6
@@ -44,6 +44,7 @@ health = 5
 demon_keywords = Array[ExtResource("5_kwd")]([SubResource("Resource_kwpacte")])
 trigger_types = Array[ExtResource("4_trig")]([SubResource("Resource_39ozv")])
 effects = Array[ExtResource("1_cardeffect")]([SubResource("Resource_0rmbf"), SubResource("Resource_bonus")])
+requires_target = true
 rarity = "Epic"
 race_cost_override = 4
 board_position = "Front"

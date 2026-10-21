@@ -20,7 +20,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("2_carddata")
 card_name = "Rituel de l'Éclipse Rouge"
-description = "Éveil : Jusqu'à la fin du prochain tour adverse, vos Démons sont insensibles aux incantations."
+description = "Éveil : Les serviteurs Démons alliés sont insensibles aux sorts jusqu'à la fin du prochain tour adverse."
 flavour_text = "Sous cette éclipse, même se protéger a un prix, à répétition."
 texture = ExtResource("3_texture")
 cost = 6

@@ -19,7 +19,7 @@ type = "OnSacrifice"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Communion avec les Morts"
-description = "Sacrifice 1 : Ressuscitez un serviteur Mort-Vivant ciblé depuis votre cimetière dans votre main."
+description = "Sacrifice 1 : Ramène en main un serviteur Mort-Vivant ciblé de votre cimetière."
 flavour_text = "Chaque mort laisse quelque chose derrière lui. Il suffit de savoir écouter."
 texture = ExtResource("3_texture")
 cost = 4

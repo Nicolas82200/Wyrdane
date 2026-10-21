@@ -188,7 +188,7 @@ func _run_turn_actions(on_done: Callable) -> void:
 	# Partagé avec le mode réseau (voir NetworkOpponent.take_turn, cas END_TURN) :
 	# OnTurnEnd des deux camps, Infection, expiration du blocage de soin.
 	_mark_phase("turn_end_triggers")
-	await battle.turn_system.run_turn_end_triggers(false)
+	battle.turn_system.run_turn_end_triggers(false)
 	# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour IA (ex. l'IA
 	# joue Sergent de Troupe) : sans cet appel, ils ne seraient purgés qu'à la
 	# fin de notre tour suivant (un tour de retard) — même correctif que côté
@@ -445,6 +445,7 @@ func _cast_spell(card: CardData) -> void:
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
 		battle.aura_system.recompute_all()
+		await battle.trigger_system.apply_presence_effects(card, false)
 		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
 		# Son/VFX joués juste avant la résolution effective de l'effet (et
@@ -455,6 +456,7 @@ func _cast_spell(card: CardData) -> void:
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
+		await battle.trigger_system.apply_presence_effects(card, false)
 		await battle.death_system.process_deaths()
 	else:
 		AudioManager.play_spell_cast(card)

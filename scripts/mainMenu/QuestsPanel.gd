@@ -162,6 +162,20 @@ static func _get_int(quest: Dictionary, key: String, default: int) -> int:
 	var value = quest.get(key, default)
 	return default if value == null else int(value)
 
+# Récompense affichée en n'énumérant que les soldes réellement crédités : une
+# quête qui ne donne que de l'or affichait « 400 or, 0 pack(s) » avant le
+# 2026-09-28. Un seul format pour les 4 types de quêtes (quotidienne/hebdo/
+# mensuelle/unique), qui n'en différaient que par les soldes concernés.
+static func _reward_text(currency: int, packs: int) -> String:
+	var parts: Array[String] = []
+	if currency > 0:
+		parts.append(SettingsManager.t("QUESTS_REWARD_GOLD") % currency)
+	if packs > 0:
+		parts.append(SettingsManager.t("QUESTS_REWARD_PACKS") % packs)
+	if parts.is_empty():
+		return SettingsManager.t("QUESTS_REWARD_NONE")
+	return ", ".join(parts)
+
 # JSON.parse_string() désérialise TOUS les nombres JSON en float (jamais en
 # int) : le constructeur String(float) n'existe pas en GDScript et plante
 # ("Invalid call. Nonexistent 'String' constructor.") — contrairement à
@@ -216,21 +230,9 @@ static func _add_item(menu, quest: Dictionary, kind: String = "daily") -> void:
 	text_col.add_child(desc_label)
 
 	var progress_label := Label.new()
-	match kind:
-		"weekly":
-			var reward_pack := _get_int(quest, "reward_pack", 0)
-			progress_label.text = SettingsManager.t("QUESTS_WEEKLY_PROGRESS") % [progress, target, reward_pack]
-		"monthly":
-			var reward_currency_monthly := _get_int(quest, "reward_currency", 0)
-			var reward_pack_monthly := _get_int(quest, "reward_pack", 0)
-			progress_label.text = SettingsManager.t("QUESTS_MONTHLY_PROGRESS") % [progress, target, reward_currency_monthly, reward_pack_monthly]
-		"unique":
-			var reward_currency := _get_int(quest, "reward_currency", 0)
-			var reward_pack_unique := _get_int(quest, "reward_pack", 0)
-			progress_label.text = SettingsManager.t("QUESTS_UNIQUE_PROGRESS") % [progress, target, reward_currency, reward_pack_unique]
-		_:
-			var reward := _get_int(quest, "reward_currency", 0)
-			progress_label.text = SettingsManager.t("QUESTS_PROGRESS") % [progress, target, reward]
+	progress_label.text = SettingsManager.t("QUESTS_PROGRESS_REWARD") % [
+		progress, target, _reward_text(_get_int(quest, "reward_currency", 0), _get_int(quest, "reward_pack", 0)),
+	]
 	progress_label.add_theme_font_size_override("font_size", Typography.BODY)
 	progress_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
 	text_col.add_child(progress_label)

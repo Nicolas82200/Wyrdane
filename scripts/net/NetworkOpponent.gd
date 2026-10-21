@@ -113,7 +113,7 @@ func take_turn() -> void:
 				# Rejoue la phase de fin de tour distante (OnTurnEnd + Infection)
 				# avec les ids imposés pour d'éventuelles invocations de triggers.
 				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
-				await battle.turn_system.run_turn_end_triggers(false)
+				battle.turn_system.run_turn_end_triggers(false)
 				# Effets temporaires "UntilEndOfTurn" créés PENDANT ce tour distant
 				# (ex. Sergent de Troupe joué par le pair) : sans cet appel, ils ne
 				# seraient purgés qu'à la fin de NOTRE tour suivant (un tour de
@@ -200,7 +200,8 @@ func _apply(cmd: Dictionary) -> void:
 			# camp local : sans ce contrôle, un pair pourrait désigner un net_id
 			# appartenant à NOTRE camp et nous forcer à attaquer nous-mêmes.
 			if attacker != null and defender != null \
-					and not attacker.owner_is_player and defender.owner_is_player:
+					and not attacker.owner_is_player and defender.owner_is_player \
+					and attacker.can_attack():
 				# ids imposés : voir CombatSystem.resolve_combat (capture des
 				# serviteurs invoqués par un Dernier Souffle déclenché en combat).
 				battle.net_registry.set_imposed_ids(cmd.get("ids", []))
@@ -219,6 +220,14 @@ func _apply(cmd: Dictionary) -> void:
 				# attaquer notre propre héros.
 				push_warning("NetworkOpponent : ATTACK_HERO invalide (propriété incohérente)")
 				return
+			if not attacker.can_attack():
+				# Contrôle anti-rejeu : sans lui, un pair malveillant peut émettre
+				# plusieurs ATTACK_HERO avec le même attacker dans le même tour
+				# (ou un serviteur gelé/terrorisé) et multiplier les dégâts. Un
+				# pair légitime ne peut jamais produire ce cas (son propre
+				# can_attack() le lui interdit avant même d'émettre la commande).
+				push_warning("NetworkOpponent : ATTACK_HERO invalide (attacker ne peut plus attaquer)")
+				return
 			# battle._can_attack_hero revalide la règle "Rangée Avant vide"/Rempart
 			# côté réception à partir de NOTRE mirroir du plateau distant. Cette
 			# règle a déjà été validée par l'émetteur sur SON propre plateau avant
@@ -231,6 +240,13 @@ func _apply(cmd: Dictionary) -> void:
 			# son côté alors qu'il est déjà mort chez le pair, et la partie ne se
 			# termine plus jamais pour lui (vécu en partie réelle : victoire affichée
 			# chez l'un, "joueur déconnecté" chez l'autre une fois qu'il a quitté).
+			# ponytail : ce garde-fou reste volontairement désactivé (choix déjà en
+			# place, voir le commentaire ci-dessus) — un pair modifié pourrait
+			# encore forcer une attaque de héros hors-règle une fois par tour par
+			# serviteur (le verrou can_attack() ci-dessus empêche le spam, pas le
+			# contournement ponctuel de la règle Rangée Avant/Rempart). Lever ce
+			# risque demanderait une resynchronisation de plateau fiable ou une
+			# autorité serveur sur le combat, hors de portée d'un correctif local.
 			if not battle._can_attack_hero(attacker):
 				push_warning("NetworkOpponent : ATTACK_HERO — règle locale non respectée (désync de plateau), dégâts appliqués quand même")
 			battle.net_registry.set_imposed_ids(cmd.get("ids", []))
@@ -376,11 +392,13 @@ func _apply_enemy_spell(card: CardData, target_id: int) -> void:
 		battle.trigger_system.register_enchantment(card, false, -1)
 		battle.enchantment_system.add_enchantment(card, false)
 		battle.aura_system.recompute_all()
+		await battle.trigger_system.apply_presence_effects(card, false)
 		await battle.death_system.process_deaths()
 	elif card.card_type == "Ritual" and card.ritual_duration != 0:
 		battle.trigger_system.register_enchantment(card, false, card.ritual_duration)
 		battle.enchantment_system.add_ritual(card, false, card.ritual_duration)
 		battle.aura_system.recompute_all()
+		await battle.trigger_system.apply_presence_effects(card, false)
 		await battle.death_system.process_deaths()
 	else:
 		battle.enemy_graveyard.add_spell(card)

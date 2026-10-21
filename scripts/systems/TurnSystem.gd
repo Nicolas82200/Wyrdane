@@ -31,7 +31,7 @@ func end_turn() -> void:
 	var capture_token: int = -1
 	if battle.net_emitter != null:
 		capture_token = battle.net_registry.begin_capture()
-	await run_turn_end_triggers()
+	run_turn_end_triggers()
 	await battle.temp_effect_system.expire_end_of_local_turn()
 	battle.cost_system.expire_end_of_player_turn()  # remises "ce tour"
 	battle.counter_offensive[true] = false  # "ce tour" : la Contre-Offensive expire
@@ -60,17 +60,13 @@ func run_turn_end_triggers(is_local_turn: bool = true) -> void:
 	var turn_hero: Hero = battle.player_hero if is_local_turn else battle.enemy_hero
 	turn_hero.heal_block_turns = max(turn_hero.heal_block_turns - 1, 0)
 
-	# Un seul tick d'Infection par round : cette fonction est appelée DEUX fois
-	# par round complet (fin du tour local ici, puis fin du tour adverse via
+	# Infection : le compteur baisse de 1 à la fin du tour du CONTRÔLEUR du
+	# serviteur infecté. Cette fonction est appelée DEUX fois par round complet
+	# (fin du tour local ici, puis fin du tour adverse via
 	# AISystem.take_turn()/NetworkOpponent.take_turn() avec is_local_turn=false),
-	# mais _apply_infection_damage() n'est pas filtrée par camp — elle inflige
-	# les dégâts à TOUS les serviteurs infectés des deux camps. L'appeler aux
-	# deux occasions doublait donc les dégâts d'Infection par round (5 marques
-	# = 10 HP/tour au lieu de 5). Ne la déclencher qu'à la fin du tour local,
-	# seule occurrence déjà existante en tutoriel (TutorialOpponent ne rappelle
-	# jamais cette fonction), pour un tick unique et cohérent dans tous les modes.
-	if is_local_turn:
-		await _apply_infection_damage()
+	# et chaque appel ne touche que le camp dont le tour vient de finir — donc
+	# exactement un décrément par marque et par round.
+	_tick_infection(is_local_turn)
 
 func _begin_player_turn() -> void:
 	# Capture les ids des serviteurs créés par les déclencheurs de début de tour.
@@ -132,27 +128,18 @@ func _trigger_minions_paced(minions: Array, trigger_name: String, already_acted:
 		acted = true
 	return acted
 
-func _apply_infection_damage() -> void:
+# Décrémente l'Infection des serviteurs du camp dont le tour vient de finir.
+# À 0 la marque s'efface sans conversion : seule une mort pendant que le
+# compteur court transforme le serviteur en Zombie (DeathSystem).
+func _tick_infection(is_local_turn: bool) -> void:
+	var minions: Array[Minion] = battle.player_minions if is_local_turn else battle.enemy_minions
 	var any_infected := false
-	for minion in (battle.player_minions + battle.enemy_minions).duplicate():
-		if minion.infected:
+	for minion in minions:
+		if minion.infection_turns > 0:
+			minion.infection_turns -= 1
 			any_infected = true
-			var dealt: int = minion.take_damage(minion.infection_stacks)
-			if dealt > 0:
-				battle.combat_log.infection_tick(minion, dealt)
-				# Succès Steam "Peste noire" (voir AchievementManager) : seuls les
-				# dégâts d'Infection subis par un serviteur ennemi comptent (les
-				# marques ont forcément été posées par des cartes du joueur local).
-				if not minion.owner_is_player:
-					battle.player_infection_damage_dealt += dealt
-				var visual: BoardMinion = battle.board_visual_system.get_visual(minion)
-				if visual:
-					battle.animation_system.play_infection_tick(visual, dealt)
-				await battle.effect_manager.notify_damaged(battle, minion)
-	await battle.death_system.process_deaths()
-	battle.board_visual_system.refresh_board()
 	if any_infected:
-		await battle.pace_actions()
+		battle.board_visual_system.refresh_board()
 
 func _finish_turn_start() -> void:
 	battle.refill_mana_pool(true)

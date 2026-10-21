@@ -189,6 +189,11 @@ func _on_token_preview_right_click(event: InputEvent) -> void:
 	_toggle_and_refresh_tooltips()
 
 func _toggle_and_refresh_tooltips() -> void:
+	# Ignoré pendant un drag, même garde que _on_mouse_entered : un aperçu
+	# agrandi sous un curseur qui porte déjà une carte n'a aucun sens.
+	if _battle != null and _battle.has_method("is_dragging_card") \
+			and _battle.call("is_dragging_card"):
+		return
 	TooltipData.cycle_battle_hover_mode()
 	if not _mouse_is_over:
 		return

@@ -8,7 +8,7 @@ script = ExtResource("1_carddata")
 card_name = "Sceau du Royaume"
 description = "Ajoute 1 Sceau à votre réserve.
 Vous ne pouvez jouer qu'une ressource par tour."
-flavour_text = "Frappé au nom du roi, il lie chaque soldat à son serment."
+flavour_text = "Frappé au nom d'un royaume qui n'existe peut-être plus, il lie quand même chaque soldat à son serment."
 texture = ExtResource("2_texture")
 cost = 0
 race = 1

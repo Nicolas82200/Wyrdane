@@ -27,7 +27,7 @@ const KEYWORD_HUMAN_DESCRIPTIONS := {
 }
 
 const KEYWORD_UNDEAD_DESCRIPTIONS := {
-	KeywordUndead.Type.PESTIFERE:   { "title": "KW_PESTIFERE_NAME",   "desc": "KW_PESTIFERE_DESC" },
+	KeywordUndead.Type.MORSURE:   { "title": "KW_MORSURE_NAME",   "desc": "KW_MORSURE_DESC" },
 	KeywordUndead.Type.NECROPHAGE:  { "title": "KW_NECROPHAGE_NAME",  "desc": "KW_NECROPHAGE_DESC" },
 	KeywordUndead.Type.HORDE:       { "title": "KW_HORDE_NAME",       "desc": "KW_HORDE_DESC" },
 	KeywordUndead.Type.REVENANT:    { "title": "KW_REVENANT_NAME",    "desc": "KW_REVENANT_DESC" },
@@ -75,7 +75,7 @@ const KEYWORD_HUMAN_ICONS := {
 }
 
 const KEYWORD_UNDEAD_ICONS := {
-	KeywordUndead.Type.PESTIFERE:   preload("res://assets/icons/keyword/bird-mask.svg"),
+	KeywordUndead.Type.MORSURE:   preload("res://assets/icons/keyword/bird-mask.svg"),
 	KeywordUndead.Type.NECROPHAGE:  preload("res://assets/icons/keyword/carrion.svg"),
 	KeywordUndead.Type.HORDE:       preload("res://assets/icons/keyword/dark-squad.svg"),
 	KeywordUndead.Type.REVENANT:    preload("res://assets/icons/keyword/raise-zombie.svg"),
@@ -499,15 +499,15 @@ func _build_panels(
 # ─── États négatifs actuels d'un serviteur (survol en bataille) ──────────────
 # Distinct des panels de mots-clés/effets ci-dessus (qui décrivent la CARTE) :
 # ceux-ci reflètent l'état RUNTIME du serviteur avec les valeurs réelles
-# (nombre de marques d'Infection, tours de Gel/Terreur restants, stacks de
-# Corruption) — un serviteur touché 5 fois par l'Infection affiche "Subit 5
-# points de dégâts par tour", pas un texte générique disant "1".
+# (tours d'Infection restants, tours de Gel/Terreur restants, stacks de
+# Corruption) — un serviteur infecté pour 3 tours affiche le nombre réel de
+# tours avant que la marque ne s'efface, pas un texte générique.
 func build_status_panels_for_minion(minion: Minion, parent: Node) -> Array[Control]:
 	var panels: Array[Control] = []
 
-	if minion.infection_stacks > 0:
+	if minion.infection_turns > 0:
 		var panel := make_tooltip_panel(
-			_tr("STATUS_INFECTED_NAME"), _tr("STATUS_INFECTED_DESC") % minion.infection_stacks, COLOR_EFFECT)
+			_tr("STATUS_INFECTED_NAME"), _tr("STATUS_INFECTED_DESC") % minion.infection_turns, COLOR_EFFECT)
 		panel.position = Vector2(-9999, -9999)
 		parent.add_child(panel)
 		panels.append(panel)

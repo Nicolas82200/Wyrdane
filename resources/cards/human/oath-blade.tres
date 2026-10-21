@@ -25,10 +25,10 @@ type = "OnExecution"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Lame-Jurée"
+card_name = "Lame-Jurée de Skeldara"
 description = "DISCIPLINE
 Exécution : Gagne +1/+1 de façon permanente."
-flavour_text = "Elle a juré sur sa lame. La lame, elle, a juré de le mériter."
+flavour_text = "Elle a juré sur sa lame devant les remparts de Skeldara. La lame, elle, a juré de le mériter."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

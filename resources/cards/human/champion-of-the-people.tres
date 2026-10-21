@@ -19,9 +19,9 @@ type = "OnExecution"
 
 [resource]
 script = ExtResource("3_63nii")
-card_name = "Champion du Peuple"
+card_name = "Champion du Peuple Eorthalien"
 description = "Exécution : Soigne le héros allié de 2 points de vie."
-flavour_text = "Il se bat pour des gens qu'il ne connaît pas. C'est pour ça qu'il gagne."
+flavour_text = "Il se bat pour des réfugiés d'Eorthal qu'il ne connaît pas. C'est pour ça qu'il gagne."
 texture = ExtResource("4_xnueb")
 cost = 4
 race = 1

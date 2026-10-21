@@ -37,6 +37,9 @@ func is_trigger_targeting() -> bool:
 # cibles valides en surbrillance ; ne peut pas être annulé (la mort a déjà eu
 # lieu, il n'y a rien à défaire).
 func prompt_trigger_target(card_data: CardData) -> Minion:
+	# Un attaquant déjà sélectionné prendrait le clic de ciblage pour un ordre
+	# d'attaque (même garde-fou que begin_targeting).
+	battle.selection_system.clear_selection()
 	_pending_card = card_data
 	_trigger_mode = true
 	_active       = true

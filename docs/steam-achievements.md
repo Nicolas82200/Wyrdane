@@ -42,7 +42,7 @@ Rappels :
 | `ACH_NO_LEGENDARY` | Sans Légende | No Legends | Remporter 3 parties avec un deck ne contenant aucune carte Légendaire. | Win 3 matches with a deck containing no Legendary card. | non |
 | `ACH_FULL_ROSTER` | Toutes Bannières | Every Banner | Remporter au moins une partie avec chacune des quatre races. | Win at least one match with each of the four races. | non |
 | `ACH_COLLECTOR` | Collectionneur | Collector | Posséder toutes les cartes jouables d'une race. | Own every playable card of one race. | non |
-| `ACH_PLAGUE` | Porteur de Peste | Plague Bearer | Remporter une partie en infligeant 15 dégâts d'Infection ou plus à des serviteurs ennemis. | Win a match after dealing 15 or more Infection damage to enemy minions. | oui |
+| `ACH_PLAGUE` | Porteur de Peste | Plague Bearer | Remporter une partie après avoir converti 5 serviteurs ou plus en Zombies grâce à l'Infection. | Win a match after turning 5 or more minions into Zombies through Infection. | oui |
 | `ACH_SACRIFICE` | Prix du Sang | Blood Price | Sacrifier 3 serviteurs alliés dans une même partie. | Sacrifice 3 allied minions in a single match. | oui |
 | `ACH_BLACK_BLOOD` | Sang Noir | Black Blood | Déclencher 10 fois la réaction Sang Noir dans une même partie. | Trigger the Black Blood reaction 10 times in a single match. | oui |
 | `ACH_COMMANDEMENT` | Voix du Royaume | Voice of the Realm | Remporter une partie avec un deck 100 % Humain en activant Commandement au moins 5 fois. | Win a match with an all-Human deck, triggering Command at least 5 times. | oui |
@@ -76,7 +76,7 @@ sont alignées.
 | `ACH_NO_LEGENDARY` | `on_victory`, `deck_has_legendary` faux, cumulatif | 3 victoires |
 | `ACH_FULL_ROSTER` | `_check_full_roster` | les 4 races |
 | `ACH_COLLECTOR` | `check_collector` (à chaque sync de collection) | 1 race complète |
-| `ACH_PLAGUE` | `on_victory`, `player_infection_damage_dealt` | 15 dégâts |
+| `ACH_PLAGUE` | `on_victory`, `player_infection_conversions` | 5 conversions |
 | `ACH_SACRIFICE` | `on_sacrifice` | 3 sacrifices / partie |
 | `ACH_BLACK_BLOOD` | `on_black_blood_trigger` | 10 déclenchements / partie |
 | `ACH_COMMANDEMENT` | `on_victory`, deck Humain seul | 5 activations |
