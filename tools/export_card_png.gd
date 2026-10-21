@@ -34,15 +34,21 @@ func _initialize() -> void:
 
 	var card: Control = load("res://scenes/card/Card.tscn").instantiate()
 	viewport.add_child(card)
+	card.position = Vector2(BLEED, BLEED)
 
 	# Rendu à l'échelle du zoom au survol (ZOOM_SCALE) plutôt qu'à la taille
-	# brute en main, pour une image lisible en gros plan.
-	var scale: float = ZOOM_SCALE
+	# brute en main, pour une image lisible en gros plan. Fait via
+	# size_2d_override (canevas logique à taille native) + un viewport.size
+	# physique plus grand, PAS via card.scale : un scale de Control étire les
+	# glyphes déjà rasterisés (flou) — size_2d_override_stretch déclenche le
+	# suréchantillonnage natif de Godot (même mécanisme que le réglage
+	# "Échelle de l'interface" du jeu, voir SettingsManager.text_scale), donc
+	# un texte net à n'importe quelle taille de sortie.
 	var base_w: float = card.custom_minimum_size.x + BLEED * 2.0
 	var base_h: float = card.custom_minimum_size.y + BLEED * 2.0
-	viewport.size = Vector2i(roundi(base_w * scale), roundi(base_h * scale))
-	card.position = Vector2(BLEED, BLEED) * scale
-	card.scale = Vector2(scale, scale)
+	viewport.size_2d_override_stretch = true
+	viewport.size_2d_override = Vector2i(roundi(base_w), roundi(base_h))
+	viewport.size = Vector2i(roundi(base_w * ZOOM_SCALE), roundi(base_h * ZOOM_SCALE))
 
 	var jobs: Array = []
 	if args.is_empty():
