@@ -20,12 +20,7 @@ enum QuestTab { REGULAR, UNIQUE }
 # MAIN = pseudo/place au classement/rang ; HISTORY = 20 dernières parties
 # réseau ; COMMUNITY = parrainage + amis (voir ProfilePanel.render).
 enum ProfileTab { MAIN, HISTORY, COMMUNITY }
-# Bascule du contenu de NavStack (voir MainMenu.tscn) : le panneau Amis prend
-# la place des boutons de navigation habituels (Packs/Collection/...) plutôt
-# que d'ouvrir une nouvelle vue dans InfoPanel — demande utilisateur explicite,
-# voir FriendsPanel.gd.
-enum NavMode { MAIN, FRIENDS }
-enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION, CHAT }
+enum InfoView { NEWS, DECK_COMPOSITION, PROFILE, CREDITS, SETTINGS, DECKS_MANAGE, SHOP, REPORT, QUESTS, MODE_SELECT, DECK_SELECT, STATS, COLLECTION, CHAT, CUSTOMIZE }
 
 # Couleur d'accent affichée en bandeau à gauche de chaque ligne de deck, selon
 # la race dominante du deck — même repère visuel que DeckList._dominant_race_color.
@@ -51,10 +46,11 @@ const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 
 @onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
-@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SettingsButton
-@onready var report_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/ReportButton
-@onready var credits_button:  Button = $NavPanel/NavMargin/NavStack/MainNavView/CreditsButton
-@onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/QuitButton
+@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/NavSettingsButton
+@onready var packs_pill_button: Button = $TopRightRow/PacksPillButton
+@onready var report_button:  Button = $FooterPanel/FooterMargin/FooterRow/ReportButton
+@onready var credits_button:  Button = $FooterPanel/FooterMargin/FooterRow/CreditsButton
+@onready var quit_button:     Button = $FooterPanel/FooterMargin/FooterRow/QuitButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
@@ -87,25 +83,33 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 	"hard":   "difficulty.hard",
 }
 
-@onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile
-@onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/Avatar
-@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/SteamProfile/NameLabel
-@onready var currency_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/PlayerVBox/CurrencyRow/CurrencyLabel
+@onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile
+@onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/Avatar
+@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/NameLabel
+@onready var currency_label: Label = $TopRightRow/CurrencyLabel
 @onready var account_level_label: Label = %AccountLevelLabel
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
-@onready var friends_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/FriendsButton
-@onready var chat_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton
-@onready var chat_badge:     Control = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge
-@onready var chat_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/SocialRow/ChatButton/ChatBadge/ChatBadgeLabel
+# Bande d'amis permanente dans le rail (voir FriendsPanel.gd) : FriendsStrip
+# prend tout l'espace vertical restant du rail (demande utilisateur explicite
+# 2026-10-13 : "toujours présente à gauche, rétrécie, juste les avatars").
+@onready var friends_strip: PanelContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip
+@onready var friends_collapsed_avatars: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsStripScroll/FriendsCollapsedAvatars
+@onready var chat_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton
+@onready var chat_badge:     Control = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge
+@onready var chat_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge/ChatBadgeLabel
 
-@onready var friends_nav_view: VBoxContainer = $NavPanel/NavMargin/NavStack/FriendsNavView
-@onready var friends_title_label: Label = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow/FriendsTitleLabel
-@onready var friends_back_button: Button = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsHeaderRow/FriendsBackButton
-@onready var friends_search_line_edit: LineEdit = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow/FriendsSearchLineEdit
-@onready var friends_search_button: Button = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsSearchRow/FriendsSearchButton
-@onready var friends_body:     VBoxContainer = $NavPanel/NavMargin/NavStack/FriendsNavView/FriendsScroll/FriendsBodyVBox
+# Popup hover (voir FriendsPanel.gd) : survoler FriendsStrip l'ouvre par-dessus
+# tout le reste (dernier enfant de la racine = z-index le plus haut), le
+# quitter la referme — pas de bascule de NavStack ni de bouton Retour.
+@onready var friends_hover_overlay: Control = $FriendsHoverOverlay
+@onready var friends_hover_panel: PanelContainer = $FriendsHoverOverlay/FriendsHoverPanel
+@onready var friends_title_label: Label = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsTitleLabel
+@onready var friends_search_line_edit: LineEdit = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow/FriendsSearchLineEdit
+@onready var friends_search_button: Button = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow/FriendsSearchButton
+@onready var friends_body:     VBoxContainer = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsScroll/FriendsBodyVBox
+@onready var _friends_hover_close_timer: Timer = $FriendsHoverOverlay/FriendsHoverCloseTimer
 
 @onready var chat_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView
 @onready var chat_close_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatCloseButton
@@ -123,8 +127,8 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var offline_banner_close: Button = $OfflineBanner/OfflineBannerMargin/OfflineBannerRow/OfflineBannerCloseButton
 
 @onready var decks_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/DecksButton
-@onready var shop_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/PacksButton
-@onready var collection_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/CollectionButton
+@onready var shop_button:    Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/ShopButton
+@onready var collection_button: Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/CollectionButton
 @onready var quests_button:   Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton
 @onready var quests_badge:    Control = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge
 @onready var quests_badge_label: Label = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/QuestsButton/QuestsBadge/QuestsBadgeLabel
@@ -139,6 +143,19 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_card_backs_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection
 @onready var shop_card_backs_hint_label: Label = $InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopCardBacksScroll/CardBacksSection/CardBacksHintLabel
 @onready var collection_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView
+
+# --- Personnaliser (vue non fonctionnelle, voir « Rail de gauche... » dans
+# CLAUDE.md) : héros/dos de carte/plateau, tous les boutons sont désactivés.
+@onready var customize_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView
+@onready var customize_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeTitleRow/CustomizeTitleLabel
+@onready var customize_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeTitleRow/CustomizeBackButton
+@onready var customize_hero_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/HeroSection/CustomizeHeroLabel
+@onready var customize_cardback_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/CardBackSection/CustomizeCardBackLabel
+@onready var customize_board_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/BoardSection/CustomizeBoardLabel
+@onready var customize_hero_undead_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/HeroSection/HeroRow/HeroUndeadButton
+@onready var customize_hero_human_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/HeroSection/HeroRow/HeroHumanButton
+@onready var customize_hero_demon_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/HeroSection/HeroRow/HeroDemonButton
+@onready var customize_hero_abomination_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CustomizeView/CustomizeScroll/CustomizeBody/HeroSection/HeroRow/HeroAbominationButton
 @onready var collection_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow/CollectionTitleLabel
 @onready var collection_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionTitleRow/CollectionBackButton
 @onready var pack_shop:       Control = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/PackShop
@@ -146,8 +163,27 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_collection_section: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/CollectionView/CollectionContentRoot/ShopCollectionScroll/CollectionSection
 
 @onready var news_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView
-@onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsTitleLabel
-@onready var news_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsScroll/NewsListVBox
+@onready var news_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/NewsCard/NewsCardMargin/NewsColumn/NewsTitleLabel
+@onready var news_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/NewsCard/NewsCardMargin/NewsColumn/NewsScroll/NewsListVBox
+
+# --- Page d'accueil : aperçu Boutique + bandeau de compte (voir ShopPreviewPanel.gd) ---
+@onready var shop_preview_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewTitleRow/ShopPreviewTitleLabel
+@onready var shop_preview_see_all_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewTitleRow/ShopPreviewSeeAllButton
+@onready var shop_preview_swatch: TextureRect = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewSwatch
+@onready var shop_preview_name_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewNameLabel
+@onready var shop_preview_price_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewPriceLabel
+@onready var shop_preview_prev_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewArrowsRow/ShopPreviewPrevButton
+@onready var shop_preview_next_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewArrowsRow/ShopPreviewNextButton
+
+@onready var home_avatar: TextureRect = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeAvatar
+@onready var home_level_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeLevelCol/HomeLevelLabel
+@onready var home_level_bar: ProgressBar = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeLevelCol/HomeLevelBar
+@onready var home_rank_value: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeRankCol/HomeRankValue
+@onready var home_collection_value: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeCollectionCol/HomeCollectionValue
+@onready var home_wins_value: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeWinsCol/HomeWinsValue
+@onready var home_rank_caption: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeRankCol/HomeRankCaption
+@onready var home_collection_caption: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeCollectionCol/HomeCollectionCaption
+@onready var home_wins_caption: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeStatsRow/HomeWinsCol/HomeWinsCaption
 
 @onready var deck_composition_view: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView
 @onready var deck_comp_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/DeckCompositionView/DeckCompTitleRow/DeckCompTitleLabel
@@ -209,7 +245,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var quests_status_label: Label = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsStatusLabel
 @onready var quests_list_vbox: VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/QuestsView/QuestsScroll/QuestsListVBox
 
-@onready var stats_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/StatsButton
+@onready var stats_button:    Button = $InfoPanel/InfoMargin/ViewsRoot/ProfileView/ProfileScroll/ProfileBodyVBox/ProfileRankBadgeRow/StatsButton
 @onready var stats_view:      VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/StatsView
 @onready var stats_title_label: Label = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow/StatsTitleLabel
 @onready var stats_back_button: Button = $InfoPanel/InfoMargin/ViewsRoot/StatsView/StatsTitleRow/StatsBackButton
@@ -305,10 +341,15 @@ func _ready() -> void:
 	report_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	report_submit_button.pressed.connect(_on_report_submit_pressed)
 	quit_button.pressed.connect(_on_quit)
-	decks_button.pressed.connect(_on_decks_button_pressed)
+	# "Personnaliser" ouvre désormais la page de personnalisation (héros/dos de
+	# carte/plateau, non fonctionnelle pour l'instant) ; "Collection" a pris la
+	# place de l'ancien "Mes Decks" (liste des decks) — demande utilisateur
+	# explicite 2026-10-13.
+	decks_button.pressed.connect(func(): _show_info_view(InfoView.CUSTOMIZE))
+	collection_button.pressed.connect(_on_decks_button_pressed)
+	customize_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	shop_button.pressed.connect(_on_shop_button_pressed)
 	shop_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
-	collection_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
 	collection_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	profile_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
 	stats_back_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
@@ -350,8 +391,9 @@ func _ready() -> void:
 	# de compte (AccountLevelLabel/Bar, sous le pseudo) doit ouvrir la popup
 	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
 	profile_button.gui_input.connect(_on_player_status_gui_input)
-	friends_button.pressed.connect(func(): FriendsPanel.open(self))
-	friends_back_button.pressed.connect(func(): FriendsPanel.close(self))
+	friends_strip.mouse_entered.connect(func(): FriendsPanel.open(self))
+	friends_hover_panel.mouse_entered.connect(func(): _friends_hover_close_timer.stop())
+	_friends_hover_close_timer.timeout.connect(func(): FriendsPanel.close(self))
 	friends_search_button.pressed.connect(func(): FriendsPanel.search(self))
 	friends_search_line_edit.text_submitted.connect(func(_text): FriendsPanel.search(self))
 	chat_button.pressed.connect(func():
@@ -361,6 +403,10 @@ func _ready() -> void:
 	chat_send_button.pressed.connect(func(): ChatPanel.send(self))
 	chat_input_line_edit.text_submitted.connect(func(_text): ChatPanel.send(self))
 	ChatPanel.refresh_unread_badge(self)
+	# Préchargement silencieux (popup fermée) : juste pour que la bande
+	# d'avatars collapsée (voir FriendsPanel.render_collapsed) ait déjà des
+	# visages au premier affichage du menu, sans attendre un survol.
+	FriendsPanel.fetch(self)
 	# Badge de non-lus tenu à jour même sans jamais ouvrir le chat (voir
 	# ChatPanel._ensure_poll_timer, qui lui ne tourne que la vue Chat affichée).
 	var chat_badge_timer := Timer.new()
@@ -455,11 +501,30 @@ func _ready() -> void:
 		currency_label.text = str(new_balance)
 	)
 	currency_label.text = str(CurrencyManager.balance)
+	# Pastille "packs à ouvrir" en haut à droite : renvoie directement vers la
+	# vue Collection, qui affiche déjà la grille de packs possédés non ouverts
+	# (voir _open_collection_view/ShopCollectionPanel) — aucun nouveau flux,
+	# juste un raccourci visible sans ouvrir la Collection au préalable.
+	packs_pill_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
+	CurrencyManager.free_packs_changed.connect(_update_packs_pill)
+	_update_packs_pill(CurrencyManager.free_packs)
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
 		profile_match_stats_label.text = SettingsManager.t("MENU_MATCH_STATS") % [wins, losses]
 	)
 	LevelManager.level_changed.connect(func(_level: int, _xp: int, _xp_to_next: int): _update_account_level_display())
 	_update_account_level_display()
+	# Encart "Nouveautés" de la page d'accueil (voir ShopPreviewPanel.gd).
+	shop_preview_prev_button.pressed.connect(func(): ShopPreviewPanel.show_prev(self))
+	shop_preview_next_button.pressed.connect(func(): ShopPreviewPanel.show_next(self))
+	shop_preview_see_all_button.pressed.connect(func():
+		_select_shop_tab(ShopTab.CARD_BACKS)
+		_show_info_view(InfoView.SHOP)
+	)
+	ShopPreviewPanel.render(self)
+	# Bandeau de compte de la page d'accueil (classement/collection/victoires) :
+	# précharge les mêmes données que la vue Profil (voir ProfilePanel._fetch),
+	# sans attendre que le joueur ouvre cette vue.
+	ProfilePanel._fetch(self)
 	NewsPanel.load_news(self)
 	_start_backend_sync()
 	_wire_nav_active_indicators()
@@ -543,7 +608,8 @@ const NAV_ACTIVE_TINT := Color(1.25, 1.08, 0.72)
 
 func _wire_nav_active_indicators() -> void:
 	_nav_active_buttons = {
-		InfoView.DECKS_MANAGE: decks_button,
+		InfoView.DECKS_MANAGE: collection_button,
+		InfoView.CUSTOMIZE: decks_button,
 		InfoView.QUESTS: quests_button,
 		InfoView.SETTINGS: settings_button,
 		InfoView.REPORT: report_button,
@@ -624,22 +690,42 @@ func _update_profile_tab_tints() -> void:
 	profile_history_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.HISTORY else Color.WHITE
 	profile_community_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.COMMUNITY else Color.WHITE
 
-# --- Amis : bascule NavStack (voir FriendsPanel.gd) -------------------------
-var _nav_mode: NavMode = NavMode.MAIN
+# --- Amis : popup hover (voir FriendsPanel.gd) ------------------------------
+var friends_hover_open: bool = false
 var friends_cache: Array = []
 var friend_requests_cache: Array = []
 var friends_search_results: Array = []
+
+const FRIENDS_HOVER_WIDTH := 500.0
+const FRIENDS_HOVER_MAX_HEIGHT := 520.0
+
+# Souris hors du bouton ET hors du popup -> ferme après un court délai (laisse
+# le temps de glisser la souris de l'un vers l'autre), voir FriendsPanel.close.
+func _process(_delta: float) -> void:
+	if not friends_hover_open:
+		return
+	var mouse := get_global_mouse_position()
+	var over := friends_strip.get_global_rect().has_point(mouse) \
+		or friends_hover_panel.get_global_rect().has_point(mouse)
+	if over:
+		_friends_hover_close_timer.stop()
+	elif _friends_hover_close_timer.is_stopped():
+		_friends_hover_close_timer.start()
+
+# Positionne le popup à côté de la bande d'amis, hauteur bornée à l'écran
+# disponible en dessous de ce point (voir FriendsPanel.open).
+func _position_friends_hover_panel() -> void:
+	var btn_rect := friends_strip.get_global_rect()
+	var viewport_height := get_viewport_rect().size.y
+	var height: float = min(FRIENDS_HOVER_MAX_HEIGHT, viewport_height - btn_rect.position.y - 16.0)
+	friends_hover_panel.position = Vector2(0, btn_rect.position.y - 20.0)
+	friends_hover_panel.size = Vector2(FRIENDS_HOVER_WIDTH, height)
 
 # --- Chat (voir ChatPanel.gd) -------------------------------------------
 var chat_thread_friend_id: int = 0
 var chat_thread_friend_name: String = ""
 var chat_thread_messages: Array = []
 var chat_conversations_cache: Array = []
-
-func show_nav(mode: NavMode) -> void:
-	_nav_mode = mode
-	main_nav_view.visible = mode == NavMode.MAIN
-	friends_nav_view.visible = mode == NavMode.FRIENDS
 
 func _select_shop_tab(tab: ShopTab) -> void:
 	_shop_tab = tab
@@ -696,7 +782,14 @@ func _on_pack_opening_closed() -> void:
 func _update_account_level_display() -> void:
 	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
 	account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [LevelManager.xp, LevelManager.xp_to_next]
-	account_level_bar.value = float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
+	var progress := float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
+	account_level_bar.value = progress
+	home_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	home_level_bar.value = progress
+
+func _update_packs_pill(count: int) -> void:
+	packs_pill_button.visible = count > 0
+	packs_pill_button.text = SettingsManager.t("MENU_PACKS_TO_OPEN") % count
 
 # Compteur de récompenses réclamables par type de quête (quotidienne/hebdo/
 # mensuelle/unique) — le badge affiche la somme des quatre, chaque type
@@ -769,6 +862,7 @@ func _update_steam_profile() -> void:
 	var avatar := SteamService.local_avatar_texture()
 	if avatar:
 		steam_avatar.texture = avatar
+		home_avatar.texture = avatar
 	steam_profile.visible = true
 
 # Tant que le tutoriel obligatoire n'est pas terminé (nouveau joueur) :
@@ -833,7 +927,8 @@ func _show_info_view(view: InfoView) -> void:
 	_current_info_view = view
 	var views: Array = [news_view, deck_composition_view, credits_view, shop_view,
 		profile_view, settings_menu, deck_list, report_view, quests_view,
-		mode_select_view, deck_select_view, stats_view, collection_view, chat_view]
+		mode_select_view, deck_select_view, stats_view, collection_view, chat_view,
+		customize_view]
 	var active: Control = {
 		InfoView.NEWS: news_view,
 		InfoView.DECK_COMPOSITION: deck_composition_view,
@@ -849,6 +944,7 @@ func _show_info_view(view: InfoView) -> void:
 		InfoView.STATS: stats_view,
 		InfoView.COLLECTION: collection_view,
 		InfoView.CHAT: chat_view,
+		InfoView.CUSTOMIZE: customize_view,
 	}[view]
 	ViewFade.switch(self, views, active)
 	_update_nav_active_indicators(view)
@@ -1292,17 +1388,38 @@ func _retranslate() -> void:
 	collection_button.text = SettingsManager.t("MENU_COLLECTION")
 	collection_title_label.text = SettingsManager.t("COLLECTION_TITLE")
 	collection_back_button.text = SettingsManager.t("ui.back")
+	customize_title_label.text = SettingsManager.t("CUSTOMIZE_TITLE")
+	customize_back_button.text = SettingsManager.t("ui.back")
+	customize_hero_label.text = SettingsManager.t("CUSTOMIZE_HERO_SECTION")
+	customize_cardback_label.text = SettingsManager.t("CUSTOMIZE_CARDBACK_SECTION")
+	customize_board_label.text = SettingsManager.t("CUSTOMIZE_BOARD_SECTION")
+	customize_hero_undead_button.text = SettingsManager.t("CUSTOMIZE_RACE_UNDEAD")
+	customize_hero_human_button.text = SettingsManager.t("CUSTOMIZE_RACE_HUMAN")
+	customize_hero_demon_button.text = SettingsManager.t("CUSTOMIZE_RACE_DEMON")
+	customize_hero_abomination_button.text = SettingsManager.t("CUSTOMIZE_RACE_ABOMINATION")
+	for b in [customize_hero_undead_button, customize_hero_human_button, customize_hero_demon_button, customize_hero_abomination_button]:
+		b.tooltip_text = SettingsManager.t("CUSTOMIZE_COMING_SOON")
 	currency_label.text = str(CurrencyManager.balance)
-	settings_button.text = SettingsManager.t("MENU_SETTINGS")
-	credits_button.text = SettingsManager.t("MENU_CREDITS")
-	report_button.text  = SettingsManager.t("MENU_REPORT")
-	quit_button.text    = SettingsManager.t("MENU_QUIT")
+	_update_packs_pill(CurrencyManager.free_packs)
+	# Réglages/Signalement/Crédits/Quitter sont maintenant de petits boutons à
+	# icône (coin haut-droite / coin bas-droite, voir MainMenu.tscn) : le texte
+	# traduit vit dans l'infobulle plutôt que dans le libellé du bouton.
+	settings_button.tooltip_text = SettingsManager.t("MENU_SETTINGS")
+	credits_button.tooltip_text = SettingsManager.t("MENU_CREDITS")
+	report_button.tooltip_text  = SettingsManager.t("MENU_REPORT")
+	quit_button.tooltip_text    = SettingsManager.t("MENU_QUIT")
 	credits_label.text  = SettingsManager.t("MENU_CREDITS_BODY")
 	legal_button.text   = SettingsManager.t("MENU_LEGAL")
 	legal_label.text    = SettingsManager.t("MENU_LEGAL_BODY")
 	close_legal.text    = SettingsManager.t("ui.back")
 	credits_title_label.text = SettingsManager.t("MENU_LEGAL") if credits_legal_sub.visible else SettingsManager.t("MENU_CREDITS")
 	news_title_label.text = SettingsManager.t("MENU_NEWS_TITLE")
+	shop_preview_title_label.text = SettingsManager.t("HOME_SHOP_PREVIEW_TITLE")
+	shop_preview_see_all_button.text = SettingsManager.t("HOME_SHOP_SEE_ALL")
+	home_rank_caption.text = SettingsManager.t("HOME_STAT_RANK")
+	home_collection_caption.text = SettingsManager.t("HOME_STAT_COLLECTION")
+	home_wins_caption.text = SettingsManager.t("HOME_STAT_WINS")
+	ShopPreviewPanel.render(self)
 	report_title_label.text = SettingsManager.t("REPORT_TITLE")
 	report_back_button.text = SettingsManager.t("ui.back")
 	report_category_label.text = SettingsManager.t("REPORT_CATEGORY_LABEL")
@@ -1346,10 +1463,8 @@ func _retranslate() -> void:
 	profile_main_tab_button.text = SettingsManager.t("PROFILE_TAB_MAIN")
 	profile_history_tab_button.text = SettingsManager.t("PROFILE_TAB_HISTORY")
 	profile_community_tab_button.text = SettingsManager.t("PROFILE_TAB_COMMUNITY")
-	friends_button.text = SettingsManager.t("MENU_FRIENDS_NAV_BUTTON")
 	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON")
 	friends_title_label.text = SettingsManager.t("FRIENDS_TITLE")
-	friends_back_button.text = SettingsManager.t("FRIENDS_BACK_BUTTON")
 	friends_search_button.text = SettingsManager.t("FRIENDS_SEARCH_BUTTON")
 	friends_search_line_edit.placeholder_text = SettingsManager.t("FRIENDS_SEARCH_PLACEHOLDER")
 	chat_title_label.text = SettingsManager.t("CHAT_TITLE")

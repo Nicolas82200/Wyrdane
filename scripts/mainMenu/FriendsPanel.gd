@@ -1,14 +1,18 @@
 extends RefCounted
 class_name FriendsPanel
 
-# Panneau "Amis" (voir MainMenu.NavMode) : prend la place des boutons de
-# navigation habituels dans NavStack plutôt que d'ouvrir une nouvelle vue dans
-# InfoPanel — demande utilisateur explicite (le panneau Amis doit rester
-# accessible sans perdre le contexte de ce qu'on regardait). Système d'amis
-# propre à Wyrdane, distinct de la liste d'amis Steam (overlay natif, voir
-# SteamService.open_friends_overlay) — le badge Steam d'un ami est calculé ici
-# en croisant son steam_id avec SteamService.is_steam_friend, aucune requête
-# réseau supplémentaire.
+# Panneau "Amis" : popup qui s'ouvre au survol de FriendsStrip (dernier enfant
+# de la racine de MainMenu.tscn, donc toujours au-dessus du reste, avec un
+# fond assombrissant qui bloque les clics en dessous — voir
+# MainMenu._position_friends_hover_panel/_process) plutôt qu'une vue cliquable
+# classique, pour rester accessible sans perdre le contexte de ce qu'on
+# regardait. Système d'amis propre à Wyrdane, distinct de la liste d'amis
+# Steam (overlay natif, voir SteamService.open_friends_overlay) — le badge
+# Steam d'un ami est calculé ici en croisant son steam_id avec
+# SteamService.is_steam_friend, aucune requête réseau supplémentaire. Les amis
+# Steam ayant déjà un compte Wyrdane sont auto-ajoutés en amis acceptés avant
+# même d'ouvrir ce popup (voir _sync_steam_friends) : ils apparaissent donc
+# directement dans la liste ci-dessous, avatar Steam compris.
 
 const MIN_SEARCH_LENGTH = 2
 
@@ -19,14 +23,19 @@ const PRESENCE_COLOR := {
 }
 
 static func open(menu) -> void:
+	if menu.friends_hover_open:
+		return
 	AudioManager.play(AudioManager.OPEN_MENU)
-	menu.show_nav(menu.NavMode.FRIENDS)
+	menu.friends_hover_open = true
+	menu.friends_hover_overlay.visible = true
+	menu._position_friends_hover_panel()
 	menu.friends_search_line_edit.text = ""
 	menu.friends_search_results = []
 	fetch(menu)
 
 static func close(menu) -> void:
-	menu.show_nav(menu.NavMode.MAIN)
+	menu.friends_hover_open = false
+	menu.friends_hover_overlay.visible = false
 
 static func fetch(menu) -> void:
 	# Synchronise d'abord les amis Steam (le backend les ajoute directement en
@@ -34,13 +43,17 @@ static func fetch(menu) -> void:
 	# demande utilisateur explicite : "je ne veux pas qu'on ait à les rajouter
 	# en jeu") AVANT de charger la liste d'amis, pour qu'ils y apparaissent
 	# déjà au premier rendu plutôt qu'un instant plus tard.
+	# Pas de garde sur friends_hover_open ici : fetch() est aussi appelé au
+	# chargement du menu (popup fermée) pour préremplir la bande d'avatars
+	# collapsée (voir MainMenu._ready/render_collapsed) — seule la validité de
+	# menu lui-même (scène encore en vie) importe.
 	_sync_steam_friends(menu, func():
 		BackendClient.get_friends(func(success: bool, friends: Array):
-			if menu._nav_mode != menu.NavMode.FRIENDS:
+			if not is_instance_valid(menu):
 				return
 			menu.friends_cache = friends if success else []
 			BackendClient.get_incoming_friend_requests(func(req_success: bool, requests: Array):
-				if menu._nav_mode != menu.NavMode.FRIENDS:
+				if not is_instance_valid(menu):
 					return
 				menu.friend_requests_cache = requests if req_success else []
 				render(menu)
@@ -56,7 +69,7 @@ static func _sync_steam_friends(menu, on_done: Callable) -> void:
 		on_done.call()
 		return
 	BackendClient.resolve_steam_friends(steam_ids, func(_success: bool, _results: Array):
-		if menu._nav_mode != menu.NavMode.FRIENDS:
+		if not is_instance_valid(menu):
 			return
 		on_done.call()
 	)
@@ -68,7 +81,7 @@ static func search(menu) -> void:
 		render(menu)
 		return
 	BackendClient.search_friends(query, func(success: bool, results: Array):
-		if menu._nav_mode != menu.NavMode.FRIENDS:
+		if not menu.friends_hover_open:
 			return
 		menu.friends_search_results = results if success else []
 		render(menu)
@@ -101,6 +114,48 @@ static func render(menu) -> void:
 		for friend in menu.friends_cache:
 			if friend is Dictionary:
 				menu.friends_body.add_child(_make_friend_row(menu, friend))
+
+	render_collapsed(menu)
+
+# Taille d'avatar collapsée : 3x la taille d'origine (26px) — demande
+# utilisateur explicite 2026-10-13.
+const COLLAPSED_AVATAR_SIZE := 78.0
+
+# Bande d'amis permanente du rail (voir MainMenu.tscn/FriendsStrip), sans
+# aucun pseudo — demande utilisateur explicite : "pas les pseudo, juste les
+# avatars tant qu'on n'a pas hover", et TOUS les amis visibles (pas de
+# plafond, la bande défile verticalement — FriendsStripScroll). Les noms
+# n'apparaissent que dans le popup déplié au survol (_make_friend_row).
+static func render_collapsed(menu) -> void:
+	for child in menu.friends_collapsed_avatars.get_children():
+		child.queue_free()
+
+	var shown := 0
+	for friend in menu.friends_cache:
+		if not friend is Dictionary:
+			continue
+		var steam_id: String = str(friend.get("steam_id", ""))
+		if steam_id == "" or steam_id == "0":
+			continue
+		var avatar_rect := TextureRect.new()
+		avatar_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		avatar_rect.custom_minimum_size = Vector2(COLLAPSED_AVATAR_SIZE, COLLAPSED_AVATAR_SIZE)
+		avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		menu.friends_collapsed_avatars.add_child(avatar_rect)
+		SteamService.request_avatar_async(steam_id, func(tex: ImageTexture):
+			if is_instance_valid(avatar_rect):
+				avatar_rect.texture = tex
+		)
+		shown += 1
+
+	if shown == 0:
+		var placeholder := Label.new()
+		placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		placeholder.text = "👥"
+		placeholder.add_theme_font_size_override("font_size", Typography.SECTION)
+		placeholder.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 0.7))
+		menu.friends_collapsed_avatars.add_child(placeholder)
 
 static func _add_section_title(menu, text: String) -> void:
 	var label := Label.new()
@@ -218,6 +273,24 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	# zone "vide" de la ligne réagissait. Demande utilisateur explicite
 	# (2026-09-25) : toute la zone où se trouve le pseudo doit être cliquable.
 	var presence: String = str(friend.get("presence", "offline"))
+
+	# Avatar Steam (même pattern que StatsPanel._make_leaderboard_row) : vaut
+	# aussi bien pour un ami ajouté dans le jeu que pour un ami Steam auto-
+	# synchronisé (voir _sync_steam_friends) — les deux ont un steam_id dans ce
+	# dictionnaire, Steam ne garantissant l'avatar en cache que best-effort.
+	var steam_id: String = str(friend.get("steam_id", ""))
+	if steam_id != "" and steam_id != "0":
+		var avatar_rect := TextureRect.new()
+		avatar_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		avatar_rect.custom_minimum_size = Vector2(36, 36)
+		avatar_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		avatar_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		hbox.add_child(avatar_rect)
+		SteamService.request_avatar_async(steam_id, func(tex: ImageTexture):
+			if is_instance_valid(avatar_rect):
+				avatar_rect.texture = tex
+		)
+
 	var dot := Label.new()
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	dot.text = "●"
@@ -257,7 +330,6 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	presence_label.add_theme_color_override("font_color", PRESENCE_COLOR.get(presence, PRESENCE_COLOR["offline"]))
 	tags_row.add_child(presence_label)
 
-	var steam_id: String = str(friend.get("steam_id", ""))
 	if steam_id != "" and SteamService.is_steam_friend(steam_id):
 		var steam_tag := Label.new()
 		steam_tag.mouse_filter = Control.MOUSE_FILTER_IGNORE

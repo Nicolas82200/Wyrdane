@@ -100,6 +100,12 @@ static func render(menu) -> void:
 # avant la fin de la connexion, is_authenticated() est encore faux. Attendre
 # login_succeeded sans jamais relancer la requête laisserait les libellés
 # bloqués sur "Chargement..." indéfiniment.
+#
+# Pas de garde sur la vue actuellement affichée : MainMenu._ready appelle déjà
+# _fetch() une fois au chargement (popup/vue Profil fermée) pour préremplir le
+# bandeau de compte de la page d'accueil (voir _populate_stats ci-dessous,
+# home_rank_value/home_collection_value/home_wins_value) — seule la validité
+# de menu lui-même (scène encore en vie) importe désormais.
 static func _request_profile(menu) -> void:
 	if menu._profile_target_user_id >= 0:
 		BackendClient.get_friend_profile(menu._profile_target_user_id, _on_response.bind(menu))
@@ -116,17 +122,17 @@ static func _fetch(menu) -> void:
 		BackendClient.login_failed.connect(_on_login_failed.bind(menu), CONNECT_ONE_SHOT)
 
 static func _on_login_succeeded(_user: Dictionary, menu) -> void:
-	if menu._current_info_view != menu.InfoView.PROFILE:
+	if not is_instance_valid(menu):
 		return
 	_request_profile(menu)
 
 static func _on_login_failed(_reason: String, menu) -> void:
-	if menu._current_info_view != menu.InfoView.PROFILE:
+	if not is_instance_valid(menu):
 		return
 	_show_unavailable(menu)
 
 static func _on_response(success: bool, data: Dictionary, menu) -> void:
-	if menu._current_info_view != menu.InfoView.PROFILE:
+	if not is_instance_valid(menu):
 		return
 	if success:
 		_populate_stats(menu, data)
@@ -171,6 +177,15 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 		int(ranked.get("rank", 0)), int(ranked.get("totalPlayers", 0)),
 	]
 	apply_rank_badge(menu.profile_rank_badge_label, menu.profile_rank_icon, int(ranked.get("mmr", 0)), true)
+
+	# Bandeau de compte de la page d'accueil (voir MainMenu.tscn HomeAccountBar) :
+	# uniquement pour le profil LOCAL — ne jamais y refléter les stats d'un ami
+	# consulté via ProfilePanel.open_for_user, qui réutilise ce même _on_response.
+	if menu._profile_target_user_id < 0:
+		var tier := RankTier.from_mmr(int(ranked.get("mmr", 0)))
+		menu.home_rank_value.text = SettingsManager.t(RankTier.tier_key(tier))
+		menu.home_collection_value.text = str(collection_count)
+		menu.home_wins_value.text = str(int(ranked.get("wins", 0)) + int(solo.get("wins", 0)))
 
 # Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
 # (persistant, avec_progress = false) et à celui de la vue Profil (avec la

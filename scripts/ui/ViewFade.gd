@@ -1,5 +1,5 @@
 # Utilitaire statique : bascule un groupe de vues mutuellement exclusives par
-# un glissement simultané gauche -> droite (voir MainMenu._show_nav_view/
+# un glissement + fondu simultané gauche -> droite (voir MainMenu._show_nav_view/
 # _show_info_view) plutôt qu'un `.visible` instantané. La nouvelle vue entre
 # depuis la gauche pendant que l'ancienne sort vers la droite, en même temps.
 # Sans état propre, pas d'autoload — appelé directement via le nom de la
@@ -7,7 +7,13 @@
 class_name ViewFade
 extends RefCounted
 
-const DURATION := 0.18
+# 0.18s en TRANS_LINEAR (réglage d'origine) lisait comme un à-coup mécanique —
+# retour utilisateur explicite (2026-10-13, "l'animation est saccadée, pas
+# belle"). TRANS_CUBIC/EASE_OUT (décélération en fin de course, comme la
+# plupart des transitions d'UI "fluides") + un fondu d'opacité en plus du
+# glissement + une durée un peu plus longue suffisent à corriger ça sans
+# dépendance ni ressource supplémentaire.
+const DURATION := 0.26
 
 # views : toutes les vues du groupe (Array[Control]). active : celle à montrer,
 # ou null pour tout masquer. owner_node : n'importe quel nœud vivant dans
@@ -20,12 +26,21 @@ static func switch(owner_node: Node, views: Array, active: Control) -> void:
 		var v: Control = view
 		var base_x := v.position.x
 		var tween := owner_node.create_tween()
+		tween.set_parallel(true)
+		tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 		tween.tween_property(v, "position:x", base_x + v.size.x, duration)
-		tween.tween_callback(func():
+		tween.tween_property(v, "modulate:a", 0.0, duration)
+		tween.chain().tween_callback(func():
 			v.visible = false
-			v.position.x = base_x)
+			v.position.x = base_x
+			v.modulate.a = 1.0)
 	if active != null and not active.visible:
 		var active_base_x := active.position.x
 		active.position.x = active_base_x - active.size.x
+		active.modulate.a = 0.0
 		active.visible = true
-		owner_node.create_tween().tween_property(active, "position:x", active_base_x, duration)
+		var active_tween := owner_node.create_tween()
+		active_tween.set_parallel(true)
+		active_tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		active_tween.tween_property(active, "position:x", active_base_x, duration)
+		active_tween.tween_property(active, "modulate:a", 1.0, duration * 0.8)
