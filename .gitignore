@@ -19,6 +19,9 @@ addons/godotsteam/**/~*
 translations/*.translation
 .devlog/
 
+# Sortie locale de tools/export_card_png.gd (PNG régénérables, ~170 Mo)
+/exported-card/
+
 # Brouillons/archives de devlog hebdomadaire : notes de session brutes,
 # usage interne uniquement — ne doit pas apparaître sur GitHub.
 /devlogs/

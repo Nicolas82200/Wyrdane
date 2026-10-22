@@ -2196,3 +2196,70 @@ Dernier Souffle : Invoque un Éclaireur Ostranien Rapide 1/1.","Awakening: Give 
 Deathrattle: Summon an Ostranian Swift Scout 1/1."
 "Chaque prix payé nourrit le pacte, quelle que soit la main qui le tend.","Chaque prix payé nourrit le pacte, quelle que soit la main qui le tend.","Every price paid feeds the pact, no matter whose hand offers it."
 "Il murmure une vérité. Elle n'a plus besoin d'être entendue pour faire effet.","Il murmure une vérité. Elle n'a plus besoin d'être entendue pour faire effet.","He whispers a truth. It no longer needs to be heard to take hold."
+"Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire.","Le chant ne demande rien. Il se contente de rappeler à la chair ce qu'elle doit faire.","The chant asks for nothing. It only reminds the flesh what it must do."
+"Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé.","Il ne laisse jamais un adversaire se relever pour raconter comment il est tombé.","It never lets an opponent rise to tell how it fell."
+"Sa forme n'est jamais tout à fait la même deux combats de suite.","Sa forme n'est jamais tout à fait la même deux combats de suite.","Its shape is never quite the same twice in a row."
+"Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait.","Chaque coup qu'il porte laisse une plaie qui ne guérit jamais tout à fait.","Every blow it lands leaves a wound that never quite heals."
+"Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse.","Il ne discute pas les ordres. Il fonce, et c'est déjà une réponse.","It does not argue with orders. It charges, and that is answer enough."
+"Le sang versé n'appelle pas la pitié. Il appelle la force de frapper plus fort.","Le sang versé n'appelle pas la pitié. Il appelle la force de frapper plus fort.","Spilled blood calls for no pity. It calls for the strength to strike harder."
+"Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente.","Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente.","All allied Human minions in the Front row permanently gain +1/+0."
+"La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon.","La ligne ne recule pas. La bénédiction, elle, ne s'use jamais deux fois de la même façon.","The line does not break. The blessing, though, never wears the same way twice."
+"Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1.","Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1.","Mourning: When one of your Human minions dies, the adjacent minion gains +1/+1."
+"Attaque : Les serviteurs adjacents gagnent +0/+1.","Attaque : Les serviteurs adjacents gagnent +0/+1.","Attack: Adjacent minions gain +0/+1."
+"Éveil : Donne +0/+1 à un Humain aléatoire allié.","Éveil : Donne +0/+1 à un Humain aléatoire allié.","Awakening: Give +0/+1 to a random allied Human."
+"COMMANDEMENT
+Éveil : Tous les Humains alliés gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour.","COMMANDEMENT
+Éveil : Tous les Humains alliés gagnent aléatoirement +0/+1 ou +1/+0 jusqu'à la fin du tour.","COMMAND
+Awakening: All allied Humans randomly gain +0/+1 or +1/+0 until end of turn."
+"Exécution : Soigne le héros allié de 2 points de vie.","Exécution : Soigne le héros allié de 2 points de vie.","Execution: Your hero regains 2 HP."
+"Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Éveil : Si vous avez un Commandant en jeu (carte avec COMMANDEMENT), tous les Humains alliés gagnent +1/+0 ce tour.","Awakening: If you have a Commander in play (a card with COMMAND), all allied Humans gain +1/+0 this turn."
+"Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi.","Two allied Humans immediately attack a targeted enemy minion."
+"Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement.","Exécution ce tour : Chaque Humain allié qui tue un ennemi peut attaquer à nouveau immédiatement.","Execution this turn: Each allied Human that kills an enemy may attack again immediately."
+"Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière.","Arrivée : Détruit un serviteur ennemi ciblé, ressuscité ou réanimé depuis le cimetière.","Arrival: Destroy a targeted enemy minion that was resurrected or reanimated from the graveyard."
+"Tous les serviteurs alliés en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse.","Tous les serviteurs alliés en rangée Avant gagnent REMPART et +0/+2 jusqu'à la fin du prochain tour adverse.","All allied minions in the Front row gain TAUNT and +0/+2 until the end of the next enemy turn."
+"REMPART, ÉGIDE, DISCIPLINE
+Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire.","REMPART, ÉGIDE, DISCIPLINE
+Arrivée : Tous les serviteurs ennemis perdent leurs mots-clés jusqu'à la fin du prochain tour de votre adversaire.","TAUNT, AEGIS, DISCIPLINE
+Arrival: All enemy minions lose their keywords until the end of your opponent's next turn."
+"Donne ÉGIDE à un Humain ciblé allié jusqu'à la fin du prochain tour de votre adversaire.","Donne ÉGIDE à un Humain ciblé allié jusqu'à la fin du prochain tour de votre adversaire.","Give AEGIS to a targeted allied Human until the end of your opponent's next turn."
+"Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour.","Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour.","Awakening: All allied Humans gain COUNTERATTACK until end of turn."
+"DISCIPLINE
+Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire.","DISCIPLINE
+Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire.","DISCIPLINE
+Awakening: Destroy a random active enemy enchantment or ritual."
+"Éveil : Invoque un Humain aléatoire de coût ≤4.","Éveil : Invoque un Humain aléatoire de coût ≤4.","Awakening: Summon a random Human of cost ≤4."
+"Éveil : Détruit 2 serviteurs aléatoires non-Humains ennemis.","Éveil : Détruit 2 serviteurs aléatoires non-Humains ennemis.","Awakening: Destroy 2 random non-Human enemy minions."
+"Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires.","Attaque : Si la cible n'est pas Humaine, inflige 2 points de dégâts supplémentaires.","Attack: If the target is not Human, deal 2 extra damage."
+"Sortilège ennemi : Annulé s'il cible un Humain allié.","Sortilège ennemi : Annulé s'il cible un Humain allié.","Enemy spell: Countered if it targets an allied Human."
+"Carnage : Chaque fois qu'un serviteur ennemi meurt, les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Carnage : Chaque fois qu'un serviteur ennemi meurt, les serviteurs alliés en rangée Avant gagnent +0/+1 jusqu'à la fin du tour.","Carnage: Whenever an enemy minion dies, your Front row minions gain +0/+1 until end of turn."
+"Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente.","Whenever an allied Human attacks, all allied minions permanently gain +1 ATK."
+"COMMANDEMENT
+Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMANDEMENT
+Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant.","COMMAND
+Deathrattle: Resurrect up to 5 Human minions that have joined your graveyard, with 1 HP, in the Front row."
+"Seule, une lance plie. En ligne, elle ne recule plus.","Seule, une lance plie. En ligne, elle ne recule plus.","Alone, a spear bends. In a line, it no longer yields."
+"Deuil : Quand un de vos serviteurs Humains meurt, piochez 1 carte. (Une seule fois par tour.)","Deuil : Quand un de vos serviteurs Humains meurt, piochez 1 carte. (Une seule fois par tour.)","Mourning: When one of your Human minions dies, draw 1 card. (Once per turn.)"
+"Chaque recrue qui rejoint sa bannière se tient un peu plus droite.","Chaque recrue qui rejoint sa bannière se tient un peu plus droite.","Every recruit who joins his banner stands a little straighter."
+"Humains alliés +0/+1 jusqu'à la fin du tour.","Humains alliés +0/+1 jusqu'à la fin du tour.","Allied Humans +0/+1 until end of turn."
+"Présence : Les Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1).","Présence : Les Humains alliés reçoivent 1 point de dégât de moins de toute source (minimum 1).","Presence: Allied Humans take 1 less damage from all sources (minimum 1)."
+"Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.)","Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.)","Awakening: All allied Human minions gain +1/+1. (Stacks every turn.)"
+"Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides.","Présence : Tant qu'il est en jeu, tes serviteurs peuvent être posés dans la rangée de ton choix, comme s'ils étaient Hybrides.","Presence: While in play, your minions can be placed in the row of your choice, as if they were Hybrid."
+"La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE.","La première fois chaque tour qu'un Humain allié attaque, il gagne ÉGIDE.","The first time each turn an allied Human attacks, it gains AEGIS."
+"COMMANDEMENT, ÉGIDE
+Arrivée : Tous les Humains alliés gagnent +2/+2 de façon permanente.","COMMANDEMENT, ÉGIDE
+Arrivée : Tous les Humains alliés gagnent +2/+2 de façon permanente.","COMMAND, AEGIS
+Arrival: All allied Humans permanently gain +2/+2."
+"DISCIPLINE
+Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs.","DISCIPLINE
+Arrivée : Annule tous les effets néfastes raciaux (Infection, Corruption) sur vos serviteurs.","DISCIPLINE
+Arrival: Cancel all harmful racial effects (Infection, Corruption) on your minions."
+"REMPART
+Blessure : Les dégâts reçus sont réduits de 1 (minimum 1).","REMPART
+Blessure : Les dégâts reçus sont réduits de 1 (minimum 1).","TAUNT
+Wounded: Damage taken is reduced by 1 (minimum 1)."
+"Un Humain ciblé allié gagne +2/+2 et DISCIPLINE jusqu'à fin de tour.","Un Humain ciblé allié gagne +2/+2 et DISCIPLINE jusqu'à fin de tour.","A targeted allied Human gains +2/+2 and DISCIPLINE until end of turn."
+"Renfort : Le serviteur Humain invoqué gagne +1/+1.","Renfort : Le serviteur Humain invoqué gagne +1/+1.","Reinforcement: The summoned Human minion gains +1/+1."
+"Renfort : Chaque Humain invoqué allié gagne +1/+1 de façon permanente.","Renfort : Chaque Humain invoqué allié gagne +1/+1 de façon permanente.","Reinforcement: Each allied summoned Human permanently gains +1/+1."
+"Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre.","Il est déjà tombé une fois. Ça ne l'a pas rendu plus facile à abattre.","It has already fallen once. That did not make it any easier to put down."
+"Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue.","Seule, une carcasse. À trois ou plus, une armée qui ne connaît pas la fatigue.","Alone, a carcass. In threes or more, an army that knows no fatigue."
+"Un seul souffle, et chaque carcasse debout se redresse un peu plus droite.","Un seul souffle, et chaque carcasse debout se redresse un peu plus droite.","A single breath, and every standing carcass straightens a little more."
