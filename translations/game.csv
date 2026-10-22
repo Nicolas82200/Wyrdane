@@ -1549,23 +1549,13 @@ Ne peut attaquer que les serviteurs (jamais le héros directement).","DEADLY POI
 Can only attack minions (never the hero directly)."
 "Il n'a pas de haine. Il a des instructions. C'est pire.","Il n'a pas de haine. Il a des instructions. C'est pire.","He feels no hatred. He has orders. That is worse."
 "Chair","Chair","Flesh"
-"Ajoute 1 Chair à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Chair à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Flesh to your reserve.
-You can only play one resource per turn."
-"Ce qui reste d'une vie, cristallisé par la nécromancie.","Ce qui reste d'une vie, cristallisé par la nécromancie.","What remains of a life, crystallized by necromancy."
-"Sceau du Royaume","Sceau du Royaume","Royal Seal"
-"Ajoute 1 Sceau à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Sceau à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Seal to your reserve.
-You can only play one resource per turn."
+"Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Ajoute 1 Chair à votre réserve, ressource pour jouer les cartes Mort-Vivant.","Adds 1 Flesh to your pool, the resource for playing Undead cards."
+"Vous ne pouvez jouer qu'une ressource par tour.","Vous ne pouvez jouer qu'une ressource par tour.","You can only play one resource per turn."
+"Sceau","Sceau","Seal"
+"Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Ajoute 1 Sceau à votre réserve, ressource pour jouer les cartes Humain.","Adds 1 Seal to your pool, the resource for playing Human cards."
 "Frappé au nom du roi, il lie chaque soldat à son serment.","Frappé au nom du roi, il lie chaque soldat à son serment.","Struck in the king's name, it binds every soldier to his oath."
 "Âme","Âme","Soul"
-"Ajoute 1 Âme à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Âme à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Soul to your reserve.
-You can only play one resource per turn."
-"Une clause parmi tant d'autres. Elle aussi se paiera.","Une clause parmi tant d'autres. Elle aussi se paiera.","One clause among many. This one, too, will be paid."
+"Ajoute 1 Âme à votre réserve, ressource pour jouer les cartes Démon.","Ajoute 1 Âme à votre réserve, ressource pour jouer les cartes Démon.","Adds 1 Soul to your pool, the resource for playing Demon cards."
 "Morsure de l'Air","Morsure de l'Air","Air Bite"
 "Inflige 2 points de dégâts à un serviteur ciblé ennemi.
 S'il survit, il subit -1/-0 de façon permanente.","Inflige 2 points de dégâts à un serviteur ciblé ennemi.
@@ -1593,12 +1583,8 @@ Ils mutent immédiatement.","Deuil : Invoque 2 serviteurs Abominations aléatoir
 Ils mutent immédiatement.","Mourning: Summon 2 random Abomination minions of cost ≤3.
 They immediately mutate."
 "On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","On l'a érigé pour se souvenir des disparus. Il préfère les remplacer.","It was built to remember the lost. It prefers to replace them."
-"Éclat d'Anomalie","Éclat d'Anomalie","Anomaly Shard"
-"Ajoute 1 Éclat à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Ajoute 1 Éclat à votre réserve.
-Vous ne pouvez jouer qu'une ressource par tour.","Add 1 Shard to your reserve.
-You can only play one resource per turn."
-"Ça continue de battre, même détaché de tout le reste.","Ça continue de battre, même détaché de tout le reste.","It keeps beating, even detached from everything else."
+"Anomalie","Anomalie","Anomaly"
+"Ajoute 1 Anomalie à votre réserve, ressource pour jouer les cartes Abomination.","Ajoute 1 Anomalie à votre réserve, ressource pour jouer les cartes Abomination.","Adds 1 Anomaly to your pool, the resource for playing Abomination cards."
 "Signe Qui Répond","Signe Qui Répond","The Answering Sign"
 "Piochez 1 carte.
 Si c'est une carte Abomination, elle coûte 1 de moins ce tour.","Piochez 1 carte.
@@ -2178,7 +2164,6 @@ DISCORD_PRESENCE_PLAYING,"En jeu","In game"
 "Quand tout le reste a échoué à Eorthal, il reste les gens du cru. Il y en a toujours assez pour une dernière fois.","Quand tout le reste a échoué à Eorthal, il reste les gens du cru. Il y en a toujours assez pour une dernière fois.","When everything else has failed in Eorthal, there are still the locals. There are always enough for one last time."
 "Un seul cri, dans l'accent d'Eorthal. Toute la ligne se souvient pourquoi elle est là.","Un seul cri, dans l'accent d'Eorthal. Toute la ligne se souvient pourquoi elle est là.","One cry, in Eorthal's accent. The whole line remembers why it is there."
 "Les survivants d'Eorthal ont signé ensemble. Aucun ne s'en souvient exactement. Tous s'en souviennent suffisamment.","Les survivants d'Eorthal ont signé ensemble. Aucun ne s'en souvient exactement. Tous s'en souviennent suffisamment.","Eorthal's survivors signed together. None of them remember it exactly. All of them remember it enough."
-"Frappé au nom d'un royaume qui n'existe peut-être plus, il lie quand même chaque soldat à son serment.","Frappé au nom d'un royaume qui n'existe peut-être plus, il lie quand même chaque soldat à son serment.","Struck in the name of a kingdom that may no longer exist, it still binds every soldier to their oath."
 "COMMANDEMENT
 Éveil : Invoque un Fantassin Eorthalien Aguerri 2/2 si vous avez 4 Humains ou plus en jeu.","COMMANDEMENT
 Éveil : Invoque un Fantassin Eorthalien Aguerri 2/2 si vous avez 4 Humains ou plus en jeu.","COMMAND

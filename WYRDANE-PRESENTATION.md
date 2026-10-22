@@ -31,9 +31,9 @@ Fini le mana générique unique : **chaque race a sa propre réserve de mana**, 
 | Race | Ressource |
 |---|---|
 | Mort-Vivant | Chair |
-| Humain | Sceau du Royaume |
+| Humain | Sceau |
 | Démon | Âme |
-| Abomination | Éclat d'Anomalie |
+| Abomination | Anomalie |
 
 Le coût d'une carte se divise en deux parts : une partie **verrouillée** (payable uniquement avec le mana de sa propre race, proportionnelle à la rareté de la carte) et une partie **générique** (payable avec n'importe quel surplus de mana, toutes races confondues). Ce système récompense les decks mono-race tout en laissant une vraie place au multi-race pour qui sait équilibrer ses ressources.
 
