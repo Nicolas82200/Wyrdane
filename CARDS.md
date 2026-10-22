@@ -819,13 +819,8 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 
 | ID | Nom | Lane | ⬡ | ⚔ | ♥ | Effet | Flavour |
 |:---:|---|:---:|:---:|:---:|:---:|---|---|
-<<<<<<< HEAD
 | A35 | L'Éternel Recommencement | 🛡️ | 6 | 0 | 4 | Éveil : Invoque un serviteur Abomination aléatoire de coût ≤3. Il mute immédiatement. | *Il ne se soigne plus. Il se réinvente, sans fin.* |
-| A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : fusionne avec les 2 derniers serviteurs morts alliés ce match — absorbe leurs stats restantes cumulées et un mot-clé de chacun. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
-=======
-| A35 | L'Éternel Recommencement | 🛡️ | 6 | 0 | 4 | Éveil : Invoque une Abomination aléatoire de coût ≤3. Elle mute immédiatement. | *Il ne se soigne plus. Il se réinvente, sans fin.* |
-| A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : mute 5 fois. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
->>>>>>> origin/dev
+| A36 | Ce-Qui-Se-Souvient-Par-le-Corps | ⚔️ | 7 | 6 | 8 | Arrivée : Mute 5 fois. | *Il n'a pas de mémoire. Il a une chair qui se souvient à sa place.* |
 | A37 | La Grande Contamination | ⚔️ | 8 | 9 | 9 | Arrivée : transforme tous les serviteurs adverses en jeu en Amas Informe 1/1 sous ton contrôle. | *Ce n'était pas une invasion. C'était une contamination.* |
 | A38 | Ce-Qui-Ne-Finit-Jamais-de-Grandir | ⚔️ | 7 | 8 | 10 | REMPART Chaque mutation qu'il déclenche s'applique deux fois. | *Il a arrêté de compter ses formes il y a longtemps.* |
 | A39 | L'Innommable | ⚔️ | 7 | 7 | 6 | Arrivée : Choisissez un serviteur. L'Innommable devient une copie de ce serviteur avec ses mots-clés et déclencheurs, mais garde les statistiques de L'Innommable. | *Il n'a pas de visage. Il porte le tien, à présent.* |
