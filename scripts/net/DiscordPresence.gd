@@ -77,8 +77,15 @@ var _nonce_counter := 0
 
 func _ready() -> void:
 	_enabled = CLIENT_ID != "" and OS.get_name() == "Windows"
+	# Journaliser systématiquement l'état au démarrage : sans ça, un service
+	# inerte (constante vide dans la build, OS non supporté) est indiscernable
+	# d'un service actif dont Discord refuse d'afficher la présence — c'est
+	# exactement ce qui a rendu un premier diagnostic impossible sur une build.
 	if not _enabled:
+		var reason := "CLIENT_ID vide" if CLIENT_ID == "" else "OS non supporté (%s)" % OS.get_name()
+		print("[DiscordPresence] désactivé : %s" % reason)
 		return
+	print("[DiscordPresence] actif (application %s)" % CLIENT_ID)
 	_flush_timer = Timer.new()
 	_flush_timer.one_shot = true
 	_flush_timer.timeout.connect(_flush)
@@ -178,9 +185,11 @@ func _ipc_loop() -> void:
 			if Time.get_ticks_msec() < _next_connect_attempt_msec:
 				continue
 			if not _connect():
+				push_warning("[DiscordPresence] aucun pipe Discord n'a répondu (client Discord fermé ?) — nouvelle tentative dans %d s" % (RECONNECT_DELAY_MSEC / 1000))
 				_next_connect_attempt_msec = Time.get_ticks_msec() + RECONNECT_DELAY_MSEC
 				continue
 		if not _send_activity(activity):
+			push_warning("[DiscordPresence] envoi de la présence refusé ou sans réponse — déconnexion")
 			_disconnect()
 			_next_connect_attempt_msec = Time.get_ticks_msec() + RECONNECT_DELAY_MSEC
 	_disconnect()
@@ -194,7 +203,12 @@ func _connect() -> bool:
 		if _write_frame(DiscordActivity.OP_HANDSHAKE, DiscordActivity.handshake_payload(CLIENT_ID)):
 			var reply := _read_frame()
 			if reply.get("evt", "") == "READY":
+				print("[DiscordPresence] connecté au client Discord (pipe %d)" % index)
 				return true
+			# Un pipe qui s'ouvre mais ne répond pas READY est le cas qu'il faut
+			# voir en clair : application inconnue côté Discord, version de
+			# protocole refusée, réponse tronquée...
+			push_warning("[DiscordPresence] pipe %d ouvert mais handshake refusé : %s" % [index, JSON.stringify(reply)])
 		_disconnect()
 	return false
 
