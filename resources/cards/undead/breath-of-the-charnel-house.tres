@@ -18,7 +18,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Souffle du Charnier"
-description = "Un Mort-Vivant allié ciblé gagne +0/+2."
+description = "Un serviteur Mort-Vivant ciblé allié gagne +0/+2 de façon permanente."
 flavour_text = "Ce qui ne peut pas mourir davantage peut encore endurcir."
 texture = ExtResource("3_texture")
 card_type = "Instant"

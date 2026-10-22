@@ -21,9 +21,9 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Éclaireur Infiltré"
+card_name = "Éclaireur Ostranien Infiltré"
 description = "Arrivée : Vos serviteurs peuvent attaquer directement la rangée Arrière ennemie ce tour, même si sa rangée Avant n'est pas vide."
-flavour_text = "Il est allé voir. Il est revenu. Pas tout le monde n'en peut dire autant."
+flavour_text = "Depuis Ostrane, il est allé voir ce qu'il y avait derrière les lignes ennemies. Il est revenu. Pas tout le monde n'en peut dire autant."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

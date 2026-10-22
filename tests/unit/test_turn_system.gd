@@ -2,7 +2,7 @@ extends GutTest
 
 # Couvre TurnSystem (scripts/systems/TurnSystem.gd), scope volontairement
 # restreint (voir CLAUDE.md) : run_turn_end_triggers, run_turn_start_triggers,
-# _apply_infection_damage — la logique de règles à forte valeur. On n'appelle
+# _tick_infection — la logique de règles à forte valeur. On n'appelle
 # jamais end_turn()/_begin_player_turn()/draw_card() en entier : ces méthodes
 # tirent trop de dépendances d'orchestration UI/réseau (cost_system complet,
 # pace_actions, hand, deck_system, turn_timer, opponent.take_turn,
@@ -18,14 +18,20 @@ func before_each() -> void:
 	battle = load("res://tests/unit/doubles/fake_battle.gd").new()
 	turn_system.init(battle)
 
-func _minion(is_player: bool = true, infected: bool = false) -> Minion:
+# run_turn_end_triggers n'est plus une coroutine depuis que l'Infection ne fait
+# plus de dégâts (plus de process_deaths à attendre) : l'appeler sans `await`.
+func run_turn_end_triggers_sync(is_local_turn: bool) -> void:
+	turn_system.run_turn_end_triggers(is_local_turn)
+
+func _minion(is_player: bool = true, infection_turns: int = 0) -> Minion:
 	var data := CardData.new()
 	data.card_name = "TEST_CARD"
 	data.race = Race.Type.UNDEAD
 	data.attack = 2
 	data.health = 4
 	var minion := Minion.new(data, is_player)
-	minion.infected = infected
+	if infection_turns > 0:
+		minion.apply_infection(infection_turns, not is_player)
 	if is_player:
 		battle.player_minions.append(minion)
 	else:
@@ -37,53 +43,52 @@ func _minion(is_player: bool = true, infected: bool = false) -> Minion:
 func test_run_turn_end_triggers_decrements_active_hero_heal_block() -> void:
 	battle.player_hero.heal_block_turns = 2
 	battle.enemy_hero.heal_block_turns = 2
-	await turn_system.run_turn_end_triggers(true)
+	run_turn_end_triggers_sync(true)
 	assert_eq(battle.player_hero.heal_block_turns, 1, "joueur actif : décrémente")
 	assert_eq(battle.enemy_hero.heal_block_turns, 2, "camp adverse : inchangé")
 
 func test_run_turn_end_triggers_heal_block_never_goes_below_zero() -> void:
 	battle.player_hero.heal_block_turns = 0
-	await turn_system.run_turn_end_triggers(true)
+	run_turn_end_triggers_sync(true)
 	assert_eq(battle.player_hero.heal_block_turns, 0)
 
-func test_run_turn_end_triggers_applies_infection_damage() -> void:
-	var infected_minion := _minion(true, true)
-	await turn_system.run_turn_end_triggers(true)
-	assert_eq(infected_minion.health, 3, "1 dégât d'Infection en fin de tour")
+func test_run_turn_end_triggers_ticks_infection_of_the_active_camp() -> void:
+	var infected_minion := _minion(true, 3)
+	run_turn_end_triggers_sync(true)
+	assert_eq(infected_minion.infection_turns, 2, "la marque perd 1 tour à la fin du tour de son contrôleur")
+	assert_eq(infected_minion.health, 4, "l'Infection n'infligeant plus de dégâts, les PV sont intacts")
 
-func test_run_turn_end_triggers_does_not_damage_uninfected_minions() -> void:
-	var healthy := _minion(true, false)
-	await turn_system.run_turn_end_triggers(true)
+func test_run_turn_end_triggers_leaves_uninfected_minions_alone() -> void:
+	var healthy := _minion(true, 0)
+	run_turn_end_triggers_sync(true)
+	assert_eq(healthy.infection_turns, 0)
 	assert_eq(healthy.health, 4)
 
-func test_run_turn_end_triggers_infection_can_kill() -> void:
-	var infected_minion := _minion(true, true)
-	infected_minion.health = 1
-	await turn_system.run_turn_end_triggers(true)
-	assert_true(infected_minion.is_dead())
+func test_infection_expires_without_converting_when_the_counter_runs_out() -> void:
+	var infected_minion := _minion(true, 1)
+	run_turn_end_triggers_sync(true)
+	assert_false(infected_minion.infected, "à 0 tour, la marque s'efface")
+	assert_true(battle.player_minions.has(infected_minion), "l'expiration ne tue rien et ne convertit rien")
 
-func test_run_turn_end_triggers_no_crash_without_infected_minions() -> void:
-	_minion(true, false)
-	_minion(false, false)
-	await turn_system.run_turn_end_triggers(true)
-	assert_eq(battle.player_minions.size(), 1)
-	assert_eq(battle.enemy_minions.size(), 1)
+# Le décrément suit le CONTRÔLEUR : un round complet appelle
+# run_turn_end_triggers deux fois (fin du tour local, is_local_turn=true, puis
+# fin du tour adverse via AISystem/NetworkOpponent, is_local_turn=false), donc
+# chaque marque ne perd qu'un seul tour par round.
+func test_enemy_turn_end_does_not_tick_player_minions() -> void:
+	var infected_minion := _minion(true, 3)
+	run_turn_end_triggers_sync(false)
+	assert_eq(infected_minion.infection_turns, 3, "le tour adverse ne touche pas les serviteurs du joueur")
 
-# Un round complet appelle run_turn_end_triggers DEUX fois (fin du tour local,
-# is_local_turn=true, puis fin du tour adverse via AISystem/NetworkOpponent,
-# is_local_turn=false) : l'Infection ne doit se déclencher qu'une seule fois
-# par round (bug corrigé : les deux appels l'appliquaient tous les deux, sans
-# filtre de camp, doublant les dégâts).
-func test_run_turn_end_triggers_does_not_apply_infection_on_enemy_turn_end() -> void:
-	var infected_minion := _minion(true, true)
-	await turn_system.run_turn_end_triggers(false)
-	assert_eq(infected_minion.health, 4, "pas de tick d'Infection à la fin du tour adverse")
+func test_enemy_turn_end_ticks_enemy_minions() -> void:
+	var infected_enemy := _minion(false, 3)
+	run_turn_end_triggers_sync(false)
+	assert_eq(infected_enemy.infection_turns, 2)
 
-func test_run_turn_end_triggers_applies_infection_exactly_once_per_round() -> void:
-	var infected_minion := _minion(true, true)
-	await turn_system.run_turn_end_triggers(true)
-	await turn_system.run_turn_end_triggers(false)
-	assert_eq(infected_minion.health, 3, "1 seul dégât d'Infection sur le round complet, pas 2")
+func test_infection_loses_exactly_one_turn_per_full_round() -> void:
+	var infected_minion := _minion(true, 3)
+	run_turn_end_triggers_sync(true)
+	run_turn_end_triggers_sync(false)
+	assert_eq(infected_minion.infection_turns, 2, "1 seul décrément sur le round complet, pas 2")
 
 # Serviteur portant `trigger_name` + Buff(Self, +1/+0), pour vérifier
 # concrètement qu'Éveil/Déclin se sont déclenchés sur le bon camp.
@@ -150,32 +155,16 @@ func test_run_turn_start_triggers_does_not_crash_without_trigger_types() -> void
 	await turn_system.run_turn_start_triggers(true)
 	assert_eq(battle.player_minions.size(), 1)
 
-# ─── _apply_infection_damage ─────────────────────────────────────────────────
+# ─── _tick_infection ─────────────────────────────────────────────────────────
 
-func test_apply_infection_damage_hits_all_infected_minions_both_camps() -> void:
-	var player_infected := _minion(true, true)
-	var enemy_infected := _minion(false, true)
-	await turn_system._apply_infection_damage()
-	assert_eq(player_infected.health, 3)
-	assert_eq(enemy_infected.health, 3)
-
-func test_apply_infection_damage_refreshes_board() -> void:
-	_minion(true, true)
+func test_tick_infection_refreshes_the_board() -> void:
+	_minion(true, 2)
 	var before: int = battle.board_visual_system.refresh_count
-	await turn_system._apply_infection_damage()
+	turn_system._tick_infection(true)
 	assert_gt(battle.board_visual_system.refresh_count, before)
 
-func test_apply_infection_damage_no_crash_without_infected_minions() -> void:
-	_minion(true, false)
-	await turn_system._apply_infection_damage()
-	assert_eq(battle.player_minions[0].health, 4)
-
-func test_apply_infection_damage_scales_with_stacks() -> void:
-	var minion := _minion(true, true)
-	minion.infected = true
-	minion.infected = true
-	minion.infected = true
-	# 4 marques au total (1 posée par _minion() + 3 ci-dessus) sur un 2/4 → mort,
-	# la perte de vie doit refléter les 4 marques et non un dégât fixe de 1.
-	await turn_system._apply_infection_damage()
-	assert_true(minion.is_dead(), "4 marques d'Infection doivent tuer un serviteur à 4 PV max")
+func test_tick_infection_never_goes_below_zero() -> void:
+	var minion := _minion(true, 1)
+	turn_system._tick_infection(true)
+	turn_system._tick_infection(true)
+	assert_eq(minion.infection_turns, 0)

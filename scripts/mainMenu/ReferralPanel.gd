@@ -6,7 +6,7 @@ class_name ReferralPanel
 # à la volée par QuestsPanel/NewsPanel). Un joueur ne peut parrainer qu'un
 # seul ami (contrainte côté serveur, voir
 # docs/backend-contracts/weekly-quests-and-referral.md) : la récompense
-# (3 packs + 500 or) est créditée au parrain quand le filleul termine le
+# (4 packs, plus d'or depuis le 2026-09-28) est créditée au parrain quand le filleul termine le
 # tutoriel.
 
 static func open(menu) -> void:

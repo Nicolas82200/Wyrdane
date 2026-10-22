@@ -439,14 +439,17 @@ func _ready() -> void:
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
 	offline_banner_close.pressed.connect(offline_banner.hide)
-	BackendClient.login_failed.connect(func(reason: String):
-		push_warning("Connexion backend échouée : %s" % reason)
-		_show_offline_banner()
-	)
-	DeckManager.sync_failed.connect(func(reason: String):
-		push_warning("Sync decks échouée : %s" % reason)
-		_show_offline_banner()
-	)
+	# Méthodes nommées, jamais des lambdas : BackendClient/DeckManager sont des
+	# autoloads qui survivent au changement de scène, donc ces connexions sont
+	# refaites à chaque retour au menu. Le moteur déconnecte de lui-même un
+	# Callable dont l'objet est libéré, ce qu'il ne fait pas pour une lambda
+	# capturant `self` — d'où, avant ce correctif, une connexion morte de plus
+	# par partie jouée (« Lambda capture at index 0 was freed » dans le log) et
+	# la bannière rejouée autant de fois depuis des menus déjà détruits.
+	BackendClient.login_failed.connect(_on_backend_login_failed)
+	BackendClient.login_succeeded.connect(_on_backend_login_succeeded)
+	DeckManager.sync_failed.connect(_on_deck_sync_failed)
+	DeckManager.decks_loaded.connect(_on_deck_sync_succeeded)
 	_update_steam_profile()
 	CurrencyManager.balance_changed.connect(func(new_balance: int):
 		currency_label.text = str(new_balance)
@@ -795,13 +798,15 @@ func _start_backend_sync() -> void:
 	if BackendClient.is_authenticated():
 		_launch_backend_syncs()
 		return
-	BackendClient.login_succeeded.connect(func(_user):
-		_launch_backend_syncs()
-	, CONNECT_ONE_SHOT)
-	BackendClient.login_failed.connect(func(reason: String):
-		push_warning("Connexion backend échouée : %s" % reason)
-	, CONNECT_ONE_SHOT)
+	# Méthode nommée et non lambda, pour la même raison qu'en _ready : un login
+	# qui n'aboutit jamais laisserait sinon une connexion one-shot morte sur
+	# l'autoload. L'échec, lui, est déjà journalisé et signalé par
+	# _on_backend_login_failed, connecté en permanence.
+	BackendClient.login_succeeded.connect(_on_login_ready_to_sync, CONNECT_ONE_SHOT)
 	BackendClient.login_with_steam()
+
+func _on_login_ready_to_sync(_user: Dictionary) -> void:
+	_launch_backend_syncs()
 
 func _launch_backend_syncs() -> void:
 	CardLibrary.sync_backend_catalog(func(success: bool):
@@ -1251,6 +1256,27 @@ func _on_crash_report_send_pressed() -> void:
 # pas sauvegardée, aucune donnée n'est perdue localement).
 func _show_offline_banner() -> void:
 	offline_banner.visible = true
+
+# ... et la referme dès qu'un appel backend réussit à nouveau. Sans ça, une
+# seule requête ratée (creux réseau au retour d'une partie, par exemple)
+# affichait « hors ligne » jusqu'à la fin de la session alors que la session
+# backend était restée valide et que tout le reste continuait à se synchroniser.
+func _hide_offline_banner() -> void:
+	offline_banner.visible = false
+
+func _on_backend_login_failed(reason: String) -> void:
+	push_warning("Connexion backend échouée : %s" % reason)
+	_show_offline_banner()
+
+func _on_backend_login_succeeded(_user: Dictionary) -> void:
+	_hide_offline_banner()
+
+func _on_deck_sync_failed(reason: String) -> void:
+	push_warning("Sync decks échouée : %s" % reason)
+	_show_offline_banner()
+
+func _on_deck_sync_succeeded() -> void:
+	_hide_offline_banner()
 
 # Met à jour tous les libellés du menu dans la langue courante.
 func _retranslate() -> void:

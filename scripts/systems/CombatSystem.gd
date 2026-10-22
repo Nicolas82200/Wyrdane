@@ -12,6 +12,19 @@ var battle
 # manuellement à un moment arbitraire du tour.
 var _consecutive_attacks := 0
 var _last_attack_time_msec := 0
+
+# Dégâts aux serviteurs adjacents à la cible (SplashDamage : Mâcheur d'Os,
+# Idole de l'Apocalypse, Idole du Grand Pacte, Effigie Née d'Elle-Même).
+# Les triggers d'attaque (OnAttack/OnResonance) sont volontairement résolus
+# AVANT l'animation d'assaut, mais ces dégâts-là doivent tomber au moment où la
+# cible subit elle-même les dégâts de l'attaque — pas avant le contact. Pendant
+# la phase de triggers, EffectManager._splash_damage met donc l'effet en file
+# ici (defer_splash) et _flush_splash_queue() la vide juste après
+# _execute_damage, la cible encore en place sur le plateau (l'adjacence se
+# calcule par rapport à elle) et avant process_deaths, qui ramasse d'un coup
+# tous les morts de l'attaque.
+var splash_queue: Array = []
+var defer_splash: bool = false
 const COMBO_RESET_MS := 1500
 const COMBO_SPEED_STEP := 0.15
 const COMBO_MIN_SPEED_SCALE := 0.4
@@ -65,11 +78,18 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	# choisie) déclenchés AVANT l'animation d'assaut elle-même, pour que ce qui
 	# doit se produire "au moment de l'attaque" soit visible avant le contact
 	# (et non après, comme un effet secondaire retardé de l'impact).
+	defer_splash = true
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack", defender)
+	# Enchantements/rituels à trigger Attaque (Bouclier de la Foi) : la cible
+	# contextuelle est l'ATTAQUANT, pas le défenseur — c'est lui que « il gagne
+	# ÉGIDE » désigne, et il doit l'avoir avant de prendre les dégâts.
+	await battle.trigger_system.fire("OnAttack", attacker, attacker.owner_is_player)
 	await battle.trigger_system.fire("OnResonance", attacker, attacker.owner_is_player, {"target": defender})
+	defer_splash = false
 	if attacker_visual and defender_visual:
 		await battle.animation_system.play_attack_lunge(attacker_visual, defender_visual, speed_scale)
 	var dealt_to_defender: int = await _execute_damage(attacker, defender)
+	await _flush_splash_queue()
 	await battle.get_tree().create_timer(0.05 * speed_scale).timeout
 	# Le résultat (mort ou non) n'est logué qu'une fois la résolution de mort
 	# terminée (REVENANT peut relever le serviteur) ; les deux serviteurs sont
@@ -90,6 +110,16 @@ func resolve_combat(attacker: Minion, defender: Minion) -> void:
 	# une fois le verrou levé, corrige l'affichage immédiatement.
 	if not attacker.is_dead():
 		battle.board_visual_system.refresh_board()
+
+func _flush_splash_queue() -> void:
+	if splash_queue.is_empty():
+		return
+	var queued: Array = splash_queue
+	splash_queue = []
+	for item in queued:
+		# process_deaths laissé à resolve_combat : il marque attaquant/défenseur
+		# en silencieux pour ne pas doubler l'entrée de journal de l'attaque.
+		await battle.effect_manager.apply_splash_damage(battle, item[0], item[1], item[2], false)
 
 func _execute_damage(attacker: Minion, defender: Minion) -> int:
 	# OnAttack/OnResonance sont déjà déclenchés par resolve_combat, avant
@@ -122,12 +152,13 @@ func _execute_damage(attacker: Minion, defender: Minion) -> int:
 			battle.animation_system.play_deadly_poison(attacker_visual)
 		attacker.health = 0
 
-	# PESTIFÉRÉ : l'attaque inflige Infection en plus des dégâts
-	# (pas d'infection si les dégâts ont été annulés, ex: ÉGIDE ; le setter
-	# de infected gère l'immunité CHAIR MORTE)
-	if attacker.has_undead_keyword(KeywordUndead.Type.PESTIFERE) and dealt_to_defender > 0 and not defender.is_dead():
-		defender.infected = true
-		battle.animation_system.play_infection(defender_visual)
+	# MORSURE X : l'attaque inflige Infection (X tours) en plus des dégâts
+	# (pas d'infection si les dégâts ont été annulés, ex: ÉGIDE ;
+	# apply_infection gère l'immunité CHAIR MORTE et le multiplicateur d'aura).
+	# Mot-clé copié sans valeur (CHAIR ADAPTATIVE, FUSION) : retombe sur 1 tour.
+	if attacker.has_undead_keyword(KeywordUndead.Type.MORSURE) and dealt_to_defender > 0 and not defender.is_dead():
+		var bite_turns: int = attacker.card_data.get_undead_keyword_value(KeywordUndead.Type.MORSURE)
+		battle.effect_manager.apply_infection(battle, defender, bite_turns, attacker.owner_is_player)
 
 	# CORRUPTION : l'attaque inflige Corruption en plus des dégâts (-1 ATK
 	# permanent, cumulable ; apply_corruption gère l'immunité CHAIR DE SOUFRE)
@@ -207,6 +238,7 @@ func perform_hero_attack(attacker: Minion) -> void:
 		await battle.animation_system.play_attack_lunge(visual, hero_panel, speed_scale)
 	_play_hit_sound()
 	await battle.effect_manager.trigger_effects(battle, attacker, "OnAttack")
+	await battle.trigger_system.fire("OnAttack", attacker, attacker.owner_is_player)
 	# Résonance — enchantements réagissent aussi quand un allié attaque le héros
 	# directement (voir _execute_damage pour l'attaque d'un serviteur). Pas de
 	# serviteur ciblé ici (target: null explicite) : les effets qui visent une

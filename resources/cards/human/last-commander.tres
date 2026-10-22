@@ -25,10 +25,10 @@ script = ExtResource("5_y783d")
 
 [resource]
 script = ExtResource("3_eemmb")
-card_name = "Commandant des Derniers"
+card_name = "Commandant des Derniers d'Aldrenia"
 description = "COMMANDEMENT
 Dernier Souffle : Ressuscitez jusqu'à 5 serviteurs Humains à avoir rejoint votre cimetière avec 1 point de vie en rangée Avant."
-flavour_text = "Sa mort n'est pas une fin. C'est un dernier ordre."
+flavour_text = "Aldrenia a vu tomber cinq royaumes. Elle a juré de ne pas être le sixième. Lui, c'est le prix de ce serment."
 texture = ExtResource("4_ym8rn")
 cost = 8
 race = 1

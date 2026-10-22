@@ -72,17 +72,30 @@ Ordre exact d’un combat (géré principalement par `CombatSystem`) :
 
 - **Réduction de dégâts** (`CardData.damage_reduction` + `Minion.aura_damage_reduction`) : chaque source de dégâts subie est réduite d'un montant fixe, sans jamais descendre sous 1 quand un coup touche. La part inhérente vient de la carte (Défenseur Juré, Zombie Bouclier) ; une part peut être ajoutée par une aura via l'effet `AuraDamageReduction` (Pacte de Résistance : Humains alliés −1). Appliquée dans `Minion.take_damage`.
 - **Immunité au débordement** (`CardData.blocks_overkill`) : quand un serviteur défenseur meurt, les dégâts excédentaires de RAVAGE ne sont pas reportés sur le héros (Colosse Décomposé). Vérifiée dans `CombatSystem`.
-- **Immunité à l'Infection** (`Minion.infection_immune_aura` + `is_infection_immune()`) : accordée par une aura via l'effet `AuraInfectionImmunity` (Aegis de l'Empire : Humains alliés en rangée Avant), en plus de CHAIR MORTE. Le setter de `infected` bloque toute pose ; l'effet `CureInfection` retire les marqueurs déjà présents (Inquisiteur Suprême).
+- **Immunité à l'Infection** (`Minion.infection_immune_aura` + `is_infection_immune()`) : accordée par une aura via l'effet `AuraInfectionImmunity` (Aegis de l'Empire : Humains alliés en rangée Avant), en plus de CHAIR MORTE et DISCIPLINE. `Minion.apply_infection` refuse toute pose ; l'effet `CureInfection` efface le compteur déjà en place (Inquisiteur Suprême, Purification). Elle empêche donc aussi la **conversion en Zombie** (voir « Mécaniques Mort-Vivant » ci-dessous) : la contre-mesure Humaine prend de la valeur.
 
 ### ⚔️ Autres mécaniques d'effet
 
 - **Exil à la mort** (`CardData.exile_on_death`) : le serviteur ne rejoint pas le cimetière (Possédé Hurlant). Filtré dans `DeathSystem._send_to_graveyards`.
 - **Jetons et cimetière** : un serviteur jeton (`CardData.is_token`) ne rejoint jamais le cimetière à sa mort — comme pour l'exil, filtré dans `DeathSystem._send_to_graveyards`. Le texte de la carte l'indique explicitement (« Ne rejoint pas le cimetière à sa mort. ») pour que le joueur le sache sans avoir à le déduire.
 - **Coût de sacrifice ciblé** (effet `SacrificeAlly` + `requires_target`) : le joueur choisit l'allié sacrifié avant de résoudre le reste de l'effet (Don de Chair) ; sans cible (IA), les plus faibles sont sacrifiés automatiquement. `CardSystem.conditions_met` interdit le lancer sans assez d'alliés.
-- **Rituels de Sacrifice** (`CardData.sacrifice_count` / `sacrifice_max_hp` + `SacrificeSystem`) : un rituel à trigger `OnSacrifice` posé en jeu s'active en cliquant dessus (surbrillance dorée quand activable), puis en choisissant la ou les victimes alliées ; les victimes meurent (marquées `sacrificed`, pas de REVENANT), l'effet du rituel s'exécute et une charge est consommée (`TriggerSystem.activate_sacrifice_ritual`). Synchronisé en réseau via la commande `ACTIVATE_RITUAL`. Cartes : Pacte Sanglant, Cercle de Sacrifice, Rituel de la Fosse Sans Fond.
+- **Rituels de Sacrifice** (`CardData.sacrifice_count` / `sacrifice_max_hp` + `SacrificeSystem`) : un rituel à trigger `OnSacrifice` posé en jeu s'active en cliquant dessus (surbrillance dorée quand activable), puis en choisissant la ou les victimes alliées ; les victimes meurent (marquées `sacrificed` ; REVENANT les relève malgré tout, voir « Mécaniques Mort-Vivant »), l'effet du rituel s'exécute et une charge est consommée (`TriggerSystem.activate_sacrifice_ritual`). Synchronisé en réseau via la commande `ACTIVATE_RITUAL`. Cartes : Pacte Sanglant, Cercle de Sacrifice, Rituel de la Fosse Sans Fond.
 - **Réduction de coût en mana** (`CostSystem`) : le coût effectif d'une carte est calculé à la volée (`Battle.get_card_cost`), jamais en modifiant `CardData.cost`. Deux sources : remises temporaires par carte "ce tour" (effet `DrawCardDiscount`, Doigt Décharné) et auras d'enchantement — `AuraSpellCostReduction` (Sanctuaire Nécrotique : sorts alliés −1, min 1) et `AuraFirstOfRaceCostReduction` (Murmure Funeste : premier Mort-Vivant du tour −1, min 1). Le coût réduit s'affiche en vert dans la main.
+- **Silence** (effet `Silence`, `Minion.silenced`) : retire tous les mots-clés du serviteur visé **et** la totalité de ses triggers/effets — il devient une statue de pierre, sans aucune capacité. La garde vit dans `EffectManager._active_trigger_types`/`_active_effects`, par où passent `has_trigger`, `trigger_effects`, les triggers de tour et le Mort-rage. Un serviteur réduit au silence est grisé sur le plateau et son aperçu agrandi affiche « Réduit au silence » à la place de son texte d'origine, puisque celui-ci ne s'applique plus. Les porteurs de DISCIPLINE (Humain) y sont immunisés ; un silence à durée limitée (Inquisiteur de Fer, L'Éternel Gardien) rend mots-clés et effets à son expiration (`TempEffectSystem`).
 - **Mana temporaire** (effet `GainMana`) : ajoute du mana disponible sans toucher au maximum ; le surplus est perdu au tour suivant (Vortex des Âmes).
 - **Contre-Offensive** (`Battle.counter_offensive` + effet `GrantCounterOffensive`) : ce tour, chaque Humain du camp qui tue un ennemi rejoue immédiatement (+1 attaque dans `CombatSystem`, expire en fin de tour).
+
+### ☠️ Mécaniques Mort-Vivant
+
+- **Infection à durée** (`Minion.infection_turns` + `infection_infector_is_player`) : l'Infection n'inflige **aucun dégât**. C'est une marque de conversion temporaire : tant que son compteur court, la mort du serviteur le transforme en **Zombie 1/1** (jeton `zombie.tres`) **sous le contrôle de l'infecteur** (`DeathSystem._convert_infected`, juste après la résolution des Derniers Souffles). Le serviteur meurt quand même normalement (cimetière, Dernier Souffle, Deuil/Carnage) : le Zombie arrive en plus. Toutes les causes de mort comptent, **Sacrifice et FUSION compris** — un adversaire ne peut donc pas « liquider sa propre marque », ce qui fait de l'Infection un contre aux decks de Sacrifice (Démon, Abomination).
+- **Durée et réapplication** : `Minion.apply_infection(turns, infector)` n'est jamais additive — la durée restante est portée au `max` des deux, et l'infecteur devient celui de la dernière application. Le compteur baisse de 1 **à la fin du tour du contrôleur du serviteur infecté** (`TurnSystem._tick_infection`, appelée aux deux fins de tour mais filtrée par camp : exactement un décrément par marque et par round). À 0, la marque s'efface **sans conversion**. Le Gel ne suspend pas le compteur ; le Silence ne retire pas la marque (c'est un marqueur, pas un effet).
+- **Barème de durée** (par coût de la carte source) : 1-2⬡ → 2 tours, 3-4⬡ → 3, 5-6⬡ → 4, 7+⬡ → 5. Exception pour un effet de masse, réduit en conséquence : Le Patient Zéro (5⬡, tous les serviteurs ennemis) ne pose que 2 tours.
+- **Fin de l'Infection sans conversion** : durée écoulée, `CureInfection` (Purification, Inquisiteur Suprême), immunité d'aura, **changement de contrôleur** (`StealMinion`), **transformation** (Morsure Infectieuse, Apocalypse Zombie, La Faucheuse) et retour en main (le `Minion` est détruit, une repose crée une instance neuve).
+- **`MORSURE X`** : les attaques de ce serviteur posent Infection (X tours). X vit sur la carte (`KeywordChoiceUndead.value`, même principe que `PACTE X`) : Pestilent est MORSURE 2, Émissaire de la Peste MORSURE 3. Un mot-clé copié sans valeur (CHAIR ADAPTATIVE, FUSION) retombe sur 1 tour. Pas d'Infection si les dégâts ont été annulés (ÉGIDE) ni si le défenseur meurt du coup.
+- **Brouillard Pestilentiel** (effet d'aura `AuraInfectionDuration`) : double la durée de chaque Infection **que vous appliquez**. Appliqué au point d'entrée unique `EffectManager.apply_infection`, donc aussi bien aux effets de carte qu'à MORSURE. Le multiplicateur est recalculé entièrement à chaque `AuraSystem.recompute_all` (`infection_duration_multiplier`, par camp).
+- **Le Zombie de conversion n'est pas une arrivée normale** : il ne déclenche ni Arrivée ni Renfort (`skip_onsummon` sur `BoardSystem.summon_minion_return`), sinon chaque balayage sur un plateau infecté donnerait deux corps par mort. Il arrive en rangée Avant, sinon Arrière ; si les deux rangées de l'infecteur sont pleines, pas de Zombie. Jeton : il ne rejoint jamais le cimetière.
+- **`REVENANT` prime sur la conversion** : un serviteur infecté qui se relève ne meurt pas, donc ne se convertit pas, et **garde sa marque** (la conversion aura lieu à sa vraie mort). REVENANT se déclenche désormais aussi sur un **Sacrifice** ou une **FUSION** : le sacrifice est considéré payé (l'effet s'exécute, la charge du rituel est consommée, les stats de la victime sont capturées avant le relèvement) mais le serviteur reste en jeu à 1 PV — une seule fois par pose.
+- **Mort-rage** (`OnDeathRage`) : une seule fois par serviteur, quand il passe sous 50 % de ses PV max.
 
 ### 🔥 Mécaniques Démon
 
@@ -256,6 +269,8 @@ Capacités du moteur d'effets :
 *   **Valeurs dynamiques** — les montants d'un effet peuvent être calculés à l'exécution (ex: en fonction d'un décompte d'unités) plutôt que fixes.
 *   **Rituels** — chaque charge n'est consommée que lorsque le trigger du rituel se déclenche réellement (`TriggerSystem._consume_ritual_charge`), pas passivement à chaque tour.
 *   **Auras de rangée** (`OnAura`) — buffs appliqués à toute une rangée, recalculés par `AuraSystem`.
+*   **Présence continue** (`OnAura`) — un effet **ponctuel** porté par un trigger Présence (ex. Aegis de l'Empire : octroi de DISCIPLINE) s'applique à la pose de l'Enchantement/Rituel (`TriggerSystem.apply_presence_effects`) ET à chaque arrivée ultérieure d'un serviteur sur le plateau (`TriggerSystem.reapply_all_presence_effects`, appelé par `BoardSystem.summon_minion_return`) : un serviteur posé après l'enchantement en profite aussi, tant que la carte reste en jeu — c'est le sens de « passif continu ». Idempotent par construction (`_grant_keyword` écarte silencieusement une cible déjà pourvue, avant même de dessiner ses flèches), donc rejouer tous les Présence à chaque invocation ne cumule ni ne reflashe rien. Les effets `AuraXxx`, eux, restent continus et du seul ressort d'`AuraSystem`, recalculé séparément.
+*   **Dégâts aux serviteurs adjacents à la cible** (`SplashDamage`) — qu'ils viennent du serviteur attaquant lui-même (Attaque, ex. Mâcheur d'Os) ou d'un Enchantement en Résonance (Idole de l'Apocalypse, Idole du Grand Pacte, Effigie Née d'Elle-Même), ces dégâts tombent **au moment où la cible subit elle-même les dégâts de l'attaque**, jamais avant le contact — les triggers d'attaque sont résolus en amont de l'animation d'assaut, donc `CombatSystem` met ces dégâts-là en attente et les applique juste après ceux de l'attaque (voir `CombatSystem.defer_splash`).
 *   **Feedback visuel** — popup de la carte à l'origine de l'effet + courbes/flèches dessinées vers les cibles (`CardPopupSystem`, `ArrowOverlay`).
 
 ### 🧠 Gestion des lanes
@@ -371,33 +386,56 @@ Une carte de récompense déjà possédée au maximum de copies (4) est converti
 
 **Popup de récompenses de niveau** : cliquer sur le niveau de compte (« Niveau N », sous le pseudo dans `PlayerStatusPanel`) ouvre une popup dédiée (`LevelRewardsPanel.gd`) listant, avec défilement, la récompense de chaque niveau — y compris les niveaux pas encore atteints (catalogue calculé côté backend jusqu'à `max(60, niveau actuel + 10)`, toujours un peu au-delà du niveau réel). L'octroi (crédit d'or/carte/pack) reste immédiat et automatique au franchissement du niveau, comme ci-dessus : la popup ne fait que lister ce qui a déjà été journalisé et laisser le joueur marquer chaque ligne comme « vue » (bouton, se grise une fois cliqué) — un simple accusé de réception, aucun nouveau crédit. Un bouton « Tout récupérer » marque en un seul appel réseau toutes les lignes réclamables ; un bouton « Niveau actuel » recentre le défilement sur le niveau du joueur. Un niveau franchi avant l'introduction de cette popup (2026-09) n'a pas de ligne journalisée côté backend : affiché comme déjà acquis, rien à réclamer.
 
+> Référence complète et chiffrée de toute l'économie (toutes les sources de gain, tous les coûts, temps de complétion mesuré) : **[docs/economy.md](docs/economy.md)**.
+
 **Autres gains**
 | Source | Montant | Limite |
 |---|---|---|
-| Récompense de connexion quotidienne (streak 7 jours, cycle) | 10 → 15 → 20 → 25 → 30 → 40 → 60 or | 1×/jour, réinitialisée si un jour est manqué |
-| Quête « Jouer 3 parties » | 30 or | — |
-| Quête « Jouer 5 parties » | 60 or | — |
+| Récompense de connexion quotidienne (montée sur 5 jours, puis plateau) | 20 → 40 → 60 → 80 → 100 or, puis 100 or par jour consécutif supplémentaire | 1×/jour, réinitialisée au premier palier si un jour est manqué |
+| Quête « Jouer 3 parties » | 25 or | — |
+| Quête « Jouer 5 parties » | 50 or | — |
 | Quête « Gagner 2 parties » | 50 or | — |
-| Quête « Gagner 3 parties » | 70 or | — |
-| Quête « Gagner 1 partie classée » | 80 or | — |
-| Quête « Jouer 10 cartes Mort-Vivant » | 40 or | — |
-| Quête « Jouer 10 cartes Humain » | 40 or | — |
-| Quête « Jouer 10 cartes Démon » | 40 or | — |
-| Quête « Jouer 10 cartes Abomination » | 40 or | — |
-| Quête « Gagner 2 parties avec un deck Mort-Vivant » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Humain » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Démon » | 60 or | — |
-| Quête « Gagner 2 parties avec un deck Abomination » | 60 or | — |
+| Quête « Gagner 3 parties » | 75 or | — |
+| Quête « Gagner 1 partie classée » | 100 or | — |
+| Quête « Jouer 10 cartes [Race] » (une par race) | 50 or | — |
+| Quête « Gagner 2 parties avec un deck [Race] » (une par race) | 75 or | — |
 
-3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+Toutes les récompenses quotidiennes suivent une échelle unique de 25/50/75/100 or, calée sur la difficulté réelle. 3 quêtes tirées aléatoirement chaque jour parmi les 13 ci-dessus (rotation déterministe côté serveur, par joueur et par jour). Les quêtes « Jouer 10 cartes [Race] » comptent toute carte de cette race jouée en partie (serviteur, sort, rituel, enchantement, ressource) ; les quêtes « Gagner 2 parties avec un deck [Race] » ne progressent que si le deck utilisé pour la victoire contient au moins une carte de cette race.
+
+**Récompense de fin de tutoriel** : à la toute fin du tutoriel, 20 cartes tirées dans l'ensemble du catalogue (hors cartes-ressource) rejoignent la collection, avec une pondération **Commune 40 / Rare 30 / Épique 20 / Légendaire 10** — nettement plus généreuse que celle d'un pack, puisqu'il s'agit d'une récompense unique. Elle comble un trou du démarrage : les 4 decks de départ ne contiennent que des serviteurs et quelques éphémères, un nouveau joueur n'avait donc jamais eu un Rituel ni un Enchantement en main avant d'ouvrir des packs. Un exemplaire au-delà des 4 copies est converti en or, comme dans un pack.
+
+**Quêtes uniques (jalons de carrière)** : une seule occurrence par compte, jamais réinitialisée.
+| Quête | Récompense |
+|---|---|
+| Première partie avec un deck contenant une race donnée (×4) | 150 or |
+| Première victoire avec un deck d'au moins 2 races | 200 or |
+| Une victoire avec chacune des 4 races | 400 or + 1 pack |
+| Jouez 50 / 100 / 150 / 200 / 250 parties | 400 / 600 / 700 or, puis 850 or + 1 pack / 1000 or + 1 pack |
+| Gagnez 10 / 25 / 100 parties | 100 or + 1 pack / 200 or + 2 packs / 900 or + 1 pack |
+| Gagnez 10 / 50 parties classées | 400 or / 900 or + 3 packs |
+| Atteignez le palier Argent / Or / Platine / Diamant / Maître / Légende | 100 or / 200 or + 1 pack / 350 or + 1 pack / 500 or + 1 pack / 700 or + 2 packs / 900 or + 5 packs |
+| Ouvrez 20 packs | 5 packs |
+
+Total du catalogue de quêtes uniques : **10 000 or + 25 packs**.
 
 **Dépenses**
 | Achat | Coût | Détail |
 |---|---|---|
-| Pack de cartes | 500 or | 5 cartes par pack, pondération par rareté Commune 58 / Rare 25 / Épique 12 / Légendaire 5 (ratio, somme non normalisée à 100) |
+| Pack de cartes | 500 or | 5 cartes par pack, pondération par rareté Commune 58 / Rare 25 / Épique 12 / Légendaire 5 (ratio, somme non normalisée à 100), corrigée par la protection anti-doublon ci-dessous |
 | Achat direct d'une carte à l'unité (deck builder) | Commune 100 / Rare 150 / Épique 200 / Légendaire 250 | Max 4 exemplaires par carte |
 
 **Poussière (dust)** : un exemplaire de pack tiré au-delà de la limite de 4 copies d'une carte est automatiquement converti en or plutôt qu'ajouté à la collection — Commune 25 / Rare 50 / Épique 75 / Légendaire 100.
+
+**Protection anti-doublon des packs** : une carte dont le joueur possède déjà au moins un exemplaire est **moins probable** qu'une carte qui lui manque, et l'écart grandit avec l'avancement de sa collection. Concrètement, son poids de tirage est multiplié par `1 - 0,9 × complétion` (complétion = part du catalogue dont il possède au moins un exemplaire) :
+
+| Collection du joueur | Poids d'une carte déjà possédée |
+|---|---|
+| 10 % (débutant) | 91 % du poids normal — les doublons restent fréquents, et c'est voulu : 4 exemplaires sont nécessaires pour jouer une carte à fond |
+| 50 % | 55 % |
+| 90 % | 19 % — les packs penchent nettement vers ce qui manque |
+| 100 % | 10 %, appliqué à **toutes** les cartes : les probabilités relatives redeviennent celles du tableau ci-dessus |
+
+Un doublon reste toujours possible (le poids ne tombe jamais à zéro), et les cartes déjà tirées dans le même pack comptent comme possédées pour les tirages suivants de ce pack. Sans ce mécanisme, posséder un exemplaire des 300 cartes en n'ouvrant que des packs demandait ~24 mois à raison de 5 parties par jour, contre ~5 mois avec — une carte légendaire précise ne sortant que dans 0,8 % des tirages en fin de collection.
 
 **Achat et ouverture séparés** : l'onglet « Packs » de la Boutique ne fait qu'acheter (débite l'or, crédite le stock de packs — `POST /api/packs/buy` côté `wyrdane-backend`) sans jamais tirer de carte. La vue « Collection » (menu principal, distincte de la Boutique) affiche ce stock (packs achetés ou gagnés gratuitement via quêtes/parrainage/niveau — un même compteur, l'origine n'est plus distinguée une fois le pack en stock) sous forme d'une pastille dorée à côté du pack, et permet de l'ouvrir directement en cliquant dessus (1 pack), Ctrl+clic (5) ou Maj+clic (10, uniquement si le stock couvre la quantité demandée) — `POST /api/packs/open-owned`, une requête par pack, la révélation les enchaîne. Un bouton « Acheter des packs » en bas de la vue renvoie vers l'onglet Packs de la Boutique. Les cartes révélées apparaissent directement autour du pack cliqué (pas d'écran séparé) : 1ère à gauche, 2e à droite, 3e sous la 1ère, 4e sous la 2e, 5e sous le pack — agrandies x1,5 au survol une fois révélées, un clic sur « Cliquer pour continuer » referme la révélation (ou enchaîne le pack suivant pour un lot).
 
@@ -1051,4 +1089,4 @@ Override possible via le champ `CardData.race_cost_override` (-1 = formule autom
 1. **Résolu.** Suggestion automatique du nombre de ressources dans le deckbuilder (formule ci-dessus, branchée à l'UI — voir détail plus haut).
 2. Mitigation de la variance de pioche (ex: mulligan garanti si trop peu de ressources en main de départ) — à valider ou non.
 3. Ratio race-locked/générique identique pour les 4 races, ou courbe différente pour le Démon (qui paie déjà en HP via PACTE) ?
-4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de PESTIFÉRÉ/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.
+4. Identité mécanique complète des Abominations (mots-clés exclusifs, dans l'esprit de MORSURE/FORMATION/PACTE) — non commencée ; carte-ressource Anomalie documentée mais sans support moteur.

@@ -4,7 +4,7 @@ Liste priorisée issue d'une revue transversale du projet (voir aussi la section
 
 ## P1 — Couverture de tests quasi nulle en dehors des cartes
 
-**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_apply_infection_damage`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (887 tests répartis sur 78 scripts, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
+**Résolu pour la partie raisonnablement testable.** `tests/unit/` couvre désormais `EffectManager`, `CostSystem`, `AuraSystem`, `SacrificeSystem`, `TriggerSystem`, `DeathSystem`, `CombatSystem` (double `SceneTree`, cf. convention ci-dessous), `TurnSystem` (`_tick_infection`/`run_turn_start_triggers`/`run_turn_end_triggers`), `AISystem`, `DeckSystem`/`DeckData`/`DeckManager`, `BoardSystem`/`BoardVisualSystem`, `DropSystem`, `AnimationSystem`, `VfxManager`, `Graveyard`, `TutorialDeck`, la partie pure de `CollectionManager`/`CurrencyManager` (hors appels réseau), la mutation Abomination, le timer de tour, ainsi que `NetCommand`/`NetRegistry` côté protocole réseau (vocabulaire de commandes + attribution/capture d'ids), en plus des tests `Minion`/`CardLibrary`/`CardData` d'origine (922 tests répartis sur 82 scripts, tous verts en headless : `godot --headless --path . -s res://addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`).
 
 Restent non couverts, jugés hors de portée d'un test unitaire raisonnable (couplage à la scène réelle/Steam plutôt qu'un manque d'effort) :
 - `NetworkManager`/`SteamTransport`/`NetworkOpponent` (`scripts/net/`) — dépendent de GodotSteam (P2P réel), d'un `SceneTree` réseau, et rejouent des commandes sur un `Battle` complet ; testable uniquement via un test d'intégration à deux instances Steam, pas un test unitaire.
@@ -376,21 +376,21 @@ son worktree, puis annulé — la branche est intacte, rien n'a été commité) 
 - **Mais 4 tests de la branche cassent au contact de `dev`** (939 tests, 6 échecs
   dont 2 déjà corrigés par ailleurs — voir le haut de ce fichier) :
   - 1 test simplement **obsolète** : il attend qu'un serviteur ressuscité entre
-    en jeu à 1 PV, alors que `dev` a délibérément changé ça (PR #541, « revive
-    minions at max health by default instead of 1 HP »). Correction : mettre le
-    test à jour, rien d'autre.
+	en jeu à 1 PV, alors que `dev` a délibérément changé ça (PR #541, « revive
+	minions at max health by default instead of 1 HP »). Correction : mettre le
+	test à jour, rien d'autre.
   - 3 tests pointent le **mécanisme de ciblage propre à la branche**
     (`EffectManager.resolve_trigger_target` +
     `TriggersSystem._execute_enchantment_effects_with_proxy`, le « ciblage joueur
-    généralisé sur un trigger de Rituel/Enchantement » qu'introduit la race
-    Artefact) : `test_ritual_with_no_context_target_resolves_it_via_resolve_trigger_target`,
-    `test_ritual_with_no_valid_target_pool_does_not_crash_and_does_nothing` et le
-    test d'application automatique de `-1/-0`. Le code de la branche a bien
-    survécu au merge (vérifié : les deux fonctions sont intactes), donc c'est
-    l'interaction avec les évolutions de `TriggersSystem` dans `dev` qui est à
-    reprendre. **C'est le seul vrai travail d'intégration**, et il demande de
-    connaître l'intention de conception de la branche — à faire par qui la
-    reprendra, pas à l'aveugle.
+	généralisé sur un trigger de Rituel/Enchantement » qu'introduit la race
+	Artefact) : `test_ritual_with_no_context_target_resolves_it_via_resolve_trigger_target`,
+	`test_ritual_with_no_valid_target_pool_does_not_crash_and_does_nothing` et le
+	test d'application automatique de `-1/-0`. Le code de la branche a bien
+	survécu au merge (vérifié : les deux fonctions sont intactes), donc c'est
+	l'interaction avec les évolutions de `TriggersSystem` dans `dev` qui est à
+	reprendre. **C'est le seul vrai travail d'intégration**, et il demande de
+	connaître l'intention de conception de la branche — à faire par qui la
+	reprendra, pas à l'aveugle.
 - Comptage réel des cartes sur la branche : 395 hors Arena (dont 19 jetons), les
   75 cartes Artefact comprises.
 
@@ -488,6 +488,50 @@ Le code client est en place, branché sur l'application Discord du jeu (`CLIENT_
 - Téléverser le logo du jeu dans l'onglet Rich Presence > Art Assets de l'application `Wyrdane`, sous le nom d'asset `logo` (voir `DiscordActivity.LARGE_IMAGE`). Sans lui la présence fonctionne — c'est vérifié — mais sans vignette : Discord retire silencieusement un nom d'asset inconnu de l'activité, sans erreur.
 
 Suites possibles une fois en place : boutons « Rejoindre » / invitations depuis Discord (nécessite `SET_ACTIVITY` avec `party`/`secrets` + l'autorisation `rpc` côté application), et support Linux/macOS (socket de domaine Unix, hors de portée de `FileAccess` — demanderait une extension).
+
+## P22 — Rééquilibrage de la progression (2026-09-28)
+
+**Fait côté code, reste un `db:sync` en prod.** Refonte demandée par l'utilisateur, répartie entre `wyrdane-backend` (branche `1001-progression-rework`) et `card-game` (branche `1004-progression-rewards`) :
+
+- Récompense de connexion : 20/40/60/80/100 or sur 5 jours, puis **plateau à 100/jour** au lieu de reboucler au jour 1 (un joueur fidèle retombait à la plus petite récompense juste après avoir tenu une semaine).
+- Récompense unique de fin de tutoriel : 20 cartes tirées dans tout le catalogue, pondération 40/30/20/10 — comble l'absence totale de Rituels/Enchantements dans les 4 decks de départ.
+- Quêtes uniques : paliers « jouez X parties » tous les 50 jusqu'à 250, paliers de rang étendus à Argent/Platine/Diamant/Maître (il n'y avait qu'Or et Légende). Catalogue recalibré à **10 000 or + 25 packs** au total (contre 11 800 + 33).
+- Quêtes quotidiennes recalées sur une échelle unique de 25/50/75/100 or ; mensuelles ramenées à 500/750 or ; quêtes de niveau 5/10/15/20/25 à 100/150/200/250/300 or et 0/0/1/1/2 packs ; parrainage passé à 4 packs sans or.
+- Affichage des récompenses de quête : plus de « 400 or, 0 pack(s) ».
+
+**Bugs corrigés au passage** :
+- `RANK_TIER_MMR_THRESHOLDS` (backend) avait silencieusement divergé de `RankTier.THRESHOLDS` (client) — Or exigeait 1300 de MMR côté quête contre 400 côté badge. Les deux valeurs restent dupliquées (le backend n'a aucune notion de palier), mais un test backend fige désormais la correspondance.
+- Les **quêtes de niveau** (`onboarding_quests`) souffraient du même défaut que les quêtes uniques : récompenses figées dans la ligne à l'assignation, sur une piste jamais reset — un rééquilibrage n'aurait donc touché que les comptes neufs. `reconcileWithTemplates` ajouté là aussi.
+- Les textes joueur du parrainage (`REFERRAL_STATUS_NONE`, `REFERRAL_FIRST_LAUNCH_DESC`) annonçaient « 3 packs + 500 or » en dur dans `game.csv` — désormais alignés sur le vrai barème. À surveiller : ces deux clés ne sont liées à aucune valeur du backend, elles redeviendront fausses au prochain changement de `REFERRAL_REWARD_*`.
+- `CLAUDE.md` client annonçait 2 quêtes quotidiennes par jour ; `QUESTS_PER_DAY` vaut **3** côté backend depuis le 2026-09-15.
+
+**Protection anti-doublon des packs (ajoutée le 2026-09-28, backend)** : le poids de tirage d'une carte déjà possédée est multiplié par `1 - 0,9 × complétion` (voir « Protection anti-doublon des packs » dans le `CLAUDE.md` de `wyrdane-backend`). Corrige le déséquilibre relevé en simulation le même jour : compléter la collection en n'ouvrant que des packs demandait ~24 mois contre ~2 mois en achetant les cartes à l'unité, parce qu'une légendaire précise ne représente que 0,8 % des tirages en fin de collection. Ramené à ~5 mois, sans ralentir la collecte des exemplaires 2/3/4. Volontairement **pas** appliqué aux cartes de récompense de niveau (`levelModel.fetchRandomCardByRarity`) ni au lot de fin de tutoriel — à envisager si le besoin se confirme, les deux tirent encore uniformément dans leur rareté.
+
+**Reste à faire** : `docker compose exec backend node dist/database/sync.js` sur le VPS après le déploiement, pour créer `users.tutorial_reward_claimed_at`. Tant que la colonne manque, `POST /api/collection/claim-tutorial-reward` répond 500 — même classe de panne que les trois incidents précédents (matchmaking classé, chat/amis, invitations de partie), voir « Appliquer un changement de schéma en prod » dans le `CLAUDE.md` de `wyrdane-backend`.
+
+## P23 — Infection à durée : suites (2026-10-01)
+
+**Mécanique implémentée et couverte par les tests** (voir « Mécaniques Mort-Vivant » dans `README.md`). Ce qui a été volontairement laissé de côté, repris du brouillon de design `REVISION_MORTVIVANT_INFECTION.md` :
+
+- **Rareté du Brouillard Pestilentiel en base de prod** : la carte passe Rare → Épique côté `.tres`, mais la rareté stockée côté `wyrdane-backend` (pondération des packs) est une **copie indépendante** — le client ne lit que l'`id` du catalogue backend (`CardLibrary.sync_backend_catalog`). Tant qu'elle n'est pas mise à jour en base, la carte est tirée dans les packs avec le poids d'une Rare. Son nom FR n'a pas changé, donc le lien client↔backend reste intact.
+- **Pas de compteur numérique d'Infection sur le serviteur** : la durée restante n'apparaît que dans l'infobulle (`STATUS_INFECTED_DESC`), comme pour le Gel (`frozen_turns`, qui n'a jamais eu de badge non plus). À faire en même temps que le badge de Gel si le besoin se confirme.
+- **`AISystem` ne tient pas compte de l'Infection** dans son ciblage : elle ne privilégie pas un ennemi infecté (pour forcer la conversion) ni un allié infecté comme victime de sacrifice. Elle joue correctement sans, mais rate une ligne de jeu.
+- **Arena (autobattler)** : un combat simulé n'a pas de « fin de tour », donc le compteur d'Infection ne descend jamais pendant un combat ; les conversions produisent de vrais Zombies sur le plateau simulé, jetés avec lui à la fin du combat. Conforme à l'intention (« l'Infection expire à la fin du combat, les Zombies sont temporaires »), mais jamais vérifié en jeu.
+- **Points d'équilibrage à surveiller en playtest** : Patient Zéro + Brouillard (tout le plateau marqué 4 tours pour 9⬡ au total), balayages de masse sur plateau infecté (un Zombie par mort, pas de plafond de conversions par tour), et REVENANT × FUSION (la victime rend ses stats puis revient à 1 PV).
+- **Site compagnon** (`wyrdane-website`) : `gameCards.json`/`keywords.ts` sont une copie des données du jeu, à régénérer pour que le deck builder web affiche `MORSURE X` et les nouveaux textes.
+
+## P24 — Passe de corrections de cartes (2026-10-01)
+
+**Fait**, sur rapport de test de jeu (14 cartes + 7 correctifs de moteur — voir `devlogs/2026-10-05-draft.md` pour la liste complète). Les points de moteur à retenir :
+
+- Un serviteur à Arrivée ciblée est désormais **posé avant** le choix de la cible (`BoardSystem.summon_minion_return(..., prompt_onplay_target)` + `CardSystem._play_minion_then_target`), et non plus ciblé depuis la main.
+- `CardEffect.prompt_target` : un effet réclame sa propre cible à la résolution (Pacte du Faucheur des Abysses, qui détruit un **second** serviteur). Hors joueur local, tirage au sort via `_choose_trigger_target` — même limite que les Derniers Souffles ciblés.
+- `CardEffect.mutation_outcome` : mutation forcée sur un résultat précis. Les cartes « mutation forcée : Dégénérescence » déjà simplifiées en `Debuff` -1/-1 (A44, A58, A71 — voir `CARDS.md`) pourraient repasser par là, elles ne comptent pas comme mutations aujourd'hui.
+- `CombatSystem` ne prévenait **jamais** les enchantements d'une attaque (`trigger_system.fire("OnAttack", ...)` manquait) : Bouclier de la Foi était totalement inopérant. Vérifier qu'aucun autre trigger d'enchantement n'est dans ce cas.
+
+**Deux points laissés en suspens, à trancher avec l'utilisateur** :
+- **Banshee des Abysses (D20)** : le rapport demande un Silence sur serviteur ciblé, `CARDS.md` et la carte disent Corruption. Le ciblage lui-même fonctionne (corrigé par la pose-avant-ciblage ci-dessus) — reste à confirmer si l'effet doit changer.
+- **Champion du Peuple (H25)** : le trigger Exécution ne se déclenche que si le serviteur **tue lui-même** en combat (`CombatSystem._execute_damage`), alors que `README.md` le définit comme « une unité ennemie meurt ». L'élargir à `DeathSystem` toucherait les 6 cartes à Exécution (Champion du Peuple, Mur de Lances, Lame-Jurée, Bourreau Mineur, Main-Qui-Choisit, Rongeur de Chair) et casserait le calage « avant `consume_attack` » dont dépend Rongeur de Chair.
 
 ## Non-problèmes vérifiés pendant cette revue
 

@@ -18,9 +18,9 @@ type = "OnAura"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Lancier en Ligne"
+card_name = "Lancier Skeldarien"
 description = "FORMATION"
-flavour_text = "La ligne tient ou la ligne tombe. Il n'y a pas d'entre-deux."
+flavour_text = "La ligne de Skeldara tient ou la ligne tombe. Il n'y a pas d'entre-deux."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

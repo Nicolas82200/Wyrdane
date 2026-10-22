@@ -19,9 +19,9 @@ type = "OnDamaged"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Vétéran des Marches"
+card_name = "Vétéran Skeldarien des Marches"
 description = "Blessure : Gagne +1/+0 de façon permanente."
-flavour_text = "Chaque cicatrice lui a appris quelque chose. Il en a beaucoup appris."
+flavour_text = "Chaque cicatrice gagnée sur les marches de Skeldara lui a appris quelque chose sur les Démons. Il en a beaucoup appris."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

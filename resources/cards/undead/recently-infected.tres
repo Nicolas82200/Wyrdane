@@ -21,7 +21,7 @@ type = "OnDeathRage"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Infecté Récent"
-description = "Mort-rage : +1/+1 par ennemi infecté en jeu."
+description = "Mort-rage : Gagne +1/+1 par serviteur ennemi infecté en jeu."
 flavour_text = "La morsure date d'hier. Il a encore ses yeux d'avant, mais plus rien derrière."
 texture = ExtResource("3_texture")
 cost = 2

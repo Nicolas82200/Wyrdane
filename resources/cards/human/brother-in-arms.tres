@@ -18,9 +18,9 @@ type = "OnAttack"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Frère d'Armes"
+card_name = "Frère d'Armes Eorthalien"
 description = "Attaque : Les serviteurs adjacents gagnent +0/+1."
-flavour_text = "Il ne combat pas pour la victoire. Il combat pour que l'homme à sa gauche rentre chez lui."
+flavour_text = "Il ne combat pas pour reprendre Eorthal. Il combat pour que l'homme à sa gauche rentre quelque part."
 texture = ExtResource("3_texture")
 cost = 3
 race = 1

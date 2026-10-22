@@ -28,10 +28,10 @@ type = "OnAwaken"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Général de Brigade"
+card_name = "Général de Brigade Aldrénien"
 description = "COMMANDEMENT
-Éveil : Invoque un Fantassin Aguerri 2/2 si vous avez 4 Humains ou plus en jeu."
-flavour_text = "Une armée n'est pas un nombre. C'est une volonté. La sienne."
+Éveil : Invoque un Fantassin Eorthalien Aguerri 2/2 si vous avez 4 Humains ou plus en jeu."
+flavour_text = "Aldrenia n'envoie plus de rois au combat. Elle envoie des généraux qui se souviennent encore pourquoi la couronne existait."
 texture = ExtResource("3_texture")
 cost = 5
 race = 1

@@ -11,6 +11,7 @@
 script = ExtResource("1_cardeffect")
 effect_id = "InfectEnemy"
 target = "AllEnemies"
+value = 2
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [sub_resource type="Resource" id="Resource_paxir"]
@@ -20,10 +21,10 @@ type = "ONPLAY"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Le Patient Zéro"
-description = "Arrivée : Inflige Infection à tous les serviteurs ennemis en jeu."
+description = "Arrivée : Inflige Infection (2 tours) à tous les serviteurs ennemis en jeu."
 flavour_text = "On n'a jamais su d'où il venait. On a fini par ne plus chercher."
 texture = ExtResource("3_texture")
-cost = 4
+cost = 5
 unit_style = 1
 attack = 3
 health = 3

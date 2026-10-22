@@ -38,7 +38,7 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 script = ExtResource("2_carddata")
 card_name = "Bourreau Mineur"
 description = "Exécution : Ce serviteur gagne +1/+0 de façon permanente.
-Pacte 1 : Ce serviteur gagne aussi +0/+1."
+Pacte 1 : Ce serviteur gagne aussi +0/+1 de façon permanente."
 flavour_text = "Chaque exécution le nourrit, et te vide un peu."
 texture = ExtResource("3_texture")
 cost = 3
