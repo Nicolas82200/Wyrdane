@@ -12,7 +12,7 @@ class_name CardEffect
 	"DebuffATK", "DestroyLowHP", "BuffIfCondition",
 	"DamageAllMinions", "ReturnFromGrave",
 	"GrantKeyword", "AttackImmediate", "GrantExtraAttack",
-	"CureInfection", "AuraInfectionImmunity", "AuraDamageReduction",
+	"CureInfection", "AuraInfectionImmunity", "AuraInfectionDuration", "AuraDamageReduction",
 	"SacrificeAlly", "GrantCounterOffensive", "ProtectFrontLine",
 	"GainMana", "DrawCardDiscount",
 	"AuraSpellCostReduction", "AuraFirstOfRaceCostReduction",

@@ -23,10 +23,10 @@ type = "OnAwaken"
 
 [resource]
 script = ExtResource("3_yv1py")
-card_name = "La Grande Inquisitrice"
+card_name = "La Grande Inquisitrice de Dreamar"
 description = "DISCIPLINE
-Éveil : Détruit un enchantement ou rituel ennemi aléatoire."
-flavour_text = "Elle ne combat pas la magie ennemie. Elle la refuse."
+Éveil : Détruit un enchantement ou rituel ennemi actif aléatoire."
+flavour_text = "À Dreamar, on ne combat pas la magie ennemie. On la voit venir, longtemps avant qu'elle n'arrive. Elle la refuse."
 texture = ExtResource("4_k4mkx")
 cost = 6
 race = 1

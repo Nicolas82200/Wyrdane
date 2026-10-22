@@ -25,10 +25,10 @@ type = "ONPLAY"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Capitaine de Milice"
+card_name = "Capitaine de Milice Eorthalienne"
 description = "COMMANDEMENT
-Arrivée : Invoque un Milicien du Bourg 2/1."
-flavour_text = "Il n'avait pas prévu de commander. Mais quelqu'un devait le faire."
+Arrivée : Invoque un Milicien Eorthalien du Bourg 2/1."
+flavour_text = "Il n'avait pas prévu de commander les réfugiés d'Eorthal. Mais quelqu'un devait le faire."
 texture = ExtResource("3_texture")
 cost = 4
 race = 1

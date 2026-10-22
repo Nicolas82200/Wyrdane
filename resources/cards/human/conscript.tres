@@ -8,8 +8,8 @@
 
 [resource]
 script = ExtResource("3_wgmki")
-card_name = "Conscrit"
-flavour_text = "Il n'a pas choisi de venir. Il est venu quand même."
+card_name = "Conscrit Eorthalien"
+flavour_text = "Il n'a pas choisi de quitter les champs d'Eorthal. Il est venu quand même."
 texture = ExtResource("4_6ifys")
 race = 1
 unit_style = 19

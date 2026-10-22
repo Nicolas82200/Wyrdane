@@ -42,6 +42,17 @@ static func steam() -> Object:
 static func ensure_init() -> bool:
 	if _initialized:
 		return true
+	# Jamais d'init Steam en headless (suite GUT, vérification syntaxique par
+	# scène temporaire, tout script lancé avec --headless) : initialiser
+	# l'API déclare l'AppID 5052390 « en cours d'exécution » au client Steam,
+	# qui affiche alors le joueur « en jeu » tant que le processus vit. Un run
+	# headless n'a pas de fenêtre pour signaler qu'il tourne encore et ne
+	# s'arrête pas toujours tout seul (une scène qui n'appelle pas quit()
+	# tourne indéfiniment) : un seul oubli laissait le joueur affiché en jeu
+	# sur Discord/Steam pendant des heures, en brûlant un cœur au passage.
+	# Aucune perte : un run headless n'a de toute façon rien à faire de Steam.
+	if DisplayServer.get_name() == "headless":
+		return false
 	var s := steam()
 	if s == null:
 		return false

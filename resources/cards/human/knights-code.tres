@@ -20,8 +20,8 @@ type = "OnResonance"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Code du Chevalier"
-description = "Chaque fois qu'un serviteur Humain allié attaque, les serviteurs alliés gagnent +1/+0 de façon permanente."
-flavour_text = "L'honneur ne protège pas. Mais il donne un tranchant supplémentaire."
+description = "Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente."
+flavour_text = "Le code des chevaliers de Skeldara ne protège pas du coup suivant. Mais il donne un tranchant de plus pour le rendre."
 texture = ExtResource("3_texture")
 cost = 5
 race = 1

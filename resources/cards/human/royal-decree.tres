@@ -22,8 +22,8 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Décret Royal"
-description = "Éveil : Les serviteurs Humains alliés gagnent +1/+1 de façon permanente."
-flavour_text = "Le décret n'a pas de date d'expiration. La guerre non plus."
+description = "Éveil : Tous les serviteurs Humains alliés gagnent +1/+1. (S'accumule chaque tour.)"
+flavour_text = "Le dernier roi d'Aldrenia est mort à la Première Vague. Ses décrets, eux, n'ont pas de date d'expiration."
 texture = ExtResource("3_texture")
 cost = 7
 race = 1

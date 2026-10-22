@@ -18,9 +18,9 @@ type = "OnAura"
 
 [resource]
 script = ExtResource("4_carddata")
-card_name = "Fantassin Aguerri"
+card_name = "Fantassin Eorthalien Aguerri"
 description = "FORMATION"
-flavour_text = "Seul, il tient. Ensemble, ils avancent."
+flavour_text = "Seul, un fils d'Eorthal tient. Ensemble, ils avancent."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

@@ -121,6 +121,13 @@ func get_demon_keyword_values() -> Array[int]:
 		values.append(kw.keyword_type)
 	return values
 
+# Durée d'Infection (X) du mot-clé MORSURE porté par cette carte, 0 si absent.
+func get_undead_keyword_value(type: int) -> int:
+	for kw in undead_keywords:
+		if kw.keyword_type == type:
+			return kw.value
+	return 0
+
 # Coût en PV (X) du mot-clé PACTE porté par cette carte, 0 si absent ou non-Pacte.
 func get_demon_keyword_value(type: int) -> int:
 	for kw in demon_keywords:

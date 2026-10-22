@@ -18,8 +18,8 @@ metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Ordre d'Avancer"
-description = "Les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente."
-flavour_text = "L'ordre est arrivé. Il n'y avait pas de question à poser."
+description = "Tous les serviteurs Humains alliés en rangée Avant gagnent +1/+0 de façon permanente."
+flavour_text = "L'ordre de Skeldara est arrivé jusqu'au front. Il n'y avait pas de question à poser."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

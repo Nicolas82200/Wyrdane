@@ -10,15 +10,15 @@
 script = ExtResource("1_cardeffect")
 effect_id = "GroupAttackImmediate"
 target = "EnemyMinion"
+race_filter = "Human"
 count = 2
-count_race = "Human"
 metadata/_custom_type_script = "uid://ddqetdlahmfmu"
 
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Frappe Coordonnée"
-description = "Deux serviteurs Humains alliés attaquent immédiatement un serviteur ciblé ennemi."
-flavour_text = "Deux hommes, un seul endroit. L'ennemi n'a pas le temps de choisir lequel regarder."
+description = "Deux Humains alliés attaquent immédiatement un serviteur ciblé ennemi."
+flavour_text = "Deux lames de Skeldara, un seul endroit. L'ennemi n'a pas le temps de choisir laquelle regarder."
 texture = ExtResource("3_texture")
 cost = 2
 race = 1

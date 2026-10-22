@@ -29,8 +29,8 @@ type = "OnAwaken"
 [resource]
 script = ExtResource("4_carddata")
 card_name = "Purge Sainte"
-description = "Éveil : Détruit 2 serviteurs non-Humains aléatoires ennemis."
-flavour_text = "Ce n'est pas une prière. C'est une déclaration."
+description = "Éveil : Détruit 2 serviteurs aléatoires non-Humains ennemis."
+flavour_text = "Ce n'est pas une prière venue de Dreamar. C'est une déclaration."
 texture = ExtResource("3_texture")
 cost = 6
 race = 1

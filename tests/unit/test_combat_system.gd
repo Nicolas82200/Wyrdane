@@ -187,19 +187,33 @@ func test_contre_attaque_also_triggers_for_surviving_attacker() -> void:
 	# défenseur subit 2 (combat) + 2 (riposte de l'attaquant) = 4
 	assert_eq(defender.health, 6)
 
-# ─── PESTIFÉRÉ ───────────────────────────────────────────────────────────────
+# ─── MORSURE X ───────────────────────────────────────────────────────────────
 
-func test_pestifere_infects_surviving_defender() -> void:
-	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.PESTIFERE)
+func test_morsure_infects_surviving_defender() -> void:
+	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.MORSURE)
 	var defender := _minion(1, 10, false)
 	await combat_system.resolve_combat(attacker, defender)
 	assert_true(defender.infected)
 
-func test_pestifere_does_not_infect_chair_morte() -> void:
-	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.PESTIFERE)
+func test_morsure_does_not_infect_chair_morte() -> void:
+	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.MORSURE)
 	var defender := _minion(1, 10, false, Race.Type.UNDEAD, -1, KeywordUndead.Type.CHAIR_MORTE)
 	await combat_system.resolve_combat(attacker, defender)
 	assert_false(defender.infected)
+
+func test_morsure_applies_the_keyword_value_as_duration() -> void:
+	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.MORSURE)
+	attacker.card_data.undead_keywords[0].value = 3
+	var defender := _minion(1, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	assert_eq(defender.infection_turns, 3, "MORSURE 3 pose 3 tours d'Infection")
+	assert_true(defender.infection_infector_is_player, "l'infecteur est le camp de l'attaquant")
+
+func test_morsure_without_value_falls_back_to_one_turn() -> void:
+	var attacker := _minion(1, 5, true, Race.Type.UNDEAD, -1, KeywordUndead.Type.MORSURE)
+	var defender := _minion(1, 10, false)
+	await combat_system.resolve_combat(attacker, defender)
+	assert_eq(defender.infection_turns, 1, "mot-clé copié sans valeur (CHAIR ADAPTATIVE/FUSION) : 1 tour")
 
 # ─── CORRUPTION ──────────────────────────────────────────────────────────────
 
