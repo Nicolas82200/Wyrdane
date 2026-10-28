@@ -49,13 +49,23 @@ const DESC_LABEL_MAX_GROWTH     := 3.0
 # besoin d'un cran de plus que le reste de l'UI pour eviter les debordements
 # sur les cartes au texte long (demande utilisateur 2026-10-02).
 const DESC_LABEL_DEFAULT_FONT_SIZE := Typography.BODY - 1
-const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.MICRO - 1
+# Le cran reduit valait MICRO - 1 (14px) : illisible sur les cartes a texte
+# long (retour utilisateur 2026-10-28, "quand y a trop de texte c'est ecrit
+# trop petit"). Remonte a 16px, le plancher de lisibilite de Spectral dans
+# cette case ; c'est le masquage plus precoce du flavour text (voir
+# DESC_FLAVOUR_HIDE_THRESHOLD juste en dessous) qui rend la place necessaire.
+const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.BODY - 3
 
 # Au-dela de ce nombre de caracteres, la description seule (hors flavour text)
 # remplit deja la case par defaut : le flavour text (ambiance, cosmetique) est
 # alors masque plutot que d'aggraver le debordement au detriment du texte de
 # regle, qui lui est indispensable a la lisibilite de la carte.
-const DESC_FLAVOUR_HIDE_THRESHOLD := 120
+# Abaisse de 120 a 80 le 2026-10-28 : a 120 le seuil ne couvrait que ~2% des
+# cartes, donc la plupart des cartes bavardes gardaient leur flavour et
+# tombaient sur le cran de police reduit. 80 est le 3e quartile des longueurs
+# de description (mediane 52, p90 98) : au-dela, description + flavour ne
+# tiennent pas dans la case a la taille par defaut.
+const DESC_FLAVOUR_HIDE_THRESHOLD := 80
 
 # AttackLabel/HealthLabel (voir Card.tscn) : position par defaut, decalee par
 # _fit_desc_label si DescLabel deborde (voir DESC_LABEL_MAX_GROWTH).
