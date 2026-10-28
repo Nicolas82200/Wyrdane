@@ -404,7 +404,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre de Skeldara est simple : tenir. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
 | H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant appris à Dreamar ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
 | H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse. | *Cinq hommes de Skeldara, côte à côte sur la ligne. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
-| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1. | *À Skeldara, le serment survit à celui qui l'a fait. C'est tout l'intérêt.* |
+| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, les serviteurs adjacents gagnent +1/+1. | *À Skeldara, le serment survit à celui qui l'a fait. C'est tout l'intérêt.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Ostranien Rapide 1/1. | *Pas de repos sur les routes de Skeldara. La colonne avance parce que s'arrêter, c'est mourir.* |
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Sur le front de Skeldara, chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente. | *Le code des chevaliers de Skeldara ne protège pas du coup suivant. Mais il donne un tranchant de plus pour le rendre.* |
@@ -776,7 +776,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A02 | Cœur Sans Corps | ↕️ | 1 | 2 | 1 | ASSIMILATION | *Il bat pour quelque chose qui n'existe plus.* |
 | A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART, INSTABLE | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
 | A04 | Nœud de Chair | ⚔️ | 2 | 2 | 2 | MUTATION | *Chaque coup reçu le noue un peu plus serré.* |
-| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Le serviteur adjacent gagne +1/+1 permanent. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
+| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Les serviteurs adjacents gagnent +1/+1 de façon permanente. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
 | A06 | Regard Détaché | 🛡️ | 2 | 1 | 2 | Arrivée : regarde la carte du dessus de ton deck, tu peux la remettre au fond. | *Il ne cligne jamais. Il n'a plus rien à protéger.* |
 | A07 | Le Poids-Qui-Marche | ⚔️ | 3 | 2 | 4 | MUTATION, ASSIMILATION | *On ne sait pas ce qu'il porte. Lui non plus.* |
 | A08 | Emprunt de Peau | ↕️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle n'a rien à elle. Elle prend ce qui traîne à côté.* |
@@ -853,7 +853,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | A40 | Morsure de l'Air | 2 | Commune | Inflige 2 points de dégâts à un serviteur ciblé ennemi. S'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
 | A41 | Premier Tressaut | 1 | Commune | Un serviteur ciblé allié déclenche immédiatement une mutation. | *Il n'a pas eu le temps de choisir. Peu importe.* |
 | A42 | Pluie Qui Change | 3 | Commune | Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. Les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
-| A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Le serviteur adjacent absorbe ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
+| A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Les serviteurs adjacents absorbent ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
 | A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ciblé ennemi un tour. À la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
 | A45 | Appétit Ciblé | 3 | Rare | Détruit un serviteur ennemi ayant 2 HP ou moins ; Une Abomination ciblé alliée gagne +1/+1 permanent. | *Rien ne se jette. Tout se digère.* |
 | A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : Elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
