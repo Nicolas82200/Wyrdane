@@ -277,7 +277,7 @@ expand_mode = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
-offset_left = 300.0
+offset_left = 166.0
 offset_top = 70.0
 offset_right = -80.0
 offset_bottom = 150.0
@@ -297,7 +297,7 @@ vertical_alignment = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
-offset_left = 304.0
+offset_left = 170.0
 offset_top = 150.0
 offset_right = -84.0
 offset_bottom = 180.0
@@ -349,132 +349,6 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
 text = "0 packs à ouvrir"
-
-[node name="NavPanel" type="PanelContainer" parent="." unique_id=1955392600]
-layout_mode = 1
-anchors_preset = -1
-anchor_bottom = 1.0
-offset_right = 268.0
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_rail")
-
-[node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
-layout_mode = 2
-theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 32
-theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 32
-
-[node name="NavStack" type="Control" parent="NavPanel/NavMargin" unique_id=1045377222]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="MainNavView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1955392611]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 24
-
-[node name="NavSettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000172]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 2
-theme_override_font_sizes/font_size = 19
-theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
-text = "⚙"
-
-[node name="PlayerStatusPanel" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
-
-[node name="PlayerMargin" type="MarginContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=2088017129]
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="SteamProfile" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin" unique_id=300000021]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Avatar" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=300000022]
-custom_minimum_size = Vector2(36, 36)
-layout_mode = 2
-size_flags_vertical = 4
-expand_mode = 1
-stretch_mode = 5
-
-[node name="NameLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=300000023]
-layout_mode = 2
-size_flags_horizontal = 3
-clip_text = true
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
-theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 23
-text = "Pseudo Steam"
-vertical_alignment = 1
-
-[node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
-layout_mode = 2
-focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
-
-[node name="FriendsStrip" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000173]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
-
-[node name="FriendsStripScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip" unique_id=1028000174]
-layout_mode = 2
-mouse_filter = 2
-horizontal_scroll_mode = 0
-
-[node name="FriendsCollapsedAvatars" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsStripScroll" unique_id=1028000101]
-layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
-theme_override_constants/separation = 10
-alignment = 1
-
-[node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000042]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
-text = "Chat"
-
-[node name="ChatBadge" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/ChatButton"]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 1.0
-offset_left = -26.0
-offset_top = -6.0
-offset_right = -4.0
-offset_bottom = 16.0
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
-
-[node name="ChatBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
-theme_override_font_sizes/font_size = 15
-text = "0"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 
 [node name="FooterPanel" type="PanelContainer" parent="." unique_id=300000050]
 layout_mode = 1
@@ -542,20 +416,13 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 19
 text = "ℹ"
 
-[node name="QuitButton" type="Button" parent="FooterPanel/FooterMargin/FooterRow" unique_id=1028000109]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 19
-text = "⏻"
-
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = 300.0
+offset_left = 166.0
 offset_top = -400.0
 offset_right = -32.0
 offset_bottom = 400.0
@@ -2030,6 +1897,201 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 disabled = true
 text = "Lancer la partie"
 
+[node name="NavPanel" type="PanelContainer" parent="." unique_id=1955392600]
+clip_contents = true
+layout_mode = 1
+anchors_preset = -1
+anchor_bottom = 1.0
+offset_right = 134.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rail")
+
+[node name="NavMargin" type="MarginContainer" parent="NavPanel" unique_id=1955392601]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 32
+
+[node name="NavStack" type="Control" parent="NavPanel/NavMargin" unique_id=1045377222]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MainNavView" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack" unique_id=1955392611]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="NavTopRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000180]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/NavTopRow" unique_id=1028000109]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "⏻"
+
+[node name="NavSettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/NavTopRow" unique_id=1028000172]
+custom_minimum_size = Vector2(0, 36)
+size_flags_horizontal = 3
+layout_mode = 2
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "⚙"
+
+[node name="PlayerStatusPanel" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=300000020]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
+
+[node name="PlayerMargin" type="MarginContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=2088017129]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="SteamProfile" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin" unique_id=300000021]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Avatar" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=300000022]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerInfoCol" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=1028000181]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+
+[node name="PlayerNameRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol" unique_id=1028000182]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NameLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow" unique_id=300000023]
+layout_mode = 2
+size_flags_horizontal = 3
+clip_text = true
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_fonts/font = ExtResource("6_subtitle")
+theme_override_font_sizes/font_size = 19
+text = "Pseudo Steam"
+vertical_alignment = 1
+
+[node name="NavLevelLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow" unique_id=1028000183]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "Niveau 1"
+vertical_alignment = 1
+
+[node name="NavRankLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol" unique_id=1028000184]
+layout_mode = 2
+clip_text = true
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "-"
+
+[node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
+
+[node name="NavSeparator" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000185]
+layout_mode = 2
+
+[node name="FriendsStrip" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000173]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
+
+[node name="FriendsRail" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip" unique_id=1028000174]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000011]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll" unique_id=1028000012]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000007]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
+theme_override_fonts/font = ExtResource("3_xwq4k")
+theme_override_font_sizes/font_size = 23
+text = "Amis"
+
+[node name="FriendsSearchRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000008]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FriendsSearchLineEdit" type="LineEdit" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow" unique_id=1028000009]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Pseudo..."
+
+[node name="FriendsSearchButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow" unique_id=1028000010]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Chercher"
+
+[node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000042]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "Chat"
+
+[node name="ChatBadge" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/ChatButton"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+offset_left = -26.0
+offset_top = -6.0
+offset_right = -4.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="ChatBadgeLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.9, 1)
+theme_override_font_sizes/font_size = 15
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+
 [node name="OfflineBanner" type="PanelContainer" parent="." unique_id=300000070]
 visible = false
 layout_mode = 1
@@ -2750,74 +2812,3 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_play_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_play_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_hover")
 text = "Envoyer le rapport"
-
-[node name="FriendsHoverOverlay" type="Control" parent="." unique_id=1028000002]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="FriendsHoverDim" type="ColorRect" parent="FriendsHoverOverlay" unique_id=1028000003]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
-
-[node name="FriendsHoverPanel" type="PanelContainer" parent="FriendsHoverOverlay" unique_id=1028000004]
-layout_mode = 1
-offset_right = 500.0
-offset_bottom = 480.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_nav")
-
-[node name="FriendsHoverMargin" type="MarginContainer" parent="FriendsHoverOverlay/FriendsHoverPanel" unique_id=1028000005]
-layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
-
-[node name="FriendsHoverBody" type="VBoxContainer" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin" unique_id=1028000006]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="FriendsTitleLabel" type="Label" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody" unique_id=1028000007]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
-theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 29
-text = "Amis"
-
-[node name="FriendsSearchRow" type="HBoxContainer" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody" unique_id=1028000008]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="FriendsSearchLineEdit" type="LineEdit" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow" unique_id=1028000009]
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Pseudo..."
-
-[node name="FriendsSearchButton" type="Button" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow" unique_id=1028000010]
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "Chercher"
-
-[node name="FriendsScroll" type="ScrollContainer" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody" unique_id=1028000011]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="FriendsBodyVBox" type="VBoxContainer" parent="FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsScroll" unique_id=1028000012]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="FriendsHoverCloseTimer" type="Timer" parent="FriendsHoverOverlay" unique_id=1028000013]
-wait_time = 0.25
-one_shot = true
