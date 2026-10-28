@@ -46,11 +46,11 @@ const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 
 @onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
-@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/NavSettingsButton
+@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/NavTopRow/NavSettingsButton
 @onready var packs_pill_button: Button = $TopRightRow/PacksPillButton
 @onready var report_button:  Button = $FooterPanel/FooterMargin/FooterRow/ReportButton
 @onready var credits_button:  Button = $FooterPanel/FooterMargin/FooterRow/CreditsButton
-@onready var quit_button:     Button = $FooterPanel/FooterMargin/FooterRow/QuitButton
+@onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/NavTopRow/QuitButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
@@ -85,7 +85,12 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile
 @onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/Avatar
-@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/NameLabel
+# Pseudo + niveau + classement : repliés, seul l'avatar reste (maquette
+# utilisateur 2026-10-28). PlayerInfoCol porte la visibilité des trois.
+@onready var player_info_col: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol
+@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow/NameLabel
+@onready var nav_level_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow/NavLevelLabel
+@onready var nav_rank_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/NavRankLabel
 @onready var currency_label: Label = $TopRightRow/CurrencyLabel
 @onready var account_level_label: Label = %AccountLevelLabel
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
@@ -553,6 +558,7 @@ func _fade_in_button_group(buttons: Array, extra_delay: float = 0.0) -> void:
 # visuel sans toucher au style existant.
 func _wire_nav_hover_pop() -> void:
 	_wire_hover_pop_group(main_nav_view.get_children())
+	_wire_hover_pop_group(settings_button.get_parent().get_children())
 	_wire_hover_pop_group(decks_button.get_parent().get_children())
 
 func _wire_hover_pop_group(buttons: Array) -> void:
@@ -725,7 +731,7 @@ func set_nav_expanded(expanded: bool) -> void:
 # Tout ce qui n'a pas de sens dans un rail étroit disparaît en replié : pseudo
 # du joueur, libellé du bouton Chat, en-tête et recherche d'amis.
 func _apply_nav_expanded() -> void:
-	steam_name_label.visible = nav_expanded
+	player_info_col.visible = nav_expanded
 	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON") if nav_expanded else "💬"
 	friends_title_label.visible = nav_expanded
 	friends_search_row.visible = nav_expanded
@@ -791,6 +797,7 @@ func _on_pack_opening_closed() -> void:
 # fin de partie (voir GameOverScreen.show_xp_reward).
 func _update_account_level_display() -> void:
 	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	nav_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
 	account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [LevelManager.xp, LevelManager.xp_to_next]
 	var progress := float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
 	account_level_bar.value = progress
@@ -998,14 +1005,17 @@ func _show_info_view(view: InfoView) -> void:
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
 
-# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau...) ;
-# un clic relâché précisément sur AccountLevelLabel/Bar ouvre la popup de
-# récompenses de niveau à la place du profil (voir LevelRewardsPanel).
+# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau) ;
+# un clic relâché précisément sur le niveau ouvre la popup de récompenses de
+# niveau à la place du profil (voir LevelRewardsPanel). On teste le rect de
+# NavLevelLabel, le niveau RÉELLEMENT affiché dans le rail : %AccountLevelLabel
+# vit depuis le 2026-10-13 dans la vue Profil, donc son rect ne recouvrait plus
+# jamais le panneau joueur — et, le rail déplié passant par-dessus InfoPanel,
+# il pouvait même intersecter le pseudo par accident.
 func _on_player_status_gui_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
 		return
-	var level_rect := account_level_label.get_global_rect().merge(account_level_xp_label.get_global_rect()).merge(account_level_bar.get_global_rect())
-	if level_rect.has_point(event.global_position):
+	if nav_level_label.is_visible_in_tree() and nav_level_label.get_global_rect().has_point(event.global_position):
 		LevelRewardsPanel.open(self)
 	else:
 		_on_profile_button_pressed()

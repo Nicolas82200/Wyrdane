@@ -121,11 +121,11 @@ static func render(menu) -> void:
 
 	apply_expanded(menu)
 
-# Deux tailles d'avatar : minuscule dans le rail replié (demande utilisateur
-# explicite 2026-10-28 : "les avatars sont trop grands, beaucoup plus petits"),
-# à peine plus grande une fois déplié pour rester alignée sur le pseudo.
-const AVATAR_SIZE_COLLAPSED := 22.0
-const AVATAR_SIZE_EXPANDED := 32.0
+# Deux tailles d'avatar, calées sur la maquette utilisateur (2026-10-28) :
+# replié l'avatar occupe presque toute la largeur du rail (c'est le seul
+# contenu visible), déplié il laisse la place au pseudo à côté de lui.
+const AVATAR_SIZE_COLLAPSED := 48.0
+const AVATAR_SIZE_EXPANDED := 40.0
 
 # Bascule replié/déplié : ne reconstruit rien, ne fait que montrer/cacher les
 # détails de chaque ligne et redimensionner les avatars (voir MainMenu.
@@ -216,6 +216,8 @@ static func _make_request_row(menu, req: Dictionary) -> VBoxContainer:
 	row.set_meta(EXPANDED_ONLY, true)
 	return row
 
+const OFFLINE_ROW_MODULATE := Color(1, 1, 1, 0.45)
+
 static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
@@ -232,6 +234,8 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	style.corner_radius_bottom_right = 4
 	style.corner_radius_bottom_left = 4
 	row.add_theme_stylebox_override("panel", style)
+	if str(friend.get("presence", "offline")) == "offline":
+		row.modulate = OFFLINE_ROW_MODULATE
 
 	# Bouton invisible plein cadre : clic gauche = ouvrir le chat, clic droit
 	# (via gui_input, les boutons ne déclenchent .pressed que sur clic gauche
@@ -256,7 +260,7 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 
 	# Chaque Label ci-dessous doit aussi ignorer la souris : un Control
 	# (Label compris) intercepte les clics par défaut (MOUSE_FILTER_STOP), donc
-	# sans ceci, cliquer précisément SUR le pseudo (ou la pastille de présence,
+	# sans ceci, cliquer précisément SUR le pseudo (ou l'état de présence,
 	# l'étiquette Steam...) n'atteignait jamais click_area en dessous — seule la
 	# zone "vide" de la ligne réagissait. Demande utilisateur explicite
 	# (2026-09-25) : toute la zone où se trouve le pseudo doit être cliquable.
@@ -267,7 +271,16 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	# synchronisé (voir _sync_steam_friends) — les deux ont un steam_id dans ce
 	# dictionnaire, Steam ne garantissant l'avatar en cache que best-effort.
 	var steam_id: String = str(friend.get("steam_id", ""))
-	if steam_id != "" and steam_id != "0":
+	if steam_id == "" or steam_id == "0":
+		var placeholder := Label.new()
+		placeholder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		placeholder.text = "👤"
+		placeholder.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		placeholder.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		placeholder.custom_minimum_size = Vector2(AVATAR_SIZE_COLLAPSED, AVATAR_SIZE_COLLAPSED)
+		hbox.add_child(placeholder)
+		row.set_meta("avatar", placeholder)
+	else:
 		var avatar_rect := TextureRect.new()
 		avatar_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		avatar_rect.custom_minimum_size = Vector2(AVATAR_SIZE_COLLAPSED, AVATAR_SIZE_COLLAPSED)
@@ -280,12 +293,6 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 				avatar_rect.texture = tex
 		)
 
-	var dot := Label.new()
-	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	dot.text = "●"
-	dot.add_theme_color_override("font_color", PRESENCE_COLOR.get(presence, PRESENCE_COLOR["offline"]))
-	hbox.add_child(dot)
-
 	var name_col := VBoxContainer.new()
 	name_col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	name_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -294,19 +301,33 @@ static func _make_friend_row(menu, friend: Dictionary) -> PanelContainer:
 	# Pseudo + présence + étiquette Steam : visibles seulement rail déplié.
 	row.set_meta("details", name_col)
 
+	var name_row := HBoxContainer.new()
+	name_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_row.add_theme_constant_override("separation", 6)
+	name_col.add_child(name_row)
+
 	var name_label := Label.new()
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.text = str(friend.get("username", "?"))
 	name_label.tooltip_text = name_label.text
 	name_label.clip_text = true
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	# Demande utilisateur explicite (2026-09-25) : agrandir les noms d'amis —
-	# SECTION plutôt que BODY, seule taille de l'échelle Typography au-dessus
-	# qui reste lisible sur une ligne sans écraser le reste (pastille de
-	# présence, étiquette Steam) en dessous.
 	name_label.add_theme_font_size_override("font_size", Typography.BODY)
 	name_label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
-	name_col.add_child(name_label)
+	name_row.add_child(name_label)
+
+	# Niveau de compte de l'ami : affiché seulement si le backend le fournit
+	# (GET /api/friends ne renvoyait pas `level` avant le 2026-10-28 — un
+	# client à jour contre un backend plus ancien n'affiche simplement rien).
+	var level := int(friend.get("level", 0))
+	if level > 0:
+		var level_label := Label.new()
+		level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % level
+		level_label.add_theme_font_size_override("font_size", Typography.MICRO)
+		level_label.add_theme_color_override("font_color", Color(0.85, 0.8, 0.72, 0.85))
+		name_row.add_child(level_label)
 
 	var tags_row := HBoxContainer.new()
 	tags_row.mouse_filter = Control.MOUSE_FILTER_IGNORE

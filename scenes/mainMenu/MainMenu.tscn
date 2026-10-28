@@ -416,13 +416,6 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 19
 text = "ℹ"
 
-[node name="QuitButton" type="Button" parent="FooterPanel/FooterMargin/FooterRow" unique_id=1028000109]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 19
-text = "⏻"
-
 [node name="InfoPanel" type="PanelContainer" parent="." unique_id=300000040]
 layout_mode = 1
 anchors_preset = -1
@@ -1934,8 +1927,23 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 24
 
-[node name="NavSettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000172]
-custom_minimum_size = Vector2(0, 44)
+[node name="NavTopRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000180]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="QuitButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/NavTopRow" unique_id=1028000109]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "⏻"
+
+[node name="NavSettingsButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/NavTopRow" unique_id=1028000172]
+custom_minimum_size = Vector2(0, 36)
+size_flags_horizontal = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 19
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
@@ -1959,22 +1967,47 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Avatar" type="TextureRect" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=300000022]
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="NameLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=300000023]
+[node name="PlayerInfoCol" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile" unique_id=1028000181]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+
+[node name="PlayerNameRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol" unique_id=1028000182]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NameLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow" unique_id=300000023]
 layout_mode = 2
 size_flags_horizontal = 3
 clip_text = true
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_fonts/font = ExtResource("6_subtitle")
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 19
 text = "Pseudo Steam"
 vertical_alignment = 1
+
+[node name="NavLevelLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow" unique_id=1028000183]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "Niveau 1"
+vertical_alignment = 1
+
+[node name="NavRankLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol" unique_id=1028000184]
+layout_mode = 2
+clip_text = true
+theme_override_colors/font_color = Color(0.85, 0.8, 0.72, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "-"
 
 [node name="ProfileButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel" unique_id=1214852387]
 layout_mode = 2
@@ -1984,6 +2017,9 @@ theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
+[node name="NavSeparator" type="HSeparator" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000185]
+layout_mode = 2
+
 [node name="FriendsStrip" type="PanelContainer" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=1028000173]
 layout_mode = 2
 size_flags_vertical = 3
@@ -1992,6 +2028,16 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
 [node name="FriendsRail" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip" unique_id=1028000174]
 layout_mode = 2
 theme_override_constants/separation = 8
+
+[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000011]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll" unique_id=1028000012]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
 
 [node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000007]
 visible = false
@@ -2015,16 +2061,6 @@ placeholder_text = "Pseudo..."
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Chercher"
-
-[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000011]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll" unique_id=1028000012]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
 
 [node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000042]
 custom_minimum_size = Vector2(0, 40)
