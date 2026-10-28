@@ -171,13 +171,21 @@ static func _build_avatar_texture(steam_id: int) -> ImageTexture:
 	var image := Image.create_from_data(size["width"], size["height"], false, Image.FORMAT_RGBA8, rgba["buffer"])
 	return ImageTexture.create_from_image(image)
 
-# ── Avatar d'un joueur arbitraire (classement) ──────────────────────────────
-# Steam ne garantit l'avatar en cache local que pour les amis/joueurs déjà
-# croisés (lobby, partie...) — pour un inconnu du classement, on déclenche une
-# requête asynchrone (requestUserInformation) et on rappelle on_ready plus
-# tard via le signal persona_state_change si Steam finit par la fournir.
-# Best-effort : beaucoup de lignes du classement resteront sans avatar
-# (silhouette générique affichée côté StatsPanel dans ce cas), c'est attendu.
+# ── Avatar d'un joueur arbitraire (classement, ami Wyrdane) ─────────────────
+# Steam ne garde en cache local que les avatars des amis Steam et des joueurs
+# déjà croisés (lobby, partie...) — pour tout autre joueur (une ligne du
+# classement, un ami Wyrdane qui n'est pas ami Steam), on déclenche une requête
+# asynchrone (requestUserInformation) et on rappelle on_ready plus tard via le
+# signal persona_state_change dès que Steam l'a fourni.
+# Le second paramètre est `bRequireNameOnly` : à `true`, Steam ne télécharge
+# QUE le pseudo et **jamais l'avatar** (doc Steamworks ISteamFriends). Il valait
+# `true` jusqu'au 2026-10-28, donc l'avatar d'un joueur hors amis Steam
+# n'arrivait jamais — la requête partait, le signal se déclenchait, et
+# `_build_avatar_texture` renvoyait `null` indéfiniment. C'est `false` qu'il
+# faut : ne jamais le repasser à `true` sans vouloir explicitement se passer
+# des avatars.
+# Reste best-effort malgré tout : si Steam ne répond pas, la ligne s'affiche
+# sans avatar (silhouette générique côté StatsPanel/FriendsPanel).
 static var _avatar_cache: Dictionary = {}
 static var _pending_avatar_callbacks: Dictionary = {}
 static var _persona_signal_connected := false
@@ -202,7 +210,7 @@ static func request_avatar_async(steam_id_str: String, on_ready: Callable) -> vo
 		_persona_signal_connected = true
 	if not _pending_avatar_callbacks.has(steam_id_str):
 		_pending_avatar_callbacks[steam_id_str] = []
-		s.requestUserInformation(id, true)
+		s.requestUserInformation(id, false)
 	_pending_avatar_callbacks[steam_id_str].append(on_ready)
 
 static func _on_persona_state_change(steam_id: int, _flags: int) -> void:
