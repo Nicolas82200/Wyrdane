@@ -46,11 +46,11 @@ const CARD_BASE_SIZE := Vector2(250, 375)
 const DECK_COMP_PREVIEW_SCALE := DECK_COMP_PREVIEW_SIZE / CARD_BASE_SIZE
 
 @onready var play_button:     Button = $BottomCenterPanel/BottomCenterMargin/BottomCenterRow/PlayButton
-@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/NavSettingsButton
+@onready var settings_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/NavTopRow/NavSettingsButton
 @onready var packs_pill_button: Button = $TopRightRow/PacksPillButton
 @onready var report_button:  Button = $FooterPanel/FooterMargin/FooterRow/ReportButton
 @onready var credits_button:  Button = $FooterPanel/FooterMargin/FooterRow/CreditsButton
-@onready var quit_button:     Button = $FooterPanel/FooterMargin/FooterRow/QuitButton
+@onready var quit_button:     Button = $NavPanel/NavMargin/NavStack/MainNavView/NavTopRow/QuitButton
 @onready var subtitle_label:  Label  = $SubtitleLabel
 
 @onready var main_nav_view:   VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView
@@ -85,31 +85,34 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 
 @onready var steam_profile:   Control = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile
 @onready var steam_avatar:    TextureRect = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/Avatar
-@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/NameLabel
+# Pseudo + niveau + classement : repliés, seul l'avatar reste (maquette
+# utilisateur 2026-10-28). PlayerInfoCol porte la visibilité des trois.
+@onready var player_info_col: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol
+@onready var steam_name_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow/NameLabel
+@onready var nav_level_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow/NavLevelLabel
+@onready var nav_rank_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/NavRankLabel
 @onready var currency_label: Label = $TopRightRow/CurrencyLabel
 @onready var account_level_label: Label = %AccountLevelLabel
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
 @onready var profile_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/ProfileButton
-# Bande d'amis permanente dans le rail (voir FriendsPanel.gd) : FriendsStrip
-# prend tout l'espace vertical restant du rail (demande utilisateur explicite
-# 2026-10-13 : "toujours présente à gauche, rétrécie, juste les avatars").
+# Liste d'amis permanente dans le rail (voir FriendsPanel.gd) : FriendsStrip
+# prend tout l'espace vertical restant du rail et porte la liste COMPLÈTE
+# (plus de popup séparée — demande utilisateur explicite 2026-10-28 : "je veux
+# pas que la liste d'amis ouvre une nouvelle fenêtre, qu'on voie les pseudos,
+# l'état en ligne/hors ligne directement dans le NavPanel"). Rail replié :
+# avatars seuls, en petit ; rail survolé : pseudos + présence + recherche.
 @onready var friends_strip: PanelContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip
-@onready var friends_collapsed_avatars: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsStripScroll/FriendsCollapsedAvatars
 @onready var chat_button:    Button = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton
 @onready var chat_badge:     Control = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge
 @onready var chat_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge/ChatBadgeLabel
 
-# Popup hover (voir FriendsPanel.gd) : survoler FriendsStrip l'ouvre par-dessus
-# tout le reste (dernier enfant de la racine = z-index le plus haut), le
-# quitter la referme — pas de bascule de NavStack ni de bouton Retour.
-@onready var friends_hover_overlay: Control = $FriendsHoverOverlay
-@onready var friends_hover_panel: PanelContainer = $FriendsHoverOverlay/FriendsHoverPanel
-@onready var friends_title_label: Label = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsTitleLabel
-@onready var friends_search_line_edit: LineEdit = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow/FriendsSearchLineEdit
-@onready var friends_search_button: Button = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsSearchRow/FriendsSearchButton
-@onready var friends_body:     VBoxContainer = $FriendsHoverOverlay/FriendsHoverPanel/FriendsHoverMargin/FriendsHoverBody/FriendsScroll/FriendsBodyVBox
-@onready var _friends_hover_close_timer: Timer = $FriendsHoverOverlay/FriendsHoverCloseTimer
+@onready var nav_panel: PanelContainer = $NavPanel
+@onready var friends_title_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsTitleLabel
+@onready var friends_search_row: HBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow
+@onready var friends_search_line_edit: LineEdit = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow/FriendsSearchLineEdit
+@onready var friends_search_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow/FriendsSearchButton
+@onready var friends_body: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll/FriendsBodyVBox
 
 @onready var chat_view:       VBoxContainer = $InfoPanel/InfoMargin/ViewsRoot/ChatView
 @onready var chat_close_button: Button = $InfoPanel/InfoMargin/ViewsRoot/ChatView/ChatHeaderRow/ChatCloseButton
@@ -391,9 +394,6 @@ func _ready() -> void:
 	# de compte (AccountLevelLabel/Bar, sous le pseudo) doit ouvrir la popup
 	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
 	profile_button.gui_input.connect(_on_player_status_gui_input)
-	friends_strip.mouse_entered.connect(func(): FriendsPanel.open(self))
-	friends_hover_panel.mouse_entered.connect(func(): _friends_hover_close_timer.stop())
-	_friends_hover_close_timer.timeout.connect(func(): FriendsPanel.close(self))
 	friends_search_button.pressed.connect(func(): FriendsPanel.search(self))
 	friends_search_line_edit.text_submitted.connect(func(_text): FriendsPanel.search(self))
 	chat_button.pressed.connect(func():
@@ -403,10 +403,10 @@ func _ready() -> void:
 	chat_send_button.pressed.connect(func(): ChatPanel.send(self))
 	chat_input_line_edit.text_submitted.connect(func(_text): ChatPanel.send(self))
 	ChatPanel.refresh_unread_badge(self)
-	# Préchargement silencieux (popup fermée) : juste pour que la bande
-	# d'avatars collapsée (voir FriendsPanel.render_collapsed) ait déjà des
-	# visages au premier affichage du menu, sans attendre un survol.
+	# Préchargement silencieux : le rail replié montre déjà des visages au
+	# premier affichage du menu, sans attendre un survol.
 	FriendsPanel.fetch(self)
+	_apply_nav_expanded()
 	# Badge de non-lus tenu à jour même sans jamais ouvrir le chat (voir
 	# ChatPanel._ensure_poll_timer, qui lui ne tourne que la vue Chat affichée).
 	var chat_badge_timer := Timer.new()
@@ -558,6 +558,7 @@ func _fade_in_button_group(buttons: Array, extra_delay: float = 0.0) -> void:
 # visuel sans toucher au style existant.
 func _wire_nav_hover_pop() -> void:
 	_wire_hover_pop_group(main_nav_view.get_children())
+	_wire_hover_pop_group(settings_button.get_parent().get_children())
 	_wire_hover_pop_group(decks_button.get_parent().get_children())
 
 func _wire_hover_pop_group(buttons: Array) -> void:
@@ -690,36 +691,51 @@ func _update_profile_tab_tints() -> void:
 	profile_history_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.HISTORY else Color.WHITE
 	profile_community_tab_button.self_modulate = NAV_ACTIVE_TINT if _profile_tab == ProfileTab.COMMUNITY else Color.WHITE
 
-# --- Amis : popup hover (voir FriendsPanel.gd) ------------------------------
-var friends_hover_open: bool = false
+# --- Rail de navigation : replié / déplié au survol (voir FriendsPanel.gd) ---
+# Demande utilisateur explicite (2026-10-28) : rail à MOITIÉ de sa largeur
+# d'origine (268px) au repos, 3x cette largeur réduite au survol, et la liste
+# d'amis vit DEDANS (pseudos + présence visibles dépliée, avatars seuls en
+# petit repliée) au lieu d'ouvrir une fenêtre par-dessus le menu.
+var nav_expanded: bool = false
 var friends_cache: Array = []
 var friend_requests_cache: Array = []
 var friends_search_results: Array = []
 
-const FRIENDS_HOVER_WIDTH := 500.0
-const FRIENDS_HOVER_MAX_HEIGHT := 520.0
+const NAV_WIDTH_COLLAPSED := 134.0
+const NAV_WIDTH_EXPANDED := NAV_WIDTH_COLLAPSED * 3.0
 
-# Souris hors du bouton ET hors du popup -> ferme après un court délai (laisse
-# le temps de glisser la souris de l'un vers l'autre), voir FriendsPanel.close.
+# Survol détecté sur le rectangle du rail plutôt que via mouse_entered :
+# entrer dans un enfant (bouton, ligne d'ami) émettrait mouse_exited sur le
+# panneau et ferait vibrer le rail. La saisie en cours dans la recherche tient
+# le rail ouvert même souris sortie, sinon le champ disparaît sous le curseur.
 func _process(_delta: float) -> void:
-	if not friends_hover_open:
-		return
-	var mouse := get_global_mouse_position()
-	var over := friends_strip.get_global_rect().has_point(mouse) \
-		or friends_hover_panel.get_global_rect().has_point(mouse)
-	if over:
-		_friends_hover_close_timer.stop()
-	elif _friends_hover_close_timer.is_stopped():
-		_friends_hover_close_timer.start()
+	var hovered := nav_panel.get_global_rect().has_point(get_global_mouse_position()) \
+		or friends_search_line_edit.has_focus()
+	if hovered != nav_expanded:
+		set_nav_expanded(hovered)
 
-# Positionne le popup à côté de la bande d'amis, hauteur bornée à l'écran
-# disponible en dessous de ce point (voir FriendsPanel.open).
-func _position_friends_hover_panel() -> void:
-	var btn_rect := friends_strip.get_global_rect()
-	var viewport_height := get_viewport_rect().size.y
-	var height: float = min(FRIENDS_HOVER_MAX_HEIGHT, viewport_height - btn_rect.position.y - 16.0)
-	friends_hover_panel.position = Vector2(0, btn_rect.position.y - 20.0)
-	friends_hover_panel.size = Vector2(FRIENDS_HOVER_WIDTH, height)
+var _nav_width_tween: Tween
+
+func set_nav_expanded(expanded: bool) -> void:
+	if expanded == nav_expanded:
+		return
+	nav_expanded = expanded
+	if _nav_width_tween:
+		_nav_width_tween.kill()
+	_nav_width_tween = create_tween()
+	var target: float = NAV_WIDTH_EXPANDED if expanded else NAV_WIDTH_COLLAPSED
+	_nav_width_tween.tween_property(nav_panel, "offset_right", target, 0.18 * SettingsManager.motion_scale()) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_apply_nav_expanded()
+
+# Tout ce qui n'a pas de sens dans un rail étroit disparaît en replié : pseudo
+# du joueur, libellé du bouton Chat, en-tête et recherche d'amis.
+func _apply_nav_expanded() -> void:
+	player_info_col.visible = nav_expanded
+	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON") if nav_expanded else "💬"
+	friends_title_label.visible = nav_expanded
+	friends_search_row.visible = nav_expanded
+	FriendsPanel.apply_expanded(self)
 
 # --- Chat (voir ChatPanel.gd) -------------------------------------------
 var chat_thread_friend_id: int = 0
@@ -781,6 +797,7 @@ func _on_pack_opening_closed() -> void:
 # fin de partie (voir GameOverScreen.show_xp_reward).
 func _update_account_level_display() -> void:
 	account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
+	nav_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % LevelManager.level
 	account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [LevelManager.xp, LevelManager.xp_to_next]
 	var progress := float(LevelManager.xp) / float(LevelManager.xp_to_next) * 100.0 if LevelManager.xp_to_next > 0 else 0.0
 	account_level_bar.value = progress
@@ -988,14 +1005,17 @@ func _show_info_view(view: InfoView) -> void:
 func _on_profile_button_pressed() -> void:
 	_show_info_view(InfoView.PROFILE)
 
-# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau...) ;
-# un clic relâché précisément sur AccountLevelLabel/Bar ouvre la popup de
-# récompenses de niveau à la place du profil (voir LevelRewardsPanel).
+# ProfileButton recouvre tout PlayerStatusPanel (avatar, pseudo, niveau) ;
+# un clic relâché précisément sur le niveau ouvre la popup de récompenses de
+# niveau à la place du profil (voir LevelRewardsPanel). On teste le rect de
+# NavLevelLabel, le niveau RÉELLEMENT affiché dans le rail : %AccountLevelLabel
+# vit depuis le 2026-10-13 dans la vue Profil, donc son rect ne recouvrait plus
+# jamais le panneau joueur — et, le rail déplié passant par-dessus InfoPanel,
+# il pouvait même intersecter le pseudo par accident.
 func _on_player_status_gui_input(event: InputEvent) -> void:
 	if not (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed):
 		return
-	var level_rect := account_level_label.get_global_rect().merge(account_level_xp_label.get_global_rect()).merge(account_level_bar.get_global_rect())
-	if level_rect.has_point(event.global_position):
+	if nav_level_label.is_visible_in_tree() and nav_level_label.get_global_rect().has_point(event.global_position):
 		LevelRewardsPanel.open(self)
 	else:
 		_on_profile_button_pressed()
@@ -1463,10 +1483,11 @@ func _retranslate() -> void:
 	profile_main_tab_button.text = SettingsManager.t("PROFILE_TAB_MAIN")
 	profile_history_tab_button.text = SettingsManager.t("PROFILE_TAB_HISTORY")
 	profile_community_tab_button.text = SettingsManager.t("PROFILE_TAB_COMMUNITY")
-	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON")
 	friends_title_label.text = SettingsManager.t("FRIENDS_TITLE")
 	friends_search_button.text = SettingsManager.t("FRIENDS_SEARCH_BUTTON")
 	friends_search_line_edit.placeholder_text = SettingsManager.t("FRIENDS_SEARCH_PLACEHOLDER")
+	# Libellé du bouton Chat : dépend de l'état replié/déplié du rail.
+	_apply_nav_expanded()
 	chat_title_label.text = SettingsManager.t("CHAT_TITLE")
 	chat_close_button.text = SettingsManager.t("CHAT_CLOSE_BUTTON")
 	chat_send_button.text = SettingsManager.t("CHAT_SEND_BUTTON")

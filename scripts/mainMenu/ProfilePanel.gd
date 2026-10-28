@@ -176,6 +176,10 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	menu.profile_place_label.text = SettingsManager.t("PROFILE_RANK_PLACE") % [
 		int(ranked.get("rank", 0)), int(ranked.get("totalPlayers", 0)),
 	]
+	# Même donnée, format court, pour le rail de gauche (maquette 2026-10-28) :
+	# seulement pour le profil LOCAL, jamais celui d'un ami consulté.
+	if menu._profile_target_user_id < 0:
+		menu.nav_rank_label.text = SettingsManager.t("NAV_RANK_PLACE") % int(ranked.get("rank", 0))
 	apply_rank_badge(menu.profile_rank_badge_label, menu.profile_rank_icon, int(ranked.get("mmr", 0)), true)
 
 	# Bandeau de compte de la page d'accueil (voir MainMenu.tscn HomeAccountBar) :
