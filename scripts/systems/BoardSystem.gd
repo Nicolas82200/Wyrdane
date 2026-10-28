@@ -103,30 +103,12 @@ func _apply_commandement_bonus(minion: Minion, is_player: bool) -> bool:
 # élargissant la source aux serviteurs en jeu plutôt qu'en le contournant.
 # Choix déterministe (premier trouvé, alliés d'abord puis ennemis dans
 # l'ordre du plateau), faute d'UI de sélection.
+# Corps déplacé dans EffectManager.resolve_chair_adaptative : le mot-clé peut
+# aussi être accordé à un serviteur DÉJÀ en jeu (Voix-Sous-la-Peau via
+# GrantKeywordAdjacent), cas où cette fonction-ci n'est jamais appelée puisque
+# l'arrivée est passée. Une seule implémentation pour les deux chemins.
 func _apply_chair_adaptative(minion: Minion) -> Minion:
-	if not minion.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE):
-		return null
-	var candidates: Array[Minion] = battle.player_minions + battle.enemy_minions
-	for candidate in candidates:
-		if candidate == minion:
-			continue
-		if not candidate.keywords.is_empty():
-			minion.add_keyword(candidate.keywords[0])
-			return candidate
-		if not candidate.human_keywords.is_empty():
-			minion.add_human_keyword(candidate.human_keywords[0])
-			return candidate
-		if not candidate.undead_keywords.is_empty():
-			minion.undead_keywords.append(candidate.undead_keywords[0])
-			return candidate
-		if not candidate.demon_keywords.is_empty():
-			minion.add_demon_keyword(candidate.demon_keywords[0])
-			return candidate
-		for kw in candidate.abomination_keywords:
-			if kw != KeywordAbomination.Type.CHAIR_ADAPTATIVE:
-				minion.add_abomination_keyword(kw)
-				return candidate
-	return null
+	return EffectManager.resolve_chair_adaptative(battle, minion)
 
 func _insert(minion: Minion, is_player: bool, row: String, insert_index: int) -> void:
 	var minions: Array[Minion] = battle.player_minions if is_player else battle.enemy_minions

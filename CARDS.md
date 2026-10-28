@@ -404,7 +404,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | H53 | Ordre de Tenir | 3 | Commune | 2 charges | Éveil : Jusqu'au début de votre prochain tour, les serviteurs alliés en rangée Avant ne peuvent pas être renvoyés en main ni déplacés par des effets ennemis. | *L'ordre de Skeldara est simple : tenir. Les hommes, eux, sont compliqués. Mais ils obéissent.* |
 | H54 | Hymne de Guerre | 4 | Rare | 3 charges | Renfort : Le serviteur Humain invoqué gagne +1/+1. | *Le chant appris à Dreamar ne les rend pas invincibles. Il leur rappelle qu'ils ne sont pas seuls.* |
 | H55 | Fortification des Lignes | 5 | Rare | 3 charges | Éveil : Si votre rangée Avant a 5 serviteurs ou plus, ils gagnent tous REMPART jusqu'à la fin du prochain tour adverse. | *Cinq hommes de Skeldara, côte à côte sur la ligne. Ça devient quelque chose d'autre. Quelque chose qui ne cède pas.* |
-| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, le serviteur adjacent gagne +1/+1. | *À Skeldara, le serment survit à celui qui l'a fait. C'est tout l'intérêt.* |
+| H56 | Serment du Sang | 4 | Rare | 3 charges | Deuil : Quand un de vos serviteurs Humains meurt, les serviteurs adjacents gagnent +1/+1. | *À Skeldara, le serment survit à celui qui l'a fait. C'est tout l'intérêt.* |
 | H57 | Marche Forcée | 3 | Rare | 2 charges | Éveil : Invoque un Éclaireur Ostranien Rapide 1/1. | *Pas de repos sur les routes de Skeldara. La colonne avance parce que s'arrêter, c'est mourir.* |
 | H58 | Contre-Attaque Générale | 5 | Épique | 2 charges | Éveil : Tous les Humains alliés gagnent CONTRE-ATTAQUE jusqu'à la fin du tour. | *Sur le front de Skeldara, chaque coup reçu est une réponse en attente.* |
 | H59 | Code du Chevalier | 5 | Épique | 3 charges | Chaque fois qu'un Humain allié attaque, tous les serviteurs alliés gagnent +1 ATK de façon permanente. | *Le code des chevaliers de Skeldara ne protège pas du coup suivant. Mais il donne un tranchant de plus pour le rendre.* |
@@ -719,7 +719,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 |---|---|
 | `MUTATION` | Ce serviteur mute (voir Table de Mutation ci-dessous) chaque fois qu'il survit à une blessure. Les effets sont permanents et cumulables. |
 | `FUSION` | Sacrifice un serviteur adjacent allié : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
-| `VIRULENT` | Quand ce serviteur meurt, le serviteur adjacent allié déclenche immédiatement une mutation. |
+| `VIRULENT` | Quand ce serviteur meurt, les serviteurs adjacents alliés déclenchent immédiatement une mutation. |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi), de façon permanente. |
 | `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
@@ -776,7 +776,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A02 | Cœur Sans Corps | ↕️ | 1 | 2 | 1 | ASSIMILATION | *Il bat pour quelque chose qui n'existe plus.* |
 | A03 | Peau-Trop-Grande | 🛡️ | 2 | 1 | 3 | REMPART, INSTABLE | *Elle flotte autour de ce qu'elle contient, comme si elle attendait encore d'être remplie.* |
 | A04 | Nœud de Chair | ⚔️ | 2 | 2 | 2 | MUTATION | *Chaque coup reçu le noue un peu plus serré.* |
-| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Le serviteur adjacent gagne +1/+1 permanent. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
+| A05 | Ce-Qui-Se-Partage | ⚔️ | 2 | 3 | 1 | Dernier Souffle : Les serviteurs adjacents gagnent +1/+1 de façon permanente. | *Il ne meurt pas vraiment. Il se répartit ailleurs.* |
 | A06 | Regard Détaché | 🛡️ | 2 | 1 | 2 | Arrivée : regarde la carte du dessus de ton deck, tu peux la remettre au fond. | *Il ne cligne jamais. Il n'a plus rien à protéger.* |
 | A07 | Le Poids-Qui-Marche | ⚔️ | 3 | 2 | 4 | MUTATION, ASSIMILATION | *On ne sait pas ce qu'il porte. Lui non plus.* |
 | A08 | Emprunt de Peau | ↕️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle n'a rien à elle. Elle prend ce qui traîne à côté.* |
@@ -794,7 +794,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : Déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
 | A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
 | A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART, MUTATION | *On l'a vu changer trois fois dans la même bataille.* |
-| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
+| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : Les serviteurs adjacents gagnent CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
 | A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION, INSTABLE | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
 | A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : Réduit l'ATK d'un serviteur ciblé ennemi de 1 jusqu'à la fin du prochain tour de votre adversaire. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
 | A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Se reforme en Amas Informe 2/2 sous votre contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
@@ -853,7 +853,7 @@ Voir « Cartes exclusives Arena » (Mort-Vivant) pour l'explication de `arena_on
 | A40 | Morsure de l'Air | 2 | Commune | Inflige 2 points de dégâts à un serviteur ciblé ennemi. S'il survit, il perd 1 ATK de façon permanente. | *Ce qui ne tue pas ronge quand même.* |
 | A41 | Premier Tressaut | 1 | Commune | Un serviteur ciblé allié déclenche immédiatement une mutation. | *Il n'a pas eu le temps de choisir. Peu importe.* |
 | A42 | Pluie Qui Change | 3 | Commune | Inflige 1 point de dégât à tous les serviteurs ennemis en rangée Avant. Les survivants ont -1 ATK jusqu'à la fin du tour. | *L'air lui-même devient hostile en son sillage.* |
-| A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Le serviteur adjacent absorbe ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
+| A43 | Partage Forcé | 2 | Rare | Sacrifice 1 : Les serviteurs adjacents absorbent ses stats restantes de façon permanente. | *Rien ne se perd. Tout se recompose.* |
 | A44 | Sommeil Qui Ronge | 2 | Commune | Gèle un serviteur ciblé ennemi un tour. À la fin du gel, il subit une mutation forcée : Dégénérescence. | *Le froid ne le tue pas. Il le laisse simplement pourrir sur place.* |
 | A45 | Appétit Ciblé | 3 | Rare | Détruit un serviteur ennemi ayant 2 HP ou moins ; Une Abomination ciblé alliée gagne +1/+1 permanent. | *Rien ne se jette. Tout se digère.* |
 | A46 | Chant Qui Déforme | 3 | Rare | Abominations alliées +1/+0 ce tour. Si 5 ou plus en jeu : Elles mutent aussi immédiatement. | *Un seul chant, mille chairs qui répondent en changeant de forme.* |
@@ -876,7 +876,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | A56 | Écho des Chutes | 3 | Rare | 4 charges | Dévoration : Piochez 1 carte (une seule fois par tour). | *Chaque mort, où qu'elle soit, nourrit le cercle.* |
 | A57 | Rituel de la Chair Qui Recoud | 4 | Rare | 3 charges | Éveil : l'Abomination alliée avec le moins de HP restaure 2 HP. | *La chair se répare mal. Elle se répare quand même.* |
 | A58 | Cercle de Dégénérescence | 6 | Légendaire | 2 charges | Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence. | *Ce que le cercle ne peut pas améliorer, il le corrompt.* |
-| A59 | Rituel du Fil Sous la Peau | 4 | Épique | 3 charges | Deuil : le serviteur adjacent allié au serviteur mort mute immédiatement. | *Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture.* |
+| A59 | Rituel du Fil Sous la Peau | 4 | Épique | 3 charges | Deuil : Un serviteur Abomination aléatoire allié mute immédiatement. | *Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture.* |
 | A60 | Éclosion Sans Fin | 7 | Légendaire | 3 charges | Éveil : Invoque une Abomination aléatoire de coût ≤4. Elle mute deux fois. | *Elle n'a pas éclos une fois. Elle éclot encore.* |
 | A61 | Rituel de l'Œil Sans Sommeil | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos Abominations. | *Il ne dort jamais. Il voit venir la magie adverse avant qu'elle n'arrive.* |
 | A62 | Rituel du Ventre Qui Prend Tout | 6 | Épique | 2 charges | Sacrifice (un serviteur allié) : pioche 1 carte ; ton héros regagne des HP égaux aux HP restants du sacrifié. | *Rien ne se perd vraiment. Tout se redistribue, même à toi.* |
