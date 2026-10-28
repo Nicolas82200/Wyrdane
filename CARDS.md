@@ -719,7 +719,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 |---|---|
 | `MUTATION` | Ce serviteur mute (voir Table de Mutation ci-dessous) chaque fois qu'il survit à une blessure. Les effets sont permanents et cumulables. |
 | `FUSION` | Sacrifice un serviteur adjacent allié : ce serviteur absorbe ses stats restantes ET un de ses mots-clés au choix, de façon permanente. |
-| `VIRULENT` | Quand ce serviteur meurt, le serviteur adjacent allié déclenche immédiatement une mutation. |
+| `VIRULENT` | Quand ce serviteur meurt, les serviteurs adjacents alliés déclenchent immédiatement une mutation. |
 | `CHAIR ADAPTATIVE` | Arrivée : copie un mot-clé au choix présent sur un serviteur en jeu (allié ou ennemi), de façon permanente. |
 | `ASSIMILATION` | Dévoration : ce serviteur peut absorber les restes pour gagner +1/+1 jusqu'au début du prochain tour (une fois par mort). |
 | `INSTABLE` | Ce serviteur ne peut pas être ciblé par des effets de soin, alliés ou ennemis — sa chair est trop erratique pour être stabilisée. |
@@ -794,7 +794,7 @@ Les noms de cette race ne suivent volontairement aucune convention martiale (pas
 | A15 | Main-Qui-Choisit | ⚔️ | 4 | 5 | 3 | Exécution : Déclenche immédiatement une mutation. | *Chaque mise à mort la change un peu plus.* |
 | A16 | Locataire Sans Bail | ↕️ | 2 | 1 | 2 | FUSION | *Il ne demande jamais la permission de s'installer dans un autre corps.* |
 | A17 | Ce-Qui-A-Trop-Poussé | ⚔️ | 5 | 4 | 6 | REMPART, MUTATION | *On l'a vu changer trois fois dans la même bataille.* |
-| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | CHAIR ADAPTATIVE | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
+| A18 | Voix-Sous-la-Peau | 🛡️ | 3 | 2 | 3 | Arrivée : Les serviteurs adjacents gagnent CHAIR ADAPTATIVE de façon permanente. | *Elle ne donne pas d'ordres. Elle se contente de murmurer, et la chair voisine écoute.* |
 | A19 | Armure Fondue | ⚔️ | 3 | 4 | 3 | MUTATION, INSTABLE | *Le métal a fusionné avec ce qu'il était censé protéger. Impossible de dire où l'un finit et l'autre commence.* |
 | A20 | Doigt-Dans-les-Nerfs | 🛡️ | 4 | 2 | 5 | Arrivée : Réduit l'ATK d'un serviteur ciblé ennemi de 1 jusqu'à la fin du prochain tour de votre adversaire. | *Un seul contact suffit à dérégler ce qui reste de coordination.* |
 | A21 | Vase Brisé, Encore Plein | ⚔️ | 3 | 5 | 1 | ASSAUT, VENIN MORTEL. Dernier Souffle : Se reforme en Amas Informe 2/2 sous votre contrôle (ne va pas au cimetière). | *Il ne meurt jamais tout à fait. Il se réarrange.* |
@@ -876,7 +876,7 @@ Rappel moteur (`CLAUDE.md`) : un Rituel est un sort persistant doté de **X char
 | A56 | Écho des Chutes | 3 | Rare | 4 charges | Dévoration : Piochez 1 carte (une seule fois par tour). | *Chaque mort, où qu'elle soit, nourrit le cercle.* |
 | A57 | Rituel de la Chair Qui Recoud | 4 | Rare | 3 charges | Éveil : l'Abomination alliée avec le moins de HP restaure 2 HP. | *La chair se répare mal. Elle se répare quand même.* |
 | A58 | Cercle de Dégénérescence | 6 | Légendaire | 2 charges | Sacrifice 1 : Tous les serviteurs ennemis en rangée Avant subissent une mutation forcée : Dégénérescence. | *Ce que le cercle ne peut pas améliorer, il le corrompt.* |
-| A59 | Rituel du Fil Sous la Peau | 4 | Épique | 3 charges | Deuil : le serviteur adjacent allié au serviteur mort mute immédiatement. | *Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture.* |
+| A59 | Rituel du Fil Sous la Peau | 4 | Épique | 3 charges | Deuil : Un serviteur Abomination aléatoire allié mute immédiatement. | *Un fil invisible relie chaque chair à sa voisine. Il tire fort, à chaque rupture.* |
 | A60 | Éclosion Sans Fin | 7 | Légendaire | 3 charges | Éveil : Invoque une Abomination aléatoire de coût ≤4. Elle mute deux fois. | *Elle n'a pas éclos une fois. Elle éclot encore.* |
 | A61 | Rituel de l'Œil Sans Sommeil | 6 | Légendaire | 2 charges | Sortilège ennemi : Annulé s'il cible un de vos Abominations. | *Il ne dort jamais. Il voit venir la magie adverse avant qu'elle n'arrive.* |
 | A62 | Rituel du Ventre Qui Prend Tout | 6 | Épique | 2 charges | Sacrifice (un serviteur allié) : pioche 1 carte ; ton héros regagne des HP égaux aux HP restants du sacrifié. | *Rien ne se perd vraiment. Tout se redistribue, même à toi.* |

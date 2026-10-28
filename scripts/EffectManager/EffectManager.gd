@@ -1107,7 +1107,7 @@ func _infect_adjacent(battle, source_minion: Minion, effect: CardEffect) -> void
 	for m in hit:
 		apply_infection(battle, m, effect.value, source_minion.owner_is_player)
 
-# Buff le serviteur adjacent allié (Larve Cadavérique, Servant Décharné...).
+# Buff les serviteurs adjacents alliés (Larve Cadavérique, Servant Décharné...).
 # Cas Deuil (Serment du Sang) : selected_target est le serviteur qui vient de
 # mourir, déjà retiré du plateau — on retombe alors sur ses voisins capturés
 # par DeathSystem juste avant sa mort (grief_adjacent_hint) plutôt que de
@@ -1718,6 +1718,40 @@ func _apply_mutation(battle, source_minion: Minion, effect: CardEffect, selected
 
 # Octroie effect.granted_keyword au serviteur allié adjacent à la source, de
 # façon permanente ou temporaire selon effect.duration (Voix-Sous-la-Peau).
+# CHAIR ADAPTATIVE (Abomination) : le serviteur copie le premier mot-clé trouvé
+# sur un AUTRE serviteur en jeu (alliés d'abord, puis ennemis dans l'ordre du
+# plateau — copie déterministe, sans contrainte d'adjacence, voir « Mécaniques
+# Abomination » dans README.md). Renvoie le serviteur copié, ou null.
+#
+# Statique et partagée par les deux seuls chemins qui posent ce mot-clé :
+# BoardSystem.summon_minion_return (à l'arrivée) et _grant_keyword_adjacent
+# ci-dessous (mot-clé accordé à un serviteur déjà en jeu, où l'arrivée est
+# passée depuis longtemps et ne repassera jamais).
+static func resolve_chair_adaptative(battle, minion: Minion) -> Minion:
+	if minion == null or not minion.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE):
+		return null
+	var candidates: Array[Minion] = battle.player_minions + battle.enemy_minions
+	for candidate in candidates:
+		if candidate == minion:
+			continue
+		if not candidate.keywords.is_empty():
+			minion.add_keyword(candidate.keywords[0])
+			return candidate
+		if not candidate.human_keywords.is_empty():
+			minion.add_human_keyword(candidate.human_keywords[0])
+			return candidate
+		if not candidate.undead_keywords.is_empty():
+			minion.undead_keywords.append(candidate.undead_keywords[0])
+			return candidate
+		if not candidate.demon_keywords.is_empty():
+			minion.add_demon_keyword(candidate.demon_keywords[0])
+			return candidate
+		for kw in candidate.abomination_keywords:
+			if kw != KeywordAbomination.Type.CHAIR_ADAPTATIVE:
+				minion.add_abomination_keyword(kw)
+				return candidate
+	return null
+
 func _grant_keyword_adjacent(battle, source_minion: Minion, effect: CardEffect) -> void:
 	if source_minion == null or effect.granted_keyword.is_empty():
 		return
@@ -1730,6 +1764,11 @@ func _grant_keyword_adjacent(battle, source_minion: Minion, effect: CardEffect) 
 				continue
 			target.add_abomination_keyword(kw)
 			battle.temp_effect_system.add_temp_abomination_keyword(target, kw, effect.duration)
+			# CHAIR ADAPTATIVE ne se résout qu'à l'arrivée : sur une cible déjà
+			# en jeu, la copie n'aurait jamais lieu sans cet appel et le
+			# mot-clé accordé resterait inerte.
+			if kw == KeywordAbomination.Type.CHAIR_ADAPTATIVE:
+				resolve_chair_adaptative(battle, target)
 		else:
 			var kw: int = Keyword.from_name(effect.granted_keyword)
 			if kw == -1 or target.has_keyword(kw):
