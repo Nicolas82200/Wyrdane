@@ -92,6 +92,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var nav_level_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/PlayerNameRow/NavLevelLabel
 @onready var nav_rank_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/PlayerStatusPanel/PlayerMargin/SteamProfile/PlayerInfoCol/NavRankLabel
 @onready var currency_label: Label = $TopRightRow/CurrencyLabel
+@onready var currency_icon: TextureRect = $TopRightRow/CurrencyIcon
 @onready var account_level_label: Label = %AccountLevelLabel
 @onready var account_level_xp_label: Label = %AccountLevelXpLabel
 @onready var account_level_bar: ProgressBar = %AccountLevelBar
@@ -178,6 +179,7 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var shop_preview_prev_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewArrowsRow/ShopPreviewPrevButton
 @onready var shop_preview_next_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/NewsHomeRow/ShopPreviewCard/ShopPreviewCardMargin/ShopPreviewColumn/ShopPreviewBody/ShopPreviewCol/ShopPreviewArrowsRow/ShopPreviewNextButton
 
+@onready var home_account_button: Button = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountButton
 @onready var home_avatar: TextureRect = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeAvatar
 @onready var home_level_label: Label = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeLevelCol/HomeLevelLabel
 @onready var home_level_bar: ProgressBar = $InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar/HomeAccountMargin/HomeAccountRow/HomeLevelCol/HomeLevelBar
@@ -501,11 +503,20 @@ func _ready() -> void:
 		currency_label.text = str(new_balance)
 	)
 	currency_label.text = str(CurrencyManager.balance)
-	# Pastille "packs à ouvrir" en haut à droite : renvoie directement vers la
-	# vue Collection, qui affiche déjà la grille de packs possédés non ouverts
-	# (voir _open_collection_view/ShopCollectionPanel) — aucun nouveau flux,
-	# juste un raccourci visible sans ouvrir la Collection au préalable.
-	packs_pill_button.pressed.connect(func(): _show_info_view(InfoView.COLLECTION))
+	# Pastille "packs à ouvrir" en haut à droite, affichée en permanence (y
+	# compris à 0 pack) : renvoie vers la vue Collection, qui affiche déjà la
+	# grille de packs possédés non ouverts (voir _open_collection_view/
+	# ShopCollectionPanel), ou vers la Boutique s'il n'y a rien à ouvrir.
+	packs_pill_button.pressed.connect(_on_packs_pill_pressed)
+	# Monnaie (haut-droite) : raccourci vers la Boutique. Ni Label ni
+	# TextureRect n'ont de signal "pressed" — gui_input suffit ici (les deux
+	# nœuds passent mouse_filter = 0 dans la scène).
+	currency_label.gui_input.connect(_on_currency_gui_input)
+	currency_icon.gui_input.connect(_on_currency_gui_input)
+	# Bandeau de compte de l'accueil : bouton transparent plein cadre, même
+	# pattern que ProfileButton sur PlayerStatusPanel — évite d'avoir à régler
+	# le mouse_filter de chaque enfant (la barre d'XP avalerait le clic).
+	home_account_button.pressed.connect(func(): _show_info_view(InfoView.PROFILE))
 	CurrencyManager.free_packs_changed.connect(_update_packs_pill)
 	_update_packs_pill(CurrencyManager.free_packs)
 	SettingsManager.match_stats_changed.connect(func(wins: int, losses: int):
@@ -805,8 +816,20 @@ func _update_account_level_display() -> void:
 	home_level_bar.value = progress
 
 func _update_packs_pill(count: int) -> void:
-	packs_pill_button.visible = count > 0
 	packs_pill_button.text = SettingsManager.t("MENU_PACKS_TO_OPEN") % count
+
+## Pastille "packs à ouvrir" : vue Collection s'il y a des packs possédés,
+## sinon l'onglet "Packs" de la Boutique (rien à ouvrir, autant proposer d'en
+## acheter) — la pastille reste affichée en permanence, y compris à 0.
+func _on_packs_pill_pressed() -> void:
+	if CurrencyManager.free_packs > 0:
+		_show_info_view(InfoView.COLLECTION)
+	else:
+		_on_buy_packs_from_collection_pressed()
+
+func _on_currency_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_buy_packs_from_collection_pressed()
 
 # Compteur de récompenses réclamables par type de quête (quotidienne/hebdo/
 # mensuelle/unique) — le badge affiche la somme des quatre, chaque type
