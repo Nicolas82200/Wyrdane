@@ -1265,6 +1265,7 @@ grow_vertical = 2
 [node name="BuyPacksSection" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot/ShopBuyPacksScroll" unique_id=300000110]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 8
 
 [node name="ShopCardBacksScroll" type="ScrollContainer" parent="InfoPanel/InfoMargin/ViewsRoot/ShopView/ShopContentRoot" unique_id=300000093]
