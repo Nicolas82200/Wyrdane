@@ -54,3 +54,32 @@ func test_shrunk_font_size_stays_readable() -> void:
 		"le cran de police reduit ne doit pas descendre sous 16px")
 	assert_lt(Card.DESC_LABEL_SHRUNK_FONT_SIZE, Card.DESC_LABEL_DEFAULT_FONT_SIZE,
 		"le cran reduit doit rester plus petit que la taille par defaut, sinon il ne sert a rien")
+
+func test_flavour_is_rendered_smaller_than_the_rule_text() -> void:
+	# L'italique ne sert qu'au flavour : son ecart de taille avec le texte
+	# normal EST la hierarchie entre regle et ambiance (demande 2026-10-29).
+	var card := _make_card("Arrivee : piochez 1 carte.", FLAVOUR)
+	var rule_size: int = card.desc_label.get_theme_font_size("normal_font_size")
+	var flavour_size: int = card.desc_label.get_theme_font_size("italics_font_size")
+	assert_eq(flavour_size, rule_size - Card.DESC_FLAVOUR_FONT_SIZE_DELTA,
+		"le flavour doit etre plus petit que le texte de regle de l'ecart prevu")
+	assert_lt(flavour_size, rule_size,
+		"le flavour ne doit jamais etre rendu aussi grand que le texte de regle")
+
+func test_description_text_is_not_centered() -> void:
+	# Mise en page façon carte Magic (demande 2026-10-29) : le bloc de texte
+	# commence en haut a gauche de sa case, jamais centre.
+	var card := _make_card("Arrivee : piochez 1 carte.", FLAVOUR)
+	assert_eq(card.desc_label.horizontal_alignment, HORIZONTAL_ALIGNMENT_LEFT,
+		"le texte de la carte doit etre aligne a gauche")
+	assert_eq(card.desc_label.vertical_alignment, VERTICAL_ALIGNMENT_TOP,
+		"le texte de la carte doit commencer en haut de sa case")
+	assert_false(card.desc_label.text.contains("[center]"),
+		"aucune balise [center] ne doit subsister dans le bbcode de la carte")
+
+func test_flavour_only_card_is_not_centered_either() -> void:
+	# Chemin distinct dans update_display (description vide) : c'est celui qui
+	# portait la balise [center].
+	var card := _make_card("", FLAVOUR)
+	assert_false(card.desc_label.text.contains("[center]"),
+		"une carte sans texte de regle ne doit pas centrer son flavour")

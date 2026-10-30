@@ -51,10 +51,18 @@ const DESC_LABEL_MAX_GROWTH     := 3.0
 const DESC_LABEL_DEFAULT_FONT_SIZE := Typography.BODY - 1
 # Le cran reduit valait MICRO - 1 (14px) : illisible sur les cartes a texte
 # long (retour utilisateur 2026-10-28, "quand y a trop de texte c'est ecrit
-# trop petit"). Remonte a 16px, le plancher de lisibilite de Spectral dans
-# cette case ; c'est le masquage plus precoce du flavour text (voir
+# trop petit"). Remonte a 16px, le plancher de lisibilite dans cette case ;
+# c'est le masquage plus precoce du flavour text (voir
 # DESC_FLAVOUR_HIDE_THRESHOLD juste en dessous) qui rend la place necessaire.
 const DESC_LABEL_SHRUNK_FONT_SIZE := Typography.BODY - 3
+
+# Le flavour text (seul passage en italique de la carte, voir update_display)
+# est rendu plus petit que le texte de regle, pour que la hierarchie entre les
+# deux se lise sans separateur graphique — demande utilisateur 2026-10-29, qui
+# le voulait "plus petit d'1,5px que la description". Les tailles de police
+# Godot sont des entiers (`get_theme_font_size` renvoie un `int`), donc 1,5px
+# n'est pas representable : on prend 2, l'entier le plus proche.
+const DESC_FLAVOUR_FONT_SIZE_DELTA := 2
 
 # Au-dela de ce nombre de caracteres, la description seule (hors flavour text)
 # remplit deja la case par defaut : le flavour text (ambiance, cosmetique) est
@@ -329,7 +337,7 @@ func update_display() -> void:
 
 	var display_description: String = data.display_description()
 	if not data.flavour_text.is_empty() and display_description.is_empty():
-		desc_label.text = "[center][i]" + data.display_flavour() + "[/i][/center]"
+		desc_label.text = "[i]" + data.display_flavour() + "[/i]"
 	elif not data.flavour_text.is_empty() and display_description.length() < DESC_FLAVOUR_HIDE_THRESHOLD:
 		desc_label.text = bold_keywords_and_triggers(display_description)
 		desc_label.text += "\n[i]" + data.display_flavour() + "[/i]"
@@ -411,12 +419,17 @@ func _fit_desc_label(name_growth: float) -> void:
 		health_label.offset_top += growth
 		health_label.offset_bottom += growth
 
-# Applique une taille de police au DescLabel (texte normal/gras/italique -
-# effet + flavour) : voir _fit_desc_label.
+# Applique une taille de police au DescLabel : `size` pour le texte de regle
+# (normal/gras), `size - DESC_FLAVOUR_FONT_SIZE_DELTA` pour le flavour
+# (italique). Voir _fit_desc_label.
 func _set_desc_font_size(size: int) -> void:
 	desc_label.add_theme_font_size_override("normal_font_size", size)
 	desc_label.add_theme_font_size_override("bold_font_size", size)
-	desc_label.add_theme_font_size_override("italics_font_size", size)
+	# L'italique ne sert qu'au flavour text, d'ou le decalage de taille ici
+	# plutot qu'une balise [font_size] autour de lui (voir
+	# DESC_FLAVOUR_FONT_SIZE_DELTA).
+	desc_label.add_theme_font_size_override(
+		"italics_font_size", size - DESC_FLAVOUR_FONT_SIZE_DELTA)
 
 # Met en gras, dans le bbcode de DescLabel, le nom de declencheur en debut de
 # ligne ("Trigger : ...") et les mots-cles tout en majuscules (REMPART,

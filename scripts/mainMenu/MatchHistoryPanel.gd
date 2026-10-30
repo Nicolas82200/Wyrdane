@@ -93,22 +93,29 @@ static func _make_row(entry: Dictionary, viewed_user_id: int) -> PanelContainer:
 	vbox.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox)
 
-	var opponent_name: String = str(entry.get("opponent_username", ""))
-	if opponent_name == "":
-		opponent_name = SettingsManager.t("MATCH_HISTORY_UNKNOWN_OPPONENT")
-	var deck_races: Array = entry.get("opponent_deck_races", []) if entry.get("opponent_deck_races") is Array else []
-	var race_label := Race.race_names_label(deck_races)
+	# Sur le profil d'un AMI, l'adversaire et sa race sont remplacés par le
+	# type de partie (demande utilisateur 2026-10-30 : « ne pas savoir contre
+	# qui ils ont joué c'est pas important, savoir si c'était classé/normal »).
+	# Son propre historique garde l'adversaire, lui, personne ne l'a demandé.
+	var viewing_friend := viewed_user_id >= 0
+	var subtitle := ""
+	if viewing_friend:
+		subtitle = SettingsManager.t("MATCH_HISTORY_MODE_RANKED" if str(entry.get("mode", "ranked")) == "ranked" else "MATCH_HISTORY_MODE_NORMAL")
+	else:
+		var opponent_name: String = str(entry.get("opponent_username", ""))
+		if opponent_name == "":
+			opponent_name = SettingsManager.t("MATCH_HISTORY_UNKNOWN_OPPONENT")
+		var deck_races: Array = entry.get("opponent_deck_races", []) if entry.get("opponent_deck_races") is Array else []
+		subtitle = "%s (%s)" % [opponent_name, Race.race_names_label(deck_races)]
 
 	var top_label := Label.new()
 	var result_text: String = SettingsManager.t("MATCH_HISTORY_VICTORY" if is_victory else "MATCH_HISTORY_DEFEAT")
-	top_label.text = "%s — %s (%s)" % [result_text, opponent_name, race_label]
+	top_label.text = "%s — %s" % [result_text, subtitle]
 	top_label.add_theme_font_size_override("font_size", Typography.BODY)
 	top_label.add_theme_color_override("font_color", Color(0.9, 0.87, 0.78, 1))
 	vbox.add_child(top_label)
 
 	var duration_sec: int = int(entry.get("duration_sec", 0))
-	var mmr_change: int = int(entry.get("mmr_change", 0))
-	var mmr_text := SettingsManager.t("MATCH_HISTORY_MMR_GAIN" if mmr_change >= 0 else "MATCH_HISTORY_MMR_LOSS") % mmr_change
 	var played_at: String = str(entry.get("played_at", ""))
 	var date_str := played_at.substr(0, 10) if played_at.length() >= 10 else ""
 
@@ -122,11 +129,16 @@ static func _make_row(entry: Dictionary, viewed_user_id: int) -> PanelContainer:
 	duration_label.add_theme_color_override("font_color", Color(0.75, 0.71, 0.63, 0.9))
 	bottom_row.add_child(duration_label)
 
-	var mmr_label := Label.new()
-	mmr_label.text = mmr_text
-	mmr_label.add_theme_font_size_override("font_size", Typography.MICRO)
-	mmr_label.add_theme_color_override("font_color", COLOR_MMR_GAIN if mmr_change >= 0 else COLOR_MMR_LOSS)
-	bottom_row.add_child(mmr_label)
+	# Le MMR n'est affiché que sur son PROPRE historique : sur celui d'un ami
+	# c'est une information qu'il n'a pas demandé à partager (même raison que
+	# l'adversaire ci-dessus).
+	if not viewing_friend:
+		var mmr_change: int = int(entry.get("mmr_change", 0))
+		var mmr_label := Label.new()
+		mmr_label.text = SettingsManager.t("MATCH_HISTORY_POINTS_GAIN" if mmr_change >= 0 else "MATCH_HISTORY_POINTS_LOSS") % mmr_change
+		mmr_label.add_theme_font_size_override("font_size", Typography.MICRO)
+		mmr_label.add_theme_color_override("font_color", COLOR_MMR_GAIN if mmr_change >= 0 else COLOR_MMR_LOSS)
+		bottom_row.add_child(mmr_label)
 
 	var date_label := Label.new()
 	date_label.text = date_str

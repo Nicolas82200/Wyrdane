@@ -86,6 +86,7 @@ func _ready() -> void:
 		panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 		overlay.visible = false
 		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_match_embedded_header()
 
 	apply_button.pressed.connect(graphism_menu.apply_changes)
 	graphism_menu.dirty_changed.connect(_style_apply_button)
@@ -112,6 +113,27 @@ func _ready() -> void:
 	confirm_yes_button.pressed.connect(_on_confirm_yes)
 
 	_select_tab(audio_tab_button)
+
+# En popup (bataille), ce menu dessine son propre cadre, d'où ses marges
+# internes et son titre sans ombre. Intégré dans le menu principal, il doit
+# être indiscernable des autres vues du panneau (Profil, Boutique, Quêtes...) :
+# mêmes marges (zéro — InfoMargin les fournit déjà en amont, sinon le titre
+# "Paramètres" et son bouton Retour apparaissent décalés de 32px par rapport à
+# toutes les autres vues), même ombre portée sur le titre, même espacement
+# vertical. Demande utilisateur explicite (2026-10-30 : « il est différent des
+# autres menus »). Le style du bouton Retour, lui, est appliqué par MainMenu,
+# seul à posséder les StyleBox du dock (voir _style_settings_back_button).
+func _match_embedded_header() -> void:
+	for margin_name in ["TitleMargin", "BodyMargin"]:
+		var node := panel.get_node_or_null("VBox/" + margin_name) as MarginContainer
+		if node == null:
+			continue
+		for side in ["left", "top", "right", "bottom"]:
+			node.add_theme_constant_override("margin_" + side, 0)
+	var vbox := panel.get_node_or_null("VBox") as VBoxContainer
+	if vbox != null:
+		vbox.add_theme_constant_override("separation", 14)
+	title_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 
 func open() -> void:
 	AudioManager.play(AudioManager.OPEN_MENU)
