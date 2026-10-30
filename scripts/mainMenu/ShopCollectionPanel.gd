@@ -16,22 +16,22 @@ class_name ShopCollectionPanel
 # qui anime les cartes directement autour de l'image du pack ci-dessous
 # plutôt que dans un écran séparé.
 
-const PACK_IMAGE_SIZE := Vector2(160, 240)
+const PACK_IMAGE_SIZE := Vector2(140, 210)
 const PACK_BACK_TEXTURE := "res://assets/card_back/card-back.png"
-const BADGE_SIZE := 40.0
-const BADGE_GAP := 14.0
+const BADGE_SIZE := 36.0
+const BADGE_GAP := 10.0
 const OPEN_QUANTITY_CTRL := 5
 const OPEN_QUANTITY_SHIFT := 10
 
 ## Construit le panneau dans `parent` (VBoxContainer, vidé puis reconstruit) :
-## image du dos de pack (cliquable) avec sa pastille de stock, centrée.
-## `open_callback(quantity, pack_image)` est appelé au clic sur le pack si le
-## stock le permet.
+## une colonne cliquable par race de pack effectivement en stock (voir
+## CurrencyManager.free_packs_by_race), avec sa pastille de stock et son
+## libellé. Stock vide : un seul pack multirace grisé, comme avant.
+## `open_callback(quantity, pack_image, race)` est appelé au clic sur un pack
+## si son stock le permet.
 static func build_into(parent: Control, open_callback: Callable) -> void:
 	for child in parent.get_children():
 		child.queue_free()
-
-	var count: int = CurrencyManager.free_packs
 
 	var center := CenterContainer.new()
 	center.name = "PackInventoryCenter"
@@ -54,11 +54,45 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 	hint_label.text = SettingsManager.t("collection.packs_hint")
 	col.add_child(hint_label)
 
+	var owned: Array = []
+	for race in CurrencyManager.PACK_RACES:
+		if CurrencyManager.packs_of(race) > 0:
+			owned.append(race)
+
+	var row := HBoxContainer.new()
+	row.name = "PackInventoryRow"
+	row.add_theme_constant_override("separation", 24)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	col.add_child(row)
+
+	if owned.is_empty():
+		row.add_child(_make_pack_column(CurrencyManager.MULTIRACE_PACK, 0, open_callback))
+		var empty_label := Label.new()
+		empty_label.name = "PackInventoryEmptyLabel"
+		empty_label.add_theme_color_override("font_color", Color(0.6, 0.58, 0.5, 1))
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		empty_label.text = SettingsManager.t("collection.no_packs")
+		col.add_child(empty_label)
+		return
+
+	for race in owned:
+		row.add_child(_make_pack_column(race, CurrencyManager.packs_of(race), open_callback))
+
+## Un pack de l'inventaire : image teintée de la couleur de sa race (même
+## accent que le carrousel de la Boutique), pastille de stock à droite, nom
+## du pack en dessous.
+static func _make_pack_column(race: String, count: int, open_callback: Callable) -> Control:
+	var column := VBoxContainer.new()
+	column.name = "PackInventoryColumn" + race
+	column.add_theme_constant_override("separation", 8)
+
 	var pack_holder := Control.new()
 	pack_holder.name = "PackInventoryHolder"
 	pack_holder.custom_minimum_size = Vector2(PACK_IMAGE_SIZE.x + BADGE_GAP + BADGE_SIZE, PACK_IMAGE_SIZE.y)
 	pack_holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	col.add_child(pack_holder)
+	column.add_child(pack_holder)
 
 	var image := TextureRect.new()
 	image.name = "PackInventoryImage"
@@ -73,7 +107,8 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 	image.texture = load(PACK_BACK_TEXTURE)
 	image.position = Vector2.ZERO
 	image.size = PACK_IMAGE_SIZE
-	image.modulate = Color(1, 1, 1, 1) if count > 0 else Color(0.5, 0.5, 0.5, 0.6)
+	var tint: Color = PackCarousel.accent_for(race).lerp(Color.WHITE, 0.45)
+	image.modulate = tint if count > 0 else Color(0.5, 0.5, 0.5, 0.6)
 	image.mouse_filter = Control.MOUSE_FILTER_STOP if count > 0 else Control.MOUSE_FILTER_IGNORE
 	image.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if count > 0 else Control.CURSOR_ARROW
 	pack_holder.add_child(image)
@@ -82,17 +117,17 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 	badge.position = Vector2(PACK_IMAGE_SIZE.x + BADGE_GAP, PACK_IMAGE_SIZE.y / 2.0 - BADGE_SIZE / 2.0)
 	pack_holder.add_child(badge)
 
-	if count > 0 and open_callback.is_valid():
-		image.gui_input.connect(_make_pack_input_handler(image, badge, open_callback))
+	var name_label := Label.new()
+	name_label.name = "PackInventoryNameLabel"
+	name_label.text = PackCarousel.title_for(race)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", Typography.MICRO)
+	name_label.add_theme_color_override("font_color", Color(0.91, 0.835, 0.639, 1))
+	column.add_child(name_label)
 
-	if count <= 0:
-		var empty_label := Label.new()
-		empty_label.name = "PackInventoryEmptyLabel"
-		empty_label.add_theme_color_override("font_color", Color(0.6, 0.58, 0.5, 1))
-		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		empty_label.text = SettingsManager.t("collection.no_packs")
-		col.add_child(empty_label)
+	if count > 0 and open_callback.is_valid():
+		image.gui_input.connect(_make_pack_input_handler(image, badge, race, open_callback))
+	return column
 
 ## Clic gauche simple = ouvrir 1 pack ; Ctrl+clic = 5 ; Maj+clic = 10 —
 ## uniquement si le stock couvre exactement la quantité demandée (sinon un
@@ -100,7 +135,7 @@ static func build_into(parent: Control, open_callback: Callable) -> void:
 ## pack se désactive dès qu'une ouverture démarre pour éviter un double-clic
 ## pendant la révélation (réactivé au prochain rebuild de la vue Collection,
 ## voir MainMenu._on_pack_opening_closed).
-static func _make_pack_input_handler(image: TextureRect, badge: Control, open_callback: Callable) -> Callable:
+static func _make_pack_input_handler(image: TextureRect, badge: Control, race: String, open_callback: Callable) -> Callable:
 	return func(event: InputEvent):
 		if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
 			return
@@ -109,11 +144,11 @@ static func _make_pack_input_handler(image: TextureRect, badge: Control, open_ca
 			quantity = OPEN_QUANTITY_SHIFT
 		elif event.ctrl_pressed:
 			quantity = OPEN_QUANTITY_CTRL
-		if CurrencyManager.free_packs < quantity:
+		if CurrencyManager.packs_of(race) < quantity:
 			_flash_badge_denied(badge)
 			return
 		image.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		open_callback.call(quantity, image)
+		open_callback.call(quantity, image, race)
 
 static func _flash_badge_denied(badge: Control) -> void:
 	if not is_instance_valid(badge):

@@ -8,6 +8,14 @@ extends Node
 # Affiché à titre indicatif dans l'UI ; le coût réel est appliqué et vérifié
 # côté serveur (voir PACK_COST dans wyrdane-backend/backend/src/model/packModel.ts).
 const PACK_COST := 500
+
+# Packs achetables, dans l'ordre d'affichage du carrousel de la Boutique (voir
+# PackCarousel.gd). "multirace" tire dans toutes les races, les autres clés
+# sont exactement Race.get_race_name() et restreignent le tirage à cette race
+# — le backend fait foi (champ `race` de /api/packs/buy et /api/packs/open-owned,
+# voir docs/backend-contracts/race-packs.md).
+const MULTIRACE_PACK := "multirace"
+const PACK_RACES := ["Undead", "Human", MULTIRACE_PACK, "Demon", "Abomination"]
 # Le montant exact d'une récompense de victoire/défaite solo dépend de la
 # série de victoires en cours (voir rewardsController.WIN_STREAK_REWARD_TIERS
 # côté wyrdane-backend) — pas de constante d'affichage statique possible ici,
@@ -37,11 +45,20 @@ const RARITY_WEIGHTS_DISPLAY := {
 }
 
 var balance: int = 0
+# Stock total, toutes races confondues (pastille du menu, PackShop) — somme de
+# free_packs_by_race.
 var free_packs: int = 0
+# Stock par clé de PACK_RACES. Un backend antérieur aux packs par race ne
+# renvoie pas ce champ : tout son stock est alors compté en multirace.
+var free_packs_by_race: Dictionary = {}
 var is_synced: bool = false
 
 signal balance_changed(new_balance: int)
 signal free_packs_changed(new_free_packs: int)
+
+## Stock de packs de la race donnée ("multirace" ou Race.get_race_name()).
+func packs_of(race: String) -> int:
+	return int(free_packs_by_race.get(race, 0))
 
 # on_complete (optionnel) est appelé avec (success: bool) une fois la réponse
 # reçue — permet à l'écran de chargement d'attendre la fin de la sync.
@@ -52,6 +69,7 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 			is_synced = true
 			_set_balance(int(parsed.get("balance", balance)))
 			_set_free_packs(int(parsed.get("free_packs", free_packs)))
+			_set_free_packs_by_race(parsed)
 		if on_complete.is_valid():
 			on_complete.call(success)
 	)
@@ -63,12 +81,13 @@ func sync_from_backend(on_complete: Callable = Callable()) -> void:
 # s'ouvrent exactement pareil, voir open_owned_pack ci-dessous. L'achat
 # n'ouvre donc plus rien lui-même (voir PackShop.gd/ShopBuyPacksPanel.gd) —
 # l'ouverture se fait à part, depuis la vue Collection.
-func buy_packs(quantity: int, on_complete: Callable = Callable()) -> void:
-	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/buy", {"quantity": quantity}, func(code: int, parsed) -> void:
+func buy_packs(quantity: int, race: String = MULTIRACE_PACK, on_complete: Callable = Callable()) -> void:
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/buy", {"quantity": quantity, "race": race}, func(code: int, parsed) -> void:
 		var success := code == 200 and parsed is Dictionary
 		if success:
 			_set_balance(int(parsed.get("balance", balance)))
 			_set_free_packs(int(parsed.get("free_packs", free_packs)))
+			_set_free_packs_by_race(parsed)
 		if on_complete.is_valid():
 			on_complete.call(success)
 	)
@@ -77,12 +96,13 @@ func buy_packs(quantity: int, on_complete: Callable = Callable()) -> void:
 # gagnés gratuitement — quêtes hebdo, parrainage, voir
 # docs/backend-contracts/weekly-quests-and-referral.md), pas directement
 # l'or : voir buy_packs ci-dessus. on_complete(code, cards).
-func open_owned_pack(on_complete: Callable = Callable()) -> void:
-	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/open-owned", {}, func(code: int, parsed) -> void:
+func open_owned_pack(race: String = MULTIRACE_PACK, on_complete: Callable = Callable()) -> void:
+	BackendClient.request(HTTPClient.METHOD_POST, "/api/packs/open-owned", {"race": race}, func(code: int, parsed) -> void:
 		var cards: Array = []
 		if code == 200 and parsed is Dictionary:
 			cards = parsed.get("cards", [])
 			_set_free_packs(int(parsed.get("free_packs", free_packs)))
+			_set_free_packs_by_race(parsed)
 		if on_complete.is_valid():
 			on_complete.call(code, cards)
 	)
@@ -129,3 +149,17 @@ func _set_balance(new_balance: int) -> void:
 func _set_free_packs(new_free_packs: int) -> void:
 	free_packs = new_free_packs
 	free_packs_changed.emit(free_packs)
+
+## Répartition du stock par race telle que renvoyée par le backend. Clés
+## inconnues ignorées, champ absent = tout le stock en multirace (backend
+## antérieur aux packs par race). `free_packs` reste la somme : c'est elle que
+## lit la pastille du menu et PackShop.
+func _set_free_packs_by_race(parsed: Dictionary) -> void:
+	var by_race: Dictionary = {}
+	var raw = parsed.get("free_packs_by_race", null)
+	if raw is Dictionary:
+		for race in PACK_RACES:
+			by_race[race] = int(raw.get(race, 0))
+	else:
+		by_race[MULTIRACE_PACK] = free_packs
+	free_packs_by_race = by_race

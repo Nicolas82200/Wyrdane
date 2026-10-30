@@ -533,6 +533,18 @@ Suites possibles une fois en place : boutons « Rejoindre » / invitations depui
 - **Banshee des Abysses (D20)** : le rapport demande un Silence sur serviteur ciblé, `CARDS.md` et la carte disent Corruption. Le ciblage lui-même fonctionne (corrigé par la pose-avant-ciblage ci-dessus) — reste à confirmer si l'effet doit changer.
 - **Champion du Peuple (H25)** : le trigger Exécution ne se déclenche que si le serviteur **tue lui-même** en combat (`CombatSystem._execute_damage`), alors que `README.md` le définit comme « une unité ennemie meurt ». L'élargir à `DeathSystem` toucherait les 6 cartes à Exécution (Champion du Peuple, Mur de Lances, Lame-Jurée, Bourreau Mineur, Main-Qui-Choisit, Rongeur de Chair) et casserait le calage « avant `consume_attack` » dont dépend Rongeur de Chair.
 
+## P25 — Packs par race : côté backend non implémenté (2026-10-30)
+
+Le client propose 5 packs achetables (multirace + une par race implémentée) : carrousel dans l'onglet Packs de la Boutique (`PackCarousel.gd`), stock par race dans la vue Collection, paramètre `race` sur `CurrencyManager.buy_packs`/`open_owned_pack`.
+
+`wyrdane-backend` ignore encore ce paramètre : tout le stock est donc compté en multirace et acheter un pack Démon crédite un pack multirace (dégradation prévue et documentée, pas un bug). À faire côté backend, contrat complet dans `docs/backend-contracts/race-packs.md` :
+
+- `POST /api/packs/buy` et `POST /api/packs/open-owned` acceptent `race` (valeurs de `CurrencyManager.PACK_RACES`, toute autre valeur rejetée en 400) ; tirage restreint à la race pour un pack de race.
+- Les réponses renvoyant déjà `free_packs` renvoient en plus `free_packs_by_race` (`free_packs` restant la somme).
+- Stock par race en base (`users.free_packs` ne suffit plus) → **`db:sync` en prod** après déploiement, sinon 500 sur ces routes.
+
+Pas d'illustration de pack par race non plus : le dos générique est teinté de la couleur d'accent de la race.
+
 ## Non-problèmes vérifiés pendant cette revue
 
 - Aucun marqueur `TODO`/`FIXME`/`HACK`/`XXX` dans `scripts/` ou `scenes/` — rien d'oublié en l'état signalé dans le code.

@@ -102,14 +102,14 @@ func _build_preview_card() -> void:
 	_preview_card.hide()
 
 ## Point d'entrée public : ouvre jusqu'à `quantity` packs du stock du joueur
-## (CurrencyManager.free_packs) et révèle les cartes de chaque pack, l'une
+## (CurrencyManager.packs_of(race)) et révèle les cartes de chaque pack, l'une
 ## après l'autre, directement autour de `anchor` (le TextureRect du pack
 ## affiché dans ShopCollectionPanel). Entre deux packs, et à la fin, attend
 ## un clic ("Cliquer pour continuer") avant de poursuivre/se refermer.
-func open_owned(quantity: int, anchor: Control) -> void:
+func open_owned(quantity: int, anchor: Control, race: String = CurrencyManager.MULTIRACE_PACK) -> void:
 	if _busy:
 		return
-	var count: int = min(quantity, CurrencyManager.free_packs)
+	var count: int = min(quantity, CurrencyManager.packs_of(race))
 	if count <= 0:
 		return
 
@@ -123,7 +123,7 @@ func open_owned(quantity: int, anchor: Control) -> void:
 
 	var opened_any := false
 	for i in count:
-		var result: Dictionary = await _request_single_owned_pack()
+		var result: Dictionary = await _request_single_owned_pack(race)
 		if not is_instance_valid(self):
 			return
 		var code: int = result["code"]
@@ -150,8 +150,8 @@ func open_owned(quantity: int, anchor: Control) -> void:
 	_busy = false
 	closed.emit()
 
-func _request_single_owned_pack() -> Dictionary:
-	CurrencyManager.open_owned_pack(func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
+func _request_single_owned_pack(race: String) -> Dictionary:
+	CurrencyManager.open_owned_pack(race, func(code: int, cards: Array): _pack_request_completed.emit(code, cards))
 	var result: Array = await _pack_request_completed
 	return {"code": result[0], "cards": result[1]}
 
