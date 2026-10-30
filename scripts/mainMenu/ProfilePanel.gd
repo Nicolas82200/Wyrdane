@@ -162,6 +162,23 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	var date_str := created_at.substr(0, 10) if created_at.length() >= 10 else SettingsManager.t("PROFILE_UNAVAILABLE")
 	menu.profile_member_since_label.text = SettingsManager.t("PROFILE_MEMBER_SINCE") % date_str
 
+	# Niveau de compte : `%AccountLevelLabel` et consorts vivent dans la vue
+	# Profil et étaient jusqu'ici TOUJOURS remplis depuis LevelManager, donc
+	# avec le niveau du joueur LOCAL — y compris en consultant le profil d'un
+	# ami, qui paraissait donc avoir exactement le même niveau que soi.
+	# GET /api/profile/:userId renvoie son vrai niveau (voir profileModel.ts).
+	if menu._profile_target_user_id >= 0:
+		var lvl: Dictionary = data.get("level", {}) if data.get("level") is Dictionary else {}
+		var xp := int(lvl.get("xp", 0))
+		var xp_to_next := int(lvl.get("xpToNext", 0))
+		menu.account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % int(lvl.get("level", 1))
+		menu.account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [xp, xp_to_next]
+		menu.account_level_bar.value = float(xp) / float(xp_to_next) * 100.0 if xp_to_next > 0 else 0.0
+	else:
+		# Profil local : réécrit depuis LevelManager, pour effacer le niveau
+		# d'un ami qu'on viendrait de consulter.
+		menu._update_account_level_display()
+
 	var collection_count := int(data.get("collection_count", 0))
 	menu.profile_collection_label.text = SettingsManager.t("PROFILE_COLLECTION_COUNT") % collection_count
 
@@ -171,7 +188,7 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	var ranked: Dictionary = data.get("ranked", {})
 	menu.profile_ranked_stats_label.text = SettingsManager.t("PROFILE_RANKED_STATS") % [
 		int(ranked.get("wins", 0)), int(ranked.get("losses", 0)),
-		int(ranked.get("mmr", 0)), int(ranked.get("rank", 0)),
+		RankTier.display_name(int(ranked.get("mmr", 0))), int(ranked.get("rank", 0)),
 	]
 	menu.profile_place_label.text = SettingsManager.t("PROFILE_RANK_PLACE") % [
 		int(ranked.get("rank", 0)), int(ranked.get("totalPlayers", 0)),
@@ -186,27 +203,27 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	# uniquement pour le profil LOCAL — ne jamais y refléter les stats d'un ami
 	# consulté via ProfilePanel.open_for_user, qui réutilise ce même _on_response.
 	if menu._profile_target_user_id < 0:
-		var tier := RankTier.from_mmr(int(ranked.get("mmr", 0)))
-		menu.home_rank_value.text = SettingsManager.t(RankTier.tier_key(tier))
+		menu.home_rank_value.text = RankTier.display_name(int(ranked.get("mmr", 0)))
 		menu.home_collection_value.text = str(collection_count)
 		menu.home_wins_value.text = str(int(ranked.get("wins", 0)) + int(solo.get("wins", 0)))
 
-# Palier dérivé du MMR (voir RankTier) — appliqué au badge du menu principal
+# Rang dérivé du score (voir RankTier) — appliqué au badge du menu principal
 # (persistant, avec_progress = false) et à celui de la vue Profil (avec la
-# progression vers le palier suivant, plus lisible dans un contexte dédié).
+# progression vers la division suivante, plus lisible dans un contexte dédié).
+# Le score brut n'apparaît nulle part : seuls le nom du rang et le nombre de
+# points restants sont affichés (voir l'en-tête de RankTier.gd).
 static func apply_rank_badge(label: Label, icon: TextureRect, mmr: int, with_progress: bool) -> void:
 	var tier := RankTier.from_mmr(mmr)
 	AchievementManager.check_rank_tier(tier)
 	label.add_theme_color_override("font_color", RankTier.color(tier))
 	icon.texture = RankTier.icon(tier)
-	var text := SettingsManager.t("RANK_BADGE_FORMAT") % [SettingsManager.t(RankTier.tier_key(tier)), mmr]
+	var text := RankTier.display_name(mmr)
 	if with_progress:
-		var remaining := RankTier.mmr_to_next_tier(mmr)
-		if remaining >= 0:
-			var next_tier_name := SettingsManager.t(RankTier.tier_key(tier + 1))
-			text += "\n" + SettingsManager.t("RANK_BADGE_PROGRESS") % [remaining, next_tier_name]
-		else:
-			text += "\n" + SettingsManager.t("RANK_BADGE_MAX_TIER")
+		# Plus de cas « palier maximal atteint » : Légende n'a pas de plafond,
+		# il y a toujours une division au-dessus (Légende 12 -> Légende 13).
+		text += "\n" + SettingsManager.t("RANK_BADGE_PROGRESS") % [
+			RankTier.points_to_next(mmr), RankTier.next_display_name(mmr),
+		]
 	label.text = text
 
 # --- Récompense de connexion quotidienne ---------------------------------

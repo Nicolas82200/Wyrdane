@@ -1,11 +1,17 @@
 extends RefCounted
 class_name RankTier
 
-# Paliers dérivés côté client depuis le MMR brut renvoyé par
-# /api/profile (champ ranked.mmr) — le backend ne connaît que le MMR, aucun
-# concept de palier n'existe de son côté. 7 paliers (voir CLAUDE.md §Roadmap).
-# Tout joueur démarre à 0 MMR (rankedModel.DEFAULT_MMR côté wyrdane-backend),
-# donc Bronze est bien le palier de départ commun à tous.
+# Rang affiché au joueur, dérivé côté client du score Elo brut renvoyé par
+# /api/profile (champ `ranked.mmr`) — le backend ne connaît que ce nombre,
+# aucun concept de palier n'existe de son côté. 7 paliers (voir CLAUDE.md
+# §Roadmap), chacun découpé en DIVISIONS_PER_TIER divisions numérotées.
+# Tout joueur démarre à 0 (rankedModel.DEFAULT_MMR côté wyrdane-backend),
+# donc Bronze I est le rang de départ commun à tous.
+#
+# Le nombre brut n'est JAMAIS montré au joueur (demande utilisateur explicite
+# 2026-10-30 : « je ne veux plus voir écrit MMR, nulle part ») : tout ce qui
+# s'affiche passe par display_name() / points_to_next(). Ne jamais réintroduire
+# un libellé qui expose le score lui-même.
 enum Type {
 	BRONZE,
 	SILVER,
@@ -16,6 +22,10 @@ enum Type {
 	LEGEND,
 }
 
+# Seuil d'entrée de chaque palier. `RANK_TIER_MMR_THRESHOLDS`
+# (uniqueQuestModel.ts côté wyrdane-backend) en est une copie manuelle qui
+# valide les quêtes « Atteignez le palier X » : la mettre à jour en même temps
+# si ces valeurs changent.
 const THRESHOLDS := {
 	Type.LEGEND:   1200,
 	Type.MASTER:   1000,
@@ -23,7 +33,20 @@ const THRESHOLDS := {
 	Type.PLATINUM: 600,
 	Type.GOLD:     400,
 	Type.SILVER:   200,
+	Type.BRONZE:   0,
 }
+
+# Un palier couvre 200 points, soit 4 divisions de 50. Avec le K-facteur Elo
+# du backend (32, donc ±16 contre un adversaire de niveau égal), une division
+# vaut environ trois victoires : assez court pour que chaque série de parties
+# fasse visiblement bouger le rang.
+const DIVISIONS_PER_TIER := 4
+const POINTS_PER_DIVISION := 50
+
+# Divisions en chiffres romains (Bronze I → Bronze IV), sauf Légende qui les
+# compte en chiffres arabes et SANS PLAFOND (Légende 150 est un rang valide) :
+# c'est le palier terminal, il doit pouvoir continuer à monter indéfiniment.
+const DIVISION_NUMERALS := ["I", "II", "III", "IV"]
 
 const TIER_COLORS := {
 	Type.BRONZE:   Color(0.62, 0.42, 0.24, 1),
@@ -78,11 +101,38 @@ static func color(tier: int) -> Color:
 static func icon(tier: int) -> Texture2D:
 	return TIER_ICONS.get(tier, TIER_ICONS[Type.BRONZE])
 
-# Nombre de points de MMR restants pour atteindre le palier suivant, ou -1 si
-# déjà au palier maximal (Légende, pas de plafond supérieur affiché).
-static func mmr_to_next_tier(mmr: int) -> int:
+# Numéro de division dans le palier, à partir de 1. Borné à
+# DIVISIONS_PER_TIER pour tous les paliers sauf Légende, qui n'a pas de
+# plafond (un score très élevé donne Légende 37, Légende 150...).
+static func division(mmr: int) -> int:
 	var tier := from_mmr(mmr)
+	var offset: int = max(0, mmr - int(THRESHOLDS[tier]))
+	var index := offset / POINTS_PER_DIVISION + 1
 	if tier == Type.LEGEND:
-		return -1
-	var next_threshold: int = THRESHOLDS[tier + 1]
-	return max(0, next_threshold - mmr)
+		return index
+	return min(index, DIVISIONS_PER_TIER)
+
+# Rang complet affichable, p. ex. « Bronze III » ou « Légende 12 ». C'est la
+# SEULE forme sous laquelle le classement d'un joueur doit apparaître en jeu.
+static func display_name(mmr: int) -> String:
+	var tier := from_mmr(mmr)
+	return "%s %s" % [SettingsManager.t(tier_key(tier)), division_label(mmr)]
+
+static func division_label(mmr: int) -> String:
+	var index := division(mmr)
+	if from_mmr(mmr) == Type.LEGEND:
+		return str(index)
+	return DIVISION_NUMERALS[clampi(index - 1, 0, DIVISION_NUMERALS.size() - 1)]
+
+# Points restants avant la division suivante. Toujours défini, Légende
+# comprise : il y a toujours une division au-dessus.
+static func points_to_next(mmr: int) -> int:
+	var tier := from_mmr(mmr)
+	var offset: int = max(0, mmr - int(THRESHOLDS[tier]))
+	var consumed := offset % POINTS_PER_DIVISION
+	return POINTS_PER_DIVISION - consumed
+
+# Nom du rang immédiatement supérieur — sert à annoncer la progression
+# (« Plus que 20 points avant Argent I »).
+static func next_display_name(mmr: int) -> String:
+	return display_name(mmr + points_to_next(mmr))

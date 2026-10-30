@@ -350,7 +350,8 @@ static func _build_leaderboard_row(menu, player: Dictionary, medal_rank: int) ->
 
 	var stats_label := Label.new()
 	stats_label.text = SettingsManager.t("LEADERBOARD_ROW_STATS") % [
-		int(player.get("mmr", 0)), int(player.get("wins", 0)), int(player.get("losses", 0))
+		RankTier.display_name(int(player.get("mmr", 0))),
+		int(player.get("wins", 0)), int(player.get("losses", 0)),
 	]
 	stats_label.add_theme_font_size_override("font_size", Typography.BODY)
 	stats_label.add_theme_color_override("font_color", stats_color)
