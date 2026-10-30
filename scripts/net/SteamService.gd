@@ -188,7 +188,7 @@ static func _build_avatar_texture(steam_id: int) -> ImageTexture:
 # sans avatar (silhouette générique côté StatsPanel/FriendsPanel).
 static var _avatar_cache: Dictionary = {}
 static var _pending_avatar_callbacks: Dictionary = {}
-static var _persona_signal_connected := false
+static var _avatar_signals_connected := false
 
 static func request_avatar_async(steam_id_str: String, on_ready: Callable) -> void:
 	if steam_id_str == "" or not steam_id_str.is_valid_int():
@@ -205,22 +205,50 @@ static func request_avatar_async(steam_id_str: String, on_ready: Callable) -> vo
 		on_ready.call(texture)
 		return
 	var s := steam()
-	if not _persona_signal_connected:
+	if not _avatar_signals_connected:
+		# Deux signaux, parce que l'avatar et les infos de profil n'arrivent pas
+		# forcément dans le même ordre : `avatar_loaded` livre directement les
+		# pixels (réponse à getPlayerAvatar), `persona_state_change` signale que
+		# Steam a fini de récupérer le profil — l'avatar est alors souvent
+		# devenu lisible dans le cache local. Le premier des deux qui aboutit
+		# sert la callback, l'autre ne trouve plus rien en attente.
+		s.connect("avatar_loaded", _on_avatar_loaded)
 		s.connect("persona_state_change", _on_persona_state_change)
-		_persona_signal_connected = true
+		_avatar_signals_connected = true
 	if not _pending_avatar_callbacks.has(steam_id_str):
 		_pending_avatar_callbacks[steam_id_str] = []
+		# requestUserInformation seul ne suffit PAS à obtenir une image : il
+		# remplit le profil (pseudo, et avatar si bRequireNameOnly == false),
+		# mais c'est getPlayerAvatar qui demande explicitement le téléchargement
+		# et répond par `avatar_loaded`. Les deux sont nécessaires pour un
+		# joueur que le client Steam n'a jamais vu (ami Wyrdane non-ami Steam,
+		# ligne de classement) — c'est l'absence du second qui laissait ces
+		# avatars vides jusqu'au 2026-10-30, le signal attendu
+		# (`persona_state_change`) n'étant de toute façon pas celui du
+		# chargement d'image.
 		s.requestUserInformation(id, false)
+		s.getPlayerAvatar(s.AVATAR_MEDIUM, id)
 	_pending_avatar_callbacks[steam_id_str].append(on_ready)
 
+# Réponse à getPlayerAvatar : `data` porte directement les pixels RGBA d'une
+# image carrée de `size` côtés, pas besoin de repasser par getImageRGBA.
+static func _on_avatar_loaded(steam_id: int, size: int, data: PackedByteArray) -> void:
+	if size <= 0 or data.is_empty():
+		return
+	var image := Image.create_from_data(size, size, false, Image.FORMAT_RGBA8, data)
+	_deliver_avatar(str(steam_id), ImageTexture.create_from_image(image))
+
 static func _on_persona_state_change(steam_id: int, _flags: int) -> void:
-	var key := str(steam_id)
-	if not _pending_avatar_callbacks.has(key):
+	if not _pending_avatar_callbacks.has(str(steam_id)):
 		return
 	var texture := _build_avatar_texture(steam_id)
-	if texture == null:
-		return
+	if texture != null:
+		_deliver_avatar(str(steam_id), texture)
+
+static func _deliver_avatar(key: String, texture: ImageTexture) -> void:
 	_avatar_cache[key] = texture
+	if not _pending_avatar_callbacks.has(key):
+		return
 	var callbacks: Array = _pending_avatar_callbacks[key]
 	_pending_avatar_callbacks.erase(key)
 	for cb in callbacks:

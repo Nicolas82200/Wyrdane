@@ -140,7 +140,13 @@ static func apply_expanded(menu) -> void:
 		if child.has_meta("details"):
 			(child.get_meta("details") as Control).visible = expanded
 		if child.has_meta("avatar"):
-			(child.get_meta("avatar") as Control).custom_minimum_size = Vector2(avatar_size, avatar_size)
+			var avatar := child.get_meta("avatar") as Control
+			avatar.custom_minimum_size = Vector2(avatar_size, avatar_size)
+			# Replié, l'avatar est seul sur sa ligne : centré plutôt que collé
+			# au bord gauche (demande utilisateur 2026-10-30).
+			var row_box := avatar.get_parent() as HBoxContainer
+			if row_box != null:
+				row_box.alignment = BoxContainer.ALIGNMENT_BEGIN if expanded else BoxContainer.ALIGNMENT_CENTER
 
 static func _add_section_title(menu, text: String) -> void:
 	var label := Label.new()
