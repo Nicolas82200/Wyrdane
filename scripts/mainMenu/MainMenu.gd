@@ -484,6 +484,7 @@ func _ready() -> void:
 		# Même logique : le bouton Retour de SettingsMenu (voir
 		# SettingsMenu.close) ne fait que se cacher lui-même.
 		settings_menu.close_x_button.pressed.connect(func(): _show_info_view(InfoView.NEWS))
+		_style_settings_back_button()
 	offline_banner.hide()
 	offline_banner_close.set_meta("no_click_sound", true)
 	offline_banner_close.pressed.connect(offline_banner.hide)
@@ -567,6 +568,24 @@ func _fade_in_button_group(buttons: Array, extra_delay: float = 0.0) -> void:
 # Léger "pop" d'échelle au survol des boutons de nav et du dock, en plus du
 # changement de couleur déjà géré par le thème/StyleBox — renforce le retour
 # visuel sans toucher au style existant.
+# Le bouton Retour des Paramètres vit dans SettingsMenu.tscn, qui n'a pas
+# accès aux StyleBox du dock (sous-ressources de MainMenu.tscn) : il gardait
+# donc l'habillage par défaut du thème, visiblement différent des « ← Retour »
+# de toutes les autres vues. On lui recopie l'habillage exact de celui du
+# Profil plutôt que de dupliquer les StyleBox dans une seconde scène.
+func _style_settings_back_button() -> void:
+	var target: Button = settings_menu.close_x_button
+	for state in ["normal", "pressed", "hover"]:
+		var box := profile_back_button.get_theme_stylebox(state)
+		if box != null:
+			target.add_theme_stylebox_override(state, box)
+	var font := profile_back_button.get_theme_font("font")
+	if font != null:
+		target.add_theme_font_override("font", font)
+	target.add_theme_font_size_override("font_size", Typography.BODY)
+	target.custom_minimum_size = profile_back_button.custom_minimum_size
+	target.size_flags_vertical = profile_back_button.size_flags_vertical
+
 func _wire_nav_hover_pop() -> void:
 	_wire_hover_pop_group(main_nav_view.get_children())
 	_wire_hover_pop_group(settings_button.get_parent().get_children())
