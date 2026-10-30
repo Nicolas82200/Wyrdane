@@ -162,6 +162,23 @@ static func _populate_stats(menu, data: Dictionary) -> void:
 	var date_str := created_at.substr(0, 10) if created_at.length() >= 10 else SettingsManager.t("PROFILE_UNAVAILABLE")
 	menu.profile_member_since_label.text = SettingsManager.t("PROFILE_MEMBER_SINCE") % date_str
 
+	# Niveau de compte : `%AccountLevelLabel` et consorts vivent dans la vue
+	# Profil et étaient jusqu'ici TOUJOURS remplis depuis LevelManager, donc
+	# avec le niveau du joueur LOCAL — y compris en consultant le profil d'un
+	# ami, qui paraissait donc avoir exactement le même niveau que soi.
+	# GET /api/profile/:userId renvoie son vrai niveau (voir profileModel.ts).
+	if menu._profile_target_user_id >= 0:
+		var lvl: Dictionary = data.get("level", {}) if data.get("level") is Dictionary else {}
+		var xp := int(lvl.get("xp", 0))
+		var xp_to_next := int(lvl.get("xpToNext", 0))
+		menu.account_level_label.text = SettingsManager.t("ACCOUNT_LEVEL_LABEL") % int(lvl.get("level", 1))
+		menu.account_level_xp_label.text = SettingsManager.t("ACCOUNT_LEVEL_XP_LABEL") % [xp, xp_to_next]
+		menu.account_level_bar.value = float(xp) / float(xp_to_next) * 100.0 if xp_to_next > 0 else 0.0
+	else:
+		# Profil local : réécrit depuis LevelManager, pour effacer le niveau
+		# d'un ami qu'on viendrait de consulter.
+		menu._update_account_level_display()
+
 	var collection_count := int(data.get("collection_count", 0))
 	menu.profile_collection_label.text = SettingsManager.t("PROFILE_COLLECTION_COUNT") % collection_count
 
