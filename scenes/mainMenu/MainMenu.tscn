@@ -327,6 +327,8 @@ alignment = 2
 
 [node name="CurrencyLabel" type="Label" parent="TopRightRow" unique_id=1028000175]
 layout_mode = 2
+mouse_filter = 0
+mouse_default_cursor_shape = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
@@ -336,14 +338,16 @@ text = "0"
 [node name="CurrencyIcon" type="TextureRect" parent="TopRightRow" unique_id=1028000176]
 custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
+mouse_filter = 0
+mouse_default_cursor_shape = 2
 size_flags_vertical = 4
 texture = ExtResource("14_goldicon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="PacksPillButton" type="Button" parent="TopRightRow" unique_id=1028000106]
-visible = false
 layout_mode = 2
+mouse_default_cursor_shape = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
@@ -677,6 +681,14 @@ theme_override_fonts/font = ExtResource("3_xwq4k")
 theme_override_font_sizes/font_size = 23
 horizontal_alignment = 1
 text = "-"
+
+[node name="HomeAccountButton" type="Button" parent="InfoPanel/InfoMargin/ViewsRoot/NewsView/HomeAccountBar" unique_id=1028000190]
+layout_mode = 2
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_transparent")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_transparent")
 
 [node name="DeckCompositionView" type="VBoxContainer" parent="InfoPanel/InfoMargin/ViewsRoot" unique_id=896260862]
 visible = false

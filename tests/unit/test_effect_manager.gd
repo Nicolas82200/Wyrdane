@@ -918,6 +918,28 @@ func test_grant_keyword_adjacent_only_affects_neighbors() -> void:
 	assert_true(right.has_keyword(Keyword.Type.TAUNT))
 	assert_false(far.has_keyword(Keyword.Type.TAUNT))
 
+# Voix-Sous-la-Peau : CHAIR ADAPTATIVE ne se résout qu'à l'arrivée, donc
+# l'accorder à un serviteur DÉJÀ en jeu doit déclencher la copie sur le champ —
+# sans ça le mot-clé serait posé mais resterait inerte, et la carte ne ferait
+# visiblement rien.
+func test_grant_keyword_adjacent_resolves_chair_adaptative_immediately() -> void:
+	var left := _minion(2, 4, true)
+	var source := _minion(2, 4, true)
+	var right := _minion(2, 4, true)
+	var far := _minion(2, 4, true)
+	var donor := _minion(2, 4, false)
+	donor.add_keyword(Keyword.Type.TAUNT)
+	var effect := _effect("GrantKeywordAdjacent", "Self")
+	effect.granted_keyword = "CHAIR_ADAPTATIVE"
+	effect.granted_keyword_is_abomination = true
+	await effect_manager.execute_effect(battle, source, effect)
+	assert_true(left.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE))
+	assert_true(right.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE))
+	assert_true(left.has_keyword(Keyword.Type.TAUNT), "la copie doit être résolue tout de suite, pas seulement le mot-clé posé")
+	assert_true(right.has_keyword(Keyword.Type.TAUNT))
+	assert_false(far.has_abomination_keyword(KeywordAbomination.Type.CHAIR_ADAPTATIVE))
+	assert_false(far.has_keyword(Keyword.Type.TAUNT))
+
 # ─── AbsorbAdjacentStats ─────────────────────────────────────────────────────
 
 func test_absorb_adjacent_stats_sacrifices_target_and_buffs_neighbor() -> void:
