@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://bh2v8er86udpn"]
 
 [ext_resource type="Script" uid="uid://pkd71kg4dn1s" path="res://scripts/card/Card.gd" id="1_7d3tr"]
-[ext_resource type="FontFile" uid="uid://bspctrlbld002" path="res://assets/fonts/Spectral-Bold.ttf" id="3_wcykg"]
-[ext_resource type="FontFile" uid="uid://bspctrlreg001" path="res://assets/fonts/Spectral-Regular.ttf" id="4_wcykg"]
+[ext_resource type="FontFile" uid="uid://c6ta1tbu0oeb6" path="res://assets/fonts/Cinzel-Black.otf" id="3_wcykg"]
+[ext_resource type="FontFile" uid="uid://cthx272rbm3cd" path="res://assets/fonts/CrimsonText-SemiBold.ttf" id="4_wcykg"]
+[ext_resource type="FontFile" uid="uid://djsbvcl0lri5c" path="res://assets/fonts/Cinzel-Bold.otf" id="5_1oahe"]
 [ext_resource type="Texture2D" uid="uid://x7hxg5iwuva" path="res://assets/borders/demon-border-card.png" id="6_u4wdl"]
-[ext_resource type="FontFile" uid="uid://bspctrlitl003" path="res://assets/fonts/Spectral-Italic.ttf" id="12_italicfont"]
-[ext_resource type="FontFile" uid="uid://bspctrlbdi004" path="res://assets/fonts/Spectral-BoldItalic.ttf" id="13_bolditalicfont"]
+[ext_resource type="FontFile" uid="uid://db6wkhcvc0gr6" path="res://assets/fonts/CrimsonText-Bold.ttf" id="7_boldfont"]
+[ext_resource type="FontFile" uid="uid://blcle0h87knxw" path="res://assets/fonts/CrimsonText-SemiBoldItalic.ttf" id="12_italicfont"]
 [ext_resource type="Texture2D" path="res://assets/icons/fleshy-mass.svg" id="8_resicon_undead"]
 [ext_resource type="Texture2D" path="res://assets/icons/wax-seal.svg" id="9_resicon_human"]
 [ext_resource type="Texture2D" path="res://assets/icons/soul.svg" id="10_resicon_demon"]
@@ -219,19 +220,16 @@ offset_right = 235.0
 offset_bottom = 328.5
 theme_override_colors/default_color = Color(1, 1, 1, 1)
 theme_override_fonts/normal_font = ExtResource("4_wcykg")
-theme_override_fonts/bold_font = ExtResource("3_wcykg")
+theme_override_fonts/bold_font = ExtResource("7_boldfont")
 theme_override_fonts/italics_font = ExtResource("12_italicfont")
-theme_override_fonts/bold_italics_font = ExtResource("13_bolditalicfont")
 theme_override_font_sizes/normal_font_size = 17
 theme_override_font_sizes/bold_font_size = 17
-theme_override_font_sizes/italics_font_size = 17
+theme_override_font_sizes/italics_font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_wcykg")
 bbcode_enabled = true
 text = "Soldat squellette, plus bas que bas dans ce monde"
 fit_content = true
 scroll_active = false
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="AttackLabel" type="Label" parent="." unique_id=1445587069]
 custom_minimum_size = Vector2(40, 30)
@@ -241,7 +239,7 @@ offset_top = 330.0
 offset_right = 75.0
 offset_bottom = 364.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("3_wcykg")
+theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_83o6g")
 horizontal_alignment = 1
@@ -255,7 +253,7 @@ offset_top = 330.0
 offset_right = 215.0
 offset_bottom = 364.0
 theme_override_colors/font_color = Color(0.82606, 0.82606006, 0.82606, 0.85490197)
-theme_override_fonts/font = ExtResource("3_wcykg")
+theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 29
 theme_override_styles/normal = SubResource("StyleBoxFlat_4cxr5")
 horizontal_alignment = 1
@@ -290,7 +288,7 @@ offset_right = 60.0
 offset_bottom = 8.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_fonts/font = ExtResource("3_wcykg")
+theme_override_fonts/font = ExtResource("5_1oahe")
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
