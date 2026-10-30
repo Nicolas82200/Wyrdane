@@ -793,8 +793,10 @@ func _select_shop_tab(tab: ShopTab) -> void:
 	shop_packs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.PACKS else Color.WHITE
 	shop_card_backs_tab_button.self_modulate = NAV_ACTIVE_TINT if tab == ShopTab.CARD_BACKS else Color.WHITE
 	if tab == ShopTab.PACKS:
-		# Reconstruit à chaque affichage pour refléter le solde d'or à jour.
-		ShopBuyPacksPanel.build_into(shop_buy_packs_section, func(): _select_shop_tab(ShopTab.PACKS))
+		# Pas de reconstruction après achat (le solde est affiché en haut à
+		# droite de l'écran, pas dans le panneau) : la rebâtir ramènerait le
+		# carrousel sur le pack multirace à chaque achat.
+		ShopBuyPacksPanel.build_into(shop_buy_packs_section)
 	elif tab == ShopTab.CARD_BACKS:
 		# Reconstruit à chaque affichage pour refléter la sélection courante.
 		ShopCardBacksPanel.build_into(shop_card_backs_section, func(): _select_shop_tab(ShopTab.CARD_BACKS))
@@ -813,8 +815,8 @@ func _open_collection_view() -> void:
 ## pack cliqué, voir PackShop.open_owned) — le pack lui-même se désactive
 ## dès le clic (voir ShopCollectionPanel._make_pack_input_handler) pour
 ## éviter un double déclenchement pendant la révélation.
-func _open_owned_packs_flow(quantity: int, pack_image: Control) -> void:
-	pack_shop.open_owned(quantity, pack_image)
+func _open_owned_packs_flow(quantity: int, pack_image: Control, race: String) -> void:
+	pack_shop.open_owned(quantity, pack_image, race)
 
 ## Renvoie vers l'onglet "Packs" de la Boutique (bouton "Acheter des packs"
 ## de la vue Collection).

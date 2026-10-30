@@ -18,6 +18,7 @@ const RACE_ACCENTS := {
 	Race.Type.DEMON:  Color(0.78, 0.22, 0.25, 1),
 	Race.Type.ELF:    Color(0.30, 0.65, 0.55, 1),
 	Race.Type.DWARF:  Color(0.62, 0.42, 0.24, 1),
+	Race.Type.ABOMINATION: Color(0.55, 0.35, 0.72, 1),
 }
 const NEUTRAL_ACCENT := Color(0.4, 0.35, 0.25, 1)
 

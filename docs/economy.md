@@ -15,7 +15,7 @@ Chaque valeur de ce document existe à **un seul endroit** dans le code, indiqu�
 | **Or** (monnaie molle) | `users.soft_currency`, ledger `currency_ledger` | connexion, quêtes, niveaux, poussière | packs, achat de cartes à l'unité |
 | **Packs en stock** | `users.free_packs` | quêtes, niveaux, parrainage, achat avec de l'or | ouverts un par un (`POST /api/packs/open-owned`) |
 
-Le stock de packs ne distingue pas l'origine d'un pack une fois crédité : un pack acheté et un pack gagné sont le même compteur.
+Le stock de packs ne distingue pas l'origine d'un pack une fois crédité : un pack acheté et un pack gagné sont le même compteur. Il distingue en revanche **la race du pack** : 5 stocks séparés (multirace + une par race implémentée), tous au même prix `PACK_COST` — un pack de race tire uniquement dans sa race. Toutes les sources gratuites (quêtes, niveaux, parrainage, tutoriel) créditent du multirace. Voir `docs/backend-contracts/race-packs.md`.
 
 **Le solo ne rapporte rien** depuis le 2026-08-26 : ni or, ni XP. Il fait toutefois progresser les quêtes.
 
