@@ -15,12 +15,20 @@ class_name PackCarousel
 
 signal selection_changed(race: String)
 
-const SLOT_STEP := 185.0
 # Échelle du pack central, puis facteur appliqué par cran d'éloignement :
 # 1 / 0.72 / 0.52, ce qui donne les trois tailles de la maquette.
 const CENTER_SCALE := 1.0
 const SIDE_FALLOFF := 0.72
-const PACK_SIZE := Vector2(190, 285)
+# Ratio largeur/hauteur du dos de carte (980x1441).
+const PACK_ASPECT := 0.68
+# Écart entre deux packs voisins, en fraction de la largeur d'un pack : juste
+# assez pour que le pack central (0.5) et son voisin (0.36 à l'échelle 0.72)
+# ne se chevauchent pas.
+const STEP_RATIO := 0.95
+# Largeur totale occupée par les 5 packs, en largeurs de pack :
+# 4 écarts plus la moitié des deux packs extérieurs.
+const SPAN_RATIO := 4.0 * STEP_RATIO + SIDE_FALLOFF * SIDE_FALLOFF
+const MIN_HEIGHT := 320.0
 const ROTATE_DURATION := 0.35
 const PACK_BACK_TEXTURE := "res://assets/card_back/card-back.png"
 
@@ -31,7 +39,9 @@ var _slots: Array[Control] = []
 var _tween: Tween = null
 
 func _init() -> void:
-	custom_minimum_size = Vector2(SLOT_STEP * 4.0 + PACK_SIZE.x, PACK_SIZE.y + 40.0)
+	# Pas de largeur minimale : les packs se dimensionnent sur la place
+	# réellement disponible (voir _pack_size), le carrousel prend tout.
+	custom_minimum_size = Vector2(0, MIN_HEIGHT)
 	clip_contents = true
 
 ## Construit un emplacement par race de `races` et centre le carrousel sur
@@ -82,6 +92,13 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_layout()
 
+## Taille du pack central : la plus grande qui tienne à la fois en hauteur
+## (le pack central occupe toute la hauteur disponible) et en largeur (les 5
+## packs, écarts compris, doivent rentrer dans le carrousel).
+func _pack_size() -> Vector2:
+	var width: float = minf(size.y * PACK_ASPECT, size.x / SPAN_RATIO)
+	return Vector2(width, width / PACK_ASPECT)
+
 ## Place chaque emplacement selon sa distance (flottante, donc continue
 ## pendant l'animation) au centre du carrousel.
 func _layout() -> void:
@@ -89,35 +106,35 @@ func _layout() -> void:
 		return
 	var count: int = _slots.size()
 	var center: Vector2 = size / 2.0
+	var pack_size: Vector2 = _pack_size()
+	var step: float = pack_size.x * STEP_RATIO
 	for i in count:
 		var slot: Control = _slots[i]
 		var d: float = fposmod(float(i) - _offset + count / 2.0, float(count)) - count / 2.0
 		var factor: float = CENTER_SCALE * pow(SIDE_FALLOFF, absf(d))
+		slot.size = pack_size
 		slot.scale = Vector2.ONE * factor
-		slot.position = center + Vector2(d * SLOT_STEP, 0.0) - PACK_SIZE * factor / 2.0
+		slot.position = center + Vector2(d * step, 0.0) - pack_size * factor / 2.0
 		# Le pack central doit passer par-dessus ses voisins, eux-mêmes
 		# par-dessus les suivants.
 		slot.z_index = count - int(round(absf(d)))
 		slot.modulate.a = 1.0 if absf(d) < 2.5 else 0.0
 
+## Un emplacement du carrousel : le cadre coloré de la race, contenant le dos
+## de pack. Sa taille et son échelle sont posées par _layout (le pack suit la
+## place disponible), son pivot reste en haut à gauche pour que `position`
+## désigne directement son coin visuel quelle que soit l'échelle.
 func _make_slot(race: String, index: int) -> Control:
-	var slot := Control.new()
+	var slot := PanelContainer.new()
 	slot.name = "PackSlot" + race
-	slot.size = PACK_SIZE
 	slot.pivot_offset = Vector2.ZERO
-	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var frame := PanelContainer.new()
-	frame.name = "PackFrame"
-	frame.size = PACK_SIZE
-	frame.mouse_filter = Control.MOUSE_FILTER_STOP
-	frame.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	frame.add_theme_stylebox_override("panel", _make_frame_style(race))
-	frame.gui_input.connect(func(event: InputEvent):
+	slot.mouse_filter = Control.MOUSE_FILTER_STOP
+	slot.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	slot.add_theme_stylebox_override("panel", _make_frame_style(race))
+	slot.gui_input.connect(func(event: InputEvent):
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			select(index)
 	)
-	slot.add_child(frame)
 
 	var image := TextureRect.new()
 	image.name = "PackImage"
@@ -128,7 +145,7 @@ func _make_slot(race: String, index: int) -> Control:
 	# Teinte de race, appliquée en multiplicatif clair sur le dos générique :
 	# pas d'illustration dédiée par race pour l'instant.
 	image.modulate = accent_for(race).lerp(Color.WHITE, 0.45)
-	frame.add_child(image)
+	slot.add_child(image)
 	return slot
 
 func _make_frame_style(race: String) -> StyleBoxFlat:
