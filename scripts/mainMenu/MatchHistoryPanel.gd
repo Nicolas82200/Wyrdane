@@ -135,7 +135,7 @@ static func _make_row(entry: Dictionary, viewed_user_id: int) -> PanelContainer:
 	if not viewing_friend:
 		var mmr_change: int = int(entry.get("mmr_change", 0))
 		var mmr_label := Label.new()
-		mmr_label.text = SettingsManager.t("MATCH_HISTORY_MMR_GAIN" if mmr_change >= 0 else "MATCH_HISTORY_MMR_LOSS") % mmr_change
+		mmr_label.text = SettingsManager.t("MATCH_HISTORY_POINTS_GAIN" if mmr_change >= 0 else "MATCH_HISTORY_POINTS_LOSS") % mmr_change
 		mmr_label.add_theme_font_size_override("font_size", Typography.MICRO)
 		mmr_label.add_theme_color_override("font_color", COLOR_MMR_GAIN if mmr_change >= 0 else COLOR_MMR_LOSS)
 		bottom_row.add_child(mmr_label)
