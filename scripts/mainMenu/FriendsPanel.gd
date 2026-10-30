@@ -36,6 +36,18 @@ static func open(menu) -> void:
 static func close(menu) -> void:
 	menu.set_nav_expanded(false)
 
+# Le « + » en regard du titre « Contacts » ouvre/ferme la recherche de
+# NOUVEAUX joueurs (GET /api/friends/search). Le champ du bas, lui, ne touche
+# jamais au réseau : il filtre les contacts déjà chargés (voir render).
+static func toggle_add_form(menu) -> void:
+	menu.friends_search_row.visible = not menu.friends_search_row.visible
+	if menu.friends_search_row.visible:
+		menu.friends_search_line_edit.grab_focus()
+	else:
+		menu.friends_search_line_edit.text = ""
+		menu.friends_search_results = []
+		render(menu)
+
 static func fetch(menu) -> void:
 	# Synchronise d'abord les amis Steam (le backend les ajoute directement en
 	# amis Wyrdane "acceptés", voir BackendClient.resolve_steam_friends —
@@ -106,8 +118,10 @@ static func render(menu) -> void:
 			if req is Dictionary:
 				menu.friends_body.add_child(_make_request_row(menu, req))
 
-	_add_section_title(menu, SettingsManager.t("FRIENDS_LIST_TITLE"))
-	if menu.friends_cache.is_empty():
+	# Plus de titre de section « Mes amis » : l'en-tête « Contacts » du rail
+	# le dit déjà (demande utilisateur 2026-10-30).
+	var visible_friends := _filtered_friends(menu)
+	if visible_friends.is_empty():
 		var empty_label := Label.new()
 		empty_label.text = SettingsManager.t("FRIENDS_LIST_EMPTY")
 		empty_label.autowrap_mode = TextServer.AUTOWRAP_WORD
@@ -115,11 +129,23 @@ static func render(menu) -> void:
 		empty_label.set_meta(EXPANDED_ONLY, true)
 		menu.friends_body.add_child(empty_label)
 	else:
-		for friend in menu.friends_cache:
-			if friend is Dictionary:
-				menu.friends_body.add_child(_make_friend_row(menu, friend))
+		for friend in visible_friends:
+			menu.friends_body.add_child(_make_friend_row(menu, friend))
 
 	apply_expanded(menu)
+
+# Filtre purement local sur le pseudo (champ du bas du rail) : chercher un
+# contact DANS sa liste, sans aller-retour réseau — contrairement au « + »,
+# qui cherche des joueurs qu'on n'a pas encore ajoutés.
+static func _filtered_friends(menu) -> Array:
+	var needle: String = menu.friends_filter_line_edit.text.strip_edges().to_lower()
+	var out: Array = []
+	for friend in menu.friends_cache:
+		if not friend is Dictionary:
+			continue
+		if needle == "" or needle in str(friend.get("username", "")).to_lower():
+			out.append(friend)
+	return out
 
 # Deux tailles d'avatar, calées sur la maquette utilisateur (2026-10-28) :
 # replié l'avatar occupe presque toute la largeur du rail (c'est le seul

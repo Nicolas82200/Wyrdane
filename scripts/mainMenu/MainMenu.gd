@@ -109,8 +109,11 @@ const CUSTOM_DIFFICULTY_LABEL_KEYS := {
 @onready var chat_badge_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/ChatButton/ChatBadge/ChatBadgeLabel
 
 @onready var nav_panel: PanelContainer = $NavPanel
-@onready var friends_title_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsTitleLabel
+@onready var friends_title_label: Label = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsHeaderRow/FriendsTitleLabel
+@onready var friends_add_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsHeaderRow/FriendsAddButton
 @onready var friends_search_row: HBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow
+@onready var friends_filter_row: HBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsFilterRow
+@onready var friends_filter_line_edit: LineEdit = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsFilterRow/FriendsFilterLineEdit
 @onready var friends_search_line_edit: LineEdit = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow/FriendsSearchLineEdit
 @onready var friends_search_button: Button = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsSearchRow/FriendsSearchButton
 @onready var friends_body: VBoxContainer = $NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll/FriendsBodyVBox
@@ -397,6 +400,11 @@ func _ready() -> void:
 	# de récompenses de niveau plutôt que le profil — voir gui_input ci-dessous.
 	profile_button.gui_input.connect(_on_player_status_gui_input)
 	friends_search_button.pressed.connect(func(): FriendsPanel.search(self))
+	# « + » : révèle/referme la recherche de NOUVEAUX joueurs (ajout d'un
+	# contact). À ne pas confondre avec le champ du bas, qui filtre les
+	# contacts déjà dans la liste (demande utilisateur 2026-10-30).
+	friends_add_button.pressed.connect(func(): FriendsPanel.toggle_add_form(self))
+	friends_filter_line_edit.text_changed.connect(func(_text): FriendsPanel.render(self))
 	friends_search_line_edit.text_submitted.connect(func(_text): FriendsPanel.search(self))
 	chat_button.pressed.connect(func():
 		_show_info_view(InfoView.CHAT)
@@ -762,9 +770,14 @@ func set_nav_expanded(expanded: bool) -> void:
 # du joueur, libellé du bouton Chat, en-tête et recherche d'amis.
 func _apply_nav_expanded() -> void:
 	player_info_col.visible = nav_expanded
+	# Le titre « Contacts » reste lisible même rail replié (demande
+	# utilisateur) — seuls le bouton « + », le formulaire d'ajout et le filtre
+	# disparaissent, faute de place.
+	friends_add_button.visible = nav_expanded
+	friends_filter_row.visible = nav_expanded
+	if not nav_expanded:
+		friends_search_row.visible = false
 	chat_button.text = SettingsManager.t("MENU_CHAT_NAV_BUTTON") if nav_expanded else "💬"
-	friends_title_label.visible = nav_expanded
-	friends_search_row.visible = nav_expanded
 	FriendsPanel.apply_expanded(self)
 
 # --- Chat (voir ChatPanel.gd) -------------------------------------------
@@ -1528,6 +1541,8 @@ func _retranslate() -> void:
 	friends_title_label.text = SettingsManager.t("FRIENDS_TITLE")
 	friends_search_button.text = SettingsManager.t("FRIENDS_SEARCH_BUTTON")
 	friends_search_line_edit.placeholder_text = SettingsManager.t("FRIENDS_SEARCH_PLACEHOLDER")
+	friends_filter_line_edit.placeholder_text = SettingsManager.t("FRIENDS_FILTER_PLACEHOLDER")
+	friends_add_button.tooltip_text = SettingsManager.t("FRIENDS_ADD_TOOLTIP")
 	# Libellé du bouton Chat : dépend de l'état replié/déplié du rail.
 	_apply_nav_expanded()
 	chat_title_label.text = SettingsManager.t("CHAT_TITLE")

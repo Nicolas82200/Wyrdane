@@ -2042,23 +2042,29 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_transparent")
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000011]
+[node name="FriendsHeaderRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000186]
 layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll" unique_id=1028000012]
-layout_mode = 2
-size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000007]
-visible = false
+[node name="FriendsTitleLabel" type="Label" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsHeaderRow" unique_id=1028000007]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+clip_text = true
 theme_override_colors/font_color = Color(0.91, 0.835, 0.639, 1)
 theme_override_fonts/font = ExtResource("3_xwq4k")
-theme_override_font_sizes/font_size = 23
-text = "Amis"
+theme_override_font_sizes/font_size = 19
+text = "Contacts"
+
+[node name="FriendsAddButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsHeaderRow" unique_id=1028000187]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("StyleBoxFlat_dock_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dock_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dock_hover")
+text = "+"
 
 [node name="FriendsSearchRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000008]
 visible = false
@@ -2074,6 +2080,25 @@ placeholder_text = "Pseudo..."
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Chercher"
+
+[node name="FriendsScroll" type="ScrollContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000011]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FriendsBodyVBox" type="VBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsScroll" unique_id=1028000012]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="FriendsFilterRow" type="HBoxContainer" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail" unique_id=1028000188]
+visible = false
+layout_mode = 2
+
+[node name="FriendsFilterLineEdit" type="LineEdit" parent="NavPanel/NavMargin/NavStack/MainNavView/FriendsStrip/FriendsRail/FriendsFilterRow" unique_id=1028000189]
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Filtrer mes contacts..."
 
 [node name="ChatButton" type="Button" parent="NavPanel/NavMargin/NavStack/MainNavView" unique_id=900000042]
 custom_minimum_size = Vector2(0, 40)
